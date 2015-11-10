@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             return new ReplaceMethodWithPropertyCodeRefactoringProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithGetName()
         {
             Test(
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { int Foo { get { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithoutGetName()
         {
             Test(
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { int Foo { get { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public void TestMethodWithArrowBody()
         {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { int Foo => 0; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithoutBody()
         {
             Test(
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { int Foo { get; } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithModifiers()
         {
             Test(
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { public static int Foo { get { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithAttributes()
         {
             Test(
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C { [A]int Foo { get { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithTrivia_1()
         {
             Test(
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestIfDefMethod()
         {
             Test(
@@ -112,7 +112,7 @@ compareTokens: false);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithTrivia_2()
         {
             Test(
@@ -146,7 +146,7 @@ index: 1,
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestExplicitInterfaceMethod_1()
         {
             Test(
@@ -154,7 +154,7 @@ compareTokens: false);
 @"class C { int I.Foo { get { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestExplicitInterfaceMethod_2()
         {
             Test(
@@ -162,7 +162,7 @@ compareTokens: false);
 @"interface I { int Foo { get; } } class C : I { int I.Foo { get { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestExplicitInterfaceMethod_3()
         {
             Test(
@@ -170,77 +170,77 @@ compareTokens: false);
 @"interface I { int Foo { get; } } class C : I { int I.Foo { get { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestInAttribute()
         {
             TestMissing(
 @"class C { [At[||]tr]int GetFoo() { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestInMethod()
         {
             TestMissing(
 @"class C { int GetFoo() { [||] } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestVoidMethod()
         {
             TestMissing(
 @"class C { void [||]GetFoo() { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestAsyncMethod()
         {
             TestMissing(
 @"class C { async Task [||]GetFoo() { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestGenericMethod()
         {
             TestMissing(
 @"class C { int [||]GetFoo<T>() { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestExtensionMethod()
         {
             TestMissing(
 @"static class C { int [||]GetFoo(this int i) { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithParameters_1()
         {
             TestMissing(
 @"class C { int [||]GetFoo(int i) { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestMethodWithParameters_2()
         {
             TestMissing(
 @"class C { int [||]GetFoo(int i = 0) { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestNotInSignature_1()
         {
             TestMissing(
 @"class C { [At[||]tr]int GetFoo() { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestNotInSignature_2()
         {
             TestMissing(
 @"class C { int GetFoo() { [||] } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetReferenceNotInMethod()
         {
             Test(
@@ -248,7 +248,7 @@ compareTokens: false);
 @"class C { int Foo { get { } } void Bar() { var x = Foo; } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetReferenceSimpleInvocation()
         {
             Test(
@@ -256,7 +256,7 @@ compareTokens: false);
 @"class C { int Foo { get { } } void Bar() { var x = Foo; } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetReferenceMemberAccessInvocation()
         {
             Test(
@@ -264,7 +264,7 @@ compareTokens: false);
 @"class C { int Foo { get { } } void Bar() { var x = this.Foo; } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetReferenceBindingMemberInvocation()
         {
             Test(
@@ -272,7 +272,7 @@ compareTokens: false);
 @"class C { int Foo { get { } } void Bar() { C x; var v = x?.Foo; } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetReferenceInMethod()
         {
             Test(
@@ -280,7 +280,7 @@ compareTokens: false);
 @"class C { int Foo { get { return Foo; } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestOverride()
         {
             Test(
@@ -288,7 +288,7 @@ compareTokens: false);
 @"class C { public virtual int Foo { get { } } } class D : C { public override int Foo { get { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetReference_NonInvoked()
         {
             Test(
@@ -296,7 +296,7 @@ compareTokens: false);
 @"using System; class C { int Foo { get { } } void Bar() { Action<int> i = {|Conflict:Foo|}; } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetReference_ImplicitReference()
         {
             Test(
@@ -304,7 +304,7 @@ compareTokens: false);
 @"using System.Collections; class C { public IEnumerator Enumerator { get { } } void Bar() { {|Conflict:foreach (var x in this) { }|} } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetSet()
         {
             Test(
@@ -313,7 +313,7 @@ compareTokens: false);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetSetReference_NonInvoked()
         {
             Test(
@@ -322,7 +322,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetSet_SetterAccessibility()
         {
             Test(
@@ -331,7 +331,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetSet_ExpressionBodies()
         {
             Test(
@@ -340,7 +340,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetSet_GetInSetReference()
         {
             Test(
@@ -349,7 +349,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetSet_UpdateSetParameterName_1()
         {
             Test(
@@ -358,7 +358,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetSet_UpdateSetParameterName_2()
         {
             Test(
@@ -367,7 +367,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestUpdateGetSet_SetReferenceInSetter()
         {
             Test(
@@ -376,7 +376,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestVirtualGetWithOverride_1()
         {
             Test(
@@ -385,7 +385,7 @@ index: 1);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestVirtualGetWithOverride_2()
         {
             Test(
@@ -394,7 +394,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestGetWithInterface()
         {
             Test(
@@ -403,7 +403,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public void TestWithPartialClasses()
         {
             Test(
