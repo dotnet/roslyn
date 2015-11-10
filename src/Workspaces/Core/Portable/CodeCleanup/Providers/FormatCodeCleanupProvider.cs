@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             return await Formatter.FormatAsync(document, spans, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
             // If the old text already exists, use the fast path for formatting.
             SourceText oldText;
             if (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out oldText))
             {
-                var changes = Formatter.GetFormattedTextChanges(root, spans, workspace, cancellationToken: cancellationToken);
+                var changes = await Formatter.GetFormattedTextChangesAsync(root, spans, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 if (changes.Count == 0)
                 {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 return root.SyntaxTree.WithChangedText(oldText.WithChanges(changes)).GetRoot(cancellationToken);
             }
 
-            return Formatter.Format(root, spans, workspace, cancellationToken: cancellationToken);
+            return await Formatter.FormatAsync(root, spans, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }

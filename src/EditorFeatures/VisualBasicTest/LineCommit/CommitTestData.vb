@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
@@ -117,13 +118,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 _testWorkspace = testWorkspace
             End Sub
 
-            Public Sub CommitRegion(spanToFormat As SnapshotSpan,
+            Public Async Function CommitRegionAsync(spanToFormat As SnapshotSpan,
                                     isExplicitFormat As Boolean,
                                     useSemantics As Boolean,
                                     dirtyRegion As SnapshotSpan,
                                     baseSnapshot As ITextSnapshot,
                                     baseTree As SyntaxTree,
-                                    cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
+                                    cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
                 GotCommit = True
                 UsedSemantics = useSemantics
 
@@ -136,8 +137,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 End If
 
                 Dim realCommitFormatter As New CommitFormatter()
-                realCommitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
-            End Sub
+                Await realCommitFormatter.CommitRegionAsync(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken).ConfigureAwait(True)
+            End Function
         End Class
     End Class
 End Namespace

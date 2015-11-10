@@ -2,6 +2,7 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -27,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Function GetRewriter(document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As AbstractTokensCodeCleanupProvider.Rewriter
-            Return New FixIncorrectTokensRewriter(document, spans, cancellationToken)
+        Protected Overrides Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+            Return Task.FromResult(Of Rewriter)(New FixIncorrectTokensRewriter(document, spans, cancellationToken))
         End Function
 
         Private Class FixIncorrectTokensRewriter
