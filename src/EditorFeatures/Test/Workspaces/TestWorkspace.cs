@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -203,9 +204,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             base.OnProjectReferenceRemoved(projectId, projectReference);
         }
 
-        public new void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+        public new Task OnDocumentOpenedAsync(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
-            base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
+            return base.OnDocumentOpenedAsync(documentId, textContainer, isCurrentContext);
         }
 
         public void OnDocumentClosed(DocumentId documentId)

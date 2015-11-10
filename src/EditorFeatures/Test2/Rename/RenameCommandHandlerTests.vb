@@ -48,11 +48,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Sub RenameCommandDisabledInSubmission()
+        Public Async Function RenameCommandDisabledInSubmission() As Task
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">  
                         object $$foo;  
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>

@@ -2,6 +2,7 @@
 
 Option Strict Off
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -18,12 +19,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
 
-        Protected Sub Test(definition As XElement,
+        Protected Async Function TestAsync(definition As XElement,
                            Optional expected As String = Nothing,
                            Optional codeActionIndex As Integer = 0,
                            Optional verifyTokens As Boolean = True,
-                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
+                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing) As Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
                 Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(codeActionIndex).Action
                 Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     Next
                 End If
             End Using
-        End Sub
+        End Function
 
         Private Shared Sub Verify(expected As String, verifyTokens As Boolean, updatedDocument As Document)
             Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
@@ -106,12 +107,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         End Function
 
 
-        Protected Sub TestAddProjectReference(xmlDefinition As XElement,
+        Protected Async Function TestAddProjectReferenceAsync(xmlDefinition As XElement,
                                               expectedProjectReferenceFrom As String,
                                               expectedProjectReferenceTo As String,
-                                              Optional index As Integer = 0)
+                                              Optional index As Integer = 0) As Task
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(xmlDefinition)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
                 Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
@@ -123,14 +124,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim projectTo = edit.ChangedSolution.GetProject(addedProjectReference.Item2.ProjectId)
                 Assert.Equal(expectedProjectReferenceTo, projectTo.Name)
             End Using
-        End Sub
+        End Function
 
-        Protected Sub TestAddUnresolvedMetadataReference(xmlDefinition As XElement,
+        Protected Async Function TestAddUnresolvedMetadataReferenceAsync(xmlDefinition As XElement,
                                                          expectedProjectToReceiveReference As String,
                                                          expectedAssemblyIdentity As String,
-                                                         Optional index As Integer = 0)
+                                                         Optional index As Integer = 0) As Task
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(xmlDefinition)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
                 Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
@@ -143,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.Equal(expectedAssemblyIdentity, postOp.AssemblyIdentity.GetDisplayName())
                 Assert.Equal(expectedProjectToReceiveReference, workspace.CurrentSolution.GetProject(postOp.ProjectId).Name)
             End Using
-        End Sub
+        End Function
 
 
         Protected Overridable Function GetNode(doc As Document, position As Integer) As SyntaxNode

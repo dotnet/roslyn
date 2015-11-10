@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -51,24 +53,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string AnalyzerFullPathAttributeName = "FullPath";
         private const string AliasAttributeName = "Alias";
 
-        /// <summary>
-        /// Creates a single buffer in a workspace.
-        /// </summary>
-        /// <param name="content">Lines of text, the buffer contents</param>
         internal static TestWorkspace CreateWorkspaceFromLines(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             params string[] content)
         {
-            var total = content.Join(Environment.NewLine);
-            return CreateWorkspaceFromFiles(language, compilationOptions, parseOptions, total);
+            return CreateWorkspaceFromLinesAsync(language, compilationOptions, parseOptions, content).WaitAndGetResult(CancellationToken.None);
         }
 
         /// <summary>
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="content">Lines of text, the buffer contents</param>
+        internal static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
+            string language,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            params string[] content)
+        {
+            var total = content.Join(Environment.NewLine);
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, total);
+        }
+
         internal static TestWorkspace CreateWorkspaceFromLines(
             string workspaceKind,
             string language,
@@ -76,21 +83,43 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ParseOptions parseOptions,
             params string[] content)
         {
-            var total = content.Join(Environment.NewLine);
-            return CreateWorkspaceFromFiles(workspaceKind, language, compilationOptions, parseOptions, total);
+            return CreateWorkspaceFromLinesAsync(workspaceKind, language, compilationOptions, parseOptions, content).WaitAndGetResult(CancellationToken.None);
         }
 
-        /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
+        /// <summary>
+        /// Creates a single buffer in a workspace.
+        /// </summary>
+        /// <param name="content">Lines of text, the buffer contents</param>
+        internal static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
+            string workspaceKind,
+            string language,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            params string[] content)
+        {
+            var total = content.Join(Environment.NewLine);
+            return CreateWorkspaceFromFilesAsync(workspaceKind, language, compilationOptions, parseOptions, total);
+        }
+
         internal static TestWorkspace CreateWorkspaceFromFiles(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             params string[] files)
         {
-            return CreateWorkspaceFromFiles(language, compilationOptions, parseOptions, files, exportProvider: null);
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files).WaitAndGetResult(CancellationToken.None);
         }
 
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
+        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+            string language,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            params string[] files)
+        {
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files, exportProvider: null);
+        }
+
         internal static TestWorkspace CreateWorkspaceFromFiles(
             string workspaceKind,
             string language,
@@ -98,10 +127,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ParseOptions parseOptions,
             params string[] files)
         {
-            return CreateWorkspaceFromFiles(language, compilationOptions, parseOptions, files, exportProvider: null, workspaceKind: workspaceKind);
+            return CreateWorkspaceFromFilesAsync(workspaceKind, language, compilationOptions, parseOptions, files).WaitAndGetResult(CancellationToken.None);
+        }
+
+        /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
+        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
+            string workspaceKind,
+            string language,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            params string[] files)
+        {
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files, exportProvider: null, workspaceKind: workspaceKind);
         }
 
         internal static TestWorkspace CreateWorkspaceFromFiles(
+            string language,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            string[] files,
+            ExportProvider exportProvider,
+            string[] metadataReferences = null,
+            string workspaceKind = null,
+            string extension = null,
+            bool commonReferences = true)
+        {
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files, exportProvider, metadataReferences, workspaceKind, extension, commonReferences).WaitAndGetResult(CancellationToken.None);
+        }
+
+        internal static async Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
@@ -136,10 +190,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement(compilationOptions?.ModuleName ?? "Test", language, commonReferences, parseOptions, compilationOptions, documentElements));
 
-            return CreateWorkspace(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
+            return await CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind).ConfigureAwait(true);
         }
 
         internal static TestWorkspace CreateWorkspaceFromFiles(
+            string language,
+            CompilationOptions compilationOptions,
+            ParseOptions[] parseOptions,
+            string[] files,
+            ExportProvider exportProvider)
+        {
+            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files, exportProvider).WaitAndGetResult(CancellationToken.None);
+        }
+
+        internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string language,
             CompilationOptions compilationOptions,
             ParseOptions[] parseOptions,
@@ -177,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement("Test", language, true, parseOptions.FirstOrDefault(), compilationOptions, documentElements));
 
-            return CreateWorkspace(workspaceElement, exportProvider: exportProvider);
+            return CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider);
         }
     }
 }
