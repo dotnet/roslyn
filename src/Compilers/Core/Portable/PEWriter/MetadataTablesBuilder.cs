@@ -93,7 +93,7 @@ namespace Microsoft.Cci
         private bool _fieldMarshalTableNeedsSorting;
 
         private readonly List<FieldRvaRow> _fieldRvaTable = new List<FieldRvaRow>();
-        private readonly List<FieldDefRow> _fieldDefTable = new List<FieldDefRow>();
+        private readonly List<FieldDefRow> _fieldTable = new List<FieldDefRow>();
         private readonly List<FileTableRow> _fileTable = new List<FileTableRow>();
         private readonly List<GenericParamConstraintRow> _genericParamConstraintTable = new List<GenericParamConstraintRow>();
         private readonly List<GenericParamRow> _genericParamTable = new List<GenericParamRow>();
@@ -108,7 +108,7 @@ namespace Microsoft.Cci
         private bool _methodSemanticsTableNeedsSorting;
 
         private readonly List<MethodSpecRow> _methodSpecTable = new List<MethodSpecRow>();
-        private readonly List<MethodRow> _methodTable = new List<MethodRow>();
+        private readonly List<MethodRow> _methodDefTable = new List<MethodRow>();
         private readonly List<ModuleRefRow> _moduleRefTable = new List<ModuleRefRow>();
         private readonly List<NestedClassRow> _nestedClassTable = new List<NestedClassRow>();
         private readonly List<ParamRow> _paramTable = new List<ParamRow>();
@@ -129,6 +129,71 @@ namespace Microsoft.Cci
         private readonly List<ImportScopeRow> _importScopeTable = new List<ImportScopeRow>();
         private readonly List<StateMachineMethodRow> _stateMachineMethodTable = new List<StateMachineMethodRow>();
         private readonly List<CustomDebugInformationRow> _customDebugInformationTable = new List<CustomDebugInformationRow>();
+        
+        public void SetCapacity(TableIndex table, int capacity)
+        {
+            switch (table)
+            {
+                case TableIndex.Module:                 _moduleTable.Capacity = capacity; break;
+                case TableIndex.TypeRef:                _typeRefTable.Capacity = capacity; break;
+                case TableIndex.TypeDef:                _typeDefTable.Capacity = capacity; break;
+                case TableIndex.Field:                  _fieldTable.Capacity = capacity; break;
+                case TableIndex.MethodDef:              _methodDefTable.Capacity = capacity; break;
+                case TableIndex.Param:                  _paramTable.Capacity = capacity; break;
+                case TableIndex.InterfaceImpl:          _interfaceImplTable.Capacity = capacity; break;
+                case TableIndex.MemberRef:              _memberRefTable.Capacity = capacity; break;
+                case TableIndex.Constant:               _constantTable.Capacity = capacity; break;
+                case TableIndex.CustomAttribute:        _customAttributeTable.Capacity = capacity; break;
+                case TableIndex.FieldMarshal:           _fieldMarshalTable.Capacity = capacity; break;
+                case TableIndex.DeclSecurity:           _declSecurityTable.Capacity = capacity; break;
+                case TableIndex.ClassLayout:            _classLayoutTable.Capacity = capacity; break;
+                case TableIndex.FieldLayout:            _fieldLayoutTable.Capacity = capacity; break;
+                case TableIndex.StandAloneSig:          _standAloneSigTable.Capacity = capacity; break;
+                case TableIndex.EventMap:               _eventMapTable.Capacity = capacity; break;
+                case TableIndex.Event:                  _eventTable.Capacity = capacity; break;
+                case TableIndex.PropertyMap:            _propertyMapTable.Capacity = capacity; break;
+                case TableIndex.Property:               _propertyTable.Capacity = capacity; break;
+                case TableIndex.MethodSemantics:        _methodSemanticsTable.Capacity = capacity; break;
+                case TableIndex.MethodImpl:             _methodImplTable.Capacity = capacity; break;
+                case TableIndex.ModuleRef:              _moduleRefTable.Capacity = capacity; break;
+                case TableIndex.TypeSpec:               _typeSpecTable.Capacity = capacity; break;
+                case TableIndex.ImplMap:                _implMapTable.Capacity = capacity; break;
+                case TableIndex.FieldRva:               _fieldRvaTable.Capacity = capacity; break;
+                case TableIndex.EncLog:                 _encLogTable.Capacity = capacity; break;
+                case TableIndex.EncMap:                 _encMapTable.Capacity = capacity; break;
+                case TableIndex.Assembly:               _assemblyTable.Capacity = capacity; break;
+                case TableIndex.AssemblyRef:            _assemblyRefTable.Capacity = capacity; break;
+                case TableIndex.File:                   _fileTable.Capacity = capacity; break;
+                case TableIndex.ExportedType:           _exportedTypeTable.Capacity = capacity; break;
+                case TableIndex.ManifestResource:       _manifestResourceTable.Capacity = capacity; break;
+                case TableIndex.NestedClass:            _nestedClassTable.Capacity = capacity; break;
+                case TableIndex.GenericParam:           _genericParamTable.Capacity = capacity; break;
+                case TableIndex.MethodSpec:             _methodSpecTable.Capacity = capacity; break;
+                case TableIndex.GenericParamConstraint: _genericParamConstraintTable.Capacity = capacity; break;
+                case TableIndex.Document:               _documentTable.Capacity = capacity; break;
+                case TableIndex.MethodDebugInformation: _methodDebugInformationTable.Capacity = capacity; break;
+                case TableIndex.LocalScope:             _localScopeTable.Capacity = capacity; break;
+                case TableIndex.LocalVariable:          _localVariableTable.Capacity = capacity; break;
+                case TableIndex.LocalConstant:          _localConstantTable.Capacity = capacity; break;
+                case TableIndex.ImportScope:            _importScopeTable.Capacity = capacity; break;
+                case TableIndex.StateMachineMethod:     _stateMachineMethodTable.Capacity = capacity; break;
+                case TableIndex.CustomDebugInformation: _customDebugInformationTable.Capacity = capacity; break;
+
+                case TableIndex.AssemblyOS:
+                case TableIndex.AssemblyProcessor:
+                case TableIndex.AssemblyRefOS:
+                case TableIndex.AssemblyRefProcessor:
+                case TableIndex.EventPtr:
+                case TableIndex.FieldPtr:
+                case TableIndex.MethodPtr:
+                case TableIndex.ParamPtr:
+                case TableIndex.PropertyPtr:
+                    throw new NotSupportedException();
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(table));
+            }
+        }
 
         #region Building
 
@@ -427,7 +492,7 @@ namespace Microsoft.Cci
             StringIdx name,
             BlobIdx signature)
         {
-            _fieldDefTable.Add(new FieldDefRow
+            _fieldTable.Add(new FieldDefRow
             {
                 Flags = (ushort)attributes,
                 Name = name,
@@ -479,7 +544,7 @@ namespace Microsoft.Cci
             int relativeVirtualAddress,
             int paramList)
         {
-            _methodTable.Add(new MethodRow
+            _methodDefTable.Add(new MethodRow
             {
                 Flags = (ushort)attributes,
                 ImplFlags = (ushort)implAttributes,
@@ -608,7 +673,7 @@ namespace Microsoft.Cci
             });
         }
 
-        public void AddEncMapRow(int token)
+        public void AddEncMapEntry(int token)
         {
             _encMapTable.Add(new EncMapRow
             {
@@ -636,7 +701,7 @@ namespace Microsoft.Cci
             rowCounts[(int)TableIndex.FieldLayout] = _fieldLayoutTable.Count;
             rowCounts[(int)TableIndex.FieldMarshal] = _fieldMarshalTable.Count;
             rowCounts[(int)TableIndex.FieldRva] = _fieldRvaTable.Count;
-            rowCounts[(int)TableIndex.Field] = _fieldDefTable.Count;
+            rowCounts[(int)TableIndex.Field] = _fieldTable.Count;
             rowCounts[(int)TableIndex.File] = _fileTable.Count;
             rowCounts[(int)TableIndex.GenericParamConstraint] = _genericParamConstraintTable.Count;
             rowCounts[(int)TableIndex.GenericParam] = _genericParamTable.Count;
@@ -647,7 +712,7 @@ namespace Microsoft.Cci
             rowCounts[(int)TableIndex.MethodImpl] = _methodImplTable.Count;
             rowCounts[(int)TableIndex.MethodSemantics] = _methodSemanticsTable.Count;
             rowCounts[(int)TableIndex.MethodSpec] = _methodSpecTable.Count;
-            rowCounts[(int)TableIndex.MethodDef] = _methodTable.Count;
+            rowCounts[(int)TableIndex.MethodDef] = _methodDefTable.Count;
             rowCounts[(int)TableIndex.ModuleRef] = _moduleRefTable.Count;
             rowCounts[(int)TableIndex.Module] = 1;
             rowCounts[(int)TableIndex.NestedClass] = _nestedClassTable.Count;
@@ -1034,7 +1099,7 @@ namespace Microsoft.Cci
 
         private void SerializeFieldTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (FieldDefRow fieldDef in _fieldDefTable)
+            foreach (FieldDefRow fieldDef in _fieldTable)
             {
                 writer.WriteUInt16(fieldDef.Flags);
                 writer.WriteReference((uint)heaps.ResolveStringIndex(fieldDef.Name), metadataSizes.StringIndexSize);
@@ -1044,7 +1109,7 @@ namespace Microsoft.Cci
 
         private void SerializeMethodDefTable(BlobBuilder writer, MetadataSizes metadataSizes, int methodBodyStreamRva)
         {
-            foreach (MethodRow method in _methodTable)
+            foreach (MethodRow method in _methodDefTable)
             {
                 if (method.Rva == -1)
                 {
