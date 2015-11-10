@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 return additionalReferenceProvider.GetAdditionalReferencesAsync(document, symbol, cancellationToken);
             }
 
-            return Task.FromResult<IEnumerable<Location>>(SpecializedCollections.EmptyEnumerable<Location>());
+            return Task.FromResult(SpecializedCollections.EmptyEnumerable<Location>());
         }
 
         private async Task<IEnumerable<DocumentHighlights>> CreateSpansAsync(
@@ -247,18 +247,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
         private async Task<ValueTuple<Document, TextSpan>?> GetLocationSpanAsync(Solution solution, Location location, CancellationToken cancellationToken)
         {
-            var tree = location.SourceTree;
+            if (location != null && location.IsInSource)
+            {
+                var tree = location.SourceTree;
 
-            var document = solution.GetDocument(tree);
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var document = solution.GetDocument(tree);
+                var syntaxFacts = document?.Project?.LanguageServices?.GetService<ISyntaxFactsService>();
 
-            // Specify findInsideTrivia: true to ensure that we search within XML doc comments.
-            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(location.SourceSpan.Start, findInsideTrivia: true);
+                if (syntaxFacts != null)
+                {
+                    // Specify findInsideTrivia: true to ensure that we search within XML doc comments.
+                    var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    var token = root.FindToken(location.SourceSpan.Start, findInsideTrivia: true);
 
-            return syntaxFacts.IsGenericName(token.Parent) || syntaxFacts.IsIndexerMemberCRef(token.Parent)
-                ? ValueTuple.Create(document, token.Span)
-                : ValueTuple.Create(document, location.SourceSpan);
+                    return syntaxFacts.IsGenericName(token.Parent) || syntaxFacts.IsIndexerMemberCRef(token.Parent)
+                        ? ValueTuple.Create(document, token.Span)
+                        : ValueTuple.Create(document, location.SourceSpan);
+                }
+            }
+
+            return null;
         }
     }
 }
