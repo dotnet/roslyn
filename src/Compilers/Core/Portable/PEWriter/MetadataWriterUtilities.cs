@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -88,6 +89,21 @@ namespace Microsoft.Cci
             }
 
             throw ExceptionUtilities.UnexpectedValue(val);
+        }
+
+        internal static void SerializeRowCounts(BlobBuilder writer, ImmutableArray<int> rowCounts, ulong includeTables)
+        {
+            for (int i = 0; i < rowCounts.Length; i++)
+            {
+                if (((1UL << i) & includeTables) != 0)
+                {
+                    int rowCount = rowCounts[i];
+                    if (rowCount > 0)
+                    {
+                        writer.WriteInt32(rowCount);
+                    }
+                }
+            }
         }
     }
 }

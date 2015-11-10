@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -35,7 +36,7 @@ namespace Microsoft.Cci
             }
 
             // #~ or #- stream:
-            SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva);
+            tables.SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva);
 
             // #Strings, #US, #Guid and #Blob streams:
             (metadataSizes.IsStandaloneDebugMetadata ? _debugHeapsOpt : heaps).WriteTo(metadataWriter, out guidHeapStartOffset);
@@ -139,7 +140,7 @@ namespace Microsoft.Cci
             writer.WriteUInt32((uint)entryPointToken);
 
             writer.WriteUInt64(metadataSizes.ExternalTablesMask);
-            SerializeRowCounts(writer, metadataSizes.RowCounts, metadataSizes.ExternalTablesMask);
+            MetadataWriterUtilities.SerializeRowCounts(writer, metadataSizes.RowCounts, metadataSizes.ExternalTablesMask);
 
             int endPosition = writer.Position;
             Debug.Assert(metadataSizes.CalculateStandalonePdbStreamSize() == endPosition - startPosition);
