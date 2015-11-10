@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         internal static ForegroundThreadDataKind CreateDefault()
         {
-            ForegroundThreadDataKind kind = SynchronizationContext.Current?.GetType().FullName == "System.Windows.Threading.DispatcherSynchronizationContext"
+            var kind = SynchronizationContext.Current?.GetType().FullName == "System.Windows.Threading.DispatcherSynchronizationContext"
                     ? ForegroundThreadDataKind.Wpf
                     : ForegroundThreadDataKind.Unknown;
 
