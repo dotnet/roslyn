@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public VariableIdentifier(Symbol symbol, int containingSlot = 0)
             {
                 Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Parameter ||
-                    (symbol as MethodSymbol)?.MethodKind == MethodKind.LocalFunction);
+                    (symbol as MethodSymbol)?.MethodKind == MethodKind.LocalFunction ||
+                    (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType));
                 Symbol = symbol;
                 ContainingSlot = containingSlot;
             }

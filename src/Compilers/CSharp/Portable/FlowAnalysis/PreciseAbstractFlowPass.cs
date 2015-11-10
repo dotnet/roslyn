@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
         /// instead.
         /// </summary>
-        private readonly Symbol _member;
+        protected readonly Symbol _member;
 
         /// <summary>
         /// The bound node of the method or initializer being analyzed.
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If we are tracking exceptions, then by convention the first entry in the pending branches
         /// buffer contains a summary of the states that can arise from exceptions.
         /// </summary>
-        private readonly bool _trackExceptions;
+        protected readonly bool _trackExceptions;
 
         /// <summary>
         /// Pending escapes generated in the current scope (or more deeply nested scopes). When jump
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), false);
             VisitRvalue(node.InitializerExpressionOpt);
             if (_trackExceptions) NotePossibleException(node);
             return null;
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
             VisitRvalue(node.ReceiverOpt);
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), false);
             if (_trackExceptions) NotePossibleException(node);
             return null;
         }
@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
         {
             VisitRvalue(node.Expression);
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), false);
             if (_trackExceptions) NotePossibleException(node);
             return null;
         }
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
             // When we have M(__arglist(x, y, z)) we must visit x, y and z.
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), false);
             return null;
         }
 
@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Method);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Method, node.ArgsToParamsOpt, node.Expanded);
             UpdateStateForCall(node);
             VisitReceiverAfterCall(node.ReceiverOpt, node.Method);
 
@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_trackExceptions) NotePossibleException(node);
         }
 
-        private void VisitReceiverBeforeCall(BoundExpression receiverOpt, MethodSymbol method)
+        protected virtual void VisitReceiverBeforeCall(BoundExpression receiverOpt, MethodSymbol method)
         {
             if ((object)method == null || method.MethodKind != MethodKind.Constructor)
             {
@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType;
             if (receiverOpt != null && ((object)method == null || method.MethodKind == MethodKind.Constructor || (object)(containingType = method.ContainingType) != null && !method.IsStatic && !containingType.IsReferenceType && !TypeIsImmutable(containingType)))
             {
-                WriteArgument(receiverOpt, (object)method != null && method.MethodKind == MethodKind.Constructor ? RefKind.Out : RefKind.Ref, method);
+                WriteArgument(receiverOpt, (object)method != null && method.MethodKind == MethodKind.Constructor ? RefKind.Out : RefKind.Ref, method, parameter: null);
             }
         }
 
@@ -1122,9 +1122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
-            VisitRvalue(node.ReceiverOpt);
             var method = node.Indexer.GetOwnOrInheritedGetMethod() ?? node.Indexer.SetMethod;
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method);
+            VisitReceiverBeforeCall(node.ReceiverOpt, method);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
             if (_trackExceptions && (object)method != null) NotePossibleException(node);
             if ((object)method != null) VisitReceiverAfterCall(node.ReceiverOpt, method);
             return null;
@@ -1138,13 +1138,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
             if (refKindsOpt.IsDefault)
             {
                 for (int i = 0; i < arguments.Length; i++)
                 {
-                    VisitRvalue(arguments[i]);
+                    VisitArgumentAsRvalue(arguments, i, method, argsToParamsOpt, expanded);
                 }
             }
             else
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RefKind refKind = refKindsOpt.Length <= i ? RefKind.None : refKindsOpt[i];
                     if (refKind != RefKind.Out)
                     {
-                        VisitRvalue(arguments[i]);
+                        VisitArgumentAsRvalue(arguments, i, method, argsToParamsOpt, expanded);
                     }
                     else
                     {
@@ -1168,13 +1168,80 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RefKind refKind = refKindsOpt.Length <= i ? RefKind.None : refKindsOpt[i];
                     if (refKind != RefKind.None)
                     {
-                        WriteArgument(arguments[i], refKind, method);
+                        WriteArgument(arguments, i, refKind, method, argsToParamsOpt, expanded);
                     }
                 }
             }
         }
 
-        protected virtual void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)
+        private void VisitArgumentAsRvalue(ImmutableArray<BoundExpression> arguments, int i, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        {
+            ParameterSymbol parameter = GetCorrespondingParameter(i, method, argsToParamsOpt, ref expanded);
+            VisitArgumentAsRvalue(arguments[i], parameter, expanded);
+        }
+
+        private static ParameterSymbol GetCorrespondingParameter(int argumentOrdinal, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, ref bool expanded)
+        {
+            ParameterSymbol parameter;
+            if ((object)method != null)
+            {
+                if (argsToParamsOpt.IsDefault)
+                {
+                    if (argumentOrdinal < method.ParameterCount)
+                    {
+                        parameter = method.Parameters[argumentOrdinal];
+                    }
+                    else if (expanded)
+                    {
+                        parameter = method.Parameters[method.ParameterCount - 1];
+                    }
+                    else
+                    {
+                        parameter = null;
+                    }
+                }
+                else
+                {
+                    int parameterOrdinal = argsToParamsOpt[argumentOrdinal];
+
+                    if (parameterOrdinal < method.ParameterCount)
+                    {
+                        parameter = method.Parameters[parameterOrdinal];
+                    }
+                    else
+                    {
+                        parameter = null;
+                        expanded = false;
+                    }
+                }
+
+                Debug.Assert((object)parameter != null || !expanded);
+                if (expanded && (parameter.Ordinal < method.ParameterCount - 1 || !parameter.Type.IsSZArray()))
+                {
+                    expanded = false;
+                }
+            }
+            else
+            {
+                parameter = null;
+                expanded = false;
+            }
+
+            return parameter;
+        }
+
+        protected virtual void VisitArgumentAsRvalue(BoundExpression argument, ParameterSymbol parameter, bool expanded)
+        {
+            VisitRvalue(argument);
+        }
+
+        private void WriteArgument(ImmutableArray<BoundExpression> arguments, int i, RefKind refKind, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        {
+            ParameterSymbol parameter = GetCorrespondingParameter(i, method, argsToParamsOpt, ref expanded);
+            WriteArgument(arguments[i], refKind, method, parameter);
+        }
+
+        protected virtual void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method, ParameterSymbol parameter)
         {
         }
 
@@ -1200,16 +1267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (_trackExceptions) NotePossibleException(node);
-            return null;
-        }
-
-        public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
-        {
-            foreach (var child in node.Initializers)
-            {
-                VisitRvalue(child);
-            }
-
             return null;
         }
 
@@ -1395,9 +1452,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitRvalue(node.ExpressionOpt);
+            AdjustStateAfterReturnStatement(node);
+            return result;
+        }
+
+        protected void AdjustStateAfterReturnStatement(BoundReturnStatement node)
+        {
             _pendingBranches.Add(new PendingBranch(node, this.State));
             SetUnreachable();
-            return result;
         }
 
         public override BoundNode VisitThisReference(BoundThisReference node)
@@ -1428,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_trackExceptions) NotePossibleException(node);
 
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Constructor);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded);
             VisitRvalue(node.InitializerExpressionOpt);
             return null;
         }
@@ -1530,8 +1592,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitRvalue(receiverOpt);
+                VisitFieldReceiverAsRvalue(receiverOpt, fieldSymbol);
             }
+        }
+
+        protected virtual void VisitFieldReceiverAsRvalue(BoundExpression receiverOpt, FieldSymbol fieldSymbol)
+        {
+            VisitRvalue(receiverOpt);
         }
 
         public override BoundNode VisitFieldInfo(BoundFieldInfo node)
@@ -1551,6 +1618,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverOpt != null &&
                 !fieldSymbol.IsStatic &&
                 !fieldSymbol.IsFixed &&
+                receiverOpt.Kind != BoundKind.TypeExpression &&
+                receiverOpt.Type != null &&
                 receiverOpt.Type.IsStructType() &&
                 !receiverOpt.Type.IsPrimitiveRecursiveStruct();
         }
@@ -1732,7 +1801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
         {
-            VisitRvalue(node.Expression);
+            VisitArrayAccessTargetAsRvalue(node);
             foreach (var i in node.Indices)
             {
                 VisitRvalue(i);
@@ -1740,6 +1809,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             return null;
+        }
+
+        protected virtual void VisitArrayAccessTargetAsRvalue(BoundArrayAccess node)
+        {
+            VisitRvalue(node.Expression);
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
@@ -1907,23 +1981,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (true)
             {
                 binary = stack.Pop();
-                VisitRvalue(binary.Right);
-
-                if (_trackExceptions && binary.HasExpressionSymbols())
-                {
-                    NotePossibleException(binary);
-                }
+                AfterLeftChildHasBeenVisited(binary);
 
                 if (stack.Count == 0)
                 {
                     break;
                 }
 
-                Unsplit(); // VisitRvalue does this
+                AfterNestedBinaryOperatorHasBeenVisited(binary);
             }
 
             Debug.Assert((object)binary == node);
             stack.Free();
+        }
+
+        protected virtual void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
+        {
+            VisitRvalue(binary.Right);
+            AfterBinaryOperatorChildrenHaveBeenVisited(binary);
+        }
+
+        protected void AfterBinaryOperatorChildrenHaveBeenVisited(BoundBinaryOperator binary)
+        {
+            if (_trackExceptions && binary.HasExpressionSymbols())
+            {
+                NotePossibleException(binary);
+            }
+        }
+
+        protected virtual void AfterNestedBinaryOperatorHasBeenVisited(BoundBinaryOperator binary)
+        {
+            Unsplit(); // VisitRvalue does this
         }
 
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
@@ -1982,11 +2070,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.InitializerOpt != null && !node.InitializerOpt.Initializers.IsDefault)
             {
-                foreach (var element in node.InitializerOpt.Initializers)
-                    VisitRvalue(element);
+                VisitArrayInitializationInternal(node, node.InitializerOpt);
             }
 
             if (_trackExceptions) NotePossibleException(node);
+            return null;
+        }
+
+        private void VisitArrayInitializationInternal(BoundArrayCreation arrayCreation, BoundArrayInitialization node)
+        {
+            foreach (var child in node.Initializers)
+            {
+                if (child.Kind == BoundKind.ArrayInitialization)
+                {
+                    VisitArrayInitializationInternal(arrayCreation, (BoundArrayInitialization)child);
+                }
+                else
+                {
+                    VisitArrayElementInitializer(arrayCreation, child);
+                }
+            }
+        }
+
+        protected virtual BoundNode VisitArrayElementInitializer(BoundArrayCreation arrayCreation, BoundExpression child)
+        {
+            return VisitRvalue(child);
+        }
+
+        // Can be called as part of a bad expression.
+        public sealed override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
+        {
+            foreach (var child in node.Initializers)
+            {
+                VisitRvalue(child);
+            }
+
             return null;
         }
 
@@ -2436,7 +2554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.VisitLvalue(operand);
             }
 
-            this.WriteArgument(operand, RefKind.Out, null); //Out because we know it will definitely be assigned.
+            this.WriteArgument(operand, RefKind.Out, null, null); //Out because we know it will definitely be assigned.
         }
 
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
@@ -2466,7 +2584,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
         {
             //  visit arguments as r-values
-            VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.Constructor);
+            var arguments = node.Arguments;
+            var constructor = node.Constructor;
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                VisitArgumentAsRvalue(arguments[i], constructor.Parameters[i], expanded: false);
+            }
 
             //  ignore declarations
             //node.Declarations
@@ -2510,6 +2633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
+            // TODO: StaticNullChecking - Should we use VisitArguments to properly handle arguments?
             var arguments = node.Arguments;
             if (!arguments.IsDefaultOrEmpty)
             {
@@ -2538,13 +2662,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LocalState savedState = savedState = this.State.Clone();
                 SetUnreachable();
 
-                VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod);
+                VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
 
                 this.State = savedState;
             }
             else
             {
-                VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod);
+                VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
             }
 
             if (_trackExceptions) NotePossibleException(node);
@@ -2553,7 +2677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
-            VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), method: null);
+            VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), method: null, argsToParamsOpt: default(ImmutableArray<int>), expanded: false);
             if (_trackExceptions) NotePossibleException(node);
             return null;
         }

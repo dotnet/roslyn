@@ -184,6 +184,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new WithCustomModifiers(typeSymbol, customModifiers);
         }
 
+        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool makeNullableIfReferenceType)
+        {
+            if (!makeNullableIfReferenceType || !typeSymbol.IsReferenceType)
+            {
+                return Create(typeSymbol);
+            }
+
+            return new NullableReferenceTypeWithoutCustomModifiers(typeSymbol);
+        }
+
         public TypeSymbolWithAnnotations AsNullableReferenceOrValueType(CSharpCompilation compilation, SyntaxReference nullableTypeSyntax)
         {
             return new LazyNullableType(compilation, nullableTypeSyntax, this);

@@ -315,6 +315,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_IdentifierOrNumericLiteralExpected:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                 case ErrorCode.WRN_AlignmentMagnitude:
+                case ErrorCode.WRN_NullReferenceAssignment:
+                case ErrorCode.WRN_NullReferenceReceiver:
+                case ErrorCode.WRN_NullReferenceReturn:
+                case ErrorCode.WRN_NullReferenceArgument:
+                case ErrorCode.WRN_NullCheckIsProbablyAlwaysTrue:
+                case ErrorCode.WRN_NullCheckIsProbablyAlwaysFalse:
+                case ErrorCode.WRN_ExpressionIsProbablyNeverNull:
                     return 1;
                 default:
                     return 0;

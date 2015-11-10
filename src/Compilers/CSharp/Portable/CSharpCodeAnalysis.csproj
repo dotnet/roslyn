@@ -360,6 +360,7 @@
     <Compile Include="FlowAnalysis\ControlFlowPass.cs" />
     <Compile Include="FlowAnalysis\CSharpDataFlowAnalysis.cs" />
     <Compile Include="FlowAnalysis\DataFlowPass.cs" />
+    <Compile Include="FlowAnalysis\DataFlowPass.ObjectCreationPlaceholderLocal.cs" />
     <Compile Include="FlowAnalysis\DataFlowPass.VariableIdentifier.cs" />
     <Compile Include="FlowAnalysis\DataFlowsInWalker.cs" />
     <Compile Include="FlowAnalysis\DataFlowsOutWalker.cs" />

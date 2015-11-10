@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void AssignImpl(BoundNode node, BoundExpression value, RefKind refKind, bool written, bool read)
+        protected override void AssignImpl(BoundNode node, BoundExpression value, bool? valueIsNotNull, RefKind refKind, bool written, bool read)
         {
             switch (node.Kind)
             {
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.QueryClause:
                     {
-                        base.AssignImpl(node, value, refKind, written, read);
+                        base.AssignImpl(node, value, valueIsNotNull, refKind, written, read);
                         var symbol = ((BoundQueryClause)node).DefinedSymbol;
                         if ((object)symbol != null)
                         {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.FieldAccess:
                     {
-                        base.AssignImpl(node, value, refKind, written, read);
+                        base.AssignImpl(node, value, valueIsNotNull, refKind, written, read);
                         var fieldAccess = node as BoundFieldAccess;
                         if (!IsInside && node.Syntax != null && node.Syntax.Span.Contains(RegionSpan))
                         {
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    base.AssignImpl(node, value, refKind, written, read);
+                    base.AssignImpl(node, value, valueIsNotNull, refKind, written, read);
                     break;
             }
         }
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)local != null)
             {
                 GetOrCreateSlot(local);
-                Assign(node, value: null);
+                Assign(node, value: null, valueIsNotNull: null);
             }
         }
 
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitQueryClause(BoundQueryClause node)
         {
-            Assign(node, value: null);
+            Assign(node, value: null, valueIsNotNull: null);
             return base.VisitQueryClause(node);
         }
     }

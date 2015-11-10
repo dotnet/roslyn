@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (int index = 0; index < fieldsCount; index++)
                     {
                         PropertySymbol property = properties[index];
-                        paramsArr[index] = new SynthesizedParameterSymbol(this, property.Type.TypeSymbol, index, RefKind.None, property.Name);
+                        paramsArr[index] = new SynthesizedParameterSymbol(this, property.Type, index, RefKind.None, property.Name);
                     }
                     _parameters = paramsArr.AsImmutableOrNull();
                 }
