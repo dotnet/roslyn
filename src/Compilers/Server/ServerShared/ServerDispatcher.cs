@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 var connectionData = current.Result;
                 ChangeKeepAlive(connectionData.KeepAlive, ref keepAlive, ref isKeepAliveDefault);
-                if (connectionData.CompletionReason == CompletionReason.ClientDisconnect)
+                if (connectionData.CompletionReason == CompletionReason.ClientDisconnect || connectionData.CompletionReason == CompletionReason.ClientException)
                 {
                     allFine = false;
                 }
