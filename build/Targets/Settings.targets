@@ -99,10 +99,6 @@
 
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
-    <!-- If we're on Visual Studio 2015 RTM and  we still have Roslyn installed, our VSIX-producing packages are not going to install, so let's not even try.
-         Update 1 supports this, so we'll use csi.exe's existence as a simple proxy for whether we have Update 1 installed or not. -->
-    <DeployExtension Condition="'$(DeployExtension)' == '' AND Exists('$(DevEnvDir)\CommonExtensions\Microsoft\Roslyn\Language Services\extension.vsixmanifest') AND !Exists('$(MSBuildBinPath)\csi.exe')">false</DeployExtension>
-
     <Deterministic>True</Deterministic>
   </PropertyGroup>
 
