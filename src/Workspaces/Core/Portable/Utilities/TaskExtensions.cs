@@ -16,8 +16,8 @@ namespace Roslyn.Utilities
     {
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)
         {
-            var threadKind = ForegroundThreadDataInfo.CurrentForegroundThreadDataKind;
 #if DEBUG
+            var threadKind = ForegroundThreadDataInfo.CurrentForegroundThreadDataKind;
             if (threadKind != ForegroundThreadDataKind.Wpf && threadKind != ForegroundThreadDataKind.StaUnitTest)
             {
                 // If you hit this when running tests then your code is in error.  WaitAndGetResult
