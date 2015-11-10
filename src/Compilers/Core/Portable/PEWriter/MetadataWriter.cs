@@ -400,12 +400,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// Populate EncLog table.
         /// </summary>
-        protected abstract void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts);
+        protected abstract void PopulateEncLogTableRows(ImmutableArray<int> rowCounts);
 
         /// <summary>
         /// Populate EncMap table.
         /// </summary>
-        protected abstract void PopulateEncMapTableRows(List<EncMapRow> table, ImmutableArray<int> rowCounts);
+        protected abstract void PopulateEncMapTableRows(ImmutableArray<int> rowCounts);
 
         protected abstract void ReportReferencesToAddedSymbols();
 
@@ -2084,14 +2084,14 @@ namespace Microsoft.Cci
             ImmutableArray<int> rowCounts = GetRowCounts();
             Debug.Assert(rowCounts[(int)TableIndex.EncLog] == 0 && rowCounts[(int)TableIndex.EncMap] == 0);
 
-            this.PopulateEncLogTableRows(_encLogTable, rowCounts);
-            this.PopulateEncMapTableRows(_encMapTable, rowCounts);
+            this.PopulateEncLogTableRows(rowCounts);
+            this.PopulateEncMapTableRows(rowCounts);
         }
 
         private void PopulateAssemblyRefTableRows()
         {
             var assemblyRefs = this.GetAssemblyRefs();
-            _assemblyRefTable.Capacity = assemblyRefs.Count;
+            SetCapacity(TableIndex.AssemblyRef, assemblyRefs.Count);
 
             foreach (var identity in assemblyRefs)
             {
@@ -2330,7 +2330,7 @@ namespace Microsoft.Cci
         private void PopulateEventTableRows()
         {
             var eventDefs = this.GetEventDefs();
-            _eventTable.Capacity = eventDefs.Count;
+            SetCapacity(TableIndex.Event, eventDefs.Count);
 
             foreach (IEventDefinition eventDef in eventDefs)
             {
@@ -2345,7 +2345,7 @@ namespace Microsoft.Cci
         {
             if (this.IsFullMetadata)
             {
-                _exportedTypeTable.Capacity = this.NumberOfTypeDefsEstimate;
+                SetCapacity(TableIndex.ExportedType, NumberOfTypeDefsEstimate);
 
                 foreach (ITypeReference exportedType in this.module.GetExportedTypes(Context))
                 {
@@ -2495,7 +2495,7 @@ namespace Microsoft.Cci
         private void PopulateFieldTableRows()
         {
             var fieldDefs = this.GetFieldDefs();
-            _fieldDefTable.Capacity = fieldDefs.Count;
+            SetCapacity(TableIndex.Field, fieldDefs.Count);
 
             foreach (IFieldDefinition fieldDef in fieldDefs)
             {
@@ -2561,7 +2561,7 @@ namespace Microsoft.Cci
             }
 
             var hashAlgorithm = assembly.HashAlgorithm;
-            _fileTable.Capacity = _fileRefList.Count;
+            SetCapacity(TableIndex.File, _fileRefList.Count);
 
             foreach (IFileReference fileReference in _fileRefList)
             {
@@ -2662,7 +2662,7 @@ namespace Microsoft.Cci
         private void PopulateMemberRefTableRows()
         {
             var memberRefs = this.GetMemberRefs();
-            _memberRefTable.Capacity = memberRefs.Count;
+            SetCapacity(TableIndex.MemberRef, memberRefs.Count);
 
             foreach (ITypeMemberReference memberRef in memberRefs)
             {
@@ -2675,7 +2675,7 @@ namespace Microsoft.Cci
         
         private void PopulateMethodImplTableRows()
         {
-            _methodImplTable.Capacity = this.methodImplList.Count;
+            SetCapacity(TableIndex.MethodImpl, methodImplList.Count);
 
             foreach (MethodImplementation methodImplementation in this.methodImplList)
             {
@@ -2689,7 +2689,7 @@ namespace Microsoft.Cci
         private void PopulateMethodSpecTableRows()
         {
             var methodSpecs = this.GetMethodSpecs();
-            _methodSpecTable.Capacity = methodSpecs.Count;
+            SetCapacity(TableIndex.MethodSpec, methodSpecs.Count);
 
             foreach (IGenericMethodInstanceReference genericMethodInstanceReference in methodSpecs)
             {
@@ -2702,7 +2702,7 @@ namespace Microsoft.Cci
         private void PopulateMethodTableRows(int[] methodBodyRvas)
         {
             var methodDefs = this.GetMethodDefs();
-            _methodTable.Capacity = methodDefs.Count;
+            SetCapacity(TableIndex.MethodDef, methodDefs.Count);
 
             int i = 0;
             foreach (IMethodDefinition methodDef in methodDefs)
@@ -2724,8 +2724,8 @@ namespace Microsoft.Cci
             var propertyDefs = this.GetPropertyDefs();
             var eventDefs = this.GetEventDefs();
 
-            //EDMAURER an estimate, not necessarily accurate.
-            _methodSemanticsTable.Capacity = propertyDefs.Count * 2 + eventDefs.Count * 2;
+            // an estimate, not necessarily accurate.
+            SetCapacity(TableIndex.MethodSemantics, propertyDefs.Count * 2 + eventDefs.Count * 2);
 
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
@@ -2787,7 +2787,7 @@ namespace Microsoft.Cci
         private void PopulateModuleRefTableRows()
         {
             var moduleRefs = this.GetModuleRefs();
-            _moduleRefTable.Capacity = moduleRefs.Count;
+            SetCapacity(TableIndex.ModuleRef, moduleRefs.Count);
 
             foreach (string moduleName in moduleRefs)
             {
@@ -2819,7 +2819,7 @@ namespace Microsoft.Cci
         private void PopulateParamTableRows()
         {
             var parameterDefs = this.GetParameterDefs();
-            _paramTable.Capacity = parameterDefs.Count;
+            SetCapacity(TableIndex.Param, parameterDefs.Count);
 
             foreach (IParameterDefinition parDef in parameterDefs)
             {
@@ -2833,7 +2833,7 @@ namespace Microsoft.Cci
         private void PopulatePropertyTableRows()
         {
             var propertyDefs = this.GetPropertyDefs();
-            _propertyTable.Capacity = propertyDefs.Count;
+            SetCapacity(TableIndex.Property, propertyDefs.Count);
 
             foreach (IPropertyDefinition propertyDef in propertyDefs)
             {
@@ -2847,7 +2847,7 @@ namespace Microsoft.Cci
         private void PopulateTypeDefTableRows()
         {
             var typeDefs = this.GetTypeDefs();
-            _typeDefTable.Capacity = typeDefs.Count;
+            SetCapacity(TableIndex.TypeDef, typeDefs.Count);
 
             foreach (INamedTypeDefinition typeDef in typeDefs)
             {
@@ -2900,7 +2900,7 @@ namespace Microsoft.Cci
         private void PopulateTypeRefTableRows()
         {
             var typeRefs = this.GetTypeRefs();
-            _typeRefTable.Capacity = typeRefs.Count;
+            SetCapacity(TableIndex.TypeRef, typeRefs.Count);
 
             foreach (ITypeReference typeRef in typeRefs)
             {
@@ -2951,7 +2951,7 @@ namespace Microsoft.Cci
         private void PopulateTypeSpecTableRows()
         {
             var typeSpecs = this.GetTypeSpecs();
-            _typeSpecTable.Capacity = typeSpecs.Count;
+            SetCapacity(TableIndex.TypeSpec, typeSpecs.Count);
 
             foreach (ITypeReference typeSpec in typeSpecs)
             {
