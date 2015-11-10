@@ -2,11 +2,8 @@
 
 using Roslyn.Utilities;
 using System;
-using System.Diagnostics;
+using System.Globalization;
 using System.IO;
-using System.IO.Pipes;
-using System.Runtime.CompilerServices;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -43,6 +40,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// the results could be provided to them.  
         /// </summary>
         ClientDisconnect,
+
+        /// <summary>
+        /// There was an unhandled exception processing the result.
+        /// BTODO: need to handle this is the server.
+        /// </summary>
+        ClientException,
     }
 
     /// <summary>
@@ -50,20 +53,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// from when the client connects to it, until the request is finished or abandoned.
     /// A new task is created to actually service the connection and do the operation.
     /// </summary>
-    internal sealed class Connection
+    internal abstract class ClientConnection : IClientConnection
     {
-        private readonly IClientConnection _clientConnection;
-        private readonly IRequestHandler _handler;
+        private readonly ICompilerServerHost _compilerServerHost;
         private readonly string _loggingIdentifier;
+        private readonly Stream _stream;
 
-        public Connection(IClientConnection clientConnection, IRequestHandler handler)
+        public string LoggingIdentifier => _loggingIdentifier;
+
+        public ClientConnection(ICompilerServerHost compilerServerHost, string loggingIdentifier, Stream stream)
         {
-            _clientConnection = clientConnection;
-            _loggingIdentifier = clientConnection.LoggingIdentifier;
-            _handler = handler;
+            _compilerServerHost = compilerServerHost;
+            _loggingIdentifier = loggingIdentifier;
+            _stream = stream;
         }
 
-        public async Task<ConnectionData> ServeConnection(CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        /// Returns a Task that resolves if the client stream gets disconnected.  
+        /// </summary>
+        protected abstract Task CreateMonitorDisconnectTask(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Close the connection.  Can be called multiple times.
+        /// </summary>
+        public abstract void Close();
+
+        public async Task<ConnectionData> HandleConnection(CancellationToken cancellationToken)
         {
             try
             {
@@ -71,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 try
                 {
                     Log("Begin reading request.");
-                    request = await _clientConnection.ReadBuildRequest(cancellationToken).ConfigureAwait(false);
+                    request = await BuildRequest.ReadAsync(_stream, cancellationToken).ConfigureAwait(false);
                     Log("End reading request.");
                 }
                 catch (Exception e)
@@ -85,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // Kick off both the compilation and a task to monitor the pipe for closing.  
                 var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 var compilationTask = ServeBuildRequest(request, buildCts.Token);
-                var monitorTask = _clientConnection.CreateMonitorDisconnectTask(buildCts.Token);
+                var monitorTask = CreateMonitorDisconnectTask(buildCts.Token);
                 await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
 
                 // Do an 'await' on the completed task, preference being compilation, to force
@@ -98,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     try
                     {
                         Log("Begin writing response.");
-                        await _clientConnection.WriteBuildResponse(response, cancellationToken).ConfigureAwait(false);
+                        await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
                         reason = CompletionReason.Completed;
                         Log("End writing response.");
                     }
@@ -119,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             finally
             {
-                _clientConnection.Close();
+                Close();
             }
         }
 
@@ -149,15 +164,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return timeout;
         }
 
-        private Task<BuildResponse> ServeBuildRequest(BuildRequest request, CancellationToken cancellationToken)
+        protected virtual Task<BuildResponse> ServeBuildRequest(BuildRequest request, CancellationToken cancellationToken)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                        // Do the compilation
-                        Log("Begin compilation");
-                    BuildResponse response = _handler.HandleRequest(request, cancellationToken);
+                    // Do the compilation
+                    Log("Begin compilation");
+                    BuildResponse response = ServeBuildRequestCore(request, cancellationToken);
                     Log("End compilation");
                     return response;
                 }
@@ -166,6 +181,37 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     throw ExceptionUtilities.Unreachable;
                 }
             });
+        }
+
+        private BuildResponse ServeBuildRequestCore(BuildRequest buildRequest, CancellationToken cancellationToken)
+        {
+            var request = BuildProtocolUtil.GetRunRequest(buildRequest);
+            CommonCompiler compiler;
+            if (!_compilerServerHost.TryCreateCompiler(request, out compiler))
+            {
+                // We can't do anything with a request we don't know about. 
+                _compilerServerHost.Log($"Got request with id '{request.Language}'");
+                return new CompletedBuildResponse(-1, false, "", "");
+            }
+
+            _compilerServerHost.Log($"CurrentDirectory = '{request.CurrentDirectory}'");
+            _compilerServerHost.Log($"LIB = '{request.LibDirectory}'");
+            for (int i = 0; i < request.Arguments.Length; ++i)
+            {
+                _compilerServerHost.Log($"Argument[{i}] = '{request.Arguments[i]}'");
+            }
+
+            bool utf8output = compiler.Arguments.Utf8Output;
+            if (!_compilerServerHost.CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
+            {
+                return new AnalyzerInconsistencyBuildResponse();
+            }
+
+            _compilerServerHost.Log($"****Running {request.Language} compiler...");
+            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            int returnCode = compiler.Run(output, cancellationToken);
+            _compilerServerHost.Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
         }
 
         private void Log(string message)
@@ -177,5 +223,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             CompilerServerLogger.LogException(e, string.Format("Client {0}: {1}", _loggingIdentifier, message));
         }
+
     }
 }

@@ -29,56 +29,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    internal interface IRequestHandler
-    {
-        BuildResponse HandleRequest(BuildRequest req, CancellationToken cancellationToken);
-    }
-
-    internal sealed class CompilerRequestHandler : IRequestHandler
-    {
-        private readonly ICompilerServerHost _compilerServerHost;
-
-        internal CompilerRequestHandler(ICompilerServerHost compilerServerHost)
-        {
-            _compilerServerHost = compilerServerHost;
-        }
-
-        /// <summary>
-        /// An incoming request as occurred. This is called on a new thread to handle
-        /// the request.
-        /// </summary>
-        public BuildResponse HandleRequest(BuildRequest buildRequest, CancellationToken cancellationToken)
-        {
-            var request = BuildProtocolUtil.GetRunRequest(buildRequest);
-            CommonCompiler compiler;
-            if (!_compilerServerHost.TryCreateCompiler(request, out compiler))
-            {
-                // We can't do anything with a request we don't know about. 
-                _compilerServerHost.Log($"Got request with id '{request.Language}'");
-                return new CompletedBuildResponse(-1, false, "", "");
-            }
-
-            _compilerServerHost.Log($"CurrentDirectory = '{request.CurrentDirectory}'");
-            _compilerServerHost.Log($"LIB = '{request.LibDirectory}'");
-            for (int i = 0; i < request.Arguments.Length; ++i)
-            {
-                _compilerServerHost.Log($"Argument[{i}] = '{request.Arguments[i]}'");
-            }
-
-            bool utf8output = compiler.Arguments.Utf8Output;
-            if (!_compilerServerHost.CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
-            {
-                return new AnalyzerInconsistencyBuildResponse();
-            }
-
-            _compilerServerHost.Log($"****Running {request.Language} compiler...");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-            _compilerServerHost.Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
-        }
-    }
-
     internal abstract class CompilerServerHost : ICompilerServerHost
     {
         public abstract IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
@@ -100,8 +50,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ClientDirectory = clientDirectory;
             SdkDirectory = sdkDirectory;
         }
-
-        public abstract Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken);
 
         public abstract bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
 

@@ -17,17 +17,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _assemblyReferenceProvider = (path, properties) => new CachingMetadataReference(path, properties);
         private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader = CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault();
-        private readonly TcpListener _listener;
 
         public override IAnalyzerAssemblyLoader AnalyzerAssemblyLoader => _analyzerAssemblyLoader;
 
         public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => _assemblyReferenceProvider;
 
-        internal CoreClrCompilerServerHost(IPEndPoint endPoint, string clientDirectory)
+        internal CoreClrCompilerServerHost(string clientDirectory)
             :base(clientDirectory : clientDirectory, sdkDirectory: null)
         {
-            _listener = new TcpListener(endPoint);
-            _listener.Start();
+
         }
 
         public override bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
@@ -36,51 +34,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return analyzers.Length == 0;
         }
 
-        public override async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
-        {
-            var tcpClient = await _listener.AcceptTcpClientAsync().ConfigureAwait(true);
-            return new TcpClientConnection(tcpClient);
-        }
-
         public override void Log(string message)
         {
             // BTODO: Do we need this anymore? 
-        }
-
-        private sealed class TcpClientConnection : IClientConnection
-        {
-            private readonly string _identifier = Guid.NewGuid().ToString();
-            private readonly TcpClient _client;
-
-            public string LoggingIdentifier => _identifier;
-
-            internal TcpClientConnection(TcpClient client)
-            {
-                _client = client;
-            }
-
-            public Task<BuildRequest> ReadBuildRequest(CancellationToken cancellationToken)
-            {
-                return BuildRequest.ReadAsync(_client.GetStream(), cancellationToken);
-            }
-
-            public Task WriteBuildResponse(BuildResponse response, CancellationToken cancellationToken)
-            {
-                return response.WriteAsync(_client.GetStream(), cancellationToken);
-            }
-
-            public async Task CreateMonitorDisconnectTask(CancellationToken cancellationToken)
-            {
-                while (_client.Connected && !cancellationToken.IsCancellationRequested)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
-                }
-            }
-
-            public void Close()
-            {
-                _client.Dispose();
-            }
         }
     }
 }

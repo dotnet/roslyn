@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
-            var compilerExeDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             // Pipename should be passed as the first and only argument to the server process
             // and it must have the form "-pipename:name". Otherwise, exit with a non-zero
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 try
                 {
-                    return Run(keepAliveTimeout, compilerExeDirectory, pipeName);
+                    return Run(keepAliveTimeout, clientDirectory, pipeName);
                 }
                 finally
                 {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private static int Run(TimeSpan? keepAliveTimeout, string compilerExeDirectory, string pipeName)
+        private static int Run(TimeSpan? keepAliveTimeout, string clientDirectory, string pipeName)
         {
             try
             {
@@ -102,15 +102,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             FatalError.Handler = FailFast.OnFatalException;
 
             var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-            var compilerServerHost = new DesktopCompilerServerHost(pipeName, compilerExeDirectory, sdkDirectory);
-            var dispatcher = new ServerDispatcher(
-                compilerServerHost,
-                new CompilerRequestHandler(compilerServerHost),
-                new EmptyDiagnosticListener());
-
+            var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
+            var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
+            var dispatcher = new ServerDispatcher(clientConnectionHost, new EmptyDiagnosticListener());
             dispatcher.ListenAndDispatchConnections(keepAliveTimeout);
             return CommonCompiler.Succeeded;
         }
-
     }
 }
