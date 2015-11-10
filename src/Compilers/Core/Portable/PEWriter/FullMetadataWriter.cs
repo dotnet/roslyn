@@ -305,11 +305,11 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
+        protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
         {
         }
 
-        protected override void PopulateEncMapTableRows(List<EncMapRow> table, ImmutableArray<int> rowCounts)
+        protected override void PopulateEncMapTableRows(ImmutableArray<int> rowCounts)
         {
         }
 
