@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim options = If((inspectionContext.EvaluationFlags And DkmEvaluationFlags.NoQuotes) = 0,
                 ObjectDisplayOptions.UseQuotes,
                 ObjectDisplayOptions.None)
-            Return GetValueString(clrValue, inspectionContext, options, GetValueFlags.IncludeObjectId)
+            Return GetValueString(clrValue, inspectionContext, options, GetValueFlags.IncludeObjectId, customTypeInfo:=Nothing)
         End Function
 
         Private Function IDkmClrFormatter_HasUnderlyingString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext) As Boolean Implements IDkmClrFormatter.HasUnderlyingString

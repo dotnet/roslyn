@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
+        public virtual void GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {
             var dataItem = evaluationResult.GetDataItem<EvalResultDataItem>();
             if (dataItem == null)
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             GetChildrenAndContinue(dataItem, workList, stackFrame, initialRequestSize, inspectionContext, completionRoutine);
         }
 
-        void IDkmClrResultProvider.GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
+        public virtual void GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
         {
             var dataItem = enumContext.GetDataItem<EnumContextDataItem>();
             if (dataItem == null)
@@ -123,6 +123,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             switch (dataItem.Kind)
             {
+                case ExpansionKind.ExplicitEvaluationResult:
+                    completionRoutine(dataItem.ExternalEvaluationResult);
+                    break;
                 case ExpansionKind.Error:
                     completionRoutine(DkmFailedEvaluationResult.Create(
                         inspectionContext,
@@ -344,26 +347,76 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        /// <returns>
-        /// The qualified name (i.e. including containing types and namespaces) of a named, pointer,
-        /// or array type followed by the qualified name of the actual runtime type, if provided.
-        /// </returns>
-        private static string GetTypeName(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, ExpansionKind kind)
+        // Overriden by the managed C++ EE's result provider to optionally modify the value
+        // to do format/expansion on and/or create a whole new evaluation result.  
+        //
+        // A non-null return value indicates that we should suppress all formatting and expansion 
+        // on the Roslyn side and use the evaluation result provided.  This is used chiefly for 
+        // native-style C++ class/struct/union types (e.g. "class", not "ref class"); the result 
+        // will be an intermediate evaluation result that delegates formatting and expansion over 
+        // to the native EE.  
+        //
+        // A null return value indicates that we are dealing with a managed object and Roslyn should
+        // be responsible for implementing the formatting and expansion of it.  Before returning 
+        // null, the hook may optionally decide to modify various properties, such as the value
+        // and declared type.  One scenario where the native EE will do this is when it sees a C++ 
+        // reference-type (e.g. "int&") which is represented on the metadata layer as a pointer
+        // with a modopt.  Roslyn does not understand C++-specific modopts, but the managed C++ EE 
+        // does, and it will react to it by internally dereferencing the pointer so that Roslyn
+        // displays the value being referenced, not the internal pointer of the reference.
+        protected virtual DkmEvaluationResult ResultCreationHook(
+            DkmInspectionContext inspectionContext,
+            string name,
+            string fullName,
+            ref Type declaredType,
+            ref DkmClrCustomTypeInfo declaredTypeCustomInfo,
+            ref DkmClrValue value,
+            ref DkmEvaluationResultCategory category,
+            ref DkmEvaluationResultFlags flags
+            )
         {
-            var declaredLmrType = declaredType.GetLmrType();
-            var runtimeType = value.Type;
-            var runtimeLmrType = runtimeType.GetLmrType();
-            var declaredTypeName = inspectionContext.GetTypeName(declaredType, declaredTypeInfo, Formatter.NoFormatSpecifiers);
-            var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, CustomTypeInfo: null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
-            var includeRuntimeTypeName =
-                !string.Equals(declaredTypeName, runtimeTypeName, StringComparison.OrdinalIgnoreCase) && // Names will reflect "dynamic", types will not.
-                !declaredLmrType.IsPointer &&
-                (kind != ExpansionKind.PointerDereference) &&
-                (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown));
-            return includeRuntimeTypeName ?
-                string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName) :
-                declaredTypeName;
+            return null;
         }
+
+        private EvalResultDataItem InvokeResultCreationHook(
+            DkmInspectionContext inspectionContext,
+            string name,
+            ref TypeAndCustomInfo declaredTypeAndInfo,
+            ref DkmClrValue value,
+            string fullName,
+            ref DkmEvaluationResultCategory category,
+            ref DkmEvaluationResultFlags flags)
+        {
+            Type declaredType = declaredTypeAndInfo.Type;
+            DkmClrCustomTypeInfo customTypeInfo = declaredTypeAndInfo.Info;
+
+            DkmEvaluationResult hookedResult = ResultCreationHook(
+                inspectionContext,
+                name,
+                fullName,
+                ref declaredType,
+                ref customTypeInfo,
+                ref value,
+                ref category,
+                ref flags
+                );
+
+            if (hookedResult != null)
+            {
+                // The hook provided an explicit evaluation result; use that.
+                return new EvalResultDataItem(hookedResult);
+            }
+
+            // The hook did not provide an explicit DkmEvaluationResult.  However, we still need to create
+            // a new TypeAndCustomInfo object if the hook modified either the declared type or the custom type info.
+            if(declaredType != declaredTypeAndInfo.Type || customTypeInfo != declaredTypeAndInfo.Info)
+            {
+                declaredTypeAndInfo = new TypeAndCustomInfo(declaredType, customTypeInfo);
+            }
+
+            return null;
+        }
+
 
         internal EvalResultDataItem CreateDataItem(
             DkmInspectionContext inspectionContext,
@@ -380,6 +433,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmEvaluationResultFlags flags,
             DkmEvaluationFlags evalFlags)
         {
+            // Under managed C++, give the managed C++ EE, which overrides ResultCreationHook(), a chance
+            // to modify the value to display and/or create its own evaluation result to override
+            // all of our logic.
+            EvalResultDataItem hookResult = InvokeResultCreationHook(inspectionContext, name, ref declaredTypeAndInfo, ref value, fullName, ref category, ref flags);
+            if(hookResult != null)
+            {
+                return hookResult;
+            }
+
             if ((evalFlags & DkmEvaluationFlags.ShowValueRaw) != 0)
             {
                 formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, "raw");
@@ -431,7 +493,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     flags.Includes(DkmEvaluationResultFlags.ExceptionThrown) ? null : fullName,
                     formatSpecifiers,
                     flags,
-                    this.Formatter.GetEditableValue(value, inspectionContext));
+                    this.Formatter.GetEditableValue(value, inspectionContext, declaredTypeAndInfo.Info));
                 if (expansion == null)
                 {
                     expansion = value.HasExceptionThrown()
@@ -455,7 +517,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 formatSpecifiers: formatSpecifiers,
                 category: category,
                 flags: flags,
-                editableValue: this.Formatter.GetEditableValue(value, inspectionContext),
+                editableValue: this.Formatter.GetEditableValue(value, inspectionContext, declaredTypeAndInfo.Info),
                 inspectionContext: inspectionContext);
         }
 
@@ -580,6 +642,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         category: DkmEvaluationResultCategory.Other,
                         flags: value.EvalFlags,
                         evalFlags: inspectionContext.EvaluationFlags);
+
+                    if (dataItem.Kind != ExpansionKind.ExplicitEvaluationResult)
+                    {
+                        // Update declaredType and declaredTypeInfo to use the values from the data item.  Normally, they're the same,
+                        // but, under MC++, they can be differant, since the MC++ EE overrides CreateDataItem().
+                        declaredType = DkmClrType.Create(declaredType.AppDomain, dataItem.DeclaredTypeAndInfo.Type);
+                        declaredTypeInfo = dataItem.DeclaredTypeAndInfo.Info;
+                    }
+
                     GetResultAndContinue(dataItem, workList, declaredType, declaredTypeInfo, inspectionContext, parent: null, completionRoutine: completionRoutine);
                 }
             }
@@ -594,6 +665,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             EvalResultDataItem parent,
             CompletionRoutine<DkmEvaluationResult> completionRoutine)
         {
+            if(dataItem.Kind == ExpansionKind.ExplicitEvaluationResult)
+            {
+                completionRoutine(dataItem.ExternalEvaluationResult);
+                return;
+            }
+
             var value = dataItem.Value; // Value may have been replaced (specifically, for Nullable<T>).
             DebuggerDisplayInfo displayInfo;
             if (value.TryGetDebuggerDisplayInfo(out displayInfo))
@@ -662,6 +739,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string displayType,
             EvalResultDataItem parent)
         {
+            // If the data item was created with an external DkmEvaluationResult, use that.
+            // This overrides all other logic.  This case is possible only under an EE such
+            // as managed C++ that chooses to override CreateDataItem().
+            if (dataItem.ExternalEvaluationResult != null)
+                return dataItem.ExternalEvaluationResult;
+
             var name = dataItem.Name;
             Debug.Assert(name != null);
             var typeDeclaringMemberAndInfo = dataItem.TypeDeclaringMemberAndInfo;
@@ -708,10 +791,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             else
             {
-                display = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
+                display = Formatter.GetValueString(value, inspectionContext, Formatter.NoFormatSpecifiers, declaredTypeInfo);
             }
 
-            var typeName = displayType ?? GetTypeName(inspectionContext, value, declaredType, declaredTypeInfo, dataItem.Kind);
+            var typeName = displayType ?? this.Formatter.GetTypeNameOfValue(inspectionContext, value, declaredType, declaredTypeInfo, dataItem.Kind);
 
             return CreateEvaluationResult(inspectionContext, value, name, typeName, display, dataItem);
         }
@@ -794,6 +877,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoExpansion) != 0)
             {
+                return null;
+            }
+
+
+            if (declaredType.IsByRef)
+            {
+                // This shouldn't be possible, but if we do get here, bail now to prevent
+                // the code in MemberExpansion.CreateExpansion() from crashing.
+                Debug.Assert(false, "GetTypeExpansion: ByRef type passed in");
                 return null;
             }
 

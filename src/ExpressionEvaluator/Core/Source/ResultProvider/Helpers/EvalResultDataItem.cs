@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         RawView,
         ResultsView,
         StaticMembers,
-        TypeVariable
+        TypeVariable,
+        ExplicitEvaluationResult,
     }
 
     /// <summary>
@@ -52,6 +53,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public readonly DkmEvaluationResultFlags Flags;
         public readonly string EditableValue;
 
+        // A result provider that overrides CreateDataItem() can choose to provide an explicit DkmEvaluationResult to override
+        // all normal behavior.  The managed C++ EE uses this technique to create a DkmIntermediateEvaluationResult to have the native
+        // EE format the value.
+        public readonly DkmEvaluationResult ExternalEvaluationResult;
+
         public string FullName
         {
             get
@@ -66,6 +72,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 return name;
             }
+        }
+
+        public EvalResultDataItem(DkmEvaluationResult externalEvaluationResult)
+        {
+            this.Kind = ExpansionKind.ExplicitEvaluationResult;
+            this.ExternalEvaluationResult = externalEvaluationResult;
         }
 
         public EvalResultDataItem(string name, string errorMessage)

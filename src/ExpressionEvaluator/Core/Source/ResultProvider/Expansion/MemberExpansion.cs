@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
@@ -425,9 +427,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var typeDeclaringMemberInfo = typeDeclaringMember.IsInterface
                 ? dynamicFlagsMap.SubstituteDynamicFlags(typeDeclaringMember.GetInterfaceListEntry(member.DeclaringType), originalDynamicFlags: default(DynamicFlagsCustomTypeInfo)).GetCustomTypeInfo()
                 : null;
+
+            declaredTypeInfo = AddCustomModifiers(member, typeDeclaringMemberInfo);
+
             var formatter = resultProvider.Formatter;
             bool sawInvalidIdentifier;
             memberName = formatter.GetIdentifierEscapingPotentialKeywords(memberName, out sawInvalidIdentifier);
+
             var fullName = sawInvalidIdentifier
                 ? null
                 : MakeFullName(
@@ -451,6 +457,36 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 category: DkmEvaluationResultCategory.Other,
                 flags: memberValue.EvalFlags,
                 evalFlags: DkmEvaluationFlags.None);
+        }
+
+        private static DkmClrCustomTypeInfo AddCustomModifiers(MemberAndDeclarationInfo member, DkmClrCustomTypeInfo typeDeclaringMemberInfo)
+        {
+            Type[] modopts, modreqs;
+            member.GetCustomModifiers(out modopts, out modreqs);
+
+            if (((modopts == null) || modopts.Length == 0) && ((modreqs == null) || (modreqs.Length == 0)))
+            {
+                // No modopts or modreqs.  Just return typeDeclaringMemberInfo as is.  This is the most common case.
+                return typeDeclaringMemberInfo;
+            }
+            else
+            {
+                // return a new DkmClrCustomTypeInfo object with the correct modopts/modreqs plumbed through.
+                var payloadTypeId = typeDeclaringMemberInfo != null ? typeDeclaringMemberInfo.PayloadTypeId : Guid.Empty;
+                var payload = typeDeclaringMemberInfo != null ? typeDeclaringMemberInfo.Payload : new ReadOnlyCollection<byte>(new byte[0]);
+                return DkmClrCustomTypeInfo.Create(payloadTypeId, payload, GetDkmClrTypeArray(modopts), GetDkmClrTypeArray(modreqs));
+            }
+        }
+
+        private static ReadOnlyCollection<DkmClrType> GetDkmClrTypeArray(Type[] lmrTypes)
+        {
+            var result = ArrayBuilder<DkmClrType>.GetInstance();
+            foreach (Type t in lmrTypes)
+            {
+                result.Add(DkmClrType.Create(t));
+            }
+
+            return result.ToImmutable();
         }
 
         private static string MakeFullName(
