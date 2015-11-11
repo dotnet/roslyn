@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             if (document.TryGetText(out oldText))
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var textChanges = Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, cancellationToken: cancellationToken);
+                var textChanges = await Formatter.GetFormattedTextChangesAsync(root, spans, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (textChanges.Count == 0)
                 {
                     return document;
