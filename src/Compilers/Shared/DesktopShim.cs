@@ -7,8 +7,8 @@ using System.Runtime.ExceptionServices;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// This is a bridge for APIs that are only available on CoreCLR or .NET 4.6
-    /// and NOT on .NET 4.5. The compiler currently targets .NET 4.5 and CoreCLR
+    /// This is a bridge for APIs that are only available on Desktop 
+    /// and NOT on CoreCLR. The compiler currently targets .NET 4.5 and CoreCLR
     /// so this shim is necessary for switching on the dependent behavior.
     /// </summary>
     internal static class DesktopShim
