@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
@@ -34,9 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string WRN_UnableToLoadAnalyzerId = "AD1002";
 
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
-
-        // Description separator
-        private static readonly string Separator = Environment.NewLine + "-----" + Environment.NewLine;
 
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         {
@@ -127,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
                 title: FeaturesResources.UserDiagnosticAnalyzerFailure,
                 messageFormat: FeaturesResources.UserDiagnosticAnalyzerThrows,
-                description: string.Format(FeaturesResources.UserDiagnosticAnalyzerThrowsDescription, analyzerName, e.ToString()),
+                description: string.Format(FeaturesResources.UserDiagnosticAnalyzerThrowsDescription, analyzerName, e.CreateDiagnosticDescription()),
                 category: AnalyzerExceptionDiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
@@ -183,19 +178,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     id = Choose(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
                     messageFormat = FeaturesResources.WRN_UnableToLoadAnalyzer;
                     message = string.Format(FeaturesResources.WRN_UnableToLoadAnalyzer, fullPath, e.Message);
-                    description = CreateDescription(e.Exception);
+                    description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
                     id = Choose(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
                     messageFormat = FeaturesResources.WRN_AnalyzerCannotBeCreated;
                     message = string.Format(FeaturesResources.WRN_AnalyzerCannotBeCreated, e.TypeName, fullPath, e.Message);
-                    description = CreateDescription(e.Exception);
+                    description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                     id = Choose(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
                     messageFormat = FeaturesResources.WRN_NoAnalyzerInAssembly;
                     message = string.Format(FeaturesResources.WRN_NoAnalyzerInAssembly, fullPath);
-                    description = CreateDescription(e.Exception);
+                    description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
                 default:
@@ -207,57 +202,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
-        }
-
-        private static string CreateDescription(Exception exception)
-        {
-            var aggregateException = exception as AggregateException;
-            if (aggregateException != null)
-            {
-                var flattened = aggregateException.Flatten();
-                return string.Join(Separator, flattened.InnerExceptions.Select(e => GetExceptionMessage(e)));
-            }
-
-            if (exception != null)
-            {
-                return string.Join(Separator, GetExceptionMessage(exception), CreateDescription(exception.InnerException));
-            }
-
-            return string.Empty;
-        }
-
-        private static string GetExceptionMessage(Exception exception)
-        {
-            var fileNotFoundException = exception as FileNotFoundException;
-            if (fileNotFoundException == null)
-            {
-                return exception.Message;
-            }
-
-            var fusionLog = GetFusionLogIfPossible(fileNotFoundException);
-            if (fusionLog == null)
-            {
-                return exception.Message;
-            }
-
-            return string.Join(Separator, fileNotFoundException.Message, fusionLog);
-        }
-
-        private static string GetFusionLogIfPossible(FileNotFoundException exception)
-        {
-            try
-            {
-                // since Feature is in portable layer, I am using reflection here. so that we can get
-                // most detail info on desktop when analyzer is failed to load. otherwise, we either
-                // don't put this information or need to do quite complex plumbing for quite simple thing
-                // that is not in hot path.
-                var info = exception.GetType().GetRuntimeProperty("FusionLog");
-                return info.GetValue(exception) as string;
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         private static string Choose(string language, string noLanguageMessage, string csharpMessage, string vbMessage)
