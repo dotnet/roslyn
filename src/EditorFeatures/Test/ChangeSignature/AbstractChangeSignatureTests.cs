@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             if (expectedCodeAction)
             {
-                using (var workspace = CreateWorkspaceFromFile(markup, parseOptions: null, compilationOptions: null))
+                using (var workspace = await CreateWorkspaceFromFileAsync(markup, parseOptions: null, compilationOptions: null))
                 {
                     var optionsService = workspace.Services.GetService<IChangeSignatureOptionsService>() as TestChangeSignatureOptionsService;
                     optionsService.IsCancelled = isCancelled;

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     expectedText: expectedCode,
                     index: 0,
                     actions: codeIssueOrRefactoring.Actions.ToList(),
-                    expectedPreviewContents: expectedCode).ConfigureAwait(true);
+                    expectedPreviewContents: expectedCode);
             }
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             }
         }
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
             throw new NotSupportedException();
         }

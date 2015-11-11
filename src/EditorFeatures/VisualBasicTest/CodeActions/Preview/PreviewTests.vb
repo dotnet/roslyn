@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
         <WpfFact>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
-            Using workspace = CreateWorkspaceFromFile("Class D : End Class", Nothing, Nothing)
+            Using workspace = Await CreateWorkspaceFromFileAsync("Class D : End Class", Nothing, Nothing)
                 Dim document As Document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
                 GetMainDocumentAndPreviews(workspace, document, previews)
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
         <WpfFact>
         Public Async Function TestPickTheRightPreview_WithPreference() As Task
-            Using workspace = CreateWorkspaceFromFile("Class D : End Class", Nothing, Nothing)
+            Using workspace = Await CreateWorkspaceFromFileAsync("Class D : End Class", Nothing, Nothing)
                 Dim document As Document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
                 GetMainDocumentAndPreviews(workspace, document, previews)

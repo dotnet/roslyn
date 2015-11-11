@@ -911,14 +911,14 @@ partial class Program {
 
         [WorkItem(829178)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void ErrorTolerance()
+        public async Task ErrorTolerance()
         {
             var text = @"class Program 
 {
     a b c [|b|]
 }";
 
-            using (var workspace = CreateWorkspaceFromFile(text, null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
             {
                 var result = GetCodeRefactoring(workspace);
                 Assert.NotNull(result);
@@ -927,7 +927,7 @@ partial class Program {
 
         [WorkItem(834072)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-        public void DuplicateFieldErrorTolerance()
+        public async Task DuplicateFieldErrorTolerance()
         {
             var text = @"
 class Program
@@ -937,7 +937,7 @@ class Program
     }
 ";
 
-            using (var workspace = CreateWorkspaceFromFile(text, null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(text, null, null))
             {
                 var result = GetCodeRefactoring(workspace);
                 Assert.NotNull(result);

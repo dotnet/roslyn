@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -22,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
             return LanguageNames.CSharp;
         }
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromFile(definition, (CSharpParseOptions)parseOptions, (CSharpCompilationOptions)compilationOptions);
+            return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(definition, (CSharpParseOptions)parseOptions, (CSharpCompilationOptions)compilationOptions);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]

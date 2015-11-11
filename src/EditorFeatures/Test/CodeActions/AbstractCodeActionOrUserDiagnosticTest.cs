@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         protected abstract string GetLanguage();
         protected abstract ParseOptions GetScriptOptions();
-        protected abstract TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions);
+        protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions);
 
         protected void ApplyOptionsToWorkspace(Workspace workspace, IDictionary<OptionKey, object> options)
         {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
-            using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
                 ApplyOptionsToWorkspace(workspace, options);
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null)
         {
-            using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
                 var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
                 Assert.Equal(displayText, actions.ElementAt(index).Title);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null)
         {
-            using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
                 var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int count,
             ParseOptions parseOptions = null, CompilationOptions compilationOptions = null)
         {
-            using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
                 var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
 
@@ -186,7 +186,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var renameSpans = spanMap.GetOrAdd("Rename", _ => new List<TextSpan>());
             var warningSpans = spanMap.GetOrAdd("Warning", _ => new List<TextSpan>());
 
-            using (var workspace = IsWorkspaceElement(initialMarkup) ? TestWorkspaceFactory.CreateWorkspace(initialMarkup) : CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
+            using (var workspace = IsWorkspaceElement(initialMarkup) 
+                ? await TestWorkspaceFactory.CreateWorkspaceAsync(initialMarkup) 
+                : await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
                 ApplyOptionsToWorkspace(workspace, options);
 

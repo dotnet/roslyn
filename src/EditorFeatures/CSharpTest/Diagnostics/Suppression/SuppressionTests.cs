@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             return Options.Script;
         }
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromFile(definition, (CSharpParseOptions)parseOptions, (CSharpCompilationOptions)compilationOptions);
+            return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(definition, (CSharpParseOptions)parseOptions, (CSharpCompilationOptions)compilationOptions);
         }
 
         protected override string GetLanguage()
@@ -162,7 +162,7 @@ class Class
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
-                public void TestNoDuplicateSuppressionCodeFixes()
+                public async Task TestNoDuplicateSuppressionCodeFixes()
                 {
                     var source = @"
 class Class
@@ -172,7 +172,7 @@ class Class
         [|int x = 0, y = 0; string s;|]
     }
 }";
-                    using (var workspace = CreateWorkspaceFromFile(source, parseOptions: null, compilationOptions: null))
+                    using (var workspace = await CreateWorkspaceFromFileAsync(source, parseOptions: null, compilationOptions: null))
                     {
                         var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, new CSharpCompilerDiagnosticAnalyzer());
                         var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);

@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var workspaceElement = CreateWorkspaceElement(
                 CreateProjectElement(compilationOptions?.ModuleName ?? "Test", language, commonReferences, parseOptions, compilationOptions, documentElements));
 
-            return await CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind).ConfigureAwait(true);
+            return await CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
         }
 
         internal static TestWorkspace CreateWorkspaceFromFiles(

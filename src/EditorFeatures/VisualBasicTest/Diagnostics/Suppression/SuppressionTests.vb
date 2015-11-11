@@ -23,13 +23,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(
+        Protected Overrides Function CreateWorkspaceFromFileAsync(
             definition As String,
             parseOptions As ParseOptions,
             compilationOptions As CompilationOptions
-        ) As TestWorkspace
+        ) As Task(Of TestWorkspace)
 
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(
+            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(
                 definition,
                 DirectCast(parseOptions, ParseOptions),
                 If(DirectCast(compilationOptions, CompilationOptions), New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))

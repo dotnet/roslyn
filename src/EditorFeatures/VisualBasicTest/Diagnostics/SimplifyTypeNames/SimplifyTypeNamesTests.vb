@@ -1599,7 +1599,7 @@ Module Program
 End Module
 </Code>
 
-            Using workspace = CreateWorkspaceFromFile(source, Nothing, Nothing)
+            Using workspace = Await CreateWorkspaceFromFileAsync(source, Nothing, Nothing)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -1614,7 +1614,7 @@ Module Program
 End Module
 </Code>
 
-            Using workspace = CreateWorkspaceFromFile(source, Nothing, Nothing)
+            Using workspace = Await CreateWorkspaceFromFileAsync(source, Nothing, Nothing)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyNamesDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -1630,7 +1630,7 @@ Class C
 End Module
 </Code>
 
-            Using workspace = CreateWorkspaceFromFile(source, Nothing, Nothing)
+            Using workspace = Await CreateWorkspaceFromFileAsync(source, Nothing, Nothing)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using

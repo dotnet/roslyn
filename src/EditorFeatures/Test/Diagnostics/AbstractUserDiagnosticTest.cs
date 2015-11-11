@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         protected async Task TestEquivalenceKeyAsync(string initialMarkup, string equivalenceKey)
         {
-            using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions: null, compilationOptions: null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions: null, compilationOptions: null))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace);
                 Assert.Equal(equivalenceKey, diagnosticAndFix.Item2.Fixes.ElementAt(index: 0).Action.EquivalenceKey);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             int count,
             ParseOptions parseOptions = null, CompilationOptions compilationOptions = null)
         {
-            using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixesAsync(workspace, null);
                 var diagnosticCount = diagnosticAndFix.Select(x => x.Item2.Fixes.Count()).Sum();
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             MarkupTestFile.GetSpans(expectedMarkup, out unused, out spansList);
 
             var expectedTextSpans = spansList.ToSet();
-            using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
                 ISet<TextSpan> actualTextSpans;
                 if (diagnosticId == null)
@@ -214,8 +214,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             int index = 0,
             bool compareTokens = true, bool isLine = true)
         {
-            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, null, null, compareTokens, isLine).ConfigureAwait(true);
-            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, GetScriptOptions(), null, compareTokens, isLine).ConfigureAwait(true);
+            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, null, null, compareTokens, isLine);
+            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, GetScriptOptions(), null, compareTokens, isLine);
         }
 
         private async Task TestAddDocument(
@@ -226,11 +226,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             bool compareTokens, bool isLine)
         {
-            using (var workspace = isLine ? CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions) : TestWorkspaceFactory.CreateWorkspace(initialMarkup))
+            using (var workspace = isLine 
+                ? await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions) 
+                : await TestWorkspaceFactory.CreateWorkspaceAsync(initialMarkup))
             {
                 var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
                 await TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,
-                    codeActions, compareTokens).ConfigureAwait(true);
+                    codeActions, compareTokens);
             }
         }
 
@@ -252,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 modifiedProjectId: null,
                 expectedFolders: expectedFolders,
                 expectedDocumentName: expectedDocumentName,
-                compareTokens: compareTokens).ConfigureAwait(true);
+                compareTokens: compareTokens);
         }
 
         private async Task<Tuple<Solution, Solution>> TestAddDocument(
@@ -298,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             if (!hasProjectChange)
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
-                var content = await editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().ConfigureAwait(true);
+                var content = await editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync();
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 diffView.Close();
@@ -309,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var contents = editHandler.GetPreviews(workspace, operations, CancellationToken.None);
                 bool hasPreview = false;
                 object preview;
-                while ((preview = await contents.TakeNextPreviewAsync().ConfigureAwait(true)) != null)
+                while ((preview = await contents.TakeNextPreviewAsync()) != null)
                 {
                     var diffView = preview as IWpfDifferenceViewer;
                     if (diffView != null)
@@ -411,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         testState.ProjectToBeModified.Id,
                         newFileFolderContainers,
                         newFileName,
-                        compareTokens: false).ConfigureAwait(true);
+                        compareTokens: false);
                 }
 
                 if (checkIfUsingsIncluded)

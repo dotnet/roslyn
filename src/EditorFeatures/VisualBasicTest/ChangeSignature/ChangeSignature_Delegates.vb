@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -17,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
             Return New ChangeSignatureCodeRefactoringProvider()
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(definition As String, parseOptions As ParseOptions, compilationOptions As CompilationOptions) As TestWorkspace
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(definition, DirectCast(parseOptions, VisualBasicParseOptions), DirectCast(compilationOptions, VisualBasicCompilationOptions))
+        Protected Overrides Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions, compilationOptions As CompilationOptions) As Task(Of TestWorkspace)
+            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(definition, DirectCast(parseOptions, VisualBasicParseOptions), DirectCast(compilationOptions, VisualBasicCompilationOptions))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>

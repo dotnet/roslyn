@@ -3,6 +3,7 @@
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
@@ -16,13 +17,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(
+        Protected Overrides Function CreateWorkspaceFromFileAsync(
             definition As String,
             parseOptions As ParseOptions,
             compilationOptions As CompilationOptions
-        ) As TestWorkspace
+        ) As Task(Of TestWorkspace)
 
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(
+            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(
                 definition,
                 parseOptions,
                 If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))

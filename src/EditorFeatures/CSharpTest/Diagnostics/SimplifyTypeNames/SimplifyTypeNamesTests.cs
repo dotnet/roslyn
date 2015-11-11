@@ -2520,7 +2520,7 @@ class Program
 }
 ";
 
-            using (var workspace = CreateWorkspaceFromFile(code, null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(code, null, null))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
@@ -2619,7 +2619,7 @@ class Program
 ";
             await TestAsync(code, expected);
 
-            using (var workspace = CreateWorkspaceFromFile(code, null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(code, null, null))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
@@ -2655,7 +2655,7 @@ class Program
 ";
             await TestAsync(code, expected);
 
-            using (var workspace = CreateWorkspaceFromFile(code, null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(code, null, null))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
@@ -2723,7 +2723,7 @@ namespace A
         }
     }
 }";
-            using (var workspace = CreateWorkspaceFromFile(code, null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(code, null, null))
             {
                 var diagnosticAndFix = await GetDiagnosticAndFixAsync(workspace);
                 var span = diagnosticAndFix.Item1.Location.SourceSpan;
@@ -3166,7 +3166,7 @@ class C
         [|System.Console.WriteLine|]("");
     }
 }";
-            using (var workspace = CreateWorkspaceFromFile(source, null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
             {
                 var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
@@ -3183,7 +3183,7 @@ class C
         [|System.Int32|] a;
     }
 }";
-            using (var workspace = CreateWorkspaceFromFile(source, null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
             {
                 var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
@@ -3201,7 +3201,7 @@ class C
         var a = [|this.x|];
     }
 }";
-            using (var workspace = CreateWorkspaceFromFile(source, null, null))
+            using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
             {
                 var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
