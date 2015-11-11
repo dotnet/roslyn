@@ -88,28 +88,37 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         // custom modifiers and inferring language-specific semantics from them.
         public void GetCustomModifiers(out Type[] modopts, out Type[] modreqs)
         {
-            PropertyInfo pi = _member as PropertyInfo;
-            if (pi != null)
+            switch(MemberType)
             {
-                var getMethod = pi.GetGetMethod();
-                if (getMethod != null)
-                {
-                    var returnParam = getMethod.ReturnParameter;
-                    if(returnParam != null)
+                case MemberTypes.Property:
+                    PropertyInfo pi = (PropertyInfo)_member;
+                    if (pi != null)
                     {
-                        modopts = returnParam.GetOptionalCustomModifiers();
-                        modreqs = returnParam.GetRequiredCustomModifiers();
+                        var getMethod = pi.GetGetMethod();
+                        if (getMethod != null)
+                        {
+                            var returnParam = getMethod.ReturnParameter;
+                            if (returnParam != null)
+                            {
+                                modopts = returnParam.GetOptionalCustomModifiers();
+                                modreqs = returnParam.GetRequiredCustomModifiers();
+                                return;
+                            }
+                        }
+                    }
+                    break;
+                case MemberTypes.Field:
+                    FieldInfo fi = (FieldInfo)_member;
+                    if (fi != null)
+                    {
+                        modopts = fi.GetOptionalCustomModifiers();
+                        modreqs = fi.GetRequiredCustomModifiers();
                         return;
                     }
-                }
-            }
-
-            FieldInfo fi = _member as FieldInfo;
-            if(fi != null)
-            {
-                modopts = fi.GetOptionalCustomModifiers();
-                modreqs = fi.GetRequiredCustomModifiers();
-                return;
+                    break;
+                default:
+                    Debug.Assert(false, "This function should be called only for fields and properties");
+                    break;
             }
 
             // No custom modifiers

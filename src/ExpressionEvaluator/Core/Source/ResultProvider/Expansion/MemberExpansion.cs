@@ -2,13 +2,13 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
-using Microsoft.VisualStudio.Debugger.Clr;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -474,21 +474,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // return a new DkmClrCustomTypeInfo object with the correct modopts/modreqs plumbed through.
                 var payloadTypeId = typeDeclaringMemberInfo != null ? typeDeclaringMemberInfo.PayloadTypeId : Guid.Empty;
                 var payload = typeDeclaringMemberInfo != null ? typeDeclaringMemberInfo.Payload : new ReadOnlyCollection<byte>(new byte[0]);
-                return DkmClrCustomTypeInfo.Create(payloadTypeId, payload, GetDkmClrTypeArray(modopts), GetDkmClrTypeArray(modreqs.ToArray()));
+                return DkmClrCustomTypeInfo.Create(payloadTypeId, payload, GetDkmClrTypeArray(modopts), GetDkmClrTypeArray(modreqs));
             }
         }
 
-        private static ReadOnlyCollection<DkmClrType> GetDkmClrTypeArray(ICollection<Type> lmrTypes)
+        private static ReadOnlyCollection<DkmClrType> GetDkmClrTypeArray(Type[] lmrTypes)
         {
-            DkmClrType[] result = new DkmClrType[lmrTypes.Count];
-
-            int i = 0;
-            foreach(Type t in lmrTypes)
+            var result = ArrayBuilder<DkmClrType>.GetInstance();
+            foreach (Type t in lmrTypes)
             {
-                result[i++] = DkmClrType.Create(t);
+                result.Add(DkmClrType.Create(t));
             }
 
-            return new ReadOnlyCollection<DkmClrType>(result);
+            return result.ToImmutable();
         }
 
         private static string MakeFullName(
