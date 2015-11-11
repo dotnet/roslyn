@@ -468,7 +468,7 @@ End Sub"
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics())
-                Dim targetPosition = GoToAdjacentMemberCommandHandler.GetTargetPosition(
+                Dim targetPosition = Await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
                         document,
                         hostDocument.CursorPosition.Value,
                         [next],
@@ -489,7 +489,7 @@ End Sub"
             Dim hostDocument = workspace.DocumentWithCursor
             Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics())
-            Return GoToAdjacentMemberCommandHandler.GetTargetPosition(
+            Return Await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
                     document,
                     hostDocument.CursorPosition.Value,
                     [next],
