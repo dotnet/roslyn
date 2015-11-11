@@ -5526,14 +5526,23 @@ class C : TestBase
             Expression<Func<string>> f;
             f = () => $"""";
             Check<string>(f, ""Constant( Type:System.String)"");
+            f = () => $""{1,1}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object)](Constant({0,1} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2,1}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object)](Constant({0}{1,1} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2,1}{3}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object, System.Object)](Constant({0}{1,1}{2} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object), Convert(Constant(3 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2}{3,1}{4}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object[])](Constant({0}{1}{2,1}{3} Type:System.String), NewArrayInit([Convert(Constant(1 Type:System.Int32) Type:System.Object) Convert(Constant(2 Type:System.Int32) Type:System.Object) Convert(Constant(3 Type:System.Int32) Type:System.Object) Convert(Constant(4 Type:System.Int32) Type:System.Object)] Type:System.Object[])) Type:System.String)"");
+
             f = () => $""{1}"";
-            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object)](Constant({0} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            Check<string>(f, ""Call(null.[System.String Concat(System.Object)](Convert(Constant(1 Type:System.Int32) Type:System.Object)) Type:System.String)"");
             f = () => $""{1}{2}"";
-            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object)](Constant({0}{1} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            Check<string>(f, ""Call(null.[System.String Concat(System.Object, System.Object)](Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object)) Type:System.String)"");
             f = () => $""{1}{2}{3}"";
-            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object, System.Object)](Constant({0}{1}{2} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object), Convert(Constant(3 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            Check<string>(f, ""Call(null.[System.String Concat(System.Object, System.Object, System.Object)](Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object), Convert(Constant(3 Type:System.Int32) Type:System.Object)) Type:System.String)"");
             f = () => $""{1}{2}{3}{4}"";
-            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object[])](Constant({0}{1}{2}{3} Type:System.String), NewArrayInit([Convert(Constant(1 Type:System.Int32) Type:System.Object) Convert(Constant(2 Type:System.Int32) Type:System.Object) Convert(Constant(3 Type:System.Int32) Type:System.Object) Convert(Constant(4 Type:System.Int32) Type:System.Object)] Type:System.Object[])) Type:System.String)"");
+            Check<string>(f, ""Call(null.[System.String Concat(System.Object[])](NewArrayInit([Convert(Constant(1 Type:System.Int32) Type:System.Object) Convert(Constant(2 Type:System.Int32) Type:System.Object) Convert(Constant(3 Type:System.Int32) Type:System.Object) Convert(Constant(4 Type:System.Int32) Type:System.Object)] Type:System.Object[])) Type:System.String)"");
             Console.WriteLine(""DONE"");
     }
 
