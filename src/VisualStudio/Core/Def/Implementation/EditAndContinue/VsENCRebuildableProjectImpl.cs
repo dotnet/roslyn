@@ -279,9 +279,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -341,9 +341,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -758,9 +758,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     return VSConstants.S_OK;
                 }
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -847,9 +847,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     return VSConstants.S_OK;
                 }
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -910,9 +910,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // HResult ignored by the debugger
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -1010,9 +1010,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -1118,9 +1118,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -1163,9 +1163,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
