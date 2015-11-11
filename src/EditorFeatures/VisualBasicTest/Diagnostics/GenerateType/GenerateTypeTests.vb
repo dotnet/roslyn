@@ -437,7 +437,7 @@ End Class</Text>.NormalizedValue,
     End Sub
 
     Private Class HERE
-Public Async Function TestNew() As Task
+        Public Sub New()
         End Sub
     End Class
 End Class</Text>.NormalizedValue,
