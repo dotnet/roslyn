@@ -288,6 +288,28 @@ namespace N
 
 #End Region
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WorkItem(163175, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems#_a=edit&id=163175")>
+        Public Sub DotNetNameFromLanguageSpecific_AssemblyQualifiedNestedType()
+            Dim workspace = <Workspace>
+                                <Project Language=<%= LanguageName %> AssemblyName="MyAssembly" CommonReferences="true">
+                                    <Document FilePath="C.cs"><![CDATA[
+namespace N
+{
+    public class C
+    {
+        public class Nested { }
+    }
+}
+]]></Document>
+                                </Project>
+                            </Workspace>
+
+            TestRootCodeModel(workspace, Sub(rootCodeModel)
+                                             Assert.Equal("N.C+Nested", rootCodeModel.DotNetNameFromLanguageSpecific("N.C+Nested, MyAssembly"))
+                                         End Sub)
+        End Sub
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.CSharp

@@ -3559,6 +3559,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Public Overrides Function GetTypeSymbolFromFullName(fullName As String, compilation As Compilation) As ITypeSymbol
+            ' Some clients pass us an assembly qualified name, which we don't handle.  Just lop off the
+            ' assembly info if so.
+            Dim index = fullName.IndexOf(","c)
+            If index > 0 Then
+                fullName = fullName.Substring(0, index)
+            End If
+
             Dim typeSymbol As ITypeSymbol = compilation.GetTypeByMetadataName(fullName)
 
             If typeSymbol Is Nothing Then

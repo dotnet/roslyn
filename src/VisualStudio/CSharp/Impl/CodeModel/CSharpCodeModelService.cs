@@ -3021,6 +3021,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override ITypeSymbol GetTypeSymbolFromFullName(string fullName, Compilation compilation)
         {
+            // Some clients pass us an assembly qualified name, which we don't handle.  Just lop off the
+            // assembly info if so.
+            var index = fullName.IndexOf(',');
+            if (index > 0)
+            {
+                fullName = fullName.Substring(0, index);
+            }
+
             ITypeSymbol typeSymbol = compilation.GetTypeByMetadataName(fullName);
 
             if (typeSymbol == null)
