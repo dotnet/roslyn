@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
@@ -27,100 +29,58 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    internal interface IRequestHandler
+    internal abstract class CompilerServerHost : ICompilerServerHost
     {
-        BuildResponse HandleRequest(BuildRequest req, CancellationToken cancellationToken);
-    }
+        public abstract IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
 
-    internal sealed class CompilerRequestHandler : IRequestHandler
-    {
-        private readonly ICompilerServerHost _compilerServerHost;
+        public abstract Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
 
         /// <summary>
-        /// Directory holding the command line executable.  It will be the same directory as the
-        /// response file.
+        /// Directory that contains the compiler executables and the response files. 
         /// </summary>
-        private readonly string _clientDirectory;
+        public string ClientDirectory { get; }
 
-        internal CompilerRequestHandler(ICompilerServerHost compilerServerHost, string clientDirectory)
+        /// <summary>
+        /// Directory that contains mscorlib.  Can be null when the host is executing in a CoreCLR context.
+        /// </summary>
+        public string SdkDirectory { get; }
+
+        protected CompilerServerHost(string clientDirectory, string sdkDirectory)
         {
-            _compilerServerHost = compilerServerHost;
-            _clientDirectory = clientDirectory;
+            ClientDirectory = clientDirectory;
+            SdkDirectory = sdkDirectory;
         }
 
-        /// <summary>
-        /// An incoming request as occurred. This is called on a new thread to handle
-        /// the request.
-        /// </summary>
-        public BuildResponse HandleRequest(BuildRequest request, CancellationToken cancellationToken)
+        public abstract bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
+
+        public bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler)
         {
-            var req = BuildProtocolUtil.GetRunRequest(request);
-            switch (req.Language)
+            switch (request.Language)
             {
                 case LanguageNames.CSharp:
-                    _compilerServerHost.Log("Request to compile C#");
-                    return RunCompile(req, CreateCSharpCompiler, cancellationToken);
-
+                    compiler = new CSharpCompilerServer(
+                        this,
+                        args: request.Arguments,
+                        clientDirectory: ClientDirectory,
+                        baseDirectory: request.CurrentDirectory,
+                        sdkDirectory: SdkDirectory,
+                        libDirectory: request.LibDirectory,
+                        analyzerLoader: AnalyzerAssemblyLoader);
+                    return true;
                 case LanguageNames.VisualBasic:
-                    _compilerServerHost.Log("Request to compile VB");
-                    return RunCompile(req, CreateBasicCompiler, cancellationToken);
-
+                    compiler = new VisualBasicCompilerServer(
+                        this,
+                        args: request.Arguments,
+                        clientDirectory: ClientDirectory,
+                        baseDirectory: request.CurrentDirectory,
+                        sdkDirectory: SdkDirectory,
+                        libDirectory: request.LibDirectory,
+                        analyzerLoader: AnalyzerAssemblyLoader);
+                    return true;
                 default:
-                    // We can't do anything with a request we don't know about. 
-                    _compilerServerHost.Log($"Got request with id '{req.Language}'");
-                    return new CompletedBuildResponse(-1, false, "", "");
+                    compiler = null;
+                    return false;
             }
-        }
-
-        /// <summary>
-        /// A request to compile C# files. Unpack the arguments and current directory and invoke
-        /// the compiler, then create a response with the result of compilation.
-        /// </summary>
-        private BuildResponse RunCompile(RunRequest request, Func<RunRequest, CommonCompiler> func,  CancellationToken cancellationToken)
-        {
-            _compilerServerHost.Log($"CurrentDirectory = '{request.CurrentDirectory}'");
-            _compilerServerHost.Log($"LIB = '{request.LibDirectory}'");
-            for (int i = 0; i < request.Arguments.Length; ++i)
-            {
-                _compilerServerHost.Log($"Argument[{i}] = '{request.Arguments[i]}'");
-            }
-
-            var compiler = func(request);
-            bool utf8output = compiler.Arguments.Utf8Output;
-            if (!_compilerServerHost.CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
-            {
-                return new AnalyzerInconsistencyBuildResponse();
-            }
-
-            _compilerServerHost.Log($"****Running {request.Language} compiler...");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-            _compilerServerHost.Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
-        }
-
-        private CommonCompiler CreateCSharpCompiler(RunRequest request)
-        {
-            return new CSharpCompilerServer(
-                _compilerServerHost,
-                request.Arguments,
-                _clientDirectory,
-                request.CurrentDirectory,
-                _compilerServerHost.GetSdkDirectory(),
-                request.LibDirectory,
-                _compilerServerHost.AnalyzerAssemblyLoader);
-        }
-
-        private CommonCompiler CreateBasicCompiler(RunRequest request)
-        {
-            return new VisualBasicCompilerServer(
-                _compilerServerHost,
-                request.Arguments,
-                _clientDirectory,
-                request.CurrentDirectory,
-                _compilerServerHost.GetSdkDirectory(),
-                request.LibDirectory,
-                _compilerServerHost.AnalyzerAssemblyLoader);
         }
     }
 }

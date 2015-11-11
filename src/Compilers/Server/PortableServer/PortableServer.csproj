@@ -65,6 +65,7 @@
     </Compile>
     <Compile Include="CoreClrCompilerServerHost.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="TcpClientConnection.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
