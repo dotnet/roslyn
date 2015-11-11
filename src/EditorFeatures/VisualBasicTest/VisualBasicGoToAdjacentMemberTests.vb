@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Public Class VisualBasicGoToAdjacentMemberTests
-
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Async Function EmptyFile() As Task
