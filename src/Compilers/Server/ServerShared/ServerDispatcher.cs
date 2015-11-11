@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if ((timeoutTask != null && timeoutTask.IsCompleted) || cancellationToken.IsCancellationRequested)
                 {
+                    _diagnosticListener.KeepAliveReached();
                     listenCancellationTokenSource.Cancel();
                     break;
                 }

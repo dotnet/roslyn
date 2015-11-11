@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public DateTime? LastProcessedTime;
             public TimeSpan? KeepAlive;
             public bool HasDetectedBadConnection;
+            public bool HitKeepAliveTimeout;
 
             public void ConnectionProcessed(int count)
             {
@@ -37,6 +38,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void DetectedBadConnection()
             {
                 HasDetectedBadConnection = true;
+            }
+
+            public void KeepAliveReached()
+            {
+                HitKeepAliveTimeout = true;
             }
         }
 
@@ -185,11 +191,12 @@ class Hello
                 .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
 
-            var dispatcher = new ServerDispatcher(connectionHost.Object, new EmptyDiagnosticListener());
+            var listener = new TestableDiagnosticListener();
+            var dispatcher = new ServerDispatcher(connectionHost.Object, listener);
             var startTime = DateTime.Now;
             dispatcher.ListenAndDispatchConnections(keepAlive);
 
-            Assert.True((DateTime.Now - startTime) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         /// <summary>
@@ -209,7 +216,7 @@ class Hello
 
             Assert.Equal(1, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
-            Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         /// <summary>
@@ -235,7 +242,7 @@ class Hello
 
             Assert.Equal(count, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
-            Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         /// <summary>
@@ -282,7 +289,7 @@ class Hello
             await dispatcherTask.ConfigureAwait(true);
             Assert.Equal(totalCount, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
-            Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         [Fact]
