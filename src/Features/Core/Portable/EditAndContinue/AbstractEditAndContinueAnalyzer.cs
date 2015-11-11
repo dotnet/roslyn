@@ -554,16 +554,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(updatedMethods.Count == 0);
 
             var updatedTrackingSpans = new List<KeyValuePair<ActiveStatementId, TextSpan>>();
+            bool[] editedActiveStatements = new bool[newActiveStatements.Length];
 
             for (int i = 0; i < script.Edits.Length; i++)
             {
                 var edit = script.Edits[i];
 
-                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
+                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, editedActiveStatements, updatedTrackingSpans, diagnostics);
                 ReportSyntacticRudeEdits(diagnostics, script.Match, edit, editMap);
             }
 
-            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedTrackingSpans);
+            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, editedActiveStatements, updatedTrackingSpans);
 
             if (updatedTrackingSpans.Count > 0)
             {
@@ -581,6 +582,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatementSpan> oldActiveStatements,
             [In, Out]LinePositionSpan[] newActiveStatements,
             [In, Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+            [In, Out]bool[] editedActiveStatements,
             [In, Out]List<KeyValuePair<ActiveStatementId, TextSpan>> updatedTrackingSpans)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
@@ -591,8 +593,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             for (int i = 0; i < newActiveStatements.Length; i++)
             {
-                if (newActiveStatements[i] == default(LinePositionSpan))
+                if (!editedActiveStatements[i])
                 {
+                    Debug.Assert(newExceptionRegions[i].IsDefault);
+
                     TextSpan trackedSpan = default(TextSpan);
                     bool isTracked = trackingService != null &&
                                      trackingService.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
@@ -615,16 +619,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    // Find a matching syntax node in the new source.
-                    // In case the node got deleted the newMember may be missing.
-                    // For those the active span should remain empty.
                     SyntaxNode newMember;
                     bool hasPartner = topMatch.TryGetNewNode(oldMember, out newMember);
-                    Debug.Assert(hasPartner || trackedSpan.IsEmpty);
-                    if (!hasPartner)
-                    {
-                        continue;
-                    }
+                    Debug.Assert(hasPartner);
 
                     SyntaxNode oldBody = TryGetDeclarationBody(oldMember, isMember: true);
                     SyntaxNode newBody = TryGetDeclarationBody(newMember, isMember: true);
@@ -848,6 +845,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             [Out]LinePositionSpan[] newActiveStatements,
             [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
             [Out]List<UpdatedMemberInfo> updatedMembers,
+            [Out]bool[] editedActiveStatements,
             [Out]List<KeyValuePair<ActiveStatementId, TextSpan>> updatedTrackingSpans,
             [Out]List<RudeEditDiagnostic> diagnostics)
         {
@@ -892,6 +890,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Debug.Assert(newActiveStatements[i] == default(LinePositionSpan));
 
                         newActiveStatements[i] = newText.Lines.GetLinePositionSpan(newSpan);
+                        editedActiveStatements[i] = true;
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
                     }
                 }
@@ -910,6 +909,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         Debug.Assert(newActiveStatements[i] == default(LinePositionSpan) && newSpan != default(TextSpan));
                         newActiveStatements[i] = newText.Lines.GetLinePositionSpan(newSpan);
+                        editedActiveStatements[i] = true;
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
                     }
                 }
@@ -1088,6 +1088,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 Debug.Assert(newActiveStatements[ordinal] == default(LinePositionSpan) && newSpan != default(TextSpan));
                 newActiveStatements[ordinal] = newText.Lines.GetLinePositionSpan(newSpan);
+                editedActiveStatements[ordinal] = true;
 
                 // Update tracking span if we found a matching active statement whose span is different.
                 // It could have been deleted or moved out of the method/lambda body, in which case we set it to empty.
