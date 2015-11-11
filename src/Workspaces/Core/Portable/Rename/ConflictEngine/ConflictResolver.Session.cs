@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         }
                     }
 #if DEBUG
-                    DebugVerifyNoErrors(conflictResolution, _documentsIdsToBeCheckedForConflict);
+                    await DebugVerifyNoErrorsAsync(conflictResolution, _documentsIdsToBeCheckedForConflict).ConfigureAwait(false);
 #endif
                     return conflictResolution;
                 }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
 #if DEBUG
-            private void DebugVerifyNoErrors(ConflictResolution conflictResolution, IEnumerable<DocumentId> documents)
+            private async Task DebugVerifyNoErrorsAsync(ConflictResolution conflictResolution, IEnumerable<DocumentId> documents)
             {
                 var documentIdErrorStateLookup = new Dictionary<DocumentId, bool>();
 
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     // remember if there were issues in the document prior to renaming it.
                     var originalDoc = conflictResolution.OldSolution.GetDocument(documentId);
-                    documentIdErrorStateLookup.Add(documentId, originalDoc.HasAnyErrors(_cancellationToken).WaitAndGetResult(_cancellationToken));
+                    documentIdErrorStateLookup.Add(documentId, await originalDoc.HasAnyErrorsAsync(_cancellationToken).ConfigureAwait(false));
                 }
 
                 // We want to ignore few error message introduced by rename because the user is wantedly doing it.
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // errors.
                         if (!documentIdErrorStateLookup[documentId] && _hasConflictCallback == null)
                         {
-                            conflictResolution.NewSolution.GetDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", _cancellationToken, ignoreErrorCodes).Wait(_cancellationToken);
+                            await conflictResolution.NewSolution.GetDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", _cancellationToken, ignoreErrorCodes).ConfigureAwait(false);
                         }
                     }
                 }

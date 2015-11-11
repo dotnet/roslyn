@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 IEnumerable<TextSpan> spans = null;
 
 #if DEBUG
-                bool originalDocHasErrors = await annotatedDocument.HasAnyErrors(cancellationToken).ConfigureAwait(false);
+                bool originalDocHasErrors = await annotatedDocument.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
                 var current = 0;
