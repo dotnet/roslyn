@@ -6592,7 +6592,7 @@ Imports System
 Class A
     Private Class C
         Implements IDisposable
-Public Async Function TestDispose() As Task Implements IDisposable.Dispose
+        Public Sub Dispose() Implements IDisposable.Dispose
         End Sub
 
         Private Shared Sub Main()
@@ -6613,7 +6613,7 @@ Imports System
 Class A
     Private Class C
         Implements IDisposable
-Public Async Function TestDispose() As Task Implements IDisposable.Dispose
+        Public Sub Dispose() Implements IDisposable.Dispose
         End Sub
 
         Private Shared Sub Main()
