@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
             var doc = this.CurrentSolution.GetDocument(documentId);
             if (doc != null)
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
                 this.OnDocumentOpened(documentId, text.Container, activate);
             }
         }
@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis
             var doc = this.CurrentSolution.GetDocument(documentId);
             if (doc != null)
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
                 var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
                 this.OnDocumentClosed(documentId, loader);
             }
