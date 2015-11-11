@@ -2770,7 +2770,7 @@ End Class</Code>
                 Dim root = document.GetSyntaxRootAsync().Result
 
                 ' format first time
-                Dim result = Formatter.GetFormattedTextChanges(root, workspace)
+                Dim result = Await Formatter.GetFormattedTextChangesAsync(root, workspace)
                 AssertResult(My.Resources.XmlLiterals.XmlTest4_Input_Output, document.GetTextAsync().Result, result)
 
                 Dim document2 = document.WithText(document.GetTextAsync().Result.WithChanges(result))
