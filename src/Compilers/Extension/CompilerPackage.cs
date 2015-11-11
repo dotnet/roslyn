@@ -52,11 +52,6 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             base.Initialize();
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-        }
-
         private void WriteTargetsFile(string packagePath, string hiveName)
         {
             var targetsFileContent =
