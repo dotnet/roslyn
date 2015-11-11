@@ -1031,6 +1031,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         '' Bad constructor, do not use!
+        '' Violates the rules for optional parameter overloads detailed at
+        '' https://github.com/dotnet/roslyn/blob/e8fdb391703dcb5712ff6a5b83d768d784cba4cf/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md
         Public Sub New(
             outputKind As OutputKind,
             reportSuppressedDiagnostics As Boolean,
