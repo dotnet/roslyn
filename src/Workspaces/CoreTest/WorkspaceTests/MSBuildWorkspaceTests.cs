@@ -2239,7 +2239,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestAdditionalFilesStandalone()
+        public async Task TestAdditionalFilesStandalone()
         {
 #if !MSBUILD12
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
@@ -2256,7 +2256,7 @@ class C1
                     Assert.Equal(1, proj.AdditionalDocuments.Count());
                     var doc = proj.AdditionalDocuments.First();
                     Assert.Equal("XamlFile.xaml", doc.Name);
-                    Assert.Contains("Window", doc.GetTextAsync().WaitAndGetResult(CancellationToken.None).ToString(), StringComparison.Ordinal);
+                    Assert.Contains("Window", (await doc.GetTextAsync()).ToString(), StringComparison.Ordinal);
                 }
             }
 #endif
