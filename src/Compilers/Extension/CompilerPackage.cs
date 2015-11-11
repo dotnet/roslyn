@@ -11,28 +11,7 @@ namespace Roslyn.Compilers.Extension
     [ProvideAutoLoad(UIContextGuids.SolutionExists)]
     public sealed class CompilerPackage : Package
     {
-        private const string VisualStudioVersion = "14.0";
-        private const string VisualStudioHive = "VisualStudio";
         private const string MSBuildDirectory = @"Microsoft\MSBuild\14.0";
-
-        private readonly string _CSharpTargetsTemplate =
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <PropertyGroup Condition=""'$(RoslynHive)'=='{0}'"">
-    <CscToolPath>{1}</CscToolPath>
-    <CscToolExe>csc.exe</CscToolExe>
-  </PropertyGroup>
-</Project>
-";
-        private const string VisualBasicTargetsTemplate =
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <PropertyGroup Condition=""'$(RoslynHive)'=='{0}'"">
-    <VbcToolPath>{1}</VbcToolPath>
-    <VbcToolExe>vbc.exe</VbcToolExe>
-  </PropertyGroup>
-</Project>
-";
 
         private const string WriteFileExceptionMessage =
 @"Unable to write {0}
@@ -43,30 +22,22 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
 
         protected override void Initialize()
         {
-            // Generate targets file
             var packagePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var msbuildExtensionsPath = Path.Combine(localAppData, MSBuildDirectory);
 
             string localRegistryRoot;
             var reg = (ILocalRegistry2)this.GetService(typeof(SLocalRegistry));
             reg.GetLocalRegistryRoot(out localRegistryRoot);
-            var regDirs = localRegistryRoot.Split('\\');
-            var roslynHive = string.Format(@"{0}\{1}", regDirs[2], regDirs[3]);
+            var registryParts = localRegistryRoot.Split('\\');
 
             // Is it a valid Hive looks similar to:  
             //  'Software\Microsoft\VisualStudio\14.0'  'Software\Microsoft\VisualStudio\14.0Roslyn'  'Software\Microsoft\VSWinExpress\14.0'
-            if (regDirs.Length >= 4)
+            if (registryParts.Length >= 4)
             {
-                if (regDirs[3].ToUpperInvariant() != "VISUALSTUDIOVERSION")
-                {
-                    WriteFile(
-                        Path.Combine(msbuildExtensionsPath, string.Format(@"Microsoft.CSharp.targets\ImportAfter\Microsoft.CSharp.Roslyn.{0}.{1}.targets", regDirs[2], regDirs[3])),
-                        string.Format(_CSharpTargetsTemplate, roslynHive, packagePath));
-                    WriteFile(
-                        Path.Combine(msbuildExtensionsPath, string.Format(@"Microsoft.VisualBasic.targets\ImportAfter\Microsoft.VisualBasic.Roslyn.{0}.{1}.targets", regDirs[2], regDirs[3])),
-                        string.Format(VisualBasicTargetsTemplate, roslynHive, packagePath));
-                }
+                var skuName = registryParts[2];
+                var hiveName = registryParts[3];
+                var roslynHive = string.Format(@"{0}.{1}", registryParts[2], registryParts[3]);
+
+                WriteTargetsFile(packagePath, roslynHive);
 
                 try
                 {
@@ -86,28 +57,49 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             base.Dispose(disposing);
         }
 
-        private void WriteFile(string path, string contents)
+        private void WriteTargetsFile(string packagePath, string hiveName)
         {
-            try
-            {
-                var directory = Path.GetDirectoryName(path);
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
+            var targetsFileContent =
+                $@"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <PropertyGroup Condition = ""'$(RoslynHive)' == '{hiveName}'"">
+    <CscToolPath>{packagePath}</CscToolPath>
+    <CscToolExe>csc.exe</CscToolExe>
+    <VbcToolPath>{packagePath}</VbcToolPath>
+    <VbcToolExe>vbc.exe</VbcToolExe>
+  </PropertyGroup>
+</Project>";
 
-                using (var writer = new StreamWriter(path))
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var msbuildExtensionsPath = Path.Combine(localAppData, MSBuildDirectory);
+
+            foreach (var msbuildLanguage in new[] { "CSharp", "VisualBasic" })
+            {
+                var targetsFile = Path.Combine(msbuildExtensionsPath, $@"Microsoft.{msbuildLanguage}.targets\ImportAfter\Roslyn.Compilers.Extension.{msbuildLanguage}.{hiveName}.targets");
+
+                try
                 {
-                    writer.Write(contents);
+                    var directory = new DirectoryInfo(Path.GetDirectoryName(targetsFile));
+                    if (!directory.Exists)
+                    {
+                        directory.Create();
+                    }
+
+                    // Delete any other targets we might have left around
+                    foreach (var file in directory.GetFileSystemInfos("*.targets"))
+                    {
+                        if (file.Name.Contains("Roslyn"))
+                        {
+                            file.Delete();
+                        }
+                    }
+
+                    File.WriteAllText(targetsFile, targetsFileContent);
                 }
-            }
-            catch (IOException e)
-            {
-                ReportWriteFileException(path, e);
-            }
-            catch (UnauthorizedAccessException e)
-            {
-                ReportWriteFileException(path, e);
+                catch (Exception e)
+                {
+                    ReportWriteFileException(targetsFile, e);
+                }
             }
         }
 
