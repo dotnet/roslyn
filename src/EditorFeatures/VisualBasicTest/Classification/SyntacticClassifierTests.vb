@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
@@ -9,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SyntacticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Friend Overrides Function GetClassificationSpans(code As String, textSpan As TextSpan) As IEnumerable(Of ClassifiedSpan)
-            Using Workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(code)
+        Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
+            Using Workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code)
                 Dim document = Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim tree = document.GetSyntaxTreeAsync().Result
 
@@ -23,183 +24,183 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlStartElementName1()
-            TestInExpression("<foo></foo>",
+        Public Async Function TestXmlStartElementName1() As Task
+            Await TestInExpressionAsync("<foo></foo>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"),
                              VBXmlDelimiter("</"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlStartElementName2()
-            TestInExpression("<foo",
+        Public Async Function TestXmlStartElementName2() As Task
+            Await TestInExpressionAsync("<foo",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlStartElementName3()
-            TestInExpression("<foo>",
+        Public Async Function TestXmlStartElementName3() As Task
+            Await TestInExpressionAsync("<foo>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlStartElementName4()
-            TestInExpression("<foo.",
+        Public Async Function TestXmlStartElementName4() As Task
+            Await TestInExpressionAsync("<foo.",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo."))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlStartElementName5()
-            TestInExpression("<foo.b",
+        Public Async Function TestXmlStartElementName5() As Task
+            Await TestInExpressionAsync("<foo.b",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo.b"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlStartElementName6()
-            TestInExpression("<foo.b>",
+        Public Async Function TestXmlStartElementName6() As Task
+            Await TestInExpressionAsync("<foo.b>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo.b"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlStartElementName7()
-            TestInExpression("<foo:",
+        Public Async Function TestXmlStartElementName7() As Task
+            Await TestInExpressionAsync("<foo:",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlName(":"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlStartElementName8()
-            TestInExpression("<foo:b",
+        Public Async Function TestXmlStartElementName8() As Task
+            Await TestInExpressionAsync("<foo:b",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlName(":"),
                              VBXmlName("b"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlStartElementName9()
-            TestInExpression("<foo:b>",
+        Public Async Function TestXmlStartElementName9() As Task
+            Await TestInExpressionAsync("<foo:b>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlName(":"),
                              VBXmlName("b"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmptyElementName1()
-            TestInExpression("<foo/>",
+        Public Async Function TestXmlEmptyElementName1() As Task
+            Await TestInExpressionAsync("<foo/>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmptyElementName2()
-            TestInExpression("<foo. />",
+        Public Async Function TestXmlEmptyElementName2() As Task
+            Await TestInExpressionAsync("<foo. />",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo."),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmptyElementName3()
-            TestInExpression("<foo.bar />",
+        Public Async Function TestXmlEmptyElementName3() As Task
+            Await TestInExpressionAsync("<foo.bar />",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo.bar"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmptyElementName4()
-            TestInExpression("<foo: />",
+        Public Async Function TestXmlEmptyElementName4() As Task
+            Await TestInExpressionAsync("<foo: />",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlName(":"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmptyElementName5()
-            TestInExpression("<foo:bar />",
+        Public Async Function TestXmlEmptyElementName5() As Task
+            Await TestInExpressionAsync("<foo:bar />",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlName(":"),
                              VBXmlName("bar"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeName1()
-            TestInExpression("<foo b",
+        Public Async Function TestXmlAttributeName1() As Task
+            Await TestInExpressionAsync("<foo b",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("b"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeName2()
-            TestInExpression("<foo ba",
+        Public Async Function TestXmlAttributeName2() As Task
+            Await TestInExpressionAsync("<foo ba",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("ba"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeName3()
-            TestInExpression("<foo bar=",
+        Public Async Function TestXmlAttributeName3() As Task
+            Await TestInExpressionAsync("<foo bar=",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
                              VBXmlDelimiter("="))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeValue1()
-            TestInExpression("<foo bar=""",
+        Public Async Function TestXmlAttributeValue1() As Task
+            Await TestInExpressionAsync("<foo bar=""",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
                              VBXmlDelimiter("="),
                              VBXmlAttributeQuotes(""""))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeValue2()
-            TestInExpression("<foo bar=""b",
+        Public Async Function TestXmlAttributeValue2() As Task
+            Await TestInExpressionAsync("<foo bar=""b",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
                              VBXmlDelimiter("="),
                              VBXmlAttributeQuotes(""""),
                              VBXmlAttributeValue("b" & vbCrLf))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeValue3()
-            TestInExpression("<foo bar=""ba",
+        Public Async Function TestXmlAttributeValue3() As Task
+            Await TestInExpressionAsync("<foo bar=""ba",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
                              VBXmlDelimiter("="),
                              VBXmlAttributeQuotes(""""),
                              VBXmlAttributeValue("ba" & vbCrLf))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeValue4()
-            TestInExpression("<foo bar=""ba""",
+        Public Async Function TestXmlAttributeValue4() As Task
+            Await TestInExpressionAsync("<foo bar=""ba""",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
@@ -207,22 +208,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""),
                              VBXmlAttributeValue("ba"),
                              VBXmlAttributeQuotes(""""))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeValue5()
-            TestInExpression("<foo bar=""""",
+        Public Async Function TestXmlAttributeValue5() As Task
+            Await TestInExpressionAsync("<foo bar=""""",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
                              VBXmlDelimiter("="),
                              VBXmlAttributeQuotes(""""),
                              VBXmlAttributeQuotes(""""))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeValue6()
-            TestInExpression("<foo bar=""b""",
+        Public Async Function TestXmlAttributeValue6() As Task
+            Await TestInExpressionAsync("<foo bar=""b""",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
@@ -230,11 +231,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""),
                              VBXmlAttributeValue("b"),
                              VBXmlAttributeQuotes(""""))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeValue7()
-            TestInExpression("<foo bar=""ba""",
+        Public Async Function TestXmlAttributeValue7() As Task
+            Await TestInExpressionAsync("<foo bar=""ba""",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
@@ -242,11 +243,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""),
                              VBXmlAttributeValue("ba"),
                              VBXmlAttributeQuotes(""""))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeValueMultiple1()
-            TestInExpression("<foo bar=""ba"" baz="""" ",
+        Public Async Function TestXmlAttributeValueMultiple1() As Task
+            Await TestInExpressionAsync("<foo bar=""ba"" baz="""" ",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
@@ -258,11 +259,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("="),
                              VBXmlAttributeQuotes(""""),
                              VBXmlAttributeQuotes(""""))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeValueMultiple2()
-            TestInExpression("<foo bar=""ba"" baz=""a"" ",
+        Public Async Function TestXmlAttributeValueMultiple2() As Task
+            Await TestInExpressionAsync("<foo bar=""ba"" baz=""a"" ",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
@@ -275,11 +276,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""),
                              VBXmlAttributeValue("a"),
                              VBXmlAttributeQuotes(""""))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElementContent1()
-            TestInExpression("<f>&l</f>",
+        Public Async Function TestXmlElementContent1() As Task
+            Await TestInExpressionAsync("<f>&l</f>",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -288,11 +289,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElementContent2()
-            TestInExpression("<f>foo</f>",
+        Public Async Function TestXmlElementContent2() As Task
+            Await TestInExpressionAsync("<f>foo</f>",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -300,11 +301,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElementContent3()
-            TestInExpression("<f>&#x03C0;</f>",
+        Public Async Function TestXmlElementContent3() As Task
+            Await TestInExpressionAsync("<f>&#x03C0;</f>",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -312,11 +313,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElementContent4()
-            TestInExpression("<f>foo &#x03C0;</f>",
+        Public Async Function TestXmlElementContent4() As Task
+            Await TestInExpressionAsync("<f>foo &#x03C0;</f>",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -325,11 +326,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElementContent5()
-            TestInExpression("<f>foo &lt;</f>",
+        Public Async Function TestXmlElementContent5() As Task
+            Await TestInExpressionAsync("<f>foo &lt;</f>",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -338,11 +339,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElementContent6()
-            TestInExpression("<f>foo &lt; bar</f>",
+        Public Async Function TestXmlElementContent6() As Task
+            Await TestInExpressionAsync("<f>foo &lt; bar</f>",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -352,21 +353,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElementContent7()
-            TestInExpression("<f>foo &lt;",
+        Public Async Function TestXmlElementContent7() As Task
+            Await TestInExpressionAsync("<f>foo &lt;",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
                              VBXmlText("foo "),
                              VBXmlEntityReference("&lt;"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlCData1()
-            TestInExpression("<f><![CDATA[bar]]></f>",
+        Public Async Function TestXmlCData1() As Task
+            Await TestInExpressionAsync("<f><![CDATA[bar]]></f>",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -377,36 +378,36 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlCData4()
-            TestInExpression("<f><![CDATA[bar]]>",
+        Public Async Function TestXmlCData4() As Task
+            Await TestInExpressionAsync("<f><![CDATA[bar]]>",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
                              VBXmlDelimiter("<![CDATA["),
                              VBXmlCDataSection("bar"),
                              VBXmlDelimiter("]]>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlCData5()
-            TestInExpression("<f><![CDATA[<>/]]>",
+        Public Async Function TestXmlCData5() As Task
+            Await TestInExpressionAsync("<f><![CDATA[<>/]]>",
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
                              VBXmlDelimiter("<![CDATA["),
                              VBXmlCDataSection("<>/"),
                              VBXmlDelimiter("]]>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlCData6()
+        Public Async Function TestXmlCData6() As Task
             Dim expr = StringFromLines(
                 "<f><![CDATA[foo",
                 "baz]]></f>")
-            TestInExpression(expr,
+            Await TestInExpressionAsync(expr,
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -417,35 +418,35 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAtElementName1()
-            TestInExpression("<<%= ",
+        Public Async Function TestXmlEmbeddedExpressionAtElementName1() As Task
+            Await TestInExpressionAsync("<<%= ",
                              VBXmlDelimiter("<"),
                              VBXmlEmbeddedExpression("<%="))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAtElementName2()
-            TestInExpression("<<%= %>",
+        Public Async Function TestXmlEmbeddedExpressionAtElementName2() As Task
+            Await TestInExpressionAsync("<<%= %>",
                              VBXmlDelimiter("<"),
                              VBXmlEmbeddedExpression("<%="),
                              VBXmlEmbeddedExpression("%>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAtElementName3()
-            TestInExpression("<<%= bar %>",
+        Public Async Function TestXmlEmbeddedExpressionAtElementName3() As Task
+            Await TestInExpressionAsync("<<%= bar %>",
                              VBXmlDelimiter("<"),
                              VBXmlEmbeddedExpression("<%="),
                              Identifier("bar"),
                              VBXmlEmbeddedExpression("%>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAtElementName4()
-            TestInExpression("<<%= bar.Baz() %>",
+        Public Async Function TestXmlEmbeddedExpressionAtElementName4() As Task
+            Await TestInExpressionAsync("<<%= bar.Baz() %>",
                              VBXmlDelimiter("<"),
                              VBXmlEmbeddedExpression("<%="),
                              Identifier("bar"),
@@ -454,11 +455,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              Punctuation.OpenParen,
                              Punctuation.CloseParen,
                              VBXmlEmbeddedExpression("%>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAtElementName5()
-            TestInExpression("<<%= bar.Baz() %> />",
+        Public Async Function TestXmlEmbeddedExpressionAtElementName5() As Task
+            Await TestInExpressionAsync("<<%= bar.Baz() %> />",
                              VBXmlDelimiter("<"),
                              VBXmlEmbeddedExpression("<%="),
                              Identifier("bar"),
@@ -468,42 +469,42 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              Punctuation.CloseParen,
                              VBXmlEmbeddedExpression("%>"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAtElementName6()
-            TestInExpression("<<%= bar %> />",
+        Public Async Function TestXmlEmbeddedExpressionAtElementName6() As Task
+            Await TestInExpressionAsync("<<%= bar %> />",
                              VBXmlDelimiter("<"),
                              VBXmlEmbeddedExpression("<%="),
                              Identifier("bar"),
                              VBXmlEmbeddedExpression("%>"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsAttribute1()
-            TestInExpression("<foo <%= bar %>>",
+        Public Async Function TestXmlEmbeddedExpressionAsAttribute1() As Task
+            Await TestInExpressionAsync("<foo <%= bar %>>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlEmbeddedExpression("<%="),
                              Identifier("bar"),
                              VBXmlEmbeddedExpression("%>"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsAttribute2()
-            TestInExpression("<foo <%= bar %>",
+        Public Async Function TestXmlEmbeddedExpressionAsAttribute2() As Task
+            Await TestInExpressionAsync("<foo <%= bar %>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlEmbeddedExpression("<%="),
                              Identifier("bar"),
                              VBXmlEmbeddedExpression("%>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsAttribute3()
-            TestInExpression("<foo <%= bar %>></foo>",
+        Public Async Function TestXmlEmbeddedExpressionAsAttribute3() As Task
+            Await TestInExpressionAsync("<foo <%= bar %>></foo>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlEmbeddedExpression("<%="),
@@ -513,23 +514,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsAttribute4()
-            TestInExpression("<foo <%= bar %> />",
+        Public Async Function TestXmlEmbeddedExpressionAsAttribute4() As Task
+            Await TestInExpressionAsync("<foo <%= bar %> />",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlEmbeddedExpression("<%="),
                              Identifier("bar"),
                              VBXmlEmbeddedExpression("%>"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsAttributeValue1()
+        Public Async Function TestXmlEmbeddedExpressionAsAttributeValue1() As Task
             Dim exprText = "<foo bar=<%=baz >"
-            TestInExpression(exprText,
+            Await TestInExpressionAsync(exprText,
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
@@ -537,12 +538,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlEmbeddedExpression("<%="),
                              Identifier("baz"),
                              Operators.GreaterThan)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsAttributeValue2()
+        Public Async Function TestXmlEmbeddedExpressionAsAttributeValue2() As Task
             Dim exprText = "<foo bar=<%=baz %> >"
-            TestInExpression(exprText,
+            Await TestInExpressionAsync(exprText,
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
@@ -551,12 +552,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              Identifier("baz"),
                              VBXmlEmbeddedExpression("%>"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsAttributeValue3()
+        Public Async Function TestXmlEmbeddedExpressionAsAttributeValue3() As Task
             Dim exprText = "<foo bar=<%=baz.Foo %> >"
-            TestInExpression(exprText,
+            Await TestInExpressionAsync(exprText,
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("bar"),
@@ -567,12 +568,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              Identifier("Foo"),
                              VBXmlEmbeddedExpression("%>"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsElementContent1()
+        Public Async Function TestXmlEmbeddedExpressionAsElementContent1() As Task
             Dim exprText = "<f><%= bar %></f>"
-            TestInExpression(exprText,
+            Await TestInExpressionAsync(exprText,
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -582,12 +583,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsElementContent2()
+        Public Async Function TestXmlEmbeddedExpressionAsElementContent2() As Task
             Dim exprText = "<f><%= bar.Foo %></f>"
-            TestInExpression(exprText,
+            Await TestInExpressionAsync(exprText,
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -599,12 +600,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsElementContent3()
+        Public Async Function TestXmlEmbeddedExpressionAsElementContent3() As Task
             Dim exprText = "<f><%= bar.Foo %> jaz</f>"
-            TestInExpression(exprText,
+            Await TestInExpressionAsync(exprText,
                              VBXmlDelimiter("<"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"),
@@ -617,10 +618,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("f"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbeddedExpressionAsElementContentNested()
+        Public Async Function TestXmlEmbeddedExpressionAsElementContentNested() As Task
             Dim text = StringFromLines(
                 "Dim doc = _",
                 "    <foo>",
@@ -628,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "                <a>hello</a>",
                 "            </bug141> %>",
                 "    </foo>")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("doc"),
                 Operators.Equals,
@@ -654,15 +655,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("</"),
                 VBXmlName("foo"),
                 VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlLiteralsInLambdas()
+        Public Async Function TestXmlLiteralsInLambdas() As Task
             Dim text = StringFromLines(
                 "Dim x = Function() _",
                 "                    <element val=""something""/>",
                 "        Dim y = Function() <element val=""something""/>")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Dim"),
                 Identifier("x"),
                 Operators.Equals,
@@ -692,12 +693,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlAttributeValue("something"),
                 VBXmlAttributeQuotes(""""),
                 VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocumentPrologue()
+        Public Async Function TestXmlDocumentPrologue() As Task
             Dim exprText = "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>"
-            TestInExpression(exprText,
+            Await TestInExpressionAsync(exprText,
                              VBXmlDelimiter("<?"),
                              VBXmlName("xml"),
                              VBXmlAttributeName("version"),
@@ -716,10 +717,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeValue("yes"),
                              VBXmlAttributeQuotes(""""),
                              VBXmlDelimiter("?>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlLiterals1()
+        Public Async Function TestXmlLiterals1() As Task
             Dim text = StringFromLines(
                 "Dim a = <Customer id1=""1"" id2=""2"" id3=<%= n2 %> id4="""">",
                 "                    <!-- This is a simple Xml element with all of the node types -->",
@@ -731,7 +732,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "                    </Misc>",
                 "                    <Empty><%= Nothing %></Empty>",
                 "                </Customer>")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("a"),
                 Operators.Equals,
@@ -805,10 +806,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("</"),
                 VBXmlName("Customer"),
                 VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlLiterals2()
+        Public Async Function TestXmlLiterals2() As Task
             Dim text = StringFromLines(
                 "Dim b = <?xml version=""1.0""?>",
                 "                <!-- comment before the root -->",
@@ -823,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "                    <Empty><%= Nothing %></Empty>",
                 "                    <entity>hello&#x7b;world</entity>",
                 "                </p:Customer>")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("b"),
                 Operators.Equals,
@@ -940,14 +941,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlName(":"),
                 VBXmlName("Customer"),
                 VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlLiterals3()
+        Public Async Function TestXmlLiterals3() As Task
             Dim text = StringFromLines(
                 "Dim c = <p:x xmlns:p=""abc",
                 "123""/>")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("c"),
                 Operators.Equals,
@@ -964,15 +965,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlAttributeValue("123"),
                 VBXmlAttributeQuotes(""""),
                 VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlLiterals4()
+        Public Async Function TestXmlLiterals4() As Task
             Dim text = StringFromLines(
                 "Dim d = _",
                 "        <?xml version=""1.0""?>",
                 "        <a/>")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("d"),
                 Operators.Equals,
@@ -988,16 +989,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("<"),
                 VBXmlName("a"),
                 VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlLiterals5()
+        Public Async Function TestXmlLiterals5() As Task
             Dim text = StringFromLines(
                 "Dim i = 100",
                 "        Process( _",
                 "                <Customer ID=<%= i + 1000 %> a="""">",
                 "                </Customer>)")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("i"),
                 Operators.Equals,
@@ -1023,10 +1024,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlName("Customer"),
                 VBXmlDelimiter(">"),
                 Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlLiterals6()
+        Public Async Function TestXmlLiterals6() As Task
             Dim text = StringFromLines(
                 "Dim xmlwithkeywords = <MODULE>",
                 "                                  <CLASS>",
@@ -1039,7 +1040,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "                                      </FUNCTION>",
                 "                                  </CLASS>",
                 "                              </MODULE>")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("xmlwithkeywords"),
                 Operators.Equals,
@@ -1091,14 +1092,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("</"),
                 VBXmlName("MODULE"),
                 VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlLiterals7()
+        Public Async Function TestXmlLiterals7() As Task
             Dim text = StringFromLines(
                 "Dim spacetest = <a b=""1"" c=""2"">",
                 "                        </a>")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("spacetest"),
                 Operators.Equals,
@@ -1118,10 +1119,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("</"),
                 VBXmlName("a"),
                 VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub OptionKeywordsInClassContext()
+        Public Async Function TestOptionKeywordsInClassContext() As Task
             Dim text = StringFromLines(
                 "Class OptionNoContext",
                 "    Dim Infer",
@@ -1132,7 +1133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "    Dim Text",
                 "    Dim Binary",
                 "End Class")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Class"),
                 [Class]("OptionNoContext"),
                 Keyword("Dim"),
@@ -1151,28 +1152,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("Binary"),
                 Keyword("End"),
                 Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub OptionInferAndExplicit()
+        Public Async Function TestOptionInferAndExplicit() As Task
             Dim text = StringFromLines(
                 "Option Infer On",
                 "Option Explicit Off")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Option"),
                 Keyword("Infer"),
                 Keyword("On"),
                 Keyword("Option"),
                 Keyword("Explicit"),
                 Keyword("Off"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub OptionCompareTextBinary()
+        Public Async Function TestOptionCompareTextBinary() As Task
             Dim text = StringFromLines(
                 "Option Compare Text ' comment",
                 "Option Compare Binary ")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Option"),
                 Keyword("Compare"),
                 Keyword("Text"),
@@ -1180,31 +1181,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Option"),
                 Keyword("Compare"),
                 Keyword("Binary"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub OptionInfer1()
-            Test("Option Infer",
+        Public Async Function TestOptionInfer1() As Task
+            Await TestAsync("Option Infer",
                  Keyword("Option"),
                  Keyword("Infer"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub OptionExplicit1()
-            Test("Option Explicit",
+        Public Async Function TestOptionExplicit1() As Task
+            Await TestAsync("Option Explicit",
                  Keyword("Option"),
                  Keyword("Explicit"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub OptionStrict1()
-            Test("Option Strict",
+        Public Async Function TestOptionStrict1() As Task
+            Await TestAsync("Option Strict",
                  Keyword("Option"),
                  Keyword("Strict"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub LinqContextualKeywords()
+        Public Async Function TestLinqContextualKeywords() As Task
             Dim text = StringFromLines(
                 "Dim from = 0",
                 "Dim aggregate = 0",
@@ -1220,7 +1221,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "Dim take = 0",
                 "Dim where = 0",
                 "Dim order = 0")
-            TestInClass(text,
+            Await TestInClassAsync(text,
                 Keyword("Dim"),
                 Identifier("from"),
                 Operators.Equals,
@@ -1277,61 +1278,61 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("order"),
                 Operators.Equals,
                 Number("0"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub FromLinqExpression1()
-            TestInExpression("From it in foo",
+        Public Async Function TestFromLinqExpression1() As Task
+            Await TestInExpressionAsync("From it in foo",
                  Keyword("From"),
                  Identifier("it"),
                  Keyword("in"),
                  Identifier("foo"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub FromLinqExpression2()
-            TestInExpression("From it in foofooo.Foo",
+        Public Async Function TestFromLinqExpression2() As Task
+            Await TestInExpressionAsync("From it in foofooo.Foo",
                  Keyword("From"),
                  Identifier("it"),
                  Keyword("in"),
                  Identifier("foofooo"),
                  Operators.Dot,
                  Identifier("Foo"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub FromLinqExpression3()
-            TestInExpression("From it ",
+        Public Async Function TestFromLinqExpression3() As Task
+            Await TestInExpressionAsync("From it ",
                  Keyword("From"),
                  Identifier("it"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub FromNotInContext1()
+        Public Async Function TestFromNotInContext1() As Task
             Dim code = StringFromLines(
                 "Class From",
                 "End Class")
-            Test(code,
+            Await TestAsync(code,
                  Keyword("Class"),
                  [Class]("From"),
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub FromNotInContext2()
+        Public Async Function TestFromNotInContext2() As Task
             Dim val = "Dim from = 42"
-            TestInMethod(val,
+            Await TestInMethodAsync(val,
                          Keyword("Dim"),
                          Identifier("from"),
                          Operators.Equals,
                          Number("42"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub WhereLinqExpression1()
+        Public Async Function TestWhereLinqExpression1() As Task
             Dim exprTest = "From it in foo Where it <> 4"
-            TestInExpression(exprTest,
+            Await TestInExpressionAsync(exprTest,
                  Keyword("From"),
                  Identifier("it"),
                  Keyword("in"),
@@ -1340,10 +1341,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Identifier("it"),
                  Operators.LessThanGreaterThan,
                  Number("4"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub LinqQuery1()
+        Public Async Function TestLinqQuery1() As Task
             Dim text = StringFromLines(
                 "            Dim src = New List(Of Boolean)",
                 "            Dim var3 = 1",
@@ -1355,7 +1356,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "                    Aggregate var4 In src _",
                 "                    Group var4 By var4 Into var5 = Count() _",
                 "                    Group Join var6 In src On var6 Equals var5 Into var7 Into var8 = Count()")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("src"),
                 Operators.Equals,
@@ -1447,15 +1448,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("Count"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WorkItem(542387)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestFromInQuery()
+        Public Async Function TestFromInQuery() As Task
             Dim text = StringFromLines(
                 "Dim From = New List(Of Integer)",
                 "Dim result = From s In From Select s")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("From"),
                 Operators.Equals,
@@ -1474,10 +1475,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("From"),
                 Keyword("Select"),
                 Identifier("s"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub KeyKeyword1()
+        Public Async Function TestKeyKeyword1() As Task
             Dim text = StringFromLines(
                 "Dim Value = ""Test""",
                 "            Dim Key As String = Key.Length & (Key.Length)",
@@ -1494,7 +1495,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "                          Key Key. _",
                 "                          Empty _",
                 "                          }")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("Value"),
                 Operators.Equals,
@@ -1591,10 +1592,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("Empty"),
                 Punctuation.Text("_"),
                 Punctuation.CloseCurly)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub KeyKeyword2()
+        Public Async Function TestKeyKeyword2() As Task
             Dim text = StringFromLines(
                 "Dim k = 10",
                 "Dim x = New With {Key If(k > 3, 2, -2).GetTypeCode}",
@@ -1607,7 +1608,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "Dim z4 = New List(Of Integer) From {1, 2, 3}",
                 "Dim z5 As New List(Of Integer) From {1, 2, 3}",
                 "Dim z6 = New List(Of Integer) With {.Capacity = 2}")
-            TestInMethod(text,
+            Await TestInMethodAsync(text,
                 Keyword("Dim"),
                 Identifier("k"),
                 Operators.Equals,
@@ -1772,148 +1773,148 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Operators.Equals,
                 Number("2"),
                 Punctuation.CloseCurly)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub ClassDeclaration1()
+        Public Async Function TestClassDeclaration1() As Task
             Dim val = "Class C1"
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Class"),
                  [Class]("C1"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub ClassDeclaration2()
+        Public Async Function TestClassDeclaration2() As Task
             Dim val = StringFromLines(
                 "Class C1",
                 "End Class")
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Class"),
                  [Class]("C1"),
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub ClassDeclaration3()
+        Public Async Function TestClassDeclaration3() As Task
             Dim val = "Class C1 : End Class"
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Class"),
                  [Class]("C1"),
                  Punctuation.Colon,
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub StructDeclaration1()
+        Public Async Function TestStructDeclaration1() As Task
             Dim val = "Structure S1"
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Structure"),
                  Struct("S1"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub StructDeclaration2()
+        Public Async Function TestStructDeclaration2() As Task
             Dim val = "Structure S1 : End Structure"
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Structure"),
                  Struct("S1"),
                  Punctuation.Colon,
                  Keyword("End"),
                  Keyword("Structure"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub StructDeclaration3()
+        Public Async Function TestStructDeclaration3() As Task
             Dim val = StringFromLines(
                 "Structure S1",
                 "End Structure")
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Structure"),
                  Struct("S1"),
                  Keyword("End"),
                  Keyword("Structure"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub InterfaceDeclaration1()
+        Public Async Function TestInterfaceDeclaration1() As Task
             Dim val = "Interface I1"
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Interface"),
                  [Interface]("I1"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub InterfaceDeclaration2()
+        Public Async Function TestInterfaceDeclaration2() As Task
             Dim val = "Interface I1 : End Interface"
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Interface"),
                  [Interface]("I1"),
                  Punctuation.Colon,
                  Keyword("End"),
                  Keyword("Interface"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub InterfaceDeclaration3()
+        Public Async Function TestInterfaceDeclaration3() As Task
             Dim val = StringFromLines(
                 "Interface I1",
                 "End Interface")
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Interface"),
                  [Interface]("I1"),
                  Keyword("End"),
                  Keyword("Interface"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub EnumDeclaration1()
+        Public Async Function TestEnumDeclaration1() As Task
             Dim val = "Enum E1"
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Enum"),
                  [Enum]("E1"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub EnumDeclaration2()
+        Public Async Function TestEnumDeclaration2() As Task
             Dim val = "Enum E1 : End Enum"
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Enum"),
                  [Enum]("E1"),
                  Punctuation.Colon,
                  Keyword("End"),
                  Keyword("Enum"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub EnumDeclaration3()
+        Public Async Function TestEnumDeclaration3() As Task
             Dim val = StringFromLines(
                 "Enum E1",
                 "End Enum")
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Enum"),
                  [Enum]("E1"),
                  Keyword("End"),
                  Keyword("Enum"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub DelegateSubDeclaration1()
+        Public Async Function TestDelegateSubDeclaration1() As Task
             Dim val = StringFromLines("Public Delegate Sub Foo()")
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Public"),
                  Keyword("Delegate"),
                  Keyword("Sub"),
                  [Delegate]("Foo"),
                  Punctuation.OpenParen,
                  Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub DelegateFunctionDeclaration1()
+        Public Async Function TestDelegateFunctionDeclaration1() As Task
             Dim val = StringFromLines("Public Delegate Function Foo() As Integer")
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Public"),
                  Keyword("Delegate"),
                  Keyword("Function"),
@@ -1922,74 +1923,74 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Punctuation.CloseParen,
                  Keyword("As"),
                  Keyword("Integer"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub FloatLiteral()
-            TestInExpression("1.0",
+        Public Async Function TestFloatLiteral() As Task
+            Await TestInExpressionAsync("1.0",
                 Number("1.0"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub IntLiteral()
-            TestInExpression("1",
+        Public Async Function TestIntLiteral() As Task
+            Await TestInExpressionAsync("1",
                 Number("1"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub DecimalLiteral()
-            TestInExpression("123D",
+        Public Async Function TestDecimalLiteral() As Task
+            Await TestInExpressionAsync("123D",
                 Number("123D"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub StringLiterals1()
+        Public Async Function TestStringLiterals1() As Task
             Dim exprText = """foo"""
-            TestInExpression(exprText,
+            Await TestInExpressionAsync(exprText,
                              [String]("""foo"""))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub CharacterLiteral()
+        Public Async Function TestCharacterLiteral() As Task
             Dim exprText = """f""c"
-            TestInExpression(exprText,
+            Await TestInExpressionAsync(exprText,
                              [String]("""f""c"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Regression_DoUntil1()
+        Public Async Function TestRegression_DoUntil1() As Task
             Dim val = "Do Until True"
-            TestInMethod(val,
+            Await TestInMethodAsync(val,
                          Keyword("Do"),
                          Keyword("Until"),
                          Keyword("True"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Comment1()
+        Public Async Function TestComment1() As Task
             Dim code = "'foo"
-            Test(code,
+            Await TestAsync(code,
                  Comment("'foo"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Comment2()
+        Public Async Function TestComment2() As Task
             Dim val = StringFromLines(
                 "Class C1",
                 "'hello")
-            Test(val,
+            Await TestAsync(val,
                  Keyword("Class"),
                  [Class]("C1"),
                  Comment("'hello"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_SingleLine()
+        Public Async Function TestXmlDocComment_SingleLine() As Task
             Dim val = StringFromLines(
                 "'''<summary>something</summary>",
                 "Class Bar",
                 "End Class")
-            Test(val,
+            Await TestAsync(val,
                  XmlDoc.Delimiter("'''"),
                  XmlDoc.Delimiter("<"),
                  XmlDoc.Name("summary"),
@@ -2002,17 +2003,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Class]("Bar"),
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_ExteriorTrivia()
+        Public Async Function TestXmlDocComment_ExteriorTrivia() As Task
             Dim val = StringFromLines(
                 "''' <summary>",
                 "''' something",
                 "''' </summary>",
                 "Class Bar",
                 "End Class")
-            Test(val,
+            Await TestAsync(val,
                  XmlDoc.Delimiter("'''"),
                  XmlDoc.Text(" "),
                  XmlDoc.Delimiter("<"),
@@ -2029,16 +2030,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Class]("Bar"),
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_ExteriorTriviaInsideEndTag()
+        Public Async Function TestXmlDocComment_ExteriorTriviaInsideEndTag() As Task
             Dim val = StringFromLines(
                 "''' <summary></",
                 "''' summary>",
                 "Class Bar",
                 "End Class")
-            Test(val,
+            Await TestAsync(val,
                  XmlDoc.Delimiter("'''"),
                  XmlDoc.Text(" "),
                  XmlDoc.Delimiter("<"),
@@ -2053,10 +2054,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Class]("Bar"),
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_AttributesWithExteriorTrivia()
+        Public Async Function TestXmlDocComment_AttributesWithExteriorTrivia() As Task
             Dim val = StringFromLines(
                 "''' <summary att1=""value1""",
                 "''' att2=""value2"">",
@@ -2064,7 +2065,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "''' </summary>",
                 "Class Bar",
                 "End Class")
-            Test(val,
+            Await TestAsync(val,
                  XmlDoc.Delimiter("'''"),
                  XmlDoc.Text(" "),
                  XmlDoc.Delimiter("<"),
@@ -2094,16 +2095,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Class]("Bar"),
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_EmptyElementAttributesWithExteriorTrivia()
+        Public Async Function TestXmlDocComment_EmptyElementAttributesWithExteriorTrivia() As Task
             Dim val = StringFromLines(
                 "''' <summary att1=""value1""",
                 "''' att2=""value2"" />",
                 "Class Bar",
                 "End Class")
-            Test(val,
+            Await TestAsync(val,
                  XmlDoc.Delimiter("'''"),
                  XmlDoc.Text(" "),
                  XmlDoc.Delimiter("<"),
@@ -2127,10 +2128,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Class]("Bar"),
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_XmlCommentWithExteriorTrivia()
+        Public Async Function TestXmlDocComment_XmlCommentWithExteriorTrivia() As Task
             Dim val = StringFromLines(
                 "'''<summary>",
                 "'''<!--first",
@@ -2138,7 +2139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "'''</summary>",
                 "Class Bar",
                 "End Class")
-            Test(val,
+            Await TestAsync(val,
                  XmlDoc.Delimiter("'''"),
                  XmlDoc.Delimiter("<"),
                  XmlDoc.Name("summary"),
@@ -2157,10 +2158,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Class]("Bar"),
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_CDataWithExteriorTrivia()
+        Public Async Function TestXmlDocComment_CDataWithExteriorTrivia() As Task
             Dim val = StringFromLines(
                 "'''<summary>",
                 "'''<![CDATA[first",
@@ -2168,7 +2169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "'''</summary>",
                 "Class Bar",
                 "End Class")
-            Test(val,
+            Await TestAsync(val,
                  XmlDoc.Delimiter("'''"),
                  XmlDoc.Delimiter("<"),
                  XmlDoc.Name("summary"),
@@ -2187,37 +2188,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Class]("Bar"),
                  Keyword("End"),
                  Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_PreprocessingInstruction1()
-            Test("''' <?",
+        Public Async Function TestXmlDocComment_PreprocessingInstruction1() As Task
+            Await TestAsync("''' <?",
                 XmlDoc.Delimiter("'''"),
                 XmlDoc.Text(" "),
                 XmlDoc.ProcessingInstruction("<?"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_PreprocessingInstruction2()
-            Test("''' <??>",
+        Public Async Function TestXmlDocComment_PreprocessingInstruction2() As Task
+            Await TestAsync("''' <??>",
                 XmlDoc.Delimiter("'''"),
                 XmlDoc.Text(" "),
                 XmlDoc.ProcessingInstruction("<?"),
                 XmlDoc.ProcessingInstruction("?>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_PreprocessingInstruction3()
-            Test("''' <?xml",
+        Public Async Function TestXmlDocComment_PreprocessingInstruction3() As Task
+            Await TestAsync("''' <?xml",
                 XmlDoc.Delimiter("'''"),
                 XmlDoc.Text(" "),
                 XmlDoc.ProcessingInstruction("<?"),
                 XmlDoc.ProcessingInstruction("xml"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_PreprocessingInstruction4()
-            Test("''' <?xml version=""1.0""?>",
+        Public Async Function TestXmlDocComment_PreprocessingInstruction4() As Task
+            Await TestAsync("''' <?xml version=""1.0""?>",
                 XmlDoc.Delimiter("'''"),
                 XmlDoc.Text(" "),
                 XmlDoc.ProcessingInstruction("<?"),
@@ -2225,21 +2226,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 XmlDoc.ProcessingInstruction(" "),
                 XmlDoc.ProcessingInstruction("version=""1.0"""),
                 XmlDoc.ProcessingInstruction("?>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_PreprocessingInstruction5()
-            Test("''' <?foo?>",
+        Public Async Function TestXmlDocComment_PreprocessingInstruction5() As Task
+            Await TestAsync("''' <?foo?>",
                 XmlDoc.Delimiter("'''"),
                 XmlDoc.Text(" "),
                 XmlDoc.ProcessingInstruction("<?"),
                 XmlDoc.ProcessingInstruction("foo"),
                 XmlDoc.ProcessingInstruction("?>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDocComment_PreprocessingInstruction6()
-            Test("''' <?foo bar?>",
+        Public Async Function TestXmlDocComment_PreprocessingInstruction6() As Task
+            Await TestAsync("''' <?foo bar?>",
                 XmlDoc.Delimiter("'''"),
                 XmlDoc.Text(" "),
                 XmlDoc.ProcessingInstruction("<?"),
@@ -2247,11 +2248,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 XmlDoc.ProcessingInstruction(" "),
                 XmlDoc.ProcessingInstruction("bar"),
                 XmlDoc.ProcessingInstruction("?>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub IsTrue()
-            TestInClass("    Public Shared Operator IsTrue(c As C) As Boolean",
+        Public Async Function TestIsTrue() As Task
+            Await TestInClassAsync("    Public Shared Operator IsTrue(c As C) As Boolean",
                         Keyword("Public"),
                         Keyword("Shared"),
                         Keyword("Operator"),
@@ -2263,11 +2264,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                         Punctuation.CloseParen,
                         Keyword("As"),
                         Keyword("Boolean"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub IsFalse()
-            TestInClass("    Public Shared Operator IsFalse(c As C) As Boolean",
+        Public Async Function TestIsFalse() As Task
+            Await TestInClassAsync("    Public Shared Operator IsFalse(c As C) As Boolean",
                         Keyword("Public"),
                         Keyword("Shared"),
                         Keyword("Operator"),
@@ -2279,50 +2280,50 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                         Punctuation.CloseParen,
                         Keyword("As"),
                         Keyword("Boolean"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Delegate1()
-            Test("Delegate Sub Foo()",
+        Public Async Function TestDelegate1() As Task
+            Await TestAsync("Delegate Sub Foo()",
                  Keyword("Delegate"),
                  Keyword("Sub"),
                  [Delegate]("Foo"),
                  Punctuation.OpenParen,
                  Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Imports1()
+        Public Async Function TestImports1() As Task
             Dim code = StringFromLines(
             "Imports Foo",
             "Imports Bar")
-            Test(code,
+            Await TestAsync(code,
                  Keyword("Imports"),
                  Identifier("Foo"),
                  Keyword("Imports"),
                  Identifier("Bar"))
-        End Sub
+        End Function
 
         ''' <summary>
         ''' Clear Syntax Error
         ''' </summary>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Imports2()
+        Public Async Function TestImports2() As Task
             Dim code = StringFromLines(
             "Imports",
             "Imports Bar")
-            Test(code,
+            Await TestAsync(code,
                  Keyword("Imports"),
                  Keyword("Imports"),
                  Identifier("Bar"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Imports3()
+        Public Async Function TestImports3() As Task
             Dim code = StringFromLines(
             "Imports Foo=Baz",
             "Imports Bar=Quux")
-            Test(code,
+            Await TestAsync(code,
                  Keyword("Imports"),
                  Identifier("Foo"),
                  Operators.Equals,
@@ -2331,65 +2332,65 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Identifier("Bar"),
                  Operators.Equals,
                  Identifier("Quux"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Imports4()
+        Public Async Function TestImports4() As Task
             Dim code = "Imports System.Text"
-            Test(code,
+            Await TestAsync(code,
                  Keyword("Imports"),
                  Identifier("System"),
                  Operators.Dot,
                  Identifier("Text"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElement1()
-            TestInExpression("<foo></foo>",
+        Public Async Function TestXmlElement1() As Task
+            Await TestInExpressionAsync("<foo></foo>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"),
                              VBXmlDelimiter("</"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         '''<summary>
         ''' Broken XmlElement should classify
         ''' </summary>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElement3()
-            TestInExpression("<foo>",
+        Public Async Function TestXmlElement3() As Task
+            Await TestInExpressionAsync("<foo>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         '''<summary>
         ''' Broken end only element should still classify
         ''' </summary>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElement4()
-            TestInExpression("</foo>",
+        Public Async Function TestXmlElement4() As Task
+            Await TestInExpressionAsync("</foo>",
                              VBXmlDelimiter("</"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElement5()
-            TestInExpression("<foo.bar></foo.bar>",
+        Public Async Function TestXmlElement5() As Task
+            Await TestInExpressionAsync("<foo.bar></foo.bar>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo.bar"),
                              VBXmlDelimiter(">"),
                              VBXmlDelimiter("</"),
                              VBXmlName("foo.bar"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElement6()
-            TestInExpression("<foo:bar>hello</foo:bar>",
+        Public Async Function TestXmlElement6() As Task
+            Await TestInExpressionAsync("<foo:bar>hello</foo:bar>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlName(":"),
@@ -2401,19 +2402,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlName(":"),
                              VBXmlName("bar"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElement7()
-            TestInExpression("<foo.bar />",
+        Public Async Function TestXmlElement7() As Task
+            Await TestInExpressionAsync("<foo.bar />",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo.bar"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbedded1()
-            TestInExpression("<foo><%= bar %></foo>",
+        Public Async Function TestXmlEmbedded1() As Task
+            Await TestInExpressionAsync("<foo><%= bar %></foo>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"),
@@ -2423,21 +2424,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbedded3()
-            TestInExpression("<<%= bar %>/>",
+        Public Async Function TestXmlEmbedded3() As Task
+            Await TestInExpressionAsync("<<%= bar %>/>",
                              VBXmlDelimiter("<"),
                              VBXmlEmbeddedExpression("<%="),
                              Identifier("bar"),
                              VBXmlEmbeddedExpression("%>"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbedded4()
-            TestInExpression("<foo <%= bar %>=""42""/>",
+        Public Async Function TestXmlEmbedded4() As Task
+            Await TestInExpressionAsync("<foo <%= bar %>=""42""/>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlEmbeddedExpression("<%="),
@@ -2448,11 +2449,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeValue("42"),
                              VBXmlAttributeQuotes(""""),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlEmbedded5()
-            TestInExpression("<foo a1=<%= bar %>/>",
+        Public Async Function TestXmlEmbedded5() As Task
+            Await TestInExpressionAsync("<foo a1=<%= bar %>/>",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlAttributeName("a1"),
@@ -2461,27 +2462,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              Identifier("bar"),
                              VBXmlEmbeddedExpression("%>"),
                              VBXmlDelimiter("/>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlComment1()
-            TestInExpression("<!---->",
+        Public Async Function TestXmlComment1() As Task
+            Await TestInExpressionAsync("<!---->",
                              VBXmlDelimiter("<!--"),
                              VBXmlDelimiter("-->"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlComment2()
-            TestInExpression("<!--foo-->",
+        Public Async Function TestXmlComment2() As Task
+            Await TestInExpressionAsync("<!--foo-->",
                              VBXmlDelimiter("<!--"),
                              VBXmlComment("foo"),
                              VBXmlDelimiter("-->"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlComment3()
+        Public Async Function TestXmlComment3() As Task
             Dim tree = ParseExpression("<a><!--foo--></a>")
-            TestInExpression("<a><!--foo--></a>",
+            Await TestInExpressionAsync("<a><!--foo--></a>",
                              VBXmlDelimiter("<"),
                              VBXmlName("a"),
                              VBXmlDelimiter(">"),
@@ -2491,11 +2492,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("a"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlPreprocessingInstruction2()
-            TestInExpression("<a><?pi value=2?></a>",
+        Public Async Function TestXmlPreprocessingInstruction2() As Task
+            Await TestInExpressionAsync("<a><?pi value=2?></a>",
                              VBXmlDelimiter("<"),
                              VBXmlName("a"),
                              VBXmlDelimiter(">"),
@@ -2506,11 +2507,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("</"),
                              VBXmlName("a"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlDescendantsMemberAccess1()
-            TestInExpression("x...<foo>",
+        Public Async Function TestXmlDescendantsMemberAccess1() As Task
+            Await TestInExpressionAsync("x...<foo>",
                              Identifier("x"),
                              VBXmlDelimiter("."),
                              VBXmlDelimiter("."),
@@ -2518,94 +2519,93 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlElementMemberAccess1()
-            TestInExpression("x.<foo>",
+        Public Async Function TestXmlElementMemberAccess1() As Task
+            Await TestInExpressionAsync("x.<foo>",
                              Identifier("x"),
                              VBXmlDelimiter("."),
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"),
                              VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeMemberAccess1()
-            TestInExpression("x.@foo",
+        Public Async Function TestXmlAttributeMemberAccess1() As Task
+            Await TestInExpressionAsync("x.@foo",
                              Identifier("x"),
                              VBXmlDelimiter("."),
                              VBXmlDelimiter("@"),
                              VBXmlAttributeName("foo"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub XmlAttributeMemberAccess2()
-            TestInExpression("x.@foo:bar",
+        Public Async Function TestXmlAttributeMemberAccess2() As Task
+            Await TestInExpressionAsync("x.@foo:bar",
                              Identifier("x"),
                              VBXmlDelimiter("."),
                              VBXmlDelimiter("@"),
                              VBXmlAttributeName("foo"),
                              VBXmlAttributeName(":"),
                              VBXmlAttributeName("bar"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub PreprocessorConst1()
-            TestInNamespace("#Const Foo = 1",
+        Public Async Function TestPreprocessorConst1() As Task
+            Await TestInNamespaceAsync("#Const Foo = 1",
                             PPKeyword("#"),
                             PPKeyword("Const"),
                             Identifier("Foo"),
                             Operators.Equals,
                             Number("1"))
-        End Sub
+        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub PreprocessorConst2()
-            TestInNamespace("#Const DebugCode = True",
+        Public Async Function TestPreprocessorConst2() As Task
+            Await TestInNamespaceAsync("#Const DebugCode = True",
                             PPKeyword("#"),
                             PPKeyword("Const"),
                             Identifier("DebugCode"),
                             Operators.Equals,
                             Keyword("True"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub PreprocessorIfThen1()
-            TestInNamespace("#If Foo Then",
+        Public Async Function TestPreprocessorIfThen1() As Task
+            Await TestInNamespaceAsync("#If Foo Then",
                             PPKeyword("#"),
                             PPKeyword("If"),
                             Identifier("Foo"),
                             PPKeyword("Then"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub PreprocessorElseIf1()
-            TestInNamespace("#ElseIf Foo Then",
+        Public Async Function TestPreprocessorElseIf1() As Task
+            Await TestInNamespaceAsync("#ElseIf Foo Then",
                             PPKeyword("#"),
                             PPKeyword("ElseIf"),
                             Identifier("Foo"),
                             PPKeyword("Then"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub PreprocessorElse1()
-            TestInNamespace("#Else",
+        Public Async Function TestPreprocessorElse1() As Task
+            Await TestInNamespaceAsync("#Else",
                             PPKeyword("#"),
                             PPKeyword("Else"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub PreprocessorEndIf1()
-            TestInNamespace("#End If",
+        Public Async Function TestPreprocessorEndIf1() As Task
+            Await TestInNamespaceAsync("#End If",
                             PPKeyword("#"),
                             PPKeyword("End"),
                             PPKeyword("If"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub PreprocessorExternalSource1()
-            TestInNamespace("#ExternalSource(""c:\wwwroot\inetpub\test.aspx"", 30)",
+        Public Async Function TestPreprocessorExternalSource1() As Task
+            Await TestInNamespaceAsync("#ExternalSource(""c:\wwwroot\inetpub\test.aspx"", 30)",
                             PPKeyword("#"),
                             PPKeyword("ExternalSource"),
                             Punctuation.OpenParen,
@@ -2613,14 +2613,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             Punctuation.Comma,
                             Number("30"),
                             Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub PreprocessorExternalChecksum1()
+        Public Async Function TestPreprocessorExternalChecksum1() As Task
             Dim val = StringFromLines("#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _",
                                       """{12345678-1234-1234-1234-123456789abc}"", _",
                                       """1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"")")
-            TestInNamespace(val,
+            Await TestInNamespaceAsync(val,
                             PPKeyword("#"),
                             PPKeyword("ExternalChecksum"),
                             Punctuation.OpenParen,
@@ -2632,10 +2632,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             LineContinuation,
                             [String]("""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"""),
                             Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub PreprocessorExternalChecksum2()
+        Public Async Function TestPreprocessorExternalChecksum2() As Task
             Dim val = StringFromLines("#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _",
                                       """{12345678-1234-1234-1234-123456789abc}"", _",
                                       """1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"")",
@@ -2646,7 +2646,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                                       "#End ExternalSource",
                                       "    End Sub",
                                       "End Module")
-            TestInNamespace(val,
+            Await TestInNamespaceAsync(val,
                             PPKeyword("#"),
                             PPKeyword("ExternalChecksum"),
                             Punctuation.OpenParen,
@@ -2684,10 +2684,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             Keyword("Sub"),
                             Keyword("End"),
                             Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Bug2641_1()
+        Public Async Function TestBug2641_1() As Task
             Dim text = StringFromLines(
                 "Class PreprocessorNoContext",
                 "Dim Region",
@@ -2709,7 +2709,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "# _",
                 "End _",
                 "Region")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Class"),
                 [Class]("PreprocessorNoContext"),
                 Keyword("Dim"),
@@ -2758,10 +2758,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("End"),
                 Punctuation.Text("_"),
                 PPKeyword("Region"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Bug2641_2()
+        Public Async Function TestBug2641_2() As Task
             Dim text = StringFromLines(
                 "#ExternalSource(""Test.vb"", 123)",
                 "#End ExternalSource",
@@ -2776,7 +2776,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "# _",
                 "End _",
                 "ExternalSource")
-            Test(text,
+            Await TestAsync(text,
                 PPKeyword("#"),
                 PPKeyword("ExternalSource"),
                 Punctuation.OpenParen,
@@ -2816,10 +2816,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("End"),
                 Punctuation.Text("_"),
                 PPKeyword("ExternalSource"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Bug2640()
+        Public Async Function TestBug2640() As Task
             Dim text = StringFromLines(
                 "# _",
                 "Region ""Test""",
@@ -2831,7 +2831,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "# _",
                 "End _",
                 "Region")
-            Test(text,
+            Await TestAsync(text,
                 PPKeyword("#"),
                 Punctuation.Text("_"),
                 PPKeyword("Region"),
@@ -2850,17 +2850,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("End"),
                 Punctuation.Text("_"),
                 PPKeyword("Region"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Bug2638()
+        Public Async Function TestBug2638() As Task
             Dim text = StringFromLines(
                 "Module M",
                 "    Sub Main()",
                 "        Dim dt = #1/1/2000#",
                 "    End Sub",
                 "End Module")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Module"),
                 [Module]("M"),
                 Keyword("Sub"),
@@ -2875,10 +2875,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Sub"),
                 Keyword("End"),
                 Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Bug2562()
+        Public Async Function TestBug2562() As Task
             Dim text = StringFromLines(
                 "Module Program",
                 "  Sub Main(args As String())",
@@ -2886,7 +2886,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "    #End region REM dfkjslfkdsjf",
                 "  End Sub",
                 "End Module")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Module"),
                 [Module]("Program"),
                 Keyword("Sub"),
@@ -2909,17 +2909,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Sub"),
                 Keyword("End"),
                 Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Bug3004()
+        Public Async Function TestBug3004() As Task
             Dim text = StringFromLines(
                 "''' <summary>",
                 "''' &#65;",
                 "''' </summary>",
                 "Module M",
                 "End Module")
-            Test(text,
+            Await TestAsync(text,
                 XmlDoc.Delimiter("'''"),
                 XmlDoc.Text(" "),
                 XmlDoc.Delimiter("<"),
@@ -2937,14 +2937,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [Module]("M"),
                 Keyword("End"),
                 Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Bug3006()
+        Public Async Function TestBug3006() As Task
             Dim text = StringFromLines(
                 "#If True Then ' comment",
                 "#End If")
-            Test(text,
+            Await TestAsync(text,
                 PPKeyword("#"),
                 PPKeyword("If"),
                 Keyword("True"),
@@ -2953,14 +2953,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("End"),
                 PPKeyword("If"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Bug3008()
+        Public Async Function TestBug3008() As Task
             Dim text = StringFromLines(
                 "#If #12/2/2010# = #12/2/2010# Then",
                 "#End If")
-            Test(text,
+            Await TestAsync(text,
                 PPKeyword("#"),
                 PPKeyword("If"),
                 Number("#12/2/2010#"),
@@ -2970,27 +2970,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("End"),
                 PPKeyword("If"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestBug927678()
+        Public Async Function TestBug927678() As Task
             Dim val = StringFromLines(
                 "'This is not usually a ",
                 "'collapsible comment block",
                 "x = 2")
 
-            TestInMethod(val,
+            Await TestInMethodAsync(val,
                          Comment("'This is not usually a "),
                          Comment("'collapsible comment block"),
                          Identifier("x"),
                          Operators.Equals,
                          Number("2"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Attribute()
+        Public Async Function TestAttribute() As Task
             Dim code = "<Assembly: Foo()>"
-            Test(code,
+            Await TestAsync(code,
                  Punctuation.OpenAngle,
                  Keyword("Assembly"),
                  Punctuation.Colon,
@@ -2998,11 +2998,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Punctuation.OpenParen,
                  Punctuation.CloseParen,
                  Punctuation.CloseAngle)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestAngleBracketsOnGenericConstraints_Bug932262()
-            Test(StringFromLines("Class C(Of T As A(Of T))",
+        Public Async Function TestAngleBracketsOnGenericConstraints_Bug932262() As Task
+            Await TestAsync(StringFromLines("Class C(Of T As A(Of T))",
                                  "End Class"),
                 Keyword("Class"),
                 [Class]("C"),
@@ -3018,10 +3018,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseParen,
                 Keyword("End"),
                 Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub IntegerAsContextualKeyword()
+        Public Async Function TestIntegerAsContextualKeyword() As Task
             Dim text = StringFromLines(
                 "    Sub CallMeInteger(ByVal [Integer] As Integer)",
                 "        CallMeInteger(Integer:=1)",
@@ -3030,7 +3030,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "                      1)",
                 "    End Sub",
                 "    Dim [Class] As Integer")
-            TestInClass(text,
+            Await TestInClassAsync(text,
                 Keyword("Sub"),
                 Identifier("CallMeInteger"),
                 Punctuation.OpenParen,
@@ -3059,10 +3059,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("[Class]"),
                 Keyword("As"),
                 Keyword("Integer"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub IndexStrings()
+        Public Async Function TestIndexStrings() As Task
             Dim text = StringFromLines(
                 "Default ReadOnly Property IndexMe(ByVal arg As String) As Integer",
                 "        Get",
@@ -3076,7 +3076,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "            End With",
                 "        End Get",
                 "    End Property")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Default"),
                 Keyword("ReadOnly"),
                 Keyword("Property"),
@@ -3117,10 +3117,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Get"),
                 Keyword("End"),
                 Keyword("Property"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub MyIsIdentifierOnSyntaxLevel()
+        Public Async Function TestMyIsIdentifierOnSyntaxLevel() As Task
             Dim text = StringFromLines(
                 "Dim My",
                 "    Dim var = My.Application.GetEnvironmentVariable(""test"")",
@@ -3147,7 +3147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "        Me. _",
                 "        My = 1",
                 "    End Sub")
-            TestInClass(text,
+            Await TestInClassAsync(text,
                 Keyword("Dim"),
                 Identifier("My"),
                 Keyword("Dim"),
@@ -3240,10 +3240,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Number("1"),
                 Keyword("End"),
                 Keyword("Sub"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub IsTrueIsFalse()
+        Public Async Function TestIsTrueIsFalse() As Task
             Dim text = StringFromLines(
                 "Class IsTrueIsFalseTests",
                 "    Dim IsTrue",
@@ -3253,7 +3253,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "    Shared Operator IsFalse(ByVal x As IsTrueIsFalseTests) As Boolean",
                 "    End Operator",
                 "End Class")
-            TestInClass(text,
+            Await TestInClassAsync(text,
                 Keyword("Class"),
                 [Class]("IsTrueIsFalseTests"),
                 Keyword("Dim"),
@@ -3288,10 +3288,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Operator"),
                 Keyword("End"),
                 Keyword("Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub DeclareAnsiAutoUnicode()
+        Public Async Function TestDeclareAnsiAutoUnicode() As Task
             Dim text = StringFromLines(
                 "    Dim Ansi",
                 "    Dim Unicode",
@@ -3305,7 +3305,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "        Auto Sub AutoTest2 Lib ""Test.dll"" ()",
                 "    Declare _",
                 "        Unicode Sub UnicodeTest2 Lib ""Test.dll"" ()")
-            TestInClass(text,
+            Await TestInClassAsync(text,
                 Keyword("Dim"),
                 Identifier("Ansi"),
                 Keyword("Dim"),
@@ -3363,10 +3363,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [String]("""Test.dll"""),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Until()
+        Public Async Function TestUntil() As Task
             Dim text = StringFromLines(
                 "    Dim Until",
                 "    Sub TestSub()",
@@ -3381,7 +3381,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "        Until True",
                 "        Loop",
                 "    End Sub")
-            TestInClass(text,
+            Await TestInClassAsync(text,
                 Keyword("Dim"),
                 Identifier("Until"),
                 Keyword("Sub"),
@@ -3408,10 +3408,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Loop"),
                 Keyword("End"),
                 Keyword("Sub"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub Preserve()
+        Public Async Function TestPreserve() As Task
             Dim text = StringFromLines(
                 "    Dim Preserve",
                 "    Sub TestSub()",
@@ -3420,7 +3420,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "        ReDim _",
                 "        Preserve arr(0)",
                 "    End Sub")
-            TestInClass(text,
+            Await TestInClassAsync(text,
                 Keyword("Dim"),
                 Identifier("Preserve"),
                 Keyword("Sub"),
@@ -3450,16 +3450,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseParen,
                 Keyword("End"),
                 Keyword("Sub"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub SkippedTextAsTokens()
+        Public Async Function TestSkippedTextAsTokens() As Task
             Dim text = StringFromLines(
                 "Module Program",
                 "    Sub Test(ByVal readOnly As Boolean)",
                 "    End Sub",
                 "End Module")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Module"),
                 [Module]("Program"),
                 Keyword("Sub"),
@@ -3474,18 +3474,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Sub"),
                 Keyword("End"),
                 Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(538647)>
-        Public Sub Regression4315_VariableNamesClassifiedAsType()
+        Public Async Function TestRegression4315_VariableNamesClassifiedAsType() As Task
             Dim text = StringFromLines(
                 "Module M",
                 "    Sub S()",
                 "        Dim foo",
                 "    End Sub",
                 "End Module")
-            Test(text,
+            Await TestAsync(text,
                 Keyword("Module"),
                 [Module]("M"),
                 Keyword("Sub"),
@@ -3498,24 +3498,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Sub"),
                 Keyword("End"),
                 Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539203)>
-        Public Sub ColonTrivia()
-            TestInMethod("    : Console.WriteLine()",
+        Public Async Function TestColonTrivia() As Task
+            Await TestInMethodAsync("    : Console.WriteLine()",
                          Punctuation.Colon,
                          Identifier("Console"),
                          Operators.Dot,
                          Identifier("WriteLine"),
                          Punctuation.OpenParen,
                          Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539642)>
-        Public Sub FromInCollectionInitializer1()
-            TestInMethod("Dim y = New Foo() From",
+        Public Async Function TestFromInCollectionInitializer1() As Task
+            Await TestInMethodAsync("Dim y = New Foo() From",
                          Keyword("Dim"),
                          Identifier("y"),
                          Operators.Equals,
@@ -3524,12 +3524,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          Punctuation.OpenParen,
                          Punctuation.CloseParen,
                          Keyword("From"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539642)>
-        Public Sub FromInCollectionInitializer2()
-            TestInMethod("Dim y As New Foo() From",
+        Public Async Function TestFromInCollectionInitializer2() As Task
+            Await TestInMethodAsync("Dim y As New Foo() From",
                          Keyword("Dim"),
                          Identifier("y"),
                          Keyword("As"),
@@ -3538,72 +3538,72 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          Punctuation.OpenParen,
                          Punctuation.CloseParen,
                          Keyword("From"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
-        Public Sub TestPartiallyTypedXmlNamespaceImport1()
-            Test("Imports <x",
+        Public Async Function TestPartiallyTypedXmlNamespaceImport1() As Task
+            Await TestAsync("Imports <x",
                  Keyword("Imports"),
                  VBXmlDelimiter("<"),
                  VBXmlName("x"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
-        Public Sub TestPartiallyTypedXmlNamespaceImport2()
-            Test("Imports <xml",
+        Public Async Function TestPartiallyTypedXmlNamespaceImport2() As Task
+            Await TestAsync("Imports <xml",
                  Keyword("Imports"),
                  VBXmlDelimiter("<"),
                  VBXmlName("xml"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
-        Public Sub TestPartiallyTypedXmlNamespaceImport3()
-            Test("Imports <xmlns",
+        Public Async Function TestPartiallyTypedXmlNamespaceImport3() As Task
+            Await TestAsync("Imports <xmlns",
                  Keyword("Imports"),
                  VBXmlDelimiter("<"),
                  VBXmlAttributeName("xmlns"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
-        Public Sub TestPartiallyTypedXmlNamespaceImport4()
-            Test("Imports <xmlns:",
+        Public Async Function TestPartiallyTypedXmlNamespaceImport4() As Task
+            Await TestAsync("Imports <xmlns:",
                  Keyword("Imports"),
                  VBXmlDelimiter("<"),
                  VBXmlAttributeName("xmlns"),
                  VBXmlAttributeName(":"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
-        Public Sub TestPartiallyTypedXmlNamespaceImport5()
-            Test("Imports <xmlns:ns",
+        Public Async Function TestPartiallyTypedXmlNamespaceImport5() As Task
+            Await TestAsync("Imports <xmlns:ns",
                  Keyword("Imports"),
                  VBXmlDelimiter("<"),
                  VBXmlAttributeName("xmlns"),
                  VBXmlAttributeName(":"),
                  VBXmlAttributeName("ns"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
-        Public Sub TestPartiallyTypedXmlNamespaceImport6()
-            Test("Imports <xmlns:ns=",
+        Public Async Function TestPartiallyTypedXmlNamespaceImport6() As Task
+            Await TestAsync("Imports <xmlns:ns=",
                  Keyword("Imports"),
                  VBXmlDelimiter("<"),
                  VBXmlAttributeName("xmlns"),
                  VBXmlAttributeName(":"),
                  VBXmlAttributeName("ns"),
                  VBXmlDelimiter("="))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
-        Public Sub TestPartiallyTypedXmlNamespaceImport7()
-            Test("Imports <xmlns:ns=""http://foo""",
+        Public Async Function TestPartiallyTypedXmlNamespaceImport7() As Task
+            Await TestAsync("Imports <xmlns:ns=""http://foo""",
                  Keyword("Imports"),
                  VBXmlDelimiter("<"),
                  VBXmlAttributeName("xmlns"),
@@ -3613,12 +3613,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlAttributeQuotes(""""),
                  VBXmlAttributeValue("http://foo"),
                  VBXmlAttributeQuotes(""""))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
-        Public Sub TestFullyTypedXmlNamespaceImport()
-            Test("Imports <xmlns:ns=""http://foo"">",
+        Public Async Function TestFullyTypedXmlNamespaceImport() As Task
+            Await TestAsync("Imports <xmlns:ns=""http://foo"">",
                  Keyword("Imports"),
                  VBXmlDelimiter("<"),
                  VBXmlAttributeName("xmlns"),
@@ -3629,28 +3629,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlAttributeValue("http://foo"),
                  VBXmlAttributeQuotes(""""),
                  VBXmlDelimiter(">"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestGetXmlNamespaceExpression()
-            TestInExpression("GetXmlNamespace(Name)",
+        Public Async Function TestGetXmlNamespaceExpression() As Task
+            Await TestInExpressionAsync("GetXmlNamespace(Name)",
                 Keyword("GetXmlNamespace"),
                 Punctuation.OpenParen,
                 VBXmlName("Name"),
                 Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestGetXmlNamespaceExpressionWithNoName()
-            TestInExpression("GetXmlNamespace()",
+        Public Async Function TestGetXmlNamespaceExpressionWithNoName() As Task
+            Await TestInExpressionAsync("GetXmlNamespace()",
                 Keyword("GetXmlNamespace"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestClassifyXmlDocumentFollowingMisc()
-            TestInExpression("<?xml ?><x></x><!--h-->",
+        Public Async Function TestClassifyXmlDocumentFollowingMisc() As Task
+            Await TestInExpressionAsync("<?xml ?><x></x><!--h-->",
                 VBXmlDelimiter("<?"),
                 VBXmlName("xml"),
                 VBXmlDelimiter("?>"),
@@ -3663,11 +3663,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("<!--"),
                 VBXmlComment("h"),
                 VBXmlDelimiter("-->"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestXmlDeclaration()
-            TestInExpression("<?xml version=""1.0""?>",
+        Public Async Function TestXmlDeclaration() As Task
+            Await TestInExpressionAsync("<?xml version=""1.0""?>",
                 VBXmlDelimiter("<?"),
                 VBXmlName("xml"),
                 VBXmlAttributeName("version"),
@@ -3676,17 +3676,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlAttributeValue("1.0"),
                 VBXmlAttributeQuotes(""""),
                 VBXmlDelimiter("?>"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestEnableWarningDirective()
+        Public Async Function TestEnableWarningDirective() As Task
             Dim text = StringFromLines(
                 "Module Program",
                 "    Sub Main",
                 "#Enable Warning BC123, [bc456], SomeId",
                 "    End Sub",
                 "End Module")
-            Test(text,
+            Await TestAsync(text,
                  Keyword("Module"),
                  [Module]("Program"),
                  Keyword("Sub"),
@@ -3703,17 +3703,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Sub"),
                  Keyword("End"),
                  Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestDisableWarningDirective()
+        Public Async Function TestDisableWarningDirective() As Task
             Dim text = StringFromLines(
                 "Module Program",
                 "    Sub Main",
                 "#Disable Warning",
                 "    End Sub",
                 "End Module")
-            Test(text,
+            Await TestAsync(text,
                  Keyword("Module"),
                  [Module]("Program"),
                  Keyword("Sub"),
@@ -3725,10 +3725,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Sub"),
                  Keyword("End"),
                  Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestBadWarningDirectives()
+        Public Async Function TestBadWarningDirectives() As Task
             Dim text = StringFromLines(
                 "Module Program",
                 "    Sub Main",
@@ -3739,7 +3739,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 "#Disable bc123 Warning",
                 "#Enable",
                 "#Disable Warning blah")
-            Test(text,
+            Await TestAsync(text,
                  Keyword("Module"),
                  [Module]("Program"),
                  Keyword("Sub"),
@@ -3764,17 +3764,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  PPKeyword("Disable"),
                  PPKeyword("Warning"),
                  Identifier("blah"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestInterpolatedString1()
+        Public Async Function TestInterpolatedString1() As Task
             Dim text = StringFromLines(
                 "Module Program",
                 "    Sub Main",
                 "        Dim s = $""Hello, {name,10:F}.""",
                 "    End Sub",
                 "End Module")
-            Test(text,
+            Await TestAsync(text,
                  Keyword("Module"),
                  [Module]("Program"),
                  Keyword("Sub"),
@@ -3797,17 +3797,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Sub"),
                  Keyword("End"),
                  Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub TestInterpolatedString2()
+        Public Async Function TestInterpolatedString2() As Task
             Dim text = StringFromLines(
                 "Module Program",
                 "    Sub Main",
                 "        Dim s = $""{x}, {y}""",
                 "    End Sub",
                 "End Module")
-            Test(text,
+            Await TestAsync(text,
                  Keyword("Module"),
                  [Module]("Program"),
                  Keyword("Sub"),
@@ -3828,27 +3828,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Sub"),
                  Keyword("End"),
                  Keyword("Module"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(2126, "https://github.com/dotnet/roslyn/issues/2126")>
-        Public Sub CommentBeforeXmlAccessExpression()
-            TestInMethod("C",
+        Public Async Function CommentBeforeXmlAccessExpression() As Task
+            Await TestInMethodAsync("C",
                          "M",
                          " ' Comment
                            x.@Name = ""Text""",
                          "' Comment",
                          Comment("' Comment"))
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(3291, "https://github.com/dotnet/roslyn/issues/3291")>
-        Public Sub TestCommentOnCollapsedEndRegion()
-            Test(
+        Public Async Function TestCommentOnCollapsedEndRegion() As Task
+            Await TestAsync(
 "#Region ""Stuff""
 End Region ' Stuff",
 TextSpan.FromBounds(28, 36),
 Comment("' Stuff"))
-        End Sub
+        End Function
     End Class
 End Namespace
