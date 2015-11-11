@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var root = trivia.GetStructure();
             var formatter = new CSharpStructuredTriviaFormatEngine(trivia, initialColumn, optionSet, formattingRules, root.GetFirstToken(includeZeroWidth: true), root.GetLastToken(includeZeroWidth: true));
-            return formatter.FormatAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            return formatter.FormatAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
         private CSharpStructuredTriviaFormatEngine(

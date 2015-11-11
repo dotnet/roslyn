@@ -157,7 +157,7 @@ class A { }";
 
         [WorkItem(539231, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void EmptySpan()
+        public async Task EmptySpan()
         {
             using (var workspace = new AdhocWorkspace())
             {
@@ -165,7 +165,7 @@ class A { }";
                 var document = project.AddDocument("Document", SourceText.From(""));
 
                 var syntaxTree = document.GetSyntaxTreeAsync().Result;
-                var result = Formatter.Format(syntaxTree.GetRoot(CancellationToken.None), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
+                var result = await Formatter.FormatAsync(syntaxTree.GetRoot(CancellationToken.None), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
             }
         }
 
