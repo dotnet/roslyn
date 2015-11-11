@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -17,7 +18,8 @@ namespace Roslyn.Test.Utilities
             string fileName,
             string arguments,
             string workingDirectory = null,
-            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
+            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null,
+            string stdInput = null)
         {
             if (fileName == null) throw new ArgumentNullException(nameof(fileName));
 
@@ -29,6 +31,7 @@ namespace Roslyn.Test.Utilities
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                RedirectStandardInput = stdInput != null,
                 WorkingDirectory = workingDirectory
             };
 
@@ -59,6 +62,11 @@ namespace Roslyn.Test.Utilities
 
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
+
+                if (stdInput != null)
+                {
+                    process.StandardInput.Write(stdInput);
+                }
 
                 process.WaitForExit();
 

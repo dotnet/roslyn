@@ -60,12 +60,12 @@ done
 
 restore_nuget()
 {
-    local package_name="nuget.29.zip"
+    local package_name="nuget.32.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
-            echo "Already installed"
+            echo "Nuget already installed"
             return
         fi
     fi
@@ -138,8 +138,10 @@ compile_toolset()
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
 save_toolset()
 {
-    mkdir Binaries/Bootstrap
-    cp Binaries/$BUILD_CONFIGURATION/core-clr/* Binaries/Bootstrap
+    mkdir -p Binaries/Bootstrap/csccore
+    mkdir -p Binaries/Bootstrap/vbccore
+    cp Binaries/$BUILD_CONFIGURATION/csccore/* Binaries/Bootstrap/csccore
+    cp Binaries/$BUILD_CONFIGURATION/vbccore/* Binaries/Bootstrap/vbccore
 }
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces
@@ -156,8 +158,8 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
+        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap/csccore /p:CscToolExe=csc \
+/p:VbcToolPath=$(pwd)/Binaries/Bootstrap/vbccore /p:VbcToolExe=vbc"
     fi
 
     echo Building CrossPlatform.sln
@@ -172,7 +174,7 @@ install_mono_toolset()
 
     if [ -d $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
-            echo "Already installed"
+            echo "Mono already installed"
             return
         fi
     fi
@@ -207,7 +209,7 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.4
+        MONO_TOOLSET_NAME=mono.mac.5
     elif [ "$OS_NAME" = "Linux" ]; then
         MONO_TOOLSET_NAME=mono.linux.4
     else
@@ -217,6 +219,12 @@ set_mono_path()
 
     install_mono_toolset $MONO_TOOLSET_NAME
     PATH=/tmp/$MONO_TOOLSET_NAME/bin:$PATH
+}
+
+check_mono()
+{
+    local mono_path=$(which mono)
+    echo "Mono path $mono_path"
 }
 
 test_roslyn()
@@ -254,7 +262,7 @@ git clean -dxf .
 
 restore_nuget
 set_mono_path
-which mono
+check_mono
 compile_toolset
 save_toolset
 clean_roslyn

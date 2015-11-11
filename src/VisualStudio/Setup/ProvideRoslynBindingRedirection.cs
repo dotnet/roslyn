@@ -14,16 +14,8 @@ namespace Roslyn.VisualStudio.Setup
     {
         private readonly ProvideBindingRedirectionAttribute _redirectionAttribute;
 
-#if OFFICIAL_BUILD
-
-        // We should not include CodeBase attributes because we want them to get loaded from PrivateAssemblies
-        public const bool GenerateCodeBase = false;
-
-#else
         // We should include CodeBase attributes so they always are loaded from this extension
         public const bool GenerateCodeBase = true;
-
-#endif
 
         public ProvideRoslynBindingRedirectionAttribute(string assemblyName)
         {

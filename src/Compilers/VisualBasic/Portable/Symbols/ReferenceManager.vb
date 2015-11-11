@@ -266,12 +266,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim boundReferenceDirectives As ImmutableArray(Of MetadataReference) = Nothing
                     Dim referencedAssemblies As ImmutableArray(Of AssemblyData) = Nothing
                     Dim modules As ImmutableArray(Of PEModule) = Nothing ' To make sure the modules are not collected ahead of time.
-                    Dim references As ImmutableArray(Of MetadataReference) = Nothing
+                    Dim explicitReferences As ImmutableArray(Of MetadataReference) = Nothing
 
                     Dim referenceMap As ImmutableArray(Of ResolvedReference) = ResolveMetadataReferences(
                         compilation,
                         assemblyReferencesBySimpleName,
-                        references,
+                        explicitReferences,
                         boundReferenceDirectiveMap,
                         boundReferenceDirectives,
                         referencedAssemblies,
@@ -288,9 +288,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim implicitlyResolvedReferenceMap As ImmutableArray(Of ResolvedReference) = Nothing
                     Dim allAssemblyData As ImmutableArray(Of AssemblyData) = Nothing
 
-                    Dim bindingResult() As BoundInputAssembly = Bind(explicitAssemblyData,
+                    Dim bindingResult() As BoundInputAssembly = Bind(compilation,
+                                                                     explicitAssemblyData,
                                                                      modules,
-                                                                     references,
+                                                                     explicitReferences,
                                                                      referenceMap,
                                                                      compilation.Options.MetadataReferenceResolver,
                                                                      compilation.Options.MetadataImportOptions,
@@ -305,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(bindingResult.Length = allAssemblyData.Length)
 
-                    references = references.AddRange(implicitlyResolvedReferences)
+                    Dim references = explicitReferences.AddRange(implicitlyResolvedReferences)
                     referenceMap = referenceMap.AddRange(implicitlyResolvedReferenceMap)
 
                     Dim referencedAssembliesMap As Dictionary(Of MetadataReference, Integer) = Nothing
@@ -394,6 +395,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     referencedModulesMap,
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
+                                    ExplicitReferences,
+                                    implicitlyResolvedReferences,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
                                     If(corLibrary Is assemblySymbol, Nothing, corLibrary),

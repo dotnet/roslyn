@@ -89,7 +89,15 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Continues the script with given code snippet.
         /// </summary>
         public Script<TResult> ContinueWith<TResult>(string code, ScriptOptions options = null) =>
-            new Script<TResult>(Compiler, Builder, code ?? "", options ?? Options, GlobalsType, this);
+            new Script<TResult>(Compiler, Builder, code ?? "", options ?? InheritOptions(Options), GlobalsType, this);
+
+        private static ScriptOptions InheritOptions(ScriptOptions previous)
+        {
+            // don't inherit references or imports, they have already been applied:
+            return previous.
+                WithReferences(ImmutableArray<MetadataReference>.Empty).
+                WithImports(ImmutableArray<string>.Empty);
+        }
 
         /// <summary>
         /// Get's the <see cref="Compilation"/> that represents the semantics of the script.
@@ -173,13 +181,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             var references = ArrayBuilder<MetadataReference>.GetInstance();
             try
             {
-                var previous = Previous;
-                if (previous != null)
-                {
-                    // TODO: this should be done in reference manager
-                    references.AddRange(previous.GetCompilation().References);
-                }
-                else
+                if (Previous == null)
                 {
                     var corLib = MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly);
                     references.Add(corLib);
@@ -202,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                     }
                 }
 
+                // add new references:
                 foreach (var reference in Options.MetadataReferences)
                 {
                     var unresolved = reference as UnresolvedMetadataReference;

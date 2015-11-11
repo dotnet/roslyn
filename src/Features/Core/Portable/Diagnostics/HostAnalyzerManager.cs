@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnostic = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(reference.FullPath, e);
 
                 // diagnostic from host analyzer can never go away
-                var args = new DiagnosticsUpdatedArgs(
+                var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     id: Tuple.Create(this, reference.FullPath, e.ErrorCode, e.TypeName),
                     workspace: PrimaryWorkspace.Workspace,
                     solution: null,

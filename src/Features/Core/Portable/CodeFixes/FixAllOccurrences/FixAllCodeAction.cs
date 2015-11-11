@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
+        internal override string Message => FeaturesResources.ComputingFixAllOccurrences;
+
         public FixAllContext FixAllContext => _fixAllContext;
-        protected virtual string FixAllWaitDialogAndPreviewChangesTitle => FeaturesResources.FixAllOccurrences;
-        protected virtual string ComputingFixAllWaitDialogMessage => FeaturesResources.ComputingFixAllOccurrences;
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var service = _fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
             
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
-            return await service.GetFixAllOperationsAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken), FixAllWaitDialogAndPreviewChangesTitle, ComputingFixAllWaitDialogMessage, _showPreviewChangesDialog).ConfigureAwait(false);
+            return await service.GetFixAllOperationsAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken), _showPreviewChangesDialog).ConfigureAwait(false);
         }
 
         protected async override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var service = _fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
             
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
-            return await service.GetFixAllChangedSolutionAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken), FixAllWaitDialogAndPreviewChangesTitle, ComputingFixAllWaitDialogMessage).ConfigureAwait(false);
+            return await service.GetFixAllChangedSolutionAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken)).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)

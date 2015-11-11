@@ -9,7 +9,7 @@ using System.Globalization;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.Build.Tasks.Hosting;
-using Microsoft.CodeAnalysis.CompilerServer;
+using Microsoft.CodeAnalysis.CommandLine;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -232,8 +232,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        internal override BuildProtocolConstants.RequestLanguage Language
-            => BuildProtocolConstants.RequestLanguage.VisualBasicCompile;
+        internal override RequestLanguage Language => RequestLanguage.VisualBasicCompile;
 
         private static readonly string[] s_separator = { "\r\n" };
 

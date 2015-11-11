@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable
             get { return ImmutableArray.Create(CS1061, CS0103, CS0117, CS0539, CS0246); }
         }
 
-        protected override bool IsCandidate(SyntaxNode node)
+        protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
         {
             return node is SimpleNameSyntax || node is PropertyDeclarationSyntax || node is MemberBindingExpressionSyntax;
         }
