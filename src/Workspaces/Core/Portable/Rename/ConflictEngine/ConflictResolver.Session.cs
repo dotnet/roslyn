@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                             // Step 3: Simplify the project
                             conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.NewSolution, documentsByProject, _replacementTextValid, _renameAnnotations, _cancellationToken).ConfigureAwait(false));
-                            conflictResolution.RemoveAllRenameAnnotations(documentsByProject, _renameAnnotations, _cancellationToken);
+                            await conflictResolution.RemoveAllRenameAnnotationsAsync(documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
                         }
                     }
 

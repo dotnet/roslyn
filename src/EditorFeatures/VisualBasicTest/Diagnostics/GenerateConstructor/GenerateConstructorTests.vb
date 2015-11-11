@@ -504,8 +504,8 @@ NewLines("Imports System.Linq \n Class C \n Private v As Integer \n Sub New() \n
 
         <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestGenerateInDerivedType1()
-            Test(
+        Public Async Function TestGenerateInDerivedType1() As Task
+            Await TestAsync(
 "
 Public Class Base
     Public Sub New(a As String)
@@ -531,12 +531,12 @@ Public Class Derived
         MyBase.New(a)
     End Sub
 End Class")
-        End Sub
+        End Function
 
         <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestGenerateInDerivedType2()
-            Test(
+        Public Async Function TestGenerateInDerivedType2() As Task
+            Await TestAsync(
 "
 Public Class Base
     Public Sub New(a As Integer, Optional b As String = Nothing)
@@ -562,6 +562,6 @@ Public Class Derived
         MyBase.New(a, b)
     End Sub
 End Class")
-        End Sub
+        End Function
     End Class
 End Namespace
