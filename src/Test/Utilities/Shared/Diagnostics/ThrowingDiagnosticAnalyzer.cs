@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static void VerifyAnalyzerEngineIsSafeAgainstExceptions(Func<DiagnosticAnalyzer, IEnumerable<Diagnostic>> runAnalysis)
+        {
+            VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(runAnalysis).Wait();
+        }
+
         public static async Task VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(Func<DiagnosticAnalyzer, IEnumerable<Diagnostic>> runAnalysis)
         {
             await VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(a => Task.FromResult(runAnalysis(a)));

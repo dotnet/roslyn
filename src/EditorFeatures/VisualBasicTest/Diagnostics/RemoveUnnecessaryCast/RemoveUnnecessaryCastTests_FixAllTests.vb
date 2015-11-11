@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInDocument()
+        Public Async Function TestFixAllInDocument() As Task
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -167,13 +168,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInProject()
+        Public Async Function TestFixAllInProject() As Task
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -304,13 +305,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInSolution()
+        Public Async Function TestFixAllInSolution() As Task
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -441,7 +442,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+        End Function
     End Class
 End Namespace

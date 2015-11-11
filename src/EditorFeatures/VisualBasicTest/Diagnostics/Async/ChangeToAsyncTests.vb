@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)>
-        Public Sub CantAwaitAsyncSub1()
+        Public Async Function CantAwaitAsyncSub1() As Threading.Tasks.Task
             Dim initial =
     <ModuleDeclaration>
     Async Function rtrt() As Task
@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
     Async Function gt() As Task
     End Function
 </ModuleDeclaration>
-            Test(initial, expected)
-        End Sub
+            Await TestAsync(initial, expected)
+        End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(

@@ -1,6 +1,7 @@
+Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
@@ -16,75 +17,75 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestSingleField()
-            Test(
+        Public Async Function TestSingleField() As Task
+            Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer|] \n End Class"),
 NewLines("Class Program \n Private i As Integer \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
 index:=0)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestMultipleFields()
-            Test(
+        Public Async Function TestMultipleFields() As Task
+            Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n End Class"),
 NewLines("Class Program \n Private i As Integer \n Private b As String \n Public Sub New(i As Integer, b As String) \n Me.i = i \n Me.b = b \n End Sub \n End Class"),
 index:=0)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestSecondField()
-            Test(
+        Public Async Function TestSecondField() As Task
+            Await TestAsync(
 NewLines("Class Program \n Private i As Integer \n [|Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
 NewLines("Class Program \n Private i As Integer \n Private b As String \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(b As String) \n Me.b = b \n End Sub \n End Class"),
 index:=0)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestFieldAssigningConstructor()
-            Test(
+        Public Async Function TestFieldAssigningConstructor() As Task
+            Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
 NewLines("Class Program \n Private i As Integer \n Private b As String \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, b As String) \n Me.i = i \n Me.b = b \n End Sub \n End Class"),
 index:=0)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestMissingWithExistingConstructor()
-            TestMissing(
+        Public Async Function TestMissingWithExistingConstructor() As Task
+            Await TestMissingAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, b As String) \n Me.i = i \n Me.b = b \n End Sub \n End Class"))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestStruct()
-            Test(
+        Public Async Function TestStruct() As Task
+            Await TestAsync(
 NewLines("Structure S \n [|Private i As Integer|] \n End Structure"),
 NewLines("Structure S \n Private i As Integer \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Structure"),
 index:=0)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestGenericType()
-            Test(
+        Public Async Function TestGenericType() As Task
+            Await TestAsync(
 NewLines("Class Program ( Of T ) \n [|Private i As Integer|] \n End Class"),
 NewLines("Class Program ( Of T ) \n Private i As Integer \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
 index:=0)
-        End Sub
+        End Function
 
         <WorkItem(541995)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestSimpleDelegatingConstructor()
-            Test(
+        Public Async Function TestSimpleDelegatingConstructor() As Task
+            Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
 NewLines("Class Program \n Private i As Integer \n Private b As String \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, b As String) \n Me.New(i) \n Me.b = b \n End Sub \n End Class"),
 index:=1)
-        End Sub
+        End Function
 
         <WorkItem(542008)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Sub TestGenerateFromNormalProperties()
-            Test(
+        Public Async Function TestGenerateFromNormalProperties() As Task
+            Await TestAsync(
 NewLines("Class Z \n [|Public Property A As Integer \n Public Property B As String|] \n End Class"),
 NewLines("Class Z \n Public Sub New(a As Integer, b As String) \n Me.A = a \n Me.B = b \n End Sub \n Public Property A As Integer \n Public Property B As String \n End Class"),
 index:=0)
-        End Sub
+        End Function
     End Class
 End Namespace

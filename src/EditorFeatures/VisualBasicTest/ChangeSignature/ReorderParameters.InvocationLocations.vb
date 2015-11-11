@@ -583,7 +583,7 @@ End Class]]></Text>.NormalizedValue()
 
 #Region "Code Refactoring"
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderIndexerParameters_CodeRefactoring_InMethodDeclaration()
+        Public Async Function ReorderIndexerParameters_CodeRefactoring_InMethodDeclaration() As Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C
     Sub Foo(x As Integer[||], y As Integer)
@@ -596,11 +596,11 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCodeAction(markup, expectedCodeAction:=True, updatedSignature:=permutation, expectedCode:=updatedCode)
-        End Sub
+            Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=True, updatedSignature:=permutation, expectedCode:=updatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderIndexerParameters_CodeRefactoring_NotInMethodBody()
+        Public Async Function ReorderIndexerParameters_CodeRefactoring_NotInMethodBody() As Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C
     Sub Foo(x As Integer, y As Integer)
@@ -608,11 +608,11 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCodeAction(markup, expectedCodeAction:=False)
-        End Sub
+            Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderIndexerParameters_CodeRefactoring_InCallSite()
+        Public Async Function ReorderIndexerParameters_CodeRefactoring_InCallSite() As Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C
     Sub Foo(x As Integer, y As Integer)
@@ -627,8 +627,8 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCodeAction(markup, expectedCodeAction:=True, updatedSignature:=permutation, expectedCode:=updatedCode)
-        End Sub
+            Await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction:=True, updatedSignature:=permutation, expectedCode:=updatedCode)
+        End Function
 #End Region
 
     End Class
