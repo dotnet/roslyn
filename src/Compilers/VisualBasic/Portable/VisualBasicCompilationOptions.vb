@@ -996,7 +996,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyClass.New(
                 outputKind,
-                False,
                 moduleName,
                 mainTypeName,
                 scriptClassName,
@@ -1019,15 +1018,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 specificDiagnosticOptions,
                 concurrentBuild,
                 deterministic:=False,' TODO: fix this
-                suppressEmbeddedDeclarations:=False,
-                extendedCustomDebugInformation:=True,
-                debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
-                strongNameProvider:=strongNameProvider,
-                metadataImportOptions:=MetadataImportOptions.Public)
+                strongNameProvider:=strongNameProvider)
         End Sub
 
         '' Bad constructor, do not use!
