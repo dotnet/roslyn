@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     Log("Begin reading request.");
                     request = await BuildRequest.ReadAsync(_stream, cancellationToken).ConfigureAwait(false);
+                    ValidateBuildRequest(request);
                     Log("End reading request.");
                 }
                 catch (Exception e)
