@@ -10,50 +10,18 @@ using Microsoft.CodeAnalysis.CommandLine;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerApiTest : TestBase
     {
-        private sealed class TestableClientConnection : IClientConnection
-        {
-            internal readonly string LoggingIdentifier = string.Empty;
-            internal Task<BuildRequest> ReadBuildRequestTask = TaskFromException<BuildRequest>(new Exception());
-            internal Task WriteBuildResponseTask = TaskFromException(new Exception());
-            internal Task MonitorTask = TaskFromException(new Exception());
-            internal Action CloseAction = delegate { };
-
-            string IClientConnection.LoggingIdentifier
-            {
-                get { return LoggingIdentifier; }
-            }
-
-            Task<BuildRequest> IClientConnection.ReadBuildRequest(CancellationToken cancellationToken)
-            {
-                return ReadBuildRequestTask;
-            }
-
-            Task IClientConnection.WriteBuildResponse(BuildResponse response, CancellationToken cancellationToken)
-            {
-                return WriteBuildResponseTask;
-            }
-
-            Task IClientConnection.CreateMonitorDisconnectTask(CancellationToken cancellationToken)
-            {
-                return MonitorTask;
-            }
-
-            void IClientConnection.Close()
-            {
-                CloseAction();
-            }
-        }
-
         private sealed class TestableDiagnosticListener : IDiagnosticListener
         {
             public int ProcessedCount;
             public DateTime? LastProcessedTime;
             public TimeSpan? KeepAlive;
+            public bool HasDetectedBadConnection;
 
             public void ConnectionProcessed(int count)
             {
@@ -64,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void UpdateKeepAlive(TimeSpan timeSpan)
             {
                 KeepAlive = timeSpan;
+            }
+
+            public void DetectedBadConnection()
+            {
+                HasDetectedBadConnection = true;
             }
         }
 
@@ -98,6 +71,32 @@ class Hello
             var source = new TaskCompletionSource<T>();
             source.SetException(e);
             return source.Task;
+        }
+
+        private static IClientConnection CreateClientConnection(CompletionReason completionReason, TimeSpan? keepAlive = null)
+        {
+            var task = Task.FromResult(new ConnectionData(completionReason, keepAlive));
+            return CreateClientConnection(task);
+        }
+
+        private static IClientConnection CreateClientConnection(Task<ConnectionData> task)
+        {
+            var connection = new Mock<IClientConnection>();
+            connection
+                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Returns(task);
+            return connection.Object;
+        }
+
+        private static IClientConnectionHost CreateClientConnectionHost(params Task<IClientConnection>[] connections)
+        {
+            var host = new Mock<IClientConnectionHost>();
+            var index = 0;
+            host
+                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Returns((CancellationToken ct) => connections[index++]);
+
+            return host.Object;
         }
 
         private async Task<BuildRequest> CreateBuildRequest(string sourceText, TimeSpan? keepAlive = null)
@@ -135,168 +134,78 @@ class Hello
             }
         }
 
-        /// <summary>
-        /// This returns an <see cref="IRequestHandler"/> that always returns <see cref="CompletedBuildResponse"/> without
-        /// doing any work.
-        /// </summary>
-        private static Mock<IRequestHandler> CreateNopRequestHandler()
+        private static Mock<IClientConnectionHost> CreateNopClientConnectionHost()
         {
-            var requestHandler = new Mock<IRequestHandler>();
-            requestHandler
-                .Setup(x => x.HandleRequest(It.IsAny<BuildRequest>(), It.IsAny<CancellationToken>()))
-                .Returns(new CompletedBuildResponse(0, utf8output: false, output: string.Empty, errorOutput: string.Empty));
-            return requestHandler;
-        }
-
-        private static Mock<ICompilerServerHost> CreateNopCompilerServerHost()
-        {
-            var host = new Mock<ICompilerServerHost>();
+            var host = new Mock<IClientConnectionHost>();
             host
                 .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
             return host;
         }
 
-        [Fact]
-        public void NotifyCallBackOnRequestHandlerException()
+        private static Task<T> FromException<T>(Exception ex)
         {
-            var clientConnection = new TestableClientConnection();
-            clientConnection.MonitorTask = Task.Delay(-1);
-            clientConnection.ReadBuildRequestTask = Task.FromResult(s_emptyCSharpBuildRequest);
+            var source = new TaskCompletionSource<T>();
+            source.SetException(ex);
+            return source.Task;
+        }
 
+        [Fact]
+        public async Task ClientConnectionThrowsHandlingBuild()
+        {
             var ex = new Exception();
-            var handler = new Mock<IRequestHandler>();
-            handler
-                .Setup(x => x.HandleRequest(It.IsAny<BuildRequest>(), It.IsAny<CancellationToken>()))
-                .Throws(ex);
+            var clientConnection = new Mock<IClientConnection>();
+            clientConnection
+                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Returns(FromException<ConnectionData>(ex));
 
-            var invoked = false;
-            FatalError.OverwriteHandler((providedEx) =>
-            {
-                Assert.Same(ex, providedEx);
-                invoked = true;
-            });
-            var client = new Connection(clientConnection, handler.Object);
+            var task = Task.FromResult(clientConnection.Object);
 
-            Assert.Throws(typeof(AggregateException), () => client.ServeConnection().Wait());
-            Assert.True(invoked);
+            var connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
+            Assert.Equal(CompletionReason.ClientException, connectionData.CompletionReason);
+            Assert.Null(connectionData.KeepAlive);
         }
 
         [Fact]
-        public void ClientDisconnectCancelBuildAndReturnsFailure()
+        public async Task ClientConnectionThrowsConnecting()
         {
-            var clientConnection = new TestableClientConnection();
-            clientConnection.ReadBuildRequestTask = Task.FromResult(s_emptyCSharpBuildRequest);
-
-            var monitorTaskSource = new TaskCompletionSource<bool>();
-            clientConnection.MonitorTask = monitorTaskSource.Task;
-
-            var handler = new Mock<IRequestHandler>();
-            var handlerTaskSource = new TaskCompletionSource<CancellationToken>();
-            var releaseHandlerSource = new TaskCompletionSource<bool>();
-            handler
-                .Setup(x => x.HandleRequest(It.IsAny<BuildRequest>(), It.IsAny<CancellationToken>()))
-                .Callback<BuildRequest, CancellationToken>((_, t) =>
-                {
-                    handlerTaskSource.SetResult(t);
-                    releaseHandlerSource.Task.Wait();
-                })
-                .Returns(s_emptyBuildResponse);
-
-            var client = new Connection(clientConnection, handler.Object);
-            var serveTask = client.ServeConnection();
-
-            // Once this returns we know the Connection object has kicked off a compilation and 
-            // started monitoring the disconnect task.  Can now initiate a disconnect in a known
-            // state.
-            var cancellationToken = handlerTaskSource.Task.Result;
-            monitorTaskSource.SetResult(true);
-
-            Assert.Equal(CompletionReason.ClientDisconnect, serveTask.Result.CompletionReason);
-            Assert.True(cancellationToken.IsCancellationRequested);
-
-            // Now that the asserts are done unblock the "build" long running task.  Have to do this
-            // last to simulate a build which is still running when the client disconnects.
-            releaseHandlerSource.SetResult(true);
-        }
-
-        [Fact]
-        public void ReadError()
-        {
-            var handler = new Mock<IRequestHandler>(MockBehavior.Strict);
-            var ex = new Exception("Simulated read error.");
-            var clientConnection = new TestableClientConnection();
-            var calledClose = false;
-            clientConnection.ReadBuildRequestTask = TaskFromException<BuildRequest>(ex);
-            clientConnection.CloseAction = delegate { calledClose = true; };
-
-            var client = new Connection(clientConnection, handler.Object);
-            Assert.Equal(CompletionReason.CompilationNotStarted, client.ServeConnection().Result.CompletionReason);
-            Assert.True(calledClose);
-        }
-
-        /// <summary>
-        /// A failure to write the results to the client is considered a client disconnection.  Any error
-        /// from when the build starts to when the write completes should be handled this way. 
-        /// </summary>
-        [Fact]
-        public void WriteError()
-        {
-            var clientConnection = new TestableClientConnection();
-            clientConnection.MonitorTask = Task.Delay(-1);
-            clientConnection.ReadBuildRequestTask = Task.FromResult(s_emptyCSharpBuildRequest);
-            clientConnection.WriteBuildResponseTask = TaskFromException(new Exception());
-            var handler = new Mock<IRequestHandler>();
-            handler
-                .Setup(x => x.HandleRequest(It.IsAny<BuildRequest>(), It.IsAny<CancellationToken>()))
-                .Returns(s_emptyBuildResponse);
-
-            var client = new Connection(clientConnection, handler.Object);
-            Assert.Equal(CompletionReason.ClientDisconnect, client.ServeConnection().Result.CompletionReason);
+            var ex = new Exception();
+            var task = FromException<IClientConnection>(ex);
+            var connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
+            Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
+            Assert.Null(connectionData.KeepAlive);
         }
 
         [Fact]
         public void KeepAliveNoConnections()
         {
             var keepAlive = TimeSpan.FromSeconds(3);
-            var requestHandler = new Mock<IRequestHandler>(MockBehavior.Strict);
-            var dispatcher = new ServerDispatcher(CreateNopCompilerServerHost().Object, requestHandler.Object, new EmptyDiagnosticListener());
+            var connectionHost = new Mock<IClientConnectionHost>();
+            connectionHost
+                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Returns(new TaskCompletionSource<IClientConnection>().Task);
+
+            var dispatcher = new ServerDispatcher(connectionHost.Object, new EmptyDiagnosticListener());
             var startTime = DateTime.Now;
             dispatcher.ListenAndDispatchConnections(keepAlive);
 
             Assert.True((DateTime.Now - startTime) > keepAlive);
         }
 
-        [Fact]
-        public async Task FailedConnectionShouldCreateFailedConnectionData()
-        {
-            var tcs = new TaskCompletionSource<IClientConnection>();
-            var handler = new Mock<IRequestHandler>(MockBehavior.Strict);
-            var connectionDataTask = ServerDispatcher.CreateHandleConnectionTask(tcs.Task, handler.Object, CancellationToken.None);
-
-            tcs.SetException(new Exception());
-            var connectionData = await connectionDataTask.ConfigureAwait(false);
-            Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
-            Assert.Null(connectionData.KeepAlive);
-        }
-
         /// <summary>
         /// Ensure server respects keep alive and shuts down after processing a single connection.
         /// </summary>
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4301")]
-        public async Task KeepAliveAfterSingleConnection()
+        [Fact]
+        public void KeepAliveAfterSingleConnection()
         {
-            var keepAlive = TimeSpan.FromSeconds(1);
+            var connection = CreateClientConnection(CompletionReason.Completed);
+            var host = CreateClientConnectionHost(
+                Task.FromResult(connection),
+                new TaskCompletionSource<IClientConnection>().Task);
             var listener = new TestableDiagnosticListener();
-            var pipeName = Guid.NewGuid().ToString();
-            var dispatcherTask = Task.Run(() =>
-            {
-                var dispatcher = new ServerDispatcher(CreateNopCompilerServerHost().Object, CreateNopRequestHandler().Object, listener);
-                dispatcher.ListenAndDispatchConnections(keepAlive);
-            });
-
-            await RunCSharpCompile(pipeName, HelloWorldSourceText).ConfigureAwait(false);
-            await dispatcherTask.ConfigureAwait(false);
+            var keepAlive = TimeSpan.FromSeconds(1);
+            var dispatcher = new ServerDispatcher(host, listener);
+            dispatcher.ListenAndDispatchConnections(keepAlive);
 
             Assert.Equal(1, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
@@ -306,28 +215,25 @@ class Hello
         /// <summary>
         /// Ensure server respects keep alive and shuts down after processing multiple connections.
         /// </summary>
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4301")]
-        public async Task KeepAliveAfterMultipleConnection()
+        [Fact]
+        public void KeepAliveAfterMultipleConnection()
         {
-            var keepAlive = TimeSpan.FromSeconds(1);
-            var listener = new TestableDiagnosticListener();
-            var pipeName = Guid.NewGuid().ToString();
-            var dispatcherTask = Task.Run(() =>
+            var count = 5;
+            var list = new List<Task<IClientConnection>>();
+            for (var i = 0; i < count; i++)
             {
-                var dispatcher = new ServerDispatcher(
-                    CreateNopCompilerServerHost().Object,
-                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object, Temp.CreateDirectory().Path), 
-                    listener);
-                dispatcher.ListenAndDispatchConnections(keepAlive);
-            });
-
-            for (int i = 0; i < 5; i++)
-            {
-                await RunCSharpCompile(pipeName, HelloWorldSourceText).ConfigureAwait(false);
+                var connection = CreateClientConnection(CompletionReason.Completed);
+                list.Add(Task.FromResult(connection));
             }
 
-            await dispatcherTask.ConfigureAwait(false);
-            Assert.Equal(5, listener.ProcessedCount);
+            list.Add(new TaskCompletionSource<IClientConnection>().Task);
+            var host = CreateClientConnectionHost(list.ToArray());
+            var listener = new TestableDiagnosticListener();
+            var keepAlive = TimeSpan.FromSeconds(1);
+            var dispatcher = new ServerDispatcher(host, listener);
+            dispatcher.ListenAndDispatchConnections(keepAlive);
+
+            Assert.Equal(count, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
             Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
         }
@@ -335,70 +241,84 @@ class Hello
         /// <summary>
         /// Ensure server respects keep alive and shuts down after processing simultaneous connections.
         /// </summary>
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4301")]
+        [Fact]
         public async Task KeepAliveAfterSimultaneousConnection()
         {
+            var totalCount = 2;
+            var readySource = new TaskCompletionSource<bool>();
+            var list = new List<TaskCompletionSource<ConnectionData>>();
+            var host = new Mock<IClientConnectionHost>();
+            host
+                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Returns((CancellationToken ct) =>
+                {
+                    if (list.Count < totalCount)
+                    {
+                        var source = new TaskCompletionSource<ConnectionData>();
+                        var client = CreateClientConnection(source.Task);
+                        list.Add(source);
+                        return Task.FromResult(client);
+                    }
+
+                    readySource.SetResult(true);
+                    return new TaskCompletionSource<IClientConnection>().Task;
+                });
+
             var keepAlive = TimeSpan.FromSeconds(1);
             var listener = new TestableDiagnosticListener();
-            var pipeName = Guid.NewGuid().ToString();
             var dispatcherTask = Task.Run(() =>
             {
-                var dispatcher = new ServerDispatcher(
-                    CreateNopCompilerServerHost().Object,
-                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object, Temp.CreateDirectory().Path), 
-                    listener);
+                var dispatcher = new ServerDispatcher(host.Object, listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive);
             });
 
-            var list = new List<Task>();
-            for (int i = 0; i < 5; i++)
+
+            await readySource.Task.ConfigureAwait(true);
+            foreach (var source in list)
             {
-                var task = Task.Run(() => RunCSharpCompile(pipeName, HelloWorldSourceText));
-                list.Add(task);
+                source.SetResult(new ConnectionData(CompletionReason.Completed));
             }
 
-            foreach (var current in list)
-            {
-                await current.ConfigureAwait(false);
-            }
-
-            await dispatcherTask.ConfigureAwait(false);
-            Assert.Equal(5, listener.ProcessedCount);
+            await dispatcherTask.ConfigureAwait(true);
+            Assert.Equal(totalCount, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
             Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4301")]
-        public async Task FirstClientCanOverrideDefaultTimeout()
+        [Fact]
+        public void ClientExceptionShouldBeginShutdown()
         {
-            var cts = new CancellationTokenSource();
+            var client = new Mock<IClientConnection>();
+            client
+                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Throws(new Exception());
+
+            var listenCancellationToken = default(CancellationToken);
+            var first = true;
+
+            var host = new Mock<IClientConnectionHost>();
+            host
+                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Returns((CancellationToken cancellationToken) =>
+                {
+                    if (first)
+                    {
+                        first = false;
+                        return Task.FromResult(client.Object);
+                    }
+                    else
+                    {
+                        listenCancellationToken = cancellationToken;
+                        return Task.Delay(-1, cancellationToken).ContinueWith<IClientConnection>(_ => null, TaskScheduler.Default);
+                    }
+                });
+
             var listener = new TestableDiagnosticListener();
-            TimeSpan? newTimeSpan = null;
-            var connectionSource = new TaskCompletionSource<int>();
-            var diagnosticListener = new Mock<IDiagnosticListener>();
-            diagnosticListener
-                .Setup(x => x.UpdateKeepAlive(It.IsAny<TimeSpan>()))
-                .Callback<TimeSpan>(ts => { newTimeSpan = ts; });
-            diagnosticListener
-                .Setup(x => x.ConnectionProcessed(It.IsAny<int>()))
-                .Callback<int>(count => connectionSource.SetResult(count));
+            var dispatcher = new ServerDispatcher(host.Object, listener);
+            dispatcher.ListenAndDispatchConnections(TimeSpan.FromSeconds(10));
 
-            var pipeName = Guid.NewGuid().ToString();
-            var dispatcherTask = Task.Run(() =>
-            {
-                var dispatcher = new ServerDispatcher(CreateNopCompilerServerHost().Object, CreateNopRequestHandler().Object, diagnosticListener.Object);
-                dispatcher.ListenAndDispatchConnections(TimeSpan.FromSeconds(1), cancellationToken: cts.Token);
-            });
-
-            var seconds = 10;
-            var response = await RunCSharpCompile(pipeName, HelloWorldSourceText, TimeSpan.FromSeconds(seconds)).ConfigureAwait(false);
-            Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
-            Assert.Equal(1, await connectionSource.Task.ConfigureAwait(false));
-            Assert.True(newTimeSpan.HasValue);
-            Assert.Equal(seconds, newTimeSpan.Value.TotalSeconds);
-
-            cts.Cancel();
-            await dispatcherTask.ConfigureAwait(false);
+            Assert.True(listener.HasDetectedBadConnection);
+            Assert.True(listenCancellationToken.IsCancellationRequested);
         }
     }
 }
