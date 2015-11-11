@@ -20,6 +20,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// processed is provided in <paramref name="count"/>.
         /// </summary>
         void ConnectionProcessed(int count);
+
+        /// <summary>
+        /// Called when a bad client connection was detected and the server will be shutting down as a 
+        /// result.
+        /// </summary>
+        void DetectedBadConnection();
     }
 
     internal sealed class EmptyDiagnosticListener : IDiagnosticListener
@@ -29,6 +35,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         public void ConnectionProcessed(int count)
+        {
+        }
+
+        public void DetectedBadConnection()
         {
         }
     }
