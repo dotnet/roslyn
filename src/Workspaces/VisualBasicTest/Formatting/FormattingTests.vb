@@ -443,7 +443,7 @@ End Class</Code>
                         For             i       =       1       To          10          Step            1               
 Dim         a       =       1               
     Next
-        End Function
+        End Sub
 End Class</Code>
 
             Dim expected = <Code>Class C
