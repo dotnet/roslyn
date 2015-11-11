@@ -438,7 +438,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                         s_breakStateEntrySolution = _vsProject.VisualStudioWorkspace.CurrentSolution;
 
-                        // Reset the project count in case not all projects exited successfully.
+                        // TODO: This is a workaround for a debugger bug in which not all projects exit the break state.
+                        // Reset the project count.
                         s_breakStateProjectCount = 0;
                     }
 
@@ -463,40 +464,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     // Avoid starting the edit session until all projects enter break state.
                     if (s_breakStateEnteredProjects.Count == s_debugStateProjectCount)
                     {
-                        try
-                        {
-                            Debug.Assert(_encService.EditSession == null);
-                            Debug.Assert(s_pendingActiveStatements.TrueForAll(s => s.Owner._activeStatementIds.Count == 0));
+                        Debug.Assert(_encService.EditSession == null);
+                        Debug.Assert(s_pendingActiveStatements.TrueForAll(s => s.Owner._activeStatementIds.Count == 0));
 
-                            var byDocument = new Dictionary<DocumentId, ImmutableArray<ActiveStatementSpan>>();
+                        var byDocument = new Dictionary<DocumentId, ImmutableArray<ActiveStatementSpan>>();
 
-                            // note: fills in activeStatementIds of projects that own the active statements:
-                            GroupActiveStatements(s_pendingActiveStatements, byDocument);
+                        // note: fills in activeStatementIds of projects that own the active statements:
+                        GroupActiveStatements(s_pendingActiveStatements, byDocument);
 
-                            // When stopped at exception: All documents are read-only, but the files might be changed outside of VS.
-                            // So we start an edit session as usual and report a rude edit for all changes we see.
-                            bool stoppedAtException = encBreakReason == ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION;
+                        // When stopped at exception: All documents are read-only, but the files might be changed outside of VS.
+                        // So we start an edit session as usual and report a rude edit for all changes we see.
+                        bool stoppedAtException = encBreakReason == ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION;
 
-                            var projectStates = ImmutableDictionary.CreateRange(s_breakStateEnteredProjects);
+                        var projectStates = ImmutableDictionary.CreateRange(s_breakStateEnteredProjects);
 
-                            _encService.StartEditSession(s_breakStateEntrySolution, byDocument, projectStates, stoppedAtException);
-                            _trackingService.StartTracking(_encService.EditSession);
+                        _encService.StartEditSession(s_breakStateEntrySolution, byDocument, projectStates, stoppedAtException);
+                        _trackingService.StartTracking(_encService.EditSession);
 
-                            s_readOnlyDocumentTracker.UpdateWorkspaceDocuments();
+                        s_readOnlyDocumentTracker.UpdateWorkspaceDocuments();
 
-                            // When tracking is started the tagger is notified and the active statements are highlighted.
-                            // Add the handler that notifies the debugger *after* that initial tagger notification,
-                            // so that it's not triggered unless an actual change in leaf AS occurs.
-                            _trackingService.TrackingSpansChanged += TrackingSpansChanged;
-
-                        }
-                        finally
-                        {
-                            // we don't need these anymore:
-                            s_pendingActiveStatements.Clear();
-                            s_breakStateEnteredProjects.Clear();
-                            s_breakStateEntrySolution = null;
-                        }
+                        // When tracking is started the tagger is notified and the active statements are highlighted.
+                        // Add the handler that notifies the debugger *after* that initial tagger notification,
+                        // so that it's not triggered unless an actual change in leaf AS occurs.
+                        _trackingService.TrackingSpansChanged += TrackingSpansChanged;
                     }
                 }
 
@@ -506,6 +496,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 return VSConstants.E_FAIL;
+            }
+            finally
+            {
+                // TODO: This is a workaround for a debugger bug.
+                // Ensure that the state gets reset even if if `GroupActiveStatements` throws an exception.
+                if (s_breakStateEnteredProjects.Count == s_debugStateProjectCount)
+                {
+                    // we don't need these anymore:
+                    s_pendingActiveStatements.Clear();
+                    s_breakStateEnteredProjects.Clear();
+                    s_breakStateEntrySolution = null;
+                }
             }
         }
 
