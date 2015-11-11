@@ -72,6 +72,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         protected abstract Task CreateMonitorDisconnectTask(CancellationToken cancellationToken);
 
+        protected virtual void ValidateBuildRequest(BuildRequest request)
+        {
+
+        }
+
         /// <summary>
         /// Close the connection.  Can be called multiple times.
         /// </summary>

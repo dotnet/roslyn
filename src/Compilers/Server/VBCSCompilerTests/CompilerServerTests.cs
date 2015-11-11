@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+extern alias MSBuildTask;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,7 +17,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Xml;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.BuildTasks;
+using MSBuildTask::Microsoft.CodeAnalysis.BuildTasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -138,6 +140,7 @@ End Module")
         private readonly string _basicCompilerClientExecutable;
         private readonly string _compilerServerExecutable;
         private readonly string _buildTaskDll;
+        private readonly List<Process> _processList = new List<Process>();
 
         public CompilerServerUnitTests()
         {
@@ -159,7 +162,7 @@ End Module")
 
         public override void Dispose()
         {
-            KillCompilerServer();
+            KillProcessList();
 
             base.Dispose();
         }
@@ -180,89 +183,31 @@ End Module")
             return vars;
         }
 
-        private List<Process> GetProcessesByFullPath(string path)
-        {
-            var matchingProcesses = new List<Process>();
-
-            var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(path));
-            foreach (var p in processes)
-            {
-                int pathSize = path.Length * 2;
-                var exeNameBuffer = new StringBuilder(pathSize);
-                IntPtr handle = IntPtr.Zero;
-
-                try
-                {
-                    // If the process has exited in between asking for the list and getting the handle,
-                    // this will throw an exception. We want to ignore it and keep on going with the
-                    // next process
-                    handle = p.Handle;
-                }
-                catch (InvalidOperationException) { }
-
-                if (handle != IntPtr.Zero &&
-                    QueryFullProcessImageName(handle,
-                                              0, // Win32 path format
-                                              exeNameBuffer,
-                                              ref pathSize) &&
-                    string.Equals(exeNameBuffer.ToString(),
-                                  path,
-                                  StringComparison.OrdinalIgnoreCase))
-                {
-                    matchingProcesses.Add(p);
-                }
-            }
-
-            return matchingProcesses;
-        }
-
-        private void KillProcess(string path)
-        {
-            foreach (var p in GetProcessesByFullPath(path))
-            {
-                p.Kill();
-                p.WaitForExit();
-            }
-        }
-
-        private void WaitForProcessExit(string path, TimeSpan interval)
-        {
-            while (GetProcessesByFullPath(path).Any())
-            {
-                Thread.Sleep(interval);
-            }
-        }
-
-        private async Task WaitForProcessExitAsync(string path)
-        {
-            while (GetProcessesByFullPath(path).Any())
-            {
-                await Task.Yield();
-            }
-        }
-
-        /// <summary>
-        /// Get the file path of the executable that started this process.
-        /// </summary>
-        /// <param name="processHandle"></param>
-        /// <param name="flags">Should always be 0: Win32 path format.</param>
-        /// <param name="exeNameBuffer">Buffer for the name</param>
-        /// <param name="bufferSize">
-        /// Size of the buffer coming in, chars written coming out.
-        /// </param>
-        [DllImport("Kernel32.dll", EntryPoint = "QueryFullProcessImageNameW", CharSet = CharSet.Unicode)]
-        private static extern bool QueryFullProcessImageName(
-            IntPtr processHandle,
-            int flags,
-            StringBuilder exeNameBuffer,
-            ref int bufferSize);
-
         // In order that the compiler server doesn't stay around and prevent future builds, we explicitly
         // kill it after each test.
-        private void KillCompilerServer()
+        private void KillProcessList()
         {
-            KillProcess(_compilerServerExecutable);
-            KillProcess(s_compilerServerExecutableSrc);
+            foreach (var process in _processList)
+            {
+                try
+                {
+                    process.Kill();
+                }
+                catch (InvalidOperationException)
+                {
+                    // Happens when process is killed before the Kill command is executed.  That's fine.  We
+                    // just want to make sure the process is gone.
+                }
+
+                process.WaitForExit();
+            }
+        }
+
+        public Process StartProcess(string fileName, string arguments, string workingDirectory = null)
+        {
+            var process = ProcessUtilities.StartProcess(fileName, arguments, workingDirectory);
+            _processList.Add(process);
+            return process;
         }
 
         private ProcessResult RunCommandLineCompiler(
@@ -931,13 +876,13 @@ End Module", i));
         // Run compiler in directory set up by SetupDirectory
         private Process RunCompilerCS(TempDirectory dir, int i)
         {
-            return ProcessUtilities.StartProcess(_csharpCompilerClientExecutable, string.Format("/shared /nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
+            return StartProcess(_csharpCompilerClientExecutable, string.Format("/shared /nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
         }
 
         // Run compiler in directory set up by SetupDirectory
         private Process RunCompilerVB(TempDirectory dir, int i)
         {
-            return ProcessUtilities.StartProcess(_basicCompilerClientExecutable, string.Format("/shared /nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i), dir.Path);
+            return StartProcess(_basicCompilerClientExecutable, string.Format("/shared /nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i), dir.Path);
         }
 
         // Run output in directory set up by SetupDirectory
@@ -1836,7 +1781,7 @@ class Program
             root.SelectSingleNode("appSettings/add/@value").Value = "1";
             doc.Save(exeConfigPath);
 
-            var proc = ProcessUtilities.StartProcess(_compilerServerExecutable, "");
+            var proc = StartProcess(_compilerServerExecutable, "");
             await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false); // Give 2s leeway
 
             var exited = proc.HasExited;
@@ -2018,16 +1963,6 @@ class Program
 
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("", result.Output);
-        }
-
-        [Fact]
-        public void OnlyStartsOneServer()
-        {
-            var result = ProcessUtilities.Run(_csharpCompilerClientExecutable, "/shared");
-            Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
-
-            result = ProcessUtilities.Run(_csharpCompilerClientExecutable, "/shared");
-            Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
         }
 
         // A dictionary with name and contents of all the files we want to create for the ReportAnalyzerMSBuild test.
@@ -2401,7 +2336,7 @@ namespace Class____foo____Library1
             var pipename = Guid.NewGuid().ToString("N");
             var args = $"-pipename:{pipename}";
 
-            var server1 = ProcessUtilities.StartProcess(_compilerServerExecutable, args);
+            var server1 = StartProcess(_compilerServerExecutable, args);
 
             // Wait up to 5 seconds for server1 to start
             var start = DateTime.Now;
@@ -2422,7 +2357,7 @@ namespace Class____foo____Library1
             // is running
             Assert.False(server1.HasExited);
 
-            var server2 = ProcessUtilities.StartProcess(_compilerServerExecutable, args);
+            var server2 = StartProcess(_compilerServerExecutable, args);
 
             var exited2 = server2.WaitForExit(s_fiveSecMillis);
 

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
-        protected int RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths)
+        internal int RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths)
         {
             var args = originalArguments.Select(arg => arg.Trim()).ToArray();
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string keepAlive, string libDirectory, CancellationToken cancellationToken);
 
-        private int HandleResponse(BuildResponse response, List<string> arguments, BuildPaths buildPaths)
+        protected virtual int HandleResponse(BuildResponse response, List<string> arguments, BuildPaths buildPaths)
         {
             switch (response.Type)
             {
@@ -168,6 +168,5 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // The first argument will be the executable name hence we skip it. 
             return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);
         }
-
     }
 }
