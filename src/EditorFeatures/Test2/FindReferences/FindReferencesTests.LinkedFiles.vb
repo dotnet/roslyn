@@ -92,6 +92,7 @@ End Class
         <Document IsLinkFile="true" LinkAssemblyName="VBProj1" LinkFilePath="C.vb"/>
     </Project>
 </Workspace>
+
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
