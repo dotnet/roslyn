@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     {
         protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true, string rootNamespace = null)
         {
-            using (var workspace = CreateWorkspaceFromFile(source, language, rootNamespace))
+            using (var workspace = await CreateWorkspaceFromFileAsync(source, language, rootNamespace))
             {
                 var documentId = workspace.Documents[0].Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
-                var span = document.GetSyntaxRootAsync().Result.FullSpan;
+                var span = (await document.GetSyntaxRootAsync()).FullSpan;
 
                 var actualDiagnostics = new List<Diagnostic>();
                 foreach (var analyzer in analyzers)
@@ -33,15 +33,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
-        private static TestWorkspace CreateWorkspaceFromFile(string source, string language, string rootNamespace)
+        private static Task<TestWorkspace> CreateWorkspaceFromFileAsync(string source, string language, string rootNamespace)
         {
             if (language == LanguageNames.CSharp)
             {
-                return CSharpWorkspaceFactory.CreateWorkspaceFromFile(source);
+                return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source);
             }
             else
             {
-                return VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(
+                return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(
                     source,
                     compilationOptions: new VisualBasic.VisualBasicCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
