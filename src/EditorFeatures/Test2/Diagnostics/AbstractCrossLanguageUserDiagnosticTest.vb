@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                               Optional index As Integer = 0) As Task
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
-                Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
                 Dim edit = operations.OfType(Of ApplyChangesOperation)().First()
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                                                          Optional index As Integer = 0) As Task
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(xmlDefinition)
-                Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(index).Action
                 Dim operations = codeAction.GetOperationsAsync(CancellationToken.None).Result
 
