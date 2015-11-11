@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -476,33 +475,21 @@ Class C
 End Class
 "
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-
-            Dim exeBytes As Byte() = Nothing
-            Dim pdbBytes As Byte() = Nothing
-            Dim references As ImmutableArray(Of MetadataReference) = Nothing
-            comp.EmitAndGetReferences(exeBytes, pdbBytes, references)
-
-            Try
-                Dim runtime = CreateRuntimeInstance(
-                ExpressionCompilerUtilities.GenerateUniqueName(),
-                references.AddIntrinsicAssembly(),
-                exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes, exeBytes))
-
-                Dim context = CreateMethodContext(
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.F",
                 atLineNumber:=888)
-                Dim testData = New CompilationTestData()
-                Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
-                Dim typeName As String = Nothing
-                context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+            Dim testData = New CompilationTestData()
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+            Dim typeName As String = Nothing
+            context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
 
-                Assert.Equal(4, locals.Count)
+            Assert.Equal(4, locals.Count)
 
-                VerifyLocal(testData, typeName, locals(0), "<>m0", "w")
-                VerifyLocal(testData, typeName, locals(1), "<>m1", "F")
-                VerifyLocal(testData, typeName, locals(2), "<>m2", "y", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "w")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "F")
+            VerifyLocal(testData, typeName, locals(2), "<>m2", "y", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        2 (0x2)
   .maxstack  1
@@ -512,7 +499,7 @@ End Class
   IL_0000:  ldc.i4.3
   IL_0001:  ret
 }")
-                VerifyLocal(testData, typeName, locals(3), "<>m3", "v", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(3), "<>m3", "v", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        2 (0x2)
   .maxstack  1
@@ -524,23 +511,23 @@ End Class
 }
 ")
 
-                context = CreateMethodContext(
+            context = CreateMethodContext(
                 runtime,
                 methodName:="C.F",
                 atLineNumber:=999) ' Changed this (was Nothing)
-                testData = New CompilationTestData()
-                locals.Clear()
-                typeName = Nothing
-                context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+            testData = New CompilationTestData()
+            locals.Clear()
+            typeName = Nothing
+            context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
 
-                Assert.Equal(6, locals.Count)
+            Assert.Equal(6, locals.Count)
 
-                VerifyLocal(testData, typeName, locals(0), "<>m0", "w")
-                VerifyLocal(testData, typeName, locals(1), "<>m1", "F")
-                VerifyLocal(testData, typeName, locals(2), "<>m2", "u")
-                VerifyLocal(testData, typeName, locals(3), "<>m3", "y", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult)
-                VerifyLocal(testData, typeName, locals(4), "<>m4", "v", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult)
-                VerifyLocal(testData, typeName, locals(5), "<>m5", "z", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
+            VerifyLocal(testData, typeName, locals(0), "<>m0", "w")
+            VerifyLocal(testData, typeName, locals(1), "<>m1", "F")
+            VerifyLocal(testData, typeName, locals(2), "<>m2", "u")
+            VerifyLocal(testData, typeName, locals(3), "<>m3", "y", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult)
+            VerifyLocal(testData, typeName, locals(4), "<>m4", "v", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult)
+            VerifyLocal(testData, typeName, locals(5), "<>m5", "z", expectedFlags:=DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:=
 "{
   // Code size        6 (0x6)
   .maxstack  1
@@ -551,20 +538,8 @@ End Class
   IL_0005:  ret
 }")
 
-                locals.Free()
-
-            Catch e As OverflowException When LogConstantsOverflow(e, exeBytes, pdbBytes)
-            End Try
+            locals.Free()
         End Sub
-
-        Private Shared Function LogConstantsOverflow(e As Exception, exeBytes As Byte(), pdbBytes As Byte()) As Boolean
-            Dim id = Guid.NewGuid()
-            Dim tempDir = Path.GetTempPath()
-            File.WriteAllBytes(Path.Combine(tempDir, $"EEConstantsTest_{id}.exe"), exeBytes)
-            File.WriteAllBytes(Path.Combine(tempDir, $"EEConstantsTest_{id}.pdb"), pdbBytes)
-
-            Return FatalError.Report(e)
-        End Function
 
         <Fact>
         Public Sub ConstantEnum()
