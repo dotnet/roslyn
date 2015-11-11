@@ -228,7 +228,12 @@
     <Compile Include="Compilation\ControlFlowAnalysis.cs" />
     <Compile Include="Compilation\DataFlowAnalysis.cs" />
     <Compile Include="Compilation\EmitResult.cs" />
+    <Compile Include="Compilation\Expression.cs" />
     <Compile Include="Compilation\Extensions.cs" />
+    <Compile Include="Compilation\IExpression.cs" />
+    <Compile Include="Compilation\IOperation.cs" />
+    <Compile Include="Compilation\IStatement.cs" />
+    <Compile Include="Compilation\OperationExtensions.cs" />
     <Compile Include="Compilation\OptimizationLevel.cs" />
     <Compile Include="Compilation\ParseOptions.cs" />
     <Compile Include="Compilation\Platform.cs" />
@@ -236,6 +241,7 @@
     <Compile Include="Compilation\SemanticModel.cs" />
     <Compile Include="Compilation\SourceReferenceResolver.cs" />
     <Compile Include="Compilation\SpeculativeBindingOption.cs" />
+    <Compile Include="Compilation\Statement.cs" />
     <Compile Include="Compilation\SubsystemVersion.cs" />
     <Compile Include="Compilation\SymbolInfo.cs" />
     <Compile Include="Compilation\TypeInfo.cs" />

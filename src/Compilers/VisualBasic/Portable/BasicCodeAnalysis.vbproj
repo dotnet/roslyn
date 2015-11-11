@@ -301,9 +301,11 @@
     <Compile Include="BoundTree\BoundWithStatement.vb" />
     <Compile Include="BoundTree\BoundXmlAttribute.vb" />
     <Compile Include="BoundTree\BoundYieldStatement.vb" />
+    <Compile Include="BoundTree\Expression.vb" />
     <Compile Include="BoundTree\GroupTypeInferenceLambda.vb" />
     <Compile Include="BoundTree\NoOpStatementFlavor.vb" />
     <Compile Include="BoundTree\PseudoVariableExpressions.vb" />
+    <Compile Include="BoundTree\Statement.vb" />
     <Compile Include="BoundTree\UnboundLambda.vb" />
     <Compile Include="CodeGen\CodeGenerator.vb" />
     <Compile Include="CodeGen\EmitAddress.vb" />
