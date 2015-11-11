@@ -13,15 +13,15 @@ using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
+    internal interface IClientConnectionHost
+    {
+        Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken);
+    }
+
     /// <summary>
-    /// This class handles the named pipe creation, listening, thread creation,
-    /// and so forth. When a request comes in, it is dispatched on a new thread
-    /// to the <see cref="IRequestHandler"/> interface. The request handler does the actual
-    /// compilation. This class itself has no dependencies on the compiler.
+    /// This class manages the connections, timeout and general scheduling of the client 
+    /// requests.  
     /// </summary>
-    /// <remarks>
-    /// One instance of this is created per process.
-    /// </remarks>
     internal sealed class ServerDispatcher
     {
         /// <summary>
@@ -35,15 +35,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal static readonly TimeSpan GCTimeout = TimeSpan.FromSeconds(30);
 
-        private readonly ICompilerServerHost _compilerServerHost;
-        private readonly IRequestHandler _handler;
+        private readonly IClientConnectionHost _clientConnectionHost;
         private readonly IDiagnosticListener _diagnosticListener;
 
-        internal ServerDispatcher(ICompilerServerHost compilerServerHost, IRequestHandler handler, IDiagnosticListener diagnosticListener)
+        internal ServerDispatcher(IClientConnectionHost clientConnectionHost, IDiagnosticListener diagnosticListener = null)
         {
-            _compilerServerHost = compilerServerHost;
-            _handler = handler;
-            _diagnosticListener = diagnosticListener;
+            _clientConnectionHost = clientConnectionHost;
+            _diagnosticListener = diagnosticListener ?? new EmptyDiagnosticListener();
         }
 
         /// <summary>
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     Debug.Assert(listenCancellationTokenSource == null);
                     Debug.Assert(timeoutTask == null);
                     listenCancellationTokenSource = new CancellationTokenSource();
-                    listenTask = _compilerServerHost.CreateListenTask(listenCancellationTokenSource.Token);
+                    listenTask = _clientConnectionHost.CreateListenTask(listenCancellationTokenSource.Token);
                 }
 
                 // If there are no active clients running then the server needs to be in a timeout mode.
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If there is a connection event that has highest priority. 
                 if (listenTask.IsCompleted && !cancellationToken.IsCancellationRequested)
                 {
-                    var connectionTask = CreateHandleConnectionTask(listenTask, _handler, cancellationToken);
+                    var connectionTask = HandleClientConnection(listenTask, cancellationToken);
                     connectionList.Add(connectionTask);
                     listenTask = null;
                     listenCancellationTokenSource = null;
@@ -115,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // the shutdown process.  We have to assume that the client disconnected via
                     // Ctrl+C and wants the server process to terminate.  It's possible a compilation
                     // is running out of control and the client wants their machine back.  
+                    _diagnosticListener.DetectedBadConnection();
                     listenCancellationTokenSource.Cancel();
                     break;
                 }
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 var connectionData = current.Result;
                 ChangeKeepAlive(connectionData.KeepAlive, ref keepAlive, ref isKeepAliveDefault);
-                if (connectionData.CompletionReason == CompletionReason.ClientDisconnect)
+                if (connectionData.CompletionReason == CompletionReason.ClientDisconnect || connectionData.CompletionReason == CompletionReason.ClientException)
                 {
                     allFine = false;
                 }
@@ -213,13 +212,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
         /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
         /// </summary>
-        internal static async Task<ConnectionData> CreateHandleConnectionTask(Task<IClientConnection> clientConnectionTask, IRequestHandler handler, CancellationToken cancellationToken)
+        internal static async Task<ConnectionData> HandleClientConnection(Task<IClientConnection> clientConnectionTask, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Connection connection;
+            IClientConnection clientConnection;
             try
             {
-                var clientConnection = await clientConnectionTask.ConfigureAwait(false);
-                connection = new Connection(clientConnection, handler);
+                clientConnection = await clientConnectionTask.ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -229,7 +227,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return new ConnectionData(CompletionReason.CompilationNotStarted);
             }
 
-            return await connection.ServeConnection(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                return await clientConnection.HandleConnection(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                CompilerServerLogger.LogException(ex, "Error handling connection");
+                return new ConnectionData(CompletionReason.ClientException);
+            }
         }
     }
 }

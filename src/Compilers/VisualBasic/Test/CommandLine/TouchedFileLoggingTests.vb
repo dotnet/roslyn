@@ -169,7 +169,7 @@ End Class
 
                 Dim outWriter = New StringWriter()
                 Dim cmd = New VisualBasicCompilerServer(
-                    New DesktopCompilerServerHost(Guid.NewGuid().ToString()),
+                    New DesktopCompilerServerHost(),
                     {"/nologo",
                      "/touchedfiles:" + touchedBase,
                      source1},
