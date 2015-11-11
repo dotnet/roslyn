@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp;
@@ -57,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestPragmaWarningDirective()
+                public async Task TestPragmaWarningDirective()
                 {
-                    Test(
+                    await TestAsync(
         @"
 class Class
 {
@@ -81,9 +82,9 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestMultilineStatementPragmaWarningDirective()
+                public async Task TestMultilineStatementPragmaWarningDirective()
                 {
-                    Test(
+                    await TestAsync(
         @"
 class Class
 {
@@ -107,9 +108,9 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestPragmaWarningDirectiveWithExistingTrivia()
+                public async Task TestPragmaWarningDirectiveWithExistingTrivia()
                 {
-                    Test(
+                    await TestAsync(
         @"
 class Class
 {
@@ -136,9 +137,9 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestMultipleInstancesOfPragmaWarningDirective()
+                public async Task TestMultipleInstancesOfPragmaWarningDirective()
                 {
-                    Test(
+                    await TestAsync(
         @"
 class Class
 {
@@ -212,9 +213,9 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestErrorAndWarningScenario()
+                public async Task TestErrorAndWarningScenario()
                 {
-                    Test(
+                    await TestAsync(
         @"
 class Class
 {
@@ -239,9 +240,9 @@ class Class
 
                 [WorkItem(956453)]
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestWholeFilePragmaWarningDirective()
+                public async Task TestWholeFilePragmaWarningDirective()
                 {
-                    Test(
+                    await TestAsync(
         @"class Class { void Method() { [|int x = 0;|] } }",
         $@"#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
 class Class {{ void Method() {{ int x = 0; }} }}
@@ -250,9 +251,9 @@ class Class {{ void Method() {{ int x = 0; }} }}
 
                 [WorkItem(970129)]
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionAroundSingleToken()
+                public async Task TestSuppressionAroundSingleToken()
                 {
-                    Test(
+                    await TestAsync(
         @"
 using System;
 [Obsolete]
@@ -281,9 +282,9 @@ class Program
 
                 [WorkItem(1066576)]
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestPragmaWarningDirectiveAroundTrivia1()
+                public async Task TestPragmaWarningDirectiveAroundTrivia1()
                 {
-                    Test(
+                    await TestAsync(
         @"
 class Class
 {
@@ -320,9 +321,9 @@ class Class
 
                 [WorkItem(1066576)]
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestPragmaWarningDirectiveAroundTrivia2()
+                public async Task TestPragmaWarningDirectiveAroundTrivia2()
                 {
-                    Test(
+                    await TestAsync(
         @"[|#pragma abcde|]",
         $@"#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abcde
@@ -331,9 +332,9 @@ class Class
 
                 [WorkItem(1066576)]
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestPragmaWarningDirectiveAroundTrivia3()
+                public async Task TestPragmaWarningDirectiveAroundTrivia3()
                 {
-                    Test(
+                    await TestAsync(
         @"[|#pragma abcde|]  ",
         $@"#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abcde  
@@ -342,9 +343,9 @@ class Class
 
                 [WorkItem(1066576)]
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestPragmaWarningDirectiveAroundTrivia4()
+                public async Task TestPragmaWarningDirectiveAroundTrivia4()
                 {
-                    Test(
+                    await TestAsync(
         @"
 
 [|#pragma abc|]
@@ -363,9 +364,9 @@ class C {{ }}
 
                 [WorkItem(1066576)]
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestPragmaWarningDirectiveAroundTrivia5()
+                public async Task TestPragmaWarningDirectiveAroundTrivia5()
                 {
-                    Test(
+                    await TestAsync(
         @"class C1 { }
 [|#pragma abc|]
 class C2 { }
@@ -380,9 +381,9 @@ class C3 {{ }}");
 
                 [WorkItem(1066576)]
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestPragmaWarningDirectiveAroundTrivia6()
+                public async Task TestPragmaWarningDirectiveAroundTrivia6()
                 {
-                    Test(
+                    await TestAsync(
         @"class C1 { }
 class C2 { } /// <summary><see [|cref=""abc""|]/></summary>
 class C3 { } // comment
@@ -408,9 +409,9 @@ class C3 { } // comment
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestHiddenDiagnosticCannotBeSuppressed()
+                public async Task TestHiddenDiagnosticCannotBeSuppressed()
                 {
-                    TestMissing(
+                    await TestMissingAsync(
         @"
 using System;
 
@@ -459,9 +460,9 @@ int Method()
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestInfoDiagnosticSuppressed()
+                public async Task TestInfoDiagnosticSuppressed()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -521,9 +522,9 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestErrorDiagnosticCanBeSuppressed()
+                public async Task TestErrorDiagnosticCanBeSuppressed()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -586,10 +587,10 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestDiagnosticWithBadIdSuppressed()
+                public async Task TestDiagnosticWithBadIdSuppressed()
                 {
                     // Diagnostics with bad/invalid ID are not reported.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -639,9 +640,9 @@ using System;
 
             [WorkItem(2764, "https://github.com/dotnet/roslyn/issues/2764")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public void TestPragmaWarningDirectiveAroundMultilineDiagnostic()
+            public async Task TestPragmaWarningDirectiveAroundMultilineDiagnostic()
             {
-                Test(
+                await TestAsync(
     @"
 [|class Class
 {
@@ -675,10 +676,10 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestCompilerDiagnosticsCannotBeSuppressed()
+                public async Task TestCompilerDiagnosticsCannotBeSuppressed()
                 {
                     // Another test verifies we have a pragma warning action for this source, this verifies there are no other suppression actions.
-                    TestActionCount(
+                    await TestActionCountAsync(
         @"
 class Class
 {
@@ -699,9 +700,9 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestHiddenDiagnosticsCannotBeSuppressed()
+                public async Task TestHiddenDiagnosticsCannotBeSuppressed()
                 {
-                    TestMissing(
+                    await TestMissingAsync(
         @"
 using System;
 class Class
@@ -778,9 +779,9 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnSimpleType()
+                public async Task TestSuppressionOnSimpleType()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -802,7 +803,7 @@ using System;
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -818,9 +819,9 @@ using System;
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnNamespace()
+                public async Task TestSuppressionOnNamespace()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -845,7 +846,7 @@ using System;
 ", index: 1);
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -864,9 +865,9 @@ using System;
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnTypeInsideNamespace()
+                public async Task TestSuppressionOnTypeInsideNamespace()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -894,7 +895,7 @@ namespace N1
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -916,9 +917,9 @@ namespace N1
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnNestedType()
+                public async Task TestSuppressionOnNestedType()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -946,7 +947,7 @@ namespace N
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -968,9 +969,9 @@ namespace N
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnMethod()
+                public async Task TestSuppressionOnMethod()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -998,7 +999,7 @@ namespace N
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -1020,9 +1021,9 @@ namespace N
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnOverloadedMethod()
+                public async Task TestSuppressionOnOverloadedMethod()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -1055,7 +1056,7 @@ namespace N
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -1080,7 +1081,7 @@ namespace N
     }
 }");
 
-                    Test(
+                    await TestAsync(
         @"
 using System;
 
@@ -1116,9 +1117,9 @@ namespace N
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnGenericMethod()
+                public async Task TestSuppressionOnGenericMethod()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -1146,7 +1147,7 @@ namespace N
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -1168,9 +1169,9 @@ namespace N
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnProperty()
+                public async Task TestSuppressionOnProperty()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -1198,7 +1199,7 @@ namespace N
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -1220,9 +1221,9 @@ namespace N
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnField()
+                public async Task TestSuppressionOnField()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -1241,7 +1242,7 @@ class Class
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -1254,9 +1255,9 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnField2()
+                public async Task TestSuppressionOnField2()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -1275,7 +1276,7 @@ class Class
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -1288,9 +1289,9 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionOnEvent()
+                public async Task TestSuppressionOnEvent()
                 {
-                    Test(
+                    await TestAsync(
             @"
 using System;
 
@@ -1323,7 +1324,7 @@ class Class
 ");
 
                     // Also verify that the added attribute does indeed suppress the diagnostic.
-                    TestMissing(
+                    await TestMissingAsync(
             @"
 using System;
 
@@ -1350,7 +1351,7 @@ class Class
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionWithExistingGlobalSuppressionsDocument()
+                public async Task TestSuppressionWithExistingGlobalSuppressionsDocument()
                 {
                     var initialMarkup = @"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
@@ -1385,11 +1386,11 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText);
+                    await TestAsync(initialMarkup, expectedText);
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionWithExistingGlobalSuppressionsDocument2()
+                public async Task TestSuppressionWithExistingGlobalSuppressionsDocument2()
                 {
                     // Own custom file named GlobalSuppressions.cs
                     var initialMarkup = @"<Workspace>
@@ -1421,11 +1422,11 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText);
+                    await TestAsync(initialMarkup, expectedText);
                 }
 
                 [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-                public void TestSuppressionWithExistingGlobalSuppressionsDocument3()
+                public async Task TestSuppressionWithExistingGlobalSuppressionsDocument3()
                 {
                     // Own custom file named GlobalSuppressions.cs + existing GlobalSuppressions2.cs with global suppressions
                     var initialMarkup = @"<Workspace>
@@ -1467,7 +1468,7 @@ class Class { }
 
 ";
 
-                    Test(initialMarkup, expectedText);
+                    await TestAsync(initialMarkup, expectedText);
                 }
             }
         }
@@ -1518,9 +1519,9 @@ class Class { }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [WorkItem(1073825)]
-            public void TestDiagnosticWithoutLocationCanBeSuppressed()
+            public async Task TestDiagnosticWithoutLocationCanBeSuppressed()
             {
-                Test(
+                await TestAsync(
         @"[||]
 using System;
 

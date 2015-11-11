@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -753,7 +754,7 @@ class Test
 
         #region CodeRefactoring
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void ReorderMethodParameters_CodeRefactoring_InvokeBeforeMethodName()
+        public async Task ReorderMethodParameters_CodeRefactoring_InvokeBeforeMethodName()
         {
             var markup = @"
 using System;
@@ -772,11 +773,11 @@ class MyClass
     {
     }
 }";
-            TestChangeSignatureViaCodeAction(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
+            await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void ReorderMethodParameters_CodeRefactoring_NotInMethodBody()
+        public async Task ReorderMethodParameters_CodeRefactoring_NotInMethodBody()
         {
             var markup = @"
 using System;
@@ -787,11 +788,11 @@ class MyClass
         [||]
     }
 }";
-            TestChangeSignatureViaCodeAction(markup, expectedCodeAction: false);
+            await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void ReorderMethodParameters_CodeRefactoring_InLambda()
+        public async Task ReorderMethodParameters_CodeRefactoring_InLambda()
         {
             var markup = @"
 class Program
@@ -810,11 +811,11 @@ class Program
         System.Func<int, int, int> f = (b, a) => { return a; };
     }
 }";
-            TestChangeSignatureViaCodeAction(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
+            await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void ReorderMethodParameters_CodeRefactoring_NotInLambdaBody()
+        public async Task ReorderMethodParameters_CodeRefactoring_NotInLambdaBody()
         {
             var markup = @"
 class Program
@@ -824,11 +825,11 @@ class Program
         System.Func<int, int, int> f = (a, b) => { [||]return a; };
     }
 }";
-            TestChangeSignatureViaCodeAction(markup, expectedCodeAction: false);
+            await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void ReorderMethodParameters_CodeRefactoring_AtCallSite()
+        public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite()
         {
             var markup = @"
 class Program
@@ -847,7 +848,7 @@ class Program
         M(6, 5);
     }
 }";
-            TestChangeSignatureViaCodeAction(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
+            await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: true, updatedSignature: permutation, expectedCode: updatedCode);
         }
         #endregion
     }

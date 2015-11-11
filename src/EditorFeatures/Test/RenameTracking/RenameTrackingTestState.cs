@@ -149,11 +149,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             Assert.Equal(0, tags.Count());
         }
 
-        public IList<Diagnostic> GetDocumentDiagnostics(Document document = null)
+        public async Task<IList<Diagnostic>> GetDocumentDiagnosticsAsync(Document document = null)
         {
             document = document ?? this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
             var analyzer = new RenameTrackingDiagnosticAnalyzer();
-            return DiagnosticProviderTestUtilities.GetDocumentDiagnostics(analyzer, document, document.GetSyntaxRootAsync(CancellationToken.None).Result.FullSpan).ToList();
+            return (await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(analyzer, document, document.GetSyntaxRootAsync(CancellationToken.None).Result.FullSpan)).ToList();
         }
 
         public async Task AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false)
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             var tag = tags.Single();
 
             var document = this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
-            var diagnostics = GetDocumentDiagnostics(document);
+            var diagnostics = await GetDocumentDiagnosticsAsync(document);
 
             // There should be a single rename tracking diagnostic
             Assert.Equal(1, diagnostics.Count);

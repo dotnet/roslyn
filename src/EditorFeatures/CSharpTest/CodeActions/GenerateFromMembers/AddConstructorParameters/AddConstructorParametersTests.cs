@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.AddConstructorParameters;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,54 +15,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
         }
 
         [WpfFact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
-        public void TestAdd1()
+        public async Task TestAdd1()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { [|int i ; string s ;|] public Program ( int i ) { this . i = i ; } } ",
 @"using System . Collections . Generic ; class Program { int i ; string s ; public Program ( int i , string s ) { this . i = i ; this . s = s ; } } ",
 index: 0);
         }
 
         [WpfFact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
-        public void TestAddOptional1()
+        public async Task TestAddOptional1()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { [|int i ; string s ;|] public Program ( int i ) { this . i = i ; } } ",
 @"using System . Collections . Generic ; class Program { int i ; string s ; public Program ( int i , string s = null ) { this . i = i ; this . s = s ; } } ",
 index: 1);
         }
 
         [WpfFact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
-        public void TestAddToConstructorWithMostMatchingParameters1()
+        public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { [|int i ; string s ; bool b ;|] public Program ( int i ) { this . i = i ; } public Program ( int i , string s ) : this ( i ) { this . s = s ; } } ",
 @"using System . Collections . Generic ; class Program { int i ; string s ; bool b ; public Program ( int i ) { this . i = i ; } public Program ( int i , string s , bool b ) : this ( i ) { this . s = s ; this . b = b ; } } ",
 index: 0);
         }
 
         [WpfFact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
-        public void TestAddOptionalToConstructorWithMostMatchingParameters1()
+        public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
-            Test(
+            await TestAsync(
 @"using System . Collections . Generic ; class Program { [|int i ; string s ; bool b ;|] public Program ( int i ) { this . i = i ; } public Program ( int i , string s ) : this ( i ) { this . s = s ; } } ",
 @"using System . Collections . Generic ; class Program { int i ; string s ; bool b ; public Program ( int i ) { this . i = i ; } public Program ( int i , string s , bool b = default(bool) ) : this ( i ) { this . s = s ; this . b = b ; } } ",
 index: 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
-        public void TestSmartTagDisplayText1()
+        public async Task TestSmartTagDisplayText1()
         {
-            TestSmartTagText(
+            await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
 string.Format(FeaturesResources.AddParametersTo, "Program", "bool"),
 index: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
-        public void TestSmartTagDisplayText2()
+        public async Task TestSmartTagDisplayText2()
         {
-            TestSmartTagText(
+            await TestSmartTagTextAsync(
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
 string.Format(FeaturesResources.AddOptionalParametersTo, "Program", "bool"),
 index: 1);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -10,49 +11,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
     public partial class AddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestWhereExtension()
+        public async Task TestWhereExtension()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var q = args . [|Where|] } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . Where } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestSelectExtension()
+        public async Task TestSelectExtension()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var q = args . [|Select|] } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . Select } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestGroupByExtension()
+        public async Task TestGroupByExtension()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var q = args . [|GroupBy|] } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . GroupBy } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestJoinExtension()
+        public async Task TestJoinExtension()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var q = args . [|Join|] } } ",
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = args . Join } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void RegressionFor8455()
+        public async Task RegressionFor8455()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class C { void M ( ) { int dim = ( int ) Math . [|Min|] ( ) ; } } ");
         }
 
         [WorkItem(772321)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod()
+        public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod()
         {
-            Test(
+            await TestAsync(
 @"namespace NS1 { class Program { void Main() { [|new C().Foo(4);|] } } class C { public void Foo(string y) { } } } namespace NS2 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ",
 @"using NS2; namespace NS1 { class Program { void Main() { new C().Foo(4); } } class C { public void Foo(string y) { } } } namespace NS2 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ");
         }
@@ -60,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
         [WorkItem(772321)]
         [WorkItem(920398)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod()
+        public async Task TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod()
         {
-            Test(
+            await TestAsync(
 @"namespace NS1 { class Program { void Main() { [|new C().Foo(4);|] } } class C { private void Foo(int x) { } } } namespace NS2 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ",
 @"using NS2; namespace NS1 { class Program { void Main() { new C().Foo(4); } } class C { private void Foo(int x) { } } } namespace NS2 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ");
         }
@@ -70,18 +71,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
         [WorkItem(772321)]
         [WorkItem(920398)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod()
+        public async Task TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod()
         {
-            Test(
+            await TestAsync(
 @"using NS2; namespace NS1 { class Program { void Main() { [|new C().Foo(4);|] } } class C { } } namespace NS2 { static class CExt { private static void Foo(this NS1.C c, int x) { } } } namespace NS3 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ",
 @"using NS2; using NS3; namespace NS1 { class Program { void Main() { new C().Foo(4); } } class C { } } namespace NS2 { static class CExt { private static void Foo(this NS1.C c, int x) { } } } namespace NS3 { static class CExt { public static void Foo(this NS1.C c, int x) { } } } ");
         }
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod()
+        public async Task TestAddUsingForAddExtentionMethod()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|1|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 parseOptions: null);
@@ -89,9 +90,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod2()
+        public async Task TestAddUsingForAddExtentionMethod2()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , 2 , [|3|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , 2 , 3 } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 parseOptions: null);
@@ -99,9 +100,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod3()
+        public async Task TestAddUsingForAddExtentionMethod3()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , [|2|] , 3 } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , 2 , 3 } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 parseOptions: null);
@@ -109,9 +110,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod4()
+        public async Task TestAddUsingForAddExtentionMethod4()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , [|{ 4 , 5 , 6 }|] , { 7 , 8 , 9 } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { 4 , 5 , 6 } , { 7 , 8 , 9 } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 parseOptions: null);
@@ -119,9 +120,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod5()
+        public async Task TestAddUsingForAddExtentionMethod5()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { 4 , 5 , 6 } , [|{ 7 , 8 , 9 }|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { 4 , 5 , 6 } , { 7 , 8 , 9 } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 parseOptions: null);
@@ -129,9 +130,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod6()
+        public async Task TestAddUsingForAddExtentionMethod6()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , [|{ '7' , '8' , '9' }|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 parseOptions: null);
@@ -139,9 +140,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod7()
+        public async Task TestAddUsingForAddExtentionMethod7()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , [|{ ""Four"" , ""Five"" , ""Six"" }|] , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 parseOptions: null);
@@ -149,9 +150,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod8()
+        public async Task TestAddUsingForAddExtentionMethod8()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|{ 1 , 2 , 3 }|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 parseOptions: null);
@@ -159,9 +160,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod9()
+        public async Task TestAddUsingForAddExtentionMethod9()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|""This""|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { ""This"" } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 parseOptions: null);
@@ -169,9 +170,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod10()
+        public async Task TestAddUsingForAddExtentionMethod10()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|{ 1 , 2 , 3 }|] , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",
 parseOptions: null);
@@ -179,9 +180,9 @@ parseOptions: null);
 
         [WorkItem(269)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExtentionMethod11()
+        public async Task TestAddUsingForAddExtentionMethod11()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|{ 1 , 2 , 3 }|] , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",
 @"using System ; using System . Collections ; using Ext2 ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",
 index: 1,
@@ -190,7 +191,7 @@ parseOptions: null);
 
         [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void InExtensionMethodUnderConditionalAccessExpression()
+        public async Task InExtensionMethodUnderConditionalAccessExpression()
         {
             var initialText =
 @"<Workspace>
@@ -236,12 +237,12 @@ namespace Sample
         }
     }
 }";
-            Test(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void InExtensionMethodUnderMultipleConditionalAccessExpressions()
+        public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions()
         {
             var initialText =
   @"<Workspace>
@@ -279,12 +280,12 @@ public class C
         return F(new C())?.F(new C())?.Extn();
     }
 }";
-            Test(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void InExtensionMethodUnderMultipleConditionalAccessExpressions2()
+        public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions2()
         {
             var initialText =
   @"<Workspace>
@@ -322,7 +323,7 @@ public class C
         return F(new C())?.F(new C()).Extn()?.F(newC());
     }
 }";
-            Test(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
     }
 }

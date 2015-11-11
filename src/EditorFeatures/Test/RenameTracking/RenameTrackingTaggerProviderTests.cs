@@ -929,12 +929,12 @@ class C$$
                 state.EditorOperations.InsertText("at");
                 await state.AssertTag("C", "Cat").ConfigureAwait(true);
 
-                Assert.NotEmpty(state.GetDocumentDiagnostics());
+                Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
 
                 state.SendEscape();
                 await state.AssertNoTag().ConfigureAwait(true);
 
-                Assert.Empty(state.GetDocumentDiagnostics());
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
             }
         }
 
@@ -1110,15 +1110,15 @@ class C
                 state.EditorOperations.InsertText("va");
 
                 await state.AssertTag("C", "va").ConfigureAwait(true);
-                Assert.NotEmpty(state.GetDocumentDiagnostics());
+                Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
 
                 state.EditorOperations.InsertText("r");
                 await state.AssertNoTag().ConfigureAwait(true);
-                Assert.Empty(state.GetDocumentDiagnostics());
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
 
                 state.EditorOperations.InsertText("p");
                 await state.AssertTag("C", "varp").ConfigureAwait(true);
-                Assert.NotEmpty(state.GetDocumentDiagnostics());
+                Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
             }
         }
 
@@ -1139,7 +1139,7 @@ class C
             {
                 state.EditorOperations.Backspace();
                 await state.AssertNoTag().ConfigureAwait(true);
-                Assert.Empty(state.GetDocumentDiagnostics());
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
             }
         }
 
@@ -1160,7 +1160,7 @@ End Class";
                 state.EditorOperations.InsertText("var");
 
                 await state.AssertTag("C", "var").ConfigureAwait(true);
-                Assert.NotEmpty(state.GetDocumentDiagnostics());
+                Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
             }
         }
 
@@ -1183,15 +1183,15 @@ class C
                 state.EditorOperations.InsertText("dynami");
 
                 await state.AssertTag("C", "dynami").ConfigureAwait(true);
-                Assert.NotEmpty(state.GetDocumentDiagnostics());
+                Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
 
                 state.EditorOperations.InsertText("c");
                 await state.AssertNoTag().ConfigureAwait(true);
-                Assert.Empty(state.GetDocumentDiagnostics());
+                Assert.Empty(await state.GetDocumentDiagnosticsAsync());
 
                 state.EditorOperations.InsertText("s");
                 await state.AssertTag("C", "dynamics").ConfigureAwait(true);
-                Assert.NotEmpty(state.GetDocumentDiagnostics());
+                Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
             }
         }
     }

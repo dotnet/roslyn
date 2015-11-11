@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Async;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
     public partial class AddAwaitTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand1()
+        public async Task BadAsyncReturnOperand1()
         {
             var initial =
 @"using System;
@@ -47,11 +48,11 @@ class Program
         return await Test();
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand_WithLeadingTrivia1()
+        public async Task BadAsyncReturnOperand_WithLeadingTrivia1()
         {
             var initial =
 @"using System;
@@ -90,11 +91,11 @@ class Program
         await Test();
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_SingleLine()
+        public async Task BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
 @"using System;
@@ -123,11 +124,11 @@ class Program
         return await (true ? Test() /* true */ : Test() /* false */);
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_Multiline()
+        public async Task BadAsyncReturnOperand_ConditionalExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
 @"using System;
@@ -160,11 +161,11 @@ class Program
                     ;
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_SingleLine()
+        public async Task BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
 @"using System;
@@ -193,11 +194,11 @@ class Program
         return await (null /* 0 */ ?? Test() /* 1 */);
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_Multiline()
+        public async Task BadAsyncReturnOperand_NullCoalescingExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
 @"using System;
@@ -230,11 +231,11 @@ class Program
             ;
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_SingleLine()
+        public async Task BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_SingleLine()
         {
             var initial =
 @"using System;
@@ -259,11 +260,11 @@ class Program
         return await (null /* 0 */ as Task<int> /* 1 */);
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_Multiline()
+        public async Task BadAsyncReturnOperand_AsExpressionWithTrailingTrivia_Multiline()
         {
             var initial =
 @"using System;
@@ -296,11 +297,11 @@ class Program
             ;
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TaskNotAwaited()
+        public async Task TaskNotAwaited()
         {
             var initial =
 @"using System;
@@ -323,11 +324,11 @@ class Program
         await Task.Delay(3);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TaskNotAwaited_WithLeadingTrivia()
+        public async Task TaskNotAwaited_WithLeadingTrivia()
         {
             var initial =
 @"using System;
@@ -354,11 +355,11 @@ class Program
         await Task.Delay(3);
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void FunctionNotAwaited()
+        public async Task FunctionNotAwaited()
         {
             var initial =
 @"using System;
@@ -391,11 +392,11 @@ class Program
         await AwaitableFunction();
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void FunctionNotAwaited_WithLeadingTrivia()
+        public async Task FunctionNotAwaited_WithLeadingTrivia()
         {
             var initial =
 @"using System;
@@ -432,11 +433,11 @@ class Program
         await AwaitableFunction();
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void FunctionNotAwaited_WithLeadingTrivia1()
+        public async Task FunctionNotAwaited_WithLeadingTrivia1()
         {
             var initial =
 @"using System;
@@ -473,120 +474,120 @@ class Program
         await AwaitableFunction();
     }
 }";
-            Test(initial, expected, compareTokens: false);
+            await TestAsync(initial, expected, compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpression()
+        public async Task TestAssignmentExpression()
         {
-            Test(
+            await TestAsync(
 @"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { int myInt = [|MyIntMethodAsync ( )|] ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
 @"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { int myInt = await MyIntMethodAsync ( ) ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpressionWithConversion()
+        public async Task TestAssignmentExpressionWithConversion()
         {
-            Test(
+            await TestAsync(
 @"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { long myInt = [|MyIntMethodAsync ( )|] ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
 @"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { long myInt = await MyIntMethodAsync ( ) ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpressionWithConversionInNonAsyncFunction()
+        public async Task TestAssignmentExpressionWithConversionInNonAsyncFunction()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System . Threading . Tasks ; class TestClass { private Task MyTestMethod1Async ( ) { long myInt = [|MyIntMethodAsync ( )|] ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpressionWithConversionInAsyncFunction()
+        public async Task TestAssignmentExpressionWithConversionInAsyncFunction()
         {
-            Test(
+            await TestAsync(
 @"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { long myInt = [|MyIntMethodAsync ( )|] ; } private Task < object > MyIntMethodAsync ( ) { return Task . FromResult ( new object ( ) ) ; } } ",
 @"using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { long myInt = await MyIntMethodAsync ( ) ; } private Task < object > MyIntMethodAsync ( ) { return Task . FromResult ( new object ( ) ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpression1()
+        public async Task TestAssignmentExpression1()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action lambda = async ( ) => { int myInt = [|MyIntMethodAsync ( )|] ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action lambda = async ( ) => { int myInt = await MyIntMethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpression2()
+        public async Task TestAssignmentExpression2()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > lambda = async ( ) => { int myInt = [|MyIntMethodAsync ( )|] ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > lambda = async ( ) => { int myInt = await MyIntMethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpression3()
+        public async Task TestAssignmentExpression3()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > lambda = ( ) => { int myInt = MyInt [||] MethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpression4()
+        public async Task TestAssignmentExpression4()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action lambda = ( ) => { int myInt = MyIntM [||] ethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpression5()
+        public async Task TestAssignmentExpression5()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action @delegate = async delegate { int myInt = [|MyIntMethodAsync ( )|] ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action @delegate = async delegate { int myInt = await MyIntMethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpression6()
+        public async Task TestAssignmentExpression6()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > @delegate = async delegate { int myInt = [|MyIntMethodAsync ( )|] ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ",
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > @delegate = async delegate { int myInt = await MyIntMethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpression7()
+        public async Task TestAssignmentExpression7()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Action @delegate = delegate { int myInt = MyInt [||] MethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAssignmentExpression8()
+        public async Task TestAssignmentExpression8()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System ; using System . Threading . Tasks ; class TestClass { private async Task MyTestMethod1Async ( ) { Func < Task > @delegate = delegate { int myInt = MyIntM [||] ethodAsync ( ) ; } ; } private Task < int > MyIntMethodAsync ( ) { return Task . FromResult ( result : 1 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestTernaryOperator()
+        public async Task TestTernaryOperator()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return [|true ? Task . FromResult ( 0 ) : Task . FromResult ( 1 )|] ; } } ",
 @"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return await ( true ? Task . FromResult ( 0 ) : Task . FromResult ( 1 ) ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestNullCoalescingOperator()
+        public async Task TestNullCoalescingOperator()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return [|null ?? Task . FromResult ( 1 )|] } } ",
 @"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return await ( null ?? Task . FromResult ( 1 ) ) } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-        public void TestAsExpression()
+        public async Task TestAsExpression()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return [|null as Task < int >|] } } ",
 @"using System ; using System . Threading . Tasks ; class Program { async Task < int > A ( ) { return await ( null as Task < int > ) } } ");
         }

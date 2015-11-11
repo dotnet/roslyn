@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             throw new NotSupportedException();
         }
 
-        public void TestChangeSignatureViaCodeAction(
+        public async Task TestChangeSignatureViaCodeActionAsync(
             string markup,
             bool expectedCodeAction = true,
             bool isCancelled = false,
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
             else
             {
-                TestMissing(markup, parseOptions: null);
+                await TestMissingAsync(markup, parseOptions: null);
             }
         }
 

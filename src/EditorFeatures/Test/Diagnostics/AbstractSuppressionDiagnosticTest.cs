@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected virtual bool IncludeUnsuppressedDiagnostics => true;
         protected virtual bool IncludeNoLocationDiagnostics => true;
 
-        protected void Test(string initial, string expected)
+        protected Task TestAsync(string initial, string expected)
         {
-            Test(initial, expected, parseOptions: null, index: CodeActionIndex, compareTokens: false);
+            return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex, compareTokens: false);
         }
 
-        protected void TestMissing(string initial)
+        protected Task TestMissingAsync(string initial)
         {
-            TestMissing(initial, parseOptions: null);
+            return TestMissingAsync(initial, parseOptions: null);
         }
 
         internal abstract Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
@@ -52,18 +53,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return diagnostics.ToImmutableArray();
         }
 
-        internal override IEnumerable<Diagnostic> GetDiagnostics(TestWorkspace workspace)
+        internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(TestWorkspace workspace)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 
             var provider = providerAndFixer.Item1;
             TextSpan span;
             var document = GetDocumentAndSelectSpan(workspace, out span);
-            var diagnostics = DiagnosticProviderTestUtilities.GetAllDiagnostics(provider, document, span);
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
             return FilterDiagnostics(diagnostics);
         }
 
-        internal override IEnumerable<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixes(TestWorkspace workspace, string fixAllActionId)
+        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(TestWorkspace workspace, string fixAllActionId)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
 
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics))
             {
                 var fixer = providerAndFixer.Item2;
-                var diagnostics = testDriver.GetAllDiagnostics(provider, document, span)
+                var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span))
                     .Where(d => fixer.CanBeSuppressedOrUnsuppressed(d));
 
                 var filteredDiagnostics = FilterDiagnostics(diagnostics);

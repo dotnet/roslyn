@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
 
         [WpfFact, WorkItem(320)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInDocument_QualifyWithThis()
+        public async Task TestFixAllInDocument_QualifyWithThis()
         {
             var input = @"
 <Workspace>
@@ -152,7 +152,7 @@ class C
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false);
+            await TestAsync(input, expected, compareTokens: false);
         }
 
         #endregion

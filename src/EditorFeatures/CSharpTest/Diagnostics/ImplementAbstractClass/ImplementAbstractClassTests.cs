@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,172 +19,172 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAb
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestSimpleMethods()
+        public async Task TestSimpleMethods()
         {
-            Test(
+            await TestAsync(
 @"abstract class Foo { protected abstract string FooMethod ( ) ; public abstract void Blah ( ) ; } abstract class Bar : Foo { public abstract bool BarMethod ( ) ; public override void Blah ( ) { } } class [|Program|] : Foo { static void Main ( string [ ] args ) { } } ",
 @"using System ; abstract class Foo { protected abstract string FooMethod ( ) ; public abstract void Blah ( ) ; } abstract class Bar : Foo { public abstract bool BarMethod ( ) ; public override void Blah ( ) { } } class Program : Foo { static void Main ( string [ ] args ) { } public override void Blah ( ) { throw new NotImplementedException ( ) ; } protected override string FooMethod ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [WorkItem(543234)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestNotAvailableForStruct()
+        public async Task TestNotAvailableForStruct()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"abstract class Foo { public abstract void Bar ( ) ; } struct [|Program|] : Foo { } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalIntParameter()
+        public async Task TestOptionalIntParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( int x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( int x = 3 ) ; } class b : d { public override void foo ( int x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalCharParameter()
+        public async Task TestOptionalCharParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( char x = 'a' ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( char x = 'a' ) ; } class b : d { public override void foo ( char x = 'a' ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalStringParameter()
+        public async Task TestOptionalStringParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( string x = ""x"" ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( string x = ""x"" ) ; } class b : d { public override void foo ( string x = ""x"" ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalShortParameter()
+        public async Task TestOptionalShortParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( short x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( short x = 3 ) ; } class b : d { public override void foo ( short x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalDecimalParameter()
+        public async Task TestOptionalDecimalParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( decimal x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( decimal x = 3 ) ; } class b : d { public override void foo ( decimal x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalDoubleParameter()
+        public async Task TestOptionalDoubleParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( double x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( double x = 3 ) ; } class b : d { public override void foo ( double x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalLongParameter()
+        public async Task TestOptionalLongParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( long x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( long x = 3 ) ; } class b : d { public override void foo ( long x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalFloatParameter()
+        public async Task TestOptionalFloatParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( float x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( float x = 3 ) ; } class b : d { public override void foo ( float x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalUshortParameter()
+        public async Task TestOptionalUshortParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( ushort x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( ushort x = 3 ) ; } class b : d { public override void foo ( ushort x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalUintParameter()
+        public async Task TestOptionalUintParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( uint x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( uint x = 3 ) ; } class b : d { public override void foo ( uint x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalUlongParameter()
+        public async Task TestOptionalUlongParameter()
         {
-            Test(
+            await TestAsync(
                 @"abstract class d { public abstract void foo ( ulong x = 3 ) ; } class [|b|] : d { }",
                 @"using System ; abstract class d { public abstract void foo ( ulong x = 3 ) ; } class b : d { public override void foo ( ulong x = 3 ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalStructParameter()
+        public async Task TestOptionalStructParameter()
         {
-            Test(
+            await TestAsync(
                 @"struct b { } abstract class d { public abstract void foo ( b x = new b ( ) ) ; } class [|c|] : d { }",
                 @"using System ; struct b { } abstract class d { public abstract void foo ( b x = new b ( ) ) ; } class c : d { public override void foo ( b x = default ( b ) ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WorkItem(916114)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalNullableStructParameter()
+        public async Task TestOptionalNullableStructParameter()
         {
-            Test(
+            await TestAsync(
 @"struct b { } abstract class d { public abstract void m ( b? x = null, b? y = default(b?) ) ; } class [|c|] : d { }",
 @"using System ; struct b { } abstract class d { public abstract void m ( b? x = null, b? y = default(b?) ) ; } class c : d { public override void m ( b? x = default(b?), b? y = default(b?) ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WorkItem(916114)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalNullableIntParameter()
+        public async Task TestOptionalNullableIntParameter()
         {
-            Test(
+            await TestAsync(
 @"abstract class d { public abstract void m ( int? x = 5, int? y = default(int?) ) ; } class [|c|] : d { }",
 @"using System ; abstract class d { public abstract void m ( int? x = 5, int? y = default(int?) ) ; } class c : d { public override void m ( int? x = 5, int? y = default(int?) ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOptionalObjectParameter()
+        public async Task TestOptionalObjectParameter()
         {
-            Test(
+            await TestAsync(
                 @"class b { } abstract class d { public abstract void foo ( b x = null ) ; } class [|c|] : d { }",
                 @"using System ; class b { } abstract class d { public abstract void foo ( b x = null ) ; } class c : d { public override void foo ( b x = null ) { throw new NotImplementedException ( ) ; } }");
         }
 
         [WorkItem(543883)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestDifferentAccessorAccessibility()
+        public async Task TestDifferentAccessorAccessibility()
         {
-            Test(
+            await TestAsync(
 @"abstract class c1 { public abstract c1 this [ c1 x ] { get ; internal set ; } } class [|c2|] : c1 { } ",
 @"using System ; abstract class c1 { public abstract c1 this [ c1 x ] { get ; internal set ; } } class c2 : c1 { public override c1 this [ c1 x ] { get { throw new NotImplementedException ( ) ; } internal set { throw new NotImplementedException ( ) ; } } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestEvent1()
+        public async Task TestEvent1()
         {
-            Test(
+            await TestAsync(
 @"using System ; abstract class C { public abstract event Action E ; } class [|D|] : C { } ",
 @"using System ; abstract class C { public abstract event Action E ; } class D : C { public override event Action E ; } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestIndexer1()
+        public async Task TestIndexer1()
         {
-            Test(
+            await TestAsync(
 @"using System ; abstract class C { public abstract int this [ string s ] { get { } internal set { } } } class [|D|] : C { } ",
 @"using System ; abstract class C { public abstract int this [ string s ] { get { } internal set { } } } class D : C { public override int this [ string s ] { get { throw new NotImplementedException ( ) ; } internal set { throw new NotImplementedException ( ) ; } } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestMissingInHiddenType()
+        public async Task TestMissingInHiddenType()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System;
 
 abstract class Foo { public abstract void F(); }
@@ -196,9 +197,9 @@ class [|Program|] : Foo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestGenerateIntoNonHiddenPart()
+        public async Task TestGenerateIntoNonHiddenPart()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 abstract class Foo { public abstract void F(); }
@@ -232,9 +233,9 @@ compareTokens: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestGenerateIfLocationAvailable()
+        public async Task TestGenerateIfLocationAvailable()
         {
-            Test(
+            await TestAsync(
 @"#line default
 using System;
 
@@ -273,45 +274,45 @@ compareTokens: false);
 
         [WorkItem(545585)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestOnlyGenerateUnimplementedAccessors()
+        public async Task TestOnlyGenerateUnimplementedAccessors()
         {
-            Test(
+            await TestAsync(
 @"using System ; abstract class A { public abstract int X { get ; set ; } } abstract class B : A { public override int X { get { throw new NotImplementedException ( ) ; } } } class [|C|] : B { } ",
 @"using System ; abstract class A { public abstract int X { get ; set ; } } abstract class B : A { public override int X { get { throw new NotImplementedException ( ) ; } } } class C : B { public override int X { set { throw new NotImplementedException ( ) ; } } } ");
         }
 
         [WorkItem(545615)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestParamsArray()
+        public async Task TestParamsArray()
         {
-            Test(
+            await TestAsync(
 @"class A { public virtual void Foo ( int x , params int [ ] y ) { } } abstract class B : A { public abstract override void Foo ( int x , int [ ] y = null ) ; } class [|C|] : B { } ",
 @"using System ; class A { public virtual void Foo ( int x , params int [ ] y ) { } } abstract class B : A { public abstract override void Foo ( int x , int [ ] y = null ) ; } class C : B { public override void Foo ( int x , params int [ ] y ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [WorkItem(545636)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestNullPointerType()
+        public async Task TestNullPointerType()
         {
-            Test(
+            await TestAsync(
 @"abstract class C { unsafe public abstract void Foo ( int * x = null ) ; } class [|D|] : C { } ",
 @"using System ; abstract class C { unsafe public abstract void Foo ( int * x = null ) ; } class D : C { public override unsafe void Foo ( int * x = null ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [WorkItem(545637)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void TestErrorTypeCalledVar()
+        public async Task TestErrorTypeCalledVar()
         {
-            Test(
+            await TestAsync(
 @"extern alias var ; abstract class C { public abstract void Foo ( var :: X x ) ; } class [|D|] : C { } ",
 @"extern alias var ; using System ; abstract class C { public abstract void Foo ( var :: X x ) ; } class D : C { public override void Foo ( X x ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [WorkItem(581500)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void Bugfix_581500()
+        public async Task Bugfix_581500()
         {
-            Test(
+            await TestAsync(
 @"abstract class A<T>
 {
     public abstract void M(T x);
@@ -342,9 +343,9 @@ abstract class A<T>
 
         [WorkItem(625442)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void Bugfix_625442()
+        public async Task Bugfix_625442()
         {
-            Test(
+            await TestAsync(
 @"abstract class A<T>
 {
     public abstract void M(T x);
@@ -375,9 +376,9 @@ abstract class A<T>
 
         [WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public void ImplementClassWithInaccessibleMembers()
+        public async Task ImplementClassWithInaccessibleMembers()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Globalization ; public class [|x|] : EastAsianLunisolarCalendar { } ",
 @"using System ; using System . Globalization ; public class x : EastAsianLunisolarCalendar { public override int [ ] Eras { get { throw new NotImplementedException ( ) ; } } internal override EraInfo [ ] CalEraInfo { get { throw new NotImplementedException ( ) ; } } internal override int MaxCalendarYear { get { throw new NotImplementedException ( ) ; } } internal override DateTime MaxDate { get { throw new NotImplementedException ( ) ; } } internal override int MinCalendarYear { get { throw new NotImplementedException ( ) ; } } internal override DateTime MinDate { get { throw new NotImplementedException ( ) ; } } public override int GetEra ( DateTime time ) { throw new NotImplementedException ( ) ; } internal override int GetGregorianYear ( int year , int era ) { throw new NotImplementedException ( ) ; } internal override int GetYear ( int year , DateTime time ) { throw new NotImplementedException ( ) ; } internal override int GetYearInfo ( int LunarYear , int Index ) { throw new NotImplementedException ( ) ; } } ");
         }

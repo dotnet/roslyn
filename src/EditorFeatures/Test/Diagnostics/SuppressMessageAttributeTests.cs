@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
     {
-        protected override void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true, string rootNamespace = null)
+        protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true, string rootNamespace = null)
         {
             using (var workspace = CreateWorkspaceFromFile(source, language, rootNamespace))
             {
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var actualDiagnostics = new List<Diagnostic>();
                 foreach (var analyzer in analyzers)
                 {
-                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, onAnalyzerException, logAnalyzerExceptionAsDiagnostics));
+                    actualDiagnostics.AddRange(
+                        await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, span, onAnalyzerException, logAnalyzerExceptionAsDiagnostics));
                 }
 
                 actualDiagnostics.Verify(expectedDiagnostics);

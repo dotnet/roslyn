@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
     public class DiagnosticAnalyzerDriverTests
     {
         [WpfFact]
-        public void DiagnosticAnalyzerDriverAllInOne()
+        public async Task DiagnosticAnalyzerDriverAllInOne()
         {
             var source = TestResource.AllInOneCSharpCode;
 
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 AccessSupportedDiagnostics(analyzer);
-                DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
+                await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
                 analyzer.VerifyAllAnalyzerMembersWereCalled();
                 analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
                 analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
         }
 
         [WpfFact, WorkItem(908658)]
-        public void DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock()
+        public async Task DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock()
         {
             var methodNames = new string[] { "Initialize", "AnalyzeCodeBlock" };
             var source = @"
@@ -59,7 +60,7 @@ class C
             using (var ideEngineWorkspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(source))
             {
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-                DiagnosticProviderTestUtilities.GetAllDiagnostics(ideEngineAnalyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
+                await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineAnalyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
                 foreach (var method in methodNames)
                 {
                     Assert.False(ideEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.MethodKind == MethodKind.DelegateInvoke && e.ReturnsVoid));
@@ -86,14 +87,14 @@ class C
 
         [WpfFact]
         [WorkItem(759)]
-        public void DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
+        public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(source, TestOptions.Regular))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-                ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
-                    DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics: true));
+                await ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(async analyzer =>
+                    await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics: true));
             }
         }
 
@@ -126,7 +127,7 @@ class C
         }
 
         [WpfFact]
-        public void AnalyzerOptionsArePassedToAllAnalyzers()
+        public async Task AnalyzerOptionsArePassedToAllAnalyzers()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(TestResource.AllInOneCSharpCode, TestOptions.Regular))
             {
@@ -141,7 +142,7 @@ class C
                 var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
 
                 var sourceDocument = currentProject.Documents.Single();
-                DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, sourceDocument, new Text.TextSpan(0, sourceDocument.GetTextAsync().Result.Length));
+                await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, sourceDocument, new Text.TextSpan(0, sourceDocument.GetTextAsync().Result.Length));
                 analyzer.VerifyAnalyzerOptions();
             }
         }
@@ -161,7 +162,7 @@ class C
         }
 
         [WpfFact]
-        public void AnalyzerCreatedAtCompilationLevelNeedNotBeCompilationAnalyzer()
+        public async Task AnalyzerCreatedAtCompilationLevelNeedNotBeCompilationAnalyzer()
         {
             var source = @"x";
 
@@ -169,7 +170,7 @@ class C
             using (var ideEngineWorkspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(source))
             {
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-                var diagnostics = DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
+                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
 
                 var diagnosticsFromAnalyzer = diagnostics.Where(d => d.Id == "SyntaxDiagnostic");
 
@@ -212,7 +213,7 @@ class C
         }
 
         [WpfFact]
-        public void CodeBlockAnalyzersOnlyAnalyzeExecutableCode()
+        public async Task CodeBlockAnalyzersOnlyAnalyzeExecutableCode()
         {
             var source = @"
 using System;
@@ -229,7 +230,7 @@ class C
             using (var ideEngineWorkspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(source))
             {
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-                var diagnostics = DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
+                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
                 var diagnosticsFromAnalyzer = diagnostics.Where(d => d.Id == CodeBlockAnalyzerFactory.Descriptor.Id);
                 Assert.Equal(2, diagnosticsFromAnalyzer.Count());
             }

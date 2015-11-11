@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
@@ -66,25 +67,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected void TestMissing(
+        protected async Task TestMissingAsync(
             string initialMarkup,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
-            TestMissing(initialMarkup, parseOptions: null, options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
-            TestMissing(initialMarkup, parseOptions: GetScriptOptions(), options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestMissingAsync(initialMarkup, parseOptions: null, options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestMissingAsync(initialMarkup, parseOptions: GetScriptOptions(), options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        protected void TestMissing(
+        protected Task TestMissingAsync(
             string initialMarkup,
             ParseOptions parseOptions,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
-            TestMissing(initialMarkup, parseOptions, compilationOptions: null, options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            return TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        protected void TestMissing(
+        protected async Task TestMissingAsync(
             string initialMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             IDictionary<OptionKey, object> options = null,
@@ -94,19 +95,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 ApplyOptionsToWorkspace(workspace, options);
 
-                var actions = GetCodeActions(workspace, fixAllActionEquivalenceKey);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey);
                 Assert.True(actions == null || actions.Count == 0);
             }
         }
 
-        protected IList<CodeAction> GetCodeActions(TestWorkspace workspace, string fixAllActionEquivalenceKey)
+        protected async Task<IList<CodeAction>> GetCodeActionsAsync(TestWorkspace workspace, string fixAllActionEquivalenceKey)
         {
-            return MassageActions(GetCodeActionsWorker(workspace, fixAllActionEquivalenceKey));
+            return MassageActions(await GetCodeActionsWorkerAsync(workspace, fixAllActionEquivalenceKey));
         }
 
-        protected abstract IList<CodeAction> GetCodeActionsWorker(TestWorkspace workspace, string fixAllActionEquivalenceKey);
+        protected abstract Task<IList<CodeAction>> GetCodeActionsWorkerAsync(TestWorkspace workspace, string fixAllActionEquivalenceKey);
 
-        protected void TestSmartTagText(
+        protected async Task TestSmartTagTextAsync(
             string initialMarkup,
             string displayText,
             int index = 0,
@@ -115,12 +116,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
             {
-                var actions = GetCodeActions(workspace, fixAllActionEquivalenceKey: null);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
                 Assert.Equal(displayText, actions.ElementAt(index).Title);
             }
         }
 
-        protected void TestExactActionSetOffered(
+        protected async Task TestExactActionSetOfferedAsync(
             string initialMarkup,
             IEnumerable<string> expectedActionSet,
             ParseOptions parseOptions = null,
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
             {
-                var actions = GetCodeActions(workspace, fixAllActionEquivalenceKey: null);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
 
                 var actualActionSet = actions.Select(a => a.Title);
                 Assert.True(actualActionSet.SequenceEqual(expectedActionSet),
@@ -137,40 +138,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected void TestActionCount(
+        protected async Task TestActionCountAsync(
             string initialMarkup,
             int count,
             ParseOptions parseOptions = null, CompilationOptions compilationOptions = null)
         {
             using (var workspace = CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions))
             {
-                var actions = GetCodeActions(workspace, fixAllActionEquivalenceKey: null);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
 
                 Assert.Equal(count, actions.Count());
             }
         }
 
-        protected void Test(
+        protected async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,  
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
-            Test(initialMarkup, expectedMarkup, null, index, compareTokens, options, fixAllActionEquivalenceKey);
-            Test(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey);
+            await TestAsync(initialMarkup, expectedMarkup, null, index, compareTokens, options, fixAllActionEquivalenceKey);
+            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey);
         }
 
-        protected void Test(
+        protected Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
             int index = 0, bool compareTokens = true,  
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
-            Test(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey);
+            return TestAsync(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey);
         }
 
-        protected void Test(
+        protected async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             int index = 0, bool compareTokens = true, 
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 ApplyOptionsToWorkspace(workspace, options);
 
-                var actions = GetCodeActions(workspace, fixAllActionEquivalenceKey);
+                var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey);
                 TestActions(
                     workspace, expected, index,
                     actions,
