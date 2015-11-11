@@ -2539,7 +2539,7 @@ namespace ConsoleApplication1
     {
         public Program2()
         {
-                await TestAsync();
+            Test();
         }
 
         private void Test()
