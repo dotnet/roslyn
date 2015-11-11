@@ -384,7 +384,7 @@ class C : I$$ { }";
 ///<summary>summary for Class C</summary>
 class C { string M() {  return thi$$s.ToString(); } }";
 
-            await TestInMethodAsync(markup,
+            await TestWithUsingsAsync(markup,
                 MainDescription("class C"),
                 Documentation("summary for Class C"));
         }
@@ -3529,7 +3529,7 @@ public class C
     /// <typeparam name=""T"">A type parameter of <see cref=""foo{ T} (string[], T)""/></typeparam>
     /// <param name=""args"">First parameter of <see cref=""Foo{T} (string[], T)""/></param>
     /// <param name=""otherParam"">Another parameter of <see cref=""Foo{T}(string[], T)""/></param>
-        public async Task Foo<T>(string[] args, T otherParam)
+    public void Foo<T>(string[] args, T otherParam)
     {
     }
 }";
