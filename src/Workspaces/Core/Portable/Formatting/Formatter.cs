@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(Format(root, document.Project.Solution.Workspace, options, cancellationToken));
+            return document.WithSyntaxRoot(await FormatAsync(root, document.Project.Solution.Workspace, options, cancellationToken).ConfigureAwait(false));
         }
 
         /// <summary>

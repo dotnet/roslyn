@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis
 
         private SourceText GetTextForced(TextDocument doc)
         {
-            return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait (called during TryApplyChanges)
+            return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait (called during TryApplyChanges)
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
