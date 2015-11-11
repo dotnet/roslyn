@@ -22,6 +22,8 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
 
         protected override void Initialize()
         {
+            base.Initialize();
+
             var packagePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             string localRegistryRoot;
@@ -49,7 +51,6 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
                     Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection.DisableMarkDirty = false;
                 }
             }
-            base.Initialize();
         }
 
         private void WriteTargetsFile(string packagePath, string hiveName)
