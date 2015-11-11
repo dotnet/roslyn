@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         }
 
         [Fact]
-        public void SpaceAfterAttribute()
+        public async Task SpaceAfterAttribute()
         {
             string code = @"
 public class C
@@ -43,8 +44,8 @@ public class C
 {
     void M([MyAttr] int? p) { }
 }
-", Formatter.Format(root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr"))),
-    document.Project.Solution.Workspace).ToFullString());
+", (await Formatter.FormatAsync(root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr"))),
+    document.Project.Solution.Workspace)).ToFullString());
 
             // verify change doesn't affect how attributes appear before other kinds of declarations
             var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
@@ -54,8 +55,8 @@ public class C
     [MyAttr]
     void M(int? p) { }
 }
-", Formatter.Format(root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr"))),
-    document.Project.Solution.Workspace).ToFullString());
+", (await Formatter.FormatAsync(root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr"))),
+    document.Project.Solution.Workspace)).ToFullString());
         }
     }
 }
