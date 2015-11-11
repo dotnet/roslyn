@@ -921,7 +921,7 @@ class Program {
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (15,21): error CS0117: 'string' does not contain a definition for 'Format'
                 //             var s = $"X = { 1 } ";
-                Diagnostic(ErrorCode.ERR_NoSuchMember, @"$""X = { 1 } """).WithArguments("string", "Format").WithLocation(15, 21)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, @"$""X = { 1 } """).WithArguments("string", "Concat").WithLocation(15, 21)
             );
         }
 
@@ -946,7 +946,7 @@ class Program {
     {
         public static void Main()
         {
-            var s = $""X = { 1 } "";
+            var s = $""X = { 1 , 1 } "";
         }
     }
 }";
@@ -954,7 +954,7 @@ class Program {
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (17,21): error CS0029: Cannot implicitly convert type 'bool' to 'string'
                 //             var s = $"X = { 1 } ";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""X = { 1 } """).WithArguments("bool", "string").WithLocation(17, 21)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""X = { 1 , 1 } """).WithArguments("bool", "string").WithLocation(17, 21)
             );
         }
 
@@ -990,8 +990,8 @@ class Program {
     {
         public static void Main()
         {
-            var s1 = $""X = { 1 } "";
-            FormattableString s2 = $""X = { 1 } "";
+            var s1 = $""X = { 1 , 1 } "";
+            FormattableString s2 = $""X = { 1 , 1 } "";
         }
     }
 }";
@@ -1001,12 +1001,12 @@ class Program {
 @"{
   // Code size       35 (0x23)
   .maxstack  2
-  IL_0000:  ldstr      ""X = {0} ""
+  IL_0000:  ldstr      ""X = {0,1} ""
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""System.Bozo string.Format(string, int)""
   IL_000b:  call       ""string System.Bozo.op_Implicit(System.Bozo)""
   IL_0010:  pop
-  IL_0011:  ldstr      ""X = {0} ""
+  IL_0011:  ldstr      ""X = {0,1} ""
   IL_0016:  ldc.i4.1
   IL_0017:  call       ""System.Bozo System.Runtime.CompilerServices.FormattableStringFactory.Create(string, int)""
   IL_001c:  call       ""System.FormattableString System.Bozo.op_Implicit(System.Bozo)""
