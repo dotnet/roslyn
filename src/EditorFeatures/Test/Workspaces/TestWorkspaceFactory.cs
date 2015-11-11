@@ -53,15 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string AnalyzerFullPathAttributeName = "FullPath";
         private const string AliasAttributeName = "Alias";
 
-        internal static TestWorkspace CreateWorkspaceFromLines(
-            string language,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
-            params string[] content)
-        {
-            return CreateWorkspaceFromLinesAsync(language, compilationOptions, parseOptions, content).WaitAndGetResult(CancellationToken.None);
-        }
-
         /// <summary>
         /// Creates a single buffer in a workspace.
         /// </summary>
