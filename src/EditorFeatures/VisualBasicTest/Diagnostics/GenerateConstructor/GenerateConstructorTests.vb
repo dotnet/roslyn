@@ -502,5 +502,66 @@ NewLines("Imports System.Linq \n Class C \n Private v As Integer \n Sub New() \n
             End Function
         End Class
 
+        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Sub TestGenerateInDerivedType1()
+            Test(
+"
+Public Class Base
+    Public Sub New(a As String)
+
+    End Sub
+End Class
+
+Public Class [||]Derived
+    Inherits Base
+
+End Class",
+"
+Public Class Base
+    Public Sub New(a As String)
+
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub New(a As String)
+        MyBase.New(a)
+    End Sub
+End Class")
+        End Sub
+
+        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Sub TestGenerateInDerivedType2()
+            Test(
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class [||]Derived
+    Inherits Base
+
+End Class",
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+        MyBase.New(a, b)
+    End Sub
+End Class")
+        End Sub
     End Class
 End Namespace

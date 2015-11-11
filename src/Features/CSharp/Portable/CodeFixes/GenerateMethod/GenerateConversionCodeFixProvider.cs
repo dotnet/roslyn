@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
             get { return ImmutableArray.Create(CS0029, CS0030); }
         }
 
-        protected override bool IsCandidate(SyntaxNode node)
+        protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
         {
             return node.IsKind(SyntaxKind.IdentifierName) ||
                    node.IsKind(SyntaxKind.MethodDeclaration) ||

@@ -481,7 +481,7 @@ namespace Roslyn.Utilities
                 internal const string TypeName = "System.Xml.XPath.Extensions";
 
                 internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
-                    contractName: $"{TypeName}, {CoreNames.System_Runtime}",
+                    contractName: $"{TypeName}, {CoreNames.System_Xml_XPath_XDocument}",
                     desktopName: $"{TypeName}, {DesktopNames.System_Xml_Linq}");
 
                 internal static readonly Func<XNode, string, IEnumerable<XElement>> XPathSelectElements = Type

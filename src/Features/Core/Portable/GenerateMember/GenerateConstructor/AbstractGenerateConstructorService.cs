@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
@@ -20,10 +21,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         }
 
         protected abstract bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract bool IsClassDeclarationGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
 
-        protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeSimpleNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
+        protected abstract bool TryInitializeClassDeclarationGenerationState(SemanticDocument document, SyntaxNode classDeclaration, CancellationToken cancellationToken, out SyntaxToken token, out IMethodSymbol constructor, out INamedTypeSymbol typeToGenerateIn);
+        protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out IList<TAttributeArgumentSyntax> attributeArguments, out INamedTypeSymbol typeToGenerateIn);
 
         protected abstract IList<string> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames = null);
@@ -54,6 +57,42 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         private IEnumerable<CodeAction> GetActions(Document document, State state)
         {
             yield return new GenerateConstructorCodeAction((TService)this, document, state);
+        }
+
+        protected static bool IsSymbolAccessible(
+            ISymbol symbol, SemanticDocument document)
+        {
+            if (symbol == null)
+            {
+                return false;
+            }
+
+            if (symbol.Kind == SymbolKind.Property)
+            {
+                if (!IsSymbolAccessible(((IPropertySymbol)symbol).SetMethod, document))
+                {
+                    return false;
+                }
+            }
+
+            // Public and protected constructors are accessible.  Internal constructors are
+            // accessible if we have friend access.  We can't call the normal accessibility
+            // checkers since they will think that a protected constructor isn't accessible
+            // (since we don't have the destination type that would have access to them yet).
+            switch (symbol.DeclaredAccessibility)
+            {
+                case Accessibility.ProtectedOrInternal:
+                case Accessibility.Protected:
+                case Accessibility.Public:
+                    return true;
+                case Accessibility.ProtectedAndInternal:
+                case Accessibility.Internal:
+                    return document.SemanticModel.Compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(
+                        symbol.ContainingAssembly);
+
+                default:
+                    return false;
+            }
         }
     }
 }
