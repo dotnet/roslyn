@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Roslyn.Test.Utilities
+
 Public Class InterpolatedStringParsingTests
     Inherits BasicTestBase
 
@@ -856,6 +858,68 @@ End Module")
         Console.WriteLine($""{1}}"")
     End Sub
 End Module")
+    End Sub
+
+    <Fact, WorkItem(6341, "https://github.com/dotnet/roslyn/issues/6341")>
+    Public Sub LineBreakInInterpolation_1()
+        Parse(
+"Module Program
+    Sub Main()
+        Dim x = $""{ " + vbCr + vbCr + "1 
+
+}""
+    End Sub
+End Module"
+        ).AssertTheseDiagnostics(
+<expected>
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Program
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Main()
+    ~~~~~~~~~~
+BC30201: Expression expected.
+        Dim x = $"{ 
+                    ~
+BC30370: '}' expected.
+        Dim x = $"{ 
+                    ~
+BC30801: Labels that are numbers must be followed by colons.
+1 
+~~
+BC30648: String constants must end with a double quote.
+}"
+ ~~
+</expected>)
+
+    End Sub
+
+    <Fact, WorkItem(6341, "https://github.com/dotnet/roslyn/issues/6341")>
+    Public Sub LineBreakInInterpolation_2()
+        Parse(
+"Module Program
+    Sub Main()
+        Dim x = $""{ 1 " + vbCr + vbCr + " 
+
+}""
+    End Sub
+End Module"
+        ).AssertTheseDiagnostics(
+<expected>
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Program
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Main()
+    ~~~~~~~~~~
+BC30370: '}' expected.
+        Dim x = $"{ 1 
+                      ~
+BC30648: String constants must end with a double quote.
+}"
+ ~~
+</expected>)
+
     End Sub
 
 End Class
