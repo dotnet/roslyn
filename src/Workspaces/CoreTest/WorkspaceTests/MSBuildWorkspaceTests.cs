@@ -2699,7 +2699,7 @@ class C1
             var document = project.Documents.First();
             var tree = document.GetSyntaxTreeAsync().Result;
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
-            var compilation = document.GetSemanticModelAsync().WaitAndGetResult(CancellationToken.None);
+            var compilation = document.GetSemanticModelAsync().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
             Assert.NotNull(type);
             Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
             Assert.NotNull(compilation);
