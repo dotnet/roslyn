@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -27,8 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider,
             string[] metadataReferences = null)
         {
+            return CreateWorkspaceFromLinesAsync(lines, exportProvider, metadataReferences).WaitAndGetResult(CancellationToken.None);
+        }
+
+        public static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
+            string[] lines,
+            ExportProvider exportProvider,
+            string[] metadataReferences = null)
+        {
             var file = lines.Join(Environment.NewLine);
-            return CreateWorkspaceFromFile(file, exportProvider: exportProvider, metadataReferences: metadataReferences);
+            return CreateWorkspaceFromFileAsync(file, exportProvider: exportProvider, metadataReferences: metadataReferences);
         }
 
         /// <summary>
