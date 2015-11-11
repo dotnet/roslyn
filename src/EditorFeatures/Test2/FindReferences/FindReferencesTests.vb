@@ -10,9 +10,9 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        Private Sub Test(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False)
+        Private Async Function TestAsync(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     AssertEx.Equal(expectedSpans, actualSpans)
                 Next
             End Using
-        End Sub
+        End Function
 
         Private Shared Function IsInSource(workspace As Workspace, loc As Location, uiVisibleOnly As Boolean) As Boolean
             If uiVisibleOnly Then
