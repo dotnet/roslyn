@@ -324,6 +324,7 @@
     <Compile Include="Threading\ForegroundNotificationServiceTests.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTestBase.cs" />
     <Compile Include="Utilities\AsynchronousOperationListenerTests.cs" />
+    <Compile Include="Utilities\AsyncLazyTests.cs" />
     <Compile Include="Utilities\BloomFilterTests.cs" />
     <Compile Include="Utilities\PatternMatcherTests.cs" />
     <Compile Include="Utilities\SymbolEquivalenceComparerTests.cs" />
