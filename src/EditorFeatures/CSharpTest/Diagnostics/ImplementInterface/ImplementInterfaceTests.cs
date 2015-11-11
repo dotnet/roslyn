@@ -2483,7 +2483,7 @@ namespace Scenarios
     }
     struct TestStruct1 : TestInterface
     {
-        public async Task M1()
+        public void M1()
         {
             throw new NotImplementedException();
         }
