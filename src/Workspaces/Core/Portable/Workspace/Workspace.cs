@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         private readonly BranchId _primaryBranchId;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
-        private readonly NonReentrantLock _serializationLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
+        private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
         private readonly NonReentrantLock _stateLock = new NonReentrantLock(useThisInstanceForSynchronization: true);

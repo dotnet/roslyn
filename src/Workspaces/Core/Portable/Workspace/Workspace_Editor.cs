@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis
             CheckDocumentIsInCurrentSolution(documentId);
             CheckDocumentIsClosed(documentId);
 
-            using (_serializationLock.DisposableWait())
+            using (await _serializationLock.DisposableWaitAsync().ConfigureAwait(false))
             {
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
