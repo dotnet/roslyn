@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project = project.AddMetadataReference(metadataReference);
             }
 
-            var compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
             var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference) as IAssemblySymbol;
             return symbol != null ? symbol.Identity : null;
         }
