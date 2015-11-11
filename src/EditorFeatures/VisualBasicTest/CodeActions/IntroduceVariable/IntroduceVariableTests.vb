@@ -1636,7 +1636,7 @@ Imports System
 
 Namespace N
     Class C
-Public Async Function TestM() As Task
+        Public Sub M()
             Dim f = FormattableString.Invariant([|$""""|])
         End Sub
     End Class
@@ -1649,7 +1649,7 @@ Imports System
 
 Namespace N
     Class C
-Public Async Function TestM() As Task
+        Public Sub M()
             Dim {|Rename:v|} As FormattableString = $""""
             Dim f = FormattableString.Invariant(v)
         End Sub
