@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Composition;
@@ -16,7 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// <param name="lines">Lines of text, the buffer contents</param>
         public static TestWorkspace CreateWorkspaceFromLines(params string[] lines)
         {
-            return CreateWorkspaceFromLines(lines, parseOptions: null, compilationOptions: null, exportProvider: null);
+            return CreateWorkspaceFromLinesAsync(lines).WaitAndGetResult(CancellationToken.None);
+        } 
+
+        public static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(params string[] lines)
+        {
+            return CreateWorkspaceFromLinesAsync(lines, parseOptions: null, compilationOptions: null, exportProvider: null);
         }
 
         public static TestWorkspace CreateWorkspaceFromLines(
@@ -25,8 +31,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CSharpCompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null)
         {
+            return CreateWorkspaceFromLinesAsync(lines, parseOptions, compilationOptions, exportProvider).WaitAndGetResult(CancellationToken.None);
+        }
+
+        public static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
+            string[] lines,
+            CSharpParseOptions parseOptions = null,
+            CSharpCompilationOptions compilationOptions = null,
+            ExportProvider exportProvider = null)
+        {
             var file = lines.Join(Environment.NewLine);
-            return CreateWorkspaceFromFile(file, parseOptions, compilationOptions, exportProvider);
+            return CreateWorkspaceFromFileAsync(file, parseOptions, compilationOptions, exportProvider);
         }
 
         /// <param name="content">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>

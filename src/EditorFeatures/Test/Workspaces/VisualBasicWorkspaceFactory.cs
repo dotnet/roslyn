@@ -20,7 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// <param name="lines">Lines of text, the buffer contents</param>
         public static TestWorkspace CreateWorkspaceFromLines(params string[] lines)
         {
-            return CreateWorkspaceFromLines(lines, exportProvider: null);
+            return CreateWorkspaceFromLinesAsync(lines).WaitAndGetResult(CancellationToken.None);
+        }
+
+        public static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(params string[] lines)
+        {
+            return CreateWorkspaceFromLinesAsync(lines, exportProvider: null);
         }
 
         public static TestWorkspace CreateWorkspaceFromLines(
