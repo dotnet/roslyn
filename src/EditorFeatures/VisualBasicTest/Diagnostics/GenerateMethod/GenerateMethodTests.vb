@@ -1625,17 +1625,17 @@ Module Module1
         Public whichOne As String
         Sub Foo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
-            End Function
+        End Sub
         Sub Foo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
-            End Function
+        End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
             Call Me.Foo(p1)
-            End Function
+        End Sub
 
         Friend Sub Foo(e1 As sample7C1(Of Long).E)
             Throw New NotImplementedException()
-            End Function
+        End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
