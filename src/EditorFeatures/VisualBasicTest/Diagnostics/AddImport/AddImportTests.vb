@@ -693,7 +693,7 @@ Imports NS2
 Namespace NS1
     Class C
         Sub Bar()
-            Await TestAsync(5)
+            Test(5)
         End Sub
     End Class
 End Namespace
