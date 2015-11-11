@@ -256,7 +256,7 @@ End Class</Code>
                     SyncLock            New             Object              
 Dim                 i           =               10              
                 End             SyncLock            
-        End Function
+        End Sub
 End Class</Code>
 
             Dim expected = <Code>Class C
@@ -4355,6 +4355,5 @@ End Class</Code>
 
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
-
     End Class
 End Namespace
