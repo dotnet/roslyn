@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 ApplyOptionsToWorkspace(workspace, options);
 
                 var actions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey);
-                TestActions(
+                await TestActionsAsync(
                     workspace, expected, index,
                     actions,
                     conflictSpans, renameSpans, warningSpans,
@@ -201,14 +201,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected Tuple<Solution, Solution> TestActions(
+        protected Task<Tuple<Solution, Solution>> TestActionsAsync(
             TestWorkspace workspace, string expected, 
             int index, IList<CodeAction> actions, 
             IList<TextSpan> conflictSpans, IList<TextSpan> renameSpans, IList<TextSpan> warningSpans, 
             bool compareTokens)
         {
             var operations = VerifyInputsAndGetOperations(index, actions);
-            return TestOperations(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null);
+            return TestOperationsAsync(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null);
         }
 
         private static bool IsWorkspaceElement(string text)
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return text.TrimStart('\r', '\n', ' ').StartsWith("<Workspace>", StringComparison.Ordinal);
         }
 
-        protected Tuple<Solution, Solution> TestOperations(
+        protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
             TestWorkspace workspace,
             string expectedText,
             IList<CodeActionOperation> operations,
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             if (IsWorkspaceElement(expectedText))
             {
-                VerifyAgainstWorkspaceDefinition(expectedText, newSolution);
+                await VerifyAgainstWorkspaceDefinitionAsync(expectedText, newSolution);
                 return Tuple.Create(oldSolution, newSolution);
             }
 
@@ -277,9 +277,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return document;
         }
 
-        private static void VerifyAgainstWorkspaceDefinition(string expectedText, Solution newSolution)
+        private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution)
         {
-            using (var expectedWorkspace = TestWorkspaceFactory.CreateWorkspace(expectedText))
+            using (var expectedWorkspace = await TestWorkspaceFactory.CreateWorkspaceAsync(expectedText))
             {
                 var expectedSolution = expectedWorkspace.CurrentSolution;
                 Assert.Equal(expectedSolution.Projects.Count(), newSolution.Projects.Count());

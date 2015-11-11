@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return token.Kind() == SyntaxKind.EndOfFileToken;
         }
 
-        protected override SyntaxNode AddGlobalSuppressMessageAttribute(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> AddGlobalSuppressMessageAttributeAsync(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken)
         {
             var compilationRoot = (CompilationUnitSyntax)newRoot;
             var isFirst = !compilationRoot.AttributeLists.Any();
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
                 SyntaxFactory.TriviaList(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment)) :
                 default(SyntaxTriviaList);
             var attributeList = CreateAttributeList(targetSymbol, diagnostic, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: !isFirst);
-            attributeList = (AttributeListSyntax)Formatter.Format(attributeList, workspace, cancellationToken: cancellationToken);
+            attributeList = (AttributeListSyntax)await Formatter.FormatAsync(attributeList, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
             return compilationRoot.AddAttributeLists(attributeList);
         }
 

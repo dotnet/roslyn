@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     optionsService.UpdatedSignature = updatedSignature;
 
                     var codeIssueOrRefactoring = GetCodeRefactoring(workspace);
-                    TestActions(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
+                    await TestActionsAsync(workspace, expectedCode, index, codeIssueOrRefactoring.Actions.ToList(),
                         conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: true);
                 }
             }

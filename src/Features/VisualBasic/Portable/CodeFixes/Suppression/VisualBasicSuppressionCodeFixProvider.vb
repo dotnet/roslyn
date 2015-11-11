@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return token.Kind = SyntaxKind.EndOfFileToken
         End Function
 
-        Protected Overrides Function AddGlobalSuppressMessageAttribute(newRoot As SyntaxNode, targetSymbol As ISymbol, diagnostic As Diagnostic, workspace As Workspace, cancellationToken As CancellationToken) As SyntaxNode
+        Protected Overrides Async Function AddGlobalSuppressMessageAttributeAsync(newRoot As SyntaxNode, targetSymbol As ISymbol, diagnostic As Diagnostic, workspace As Workspace, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim compilationRoot = DirectCast(newRoot, CompilationUnitSyntax)
             Dim isFirst = Not compilationRoot.Attributes.Any()
             Dim attributeList = CreateAttributeList(targetSymbol, diagnostic)
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 attributeStatement = attributeStatement.WithLeadingTrivia(attributeStatement.GetLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed))
             End If
 
-            attributeStatement = CType(Formatter.Format(attributeStatement, workspace, cancellationToken:=cancellationToken), AttributesStatementSyntax)
+            attributeStatement = CType(Await Formatter.FormatAsync(attributeStatement, workspace, cancellationToken:=cancellationToken).ConfigureAwait(False), AttributesStatementSyntax)
 
             Dim leadingTrivia = If(isFirst AndAlso Not compilationRoot.HasLeadingTrivia,
                 SyntaxFactory.TriviaList(SyntaxFactory.CommentTrivia(GlobalSuppressionsFileHeaderComment)),

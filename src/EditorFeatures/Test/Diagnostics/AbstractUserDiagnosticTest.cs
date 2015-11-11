@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 if (!isNewFile)
                 {
-                    oldSolutionAndNewSolution = TestOperations(
+                    oldSolutionAndNewSolution = await TestOperationsAsync(
                         testState.Workspace, expected, operations,
                         conflictSpans: null, renameSpans: null, warningSpans: null,
                         compareTokens: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 if (checkIfUsingsIncluded)
                 {
                     Assert.NotNull(expectedTextWithUsings);
-                    TestOperations(testState.Workspace, expectedTextWithUsings, operations,
+                    await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
                         conflictSpans: null, renameSpans: null, warningSpans: null, compareTokens: false,
                         expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }
