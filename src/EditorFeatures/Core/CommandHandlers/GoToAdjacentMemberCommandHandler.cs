@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return null;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var members = syntaxFactsService.GetMethodLevelMembers(root);
             if (members.Count == 0)
             {
