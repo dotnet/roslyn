@@ -192,14 +192,13 @@ End Module")
                 try
                 {
                     process.Kill();
+                    process.WaitForExit();
                 }
                 catch (InvalidOperationException)
                 {
                     // Happens when process is killed before the Kill command is executed.  That's fine.  We
                     // just want to make sure the process is gone.
                 }
-
-                process.WaitForExit();
             }
         }
 
