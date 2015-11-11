@@ -1242,13 +1242,13 @@ End Module
         Public whichOne As String
         Sub Foo(ByVal t1 As String)
             whichOne = "T"
-            End Function
+        End Sub
     End Class
     Class C1
         Inherits C0
         Overloads Sub Foo(ByVal y1 As String)
             whichOne = "Y"
-            End Function
+        End Sub
     End Class
     Sub test()
         Dim clsNarg2get As C1 = New C1()
@@ -1264,17 +1264,17 @@ Module Module1
         Public whichOne As String
         Sub Foo(ByVal t1 As String)
             whichOne = "T"
-            End Function
+        End Sub
     End Class
     Class C1
         Inherits C0
         Overloads Sub Foo(ByVal y1 As String)
             whichOne = "Y"
-            End Function
+        End Sub
 
         Friend Sub Foo(v As Integer, y1 As Integer)
             Throw New NotImplementedException()
-            End Function
+        End Sub
     End Class
     Sub test()
         Dim clsNarg2get As C1 = New C1()
@@ -1352,7 +1352,7 @@ End Class
     Class C0(Of T)
         Public whichOne As String
         Sub Foo(ByVal t1 As T)
-            End Function
+        End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
             Get
             End Get
@@ -1363,7 +1363,7 @@ End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
         Overloads Sub Foo(ByVal y1 As Y)
-            End Function
+        End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
             Get
             End Get
@@ -1394,7 +1394,7 @@ Module Module1
     Class C0(Of T)
         Public whichOne As String
         Sub Foo(ByVal t1 As T)
-            End Function
+        End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
             Get
             End Get
@@ -1405,7 +1405,7 @@ Module Module1
     Class C1(Of T, Y)
         Inherits C0(Of T)
         Overloads Sub Foo(ByVal y1 As Y)
-            End Function
+        End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
             Get
             End Get
@@ -1415,7 +1415,7 @@ Module Module1
 
         Friend Sub Foo(scenario11 As Scenario11)
             Throw New NotImplementedException()
-            End Function
+        End Sub
     End Class
     Structure S1
         Dim i As Integer
@@ -1443,14 +1443,14 @@ End Module
 <text>Module Module1
     Class C0(Of T)
         Sub Foo(ByVal t1 As T)
-            End Function
+        End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
         End Property
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
         Overloads Sub Foo(ByVal y1 As Y)
-            End Function
+        End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
         End Property
     End Class
@@ -1474,20 +1474,20 @@ End Module
 Module Module1
     Class C0(Of T)
         Sub Foo(ByVal t1 As T)
-            End Function
+        End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
         End Property
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
         Overloads Sub Foo(ByVal y1 As Y)
-            End Function
+        End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
         End Property
 
         Friend Sub Foo(sc11 As Scenario11)
             Throw New NotImplementedException()
-            End Function
+        End Sub
     End Class
     Structure S1
     End Structure
@@ -1514,14 +1514,14 @@ End Module
     Class C0(Of T)
         Public whichOne As String
         Sub Foo(ByVal t1 As T)
-            End Function
+        End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
         End Property
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
         Overloads Sub Foo(ByVal y1 As Y)
-            End Function
+        End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
         End Property
     End Class
@@ -1546,20 +1546,20 @@ Module Module1
     Class C0(Of T)
         Public whichOne As String
         Sub Foo(ByVal t1 As T)
-            End Function
+        End Sub
         Default Property Prop1(ByVal t1 As T) As Integer
         End Property
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
         Overloads Sub Foo(ByVal y1 As Y)
-            End Function
+        End Sub
         Default Overloads Property Prop1(ByVal y1 As Y) As Integer
         End Property
 
         Friend Sub Foo(dTmp As Decimal)
             Throw New NotImplementedException()
-            End Function
+        End Sub
     End Class
     Structure S1
     End Structure
@@ -1595,13 +1595,13 @@ Module Module1
         Public whichOne As String
         Sub Foo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
-            End Function
+        End Sub
         Sub Foo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
-            End Function
+        End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
             Call Me.Foo(p1)
-            End Function
+        End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
@@ -1663,13 +1663,13 @@ Module Module1
         Public whichOne As String
         Sub Foo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
-            End Function
+        End Sub
         Sub Foo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
-            End Function
+        End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
             Call Me.Foo(p1)
-            End Function
+        End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
@@ -1693,17 +1693,17 @@ Module Module1
         Public whichOne As String
         Sub Foo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
-            End Function
+        End Sub
         Sub Foo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
-            End Function
+        End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
             Call Me.Foo(p1)
-            End Function
+        End Sub
 
         Friend Sub Foo(e2 As sample7C1(Of Short).E)
             Throw New NotImplementedException()
-            End Function
+        End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
@@ -1731,13 +1731,13 @@ Module Module1
         Public whichOne As String
         Sub Foo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
-            End Function
+        End Sub
         Sub Foo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
-            End Function
+        End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
             Call Me.Foo(p1)
-            End Function
+        End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
@@ -1761,17 +1761,17 @@ Module Module1
         Public whichOne As String
         Sub Foo(ByVal p1 As sample7C1(Of T).E)
             whichOne = "1"
-            End Function
+        End Sub
         Sub Foo(ByVal p1 As sample7C1(Of Y).E)
             whichOne = "2"
-            End Function
+        End Sub
         Sub Scenario8(ByVal p1 As sample7C1(Of T).E)
             Call Me.Foo(p1)
-            End Function
+        End Sub
 
         Friend Sub Foo(e3 As sample7C1(Of Byte).E)
             Throw New NotImplementedException()
-            End Function
+        End Sub
     End Class
     Sub test()
         Dim tc7 As New sample7C2(Of Integer, Integer)
@@ -1789,12 +1789,12 @@ End Module
 <text>Module Module1
     Class C0(Of T)
         Sub Foo(ByVal t1 As T)
-            End Function
+        End Sub
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
         Overloads Sub Foo(ByVal y1 As Y)
-            End Function
+        End Sub
     End Class
     Structure S1
     End Structure
@@ -1815,16 +1815,16 @@ End Module
 Module Module1
     Class C0(Of T)
         Sub Foo(ByVal t1 As T)
-            End Function
+        End Sub
     End Class
     Class C1(Of T, Y)
         Inherits C0(Of T)
         Overloads Sub Foo(ByVal y1 As Y)
-            End Function
+        End Sub
 
         Friend Sub Foo(c2 As C2)
             Throw New NotImplementedException()
-            End Function
+        End Sub
     End Class
     Structure S1
     End Structure
