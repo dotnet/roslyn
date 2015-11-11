@@ -35,13 +35,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 MyBase.New(spans, cancellationToken)
 
                 Me._document = document
-                Me._modifiedSpan = spans.Collapse()
+                Me._modifiedSpan = modifiedSpan
                 Me._model = semanticModel
             End Sub
 
             Public Shared Async Function CreateAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of AddMissingTokensRewriter)
                 Dim modifiedSpan = spans.Collapse()
-                Dim semanticModel = Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = If(document Is Nothing, Nothing,
+                    Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
                 Return New AddMissingTokensRewriter(document, semanticModel, spans, modifiedSpan, cancellationToken)
             End Function
