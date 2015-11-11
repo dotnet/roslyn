@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             throw new InvalidProgramException("Incorrect FixAll annotation in test");
         }
 
-        internal IEnumerable<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixes(
+        internal async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
             IEnumerable<Diagnostic> diagnostics,
             DiagnosticAnalyzer provider,
             CodeFixProvider fixer,
@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string annotation,
             string fixAllActionId)
         {
+            var result = new List<Tuple<Diagnostic, CodeFixCollection>>();
             foreach (var diagnostic in diagnostics)
             {
                 if (annotation == null)
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     if (fixes.Any())
                     {
                         var codeFix = new CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes);
-                        yield return Tuple.Create(diagnostic, codeFix);
+                        result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
                 else
@@ -143,15 +144,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     var fixAllContext = diagnostic.Location.IsInSource ?
                         new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None) :
                         new FixAllContext(document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
-                    var fixAllFix = fixAllProvider.GetFixAsync(fixAllContext).WaitAndGetResult(CancellationToken.None);
+                    var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
                     if (fixAllFix != null)
                     {
                         var diagnosticSpan = diagnostic.Location.IsInSource ? diagnostic.Location.SourceSpan : default(TextSpan);
                         var codeFix = new CodeFixCollection(fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)));
-                        yield return Tuple.Create(diagnostic, codeFix);
+                        result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
             }
+
+            return result;
         }
 
         protected async Task TestEquivalenceKeyAsync(string initialMarkup, string equivalenceKey)

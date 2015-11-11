@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var fixer = providerAndFixer.Item2;
                 var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
                 var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-                return GetDiagnosticAndFixes(dxs, provider, fixer, testDriver, document, span, annotation, fixAllActionId);
+                return await GetDiagnosticAndFixesAsync(dxs, provider, fixer, testDriver, document, span, annotation, fixAllActionId);
             }
         }
 
