@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
         ''' <summary>
@@ -1277,14 +1279,14 @@ End Class</text>
 
             <WorkItem(538303)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub ExtractMethod40()
+            Public Async Function ExtractMethod40() As Task
                 Dim code = <text>Class Program
     Shared Sub Main(args As String())
         [|Dim x As Integer|]
     End Sub
 End Class</text>
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(538314)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -2031,7 +2033,7 @@ End Class</text>
 
             <WorkItem(4782, "DevDiv_Projects/Roslyn")>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub BugFix4782_2()
+            Public Async Function BugFix4782_2() As Task
                 Dim code = <text>Class A(Of T)
     Class D
         Inherits A(Of T())
@@ -2048,8 +2050,8 @@ End Class</text>
 
 End Class</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(4791, "DevDiv_Projects/Roslyn")>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -2590,7 +2592,7 @@ End Class</text>
             End Sub
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub MatrixCase_NoNoNoYesNoNoNoNo()
+            Public Async Function MatrixCase_NoNoNoYesNoNoNoNo() As Task
                 Dim code = <text>Imports System
 
 Class Program
@@ -2598,11 +2600,11 @@ Class Program
         [|Dim i As Integer|]
     End Sub
 End Class</text>
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub MatrixCase_NoNoNoYesNoNoNoYes()
+            Public Async Function MatrixCase_NoNoNoYesNoNoNoYes() As Task
                 Dim code = <text>Imports System
 
 Class Program
@@ -2611,8 +2613,8 @@ Class Program
         i = 1
     End Sub
 End Class</text>
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub MatrixCase_NoNoNoYesNoYesNoNo()
@@ -3250,7 +3252,7 @@ End Class</text>
             End Sub
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub MatrixCase_NoYesNoYesNoNoYesNo()
+            Public Async Function MatrixCase_NoYesNoYesNoNoYesNo() As Task
                 Dim code = <text>Imports System
 
 Class Program
@@ -3260,11 +3262,11 @@ Class Program
     End Sub
 
 End Class</text>
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub MatrixCase_NoYesNoYesNoNoYesYes()
+            Public Async Function MatrixCase_NoYesNoYesNoNoYesYes() As Task
                 Dim code = <text>Imports System
 
 Class Program
@@ -3275,8 +3277,8 @@ Class Program
     End Sub
 End Class</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub MatrixCase_NoYesNoYesNoYesYesNo()
@@ -4355,7 +4357,7 @@ End Class</text>
             End Sub
 
             <WorkItem(539225), Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub Bug5098()
+            Public Async Function Bug5098() As Task
                 Dim code = <code>Class Program
     Shared Sub Main()
         [|Return|]
@@ -4363,8 +4365,8 @@ End Class</text>
     End Sub
 End Class</code>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(5092, "DevDiv_Projects/Roslyn")>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -5073,7 +5075,7 @@ End Module</text>
 
             <WorkItem(541409), WorkItem(542687)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub DontCrashOnInvalidAddressOf()
+            Public Async Function DontCrashOnInvalidAddressOf() As Task
                 Dim code = <text>Module Program
     Sub Main(args As String())
     End Sub
@@ -5082,8 +5084,8 @@ End Module</text>
     End Sub
 End Module</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(541515)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -5233,7 +5235,7 @@ End Module</text>
 
             <WorkItem(542511)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub ExtractMethodOnVariableUsedInWhen()
+            Public Async Function ExtractMethodOnVariableUsedInWhen() As Task
                 Dim code = <text>Imports System
 Module Program
     Sub Main(args As String())
@@ -5248,8 +5250,8 @@ Enum color
     blue
 End Enum</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(542512)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -5279,11 +5281,11 @@ End Module</text>
 
             <WorkItem(542825)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub DanglingField()
+            Public Async Function DanglingField() As Task
                 Dim code = <text>Dim query1 = From i As Integer In New Integer() {4, 5} Where [|i > 5|] Select i</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub MultipleNamesLocalDecl()
@@ -5479,7 +5481,7 @@ End Class
 
             <WorkItem(543244)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub ExtractMethodForBadCode()
+            Public Async Function ExtractMethodForBadCode() As Task
                 Dim code = <text>Module M1
     WriteOnly Property Age() As Integer
         Set(ByVal Value As Integer)
@@ -5495,13 +5497,13 @@ lab1:
 End Module
 </text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(10878, "DevDiv_Projects/Roslyn")>
             <WorkItem(544408)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub ExtractMethodForBranchOutFromSyncLock()
+            Public Async Function ExtractMethodForBranchOutFromSyncLock() As Task
                 Dim code = <text>Imports System
 Class Program
     Shared Sub Main(args As String())
@@ -5512,13 +5514,13 @@ Class Program
     End Sub
 End Class</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(543304)>
             <WorkItem(544408)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub ExtractMethodForLambdaInSyncLock()
+            Public Async Function ExtractMethodForLambdaInSyncLock() As Task
                 Dim code = <text>Imports System
 Class Program
     Public Shared Sub Main(args As String())
@@ -5530,8 +5532,8 @@ Class Program
     End Sub
 End Class</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(543320)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -5583,7 +5585,7 @@ End Class
 
             <WorkItem(543362)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub ExtractMethodForBadRegion_2()
+            Public Async Function ExtractMethodForBadRegion_2() As Task
                 Dim code = <text>Imports System
 Class Test
                 Public Shared Sub Main()
@@ -5591,8 +5593,8 @@ Class Test
                 End Sub
             End Class
 </text>
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(543244)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -5755,7 +5757,7 @@ End Class</text>
             <WorkItem(543334)>
             <WorkItem(11186, "DevDiv_Projects/Roslyn")>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub ExtractMethodExitInLambda_3()
+            Public Async Function ExtractMethodExitInLambda_3() As Task
                 Dim code = <text>Imports System
 Public Class Program
     Shared Sub foo()
@@ -5769,8 +5771,8 @@ Public Class Program
     End Sub
 End Class
 </text>
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(543096)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>

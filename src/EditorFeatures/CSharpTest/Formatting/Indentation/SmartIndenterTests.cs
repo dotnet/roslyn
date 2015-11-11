@@ -2545,7 +2545,6 @@ class C
     }
 }
 ";
-
             await AssertSmartIndentAsync(
                 code,
                 indentationLine: 8,

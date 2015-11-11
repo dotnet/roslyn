@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
         ''' <summary>
@@ -11,18 +13,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         Public Class FlowAnalysis
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestExitSub()
+            Public Async Function TestExitSub() As Threading.Tasks.Task
                 Dim code = <text>Class Test
     Sub Test()
         [|Exit Sub|]
     End Sub
 End Class</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestExitFunction()
+            Public Async Function TestExitFunction() As Threading.Tasks.Task
                 Dim code = <text>Class Test
     Function Test1() As Integer
         Console.Write(42)
@@ -32,8 +34,8 @@ End Class</text>
     End Function
 End Class</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(540046)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -248,7 +250,7 @@ End Class</text>
 
             <WorkItem(540154)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub BugFix6313_1()
+            Public Async Function BugFix6313_1() As Task
                 Dim code = <text>Imports System
 
 Class A
@@ -260,12 +262,12 @@ Class A
     End Sub
 End Class</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(540154)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub BugFix6313_2()
+            Public Async Function BugFix6313_2() As Threading.Tasks.Task
                 Dim code = <text>Imports System
 
 Class A
@@ -277,8 +279,8 @@ Class A
     End Function
 End Class</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(540154)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -424,7 +426,7 @@ End Class</text>
 
             <WorkItem(540154), WorkItem(541484)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub BugFix6313_6()
+            Public Async Function BugFix6313_6() As Task
                 Dim code = <text>Imports System
 
 Class A
@@ -439,12 +441,12 @@ Class A
     End Sub
 End Class</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WorkItem(543670)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub AnonymousLambdaInVarDecl()
+            Public Async Function AnonymousLambdaInVarDecl() As Task
                 Dim code = <text>Imports System
 
 Module Program
@@ -454,8 +456,8 @@ Module Program
     End Sub
 End Module</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WpfFact, WorkItem(531451), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestInvalidSelectionNonExecutableStatementSyntax_01()
@@ -479,7 +481,7 @@ End Module</text>
             End Sub
 
             <WpfFact, WorkItem(547156), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestInvalidSelectionNonExecutableStatementSyntax_02()
+            Public Async Function TestInvalidSelectionNonExecutableStatementSyntax_02() As Task
                 Dim code = <text>Module Program
     Sub Main()
         If True Then Dim x
@@ -487,8 +489,8 @@ End Module</text>
     End Sub
 End Module</text>
 
-                ExpectExtractMethodToFail(code)
-            End Sub
+                Await ExpectExtractMethodToFailAsync(code)
+            End Function
 
             <WpfFact, WorkItem(530625), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestUnreachableEndInFunction()

@@ -14,15 +14,15 @@ Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
-        Protected Shared Sub ExpectExtractMethodToFail(codeWithMarker As XElement, Optional dontPutOutOrRefOnStruct As Boolean = True)
+        Protected Shared Async Function ExpectExtractMethodToFailAsync(codeWithMarker As XElement, Optional dontPutOutOrRefOnStruct As Boolean = True) As Tasks.Task
             Dim codeWithoutMarker As String = Nothing
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(codeWithoutMarker)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithoutMarker)
                 Dim treeAfterExtractMethod = ExtractMethod(workspace, workspace.Documents.First(), textSpan, succeeded:=False, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
             End Using
-        End Sub
+        End Function
 
         Private Shared Sub NotSupported_ExtractMethod(codeWithMarker As XElement)
             Dim codeWithoutMarker As String = Nothing
