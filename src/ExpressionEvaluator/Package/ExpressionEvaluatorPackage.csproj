@@ -14,7 +14,7 @@
     <RootNamespace>ExpressionEvaluatorPackage</RootNamespace>
     <AssemblyName>ExpressionEvaluatorPackage</AssemblyName>
     <UseCodebase>true</UseCodebase>
-    <GeneratePkgDefFile>False</GeneratePkgDefFile>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
