@@ -182,6 +182,12 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion.Text;
         }
 
+        public SourceText GetText(CancellationToken cancellationToken)
+        {
+            var textAndVersion = this.textSource.GetValue(cancellationToken);
+            return textAndVersion.Text;
+        }
+
         public async Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
         {
             // try fast path first

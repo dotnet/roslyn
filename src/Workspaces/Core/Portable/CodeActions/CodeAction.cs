@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public abstract string Title { get; }
 
+        internal virtual string Message => Title;
+
         /// <summary>
         /// Two code actions are treated as equivalent if they have equal non-null <see cref="EquivalenceKey"/> values and were generated
         /// by the same <see cref="CodeFixProvider"/> or <see cref="CodeRefactoringProvider"/>.

@@ -1,7 +1,6 @@
 # references
 /r:System.Collections.dll
 /r:System.Console.dll
-/r:System.Core.dll
 /r:System.Diagnostics.Process.dll
 /r:System.Dynamic.Runtime.dll
 /r:System.Globalization.dll
@@ -14,7 +13,6 @@
 /r:System.Reflection.Primitives.dll
 /r:System.Runtime.dll
 /r:System.Runtime.Numerics.dll
-/r:System.Runtime.Serialization.dll
 /r:System.Runtime.Serialization.Json.dll
 /r:System.Runtime.Serialization.Primitives.dll
 /r:System.Text.Encoding.CodePages.dll

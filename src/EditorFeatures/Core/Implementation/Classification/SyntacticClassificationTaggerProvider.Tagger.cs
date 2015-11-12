@@ -33,11 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private void OnTagsChanged(object sender, SnapshotSpanEventArgs e)
             {
-                var tagsChanged = TagsChanged;
-                if (tagsChanged != null)
-                {
-                    tagsChanged(this, e);
-                }
+                TagsChanged?.Invoke(this, e);
             }
 
             public void Dispose()

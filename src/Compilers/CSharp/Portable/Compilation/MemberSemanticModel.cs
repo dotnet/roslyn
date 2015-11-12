@@ -802,17 +802,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode boundParent;
 
             GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
-
+            BoundNode result;
             switch (options)
             {
                 case GetOperationOptions.Parent:
-                    return boundParent as IOperation;
+                    result = boundParent;
+                    break;
                 case GetOperationOptions.Highest:
-                    return highestBoundNode as IOperation;
+                    result = highestBoundNode;
+                    break;
                 case GetOperationOptions.Lowest:
                 default:
-                    return lowestBoundNode as IOperation;
+                    result = lowestBoundNode;
+                    break;
             }
+
+            // Screen out bound nodes that aren't appropriate as IOperations.
+            if (result != null && result.Kind == BoundKind.EqualsValue)
+            {
+                result = ((BoundEqualsValue)result).Value;
+            }
+
+            return result as IOperation;
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))

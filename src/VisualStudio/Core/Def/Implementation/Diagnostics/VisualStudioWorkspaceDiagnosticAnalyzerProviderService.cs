@@ -189,14 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private static string GetProperty(object extensionManager, string propertyName)
         {
-            try
-            {
-                return (string)extensionManager.GetType().GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance).GetValue(extensionManager);
-            }
-            catch
-            {
-                return null;
-            }
+            return (string)extensionManager.GetType().GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(extensionManager);
         }
 
         // we have to use reflection in here because Microsoft.VisualStudio.ExtensionManager is non-versioned, and reflection allows us to build once and deploy to multiple different versions of VS SxS.

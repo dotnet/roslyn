@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.30.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.32.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -11,7 +11,7 @@ set BuildRestore=false
 REM Because override the C#/VB toolset to build against our LKG package, it is important
 REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
 REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-set MSBuildAdditionalCommandLineArgs=/nologo /v:m /m /nodeReuse:false /p:DeployExtension=false
+set MSBuildAdditionalCommandLineArgs=/nologo /v:m /m /nodeReuse:false
 
 :ParseArguments
 if "%1" == "" goto :DoneParsing
@@ -36,27 +36,28 @@ if defined Perf (
   )
 )
 
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
+call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
 REM Restore the NuGet packages 
 if "%BuildRestore%" == "true" (
-    call "%RoslynRoot%\Restore.cmd"
+    call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 ) else (
-    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%"
+    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%" || goto :BuildFailed
 )
 
 REM Set the build version only so the assembly version is set to the semantic version,
 REM which allows analyzers to laod because the compiler has binding redirects to the
 REM semantic version
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration%
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% || goto :BuildFailed
 
-mkdir %RoslynRoot%Binaries\Bootstrap
-move Binaries\%BuildConfiguration%\* %RoslynRoot%Binaries\Bootstrap
-copy build\scripts\* %RoslynRoot%Binaries\Bootstrap
+if not exist "%RoslynRoot%Binaries\Bootstrap" mkdir "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
+move "Binaries\%BuildConfiguration%\*" "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
+copy "build\scripts\*" "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
-msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
-taskkill /F /IM vbcscompiler.exe
+msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  || goto :BuildFailed
+
+call :TerminateCompilerServer
 
 if defined Perf (
   set Target=Build
@@ -64,16 +65,9 @@ if defined Perf (
   set Target=BuildAndTest
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64%
-if ERRORLEVEL 1 (
-    taskkill /F /IM vbcscompiler.exe
-    echo Build failed
-    exit /b 1
-)
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% || goto :BuildFailed
 
-REM Kill any instances of VBCSCompiler.exe to release locked files;
-REM otherwise future CI runs may fail while trying to delete those files.
-taskkill /F /IM vbcscompiler.exe
+call :TerminateCompilerServer
 
 REM Verify that our project.lock.json files didn't change as a result of 
 REM restore.  If they do then the commit changed the dependencies without 
@@ -87,14 +81,13 @@ REM )
 
 if defined Perf (
   if DEFINED JenkinsCIPerfCredentials (
-    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% %JenkinsCIPerfCredentials%
+    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% %JenkinsCIPerfCredentials% || goto :BuildFailed
   ) else (
-    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure'
+    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure' || goto :BuildFailed
   )
 )
 
-REM It is okay and expected for taskkill to fail (it's a cleanup routine).  Ensure
-REM caller sees successful exit.
+REM Ensure caller sees successful exit.
 exit /b 0
 
 :Usage
@@ -107,3 +100,14 @@ exit /b 0
 @echo            with /release. May not be combined with /test32 or /test64.
 @echo.
 @goto :eof
+
+:BuildFailed
+echo Build failed with ERRORLEVEL %ERRORLEVEL%
+call :TerminateCompilerServer
+exit /b 1
+
+:TerminateCompilerServer
+@REM Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
+@REM This prevents future CI runs from failing hile trying to delete those files.
+
+taskkill /F /IM vbcscompiler.exe 2> nul

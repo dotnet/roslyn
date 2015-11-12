@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(0, errors.Count);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6665")]
         public void TestAnalyzerLoading()
         {
             var dir = Temp.CreateDirectory();

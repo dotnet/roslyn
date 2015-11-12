@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
@@ -950,33 +951,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     return false;
                 }
 
-                var metadataReference = referenceListItem.MetadataReference as PortableExecutableReference;
-                if (metadataReference == null)
+                var portableExecutableReference = referenceListItem.MetadataReference as PortableExecutableReference;
+                if (portableExecutableReference == null)
                 {
                     return false;
                 }
 
-                var compilation = referenceListItem.GetCompilation(this.LibraryManager.Workspace);
-                if (compilation == null)
+                var assemblyIdentity = AssemblyIdentityUtils.TryGetAssemblyIdentity(portableExecutableReference.FilePath);
+                if (assemblyIdentity == null)
                 {
                     return false;
                 }
 
-                var assemblySymbol = referenceListItem.GetAssembly(compilation);
-                if (assemblySymbol == null)
-                {
-                    return false;
-                }
-
-                data.bstrFile = metadataReference.FilePath;
+                data.bstrFile = portableExecutableReference.FilePath;
                 data.type = VSCOMPONENTTYPE.VSCOMPONENTTYPE_ComPlus;
 
-                var identity = assemblySymbol.Identity;
-
-                data.wFileMajorVersion = (ushort)identity.Version.Major;
-                data.wFileMinorVersion = (ushort)identity.Version.Minor;
-                data.wFileBuildNumber = (ushort)identity.Version.Build;
-                data.wFileRevisionNumber = (ushort)identity.Version.Revision;
+                data.wFileMajorVersion = (ushort)assemblyIdentity.Version.Major;
+                data.wFileMinorVersion = (ushort)assemblyIdentity.Version.Minor;
+                data.wFileBuildNumber = (ushort)assemblyIdentity.Version.Build;
+                data.wFileRevisionNumber = (ushort)assemblyIdentity.Version.Revision;
             }
 
             return true;

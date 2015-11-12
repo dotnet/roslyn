@@ -273,29 +273,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> collection)
             {
-                var tagsChangedForBuffer = TagsChangedForBuffer;
-                if (tagsChangedForBuffer != null)
-                {
-                    tagsChangedForBuffer(collection);
-                }
+                TagsChangedForBuffer?.Invoke(collection);
             }
 
             private void RaisePaused()
             {
-                var paused = this.Paused;
-                if (paused != null)
-                {
-                    paused(this, EventArgs.Empty);
-                }
+                this.Paused?.Invoke(this, EventArgs.Empty);
             }
 
             private void RaiseResumed()
             {
-                var resumed = this.Resumed;
-                if (resumed != null)
-                {
-                    resumed(this, EventArgs.Empty);
-                }
+                this.Resumed?.Invoke(this, EventArgs.Empty);
             }
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)

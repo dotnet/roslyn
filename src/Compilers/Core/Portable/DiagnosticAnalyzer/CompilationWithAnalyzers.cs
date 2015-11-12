@@ -136,10 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void AddExceptionDiagnostic(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
         {
-            if (_analysisOptions.OnAnalyzerException != null)
-            {
-                _analysisOptions.OnAnalyzerException(exception, analyzer, diagnostic);
-            }
+            _analysisOptions.OnAnalyzerException?.Invoke(exception, analyzer, diagnostic);
 
             _exceptionDiagnostics.Add(diagnostic);
         }
@@ -515,12 +512,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AnalyzerDriver driver = null;
                 Task computeTask = null;
                 CancellationTokenSource cts;
-
-                // Generate compilation events, if required.
-                if (generateCompilationEventsOpt != null)
-                {
-                    generateCompilationEventsOpt();
-                }
+                generateCompilationEventsOpt?.Invoke();
 
                 // Populate the events cache from the generated compilation events.
                 await PopulateEventsCacheAsync(cancellationToken).ConfigureAwait(false);

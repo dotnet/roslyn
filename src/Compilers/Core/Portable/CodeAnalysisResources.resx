@@ -222,8 +222,8 @@
   <data name="EmptyKeyInPathMap" xml:space="preserve">
     <value>A key in the pathMap is empty.</value>
   </data>
-  <data name="EmptyValueInPathMap" xml:space="preserve">
-    <value>A value in the pathMap is empty.</value>
+  <data name="NullValueInPathMap" xml:space="preserve">
+    <value>A value in the pathMap is null.</value>
   </data>
   <data name="KeyInPathMapEndsWithSeparator" xml:space="preserve">
     <value>A key in the pathMap ends with a path separator.</value>

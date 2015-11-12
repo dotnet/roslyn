@@ -40,16 +40,9 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\VBCSCompiler\BuildProtocol.cs">
-      <Link>BuildProtocol.cs</Link>
+    <Compile Include="..\..\Shared\DesktopBuildClient.cs">
+      <Link>DesktopBuildClient.cs</Link>
     </Compile>
-    <Compile Include="..\VBCSCompiler\CompilerServerLogger.cs">
-      <Link>CompilerServerLogger.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Helpers\ConsoleUtil.cs">
-      <Link>ConsoleUtil.cs</Link>
-    </Compile>
-    <Compile Include="BuildClient.cs" />
     <Compile Include="CanonicalError.cs" />
     <Compile Include="CommandLineBuilderExtension.cs" />
     <Compile Include="Csc.cs" />
@@ -63,7 +56,6 @@
     <Compile Include="InteractiveCompiler.cs" />
     <Compile Include="IVbcHostObject6.cs" />
     <Compile Include="ManagedCompiler.cs" />
-    <Compile Include="NativeMethods.cs" />
     <Compile Include="PropertyDictionary.cs" />
     <Compile Include="RCWForCurrentContext.cs" />
     <Compile Include="Utilities.cs" />
@@ -85,6 +77,7 @@
       <Name>CodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
+  <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

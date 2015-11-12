@@ -53,7 +53,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Helpers\CoreClrShim.cs">
+    <Compile Include="..\..\Shared\CoreClrShim.cs">
       <Link>CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="AdditionalTextFile.cs" />
@@ -703,8 +703,10 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
-    <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CompilerServer" />
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis" />
+    <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="VBCSCompilerPortable" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />

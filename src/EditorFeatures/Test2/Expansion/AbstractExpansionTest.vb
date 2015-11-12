@@ -1,18 +1,16 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     Public MustInherit Class AbstractExpansionTest
 
-        Protected Sub Test(definition As XElement, expected As XElement, Optional useLastProject As Boolean = False)
+        Protected Sub Test(definition As XElement, expected As XElement, Optional useLastProject As Boolean = False, Optional expandParameter As Boolean = False)
             Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
                 Dim hostDocument = If(Not useLastProject, workspace.Documents.Single(), workspace.Documents.Last())
 
@@ -28,12 +26,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                 If (hostDocument.AnnotatedSpans.ContainsKey("Expand")) Then
                     For Each span In hostDocument.AnnotatedSpans("Expand")
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
-                        root = root.ReplaceNode(node, Simplifier.ExpandAsync(node, document, Nothing).Result)
+                        root = root.ReplaceNode(node, Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter).Result)
                     Next
                 ElseIf (hostDocument.AnnotatedSpans.ContainsKey("ExpandAndSimplify")) Then
                     For Each span In hostDocument.AnnotatedSpans("ExpandAndSimplify")
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
-                        root = root.ReplaceNode(node, Simplifier.ExpandAsync(node, document, Nothing).Result)
+                        root = root.ReplaceNode(node, Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter).Result)
                         document = document.WithSyntaxRoot(root)
                         document = Simplifier.ReduceAsync(document, Simplifier.Annotation).Result
                         root = document.GetSyntaxRootAsync().Result
