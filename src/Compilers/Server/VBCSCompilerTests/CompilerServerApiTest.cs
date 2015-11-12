@@ -361,14 +361,22 @@ class Hello
                 .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
                 .Returns(() =>
                 {
-                    var task = new Task(() =>
+                    // Use a thread instead of Task to guarantee this code runs on a different
+                    // thread and we can validate the mutex state. 
+                    var source = new TaskCompletionSource<bool>();
+                    var thread = new Thread(_ => 
                     {
                         Mutex mutex;
                         Assert.True(Mutex.TryOpenExisting(mutexName, out mutex));
                         Assert.False(mutex.WaitOne(millisecondsTimeout: 0));
+                        source.SetResult(true);
                     });
-                    task.Start(TaskScheduler.Default);
-                    task.Wait();
+
+                    // Synchronously wait here.  Don't returned a Task value because we need to 
+                    // ensure the above check completes before the server hits a timeout and 
+                    // releases the mutex. 
+                    thread.Start();
+                    source.Task.Wait();
 
                     return new TaskCompletionSource<IClientConnection>().Task;
                 });
