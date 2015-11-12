@@ -5537,7 +5537,7 @@ class C : TestBase
             Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object[])](Constant({0}{1}{2,1}{3} Type:System.String), NewArrayInit([Convert(Constant(1 Type:System.Int32) Type:System.Object) Convert(Constant(2 Type:System.Int32) Type:System.Object) Convert(Constant(3 Type:System.Int32) Type:System.Object) Convert(Constant(4 Type:System.Int32) Type:System.Object)] Type:System.Object[])) Type:System.String)"");
 
             f = () => $""{1}"";
-            Check<string>(f, ""Call(null.[System.String Concat(System.Object)](Convert(Constant(1 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            Check<string>(f, ""Call(Constant(1 Type:System.Int32).[System.String ToString()]() Type:System.String)"");
             f = () => $""{1}{2}"";
             Check<string>(f, ""Call(null.[System.String Concat(System.Object, System.Object)](Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object)) Type:System.String)"");
             f = () => $""{1}{2}{3}"";

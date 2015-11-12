@@ -38,56 +38,598 @@ Jenny don't change your number     867-5309.
         }
 
         [Fact]
-        public void TestFormatAndConcatOverloads()
+        public void TestFormatAndConcatOverloads01()
         {
-            string source =
+            var text =
 @"using System;
+
 class Program
 {
+    static string Test => $"""";
+
     static void Main(string[] args)
     {
-        Console.WriteLine($""{null}"" == """"); // """"
-
-        string s = null;
-        Console.WriteLine($""{s}"" == """"); // s ?? """"
-        Console.WriteLine($""{s}{s}"" == """"); // Concat(string, string) ?? """"
-        Console.WriteLine($""{s} {s}"" == "" ""); // Concat(string, string, string)
-        Console.WriteLine($""{s}{s}{s}"" == """"); // Concat(string, string, string) ?? """"
-        Console.WriteLine($""{s}{s}{s}{s}"" == """"); // Concat(string, string, string, string) ?? """"
-        Console.WriteLine($""{s}{s}{s}{s}{s}"" == """"); // Concat(string[]) ?? """"
-        
-        object o = null;
-        Console.WriteLine($""{o}"" == """"); // Concat(object) ?? """"
-        Console.WriteLine($""{o}{1}"" == ""1""); // Concat(object, object)
-        Console.WriteLine($""{o}{o}"" == """"); // Concat(object, object) ?? """"
-        Console.WriteLine($""{o}{o}{o}"" == """"); // Concat(object, object, object) ?? """"
-        Console.WriteLine($""{o}{o}{o}{o}"" == """"); // Concat(object[]) ?? """"
-        
-        Console.WriteLine($""{null,0}"" == """"); // Format(string, object)
-        Console.WriteLine($""{null,0}{null}"" == """"); // Format(string, object, object)
-        Console.WriteLine($""{null,0}{null}{null}"" == """"); // Format(string, object, object, object)
-        Console.WriteLine($""{null,0}{null}{null}{null}"" == """"); // Format(string, object[])
+        Console.WriteLine(Test == """");
     }
-}
-";
-            string expectedOutput =
-@"True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldstr      """"
+  IL_0005:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads02()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string Test => $""{null}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldstr      """"
+  IL_0005:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads03()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string Test => $""{""""}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  ldstr      """"
+  IL_0005:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads04()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string s = null;
+    static string Test => $""{s}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldsfld     ""string Program.s""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000e
+  IL_0008:  pop
+  IL_0009:  ldstr      """"
+  IL_000e:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads05()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string s = null;
+    static string Test => $""{s}{s}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""string Program.s""
+  IL_0005:  ldsfld     ""string Program.s""
+  IL_000a:  call       ""string string.Concat(string, string)""
+  IL_000f:  dup
+  IL_0010:  brtrue.s   IL_0018
+  IL_0012:  pop
+  IL_0013:  ldstr      """"
+  IL_0018:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads06()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string s = null;
+    static string Test => $""{s} "";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == "" "");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldsfld     ""string Program.s""
+  IL_0005:  ldstr      "" ""
+  IL_000a:  call       ""string string.Concat(string, string)""
+  IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads07()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string s = null;
+    static string Test => $""{s} {s}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == "" "");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       21 (0x15)
+  .maxstack  3
+  IL_0000:  ldsfld     ""string Program.s""
+  IL_0005:  ldstr      "" ""
+  IL_000a:  ldsfld     ""string Program.s""
+  IL_000f:  call       ""string string.Concat(string, string, string)""
+  IL_0014:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads08()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string s = null;
+    static string Test => $""{s}{s}{s}{s}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  4
+  IL_0000:  ldsfld     ""string Program.s""
+  IL_0005:  ldsfld     ""string Program.s""
+  IL_000a:  ldsfld     ""string Program.s""
+  IL_000f:  ldsfld     ""string Program.s""
+  IL_0014:  call       ""string string.Concat(string, string, string, string)""
+  IL_0019:  dup
+  IL_001a:  brtrue.s   IL_0022
+  IL_001c:  pop
+  IL_001d:  ldstr      """"
+  IL_0022:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads09()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string s = null;
+    static string Test => $""{s}{s}{s}{s}{s}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       61 (0x3d)
+  .maxstack  4
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""string""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldsfld     ""string Program.s""
+  IL_000d:  stelem.ref
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  ldsfld     ""string Program.s""
+  IL_0015:  stelem.ref
+  IL_0016:  dup
+  IL_0017:  ldc.i4.2
+  IL_0018:  ldsfld     ""string Program.s""
+  IL_001d:  stelem.ref
+  IL_001e:  dup
+  IL_001f:  ldc.i4.3
+  IL_0020:  ldsfld     ""string Program.s""
+  IL_0025:  stelem.ref
+  IL_0026:  dup
+  IL_0027:  ldc.i4.4
+  IL_0028:  ldsfld     ""string Program.s""
+  IL_002d:  stelem.ref
+  IL_002e:  call       ""string string.Concat(params string[])""
+  IL_0033:  dup
+  IL_0034:  brtrue.s   IL_003c
+  IL_0036:  pop
+  IL_0037:  ldstr      """"
+  IL_003c:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads10()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static object o = null;
+    static string Test => $""{o}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldsfld     ""object Program.o""
+  IL_0005:  call       ""string string.Concat(object)""
+  IL_000a:  dup
+  IL_000b:  brtrue.s   IL_0013
+  IL_000d:  pop
+  IL_000e:  ldstr      """"
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads11()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static object o = null;
+    static string Test => $""{o}{1}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == ""1"");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldsfld     ""object Program.o""
+  IL_0005:  ldc.i4.1
+  IL_0006:  box        ""int""
+  IL_000b:  call       ""string string.Concat(object, object)""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads12()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static object o = null;
+    static string Test => $""{o}{o}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldsfld     ""object Program.o""
+  IL_0005:  ldsfld     ""object Program.o""
+  IL_000a:  call       ""string string.Concat(object, object)""
+  IL_000f:  dup
+  IL_0010:  brtrue.s   IL_0018
+  IL_0012:  pop
+  IL_0013:  ldstr      """"
+  IL_0018:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads13()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static object o = null;
+    static string Test => $""{o}{o}{o}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  IL_0000:  ldsfld     ""object Program.o""
+  IL_0005:  ldsfld     ""object Program.o""
+  IL_000a:  ldsfld     ""object Program.o""
+  IL_000f:  call       ""string string.Concat(object, object, object)""
+  IL_0014:  dup
+  IL_0015:  brtrue.s   IL_001d
+  IL_0017:  pop
+  IL_0018:  ldstr      """"
+  IL_001d:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads14()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static object o = null;
+    static string Test => $""{o}{o}{o}{o}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       53 (0x35)
+  .maxstack  4
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     ""object""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldsfld     ""object Program.o""
+  IL_000d:  stelem.ref
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  ldsfld     ""object Program.o""
+  IL_0015:  stelem.ref
+  IL_0016:  dup
+  IL_0017:  ldc.i4.2
+  IL_0018:  ldsfld     ""object Program.o""
+  IL_001d:  stelem.ref
+  IL_001e:  dup
+  IL_001f:  ldc.i4.3
+  IL_0020:  ldsfld     ""object Program.o""
+  IL_0025:  stelem.ref
+  IL_0026:  call       ""string string.Concat(params object[])""
+  IL_002b:  dup
+  IL_002c:  brtrue.s   IL_0034
+  IL_002e:  pop
+  IL_002f:  ldstr      """"
+  IL_0034:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads15()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string Test => $""{null,0}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldstr      ""{0,0}""
+  IL_0005:  ldnull
+  IL_0006:  call       ""string string.Format(string, object)""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads16()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string Test => $""{null}{null,0}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldstr      ""{0}{1,0}""
+  IL_0005:  ldnull
+  IL_0006:  ldnull
+  IL_0007:  call       ""string string.Format(string, object, object)""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads17()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string Test => $""{null}{null,0}{null}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       14 (0xe)
+  .maxstack  4
+  IL_0000:  ldstr      ""{0}{1,0}{2}""
+  IL_0005:  ldnull
+  IL_0006:  ldnull
+  IL_0007:  ldnull
+  IL_0008:  call       ""string string.Format(string, object, object, object)""
+  IL_000d:  ret
+}");
+        }
+
+        [Fact]
+        public void TestFormatAndConcatOverloads18()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string Test => $""{null}{null,0}{null}{null}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldstr      ""{0}{1,0}{2}{3}""
+  IL_0005:  ldc.i4.4
+  IL_0006:  newarr     ""object""
+  IL_000b:  call       ""string string.Format(string, params object[])""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void DoNotBoxToStringCall()
+        {
+            var text =
+@"using System;
+
+class Program
+{
+    static string Test => $""{1}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == ""1"");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  constrained. ""int""
+  IL_000a:  callvirt   ""string object.ToString()""
+  IL_000f:  ret
+}");
         }
 
         [Fact]
@@ -1069,6 +1611,50 @@ class Program {
   IL_001c:  call       ""System.FormattableString System.Bozo.op_Implicit(System.Bozo)""
   IL_0021:  pop
   IL_0022:  ret
+}");
+        }
+
+        [Fact]
+        public void SillyToString()
+        {
+            var text =
+@"using System;
+
+struct S
+{
+    public override string ToString()
+    {
+        return null;
+    }
+}
+
+class Program
+{
+    static string Test => $""{new S()}"";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Test == """");
+    }
+}";
+            var compilation = CompileAndVerify(text, expectedOutput: "True");
+            compilation.VerifyIL("Program.Test.get",
+@"{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  constrained. ""S""
+  IL_0012:  callvirt   ""string object.ToString()""
+  IL_0017:  dup
+  IL_0018:  brtrue.s   IL_0020
+  IL_001a:  pop
+  IL_001b:  ldstr      """"
+  IL_0020:  ret
 }");
         }
 
