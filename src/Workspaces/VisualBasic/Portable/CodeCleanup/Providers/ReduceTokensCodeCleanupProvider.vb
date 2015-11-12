@@ -3,6 +3,7 @@
 Imports System.Composition
 Imports System.Globalization
 Imports System.Runtime.InteropServices
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                         ' If the string representation of the value differs from the identifier text, create a new literal token with same value but pretty listed "valueText".
                         If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
-                            Return newNode.ReplaceToken(literal, CreateFloatingLiteralToken(literal, valueText, value))
+                            Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
                         End If
 
                     Case SyntaxKind.DecimalLiteralToken
@@ -69,14 +70,17 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         Dim valueText As String = GetDecimalLiteralValueString(value) + GetTypeCharString(literal.GetTypeCharacter())
 
                         If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
-                            Return newNode.ReplaceToken(literal, CreateDecimalLiteralToken(literal, valueText, value))
+                            Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
                         End If
                     Case SyntaxKind.IntegerLiteralToken
                         ' Get the literal identifier text which needs to be pretty listed.
                         Dim idText = literal.GetIdentifierText()
-                        Dim value As Long = CType(literal.Value, Long)
 
-                        If value = 0 Then
+                        'Value could be Short/UShort/Integer/UInteger/Long/ULong
+                        'We need to detect this and get the correct value
+                        Dim value As ULong = CType(literal.Value, ULong)
+
+                        If value = 0 AndAlso HasOverflow(literal.GetDiagnostics()) Then
                             ' Overflow/underflow case or zero literal, skip pretty listing.
                             Return newNode
                         End If
@@ -87,11 +91,17 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                             Return newNode
                         End If
 
+                        'If we have a hex or octal based literal and it is negative we don't need to process it
+                        'as this should already be reduced as far as it can be
+                        If (base.Value = LiteralBase.Hexadecimal OrElse base.Value = LiteralBase.Octal) AndAlso IsNegative(literal.Value) Then
+                            Return newNode
+                        End If
+
                         'fetch the string representation of this value in the correct base.
                         Dim valueText As String = GetIntegerLiteralValueString(value, base.Value) + GetTypeCharString(literal.GetTypeCharacter())
 
                         If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
-                            Return newNode.ReplaceToken(literal, CreateIntegerLiteralToken(literal, valueText, Convert.ToUInt64(value)))
+                            Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
                         End If
                 End Select
 
@@ -122,6 +132,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         Return "&"
                     Case TypeCharacter.LongLiteral
                         Return "L"
+                    Case TypeCharacter.UIntegerLiteral
+                        Return "UI"
+                    Case TypeCharacter.UShortLiteral
+                        Return "US"
+                    Case TypeCharacter.ULongLiteral
+                        Return "UL"
                     Case Else
                         Return ""
                 End Select
@@ -253,50 +269,64 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return valueText
             End Function
 
-            Private Function GetIntegerLiteralValueString(value As Long, base As LiteralBase) As String
+            Private Function GetIntegerLiteralValueString(value As ULong, base As LiteralBase) As String
                 Select Case base
                     Case LiteralBase.Decimal
-                        Return value.ToString()
+                        Return value.ToString(CultureInfo.InvariantCulture)
                     Case LiteralBase.Hexadecimal
-                        Return $"&H{Convert.ToString(value, 16).ToUpperInvariant()}"
+                        Return $"&H{value.ToString("X")}"
                     Case LiteralBase.Octal
-                        Return $"&O{Convert.ToString(value, 8)}"
+                        Return $"&O{ConvertToOctalString(value)}"
                     Case Else
-                        Return ""
+                        Throw ExceptionUtilities.Unreachable
                 End Select
             End Function
 
-            Private Shared Function CreateFloatingLiteralToken(token As SyntaxToken, newValueString As String, newValue As Double) As SyntaxToken
-                Debug.Assert(token.Kind = SyntaxKind.FloatingLiteralToken)
-
+            Private Shared Function CreateLiteralToken(token As SyntaxToken, newValueString As String, newValue As Object) As SyntaxToken
                 ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 
                 ' it might be replacing a token that has annotation injected by other code cleanups
                 Dim leading = If(token.LeadingTrivia.Count > 0, token.LeadingTrivia, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
                 Dim trailing = If(token.TrailingTrivia.Count > 0, token.TrailingTrivia, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
 
-                Return token.CopyAnnotationsTo(SyntaxFactory.FloatingLiteralToken(leading, newValueString, token.GetTypeCharacter(), newValue, trailing))
+                Select Case token.Kind
+                    Case SyntaxKind.FloatingLiteralToken
+                        Return token.CopyAnnotationsTo(SyntaxFactory.FloatingLiteralToken(leading, newValueString, token.GetTypeCharacter(), DirectCast(newValue, Double), trailing))
+                    Case SyntaxKind.DecimalLiteralToken
+                        Return token.CopyAnnotationsTo(SyntaxFactory.DecimalLiteralToken(leading, newValueString, token.GetTypeCharacter(), DirectCast(newValue, Decimal), trailing))
+                    Case SyntaxKind.IntegerLiteralToken
+                        Return token.CopyAnnotationsTo(SyntaxFactory.IntegerLiteralToken(leading, newValueString, token.GetBase().Value, token.GetTypeCharacter(), DirectCast(newValue, ULong), trailing))
+                    Case Else
+                        Throw ExceptionUtilities.Unreachable
+                End Select
             End Function
 
-            Private Shared Function CreateDecimalLiteralToken(token As SyntaxToken, newValueString As String, newValue As Decimal) As SyntaxToken
-                Debug.Assert(token.Kind = SyntaxKind.DecimalLiteralToken)
+            Private Function ConvertToOctalString(value As ULong) As String
+                Dim exponent As ULong = value
+                Dim builder As New StringBuilder()
 
-                ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 
-                ' it might be replacing a token that has annotation injected by other code cleanups
-                Dim leading = If(token.LeadingTrivia.Count > 0, token.LeadingTrivia, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
-                Dim trailing = If(token.TrailingTrivia.Count > 0, token.TrailingTrivia, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
+                While (exponent > 0)
+                    Dim remainder = exponent Mod 8UL
 
-                Return token.CopyAnnotationsTo(SyntaxFactory.DecimalLiteralToken(leading, newValueString, token.GetTypeCharacter(), newValue, trailing))
+                    builder.Insert(0, remainder)
+
+                    exponent = exponent \ 8UL
+                End While
+
+                Return builder.ToString()
             End Function
 
-            Private Shared Function CreateIntegerLiteralToken(token As SyntaxToken, newValueString As String, newValue As ULong) As SyntaxToken
-                Debug.Assert(token.Kind = SyntaxKind.IntegerLiteralToken)
+            Private Function HasOverflow(diagnostics As IEnumerable(Of Diagnostic)) As Boolean
+                Return diagnostics.Any(Function(diagnostic As Diagnostic) diagnostic.Id = "BC30036")
+            End Function
 
-                ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 
-                ' it might be replacing a token that has annotation injected by other code cleanups
-                Dim leading = If(token.LeadingTrivia.Count > 0, token.LeadingTrivia, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
-                Dim trailing = If(token.TrailingTrivia.Count > 0, token.TrailingTrivia, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
+            Private Function IsNegative(value As Object) As Boolean
+                If TypeOf (value) Is UShort OrElse TypeOf (value) Is UInteger OrElse TypeOf (value) Is ULong Then
+                    Return False
+                End If
 
-                Return token.CopyAnnotationsTo(SyntaxFactory.IntegerLiteralToken(leading, newValueString, token.GetBase().Value, token.GetTypeCharacter(), newValue, trailing))
+                Dim val As Long = CType(value, Long)
+
+                Return val < 0L
             End Function
         End Class
     End Class
