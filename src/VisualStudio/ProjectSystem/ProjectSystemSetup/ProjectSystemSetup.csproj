@@ -23,6 +23,8 @@
     <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <NoDocumentationFile>true</NoDocumentationFile>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <CopyReferencesByDefault>false</CopyReferencesByDefault>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -38,7 +40,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.CSharp.VS\Microsoft.VisualStudio.ProjectSystem.CSharp.VS.csproj">
       <Project>{765ef6eb-9f36-4d68-8c3d-9e11cd49e0bc}</Project>
-      <Name>Microsoft.VisualStudio.ProjectSystem.CSharp.VS</Name>
+      <Name>Microsoft.VisualStudio.ProjectSystem.CSharp.VS</Name>      
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.CSharp\Microsoft.VisualStudio.ProjectSystem.CSharp.csproj">
       <Project>{7d150b7b-ce02-4cd4-8ec9-6a7c18727a36}</Project>
