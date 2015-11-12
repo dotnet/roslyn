@@ -308,7 +308,7 @@ relational-expression
         ;
 
 case-expression
-        : relational-expression 'case' pattern ':' shift-expression
+        : shift-expression 'case' pattern ':' shift-expression
         ;
 ```
 
@@ -492,9 +492,9 @@ Expr Simplify(Expr e)
 var areas =
     from primitive in primitives
     let area = primitive switch (
-        case Line l: 0
-        case Rectangle r: r.Width * r.Height
-        case Circle c: Math.PI * c.Radius * c.Radius
+        case Line l: 0,
+        case Rectangle r: r.Width * r.Height,
+        case Circle c: Math.PI * c.Radius * c.Radius,
         case *: throw new ApplicationException()
     )
     select new { Primitive = primitive, Area = area };
