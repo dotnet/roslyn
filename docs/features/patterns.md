@@ -149,7 +149,7 @@ Given a match of an expression *e* to the pattern *type* `(` *subpattern-list*<s
 
 If a *subpattern* has an *argument-name*, then every subsequent *subpattern* must have an *argument-name*. In this case each argument name must match a parameter name (of an overloaded `operator is` in the first bullet above, or of the type's parameter list in the second bullet). [Note: this needs to be made more precise.]
 
-#### Property Pattern
+### Property Pattern
 
 A property pattern enables the program to recursively match values extracted by the use of properties.
 
@@ -181,6 +181,8 @@ The scope of a pattern variable is as follows:
 - If the pattern appears in the body of an expression-bodied local function, its scope is that method body.
 - If the pattern appears in a *ctor-initializer*, its scope is the constructor body.
 - If the pattern appears in a field initializer, its scope is that field initializer.
+- If the pattern appears in the pattern of a *let-statement*, its scope is the enclosing block.
+- If the pattern appears in the pattern of a *case-expression*, its scope is the *case-expression*.
 - Otherwise if the pattern appears directly in some *statement*, its scope is that *statement*.
 
 Other cases are errors for other reasons (e.g. in a parameter's default value or an attribute, both of which are an error because those contexts require a constant expression).
@@ -291,6 +293,22 @@ It is an error if the compiler can prove (using a set of techniques that has not
 
 At runtime, the result of the *match-expression* is the value of the *expression* of the first *match-section* for which the expression on the left-hand-side of the *match-expression* matches the *match-section*'s pattern, and for which the *case-guard* of the *match-section*, if present, evaluates to `true`.
 
+## Case expression
+
+A *case-expression* is a short-hand version of the *match-expression* where there is only one case.
+
+```antlr
+relational-expression
+        : case-expression
+        ;
+
+case-expression
+        : relational-expression 'case' pattern ':' shift-expression
+        ;
+```
+
+A *case-expression* of the form *e1* `case` *pattern* `:` *e2* is shorthand for *e1* `switch` `(` `case` *pattern* `:` *e2* `)`
+
 ## Throw expression
 
 We extend the set of expression forms to include
@@ -323,7 +341,7 @@ A *throw expression* is allowed in only the following contexts:
 
 ## Destructuring assignment
 
-Inspired by an [F# feature](https://msdn.microsoft.com/en-us/library/dd233238.aspx) and a [conversation on github](https://github.com/dotnet/roslyn/issues/5154#issuecomment-151974994), we could support decomposition like this:
+Inspired by an [F# feature](https://msdn.microsoft.com/en-us/library/dd233238.aspx) and a [conversation on github](https://github.com/dotnet/roslyn/issues/5154#issuecomment-151974994), and similar features in [Swift](https://developer.apple.com/library/ios/documentation/Swift/Conceptual/Swift_Programming_Language/Statements.html) and proposed for [Rust](https://github.com/mbrubeck/rfcs/blob/if-not-let/text/0000-let-else.md), we support decomposition with a *let statement*:
 
 ```antlr
 block-statement
@@ -334,6 +352,7 @@ let-statement
     : 'let' identifier '=' expression ';'
     | 'let' complex-pattern '=' expression ';'
     | 'let' complex-pattern '=' expression 'else' embedded-statement
+    | 'let' complex-pattern '=' expression 'when' expression 'else' embedded-statement
     ;
 ```
 
@@ -352,11 +371,13 @@ Semantically, it is an error unless precisely one of the following is true
 1. the compiler can prove that the expression always matches the pattern; or
 2. an `else` clause is present.
 
-If an `else` clause is present, it is an error if the endpoint of its *embedded-statement* is reachable.
-
-Any pattern variables in the *pattern* are in scope throughout the enclosing block. They are not definitely assigned before the `else` clause, and are definitely assigned after the *let-statement*. It is an error to use these variables before their point of definition.
+Any pattern variables in the *pattern* are in scope throughout the enclosing block. They are not definitely assigned before the `else` clause. They are definitely assigned after the *let-statement* if there is no `else` clause or they are definitely assigned at the end of the `else` clause (which could only occur because the end point of the `else` clause is unreachable). It is an error to use these variables before their point of definition.
 
 A *let-statement* is a *block-statement* and not an *embedded-statement* because its primary purpose is to introduce names into the enclosing scope. It therefore does not introduce a dangling-else ambiguity.
+
+If a `when` clause is present, the expression following it must be of type `bool`.
+
+Ar runtime the expression to the right of `=` is evaluated and matched against the *pattern*. If the match fails control transfers to the `else` clause. If the match succeeds and there is a `when` clause, the expression following `when` is evaluated, and if its value is `false` control transfers to the `else` clause.
 
 ## Some Possible Optimizations
 
