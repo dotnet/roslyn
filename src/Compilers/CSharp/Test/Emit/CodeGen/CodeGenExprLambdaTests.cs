@@ -5524,16 +5524,37 @@ class C : TestBase
         where T : struct
     {
             Expression<Func<string>> f;
+            Expression<Func<string>> g;
             f = () => $"""";
             Check<string>(f, ""Constant( Type:System.String)"");
+            f = () => $""{1,1}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object)](Constant({0,1} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2,1}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object)](Constant({0}{1,1} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2,1}{3}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object, System.Object)](Constant({0}{1,1}{2} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object), Convert(Constant(3 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2}{3,1}{4}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object[])](Constant({0}{1}{2,1}{3} Type:System.String), NewArrayInit([Convert(Constant(1 Type:System.Int32) Type:System.Object) Convert(Constant(2 Type:System.Int32) Type:System.Object) Convert(Constant(3 Type:System.Int32) Type:System.Object) Convert(Constant(4 Type:System.Int32) Type:System.Object)] Type:System.Object[])) Type:System.String)"");
+
             f = () => $""{1}"";
-            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object)](Constant({0} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            Check<string>(f, ""Call(Constant(1 Type:System.Int32).[System.String ToString()]() Type:System.String)"");
             f = () => $""{1}{2}"";
-            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object)](Constant({0}{1} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            Check<string>(f, ""Call(null.[System.String Concat(System.Object, System.Object)](Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object)) Type:System.String)"");
             f = () => $""{1}{2}{3}"";
-            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object, System.Object)](Constant({0}{1}{2} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object), Convert(Constant(3 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            Check<string>(f, ""Call(null.[System.String Concat(System.Object, System.Object, System.Object)](Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object), Convert(Constant(3 Type:System.Int32) Type:System.Object)) Type:System.String)"");
             f = () => $""{1}{2}{3}{4}"";
-            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object[])](Constant({0}{1}{2}{3} Type:System.String), NewArrayInit([Convert(Constant(1 Type:System.Int32) Type:System.Object) Convert(Constant(2 Type:System.Int32) Type:System.Object) Convert(Constant(3 Type:System.Int32) Type:System.Object) Convert(Constant(4 Type:System.Int32) Type:System.Object)] Type:System.Object[])) Type:System.String)"");
+            Check<string>(f, ""Call(null.[System.String Concat(System.Object[])](NewArrayInit([Convert(Constant(1 Type:System.Int32) Type:System.Object) Convert(Constant(2 Type:System.Int32) Type:System.Object) Convert(Constant(3 Type:System.Int32) Type:System.Object) Convert(Constant(4 Type:System.Int32) Type:System.Object)] Type:System.Object[])) Type:System.String)"");
+
+            f = () => $""{null}{null}{null}"";
+            Check<string>(f, ""Constant( Type:System.String)"");
+            f = () => $""{""""}"";
+            Check<string>(f, ""Constant( Type:System.String)"");
+            f = () => $""{new object()}"";
+            Check<string>(f, ""Coalesce(Call(null.[System.String Concat(System.Object)](New([Void .ctor()]() Type:System.Object)) Type:System.String) Constant( Type:System.String) Type:System.String)"");
+            string x = """";
+            f = () => $""{x}"";
+            g = () => x ?? """";
+            Check<string>(f, ToString<string>(g));
             Console.WriteLine(""DONE"");
     }
 
@@ -5542,7 +5563,7 @@ class C : TestBase
         M<S>();
     }
 }";
-
+            
             const string expectedOutput = @"DONE";
             CompileAndVerify(
                 new[] { source, ExpressionTestLibrary },
