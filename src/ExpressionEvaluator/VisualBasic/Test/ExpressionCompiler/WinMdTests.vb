@@ -41,7 +41,7 @@ End Class"
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies), ' no reference to Windows.winmd
                 exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes))
+                New SymReader(pdbBytes))
             Dim context = CreateMethodContext(runtime, "C.M")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
@@ -248,7 +248,7 @@ End Class"
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 runtimeReferences.AddIntrinsicAssembly(),
                 exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes))
+                New SymReader(pdbBytes))
         End Function
 
         Private Shared Function ToVersion1_3(bytes As Byte()) As Byte()
