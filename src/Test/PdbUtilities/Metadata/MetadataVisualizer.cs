@@ -1482,7 +1482,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 var entry = _reader.GetMethodDebugInformation(handle);
                 
-                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: {Token(() => entry.Document)} #{_reader.GetHeapOffset(entry.SequencePointsBlob):x}");
+                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle):x}: {Token(() => entry.Document)} #{_reader.GetHeapOffset(entry.SequencePointsBlob):x}");
 
                 if (entry.SequencePointsBlob.IsNil)
                 {
@@ -1518,7 +1518,7 @@ namespace Roslyn.Test.MetadataUtilities
                     foreach (var sequencePoint in entry.GetSequencePoints())
                     {
                         _writer.Write("  ");
-                        _writer.WriteLine(sequencePoint);
+                        _writer.WriteLine(FormatSequencePoint(sequencePoint));
                     }
                 }
                 catch (BadImageFormatException)
@@ -1530,6 +1530,12 @@ namespace Roslyn.Test.MetadataUtilities
             }
 
             _writer.WriteLine();
+        }
+
+        private string FormatSequencePoint(SequencePoint sequencePoint)
+        {
+            return $"IL_{sequencePoint.Offset:X4}: " + 
+                (sequencePoint.IsHidden ? "<hidden>" : $"({sequencePoint.StartLine}, {sequencePoint.StartColumn}) - ({sequencePoint.EndLine}, {sequencePoint.EndColumn})");
         }
 
         private void WriteLocalScope()
