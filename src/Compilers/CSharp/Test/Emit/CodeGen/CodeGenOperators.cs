@@ -1797,6 +1797,18 @@ class P
         return (errCount > 0) ? 1 : 0;
     }
 }";
+            // the grammar does not allow a query on the right-hand-side of &&, but we allow it except in strict mode.
+            CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular.WithFeature("strict", "true")).VerifyDiagnostics(
+                // (23,26): error CS1525: Invalid expression term 'from'
+                //         var b = false && from x in src select x; // WRN CS0429
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "from x in src").WithArguments("from").WithLocation(23, 26),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(4, 1),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using System.Linq;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1)
+                );
             CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "0");
         }
