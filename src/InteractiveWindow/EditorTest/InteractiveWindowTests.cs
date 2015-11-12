@@ -764,6 +764,30 @@ System.Console.WriteLine();",
         }
 
         [WpfFact]
+        public void CopyAndPasteFullLineNoSelection()
+        {
+            _testClipboard.Clear();
+
+            Window.InsertCode(
+@"Print(1);
+Print(2);");
+            var caret = Window.TextView.Caret;
+            for (int i = 0; i < 14; ++i)
+            {
+                caret.MoveToPreviousCaretPosition();
+            }
+            // the caret is here:
+            // > Print(1|);       
+            Window.Operations.Copy();
+            VerifyClipboardData("> Print(1);\r\n", 
+                "\\ansi{\\fonttbl{\\f0 Consolas;}}{\\colortbl;\\red0\\green0\\blue0;\\red255\\green255\\blue255;}\\f0 \\fs24 \\cf1 \\cb2 \\highlight2 > Print(1);\\par ",
+                "[{\"content\":\"> \",\"kind\":0},{\"content\":\"Print(1);\\u000d\\u000a\",\"kind\":2}]");  
+
+            Window.Operations.Paste();
+            Assert.Equal("> Print(1);\r\n> Print(1);\r\n> Print(2);", GetTextFromCurrentSnapshot());
+        }
+
+        [WpfFact]
         public void JsonSerialization()
         {
             var expectedContent = new []
@@ -1206,14 +1230,14 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();  
             AssertCaretVirtualPosition(1, 1);
 
-            await TaskRun(() => Window.Operations.Paste()).ConfigureAwait(true);
+            Window.Operations.Paste();
             Assert.Equal("> 1\r\n1\r\n> 2", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(1, 1);
 
             // Paste() with caret in active prompt
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);                                                                                                                     
-            await TaskRun(() => Window.Operations.Paste()).ConfigureAwait(true);
+            Window.Operations.Paste();
 
             Assert.Equal("> 1\r\n1\r\n> 22", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 3);            

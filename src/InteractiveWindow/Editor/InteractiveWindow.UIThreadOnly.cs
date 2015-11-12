@@ -30,6 +30,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     {
         private sealed partial class UIThreadOnly : IDisposable
         {
+            /// <summary>
+            /// A data format used to tag the contents of the clipboard so that it's clear
+            /// the data has been put in the clipboard by our editor
+            /// </summary>
+            private const string ClipboardLineBasedCutCopyTag = "VisualStudioEditorOperationsLineCutCopyClipboardTag";
+
+            /// <summary>
+            /// A data format used to tag the contents of the clipboard as a box selection.
+            /// This is the same string that was used in VS9 and previous versions.
+            /// </summary>
             private const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
             private const int SpansPerLineOfInput = 2;
 
@@ -595,10 +605,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             public bool Paste()
             {
+                bool dataHasLineCutCopyTag = false;
+                bool dataHasBoxCutCopyTag = false;
+
                 // Get text from clipboard
                 string code = Evaluator.FormatClipboard();
                 if (code == null)
                 {
+                    var data = _window.InteractiveWindowClipboard.GetDataObject();
+                    if (data == null)
+                    {
+                        return false;
+                    }
+
+                    dataHasLineCutCopyTag = data.GetDataPresent(ClipboardLineBasedCutCopyTag);
+                    dataHasBoxCutCopyTag = data.GetDataPresent(BoxSelectionCutCopyTag);
+
                     if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
                     {
                         var sb = new StringBuilder();
@@ -641,14 +663,28 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                             return false;
                         }
                     }
-                    else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
+                    else
                     {
-                        MoveCaretToClosestEditableBuffer();
-                    }
-                    else if (MapToEditableBuffer(TextView.Caret.Position.BufferPosition) == null)
-                    {
-                        return false;
-                    }
+                        var caretPosition = TextView.Caret.Position.BufferPosition;
+                        var isInActiveBuffer = IsInActivePrompt(caretPosition);
+
+                        if (isInActiveBuffer)
+                        {
+                            MoveCaretToClosestEditableBuffer();
+                        }
+                        else if (MapToEditableBuffer(caretPosition) == null)
+                        {
+                            return false;
+                        }
+
+                        // if the caret was in active buffer, it was already moved to strat of input line
+                        if (dataHasLineCutCopyTag && !isInActiveBuffer)
+                        {
+                            TextView.Caret.MoveTo(TextView.Caret.Position.BufferPosition.GetContainingLine().Start);
+                            MoveCaretToClosestEditableBuffer();
+                        }
+                    } 
+
                     // do the paste and complete the transaction
                     InsertCode(code);
                     transaction.Complete();
@@ -2499,35 +2535,39 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>
-            /// Copy the entire selection to the clipboard for RTF format and
-            /// copy the selection minus any prompt text for other formats.
-            /// That allows paste into code editors of just the code and
-            /// paste of the entire content for editors that support RTF.
+            /// Copy the entire selection or current line if selection is empty to the clipboard.
+            /// - copy with style for RTF format.
+            /// - copy without style for other text formats.
+            /// - copy each block with buffer info into a costum InteractiveWindow format. 
+            /// This allows paste into code editors of just the code and paste of the entire content for editors that support RTF.
             /// </summary>
             private void CopySelection()
             {
-                var spans = GetSelectionSpans(TextView);
-                var data = Copy(spans);
-                _window.InteractiveWindowClipboard.SetDataObject(data, true);
-            }
-
-            private static NormalizedSnapshotSpanCollection GetSelectionSpans(ITextView textView)
-            {
-                var selection = textView.Selection;
-                if (selection.IsEmpty)
+                if (TextView.Selection.IsEmpty)
                 {
                     // Use the current line as the selection.
-                    var snapshotLine = textView.Caret.Position.VirtualBufferPosition.Position.GetContainingLine();
-                    var span = new SnapshotSpan(snapshotLine.Start, snapshotLine.LengthIncludingLineBreak);
-                    return new NormalizedSnapshotSpanCollection(span);
+                    var snapshotLine = TextView.Caret.Position.VirtualBufferPosition.Position.GetContainingLine();
+                    var span = new SnapshotSpan(snapshotLine.Start, snapshotLine.LengthIncludingLineBreak);  
+                    CopyToClipboard(new NormalizedSnapshotSpanCollection(span), lineCutCopyTag: true, boxCutCopyTag: false);
                 }
-                return selection.SelectedSpans;
+                else
+                {
+                    CopyToClipboard(TextView.Selection.SelectedSpans, lineCutCopyTag: false, boxCutCopyTag: TextView.Selection.Mode == TextSelectionMode.Box);
+                }
             }
 
-            private DataObject Copy(NormalizedSnapshotSpanCollection spans)
+            private void CopyToClipboard(NormalizedSnapshotSpanCollection spans, bool lineCutCopyTag, bool boxCutCopyTag)
             {
+                var data = new DataObject();
+
                 var text = GetText(spans);
+                data.SetData(DataFormats.Text, text);
+                data.SetData(DataFormats.StringFormat, text);
+                data.SetData(DataFormats.UnicodeText, text);
+
                 var blocks = GetTextBlocks(spans);
+                data.SetData(ClipboardFormat, blocks);
+
                 string rtf = null;
                 try
                 {
@@ -2537,16 +2577,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     // Ignore cancellation when doing a copy. The user may not even want RTF text so preventing the normal text from being copied would be overkill.
                 }
-                var data = new DataObject();
-                data.SetData(DataFormats.StringFormat, text);
-                data.SetData(DataFormats.Text, text);
-                data.SetData(DataFormats.UnicodeText, text);
                 if (rtf != null)
                 {
                     data.SetData(DataFormats.Rtf, rtf);
                 }
-                data.SetData(ClipboardFormat, blocks);
-                return data;
+
+                //tag the data in the clipboard if requested
+                if (lineCutCopyTag)
+                {
+                    data.SetData(ClipboardLineBasedCutCopyTag, true);
+                }
+
+                if (boxCutCopyTag)
+                {
+                    data.SetData(BoxSelectionCutCopyTag, true);
+                }
+
+                _window.InteractiveWindowClipboard.SetDataObject(data, true);
             }
 
             private string GenerateRtf(NormalizedSnapshotSpanCollection spans)
