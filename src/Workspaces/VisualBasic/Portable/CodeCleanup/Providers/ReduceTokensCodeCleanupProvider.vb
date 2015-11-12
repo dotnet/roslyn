@@ -76,8 +76,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         ' Get the literal identifier text which needs to be pretty listed.
                         Dim idText = literal.GetIdentifierText()
 
-                        'Value could be Short/UShort/Integer/UInteger/Long/ULong
-                        'We need to detect this and get the correct value
+                        'The value will only ever be negative when we have a hex or oct value
+                        'it's safe to cast to ULong as we check for negative values later
                         Dim value As ULong = CType(literal.Value, ULong)
 
                         If value = 0 AndAlso HasOverflow(literal.GetDiagnostics()) Then
