@@ -113,8 +113,8 @@ using System;
 #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
 #pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
 class Class1
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
 #pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
+#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
 {
     int Method()
     {
@@ -125,8 +125,8 @@ class Class1
 #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
 #pragma warning disable InfoDiagnostic2 // InfoDiagnostic2 Title
 class Class2
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
 #pragma warning restore InfoDiagnostic2 // InfoDiagnostic2 Title
+#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
 {
 }
 class Class3 { }
