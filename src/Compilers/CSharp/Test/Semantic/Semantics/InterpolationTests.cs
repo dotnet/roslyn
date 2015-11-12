@@ -38,6 +38,59 @@ Jenny don't change your number     867-5309.
         }
 
         [Fact]
+        public void TestFormatAndConcatOverloads()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""{null}"" == """"); // """"
+
+        string s = null;
+        Console.WriteLine($""{s}"" == """"); // s ?? """"
+        Console.WriteLine($""{s}{s}"" == """"); // Concat(string, string) ?? """"
+        Console.WriteLine($""{s} {s}"" == "" ""); // Concat(string, string, string)
+        Console.WriteLine($""{s}{s}{s}"" == """"); // Concat(string, string, string) ?? """"
+        Console.WriteLine($""{s}{s}{s}{s}"" == """"); // Concat(string, string, string, string) ?? """"
+        Console.WriteLine($""{s}{s}{s}{s}{s}"" == """"); // Concat(string[]) ?? """"
+        
+        object o = null;
+        Console.WriteLine($""{o}"" == """"); // Concat(object) ?? """"
+        Console.WriteLine($""{o}{1}"" == ""1""); // Concat(object, object)
+        Console.WriteLine($""{o}{o}"" == """"); // Concat(object, object) ?? """"
+        Console.WriteLine($""{o}{o}{o}"" == """"); // Concat(object, object, object) ?? """"
+        Console.WriteLine($""{o}{o}{o}{o}"" == """"); // Concat(object[]) ?? """"
+        
+        Console.WriteLine($""{null,0}"" == """"); // Format(string, object)
+        Console.WriteLine($""{null,0}{null}"" == """"); // Format(string, object, object)
+        Console.WriteLine($""{null,0}{null}{null}"" == """"); // Format(string, object, object, object)
+        Console.WriteLine($""{null,0}{null}{null}{null}"" == """"); // Format(string, object[])
+    }
+}
+";
+            string expectedOutput =
+@"True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void TestOnlyInterp()
         {
             string source =
@@ -914,14 +967,18 @@ class Program {
         public static void Main()
         {
             var s = $""X = { 1 } "";
+            var t = $""X = { 1 , 1 } "";
         }
     }
 }";
             CreateCompilation(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
-                // (15,21): error CS0117: 'string' does not contain a definition for 'Format'
+                // (15,21): error CS0117: 'string' does not contain a definition for 'Concat'
                 //             var s = $"X = { 1 } ";
-                Diagnostic(ErrorCode.ERR_NoSuchMember, @"$""X = { 1 } """).WithArguments("string", "Concat").WithLocation(15, 21)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, @"$""X = { 1 } """).WithArguments("string", "Concat").WithLocation(15, 21),
+                // (16,21): error CS0117: 'string' does not contain a definition for 'Format'
+                //             var s = $"X = { 1 , 1 } ";
+                Diagnostic(ErrorCode.ERR_NoSuchMember, @"$""X = { 1 , 1 } """).WithArguments("string", "Format").WithLocation(16, 21)
             );
         }
 
@@ -953,7 +1010,7 @@ class Program {
             CreateCompilation(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (17,21): error CS0029: Cannot implicitly convert type 'bool' to 'string'
-                //             var s = $"X = { 1 } ";
+                //             var s = $"X = { 1 , 1 } ";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""X = { 1 , 1 } """).WithArguments("bool", "string").WithLocation(17, 21)
             );
         }
