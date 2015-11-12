@@ -3,4 +3,4 @@
 using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Setup;
 
-[assembly: ProvideRoslynBindingRedirection("Microsoft.Build.Tasks.CodeAnalysis")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.Build.Tasks.CodeAnalysis.dll")]
