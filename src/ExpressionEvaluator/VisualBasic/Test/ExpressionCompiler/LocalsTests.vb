@@ -451,7 +451,7 @@ End Class
             locals.Free()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6651")>
+        <Fact>
         Public Sub Constants()
             Const source = "
 Class C
