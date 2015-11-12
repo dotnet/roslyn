@@ -53,9 +53,13 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
         {
             // First we want to ensure any existing Roslyn files are deleted so we don't have old stuff floating
             // aroud and causing troubles
-            foreach (var file in new DirectoryInfo(GetMSBuildPath()).EnumerateFiles($"*Roslyn*{hiveName}*", SearchOption.AllDirectories))
+            var msbuildDirectory = new DirectoryInfo(GetMSBuildPath());
+            if (msbuildDirectory.Exists)
             {
-                file.Delete();
+                foreach (var file in msbuildDirectory.EnumerateFiles($"*Roslyn*{hiveName}*", SearchOption.AllDirectories))
+                {
+                    file.Delete();
+                }
             }
 
             try
