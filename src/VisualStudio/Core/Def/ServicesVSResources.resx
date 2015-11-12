@@ -489,20 +489,17 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="SuppressMultipleOccurrences" xml:space="preserve">
     <value>Suppress diagnostics</value>
   </data>
-  <data name="ComputingSuppressionFix" xml:space="preserve">
-    <value>Computing suppressions fix...</value>
+  <data name="ComputingDiagnostics" xml:space="preserve">
+    <value>Computing diagnostics...</value>
   </data>
-  <data name="ApplyingSuppressionFix" xml:space="preserve">
-    <value>Applying suppressions fix...</value>
+  <data name="ComputingFix" xml:space="preserve">
+    <value>Computing fix...</value>
+  </data>
+  <data name="ApplyingFix" xml:space="preserve">
+    <value>Applying fix...</value>
   </data>
   <data name="RemoveSuppressMultipleOccurrences" xml:space="preserve">
     <value>Remove suppressions</value>
-  </data>
-  <data name="ComputingRemoveSuppressionFix" xml:space="preserve">
-    <value>Computing remove suppressions fix...</value>
-  </data>
-  <data name="ApplyingRemoveSuppressionFix" xml:space="preserve">
-    <value>Applying remove suppressions fix...</value>
   </data>
   <data name="ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>

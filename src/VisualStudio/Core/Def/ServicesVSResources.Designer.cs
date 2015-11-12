@@ -88,20 +88,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Applying remove suppressions fix....
+        ///   Looks up a localized string similar to Applying fix....
         /// </summary>
-        internal static string ApplyingRemoveSuppressionFix {
+        internal static string ApplyingFix {
             get {
-                return ResourceManager.GetString("ApplyingRemoveSuppressionFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Applying suppressions fix....
-        /// </summary>
-        internal static string ApplyingSuppressionFix {
-            get {
-                return ResourceManager.GetString("ApplyingSuppressionFix", resourceCulture);
+                return ResourceManager.GetString("ApplyingFix", resourceCulture);
             }
         }
         
@@ -151,20 +142,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Computing remove suppressions fix....
+        ///   Looks up a localized string similar to Computing diagnostics....
         /// </summary>
-        internal static string ComputingRemoveSuppressionFix {
+        internal static string ComputingDiagnostics {
             get {
-                return ResourceManager.GetString("ComputingRemoveSuppressionFix", resourceCulture);
+                return ResourceManager.GetString("ComputingDiagnostics", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Computing suppressions fix....
+        ///   Looks up a localized string similar to Computing fix....
         /// </summary>
-        internal static string ComputingSuppressionFix {
+        internal static string ComputingFix {
             get {
-                return ResourceManager.GetString("ComputingSuppressionFix", resourceCulture);
+                return ResourceManager.GetString("ComputingFix", resourceCulture);
             }
         }
         
@@ -1192,7 +1183,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analyzer assembly &apos;{0}&apos; depends on &apos;{1}&apos; but it was not found. Analyzers may not run correctly..
+        ///   Looks up a localized string similar to Analyzer assembly &apos;{0}&apos; depends on &apos;{1}&apos; but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well..
         /// </summary>
         internal static string WRN_MissingAnalyzerReferenceMessage {
             get {
