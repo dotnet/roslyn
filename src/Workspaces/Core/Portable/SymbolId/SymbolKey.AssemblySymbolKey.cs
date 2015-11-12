@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -29,10 +30,10 @@ namespace Microsoft.CodeAnalysis
                     yield return compilation.Assembly;
                 }
 
-                foreach (var reference in compilation.References)
+                // Might need keys for symbols from previous script compilations.
+                foreach (var assembly in compilation.GetReferencedAssemblySymbols())
                 {
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assembly != null && (ignoreAssemblyKey || assembly.Identity.Name == _assemblyName))
+                    if (ignoreAssemblyKey || assembly.Identity.Name == _assemblyName)
                     {
                         yield return assembly;
                     }
