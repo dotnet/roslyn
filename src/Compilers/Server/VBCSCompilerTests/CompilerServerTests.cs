@@ -2396,38 +2396,6 @@ namespace Class____foo____Library1
         private static readonly int s_fiveSecMillis = (int)s_fiveSec.TotalMilliseconds;
 
         [Fact]
-        public void MutexStopsServerStarting()
-        {
-            var pipename = Guid.NewGuid().ToString("N");
-            var mutexName = $"{pipename}.server";
-
-            bool holdsMutex;
-            using (var mutex = new Mutex(initiallyOwned: true,
-                                         name: mutexName,
-                                         createdNew: out holdsMutex))
-            {
-                Assert.True(holdsMutex);
-                try
-                {
-                    var result = ProcessUtilities.StartProcess(_compilerServerExecutable,
-                                                               $"-pipename:{pipename}");
-
-                    // Wait up to 5 seconds for the process to exit
-                    var exited = result.WaitForExit(s_fiveSecMillis);
-                    if (!exited)
-                    {
-                        result.Kill();
-                    }
-                    Assert.True(exited);
-                }
-                finally
-                {
-                    mutex.ReleaseMutex();
-                }
-            }
-        }
-
-        [Fact]
         public void ServerWithSamePipeNameExits()
         {
             var pipename = Guid.NewGuid().ToString("N");

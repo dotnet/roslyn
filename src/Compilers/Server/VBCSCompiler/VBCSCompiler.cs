@@ -17,18 +17,14 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal static class VBCSCmopiler
+    internal static class VBCSCompiler
     {
         public static int Main(string[] args)
         {
             CompilerServerLogger.Initialize("SRV");
             CompilerServerLogger.Log("Process started");
 
-            TimeSpan? keepAliveTimeout = null;
-
-            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
-            // location of the response files.
-            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var keepAliveTimeout = GetKeepAliveTimeout();
 
             // Pipename should be passed as the first and only argument to the server process
             // and it must have the form "-pipename:name". Otherwise, exit with a non-zero
@@ -42,33 +38,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             var pipeName = args[0].Substring(pipeArgPrefix.Length);
-
-            // Grab the server mutex to prevent multiple servers from starting with the same
-            // pipename and consuming excess resources. If someone else holds the mutex
-            // exit immediately with a non-zero exit code
             var serverMutexName = $"{pipeName}.server";
-            bool holdsMutex;
-            using (var serverMutex = new Mutex(initiallyOwned: true,
-                                               name: serverMutexName,
-                                               createdNew: out holdsMutex))
-            {
-                if (!holdsMutex)
-                {
-                    return CommonCompiler.Failed;
-                }
 
-                try
-                {
-                    return Run(keepAliveTimeout, clientDirectory, pipeName);
-                }
-                finally
-                {
-                    serverMutex.ReleaseMutex();
-                }
-            }
+            // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
+            // location of the response files.
+            var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
+            var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
+            var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
+            return Run(serverMutexName, clientConnectionHost, keepAliveTimeout);
         }
 
-        private static int Run(TimeSpan? keepAliveTimeout, string clientDirectory, string pipeName)
+        private static TimeSpan? GetKeepAliveTimeout()
         {
             try
             {
@@ -80,31 +61,57 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     if (keepAliveValue == 0)
                     {
                         // This is a one time server entry.
-                        keepAliveTimeout = null;
+                        return null;
                     }
                     else
                     {
-                        keepAliveTimeout = TimeSpan.FromSeconds(keepAliveValue);
+                        return TimeSpan.FromSeconds(keepAliveValue);
                     }
                 }
                 else
                 {
-                    keepAliveTimeout = ServerDispatcher.DefaultServerKeepAlive;
+                    return ServerDispatcher.DefaultServerKeepAlive;
                 }
             }
             catch (ConfigurationErrorsException e)
             {
-                keepAliveTimeout = ServerDispatcher.DefaultServerKeepAlive;
                 CompilerServerLogger.LogException(e, "Could not read AppSettings");
+                return ServerDispatcher.DefaultServerKeepAlive;
             }
+        }
 
+        internal static int Run(string mutexName, IClientConnectionHost connectionHost, TimeSpan? keepAlive)
+        {
+            // Grab the server mutex to prevent multiple servers from starting with the same
+            // pipename and consuming excess resources. If someone else holds the mutex
+            // exit immediately with a non-zero exit code
+            bool holdsMutex;
+            using (var serverMutex = new Mutex(initiallyOwned: true,
+                                               name: mutexName,
+                                               createdNew: out holdsMutex))
+            {
+                if (!holdsMutex)
+                {
+                    return CommonCompiler.Failed;
+                }
+
+                try
+                {
+                    return RunCore(connectionHost, keepAlive);
+                }
+                finally
+                {
+                    serverMutex.ReleaseMutex();
+                }
+            }
+        }
+
+        private static int RunCore(IClientConnectionHost connectionHost, TimeSpan? keepAliveTimeout)
+        {
             CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
             FatalError.Handler = FailFast.OnFatalException;
 
-            var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-            var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
-            var clientConnectionHost = new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
-            var dispatcher = new ServerDispatcher(clientConnectionHost, new EmptyDiagnosticListener());
+            var dispatcher = new ServerDispatcher(connectionHost, new EmptyDiagnosticListener());
             dispatcher.ListenAndDispatchConnections(keepAliveTimeout);
             return CommonCompiler.Succeeded;
         }

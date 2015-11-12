@@ -320,5 +320,54 @@ class Hello
             Assert.True(listener.HasDetectedBadConnection);
             Assert.True(listenCancellationToken.IsCancellationRequested);
         }
+
+        [Fact]
+        public void MutexStopsServerStarting()
+        {
+            var mutexName = Guid.NewGuid().ToString("N");
+
+            bool holdsMutex;
+            using (var mutex = new Mutex(initiallyOwned: true,
+                                         name: mutexName,
+                                         createdNew: out holdsMutex))
+            {
+                Assert.True(holdsMutex);
+                try
+                {
+                    var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
+                    var result = VBCSCompiler.Run(mutexName, host.Object, keepAlive: null);
+                    Assert.Equal(CommonCompiler.Failed, result);
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+            }
+        }
+
+        [Fact]
+        public void MutexAcquiredWhenRunningServer()
+        {
+            var mutexName = Guid.NewGuid().ToString("N");
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
+            host
+                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Returns(() =>
+                {
+                    var task = new Task(() =>
+                    {
+                        Mutex mutex;
+                        Assert.True(Mutex.TryOpenExisting(mutexName, out mutex));
+                        Assert.False(mutex.WaitOne(millisecondsTimeout: 0));
+                    });
+                    task.Start(TaskScheduler.Default);
+                    task.Wait();
+
+                    return new TaskCompletionSource<IClientConnection>().Task;
+                });
+
+            var result = VBCSCompiler.Run(mutexName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
+            Assert.Equal(CommonCompiler.Succeeded, result);
+        }
     }
 }
