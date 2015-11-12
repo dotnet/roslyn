@@ -269,8 +269,13 @@ match-expression
     ;
 
 match-block
-    : '(' match-section+ ')'
+    : '(' match-sections ','? ')'
     ;
+
+match-sections
+	: match-section
+	| match-sections ',' match-section
+	;
 ```
 
 At least one *match-section* is required.
@@ -285,7 +290,7 @@ case-guard
     ;
 ```
 
-It is not proposed that *match-expression* be added to the set of syntax forms allowed as an *expression-statement*.
+The *match-expression* is not allowed as an *expression-statement*.
 
 The type of the *match-expression* is the *least common type* of the expressions appearing to the right of the `:` tokens of the *match section*s.
 
