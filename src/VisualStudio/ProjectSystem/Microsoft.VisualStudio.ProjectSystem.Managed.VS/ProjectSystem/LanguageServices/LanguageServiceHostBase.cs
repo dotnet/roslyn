@@ -196,7 +196,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
             ProjectAsynchronousTasksService.UnloadCancellationToken.ThrowIfCancellationRequested();
 
             // Don't start until the project has been loaded as far as the IDE is concerned.
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
             await ProjectAsyncLoadDashboard.ProjectLoadedInHost;
+#pragma warning restore RS0003 // Do not directly await a Task
 
             // Defer this work until VS has idle time.  Otherwise we'll block the UI thread to load the MSBuild project evaluation
             // during synchronous project load time.
@@ -242,7 +244,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                         }
 
                         Marshal.ThrowExceptionForHR(_intellisenseEngine.Init(this));
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
                         await LanguageServiceRegister.RegisterProjectAsync(this);
+#pragma warning restore RS0003 // Do not directly await a Task
                     }
                 });
 
@@ -306,7 +310,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 
             HResult hr = HrInvoke(async delegate
             {
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
                 var generalProperties = await _projectVsServices.ActiveConfiguredProjectProperties.GetConfigurationGeneralPropertiesAsync();
+#pragma warning restore RS0003 // Do not directly await a Task
 
                 switch (dwPropID)
                 {
@@ -317,7 +323,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                         pvar = UnconfiguredProject.FullPath;
                         break;
                     case (uint)HOSTPROPID.HOSTPROPID_INTELLISENSECACHE_FILENAME:
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
                         string intDir = await generalProperties.IntDir.GetEvaluatedValueAtEndAsync();
+#pragma warning restore RS0003 // Do not directly await a Task
                         string cacheFile = Path.Combine(intDir, Path.GetFileNameWithoutExtension(UnconfiguredProject.FullPath) + ".cachedata");
                         pvar = cacheFile;
                         break;
@@ -325,7 +333,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
                         pvar = UnconfiguredProject.FullPath;
                         break;
                     case HOSTPROPID_TARGETFRAMEWORKMONIKER:
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
                         pvar = await generalProperties.TargetFrameworkMoniker.GetEvaluatedValueAtEndAsync();
+#pragma warning restore RS0003 // Do not directly await a Task
                         break;
                     case HOSTPROPID_SUPPRESSSHADOWWARNINGS:
                         pvar = false;
@@ -357,8 +367,13 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
             string pbstrOutputAssembly = null;
             HResult hr = HrInvoke(async delegate
             {
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
                 var generalProperties = await _projectVsServices.ActiveConfiguredProjectProperties.GetConfigurationGeneralPropertiesAsync();
+#pragma warning restore RS0003 // Do not directly await a Task
+
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
                 pbstrOutputAssembly = await generalProperties.TargetPath.GetEvaluatedValueAtEndAsync();
+#pragma warning restore RS0003 // Do not directly await a Task
             });
 
             pbstrOutputAssemblyParam = pbstrOutputAssembly;
@@ -442,7 +457,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
             {
                 ThreadHandling.AsyncPump.Run(async delegate
                 {
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
                     await LanguageServiceRegister.UnregisterAsync(this);
+#pragma warning restore RS0003 // Do not directly await a Task
                     if (_intellisenseEngine != null)
                     {
                         await ThreadHandling.AsyncPump.SwitchToMainThreadAsync();
@@ -521,7 +538,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
             {
                 var sourceFiles = e.Value.ProjectChanges[CSharp.SchemaName];
                 var projectReferences = e.Value.ProjectChanges[ProjectReference.SchemaName];
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
                 var treeUpdate = await ProjectTreeService.PublishLatestTreeAsync(blockDuringLoadingTree: true);
+#pragma warning restore RS0003 // Do not directly await a Task
                 var tree = treeUpdate.Tree;
 
                 foreach (var sourceUnit in sourceFiles.Difference.AddedItems.Select(item => SourceFileToLanguageServiceUnit(item, tree)).Where(u => u != null))

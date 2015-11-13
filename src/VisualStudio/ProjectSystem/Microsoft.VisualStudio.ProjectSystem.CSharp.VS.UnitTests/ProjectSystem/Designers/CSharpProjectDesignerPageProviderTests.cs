@@ -20,7 +20,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         {
             var provider = CreateInstance();
 
+#pragma warning disable RS0003 // Do not directly await a Task (see https://github.com/dotnet/roslyn/issues/6770)
             var pages = await provider.GetPagesAsync();
+#pragma warning restore RS0003 // Do not directly await a Task
 
             Assert.Equal(pages.Count(), 1);
             Assert.Same(pages.ElementAt(0), CSharpProjectDesignerPage.Application);            
