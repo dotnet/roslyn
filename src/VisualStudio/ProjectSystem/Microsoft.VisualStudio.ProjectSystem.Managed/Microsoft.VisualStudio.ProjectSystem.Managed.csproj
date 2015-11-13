@@ -92,32 +92,4 @@
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-
-
-  <PropertyGroup>
-    <ResolveAssemblyReferencesDependsOn>
-      $(ResolveAssemblyReferencesDependsOn)
-      MarkReferencesAsNonCopyLocal;
-    </ResolveAssemblyReferencesDependsOn>
-
-    <!-- By default we turn off copying for most projects, only 'deployment' should copy the binaries -->
-    <MarkReferencesAsNonCopyLocal Condition="'$(MarkReferencesAsNonCopyLocal)' == ''">true</MarkReferencesAsNonCopyLocal>
-  </PropertyGroup>
-
-  <Target Name="MarkReferencesAsNonCopyLocal" Condition="'$(MarkReferencesAsNonCopyLocal)' == 'true'">
-
-    <!-- Turn off implict reference copying to prevent projects from copying
-         the same files over and over again to the shared build directory -->
-
-    <ItemGroup>
-      <Reference Condition="'%(Reference.Private)' == '' OR '%(Reference.Private)' == 'true'">
-        <Private>false</Private>
-      </Reference>
-
-      <ProjectReference Condition="'%(ProjectReference.Private)' == '' OR '%(ProjectReference.Private)' == 'true'">
-        <Private>false</Private>
-      </ProjectReference>
-    </ItemGroup>
-
-  </Target>
 </Project>
