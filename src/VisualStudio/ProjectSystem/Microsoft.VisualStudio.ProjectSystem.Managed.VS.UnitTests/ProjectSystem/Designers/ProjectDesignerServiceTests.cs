@@ -11,7 +11,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
-    [UnitTestTrait]
+    [ProjectSystemTrait]
     public class ProjectDesignerServiceTests
     {
         [Fact]

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
-    [UnitTestTrait]
+    [ProjectSystemTrait]
     public class OpenProjectDesignerOnDefaultActionCommandTests : OpenProjectDesignerCommandBaseTests
     {
         [Fact]
