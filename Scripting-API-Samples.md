@@ -105,7 +105,7 @@ var script = CSharpScript.
     ContinueWith("int y = 2;").
     ContinueWith("x + y");
 
-Console.WriteLine(await script.EvaluateAsync());
+Console.WriteLine(await script.RunAsync());
 ```
 
 ### <a name="previoustate"></a> Continue script execution from a previous state
