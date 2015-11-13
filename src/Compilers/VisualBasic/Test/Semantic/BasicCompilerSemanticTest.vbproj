@@ -18,6 +18,10 @@
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Core\CodeAnalysisTest\CodeAnalysisTest.csproj">
+      <Project>{a4c99b85-765c-4c65-9c2a-bb609aab09e6}</Project>
+      <Name>CodeAnalysisTest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -114,6 +118,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.vb" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.vb" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.vb" />
+    <Compile Include="Diagnostics\OperationAnalyzerTests.vb" />
     <Compile Include="ExtensionMethods\SemanticModelTests.vb" />
     <Compile Include="Extensions.vb" />
     <Compile Include="FlowAnalysis\FlowDiagnosticTests.vb" />

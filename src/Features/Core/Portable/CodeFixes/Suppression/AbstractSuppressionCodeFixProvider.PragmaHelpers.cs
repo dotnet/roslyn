@@ -79,9 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     walkedPastDiagnosticSpan = walkedPastDiagnosticSpan || shouldConsiderTrivia(trivia);
                     seenEndOfLineTrivia = seenEndOfLineTrivia ||
-                        (fixer.IsEndOfLine(trivia) || 
-                         (trivia.HasStructure &&
-                          trivia.GetStructure().DescendantTrivia().Any(t => fixer.IsEndOfLine(t))));
+                        IsEndOfLineOrContainsEndOfLine(trivia, fixer);
 
                     if (walkedPastDiagnosticSpan && seenEndOfLineTrivia)
                     {
@@ -114,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 bool needsLeadingEOL;
                 if (index > 0)
                 {
-                    needsLeadingEOL = !fixer.IsEndOfLine(insertAfterTrivia);
+                    needsLeadingEOL = !IsEndOfLineOrHasTrailingEndOfLine(insertAfterTrivia, fixer);
                 }
                 else if (startToken.FullSpan.Start == 0)
                 {
@@ -132,11 +130,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return startToken.WithLeadingTrivia(trivia.InsertRange(index, pragmaTrivia));
             }
 
+            private static bool IsEndOfLineOrHasLeadingEndOfLine(SyntaxTrivia trivia, AbstractSuppressionCodeFixProvider fixer)
+            {
+                return fixer.IsEndOfLine(trivia) ||
+                    (trivia.HasStructure && fixer.IsEndOfLine(trivia.GetStructure().DescendantTrivia().FirstOrDefault()));
+            }
+
+            private static bool IsEndOfLineOrHasTrailingEndOfLine(SyntaxTrivia trivia, AbstractSuppressionCodeFixProvider fixer)
+            {
+                return fixer.IsEndOfLine(trivia) ||
+                    (trivia.HasStructure && fixer.IsEndOfLine(trivia.GetStructure().DescendantTrivia().LastOrDefault()));
+            }
+
+            private static bool IsEndOfLineOrContainsEndOfLine(SyntaxTrivia trivia, AbstractSuppressionCodeFixProvider fixer)
+            {
+                return fixer.IsEndOfLine(trivia) ||
+                    (trivia.HasStructure && trivia.GetStructure().DescendantTrivia().Any(t => fixer.IsEndOfLine(t)));
+            }
+
             internal static async Task<SyntaxToken> GetNewEndTokenWithAddedPragmaAsync(
                 SyntaxToken endToken,
                 TextSpan currentDiagnosticSpan,
                 Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer,
+                AbstractSuppressionCodeFixProvider fixer, 
                 Func<SyntaxNode, Task<SyntaxNode>> formatNode,
                 bool isRemoveSuppression = false)
             {
@@ -157,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 bool needsTrailingEOL;
                 if (index < trivia.Length)
                 {
-                    needsTrailingEOL = !fixer.IsEndOfLine(insertBeforeTrivia);
+                    needsTrailingEOL = !IsEndOfLineOrHasLeadingEndOfLine(insertBeforeTrivia, fixer);
                 }
                 else if (isEOF)
                 {

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies), // no reference to Windows.winmd
                 exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
+                new SymReader(pdbBytes));
             var context = CreateMethodContext(runtime, "C.M");
             string error;
             var testData = new CompilationTestData();
@@ -97,7 +97,7 @@ class C
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies), // no reference to Windows.winmd
                 exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
+                new SymReader(pdbBytes));
             var context = CreateMethodContext(runtime, "C.M");
             string error;
             var testData = new CompilationTestData();
@@ -389,7 +389,7 @@ class C
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 runtimeReferences.AddIntrinsicAssembly(),
                 exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
+                new SymReader(pdbBytes));
         }
 
         private static byte[] ToVersion1_3(byte[] bytes)

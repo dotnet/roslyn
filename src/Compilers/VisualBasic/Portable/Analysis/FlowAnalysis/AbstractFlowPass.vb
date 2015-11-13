@@ -2602,6 +2602,12 @@ EnteredRegion:
             VisitRvalue(node.FormatStringOpt)
             Return Nothing
         End Function
+
+        Public Overrides Function VisitEqualsValue(node As BoundEqualsValue) As BoundNode
+            VisitRvalue(node.Value)
+            Return Nothing
+        End Function
+
 #End Region
 
     End Class

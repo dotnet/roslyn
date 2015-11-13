@@ -104,6 +104,7 @@
     <Compile Include="Pdb\CustomDebugInfoUtilities.cs" />
     <Compile Include="Pdb\PdbToXml.cs" />
     <Compile Include="Pdb\PdbToXmlOptions.cs" />
+    <Compile Include="Pdb\SymReader.cs" />
     <Compile Include="Pdb\SymReaderFactory.cs" />
     <Compile Include="Pdb\Token2SourceLineExporter.cs" />
     <Compile Include="Shared\CustomDebugInfoReader.cs" />

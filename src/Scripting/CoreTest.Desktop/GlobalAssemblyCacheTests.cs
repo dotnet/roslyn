@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class GlobalAssemblyCacheTests
     {
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6179")]
         public void GetAssemblyIdentities()
         {
             AssemblyIdentity[] names;
