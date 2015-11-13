@@ -30,6 +30,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     {
         private sealed partial class UIThreadOnly : IDisposable
         {
+            // The following two field definitions have to stay in sync with VS editor implementation
+
             /// <summary>
             /// A data format used to tag the contents of the clipboard so that it's clear
             /// the data has been put in the clipboard by our editor
@@ -41,6 +43,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// This is the same string that was used in VS9 and previous versions.
             /// </summary>
             private const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
+
             private const int SpansPerLineOfInput = 2;
 
             private static readonly object SuppressPromptInjectionTag = new object();
@@ -51,6 +54,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly ITextBufferUndoManagerProvider _textBufferUndoManagerProvider;
             private ITextBufferUndoManager _undoManager;
+
             // this is exposed only for test purpose
             public ITextUndoHistory UndoHistory_TestOnly
             {
@@ -621,6 +625,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     dataHasLineCutCopyTag = data.GetDataPresent(ClipboardLineBasedCutCopyTag);
                     dataHasBoxCutCopyTag = data.GetDataPresent(BoxSelectionCutCopyTag);
 
+                    Debug.Assert((dataHasLineCutCopyTag && dataHasBoxCutCopyTag) == false);
+
                     if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
                     {
                         var sb = new StringBuilder();
@@ -666,9 +672,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     else
                     {
                         var caretPosition = TextView.Caret.Position.BufferPosition;
-                        var isInActiveBuffer = IsInActivePrompt(caretPosition);
+                        var isInActivePrompt = IsInActivePrompt(caretPosition);
 
-                        if (isInActiveBuffer)
+                        if (isInActivePrompt)
                         {
                             MoveCaretToClosestEditableBuffer();
                         }
@@ -677,14 +683,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                             return false;
                         }
 
-                        // if the caret was in active buffer, it was already moved to strat of input line
-                        if (dataHasLineCutCopyTag && !isInActiveBuffer)
+                        // Move caret to the begining of the line for pasting full-line.
+                        // If the caret was in active prompt, it was already moved to strat of input line
+                        if (dataHasLineCutCopyTag && !isInActivePrompt)
                         {
-                            TextView.Caret.MoveTo(TextView.Caret.Position.BufferPosition.GetContainingLine().Start);
-                            MoveCaretToClosestEditableBuffer();
+                            var endPoint = GetSourceBufferPoint(caretPosition.GetContainingLine().End);
+                            TextView.Caret.MoveTo(GetProjectionBufferPoint(endPoint.GetContainingLine().Start));
                         }
-                    } 
-
+                    }
                     // do the paste and complete the transaction
                     InsertCode(code);
                     transaction.Complete();
@@ -2019,6 +2025,33 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>
+            /// Maps projectionBufferPoint down to first matching source buffer. 
+            /// </summary>
+            /// <param name="projectionBufferPoint">Must be a point in projectin buffer</param> 
+            private SnapshotPoint GetSourceBufferPoint(SnapshotPoint projectionBufferPoint)
+            {
+                Debug.Assert(projectionBufferPoint.Snapshot.TextBuffer == _projectionBuffer);
+
+                return TextView.BufferGraph.MapDownToFirstMatch(
+                    projectionBufferPoint,
+                    PointTrackingMode.Positive,
+                    snapshot => snapshot.TextBuffer != _projectionBuffer,
+                    PositionAffinity.Successor).Value;
+            }
+
+            /// <summary>
+            /// Maps sourceBufferPoint up to projection buffer.
+            /// </summary>               
+            private SnapshotPoint GetProjectionBufferPoint(SnapshotPoint sourceBufferPoint)
+            {
+                return TextView.BufferGraph.MapUpToBuffer(
+                    sourceBufferPoint,
+                    PointTrackingMode.Positive,
+                    PositionAffinity.Successor,
+                    _projectionBuffer).Value;
+            }
+
+            /// <summary>
             /// Moves to the beginning of the line.
             /// Implements <see cref="IInteractiveWindowOperations.Home"/>.
             /// </summary>
@@ -2439,7 +2472,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                                                                                _projectionBuffer.CurrentSnapshot);
                     if (OverlapsWithEditableBuffer(projectionSpans))
                     {
-                        CutOrDelete(projectionSpans, isCut);
+                        CutOrDeleteSpans(projectionSpans, isCut);
                         selection.Clear();
                         MoveCaretToClosestEditableBuffer();
                         TextView.Caret.EnsureVisible();
@@ -2453,7 +2486,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 int column;
                 TextView.Caret.Position.VirtualBufferPosition.GetLineAndColumn(out line, out column);
 
-                CutOrDelete(new[] { line.ExtentIncludingLineBreak }, isCut);
+                CutOrDeleteSpans(new[] { line.ExtentIncludingLineBreak }, isCut);
 
                 TextView.Caret.MoveTo(new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(line.LineNumber), column));
             }
@@ -2475,7 +2508,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                                                             : ReduceBoxSelectionToEditableBox();
                     if (isEditable)
                     {
-                        CutOrDelete(selection.SelectedSpans, isCut);
+                        CutOrDeleteSpans(selection.SelectedSpans, isCut);
                         // if the selection spans over prompts the prompts remain selected, so clear manually:
                         selection.Clear();
                         return true;
@@ -2484,7 +2517,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return false;
             }
 
-            private void CutOrDelete(IEnumerable<SnapshotSpan> projectionSpans, bool isCut)
+            private void CutOrDeleteSpans(IEnumerable<SnapshotSpan> projectionSpans, bool isCut)
             {
                 Debug.Assert(CurrentLanguageBuffer != null);
 
@@ -2575,7 +2608,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 catch (OperationCanceledException)
                 {
-                    // Ignore cancellation when doing a copy. The user may not even want RTF text so preventing the normal text from being copied would be overkill.
+                    // Ignore cancellation when doing a copy. The user may not even want RTF text 
+                    // so preventing the normal text from being copied would be overkill.
                 }
                 if (rtf != null)
                 {
