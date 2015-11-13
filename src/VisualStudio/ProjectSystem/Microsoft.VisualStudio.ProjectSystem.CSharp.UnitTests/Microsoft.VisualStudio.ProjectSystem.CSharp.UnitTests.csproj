@@ -34,6 +34,11 @@
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DeployTestDependencies\DeployTestDependencies.csproj">
+      <Project>{37ba82e6-9abd-4aca-aa26-2dfd39a359a5}</Project>
+      <Name>DeployTestDependencies</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.CSharp\Microsoft.VisualStudio.ProjectSystem.CSharp.csproj">
       <Project>{7d150b7b-ce02-4cd4-8ec9-6a7c18727a36}</Project>
       <Name>Microsoft.VisualStudio.ProjectSystem.CSharp</Name>
