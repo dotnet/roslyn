@@ -752,5 +752,41 @@ public class X
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(16, 27)
                 );
         }
+
+        [Fact]
+        public void PatternVariablesAreReadonly()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        let x = 12;
+        x = x + 1; // error: x is readonly
+        x++;       // error: x is readonly
+        M1(ref x); // error: x is readonly
+        M2(out x); // error: x is readonly
+    }
+    public static void M1(ref int x) {}
+    public static void M2(out int x) { x = 1; }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         x = x + 1; // error: x is readonly
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x").WithLocation(7, 9),
+                // (8,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         x++;       // error: x is readonly
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "x").WithLocation(8, 9),
+                // (9,16): error CS1510: A ref or out argument must be an assignable variable
+                //         M1(ref x); // error: x is readonly
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(9, 16),
+                // (10,16): error CS1510: A ref or out argument must be an assignable variable
+                //         M2(out x); // error: x is readonly
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(10, 16)
+                );
+        }
     }
 }
