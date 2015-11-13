@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -341,6 +342,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // pattern variables from the condition are not in scope within the else clause
             if (node.Else != null) AddToMap(node.Else.Statement, _enclosing);
             Visit(node.Else, _enclosing);
+        }
+
+        public override void VisitLetStatement(LetStatementSyntax node)
+        {
+            // Note that we do *not* include variables defined in a let statement's pattern in the let statement's scope.
+            // Those are instead included in the enclosing scope.
+            var letBinder = new PatternVariableBinder(node, ImmutableArray.Create(node.Expression, node.WhenClause?.Condition), _enclosing);
+            VisitPossibleEmbeddedStatement(node.ElseClause?.Statement, letBinder);
+            AddToMap(node, letBinder);
         }
 
         public override void VisitElseClause(ElseClauseSyntax node)

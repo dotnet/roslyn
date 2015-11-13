@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a type.
+        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a type..
         /// </summary>
         internal static string ERR_AmbigMatch0 {
             get {
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a most specific type.
+        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a most specific type..
         /// </summary>
         internal static string ERR_AmbigMatch1 {
             get {
@@ -3500,6 +3500,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An &apos;else&apos; clause is required when a &apos;when&apos; clause is present..
+        /// </summary>
+        internal static string ERR_ElseClauseRequiredWithWhenClause {
+            get {
+                return ResourceManager.GetString("ERR_ElseClauseRequiredWithWhenClause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Empty character literal.
         /// </summary>
         internal static string ERR_EmptyCharConst {
@@ -5309,7 +5318,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The pathmap option was incorrectly formatted.
+        ///   Looks up a localized string similar to The pathmap option was incorrectly formatted..
         /// </summary>
         internal static string ERR_InvalidPathMap {
             get {
@@ -9945,7 +9954,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Roslyn.Compilers.CSharp.Syntax.Literal to create numeric literal tokens..
+        ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens..
         /// </summary>
         internal static string UseLiteralForNumeric {
             get {
@@ -9954,7 +9963,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Roslyn.Compilers.CSharp.Syntax.Literal to create character literal tokens..
+        ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens..
         /// </summary>
         internal static string UseLiteralForTokens {
             get {
@@ -9963,7 +9972,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Roslyn.Compilers.CSharp.Syntax.Identifier or Roslyn.Compilers.CSharp.Syntax.VerbatimIdentifier to create identifier tokens..
+        ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens..
         /// </summary>
         internal static string UseVerbatimIdentifier {
             get {

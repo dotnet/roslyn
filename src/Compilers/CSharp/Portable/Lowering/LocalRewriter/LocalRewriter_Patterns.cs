@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var declPattern = (BoundDeclarationPattern)pattern;
-                        Debug.Assert(declPattern.LocalSymbol.Type == declPattern.DeclaredType.Type);
+                        Debug.Assert(declPattern.IsVar || declPattern.LocalSymbol.Type == declPattern.DeclaredType.Type);
                         if (declPattern.IsVar)
                         {
                             Debug.Assert(input.Type == declPattern.LocalSymbol.Type);
@@ -158,7 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // variables, we lump them all together at the top.
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             BoundAssignmentOperator initialStore;
-            var temp =_factory.StoreToTemp(node.Left, out initialStore);
+            var left = VisitExpression(node.Left);
+            var temp =_factory.StoreToTemp(left, out initialStore);
             locals.Add(temp.LocalSymbol);
             int n = node.Cases.Length;
             BoundExpression result = _factory.ThrowNullExpression(node.Type);
@@ -174,6 +175,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _factory.Sequence(locals.ToImmutableAndFree(), initialStore, result);
+        }
+
+        public override BoundNode VisitLetStatement(BoundLetStatement node)
+        {
+            BoundAssignmentOperator initialStore;
+            _factory.Syntax = node.Expression.Syntax;
+            var temp = _factory.StoreToTemp(VisitExpression(node.Expression), out initialStore);
+            _factory.Syntax = node.Pattern.Syntax;
+            var pattern = TranslatePattern(temp, node.Pattern);
+            _factory.Syntax = node.Expression.Syntax;
+            var condition = _factory.Sequence(ImmutableArray.Create(temp.LocalSymbol), initialStore, pattern);
+            if (node.Guard != null)
+            {
+                _factory.Syntax = node.Guard.Syntax;
+                condition = _factory.LogicalAnd(condition, VisitExpression(node.Guard));
+            }
+            _factory.Syntax = node.Syntax;
+            BoundStatement result = (node.Else == null)
+                ? _factory.ExpressionStatement(condition)
+                : _factory.If(_factory.Not(condition), VisitStatement(node.Else));
+            return result;
         }
     }
 }

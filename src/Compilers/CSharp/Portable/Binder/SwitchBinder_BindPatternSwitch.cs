@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
                         return new BoundPatternSwitchLabel(node,
                             sectionBinder.BindPattern(matchLabelSyntax.Pattern, boundSwitchExpression, boundSwitchExpression.Type, node.HasErrors, diagnostics),
-                            matchLabelSyntax.Condition != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.Condition, diagnostics) : null, node.HasErrors);
+                            matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null, node.HasErrors);
                     }
 
                 case SyntaxKind.CaseSwitchLabel:

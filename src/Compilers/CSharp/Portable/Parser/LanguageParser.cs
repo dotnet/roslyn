@@ -6592,6 +6592,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // compiler it would simple call IsLocalDeclaration.
 
             var tk = this.CurrentToken.ContextualKind;
+            if (tk == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
+            {
+                // accept a let statement if it begins with the contextual keyword 'let'.
+                // TODO: Note that we do not make any accomodation for the possible use of 'let' as the name
+                // of a type. For the strictest possible backward compatibility, we should.
+                return true;
+            }
+
             if ((SyntaxFacts.IsPredefinedType(tk) && this.PeekToken(1).Kind != SyntaxKind.DotToken) || IsDeclarationModifier(tk) || IsAdditionalLocalFunctionModifier(tk) &&
                 (tk != SyntaxKind.AsyncKeyword || (this.PeekToken(1).Kind != SyntaxKind.DelegateKeyword && !ScanAsyncLambda(0))))
             {
@@ -7098,23 +7106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var @fixed = this.EatToken(SyntaxKind.FixedKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-            TypeSyntax type;
-            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-            try
-            {
-                var saveTerm = _termState;
-                _termState |= TerminatorState.IsEndOfFixedStatement;
-                this.ParseDeclaration(out type, variables);
-                _termState = saveTerm;
-                var decl = _syntaxFactory.VariableDeclaration(type, variables);
-                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                StatementSyntax statement = this.ParseEmbeddedStatement(false);
-                return _syntaxFactory.FixedStatement(@fixed, openParen, decl, closeParen, statement);
-            }
-            finally
-            {
-                _pool.Free(variables);
-            }
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfFixedStatement;
+            var decl = ParseVariableDeclaration();
+            _termState = saveTerm;
+            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            StatementSyntax statement = this.ParseEmbeddedStatement(false);
+            return _syntaxFactory.FixedStatement(@fixed, openParen, decl, closeParen, statement);
         }
 
         private bool IsEndOfFixedStatement()
@@ -7471,11 +7469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (st != ScanTypeFlags.NotType && this.IsTrueIdentifier())
                 {
                     this.Reset(ref resetPoint);
-                    TypeSyntax type;
-                    var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-                    this.ParseDeclaration(out type, variables);
-                    decl = _syntaxFactory.VariableDeclaration(type, variables);
-                    _pool.Free(variables);
+                    decl = ParseVariableDeclaration();
                 }
                 else
                 {
@@ -7652,15 +7646,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement(false);
-            ElseClauseSyntax @else = null;
-            if (this.CurrentToken.Kind == SyntaxKind.ElseKeyword)
+            var elseClause = ParseElseClauseOpt();
+
+            return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
+        }
+
+        private ElseClauseSyntax ParseElseClauseOpt()
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
             {
-                var elseToken = this.EatToken(SyntaxKind.ElseKeyword);
-                var elseStatement = this.ParseEmbeddedStatement(false);
-                @else = _syntaxFactory.ElseClause(elseToken, elseStatement);
+                return null;
             }
 
-            return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, @else);
+            var elseToken = this.EatToken(SyntaxKind.ElseKeyword);
+            var elseStatement = this.ParseEmbeddedStatement(false);
+            return _syntaxFactory.ElseClause(elseToken, elseStatement);
         }
 
         private LockStatementSyntax ParseLockStatement()
@@ -7796,15 +7796,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
                             if (node is PatternSyntax)
                             {
-                                SyntaxToken when = null; ;
-                                ExpressionSyntax condition = null;
-                                if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword)
-                                {
-                                    when = this.EatContextualToken(SyntaxKind.WhenKeyword);
-                                    condition = ParseSubExpression(Precedence.Expression);
-                                }
+                                var whenClause = ParseWhenClauseOpt();
                                 colon = this.EatToken(SyntaxKind.ColonToken);
-                                label = _syntaxFactory.CasePatternSwitchLabel(specifier, (PatternSyntax)node, when, condition, colon);
+                                label = _syntaxFactory.CasePatternSwitchLabel(specifier, (PatternSyntax)node, whenClause, colon);
                                 label = CheckFeatureAvailability(label, MessageID.IDS_FeaturePatternMatching);
                             }
                             else
@@ -7888,8 +7882,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return;
             }
 
-            TypeSyntax type;
-
             // Now, this can be either an expression or a decl list
 
             ScanTypeFlags st;
@@ -7917,8 +7909,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables;
-
                     switch (this.PeekToken(1).Kind)
                     {
                         default:
@@ -7929,35 +7919,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case SyntaxKind.CommaToken:
                         case SyntaxKind.CloseParenToken:
                             this.Reset(ref resetPoint);
-                            variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-                            this.ParseDeclaration(out type, variables);
-                            declaration = _syntaxFactory.VariableDeclaration(type, variables.ToList());
-                            _pool.Free(variables);
+                            declaration = ParseVariableDeclaration();
                             break;
 
                         case SyntaxKind.EqualsToken:
                             // Parse it as a decl. If the next token is a : and only one variable was parsed,
                             // convert the whole thing to ?: expression.
                             this.Reset(ref resetPoint);
-                            variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-                            this.ParseDeclaration(out type, variables);
+                            declaration = ParseVariableDeclaration();
 
                             // We may have non-nullable types in error scenarios.
                             if (this.CurrentToken.Kind == SyntaxKind.ColonToken &&
-                                type.Kind == SyntaxKind.NullableType &&
-                                SyntaxFacts.IsName(((NullableTypeSyntax)type).ElementType.Kind) &&
-                                variables.Count == 1)
+                                declaration.Type.Kind == SyntaxKind.NullableType &&
+                                SyntaxFacts.IsName(((NullableTypeSyntax)declaration.Type).ElementType.Kind) &&
+                                declaration.Variables.Count == 1)
                             {
                                 // We have "name? id = expr :" so need to convert to a ?: expression.
                                 this.Reset(ref resetPoint);
+                                declaration = null;
                                 expression = this.ParseExpressionCore();
                             }
-                            else
-                            {
-                                declaration = _syntaxFactory.VariableDeclaration(type, variables.ToList());
-                            }
 
-                            _pool.Free(variables);
                             break;
                     }
                 }
@@ -7965,10 +7947,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else if (IsUsingStatementVariableDeclaration(st))
             {
                 this.Reset(ref resetPoint);
-                var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
-                this.ParseDeclaration(out type, variables);
-                declaration = _syntaxFactory.VariableDeclaration(type, variables);
-                _pool.Free(variables);
+                declaration = ParseVariableDeclaration();
             }
             else
             {
@@ -8015,16 +7994,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _syntaxFactory.LabeledStatement(label, colon, statement);
         }
 
+        /// <summary>
+        /// Parses any kind of local declaration statement: local variable, local funcion, or let statement.
+        /// </summary>
+        /// <returns></returns>
         private StatementSyntax ParseLocalDeclarationStatement()
         {
-            TypeSyntax type;
+            // First, check if it is a "let" statement.
+            if (this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
+            {
+                return ParseLetStatement();
+            }
+
             var mods = _pool.Allocate();
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
             {
                 this.ParseDeclarationModifiers(mods);
                 LocalFunctionStatementSyntax localFunction;
-                this.ParseDeclaration(out type, variables, true, mods.ToTokenList(), out localFunction);
+                TypeSyntax type;
+                this.ParseLocalDeclaration(out type, variables, true, mods.ToTokenList(), out localFunction);
                 if (localFunction != null)
                 {
                     Debug.Assert(variables.Count == 0);
@@ -8051,16 +8040,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void ParseDeclaration(
-            out TypeSyntax type,
-            SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables)
+        private StatementSyntax ParseLetStatement()
         {
-            LocalFunctionStatementSyntax localFunction;
-            ParseDeclaration(out type, variables, false, default(SyntaxList<SyntaxToken>), out localFunction);
-            Debug.Assert(localFunction == null);
+            var letKeyword = this.EatContextualToken(SyntaxKind.LetKeyword);
+            PatternSyntax pattern = null;
+            SyntaxToken identifier = default(SyntaxToken);
+            if (CurrentToken.Kind == SyntaxKind.IdentifierToken && PeekToken(1).Kind == SyntaxKind.EqualsToken)
+            {
+                identifier = this.EatToken(SyntaxKind.IdentifierToken);
+            }
+            else
+            {
+                pattern = ParsePattern();
+            }
+            var equalsToken = this.EatToken(SyntaxKind.EqualsToken);
+            var expression = this.ParseExpressionCore();
+            var whenClause = ParseWhenClauseOpt();
+            var elseClause = ParseElseClauseOpt();
+            var semicolonToken = (elseClause == null) ? this.EatToken(SyntaxKind.SemicolonToken) : default(SyntaxToken);
+            return _syntaxFactory.LetStatement(letKeyword, pattern, identifier, equalsToken, expression, whenClause, elseClause, semicolonToken);
         }
 
-        private void ParseDeclaration(
+        private WhenClauseSyntax ParseWhenClauseOpt()
+        {
+            if (this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword)
+            {
+                return null;
+            }
+
+            var when = this.EatContextualToken(SyntaxKind.WhenKeyword);
+            var condition = ParseSubExpression(Precedence.Expression);
+            return _syntaxFactory.WhenClause(when, condition);
+        }
+
+        /// <summary>
+        /// Parse a local variable declaration.
+        /// </summary>
+        /// <returns></returns>
+        private VariableDeclarationSyntax ParseVariableDeclaration()
+        {
+            var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
+            TypeSyntax type;
+            LocalFunctionStatementSyntax localFunction;
+            ParseLocalDeclaration(out type, variables, false, default(SyntaxList<SyntaxToken>), out localFunction);
+            Debug.Assert(localFunction == null);
+            var result = _syntaxFactory.VariableDeclaration(type, variables);
+            _pool.Free(variables);
+            return result;
+        }
+
+        private void ParseLocalDeclaration(
             out TypeSyntax type,
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool allowLocalFunctions,

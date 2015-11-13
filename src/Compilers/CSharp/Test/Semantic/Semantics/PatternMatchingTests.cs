@@ -661,5 +661,96 @@ Person Anders
 ";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void LetStatement00()
+        {
+            var source =
+@"using System;
+public struct X
+{
+    static void M(object o1, X o2, int? o3)
+    {
+        let string s1 = o1 when s1.Length > 0
+            else { Console.WriteLine(""o1 is empty""); return; }
+        let s2 = s1;
+        Console.WriteLine(s2);
+        let X { Z is int z, W is int w } = o2;
+        Console.WriteLine(z);
+        Console.WriteLine(w);
+        let int i = o3
+            else { Console.WriteLine(""o3 is null""); return; }
+        Console.WriteLine(i);
+    }
+    static void Main(string[] args)
+    {
+        X x = new X();
+        M(null, x, null);
+        M("""", x, null);
+        M(""foo"", x, null);
+        M(""foo"", x, 321);
+    }
+    public int Z => 12;
+    public int W => 23;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"o1 is empty
+o1 is empty
+foo
+12
+23
+o3 is null
+foo
+12
+23
+321
+";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void LetStatement01()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main() {}
+    static void M(object o1, X o2, int? o3)
+    {
+        let string s1 = o1
+            else { Console.WriteLine(""o1 is empty""); }
+        let s2 = s1; // error: s1 not definitely assigned
+        Console.WriteLine(s2);
+        let X { Z is int z, W is int w } = o2;
+        Console.WriteLine(z); // error
+        Console.WriteLine(w); // error
+        let int i = o3
+            else { Console.WriteLine(""o3 is null""); }
+        Console.WriteLine(i); // error
+    }
+    public int Z => 12;
+    public int W => 23;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (9,18): error CS0165: Use of unassigned local variable 's1'
+                //         let s2 = s1; // error: s1 not definitely assigned
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(9, 18),
+                // (12,27): error CS0165: Use of unassigned local variable 'z'
+                //         Console.WriteLine(z); // error
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(12, 27),
+                // (13,27): error CS0165: Use of unassigned local variable 'w'
+                //         Console.WriteLine(w); // error
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "w").WithArguments("w").WithLocation(13, 27),
+                // (16,27): error CS0165: Use of unassigned local variable 'i'
+                //         Console.WriteLine(i); // error
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(16, 27)
+                );
+        }
     }
 }

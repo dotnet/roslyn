@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             syntaxKindsPatterns.Add(SyntaxKind.MatchSection);
             syntaxKindsPatterns.Add(SyntaxKind.MatchExpression);
             syntaxKindsPatterns.Add(SyntaxKind.ThrowExpression);
+            syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
+            syntaxKindsPatterns.Add(SyntaxKind.LetStatement);
+            syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateExperimentalCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [WorkItem(2771, "https://github.com/dotnet/roslyn/issues/2771")]
-        [Fact]
+        [Fact(Skip= "https://github.com/dotnet/roslyn/issues/6744")]
         public void TestBinary()
         {
             // use a fixed seed so the test is reproducible

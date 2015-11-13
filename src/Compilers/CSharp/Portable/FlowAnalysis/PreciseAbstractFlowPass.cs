@@ -906,6 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             VisitRvalue(node.Expression);
+            VisitPattern(node.Expression, node.Pattern);
             return null;
         }
 
@@ -1025,6 +1026,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return null;
         }
+
+        public override BoundNode VisitLetStatement(BoundLetStatement node)
+        {
+            VisitRvalue(node.Expression);
+            VisitPattern(node.Expression, node.Pattern);
+            if (node.Guard != null)
+            {
+                var whenSucceed = StateWhenTrue;
+                var whenFail = StateWhenFalse;
+                SetState(whenSucceed);
+                VisitCondition(node.Guard);
+                IntersectWith(ref whenFail, ref this.StateWhenFalse);
+                whenSucceed = this.StateWhenTrue;
+                SetConditionalState(whenSucceed, whenFail);
+            }
+
+            var afterState = StateWhenTrue;
+            SetState(StateWhenFalse);
+            if (node.Else != null)
+            {
+                VisitStatement(node.Else);
+            }
+
+            IntersectWith(ref this.State, ref afterState);
+            return null;
+        }
+
 
         public override BoundNode VisitBlock(BoundBlock node)
         {

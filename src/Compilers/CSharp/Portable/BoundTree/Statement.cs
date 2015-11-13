@@ -358,4 +358,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // TODO: this may need its own OperationKind.
         protected override OperationKind StatementKind => OperationKind.SwitchStatement;
     }
+
+    partial class BoundLetStatement
+    {
+        // TODO: this may need its own OperationKind.
+        protected override OperationKind StatementKind => OperationKind.IfStatement;
+    }
 }

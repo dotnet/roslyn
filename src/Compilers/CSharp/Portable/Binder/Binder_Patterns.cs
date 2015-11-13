@@ -214,6 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LocalDeclarationKind.PatternVariable);
             }
 
+            if (isVar) localSymbol.SetTypeSymbol(operandType);
+
             // Check for variable declaration errors.
             hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
@@ -293,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var sectionBinder = new PatternVariableBinder(section, this); // each section has its own locals.
                 var pattern = sectionBinder.BindPattern(section.Pattern, expression, expression.Type, section.HasErrors, diagnostics);
-                var guard = (section.Condition != null) ? sectionBinder.BindBooleanExpression(section.Condition, diagnostics) : null;
+                var guard = (section.WhenClause != null) ? sectionBinder.BindBooleanExpression(section.WhenClause.Condition, diagnostics) : null;
                 var e = sectionBinder.BindExpression(section.Expression, diagnostics);
                 sectionBuilder.Add(new BoundMatchCase(section, sectionBinder.Locals, pattern, guard, e, section.HasErrors));
             }
@@ -344,6 +346,60 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var thrownExpression = BindThrownExpression(node.Expression, diagnostics, ref hasErrors);
             return new BoundThrowExpression(node, thrownExpression, null, hasErrors);
+        }
+
+        private BoundStatement BindLetStatement(LetStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            // TODO: any constraints on the expression must be enforced here. For example,
+            // it must have a type (not be target-typed, lambda, null, etc)
+            var hasErrors = IsOperandErrors(node.Expression, expression, diagnostics);
+            if (!hasErrors && expression.IsLiteralNull())
+            {
+                diagnostics.Add(ErrorCode.ERR_NullNotValid, node.Expression.Location);
+                hasErrors = true;
+            }
+            if (hasErrors && expression.Type == (object)null)
+            {
+                expression = new BoundBadExpression(node.Expression, LookupResultKind.Viable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(expression), CreateErrorType());
+            }
+
+            BoundPattern pattern;
+            if (node.Pattern == null)
+            {
+                SourceLocalSymbol localSymbol = this.LookupLocal(node.Identifier);
+
+                // In error scenarios with misplaced code, it is possible we can't bind the local.
+                // This occurs through the semantic model.  In that case concoct a plausible result.
+                if ((object)localSymbol == null)
+                {
+                    localSymbol = SourceLocalSymbol.MakeLocal(
+                        ContainingMemberOrLambda,
+                        this,
+                        null,
+                        node.Identifier,
+                        LocalDeclarationKind.PatternVariable,
+                        null);
+                }
+
+                localSymbol.SetTypeSymbol(expression.Type);
+                pattern = new BoundDeclarationPattern(node, localSymbol, null, true, expression.HasErrors);
+            }
+            else
+            {
+                pattern = BindPattern(node.Pattern, expression, expression?.Type, expression.HasErrors, diagnostics);
+            }
+
+            var guard = (node.WhenClause != null) ? BindBooleanExpression(node.WhenClause.Condition, diagnostics) : null;
+            var elseClause = (node.ElseClause != null) ? BindPossibleEmbeddedStatement(node.ElseClause.Statement, diagnostics) : null;
+
+            // If a guard is present, an else clause is required
+            if (guard != null && elseClause == null)
+            {
+                diagnostics.Add(ErrorCode.ERR_ElseClauseRequiredWithWhenClause, node.WhenClause.WhenKeyword.GetLocation());
+            }
+
+            return new BoundLetStatement(node, pattern, expression, guard, elseClause, hasErrors);
         }
     }
 }

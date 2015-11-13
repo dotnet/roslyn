@@ -407,16 +407,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var caseKeyword = this.EatToken(SyntaxKind.CaseKeyword);
             var pattern = ParsePattern();
-            SyntaxToken when = null; ;
-            ExpressionSyntax condition = null;
-            if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword)
-            {
-                when = this.EatContextualToken(SyntaxKind.WhenKeyword);
-                condition = ParseExpressionCore();
-            }
+            var whenClause = ParseWhenClauseOpt();
             var colon = this.EatToken(SyntaxKind.ColonToken);
             var expression = ParseExpressionCore();
-            return _syntaxFactory.MatchSection(caseKeyword, pattern, when, condition, colon, expression);
+            return _syntaxFactory.MatchSection(caseKeyword, pattern, whenClause, colon, expression);
         }
     }
 }

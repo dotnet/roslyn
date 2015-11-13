@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
                 SetState(dispatchState.Clone());
-                VisitPatternSwitchSection(switchSections[iSection], iSection == iLastSection);
+                VisitPatternSwitchSection(switchSections[iSection], node.Expression, iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
                 IntersectWith(ref afterSwitchState, ref this.State);
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
+        protected virtual void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
             // visit switch section labels
             var initialState = this.State;
@@ -207,7 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var label in node.PatternSwitchLabels)
             {
                 SetState(initialState.Clone());
-                VisitPattern(label.Pattern);
+                VisitPattern(switchExpression, label.Pattern);
+                SetState(StateWhenTrue);
                 if (label.Guard != null)
                 {
                     VisitCondition(label.Guard);
@@ -221,8 +222,85 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitStatementList(node);
         }
 
-        public virtual void VisitPattern(BoundPattern pattern)
+        public virtual void VisitPattern(BoundExpression expression, BoundPattern pattern)
         {
+            Split();
+            bool? knownMatch = CheckRefutations(expression, pattern);
+            switch (knownMatch)
+            {
+                case true:
+                    SetState(StateWhenTrue);
+                    SetConditionalState(this.State, UnreachableState());
+                    break;
+                case false:
+                    SetState(StateWhenFalse);
+                    SetConditionalState(UnreachableState(), this.State);
+                    break;
+                case null:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
+        /// Return true for known match, false for known fail, and null otherwise.
+        /// </summary>
+        private bool? CheckRefutations(BoundExpression expression, BoundPattern pattern)
+        {
+            switch (pattern.Kind)
+            {
+                case BoundKind.WildcardPattern:
+                    return true;
+                case BoundKind.DeclarationPattern:
+                    {
+                        var declPattern = (BoundDeclarationPattern)pattern;
+                        if (declPattern.IsVar|| // var pattern always matches
+                            declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
+                        {
+                            return true;
+                        }
+                        // there are probably other cases to check. Note that reference types can, in general, fail because of null
+                    }
+                    break;
+                case BoundKind.PropertyPattern:
+                    {
+                        var propPattern = (BoundPropertyPattern)pattern;
+                        if (expression.Type?.IsValueType == true &&
+                            (expression.Type == propPattern.Type || propPattern.Type?.Interfaces.Contains(expression.Type) == true))
+                        {
+                            // so far so good: the expression is known to match the *type* of the property pattern.
+                            // Now check if each subpattern is irrefutable.
+                            Debug.Assert(propPattern.Properties.Length == propPattern.Patterns.Length);
+                            int n = propPattern.Properties.Length;
+                            for (int i = 0; i < n; i++)
+                            {
+                                var prop = propPattern.Properties[i];
+                                var pat = propPattern.Patterns[i];
+                                BoundExpression subExpr;
+                                switch (prop.Kind)
+                                {
+                                    case SymbolKind.Property:
+                                        var propSymbol = (PropertySymbol)prop;
+                                        subExpr = new BoundPropertyAccess(pat.Syntax, null, propSymbol, LookupResultKind.Viable, propSymbol.Type);
+                                        break;
+                                    case SymbolKind.Field:
+                                        var fieldSymbol = (FieldSymbol)prop;
+                                        subExpr = new BoundFieldAccess(pat.Syntax, null, fieldSymbol, null);
+                                        break;
+                                    default:
+                                        return false;
+                                }
+                                var subMatch = CheckRefutations(subExpr, pat);
+                                if (subMatch != true) return subMatch;
+                            }
+
+                            return true;
+                        }
+                    }
+                    break;
+            }
+
+            return null;
         }
 
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)
@@ -240,12 +318,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var c in node.Cases)
             {
                 SetState(initialState.Clone());
-                VisitPattern(c.Pattern);
+                VisitPattern(node.Left, c.Pattern);
+                SetState(StateWhenTrue);
                 if (c.Guard != null)
                 {
                     VisitCondition(c.Guard);
                     SetState(StateWhenTrue);
                 }
+
                 VisitRvalue(c.Expression);
                 IntersectWith(ref endState, ref this.State);
             }

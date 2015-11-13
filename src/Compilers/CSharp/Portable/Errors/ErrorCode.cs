@@ -1327,5 +1327,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AmbigMatch0 = 8108,
         ERR_AmbigMatch1 = 8109,
         ERR_ThrowMisplaced = 8110,
+        ERR_ElseClauseRequiredWithWhenClause = 8111,
     }
 }

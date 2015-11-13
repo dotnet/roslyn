@@ -784,6 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node"></param>
         protected void CheckAssigned(Symbol symbol, CSharpSyntaxNode node)
         {
+            Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
             {
                 if (this.State.Reachable)
@@ -1309,32 +1310,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Visitors
 
-        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
+        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
         {
-            VisitRvalue(node.Expression);
-            var stateWhenFalse = this.State.Clone();
-            VisitPattern(node.Pattern);
-            SetConditionalState(this.State, stateWhenFalse);
-            return null;
+            base.VisitPattern(expression, pattern);
+            var whenFail = StateWhenFalse;
+            SetState(StateWhenTrue);
+            AssignPatternVariables(pattern);
+            SetConditionalState(this.State, whenFail);
         }
 
-        public override void VisitPattern(BoundPattern pattern)
+        private void AssignPatternVariables(BoundPattern pattern)
         {
-            foreach (BoundDeclarationPattern p in PatternFinder.DeclarationPatternsIn(pattern))
+            switch (pattern.Kind)
             {
-                var patternVariable = p.LocalSymbol;
-                Assign(p, null, RefKind.None, false);
-            }
-        }
+                case BoundKind.DeclarationPattern:
+                    {
+                        var pat = (BoundDeclarationPattern)pattern;
+                        Assign(pat, null, RefKind.None, false);
+                        break;
+                    }
+                case BoundKind.PropertyPattern:
+                    {
+                        var pat = (BoundPropertyPattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            AssignPatternVariables(prop);
+                        }
+                        break;
+                    }
+                case BoundKind.RecursivePattern:
+                    {
+                        var pat = (BoundRecursivePattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            AssignPatternVariables(prop);
+                        }
+                        break;
+                    }
 
-        class PatternFinder // : BoundTreeVisitor
-        {
-            // eventually, when patterns are recursive, this will have to be recursive too.
-            internal static IEnumerable<BoundDeclarationPattern> DeclarationPatternsIn(BoundPattern pattern)
-            {
-                var p = pattern as BoundDeclarationPattern;
-                if (p != null) yield return p;
-                yield break;
+                case BoundKind.WildcardPattern:
+                case BoundKind.ConstantPattern:
+                default:
+                    break;
             }
         }
 
@@ -1365,20 +1382,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
             // TODO: this an probably depend more heavily on the base class implementation.
             DeclareVariables(node.Locals);
-            base.VisitPatternSwitchSection(node, isLastSection);
+            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
         }
 
-        private void AssignPatternVariables(BoundPattern pattern)
+        public override BoundNode VisitLetStatement(BoundLetStatement node)
+        {
+            CreateSlots(node.Pattern);
+            return base.VisitLetStatement(node);
+        }
+
+        private void CreateSlots(BoundPattern pattern)
         {
             switch (pattern.Kind)
             {
                 case BoundKind.DeclarationPattern:
                     {
-                        Assign(pattern, null);
+                        int slot = GetOrCreateSlot(((BoundDeclarationPattern)pattern).LocalSymbol);
                         break;
                     }
                 case BoundKind.PropertyPattern:
@@ -1386,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pat = (BoundPropertyPattern)pattern;
                         foreach (var prop in pat.Patterns)
                         {
-                            AssignPatternVariables(prop);
+                            CreateSlots(prop);
                         }
                         break;
                     }
@@ -1395,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pat = (BoundRecursivePattern)pattern;
                         foreach (var prop in pat.Patterns)
                         {
-                            AssignPatternVariables(prop);
+                            CreateSlots(prop);
                         }
                         break;
                     }

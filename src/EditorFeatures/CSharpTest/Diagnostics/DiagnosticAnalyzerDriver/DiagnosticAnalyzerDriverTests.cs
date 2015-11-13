@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             syntaxKindsPatterns.Add(SyntaxKind.MatchSection);
             syntaxKindsPatterns.Add(SyntaxKind.MatchExpression);
             syntaxKindsPatterns.Add(SyntaxKind.ThrowExpression);
+            syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
+            syntaxKindsPatterns.Add(SyntaxKind.LetStatement);
+            syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(source, TestOptions.Regular))

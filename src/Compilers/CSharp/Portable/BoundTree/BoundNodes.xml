@@ -1397,11 +1397,18 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
 
+  <Node Name="BoundLetStatement" Base="BoundStatement">
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="Else" Type="BoundStatement" Null="allow"/>
+  </Node>
+
   <AbstractNode Name="BoundPattern" Base="BoundNode"/>
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
-    <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="IsVar" Type="bool"/>
   </Node>
 

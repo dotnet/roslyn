@@ -1618,14 +1618,18 @@
       <Kind Name="CaseKeyword"/>
     </Field>
     <Field Name="Pattern" Type="PatternSyntax" />
-    <Field Name="WhenKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="WhenKeyword"/>
-    </Field>
-    <Field Name="Condition" Type="ExpressionSyntax" Optional="true" />
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
     <Field Name="ColonToken" Type="SyntaxToken">
       <Kind Name="ColonToken"/>
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
+  <Node Name="WhenClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="WhenClause" />
+    <Field Name="WhenKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="WhenKeyword"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax" Optional="true" />
   </Node>
   <Node Name="ThrowExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ThrowExpression" />
@@ -2311,19 +2315,7 @@
         </summary>
       </PropertyComment>
     </Field>
-    <Field Name="WhenKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="WhenKeyword"/>
-      <PropertyComment>
-        <summary>Gets the when keyword token.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Condition" Type="ExpressionSyntax"  Optional="true">
-      <PropertyComment>
-        <summary>
-          Gets an ExpressionSyntax that represents the condition after the when keyword.
-        </summary>
-      </PropertyComment>
-    </Field>
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
     <Field Name="ColonToken" Type="SyntaxToken" Override="true"/>
     <TypeComment>
       <summary>Represents a case label within a switch statement.</summary>
@@ -2370,6 +2362,29 @@
     <FactoryComment>
       <summary>Creates a DefaultSwitchLabelSyntax node.</summary>
     </FactoryComment>
+  </Node>
+  <Node Name="LetStatementSyntax" Base="StatementSyntax">
+    <Kind Name="LetStatement"/>
+    <Field Name="LetKeyword" Type="SyntaxToken">
+      <Kind Name="LetKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" Optional="true"/>
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true"/>
+    <Field Name="EqualsToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
+    <Field Name="ElseClause" Type="ElseClauseSyntax" Optional="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken"  Optional="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+    <TypeComment>
+      <summary>
+        Pattern and Identifier are mutually exclusive; precisely one of them must be present.
+        ElseClause and SemicolonToken are mutually exclusive; precisely one of them must be present.
+      </summary>
+    </TypeComment>
   </Node>
   <Node Name="TryStatementSyntax" Base="StatementSyntax">
     <Kind Name="TryStatement"/>

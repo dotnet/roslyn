@@ -333,9 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
-            base.VisitPatternSwitchSection(node, isLastSection);
+            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
 
             // Check for switch section fall through error
             if (this.State.Alive)
