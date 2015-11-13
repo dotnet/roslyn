@@ -5,6 +5,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Imaging
 {
+    [UnitTestTrait]
     public class ProjectImageProviderAggregatorTests
     {
         [Fact]
