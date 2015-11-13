@@ -698,9 +698,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundAssignment,
 
             /// <summary>
-            /// Expression is an out parameter.
+            /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
-            OutParameter,
+            RefOrOut,
 
             /// <summary>
             /// Expression is the operand of an address-of operation (&amp;).
@@ -713,9 +713,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             FixedReceiver,
 
             /// <summary>
-            /// Expression is returned or assigned by reference.
+            /// Expression is assigned by reference.
             /// </summary>
-            RefReturnOrAssign,
+            RefAssign,
+            
+            /// <summary>
+            /// Expression is returned by reference.
+            /// </summary>
+            RefReturn,
         }
 
         /// <summary>

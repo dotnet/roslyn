@@ -4715,10 +4715,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference</value>
   </data>
   <data name="ERR_RefReturnLvalueExpected" xml:space="preserve">
-    <value>The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference</value>
-  </data>
-  <data name="ERR_RefReturnLvalueExpected2" xml:space="preserve">
-    <value>The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference</value>
+    <value>An expression cannot be used in this context because it may not be returned by reference</value>
   </data>
   <data name="ERR_RefReturnReadonlyLocal" xml:space="preserve">
     <value>Cannot return '{0}' by reference because it is read-only</value>
@@ -4748,22 +4745,22 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot return or assign a reference to the result of '{0}' because the argument passed to parameter '{1}' cannot be returned or assigned by reference</value>
   </data>
   <data name="ERR_RefReturnCall2" xml:space="preserve">
-    <value>Cannot return or assign a reference to a member ther result of '{0}' because the argument passed to parameter '{1}' cannot be returned or assigned by reference</value>
+    <value>Cannot return by reference a member of result of '{0}' because the argument passed to parameter '{1}' cannot be returned by reference</value>
   </data>
   <data name="ERR_RefReturnParameter" xml:space="preserve">
-    <value>Cannot return or assign a reference to parameter '{0}' because it is not a ref or out parameter</value>
+    <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
-    <value>Cannot return or assign a reference to a member of parameter '{0}' because it is not a ref or out parameter</value>
+    <value>Cannot return or a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
-    <value>Cannot return or assign a reference to local '{0}' because it is not a ref local</value>
+    <value>Cannot return a reference to local '{0}' because it is not a ref local</value>
   </data>
   <data name="ERR_RefReturnLocal2" xml:space="preserve">
-    <value>Cannot return or assign a reference to a member of local '{0}' because it is not a ref local</value>
+    <value>Cannot return a reference to a member of local '{0}' because it is not a ref local</value>
   </data>
   <data name="ERR_RefReturnReceiver" xml:space="preserve">
-    <value>Cannot return or assign a reference to '{0}' because its receiver may not be returned or assigned by reference</value>
+    <value>Cannot return '{0}' by reference because its receiver may not be returned by reference</value>
   </data>
   <data name="ERR_MustBeRefAssignable" xml:space="preserve">
     <value>'{0}' cannot be assigned a reference because it is not a by-reference local</value>
@@ -4779,6 +4776,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefAssignmentMustHaveIdentityConversion" xml:space="preserve">
     <value>The expression must be of type '{0}' because it is being assigned by reference</value>
+  </data>
+  <data name="ERR_ByReferenceVariableMustBeInitialized" xml:space="preserve">
+    <value>A declaration of a by-reference variable must have an initializer</value>
   </data>
   <data name="ERR_AnonDelegateCantUseLocal" xml:space="preserve">
     <value>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</value>

@@ -247,10 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.IncrementDecrement:
                     return true;
 
-                case BindValueKind.OutParameter:
+                case BindValueKind.RefOrOut:
                 case BindValueKind.AddressOf:
                 case BindValueKind.Assignment:
-                case BindValueKind.RefReturnOrAssign:
+                case BindValueKind.RefReturn:
                     return false;
 
                 default:
@@ -268,10 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.IncrementDecrement:
-                case BindValueKind.OutParameter:
+                case BindValueKind.RefOrOut:
                 case BindValueKind.AddressOf:
                 case BindValueKind.Assignment:
-                case BindValueKind.RefReturnOrAssign:
+                case BindValueKind.RefReturn:
                     return true;
 
                 default:
@@ -290,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.Assignment:
                     return false;
 
-                case BindValueKind.OutParameter:
+                case BindValueKind.RefOrOut:
                 case BindValueKind.AddressOf:
-                case BindValueKind.RefReturnOrAssign:
+                case BindValueKind.RefReturn:
                     return true;
 
                 default:
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindMakeRef(MakeRefExpressionSyntax node, DiagnosticBag diagnostics)
         {
             // __makeref(x) requires that x be a variable, and not be of a restricted type.
-            BoundExpression argument = this.BindValue(node.Expression, diagnostics, BindValueKind.OutParameter);
+            BoundExpression argument = this.BindValue(node.Expression, diagnostics, BindValueKind.RefOrOut);
 
             bool hasErrors = argument.HasAnyErrors;
 
@@ -1874,7 +1874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(argumentSyntax is ArgumentSyntax || argumentSyntax is AttributeArgumentSyntax);
 
-            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.RValue : BindValueKind.OutParameter;
+            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.RValue : BindValueKind.RefOrOut;
 
             // Bind argument and verify argument matches rvalue or out param requirements.
             BoundExpression argument;

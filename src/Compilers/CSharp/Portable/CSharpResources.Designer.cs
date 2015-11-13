@@ -2249,6 +2249,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A declaration of a by-reference variable must have an initializer.
+        /// </summary>
+        internal static string ERR_ByReferenceVariableMustBeInitialized {
+            get {
+                return ResourceManager.GetString("ERR_ByReferenceVariableMustBeInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree lambda may not contain an out or ref parameter.
         /// </summary>
         internal static string ERR_ByRefParameterInExpressionTree {
@@ -7685,7 +7694,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or assign a reference to a member ther result of &apos;{0}&apos; because the argument passed to parameter &apos;{1}&apos; cannot be returned or assigned by reference.
+        ///   Looks up a localized string similar to Cannot return by reference a member of result of &apos;{0}&apos; because the argument passed to parameter &apos;{1}&apos; cannot be returned by reference.
         /// </summary>
         internal static string ERR_RefReturnCall2 {
             get {
@@ -7712,7 +7721,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or assign a reference to local &apos;{0}&apos; because it is not a ref local.
+        ///   Looks up a localized string similar to Cannot return a reference to local &apos;{0}&apos; because it is not a ref local.
         /// </summary>
         internal static string ERR_RefReturnLocal {
             get {
@@ -7721,7 +7730,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or assign a reference to a member of local &apos;{0}&apos; because it is not a ref local.
+        ///   Looks up a localized string similar to Cannot return a reference to a member of local &apos;{0}&apos; because it is not a ref local.
         /// </summary>
         internal static string ERR_RefReturnLocal2 {
             get {
@@ -7730,20 +7739,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference.
+        ///   Looks up a localized string similar to An expression cannot be used in this context because it may not be returned by reference.
         /// </summary>
         internal static string ERR_RefReturnLvalueExpected {
             get {
                 return ResourceManager.GetString("ERR_RefReturnLvalueExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference.
-        /// </summary>
-        internal static string ERR_RefReturnLvalueExpected2 {
-            get {
-                return ResourceManager.GetString("ERR_RefReturnLvalueExpected2", resourceCulture);
             }
         }
         
@@ -7757,7 +7757,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or assign a reference to parameter &apos;{0}&apos; because it is not a ref or out parameter.
+        ///   Looks up a localized string similar to Cannot return a parameter by reference &apos;{0}&apos; because it is not a ref or out parameter.
         /// </summary>
         internal static string ERR_RefReturnParameter {
             get {
@@ -7766,7 +7766,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or assign a reference to a member of parameter &apos;{0}&apos; because it is not a ref or out parameter.
+        ///   Looks up a localized string similar to Cannot return or a member of parameter &apos;{0}&apos; by reference because it is not a ref or out parameter.
         /// </summary>
         internal static string ERR_RefReturnParameter2 {
             get {
@@ -7847,7 +7847,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or assign a reference to &apos;{0}&apos; because its receiver may not be returned or assigned by reference.
+        ///   Looks up a localized string similar to Cannot return &apos;{0}&apos; by reference because its receiver may not be returned by reference.
         /// </summary>
         internal static string ERR_RefReturnReceiver {
             get {
