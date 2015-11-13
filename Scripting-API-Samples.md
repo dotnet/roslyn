@@ -75,7 +75,7 @@ var script = CSharpScript.Create<int>("X*Y", globalsType: typeof(Globals));
 script.Compile();
 for (int i = 0; i < 10; i++)
 {
-    Console.WriteLine(await script.EvaluateAsync(new Globals { X = i, Y = i }));
+    Console.WriteLine(await script.RunAsync(new Globals { X = i, Y = i }));
 }
 ```
 
