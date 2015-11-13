@@ -358,14 +358,24 @@ namespace Microsoft.CodeAnalysis
                     int firstExponent = i;
                     int lastExponent = i;
                     while (i < source.Length && source[i] >= '0' && source[i] <= '9') lastExponent = ++i;
-                    int exponentMagnitude = int.Parse(source.Substring(firstExponent, lastExponent - firstExponent));
-                    if (exponentSign == '-')
+                    try
                     {
-                        exponent -= exponentMagnitude;
+                        int exponentMagnitude = int.Parse(source.Substring(firstExponent, lastExponent - firstExponent));
+                        checked
+                        {
+                            if (exponentSign == '-')
+                            {
+                                exponent -= exponentMagnitude;
+                            }
+                            else
+                            {
+                                exponent += exponentMagnitude;
+                            }
+                        }
                     }
-                    else
+                    catch (OverflowException)
                     {
-                        exponent += exponentMagnitude;
+                        exponent = exponentSign == '-' ? int.MinValue : int.MaxValue;
                     }
                 }
                 result.Exponent = exponent;
