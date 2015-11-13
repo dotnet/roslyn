@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .WithLeadingTrivia(Whitespace(" "));
         }
 
-        public static XmlEmptyElementSyntax PreliminaryElement()
+        public static XmlEmptyElementSyntax XmlPreliminaryElement()
         {
             return XmlEmptyElement("preliminary");
         }
@@ -772,13 +772,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static XmlElementSyntax XmlExceptionElement(CrefSyntax cref, params XmlNodeSyntax[] content)
         {
-            return ExceptionElement(cref, List(content));
+            return XmlExceptionElement(cref, List(content));
         }
 
-        public static XmlElementSyntax ExceptionElement(CrefSyntax cref, SyntaxList<XmlNodeSyntax> content)
+        public static XmlElementSyntax XmlExceptionElement(CrefSyntax cref, SyntaxList<XmlNodeSyntax> content)
         {
             XmlElementSyntax element = XmlElement("exception", content);
             return element.WithStartTag(element.StartTag.AddAttributes(XmlCrefAttribute(cref)));
+        }
+
+        public static XmlElementSyntax XmlPermissionElement(CrefSyntax cref, params XmlNodeSyntax[] content)
+        {
+            return XmlPermissionElement(cref, List(content));
+        }
+
+        public static XmlElementSyntax XmlPermissionElement(CrefSyntax cref, SyntaxList<XmlNodeSyntax> content)
+        {
+            XmlElementSyntax element = XmlElement("permission", content);
+            return element.WithStartTag(element.StartTag.AddAttributes(XmlCrefAttribute(cref)));
+        }
+
+        public static XmlElementSyntax XmlExampleElement(params XmlNodeSyntax[] content)
+        {
+            return XmlExampleElement(List(content));
+        }
+
+        public static XmlElementSyntax XmlExampleElement(SyntaxList<XmlNodeSyntax> content)
+        {
+            XmlElementSyntax element = XmlElement("example", content);
+            return element.WithStartTag(element.StartTag);
         }
 
         public static XmlElementSyntax XmlParaElement(params XmlNodeSyntax[] content)
