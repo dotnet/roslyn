@@ -352,33 +352,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Thread.CurrentThread.CurrentCulture = culture;
         }
 
-        [Fact]
-        public void TestDocumentationComment()
-        {
-            var expected = @"/// <summary>
-/// This class provides extension methods for the <see cref=""TypeName""/> class.
-/// </summary>
-/// <threadsafety static=""true"" instance=""false""/>
-/// <preliminary/>";
-
-            Symbol declaringType = null;
-
-            DocumentationCommentTriviaSyntax documentationComment = SyntaxFactory.DocumentationComment(
-                SyntaxFactory.XmlSummaryElement(
-                    SyntaxFactory.XmlText("This class provides extension methods for the "),
-                    SyntaxFactory.XmlSeeElement(
-                        SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(declaringType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))),
-                    SyntaxFactory.XmlText(" class.")),
-                SyntaxFactory.XmlNewLine(),
-                SyntaxFactory.XmlThreadSafetyElement(),
-                SyntaxFactory.XmlNewLine(),
-                SyntaxFactory.PreliminaryElement());
-
-            var actual = documentationComment.ToString();
-
-            Assert.Equal(expected, actual);
-        }
-
         private static void CheckLiteralToString(dynamic value, string expected)
         {
             var literal = SyntaxFactory.Literal(value);
