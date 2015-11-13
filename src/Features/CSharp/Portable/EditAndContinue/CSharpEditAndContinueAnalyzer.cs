@@ -1292,6 +1292,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ContinueStatement:
                     return node.Span;
 
+                case SyntaxKind.LetStatement:
+                    return ((LetStatementSyntax)node).LetKeyword.Span;
+
                 case SyntaxKind.AwaitExpression:
                     return ((AwaitExpressionSyntax)node).AwaitKeyword.Span;
 

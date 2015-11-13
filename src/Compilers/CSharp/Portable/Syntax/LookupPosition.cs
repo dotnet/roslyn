@@ -334,6 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).YieldKeyword;
+                case SyntaxKind.LetStatement:
+                    return ((LetStatementSyntax)statement).LetKeyword;
                 case SyntaxKind.LocalFunctionStatement:
                     return statement.GetFirstToken();
                 default:
@@ -411,6 +413,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).SemicolonToken;
+                case SyntaxKind.LetStatement:
+                    {
+                        var letStatement = (LetStatementSyntax)statement;
+                        if (letStatement.SemicolonToken != default(SyntaxToken)) return letStatement.SemicolonToken;
+                        return GetFirstExcludedToken(letStatement.ElseClause?.Statement);
+                    }
                 case SyntaxKind.LocalFunctionStatement:
                     LocalFunctionStatementSyntax localFunctionStmt = (LocalFunctionStatementSyntax)statement;
                     if (localFunctionStmt.Body != null)
