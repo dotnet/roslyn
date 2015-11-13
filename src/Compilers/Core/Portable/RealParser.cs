@@ -348,6 +348,7 @@ namespace Microsoft.CodeAnalysis
                 result.Mantissa = mantissaBuilder.ToString();
                 if (i < source.Length && (source[i] == 'e' || source[i] == 'E'))
                 {
+                    const int MAX_EXP_QUAD = (1 << 14); // IEEE quad, without sign
                     char exponentSign = '\0';
                     i++;
                     if (i < source.Length && (source[i] == '-' || source[i] == '+'))
@@ -358,24 +359,24 @@ namespace Microsoft.CodeAnalysis
                     int firstExponent = i;
                     int lastExponent = i;
                     while (i < source.Length && source[i] >= '0' && source[i] <= '9') lastExponent = ++i;
-                    try
+
+                    int exponentMagnitude = 0;
+
+                    if (int.TryParse(source.Substring(firstExponent, lastExponent - firstExponent), out exponentMagnitude) &&
+                        exponentMagnitude <= MAX_EXP_QUAD)
                     {
-                        int exponentMagnitude = int.Parse(source.Substring(firstExponent, lastExponent - firstExponent));
-                        checked
+                        if (exponentSign == '-')
                         {
-                            if (exponentSign == '-')
-                            {
-                                exponent -= exponentMagnitude;
-                            }
-                            else
-                            {
-                                exponent += exponentMagnitude;
-                            }
+                            exponent -= exponentMagnitude;
+                        }
+                        else
+                        {
+                            exponent += exponentMagnitude;
                         }
                     }
-                    catch (OverflowException)
+                    else
                     {
-                        exponent = exponentSign == '-' ? (int.MinValue + 1) : int.MaxValue;
+                        exponent = exponentSign == '-' ? -MAX_EXP_QUAD : MAX_EXP_QUAD;
                     }
                 }
                 result.Exponent = exponent;
