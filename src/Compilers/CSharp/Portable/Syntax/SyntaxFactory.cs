@@ -664,6 +664,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlEntity((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
         }
 
+        /// <summary>
+        /// Creates an xml documentation comment that abstracts xml syntax creation.
+        /// </summary>
+        /// <param name="content">
+        /// A list of xml node syntax that will be the content within the xml documentation comment
+        /// (e.g. a summary element, a returns element, exception element and so on).
+        /// </param>
         public static DocumentationCommentTriviaSyntax DocumentationComment(params XmlNodeSyntax[] content)
         {
             return DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(content))
@@ -671,37 +678,66 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .WithTrailingTrivia(EndOfLine(Environment.NewLine));
         }
 
+        /// <summary>
+        /// Creates a summary element within an xml documentation comment.
+        /// </summary>
+        /// <param name="content">A list of xml node syntax that will be the content within the summary element.</param>
         public static XmlElementSyntax XmlSummaryElement(params XmlNodeSyntax[] content)
         {
             return XmlSummaryElement(List(content));
         }
 
+        /// <summary>
+        /// Creates a summary element within an xml documentation comment.
+        /// </summary>
+        /// <param name="content">A list of xml node syntax that will be the content within the summary element.</param>
         public static XmlElementSyntax XmlSummaryElement(SyntaxList<XmlNodeSyntax> content)
         {
             return XmlMultiLineElement("summary", content);
         }
 
+        /// <summary>
+        /// Creates a see element within an xml documentation comment.
+        /// </summary>
+        /// <param name="cref">A cref syntax node that points to the referenced item (e.g. a class, struct).</param>
         public static XmlEmptyElementSyntax XmlSeeElement(CrefSyntax cref)
         {
             return XmlEmptyElement("see").AddAttributes(XmlCrefAttribute(cref));
         }
 
+        /// <summary>
+        /// Creates a seealso element within an xml documentation comment.
+        /// </summary>
+        /// <param name="cref">A cref syntax node that points to the referenced item (e.g. a class, struct).</param>
         public static XmlEmptyElementSyntax XmlSeeAlsoElement(CrefSyntax cref)
         {
             return XmlEmptyElement("seealso").AddAttributes(XmlCrefAttribute(cref));
         }
 
+        /// <summary>
+        /// Creates a seealso element within an xml documentation comment.
+        /// </summary>
+        /// <param name="linkAddress">The uri of the referenced item.</param>
+        /// <param name="linkText">A list of xml node syntax that will be used as the link text for the referenced item.</param>
         public static XmlElementSyntax XmlSeeAlsoElement(Uri linkAddress, SyntaxList<XmlNodeSyntax> linkText)
         {
             XmlElementSyntax element = XmlElement("seealso", linkText);
             return element.WithStartTag(element.StartTag.AddAttributes(XmlTextAttribute("href", linkAddress.ToString())));
         }
 
+        /// <summary>
+        /// Creates a threadsafty element within an xml documentation comment.
+        /// </summary>
         public static XmlEmptyElementSyntax XmlThreadSafetyElement()
         {
             return XmlThreadSafetyElement(true, false);
         }
 
+        /// <summary>
+        /// Creates a threadsafty element within an xml documentation comment.
+        /// </summary>
+        /// <param name="static">Indicates whether static member of this class are safe for multi-threaded operations.</param>
+        /// <param name="instance">Indicates whether members of instances of this type are safe for multi-threaded operations.</param>
         public static XmlEmptyElementSyntax XmlThreadSafetyElement(bool @static, bool instance)
         {
             return XmlEmptyElement("threadsafety").AddAttributes(
@@ -709,6 +745,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 XmlTextAttribute("instance", instance.ToString().ToLowerInvariant()));
         }
 
+        /// <summary>
+        /// Creates a syntax node for a name attribute in a xml element within a xml documentation comment.
+        /// </summary>
+        /// <param name="parameterName">The value of the name attribute.</param>
         public static XmlNameAttributeSyntax XmlNameAttribute(string parameterName)
         {
             return XmlNameAttribute(
@@ -719,16 +759,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .WithLeadingTrivia(Whitespace(" "));
         }
 
+        /// <summary>
+        /// Creates a syntax node for a priliminary element within a xml documentation comment.
+        /// </summary>
         public static XmlEmptyElementSyntax XmlPreliminaryElement()
         {
             return XmlEmptyElement("preliminary");
         }
 
+        /// <summary>
+        /// Creates a syntax node for a cref attribute within a xml documentation comment.
+        /// </summary>
+        /// <param name="cref">The <see cref="CrefSyntax"/> used for the xml cref attribute syntax.</param>
         public static XmlCrefAttributeSyntax XmlCrefAttribute(CrefSyntax cref)
         {
             return XmlCrefAttribute(cref, SyntaxKind.DoubleQuoteToken);
         }
 
+        /// <summary>
+        /// Creates a syntax node for a cref attribute within a xml documentation comment.
+        /// </summary>
+        /// <param name="cref">The <see cref="CrefSyntax"/> used for the xml cref attribute syntax.</param>
+        /// <param name="quoteKind">The kind of the quote for the referenced item in the cref attribute.</param>
         public static XmlCrefAttributeSyntax XmlCrefAttribute(CrefSyntax cref, SyntaxKind quoteKind)
         {
             cref = cref.ReplaceTokens(cref.DescendantTokens(), XmlReplaceBracketTokens);
@@ -740,21 +792,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .WithLeadingTrivia(Whitespace(" "));
         }
 
+        /// <summary>
+        /// Creates a remarks element within an xml documentation comment.
+        /// </summary>
+        /// <param name="content">A list of xml node syntax that will be the content within the remarks element.</param>
         public static XmlElementSyntax XmlRemarksElement(params XmlNodeSyntax[] content)
         {
             return XmlRemarksElement(List(content));
         }
 
+        /// <summary>
+        /// Creates a remarks element within an xml documentation comment.
+        /// </summary>
+        /// <param name="content">A list of xml node syntax that will be the content within the remarks element.</param>
         public static XmlElementSyntax XmlRemarksElement(SyntaxList<XmlNodeSyntax> content)
         {
             return XmlMultiLineElement("remarks", content);
         }
 
+        /// <summary>
+        /// Creates a returns element within an xml documentation comment.
+        /// </summary>
+        /// <param name="content">A list of xml node syntax that will be the content within the returns element.</param>
         public static XmlElementSyntax XmlReturnsElement(params XmlNodeSyntax[] content)
         {
             return XmlReturnsElement(List(content));
         }
 
+        /// <summary>
+        /// Creates a returns element within an xml documentation comment.
+        /// </summary>
+        /// <param name="content">A list of xml node syntax that will be the content within the returns element.</param>
         public static XmlElementSyntax XmlReturnsElement(SyntaxList<XmlNodeSyntax> content)
         {
             return XmlMultiLineElement("returns", content);
