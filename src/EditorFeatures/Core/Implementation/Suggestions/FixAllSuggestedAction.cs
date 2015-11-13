@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -23,10 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
+            IWaitIndicator waitIndicator,
             FixAllCodeAction codeAction,
             FixAllProvider provider,
             Diagnostic originalFixedDiagnostic)
-            : base(workspace, subjectBuffer, editHandler, codeAction, provider)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider)
         {
             _fixedDiagnostic = originalFixedDiagnostic;
         }

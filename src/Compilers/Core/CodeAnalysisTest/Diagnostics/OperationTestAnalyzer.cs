@@ -412,4 +412,41 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
         }
     }
+
+    /// <summary>Analyzer used to test various contexts in which IOperations can occur.</summary>
+    public class SeventeenTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Reliability".</summary>
+        private const string ReliabilityCategory = "Reliability";
+
+        public static readonly DiagnosticDescriptor SeventeenDescriptor = new DiagnosticDescriptor(
+            "SeventeenRule",
+            "Seventeen",
+            "Seventeen is a recognized value",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(SeventeenDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     ILiteralExpression literal = (ILiteralExpression)operationContext.Operation;
+                     if (literal.ResultType.SpecialType == SpecialType.System_Int32 &&
+                         literal.ConstantValue != null &&
+                         (int)literal.ConstantValue == 17)
+                     {
+                         operationContext.ReportDiagnostic(Diagnostic.Create(SeventeenDescriptor, literal.Syntax.GetLocation()));
+                     }
+                 },
+                 OperationKind.LiteralExpression);
+        }
+    }
 }

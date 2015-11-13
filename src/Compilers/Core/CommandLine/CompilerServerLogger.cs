@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CompilerServer
+namespace Microsoft.CodeAnalysis.CommandLine
 {
     /// <summary>
     /// Class for logging information about what happens in the server and client parts of the 
@@ -31,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         static CompilerServerLogger()
         {
+            s_loggingStream = null;
+
             try
             {
                 // Check if the environment
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // Otherwise, assume that the environment variable specifies the name of the log file.
                     if (Directory.Exists(loggingFileName))
                     {
-                        loggingFileName = Path.Combine(loggingFileName, string.Format("server.{1}.{2}.log", loggingFileName, Process.GetCurrentProcess().Id, Environment.TickCount));
+                        loggingFileName = Path.Combine(loggingFileName, string.Format("server.{1}.{2}.log", loggingFileName, GetCurrentProcessId(), Environment.TickCount));
                     }
 
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
@@ -118,12 +121,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
+        private static int GetCurrentProcessId()
+        {
+            var process = Process.GetCurrentProcess();
+            return process.Id;
+        }
+
+        private static int GetCurrentThreadId()
+        {
+            var thread = Thread.CurrentThread;
+            return thread.ManagedThreadId;
+        }
+
         /// <summary>
         /// Get the string that prefixes all log entries. Shows the process, thread, and time.
         /// </summary>
         private static string GetLoggingPrefix()
         {
-            return string.Format("{0} PID={1} TID={2} Ticks={3}: ", s_prefix, Process.GetCurrentProcess().Id, Thread.CurrentThread.ManagedThreadId, Environment.TickCount);
+            return string.Format("{0} PID={1} TID={2} Ticks={3}: ", s_prefix, GetCurrentProcessId(), GetCurrentThreadId(), Environment.TickCount);
         }
     }
 }

@@ -1,13 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.BuildTasks;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
-
-using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
 
 namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
@@ -17,13 +11,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
             => Main(args, SpecializedCollections.EmptyArray<string>());
 
         public static int Main(string[] args, string[] extraArgs)
-            => BuildClient.RunWithConsoleOutput(
-                BuildClient.GetCommandLineArgs(args).Concat(extraArgs),
-                clientDir: AppDomain.CurrentDomain.BaseDirectory,
-                workingDir: Directory.GetCurrentDirectory(),
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
-                analyzerLoader: new SimpleAnalyzerAssemblyLoader(),
-                language: RequestLanguage.VisualBasicCompile,
-                fallbackCompiler: Vbc.Run);
+            => DesktopBuildClient.Run(args, extraArgs, RequestLanguage.VisualBasicCompile, Vbc.Run, new SimpleAnalyzerAssemblyLoader());
     }
 }

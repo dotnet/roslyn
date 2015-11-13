@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
-using Microsoft.CodeAnalysis.CompilerServer;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -154,8 +154,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        internal override BuildProtocolConstants.RequestLanguage Language
-            => BuildProtocolConstants.RequestLanguage.CSharpCompile;
+        internal override RequestLanguage Language => RequestLanguage.CSharpCompile;
 
         private static readonly string[] s_separators = { "\r\n" };
 

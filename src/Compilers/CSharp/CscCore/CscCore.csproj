@@ -21,7 +21,6 @@
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-
     <!-- Misspelling, bug in NuGet targets -->
     <RuntimeIndentifier>x64</RuntimeIndentifier>
     <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
@@ -57,26 +56,11 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\BuildClient.cs">
-      <Link>BuildClient.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\NativeMethods.cs">
-      <Link>NativeMethods.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\BuildProtocol.cs">
-      <Link>BuildProtocol.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\CompilerServerLogger.cs">
-      <Link>CompilerServerLogger.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\ConsoleUtil.cs">
-      <Link>ConsoleUtil.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\AssemblyIdentityUtils.cs">
-      <Link>AssemblyIdentityUtils.cs</Link>
+    <Compile Include="..\..\Shared\CoreClrBuildClient.cs">
+      <Link>CoreClrBuildClient.cs</Link>
     </Compile>
     <Compile Include="Csc.cs" />
     <Compile Include="Program.cs" />
@@ -99,6 +83,7 @@
     </None>
     <None Include="project.json" />
   </ItemGroup>
+  <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

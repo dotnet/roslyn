@@ -2563,6 +2563,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitEqualsValue(BoundEqualsValue node)
+        {
+            VisitRvalue(node.Value);
+            return null;
+        }
+
         #endregion visitors
     }
 }
