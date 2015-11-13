@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     catch (OverflowException)
                     {
-                        exponent = exponentSign == '-' ? int.MinValue : int.MaxValue;
+                        exponent = exponentSign == '-' ? (int.MinValue + 1) : int.MaxValue;
                     }
                 }
                 result.Exponent = exponent;
