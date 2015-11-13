@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
         }
 
         [WorkItem(545979)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToErrorType()
         {
             TestMissing(
@@ -36,7 +36,7 @@ class Program
         }
 
         [WorkItem(545137), WorkItem(870550)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void ParenthesizeToKeepParseTheSame1()
         {
             Test(
@@ -71,7 +71,7 @@ class Program
         }
 
         [WorkItem(545146)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void ParenthesizeToKeepParseTheSame2()
         {
             Test(
@@ -104,7 +104,7 @@ class C
         }
 
         [WorkItem(545160)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void ParenthesizeToKeepParseTheSame3()
         {
             Test(
@@ -135,7 +135,7 @@ class Program
         }
 
         [WorkItem(545138)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveTypeParameterCastToObject()
         {
             TestMissing(
@@ -151,7 +151,7 @@ class Ð¡
         }
 
         [WorkItem(545139)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastInIsTest()
         {
             TestMissing(
@@ -170,7 +170,7 @@ class Ð¡
         }
 
         [WorkItem(545142)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastNeedForUserDefinedOperator()
         {
             TestMissing(
@@ -194,7 +194,7 @@ class Program
         }
 
         [WorkItem(545143)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemovePointerCast1()
         {
             TestMissing(
@@ -210,7 +210,7 @@ unsafe class C
         }
 
         [WorkItem(545144)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToObjectFromDelegateComparison()
         {
             // The cast below can't be removed because it would result in the Delegate
@@ -233,7 +233,7 @@ class Program
         }
 
         [WorkItem(545145)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
         {
             TestMissing(
@@ -251,7 +251,7 @@ class C
         }
 
         [WorkItem(545147)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastInFloatingPointOperation()
         {
             TestMissing(
@@ -268,7 +268,7 @@ class C
         }
 
         [WorkItem(545157)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveIdentityCastWhichAffectsOverloadResolution1()
         {
             TestMissing(
@@ -289,7 +289,7 @@ class Program
         }
 
         [WorkItem(545158)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveIdentityCastWhichAffectsOverloadResolution2()
         {
             TestMissing(
@@ -311,7 +311,7 @@ class Program
         }
 
         [WorkItem(545158)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveIdentityCastWhichAffectsOverloadResolution3()
         {
             TestMissing(
@@ -334,7 +334,7 @@ class Program
         }
 
         [WorkItem(545747)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastWhichChangesTypeOfInferredLocal()
         {
             TestMissing(
@@ -351,7 +351,7 @@ class C
         }
 
         [WorkItem(545159)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNeededCastToIListOfObject()
         {
             TestMissing(
@@ -377,7 +377,7 @@ class C
         }
 
         [WorkItem(545287), WorkItem(880752)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInParameterDefaultValue()
         {
             Test(
@@ -401,7 +401,7 @@ class Program
         }
 
         [WorkItem(545289)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInReturnStatement()
         {
             Test(
@@ -427,7 +427,7 @@ class Program
         }
 
         [WorkItem(545288)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInLambda1()
         {
             Test(
@@ -455,7 +455,7 @@ class Program
         }
 
         [WorkItem(545288)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInLambda2()
         {
             Test(
@@ -483,7 +483,7 @@ class Program
         }
 
         [WorkItem(545288)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInLambda3()
         {
             Test(
@@ -511,7 +511,7 @@ class Program
         }
 
         [WorkItem(545288)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInLambda4()
         {
             Test(
@@ -539,7 +539,7 @@ class Program
         }
 
         [WorkItem(545291)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInConditionalExpression1()
         {
             Test(
@@ -569,7 +569,7 @@ class Test
         }
 
         [WorkItem(545291)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInConditionalExpression2()
         {
             Test(
@@ -599,7 +599,7 @@ class Test
         }
 
         [WorkItem(545291)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInConditionalExpression3()
         {
             Test(
@@ -629,7 +629,7 @@ class Test
         }
 
         [WorkItem(545291)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNeededCastInConditionalExpression()
         {
             TestMissing(
@@ -646,7 +646,7 @@ class Test
         }
 
         [WorkItem(545291)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInConditionalExpression4()
         {
             Test(
@@ -676,7 +676,7 @@ class Test
         }
 
         [WorkItem(545459)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInsideADelegateConstructor()
         {
             Test(
@@ -712,7 +712,7 @@ class Test
         }
 
         [WorkItem(545419)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveTriviaWhenRemovingCast()
         {
             Test(
@@ -746,7 +746,7 @@ class Test
         }
 
         [WorkItem(545422)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInsideCaseLabel()
         {
             Test(
@@ -780,7 +780,7 @@ class Test
         }
 
         [WorkItem(545578)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInsideGotoCaseStatement()
         {
             Test(
@@ -816,7 +816,7 @@ class Test
         }
 
         [WorkItem(545595)]
-        [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInCollectionInitializer()
         {
             Test(
@@ -846,7 +846,7 @@ class Program
         }
 
         [WorkItem(529787)]
-        [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastWhichInCollectionInitializer1()
         {
             TestMissing(
@@ -868,7 +868,7 @@ class X : List<int>
         }
 
         [WorkItem(529787)]
-        [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastWhichInCollectionInitializer2()
         {
             TestMissing(
@@ -890,7 +890,7 @@ class X : List<int>
         }
 
         [WorkItem(545607)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastInArrayInitializer()
         {
             Test(
@@ -918,7 +918,7 @@ class X
         }
 
         [WorkItem(545616)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnneededCastWithOverloadedBinaryOperator()
         {
             Test(
@@ -958,7 +958,7 @@ class MyAction
         }
 
         [WorkItem(545822)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnnecessaryCastShouldInsertWhitespaceWhereNeededToKeepCorrectParsing()
         {
             Test(
@@ -990,7 +990,7 @@ class Program
         }
 
         [WorkItem(545560)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastWithExplicitUserDefinedConversion()
         {
             TestMissing(
@@ -1022,7 +1022,7 @@ class A
         }
 
         [WorkItem(545608)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastWithImplicitUserDefinedConversion()
         {
             TestMissing(
@@ -1043,7 +1043,7 @@ class X
         }
 
         [WorkItem(545941)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastWithImplicitConversionInThrow()
         {
             // The cast below can't be removed because the throw statement expects
@@ -1070,7 +1070,7 @@ class E
         }
 
         [WorkItem(545981)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInThrow()
         {
             // The cast below can't be removed because the throw statement expects
@@ -1093,7 +1093,7 @@ class C
         }
 
         [WorkItem(545941)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnnecessaryCastInThrow()
         {
             Test(
@@ -1125,7 +1125,7 @@ class E
         }
 
         [WorkItem(545945)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryDowncast()
         {
             TestMissing(
@@ -1141,7 +1141,7 @@ class C
         }
 
         [WorkItem(545591)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastWithinLambda()
         {
             TestMissing(
@@ -1163,7 +1163,7 @@ class Program
         }
 
         [WorkItem(545606)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastFromNullToTypeParameter()
         {
             TestMissing(
@@ -1179,7 +1179,7 @@ class X
         }
 
         [WorkItem(545744)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInImplicitlyTypedArray()
         {
             TestMissing(
@@ -1197,7 +1197,7 @@ class X
         }
 
         [WorkItem(545750)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnnecessaryCastToBaseType()
         {
             Test(
@@ -1233,7 +1233,7 @@ class X
         }
 
         [WorkItem(545855)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnnecessaryLambdaToDelegateCast()
         {
             Test(
@@ -1292,7 +1292,7 @@ static class Program
         }
 
         [WorkItem(529816)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnnecessaryCastInQueryExpression()
         {
             Test(
@@ -1326,7 +1326,7 @@ class A
         }
 
         [WorkItem(529816)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInQueryExpression()
         {
             TestMissing(
@@ -1347,7 +1347,7 @@ class A
         }
 
         [WorkItem(545848)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInConstructorInitializer()
         {
             TestMissing(
@@ -1370,7 +1370,7 @@ class C
         }
 
         [WorkItem(529831)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastFromTypeParameterToInterface()
         {
             TestMissing(
@@ -1417,7 +1417,7 @@ static class Program
         }
 
         [WorkItem(529831)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnnecessaryCastFromTypeParameterToInterface()
         {
             Test(
@@ -1506,7 +1506,7 @@ static class Program
         }
 
         [WorkItem(545877)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontCrashOnIncompleteMethodDeclaration()
         {
             TestMissing(
@@ -1527,7 +1527,7 @@ class A
         }
 
         [WorkItem(545777)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveImportantTrailingTrivia()
         {
             Test(
@@ -1563,7 +1563,7 @@ class Program
         }
 
         [WorkItem(529791)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnnecessaryCastToNullable1()
         {
             Test(
@@ -1593,7 +1593,7 @@ class X
         }
 
         [WorkItem(545842)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnnecessaryCastToNullable2()
         {
             Test(
@@ -1625,7 +1625,7 @@ static class C
         }
 
         [WorkItem(545850)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveSurroundingParentheses()
         {
             Test(
@@ -1655,7 +1655,7 @@ class Program
         }
 
         [WorkItem(529846)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastFromTypeParameterToObject()
         {
             TestMissing(
@@ -1671,7 +1671,7 @@ class C
         }
 
         [WorkItem(545858)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastFromDelegateTypeToMulticastDelegate()
         {
             TestMissing(
@@ -1691,7 +1691,7 @@ class C
         }
 
         [WorkItem(545857)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInSizeOfArrayCreationExpression1()
         {
             // The cast below can't be removed because it would result in the implicit
@@ -1722,7 +1722,7 @@ class C
         }
 
         [WorkItem(545980)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInSizeOfArrayCreationExpression2()
         {
             // Array bounds must be an int, so the cast below can't be removed.
@@ -1740,7 +1740,7 @@ class C
         }
 
         [WorkItem(529842)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInTernaryExpression()
         {
             TestMissing(
@@ -1765,7 +1765,7 @@ class X
         }
 
         [WorkItem(545882), WorkItem(880752)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastInConstructorInitializer1()
         {
             Test(
@@ -1789,7 +1789,7 @@ class C
         }
 
         [WorkItem(545958), WorkItem(880752)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastInConstructorInitializer2()
         {
             Test(
@@ -1819,7 +1819,7 @@ class C
         }
 
         [WorkItem(545957)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastInConstructorInitializer3()
         {
             TestMissing(
@@ -1833,7 +1833,7 @@ class C
         }
 
         [WorkItem(545842)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToNullableInArithmeticExpression()
         {
             Test(
@@ -1865,7 +1865,7 @@ static class C
         }
 
         [WorkItem(545942)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastFromValueTypeToObjectInReferenceEquality()
         {
             // Note: The cast below can't be removed because it would result in an
@@ -1887,7 +1887,7 @@ class Program
         }
 
         [WorkItem(545962)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastWhenExpressionDoesntBind()
         {
             // Note: The cast below can't be removed because its expression doesn't bind.
@@ -1908,7 +1908,7 @@ class Program
         }
 
         [WorkItem(545944)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastBeforePointerDereference1()
         {
             // Note: The cast below can't be removed because it would result in *null,
@@ -1924,7 +1924,7 @@ unsafe class C
         }
 
         [WorkItem(545978)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastBeforePointerDereference2()
         {
             // Note: The cast below can't be removed because it would result in dereferencing
@@ -1945,7 +1945,7 @@ unsafe class C
 
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastBeforePointerDereference3()
         {
             // Conservatively disable cast simplifications for casts involving pointer conversions.
@@ -1965,7 +1965,7 @@ class C
 
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNumericCastInUncheckedExpression()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
@@ -1990,7 +1990,7 @@ class C
 
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNumericCastInUncheckedStatement()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked statements.
@@ -2018,7 +2018,7 @@ class C
 
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNumericCastInCheckedExpression()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked expressions.
@@ -2043,7 +2043,7 @@ class C
 
         [WorkItem(2691, "https://github.com/dotnet/roslyn/issues/2691")]
         [WorkItem(2987, "https://github.com/dotnet/roslyn/issues/2987")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNumericCastInCheckedStatement()
         {
             // Conservatively disable cast simplifications within explicit checked/unchecked statements.
@@ -2070,7 +2070,7 @@ class C
         }
 
         [WorkItem(545894)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInAttribute()
         {
             TestMissing(
@@ -2088,7 +2088,7 @@ class A : Attribute
         #region Interface Casts
 
         [WorkItem(545889)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToInterfaceForUnsealedType()
         {
             // Note: The cast below can't be removed because X is not sealed.
@@ -2121,7 +2121,7 @@ class Y : X, IDisposable
         }
 
         [WorkItem(545890)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToInterfaceForSealedType1()
         {
             // Note: The cast below can be removed because C is sealed and the
@@ -2177,7 +2177,7 @@ sealed class C : I
         }
 
         [WorkItem(545890)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToInterfaceForSealedType2()
         {
             // Note: The cast below can be removed because C is sealed and the
@@ -2238,7 +2238,7 @@ sealed class C : I
         }
 
         [WorkItem(545890)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToInterfaceForSealedType3()
         {
             // Note: The cast below can be removed because C is sealed and the
@@ -2303,7 +2303,7 @@ sealed class C : I
         }
 
         [WorkItem(545890)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToInterfaceForSealedType4()
         {
             // Note: The cast below can't be removed (even though C is sealed)
@@ -2334,7 +2334,7 @@ sealed class C : I
         }
 
         [WorkItem(545890)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToInterfaceForSealedType5()
         {
             // Note: The cast below can be removed (even though C is sealed)
@@ -2390,7 +2390,7 @@ sealed class C : I
         }
 
         [WorkItem(545888)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToInterfaceForSealedType6()
         {
             // Note: The cast below can't be removed (even though C is sealed)
@@ -2422,7 +2422,7 @@ sealed class C : I
         }
 
         [WorkItem(545888)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToInterfaceForSealedType7()
         {
             Test(
@@ -2480,7 +2480,7 @@ sealed class C : I
         }
 
         [WorkItem(545888)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToInterfaceForSealedType8()
         {
             // Note: The cast below can't be removed (even though C is sealed)
@@ -2515,7 +2515,7 @@ sealed class C : I
         }
 
         [WorkItem(545883)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToInterfaceForSealedType9()
         {
             // Note: The cast below can't be removed (even though C is sealed)
@@ -2544,7 +2544,7 @@ sealed class C : MemoryStream
         }
 
         [WorkItem(545887)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToInterfaceForStruct1()
         {
             // Note: The cast below can't be removed because the cast boxes 's' and
@@ -2576,7 +2576,7 @@ struct S : IIncrementable
         }
 
         [WorkItem(545834)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToInterfaceForStruct2()
         {
             // Note: The cast below can be removed because we are sure to have
@@ -2625,7 +2625,7 @@ class Program
         }
 
         [WorkItem(544655)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToICloneableForDelegate()
         {
             // Note: The cast below can be removed because delegates are implicitly
@@ -2662,7 +2662,7 @@ class C
         }
 
         [WorkItem(545926)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToICloneableForArray()
         {
             // Note: The cast below can be removed because arrays are implicitly
@@ -2699,7 +2699,7 @@ class C
         }
 
         [WorkItem(529897)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToIConvertibleForEnum()
         {
             // Note: The cast below can be removed because enums are implicitly
@@ -2740,7 +2740,7 @@ class Program
         #region ParamArray Parameter Casts
 
         [WorkItem(545141)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToObjectInParamArrayArg1()
         {
             TestMissing(
@@ -2763,7 +2763,7 @@ class C
         }
 
         [WorkItem(529911)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToIntArrayInParamArrayArg2()
         {
             TestMissing(
@@ -2786,7 +2786,7 @@ class C
         }
 
         [WorkItem(529911)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToObjectArrayInParamArrayArg3()
         {
             TestMissing(
@@ -2809,7 +2809,7 @@ class C
         }
 
         [WorkItem(529911)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToObjectArrayInParamArrayArg1()
         {
             Test(
@@ -2841,7 +2841,7 @@ class C
         }
 
         [WorkItem(529911)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToStringArrayInParamArrayArg2()
         {
             Test(
@@ -2873,7 +2873,7 @@ class C
         }
 
         [WorkItem(529911)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToIntArrayInParamArrayArg3()
         {
             Test(
@@ -2905,7 +2905,7 @@ class C
         }
 
         [WorkItem(529911)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToObjectArrayInParamArrayArg4()
         {
             Test(
@@ -2937,7 +2937,7 @@ class C
         }
 
         [WorkItem(529911)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToObjectInParamArrayArg5()
         {
             Test(
@@ -2968,7 +2968,7 @@ class C
             compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToObjectArrayInParamArrayWithNamedArgument()
         {
             Test(
@@ -3003,7 +3003,7 @@ class C
         #region ForEach Statements
 
         [WorkItem(545961)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInForEach1()
         {
             // The cast below can't be removed because it would result an error
@@ -3025,7 +3025,7 @@ class Program
         }
 
         [WorkItem(545961)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInForEach2()
         {
             // The cast below can't be removed because it would result an error
@@ -3047,7 +3047,7 @@ class Program
         }
 
         [WorkItem(545961)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInForEach3()
         {
             // The cast below can't be removed because it would result an error
@@ -3082,7 +3082,7 @@ class C
         }
 
         [WorkItem(545961)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInForEach4()
         {
             // The cast below can't be removed because it would result in
@@ -3125,7 +3125,7 @@ class C
         }
 
         [WorkItem(545961)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInForEach5()
         {
             // The cast below can't be removed because it would change the
@@ -3153,7 +3153,7 @@ class Program
         #endregion
 
         [WorkItem(545925)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastIfOverriddenMethodHasIncompatibleParameterList()
         {
             // Note: The cast below can't be removed because the parameter list
@@ -3184,7 +3184,7 @@ class X : Y
         }
 
         [WorkItem(545925)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastIfOverriddenMethodHaveCompatibleParameterList()
         {
             // Note: The cast below can be removed because the parameter list
@@ -3239,7 +3239,7 @@ class X : Y
         }
 
         [WorkItem(529916)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastInReceiverForMethodGroup()
         {
             // Note: The cast below can be removed because the it results in
@@ -3278,7 +3278,7 @@ static class Program
         }
 
         [WorkItem(609497)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void Bugfix_609497()
         {
             TestMissing(
@@ -3304,7 +3304,7 @@ class Program
         }
 
         [WorkItem(545995)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToDifferentTypeWithSameName()
         {
             // Note: The cast below cannot be removed because the it results in
@@ -3339,7 +3339,7 @@ class A
         }
 
         [WorkItem(545921)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastWhichWouldChangeAttributeOverloadResolution1()
         {
             // Note: The cast below cannot be removed because it would result in
@@ -3375,7 +3375,7 @@ class MyAttributeAttribute : Attribute
 
         [WorkItem(608180)]
         [WorkItem(624252)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastIfArgumentIsRestricted_TypedReference()
         {
             TestMissing(
@@ -3404,7 +3404,7 @@ class Program
         }
 
         [WorkItem(627107)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastOnArgumentsWithOtherDynamicArguments()
         {
             TestMissing(
@@ -3434,7 +3434,7 @@ class C<T>
         }
 
         [WorkItem(627107)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastOnArgumentsWithOtherDynamicArguments_Bracketed()
         {
             TestMissing(
@@ -3454,7 +3454,7 @@ class C<T>
         }
 
         [WorkItem(627107)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastOnArgumentsWithDynamicReceiverOpt()
         {
             TestMissing(
@@ -3471,7 +3471,7 @@ class C
         }
 
         [WorkItem(627107)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastOnArgumentsWithDynamicReceiverOpt_1()
         {
             TestMissing(
@@ -3488,7 +3488,7 @@ class C
         }
 
         [WorkItem(627107)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastOnArgumentsWithDynamicReceiverOpt_2()
         {
             TestMissing(
@@ -3505,7 +3505,7 @@ class C
         }
 
         [WorkItem(627107)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastOnArgumentsWithDynamicReceiverOpt_3()
         {
             TestMissing(
@@ -3522,7 +3522,7 @@ class C
         }
 
         [WorkItem(627107)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastOnArgumentsWithOtherDynamicArguments_1()
         {
             TestMissing(
@@ -3552,7 +3552,7 @@ class C<T>
         }
 
         [WorkItem(545998)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastWhichWouldChangeAttributeOverloadResolution2()
         {
             // Note: The cast below cannot be removed because it would result in
@@ -3571,7 +3571,7 @@ class A : Attribute
         }
 
         [WorkItem(529894)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontUnnecessaryCastFromEnumToUint()
         {
             TestMissing(
@@ -3595,7 +3595,7 @@ class C
         }
 
         [WorkItem(529846)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontUnnecessaryCastFromTypeParameterToObject()
         {
             TestMissing(
@@ -3612,7 +3612,7 @@ class C
         }
 
         [WorkItem(640136)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveUnnecessaryCastAndParseCorrect()
         {
             Test(
@@ -3646,7 +3646,7 @@ class C
         }
 
         [WorkItem(626026)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastIfUserDefinedExplicitCast()
         {
             TestMissing(
@@ -3676,7 +3676,7 @@ public struct B
         }
 
         [WorkItem(768895)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInTernary()
         {
             TestMissing(
@@ -3693,7 +3693,7 @@ class Program
         }
 
         [WorkItem(770187)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInSwitchExpression()
         {
             TestMissing(
@@ -3725,7 +3725,7 @@ namespace ConsoleApplication23
 
         [WorkItem(844482)]
         [WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastFromBaseToDerivedWithExplicitReference()
         {
             TestMissing(
@@ -3751,7 +3751,7 @@ class D : C
         }
 
         [WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToTypeParameterWithExceptionConstraint()
         {
             TestMissing(
@@ -3771,7 +3771,7 @@ class Program
         }
 
         [WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
         {
             TestMissing(
