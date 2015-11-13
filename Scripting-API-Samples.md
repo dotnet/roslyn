@@ -58,6 +58,7 @@ var result = await CSharpScript.EvaluateAsync("Sqrt(2)",
 ```
 
 ### <a name="parameter"></a>Parameterize a script
+> **Note**: this currently doesn't work due to a [known bug](https://github.com/dotnet/roslyn/issues/6101). A workaround would be to define Globals in a .dll and #r the .dll. 
 ```csharp
 public class Globals
 {
