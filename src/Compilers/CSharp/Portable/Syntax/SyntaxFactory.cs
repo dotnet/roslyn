@@ -828,106 +828,200 @@ namespace Microsoft.CodeAnalysis.CSharp
             return XmlMultiLineElement("returns", content);
         }
 
+        /// <summary>
+        /// Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        /// </summary>
+        /// <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         public static XmlElementSyntax XmlValueElement(params XmlNodeSyntax[] content)
         {
             return XmlValueElement(List(content));
         }
 
+        /// <summary>
+        /// Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        /// </summary>
+        /// <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         public static XmlElementSyntax XmlValueElement(SyntaxList<XmlNodeSyntax> content)
         {
             return XmlMultiLineElement("value", content);
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an exception element within xml documentation comments.
+        /// </summary>
+        /// <param name="cref">Syntax representation of the reference to the exception type.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the exception element.</param>
         public static XmlElementSyntax XmlExceptionElement(CrefSyntax cref, params XmlNodeSyntax[] content)
         {
             return XmlExceptionElement(cref, List(content));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an exception element within xml documentation comments.
+        /// </summary>
+        /// <param name="cref">Syntax representation of the reference to the exception type.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the exception element.</param>
         public static XmlElementSyntax XmlExceptionElement(CrefSyntax cref, SyntaxList<XmlNodeSyntax> content)
         {
             XmlElementSyntax element = XmlElement("exception", content);
             return element.WithStartTag(element.StartTag.AddAttributes(XmlCrefAttribute(cref)));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a permission element within xml documentation comments.
+        /// </summary>
+        /// <param name="cref">Syntax representation of the reference to the permission type.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the permission element.</param>
         public static XmlElementSyntax XmlPermissionElement(CrefSyntax cref, params XmlNodeSyntax[] content)
         {
             return XmlPermissionElement(cref, List(content));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a permission element within xml documentation comments.
+        /// </summary>
+        /// <param name="cref">Syntax representation of the reference to the permission type.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the permission element.</param>
         public static XmlElementSyntax XmlPermissionElement(CrefSyntax cref, SyntaxList<XmlNodeSyntax> content)
         {
             XmlElementSyntax element = XmlElement("permission", content);
             return element.WithStartTag(element.StartTag.AddAttributes(XmlCrefAttribute(cref)));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an example element within xml documentation comments.
+        /// </summary>
+        /// <param name="content">A list of syntax nodes that represents the content of the example element.</param>
         public static XmlElementSyntax XmlExampleElement(params XmlNodeSyntax[] content)
         {
             return XmlExampleElement(List(content));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an example element within xml documentation comments.
+        /// </summary>
+        /// <param name="content">A list of syntax nodes that represents the content of the example element.</param>
         public static XmlElementSyntax XmlExampleElement(SyntaxList<XmlNodeSyntax> content)
         {
             XmlElementSyntax element = XmlElement("example", content);
             return element.WithStartTag(element.StartTag);
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a para element within xml documentation comments.
+        /// </summary>
+        /// <param name="content">A list of syntax nodes that represents the content of the para element.</param>
         public static XmlElementSyntax XmlParaElement(params XmlNodeSyntax[] content)
         {
             return XmlParaElement(List(content));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a para element within xml documentation comments.
+        /// </summary>
+        /// <param name="content">A list of syntax nodes that represents the content of the para element.</param>
         public static XmlElementSyntax XmlParaElement(SyntaxList<XmlNodeSyntax> content)
         {
             return XmlElement("para", content);
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a param element within xml documentation comments (e.g. for
+        /// documentation of method parameters).
+        /// </summary>
+        /// <param name="parameterName">The name of the parameter.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the param element (e.g. 
+        /// the description and meaning of the parameter).</param>
         public static XmlElementSyntax XmlParamElement(string parameterName, params XmlNodeSyntax[] content)
         {
             return XmlParamElement(parameterName, List(content));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a param element within xml documentation comments (e.g. for
+        /// documentation of method parameters).
+        /// </summary>
+        /// <param name="parameterName">The name of the parameter.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the param element (e.g. 
+        /// the description and meaning of the parameter).</param>
         public static XmlElementSyntax XmlParamElement(string parameterName, SyntaxList<XmlNodeSyntax> content)
         {
             XmlElementSyntax element = XmlElement("param", content);
             return element.WithStartTag(element.StartTag.AddAttributes(XmlNameAttribute(parameterName)));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a paramref element within xml documentation comments (e.g. for
+        /// referencing particular parameters of a method).
+        /// </summary>
+        /// <param name="parameterName">The name of the referenced parameter.</param>
         public static XmlEmptyElementSyntax XmlParamRefElement(string parameterName)
         {
             return XmlEmptyElement("paramref").AddAttributes(XmlNameAttribute(parameterName));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a see element within xml documentation comments,
+        /// that points to the 'null' language keyword.
+        /// </summary>
         public static XmlEmptyElementSyntax XmlNullKeywordElement()
         {
             return XmlKeywordElement("null");
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a see element within xml documentation comments,
+        /// that points to a language keyword.
+        /// </summary>
+        /// <param name="keyword">The language keyword to which the see element points to.</param>
         private static XmlEmptyElementSyntax XmlKeywordElement(string keyword)
         {
             return XmlEmptyElement("see").AddAttributes(
                 XmlTextAttribute("langword", keyword));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a placeholder element within xml documentation comments.
+        /// </summary>
+        /// <param name="content">A list of syntax nodes that represents the content of the placeholder element.</param>
         public static XmlElementSyntax XmlPlaceholderElement(params XmlNodeSyntax[] content)
         {
             return XmlPlaceholderElement(List(content));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a placeholder element within xml documentation comments.
+        /// </summary>
+        /// <param name="content">A list of syntax nodes that represents the content of the placeholder element.</param>
         public static XmlElementSyntax XmlPlaceholderElement(SyntaxList<XmlNodeSyntax> content)
         {
             return XmlElement("placeholder", content);
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a named empty xml element within xml documentation comments.
+        /// </summary>
+        /// <param name="localName">The name of the empty xml element.</param>
         public static XmlEmptyElementSyntax XmlEmptyElement(string localName)
         {
             return XmlEmptyElement(XmlName(localName));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a named xml element within xml documentation comments.
+        /// </summary>
+        /// <param name="localName">The name of the empty xml element.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the xml element.</param>
         public static XmlElementSyntax XmlElement(string localName, SyntaxList<XmlNodeSyntax> content)
         {
             return XmlElement(XmlName(localName), content);
         }
 
+        /// <summary>
+        /// Creates the syntax representation of a named xml element within xml documentation comments.
+        /// </summary>
+        /// <param name="name">The name of the empty xml element.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the xml element.</param>
         public static XmlElementSyntax XmlElement(XmlNameSyntax name, SyntaxList<XmlNodeSyntax> content)
         {
             return XmlElement(
@@ -936,21 +1030,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 XmlElementEndTag(name));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an xml text attribute.
+        /// </summary>
+        /// <param name="name">The name of the xml text attribute.</param>
+        /// <param name="value">The value of the xml text attribute.</param>
         public static XmlTextAttributeSyntax XmlTextAttribute(string name, string value)
         {
             return XmlTextAttribute(name, XmlTextLiteral(value));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an xml text attribute.
+        /// </summary>
+        /// <param name="name">The name of the xml text attribute.</param>
+        /// <param name="textTokens">A list of tokens used for the value of the xml text attribute.</param>
         public static XmlTextAttributeSyntax XmlTextAttribute(string name, params SyntaxToken[] textTokens)
         {
             return XmlTextAttribute(XmlName(name), SyntaxKind.DoubleQuoteToken, TokenList(textTokens));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an xml text attribute.
+        /// </summary>
+        /// <param name="name">The name of the xml text attribute.</param>
+        /// <param name="quoteKind">The kind of the quote token to be used to quote the value (e.g. " or ').</param>
+        /// <param name="textTokens">A list of tokens used for the value of the xml text attribute.</param>
         public static XmlTextAttributeSyntax XmlTextAttribute(string name, SyntaxKind quoteKind, SyntaxTokenList textTokens)
         {
             return XmlTextAttribute(XmlName(name), SyntaxKind.DoubleQuoteToken, textTokens);
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an xml text attribute.
+        /// </summary>
+        /// <param name="name">The name of the xml text attribute.</param>
+        /// <param name="quoteKind">The kind of the quote token to be used to quote the value (e.g. " or ').</param>
+        /// <param name="textTokens">A list of tokens used for the value of the xml text attribute.</param>
         public static XmlTextAttributeSyntax XmlTextAttribute(XmlNameSyntax name, SyntaxKind quoteKind, SyntaxTokenList textTokens)
         {
             return XmlTextAttribute(
@@ -961,11 +1077,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .WithLeadingTrivia(Whitespace(" "));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an xml element that spans multiple text lines.
+        /// </summary>
+        /// <param name="localName">The name of the xml element.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the xml multi line element.</param>
         public static XmlElementSyntax XmlMultiLineElement(string localName, SyntaxList<XmlNodeSyntax> content)
         {
             return XmlMultiLineElement(XmlName(localName), content);
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an xml element that spans multiple text lines.
+        /// </summary>
+        /// <param name="name">The name of the xml element.</param>
+        /// <param name="content">A list of syntax nodes that represents the content of the xml multi line element.</param>
         public static XmlElementSyntax XmlMultiLineElement(XmlNameSyntax name, SyntaxList<XmlNodeSyntax> content)
         {
             return XmlElement(
@@ -974,16 +1100,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 XmlElementEndTag(name));
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an xml text that contains a newline token with a documentation comment 
+        /// exterior trivia at the end (continued documentation comment).
+        /// </summary>
         public static XmlTextSyntax XmlNewLine()
         {
             return XmlText(XmlTextNewLine());
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an xml newline token with a documentation comment exterior trivia at 
+        /// the end (continued documentation comment).
+        /// </summary>
         public static SyntaxToken XmlTextNewLine()
         {
             return XmlTextNewLine(true);
         }
 
+        /// <summary>
+        /// Creates the syntax representation of an xml newline token for xml documentation comments.
+        /// </summary>
+        /// <param name="continueXmlDocumentationComment">
+        /// If set to true, a documentation comment exterior token will be added to the trailing trivia
+        /// of the new token.</param>
         public static SyntaxToken XmlTextNewLine(bool continueXmlDocumentationComment)
         {
             SyntaxToken token = XmlTextNewLine(
@@ -998,16 +1138,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return token;
         }
 
+        /// <summary>
+        /// Generates the syntax representation of a xml text node (e.g. for xml documentation comments).
+        /// </summary>
+        /// <param name="value">The string literal used as the text of the xml text node.</param>
         public static XmlTextSyntax XmlText(string value)
         {
             return XmlText(XmlTextLiteral(value));
         }
 
+        /// <summary>
+        /// Generates the syntax representation of a xml text node (e.g. for xml documentation comments).
+        /// </summary>
+        /// <param name="textTokens">A list of text tokens used as the text of the xml text node.</param>
         public static XmlTextSyntax XmlText(params SyntaxToken[] textTokens)
         {
             return XmlText(TokenList(textTokens));
         }
 
+        /// <summary>
+        /// Generates the syntax representation of an xml text literal.
+        /// </summary>
+        /// <param name="value">The text used within the xml text literal.</param>
         public static SyntaxToken XmlTextLiteral(string value)
         {
             // TODO: [RobinSedlaczek] It is no compiler hot path here I think. But the contribution guide
@@ -1021,6 +1173,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TriviaList());
         }
 
+        /// <summary>
+        /// Helper method that replaces less-than and greater-than characters with brackets. 
+        /// </summary>
+        /// <param name="originalToken">The original token that is to be replaced.</param>
+        /// <param name="rewrittenToken">The new rewritten token.</param>
+        /// <returns>Returns the new rewritten token with replaced characters.</returns>
         private static SyntaxToken XmlReplaceBracketTokens(SyntaxToken originalToken, SyntaxToken rewrittenToken)
         {
             if (rewrittenToken.IsKind(SyntaxKind.LessThanToken) && string.Equals("<", rewrittenToken.Text, StringComparison.Ordinal))
