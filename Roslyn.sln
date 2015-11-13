@@ -346,6 +346,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortableServer", "src\Compi
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ServerShared", "src\Compilers\Server\ServerShared\ServerShared.shproj", "{32691768-AF9C-4CAE-9D0F-10721091B9AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployTestDependencies", "src\VisualStudio\ProjectSystem\DeployTestDependencies\DeployTestDependencies.csproj", "{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Test\Utilities\Shared\TestUtilities.projitems*{76c6f005-c89d-4348-bb4a-391898dbeb52}*SharedItemsImports = 4
@@ -377,8 +379,8 @@ Global
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{bf9dac1e-3a5e-4dc3-bb44-9a64e0d4e9d3}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{fa0e905d-ec46-466d-b7b2-3b5557f9428c}*SharedItemsImports = 4
-		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 4
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{bedc5a4a-809e-4017-9cfd-6c8d4e1847f0}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
@@ -3015,6 +3017,26 @@ Global
 		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|x64.ActiveCfg = Release|x64
 		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|x64.Build.0 = Release|x64
 		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|x86.ActiveCfg = Release|x64
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|ARM.Build.0 = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|x64.Build.0 = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|x86.Build.0 = Debug|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|ARM.ActiveCfg = Release|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|ARM.Build.0 = Release|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|x64.ActiveCfg = Release|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|x64.Build.0 = Release|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|x86.ActiveCfg = Release|Any CPU
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -3177,5 +3199,6 @@ Global
 		{7E907718-0B33-45C8-851F-396CEFDC1AB6} = {3F40F71B-7DCF-44A1-B15C-38CA34824143}
 		{06B26DCB-7A12-48EF-AE50-708593ABD05F} = {7E907718-0B33-45C8-851F-396CEFDC1AB6}
 		{32691768-AF9C-4CAE-9D0F-10721091B9AA} = {7E907718-0B33-45C8-851F-396CEFDC1AB6}
+		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5} = {8CDC7C34-84C3-4719-99E4-85BFA5461836}
 	EndGlobalSection
 EndGlobal
