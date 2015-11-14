@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 ulong result;
                 var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
                 d = BitConverter.Int64BitsToDouble((long)result);
-                return status != Status.Overflow;
+                return status != Status.Overflow && status != Status.NoDigits; // not correct but no error for invalid real literals
             }
             catch (System.FormatException)
             {
