@@ -96,9 +96,15 @@ namespace Microsoft.Cci
             this.messageProvider = messageProvider;
             _cancellationToken = cancellationToken;
 
-            this.tables = new MetadataTablesBuilder(heaps, debugHeapsOpt);
+            this.tables = new MetadataTablesBuilder(heaps);
             this.heaps = heaps;
-            _debugHeapsOpt = debugHeapsOpt;
+
+            if (debugHeapsOpt != null)
+            {
+                _debugHeapsOpt = debugHeapsOpt;
+                _debugTablesOpt = new MetadataTablesBuilder(debugHeapsOpt);
+            }
+
             _smallMethodBodies = new Dictionary<ImmutableArray<byte>, int>(ByteSequenceComparer.Instance);
         }
 
@@ -427,13 +433,13 @@ namespace Microsoft.Cci
         private ReferenceIndexer _referenceVisitor;
 
         protected readonly MetadataTablesBuilder tables;
-
         protected readonly MetadataHeapsBuilder heaps;
 
         // A heap builder distinct from heaps if we are emitting debug information into a separate Portable PDB stream.
         // Shared heap builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
         // Null otherwise.
         private readonly MetadataHeapsBuilder _debugHeapsOpt;
+        private readonly MetadataTablesBuilder _debugTablesOpt;
 
         private bool EmitStandaloneDebugMetadata => _debugHeapsOpt != null && heaps != _debugHeapsOpt;
 
@@ -1936,16 +1942,9 @@ namespace Microsoft.Cci
                 entryPointToken = debugEntryPointToken = 0;
             }
 
-            heaps.Complete();
+            var serializer = new TypeSystemMetadataSerializer(tables, heaps, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
 
-            var tableRowCounts = tables.GetRowCounts();
-
-            metadataSizes = new MetadataSizes(
-                rowCounts: tableRowCounts,
-                heapSizes: heaps.GetHeapSizes(),
-                isMinimalDelta: IsMinimalDelta,
-                emitStandaloneDebugMetadata: EmitStandaloneDebugMetadata,
-                isStandaloneDebugMetadata: false);
+            metadataSizes = serializer.MetadataSizes;
 
             peSizes = new PESizes(
                 metadataSizes.MetadataSize,
@@ -1954,31 +1953,21 @@ namespace Microsoft.Cci
                 resourceDataSize: managedResourceDataWriter.Count,
                 strongNameSignatureSize: CalculateStrongNameSignatureSize(module));
 
-            int mappedFieldDataStreamRva = calculateMappedFieldDataStreamRva(peSizes);
-
-            int guidHeapStartOffset;
-            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, debugEntryPointToken, out guidHeapStartOffset, out pdbIdOffsetInPortablePdbStream);
-            moduleVersionIdOffsetInMetadataStream = tables.GetModuleVersionGuidOffsetInMetadataStream(guidHeapStartOffset);
-            Debug.Assert(pdbIdOffsetInPortablePdbStream == 0);
+            serializer.SerializeMetadata(metadataWriter, methodBodyStreamRva, calculateMappedFieldDataStreamRva(peSizes));
+            moduleVersionIdOffsetInMetadataStream = serializer.ModuleVersionIdOffset;
 
             if (!EmitStandaloneDebugMetadata)
             {
+                pdbIdOffsetInPortablePdbStream = 0;
                 return;
             }
 
-            // serialize debug metadata stream
-
+            Debug.Assert(_debugTablesOpt != null);
             Debug.Assert(_debugHeapsOpt != null);
-            _debugHeapsOpt.Complete();
 
-            var debugMetadataSizes = new MetadataSizes(
-                rowCounts: tableRowCounts,
-                heapSizes: _debugHeapsOpt.GetHeapSizes(),
-                isMinimalDelta: IsMinimalDelta,
-                emitStandaloneDebugMetadata: true,
-                isStandaloneDebugMetadata: true);
-
-            SerializeMetadata(debugMetadataWriterOpt, debugMetadataSizes, 0, 0, debugEntryPointToken, out guidHeapStartOffset, out pdbIdOffsetInPortablePdbStream);
+            var debugSerializer = new StandaloneDebugMetadataSerializer(_debugTablesOpt, _debugHeapsOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
+            debugSerializer.SerializeMetadata(debugMetadataWriterOpt);
+            pdbIdOffsetInPortablePdbStream = debugSerializer.PdbIdOffset;
         }
 
         private static int CalculateStrongNameSignatureSize(IModule module)
