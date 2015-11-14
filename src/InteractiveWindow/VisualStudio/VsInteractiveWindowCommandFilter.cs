@@ -234,7 +234,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                         }
                         break;
 
-
                     case VSConstants.VSStd2KCmdID.UP:
 
                         if (_window.CurrentLanguageBuffer != null && !_window.IsRunning && CaretAtEnd && UseSmartUpDown)
@@ -434,6 +433,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                             return VSConstants.S_OK;
                         }
                         break;
+
                     case VSConstants.VSStd2KCmdID.SHOWCONTEXTMENU:
                         ShowContextMenu();
                         return VSConstants.S_OK;
