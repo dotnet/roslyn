@@ -91,17 +91,14 @@ namespace Microsoft.Cci
             throw ExceptionUtilities.UnexpectedValue(val);
         }
 
-        internal static void SerializeRowCounts(BlobBuilder writer, ImmutableArray<int> rowCounts, ulong includeTables)
+        internal static void SerializeRowCounts(BlobBuilder writer, ImmutableArray<int> rowCounts)
         {
             for (int i = 0; i < rowCounts.Length; i++)
             {
-                if (((1UL << i) & includeTables) != 0)
+                int rowCount = rowCounts[i];
+                if (rowCount > 0)
                 {
-                    int rowCount = rowCounts[i];
-                    if (rowCount > 0)
-                    {
-                        writer.WriteInt32(rowCount);
-                    }
+                    writer.WriteInt32(rowCount);
                 }
             }
         }
