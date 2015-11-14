@@ -366,7 +366,7 @@ namespace Microsoft.Cci
             return true;
         }
 
-        public void Complete()
+        internal void Complete()
         {
             Debug.Assert(!_streamsAreComplete);
             _streamsAreComplete = true;
