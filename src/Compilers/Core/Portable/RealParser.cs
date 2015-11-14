@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 ulong result;
                 var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
                 d = BitConverter.Int64BitsToDouble((long)result);
-                return status != Status.Overflow;
+                return status != Status.Overflow && status != Status.NoDigits; // not correct but no error for invalid real literals
             }
             catch (System.FormatException)
             {
@@ -348,6 +348,7 @@ namespace Microsoft.CodeAnalysis
                 result.Mantissa = mantissaBuilder.ToString();
                 if (i < source.Length && (source[i] == 'e' || source[i] == 'E'))
                 {
+                    const int MAX_EXP_QUAD = (1 << 14); // IEEE quad, without sign
                     char exponentSign = '\0';
                     i++;
                     if (i < source.Length && (source[i] == '-' || source[i] == '+'))
@@ -358,14 +359,24 @@ namespace Microsoft.CodeAnalysis
                     int firstExponent = i;
                     int lastExponent = i;
                     while (i < source.Length && source[i] >= '0' && source[i] <= '9') lastExponent = ++i;
-                    int exponentMagnitude = int.Parse(source.Substring(firstExponent, lastExponent - firstExponent));
-                    if (exponentSign == '-')
+
+                    int exponentMagnitude = 0;
+
+                    if (int.TryParse(source.Substring(firstExponent, lastExponent - firstExponent), out exponentMagnitude) &&
+                        exponentMagnitude <= MAX_EXP_QUAD)
                     {
-                        exponent -= exponentMagnitude;
+                        if (exponentSign == '-')
+                        {
+                            exponent -= exponentMagnitude;
+                        }
+                        else
+                        {
+                            exponent += exponentMagnitude;
+                        }
                     }
                     else
                     {
-                        exponent += exponentMagnitude;
+                        exponent = exponentSign == '-' ? -MAX_EXP_QUAD : MAX_EXP_QUAD;
                     }
                 }
                 result.Exponent = exponent;

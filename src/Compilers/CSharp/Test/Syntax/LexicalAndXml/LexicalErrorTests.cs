@@ -60,13 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FloatOverflow, "").WithArguments("double").WithLocation(3, 23),
                 // (3,25): error CS1002: ; expected
                 //     const double d1 = 0endOfDirective.Span;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ndOfDirective").WithLocation(3, 25),
-                // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     const double d1 = 0endOfDirective.Span;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43),
-                // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                //     const double d1 = 0endOfDirective.Span;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ndOfDirective").WithLocation(3, 25)
                 );
         }
 
