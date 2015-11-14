@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             }
                             onSuccess(method);
                         }
-                        catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                        catch (Exception e)
                         {
                             onFailure(e);
                         }
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             builder?.Free();
                             completionRoutine(new DkmGetFrameNameAsyncResult(frameName));
                         }
-                        catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                        catch (Exception e)
                         {
                             completionRoutine(DkmGetFrameNameAsyncResult.CreateErrorResult(e));
                         }
