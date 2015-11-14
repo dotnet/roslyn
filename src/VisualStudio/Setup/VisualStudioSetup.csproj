@@ -21,9 +21,6 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(OfficialBuild)' == 'true'">
-    <DefineConstants>$(DefineConstants);OFFICIAL_BUILD</DefineConstants>
-  </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\MSBuildTask\MSBuildTask.csproj">
       <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
@@ -198,7 +195,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />
+    <Compile Include="AssemblyRedirects.cs" />
     <Compile Include="ProvideRoslynBindingRedirection.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
