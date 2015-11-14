@@ -28,17 +28,6 @@ namespace Roslyn.VisualStudio.Setup
                 PublicKeyToken = "31BF3856AD364E35",
                 OldVersionLowerBound = "0.7.0.0",
                 OldVersionUpperBound = "1.2.0.0",
-
-#if OFFICIAL_BUILD
-                // If this is an official build we want to generate binding
-                // redirects from our old versions to the release version 
-                NewVersion = "1.2.0.0",
-#else
-                // Non-official builds get redirects to local 42.42.42.42,
-                // which will only be built locally
-                NewVersion = "42.42.42.42",
-#endif
-
                 GenerateCodeBase = GenerateCodeBase,
                 CodeBase = fileName,
             };
