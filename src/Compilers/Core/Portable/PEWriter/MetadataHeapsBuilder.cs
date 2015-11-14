@@ -355,7 +355,7 @@ namespace Microsoft.Cci
             return 0x70000000 | index;
         }
 
-        public void Complete()
+        internal void Complete()
         {
             Debug.Assert(!_streamsAreComplete);
             _streamsAreComplete = true;
