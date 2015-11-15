@@ -238,22 +238,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             IsPropConnectorPunctuation(CharacterProperties)
         End Function
 
-        Private Const ascw_0 As Integer = AscW("0"c)
-        Private Const ascw_UA As Integer = 10 - AscW("A"c)
-        Private Const ascw_LA As Integer = 10 - AscW("a"c)
 
-        ' TODO: replace CByte with something faster.
+        Private Shared _Cache_ As New Dictionary(Of Char, Byte)(capacity:=44) _
+          From {{"0"c, 0}, {"1"c, 1}, {"2"c, 2}, {"3"c, 3}, {"4"c, 4}, {"5"c, 5}, {"6"c, 6}, {"7"c, 7}, {"8"c, 8}, {"9"c, 9},
+                {"A"c, 10}, {"B"c, 11}, {"C"c, 12}, {"D"c, 13}, {"E"c, 14}, {"F"c, 15},
+                {"a"c, 10}, {"b"c, 11}, {"c"c, 12}, {"d"c, 13}, {"e"c, 14}, {"f"c, 15},
+                {"０"c, 0}, {"１"c, 1}, {"２"c, 2}, {"３"c, 3}, {"４"c, 4},
+                {"５"c, 5}, {"６"c, 6}, {"７"c, 7}, {"８"c, 8}, {"９"c, 9},
+                {"Ａ"c, 10}, {"Ｂ"c, 11}, {"Ｃ"c, 12}, {"Ｄ"c, 13}, {"Ｅ"c, 14}, {"Ｆ"c, 15},
+                {"ａ"c, 10}, {"ｂ"c, 11}, {"ｃ"c, 12}, {"ｄ"c, 13}, {"ｅ"c, 14}, {"ｆ"c, 15}}
+
         Friend Shared Function IntegralLiteralCharacterValue(Digit As Char) As Byte
-            If IsFullWidth(Digit) Then Digit = MakeHalfWidth(Digit)
-            Dim u As Integer = AscW(Digit)
-            If IsDecimalDigit(Digit) Then
-                Return CByte(u - ascw_0)
-            ElseIf Digit >= "A"c And Digit <= "F"c Then
-                Return CByte(u + ascw_UA)
-            Else
-                Debug.Assert(Digit >= "a"c And Digit <= "f"c, "Surprising digit.")
-                Return CByte(u + ascw_LA)
+            Dim value As Byte
+            If _Cache_.TryGetValue(Digit, value) = False Then
+                Debug.Assert(False, "Surprising digit.")
             End If
+            Return value
         End Function
 
         Friend Shared Function BeginsBaseLiteral(c As Char) As Boolean
@@ -282,29 +282,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function IsNarrowIdentifierCharacter(c As UInt16) As Boolean
             Return s_isIDChar(c)
-            'Select Case c
-            '    Case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-            '        21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-            '        41, 42, 43, 44, 45, 46, 47
-            '        Return False
-            '    Case 48, 49, 50, 51, 52, 53, 54, 55, 56, 57
-            '        Return True
-            '    Case 58, 59, 60, 61, 62, 63, 64
-            '        Return False
-            '    Case 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
-            '        81, 82, 83, 84, 85, 86, 87, 88, 89, 90
-            '        Return True
-            '    Case 91, 92, 93, 94
-            '        Return False
-            '    Case 95
-            '        Return True
-            '    Case 96
-            '        Return False
-            '    Case 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
-            '        111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122
-            '        Return True
-            'End Select
-            Return False
         End Function
 
         ''' <summary>
@@ -326,11 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="name">The identifier name.</param>
         ''' <returns>A boolean value set to True if name is valid identifier.</returns>
         Public Shared Function IsValidIdentifier(name As String) As Boolean
-            If String.IsNullOrEmpty(name) Then
-                Return False
-            End If
-
-            If Not IsIdentifierStartCharacter(name(0)) Then
+            If String.IsNullOrEmpty(name) OrElse Not IsIdentifierStartCharacter(name(0)) Then
                 Return False
             End If
 
@@ -406,8 +379,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return c = "/"c Or c = "-"c Or c = FULLWIDTH_SOLIDUS Or c = FULLWIDTH_HYPHEN_MINUS
         End Function
 
-        Friend Shared ReadOnly DaysToMonth365() As Integer = New Integer(13 - 1) {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365}
-        Friend Shared ReadOnly DaysToMonth366() As Integer = New Integer(13 - 1) {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
+        Friend Shared ReadOnly DaysToMonth365() As Integer = New Integer(12) {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365}
+        Friend Shared ReadOnly DaysToMonth366() As Integer = New Integer(12) {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
 
         Friend Shared Function IsLetterC(ch As Char) As Boolean
             Return _

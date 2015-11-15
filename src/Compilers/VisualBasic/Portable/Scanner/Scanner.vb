@@ -1965,20 +1965,14 @@ FullWidthRepeat2:
             Dim FirstValueStart As Integer = Here
 
             ' // The first thing has to be an integer, although it's not clear what it is yet
-            If Not ScanIntLiteral(FirstValue, Here) Then
-                Return Nothing
-
-            End If
-
+            If Not ScanIntLiteral(FirstValue, Here) Then Return Nothing
             ' // If we see a /, then it's a date
-
             If Peep(Here, ch) AndAlso IsDateSeparatorCharacter(ch) Then
                 FirstDateSeparator = ch
 
                 ' // We've got a date
                 HaveDateValue = True
                 Here += 1
-
                 ' Is the first value a year?
                 ' It is a year if it consists of exactly 4 digits.
                 ' Condition below uses 5 because we already skipped the separator.
@@ -1988,56 +1982,31 @@ FullWidthRepeat2:
                     YearValue = FirstValue
 
                     ' // We have to have a month value
-                    If Not ScanIntLiteral(MonthValue, Here) Then
-                        GoTo baddate
-                    End If
-
+                    If Not ScanIntLiteral(MonthValue, Here) Then Return BadDate(precedingTrivia, Here)
                     ' Do we have a day value?
                     If Peep(Here, cx) AndAlso IsDateSeparatorCharacter(cx) Then
                         ' // Check to see they used a consistent separator
-
-                        If cx <> FirstDateSeparator Then
-                            GoTo baddate
-                        End If
-
+                        If cx <> FirstDateSeparator Then Return BadDate(precedingTrivia, Here)
                         ' // Yes.
                         Here += 1
-
-                        If Not ScanIntLiteral(DayValue, Here) Then
-                            GoTo baddate
-                        End If
+                        If Not ScanIntLiteral(DayValue, Here) Then Return BadDate(precedingTrivia, Here)
                     End If
                 Else
                     ' First value is month
                     MonthValue = FirstValue
-
                     ' // We have to have a day value
-
-                    If Not ScanIntLiteral(DayValue, Here) Then
-                        GoTo baddate
-                    End If
+                    If Not ScanIntLiteral(DayValue, Here) Then Return BadDate(precedingTrivia, Here)
 
                     ' // Do we have a year value?
                     If Peep(Here, cx) AndAlso IsDateSeparatorCharacter(cx) Then
                         ' // Check to see they used a consistent separator
-
-                        If cx <> FirstDateSeparator Then
-                            GoTo baddate
-                        End If
-
+                        If cx <> FirstDateSeparator Then Return BadDate(precedingTrivia, Here)
                         ' // Yes.
                         HaveYearValue = True
                         Here += 1
-
                         Dim YearStart As Integer = Here
-
-                        If Not ScanIntLiteral(YearValue, Here) Then
-                            GoTo baddate
-                        End If
-
-                        If (Here - YearStart) = 2 Then
-                            YearIsTwoDigits = True
-                        End If
+                        If Not ScanIntLiteral(YearValue, Here) Then Return BadDate(precedingTrivia, Here)
+                        If (Here - YearStart) = 2 Then YearIsTwoDigits = True
                     End If
                 End If
 
@@ -2062,25 +2031,16 @@ FullWidthRepeat2:
                 ' // Do we see a :?
                 If Peep(Here, cx) AndAlso IsColon(cx) Then
                     Here += 1
-
                     ' // Now let's get the minute value
-
-                    If Not ScanIntLiteral(MinuteValue, Here) Then
-                        GoTo baddate
-                    End If
+                    If Not ScanIntLiteral(MinuteValue, Here) Then Return BadDate(precedingTrivia, Here)
 
                     HaveMinuteValue = True
-
                     ' // Do we have a second value?
-
                     If Peep(Here, cx) AndAlso IsColon(cx) Then
                         ' // Yes.
                         HaveSecondValue = True
                         Here += 1
-
-                        If Not ScanIntLiteral(SecondValue, Here) Then
-                            GoTo baddate
-                        End If
+                        If Not ScanIntLiteral(SecondValue, Here) Then Return BadDate(precedingTrivia, Here)
                     End If
                 End If
 
@@ -2110,29 +2070,22 @@ FullWidthRepeat2:
                             Here = GetWhitespaceLength(Here + 1)
 
                         Else
-                            GoTo baddate
+                            Return BadDate(precedingTrivia, Here)
                         End If
                     End If
                 End If
 
                 ' // If there's no minute/second value and no AM/PM, it's invalid
-
-                If Not HaveMinuteValue AndAlso Not HaveAM AndAlso Not HavePM Then
-                    GoTo baddate
-                End If
+                If Not HaveMinuteValue AndAlso Not HaveAM AndAlso Not HavePM Then Return BadDate(precedingTrivia, Here)
             End If
 
-            If Not Peep(Here, ch) OrElse Not IsHash(ch) Then
-                GoTo baddate
-            End If
+            If Not Peep(Here, ch) OrElse Not IsHash(ch) Then Return BadDate(precedingTrivia, Here)
 
             Here += 1
 
             ' // OK, now we've got all the values, let's see if we've got a valid date
             If HaveDateValue Then
-                If MonthValue < 1 OrElse MonthValue > 12 Then
-                    DateIsInvalid = True
-                End If
+                If MonthValue < 1 OrElse MonthValue > 12 Then DateIsInvalid = True
 
                 ' // We'll check Days in a moment...
 
@@ -2149,19 +2102,12 @@ FullWidthRepeat2:
                     DaysToMonth = DaysToMonth366
                 End If
 
-                If DayValue < 1 OrElse
-                   (Not DateIsInvalid AndAlso DayValue > DaysToMonth(MonthValue) - DaysToMonth(MonthValue - 1)) Then
-
+                If Not DateIsInvalid AndAlso (DayValue < 1 OrElse
+                   (Not DateIsInvalid AndAlso DayValue > DaysToMonth(MonthValue) - DaysToMonth(MonthValue - 1))) Then
                     DateIsInvalid = True
                 End If
 
-                If YearIsTwoDigits Then
-                    DateIsInvalid = True
-                End If
-
-                If YearValue < 1 OrElse YearValue > 9999 Then
-                    DateIsInvalid = True
-                End If
+                If Not DateIsInvalid AndAlso (YearIsTwoDigits OrElse ((YearValue < 1) Or (YearValue > 9999))) Then DateIsInvalid = True
 
             Else
                 MonthValue = 1
@@ -2174,38 +2120,28 @@ FullWidthRepeat2:
                 If HaveAM OrElse HavePM Then
                     ' // 12-hour value
 
-                    If HourValue < 1 OrElse HourValue > 12 Then
-                        DateIsInvalid = True
-                    End If
+                    If Not DateIsInvalid AndAlso (HourValue < 1 Or HourValue > 12) Then DateIsInvalid = True
 
                     If HaveAM Then
                         HourValue = HourValue Mod 12
                     ElseIf HavePM Then
                         HourValue = HourValue + 12
 
-                        If HourValue = 24 Then
-                            HourValue = 12
-                        End If
+                        If HourValue = 24 Then HourValue = 12
                     End If
 
                 Else
-                    If HourValue < 0 OrElse HourValue > 23 Then
-                        DateIsInvalid = True
-                    End If
+                    If Not DateIsInvalid AndAlso (HourValue < 0 Or HourValue > 23) Then DateIsInvalid = True
                 End If
 
                 If HaveMinuteValue Then
-                    If MinuteValue < 0 OrElse MinuteValue > 59 Then
-                        DateIsInvalid = True
-                    End If
+                    If Not DateIsInvalid AndAlso (MinuteValue < 0 Or MinuteValue > 59) Then DateIsInvalid = True
                 Else
                     MinuteValue = 0
                 End If
 
                 If HaveSecondValue Then
-                    If SecondValue < 0 OrElse SecondValue > 59 Then
-                        DateIsInvalid = True
-                    End If
+                    If Not DateIsInvalid AndAlso (SecondValue < 0 Or SecondValue > 59) Then DateIsInvalid = True
                 Else
                     SecondValue = 0
                 End If
@@ -2221,16 +2157,33 @@ FullWidthRepeat2:
                 Dim DateTimeValue As New DateTime(YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue)
                 Dim result = MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
 
-                If yearIsFirst Then
-                    result = Parser.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options.LanguageVersion)
-                End If
-
+                If yearIsFirst Then result = Parser.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options.LanguageVersion)
                 Return result
             Else
                 Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidDate)
             End If
 
-baddate:
+            'Return BadDate(precedingTrivia, Here)
+            ''baddate:
+            ''            ' // If we can find a closing #, then assume it's a malformed date,
+            ''            ' // otherwise, it's not a date
+
+            ''            While Peep(Here, ch) AndAlso Not (IsHash(ch) OrElse IsNewLine(ch))
+            ''                Here += 1
+            ''            End While
+
+            ''            If Not Peep(Here, ch) OrElse IsNewLine(ch) Then
+            ''                ' // No closing #
+            ''                Return Nothing
+            ''            Else
+            ''                Debug.Assert(IsHash(ch))
+            ''                Here += 1  ' consume trailing #
+            ''                Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidDate)
+            ''            End If
+        End Function
+
+        Private Function BadDate(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), Here As Integer) As SyntaxToken
+            Dim ch As Char
             ' // If we can find a closing #, then assume it's a malformed date,
             ' // otherwise, it's not a date
 
