@@ -1365,11 +1365,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' // The C++ compiler refuses to inline IsIdentifierCharacter, so the
             ' // < 128 test is inline here. (This loop gets a *lot* of traffic.)
             ' TODO: make sure we get good perf here
- 
+
             While Peep(len, ch)
 
                 Dim code = Convert.ToUInt16(ch)
-                If code < 128us AndAlso IsNarrowIdentifierCharacter(code) OrElse
+                If code < 128US AndAlso IsNarrowIdentifierCharacter(code) OrElse
                     IsWideIdentifierCharacter(ch) Then
 
                     len += 1
@@ -1678,30 +1678,35 @@ FullWidthRepeat2:
 
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.ShortLiteral
+                            literalKind = NumericLiteralKind.Integral
                             Here += 1
                         End If
 
                     Case "%"c
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.Integer
+                            literalKind = NumericLiteralKind.Integral
                             Here += 1
                         End If
 
                     Case "I"c, "i"c
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.IntegerLiteral
+                            literalKind = NumericLiteralKind.Integral
                             Here += 1
                         End If
 
                     Case "&"c
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.Long
+                            literalKind = NumericLiteralKind.Integral
                             Here += 1
                         End If
 
                     Case "L"c, "l"c
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.LongLiteral
+                            literalKind = NumericLiteralKind.Integral
                             Here += 1
                         End If
 
@@ -1731,16 +1736,17 @@ FullWidthRepeat2:
                     Case "U"c, "u"c
                         If literalKind <> NumericLiteralKind.Float AndAlso Peep(Here + 1, ch) Then
                             'unsigned suffixes - US, UL, UI
-                            If MatchOneOrAnotherOrFullwidth(ch, "S"c, "s"c) Then
-                                TypeCharacter = TypeCharacter.UShortLiteral
-                                Here += 2
-                            ElseIf MatchOneOrAnotherOrFullwidth(ch, "I"c, "i"c) Then
-                                TypeCharacter = TypeCharacter.UIntegerLiteral
-                                Here += 2
-                            ElseIf MatchOneOrAnotherOrFullwidth(ch, "L"c, "l"c) Then
-                                TypeCharacter = TypeCharacter.ULongLiteral
-                                Here += 2
-                            End If
+                            Select Case ch
+                                Case "S"c, "s"c, "Ｓ"c, "ｓ"c
+                                    TypeCharacter = TypeCharacter.UShortLiteral
+                                    Here += 2
+                                Case "I"c, "i"c, "Ｉ"c, "ｉ"c
+                                    TypeCharacter = TypeCharacter.UIntegerLiteral
+                                    Here += 2
+                                Case "L"c, "l"c, "Ｌ"c, "ｌ"c
+                                    TypeCharacter = TypeCharacter.ULongLiteral
+                                    Here += 2
+                            End Select
                         End If
 
                     Case Else
