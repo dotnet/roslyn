@@ -51,13 +51,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 wch = pwcText(i)
 
                 If XmlCharType.InRange(wch, "0"c, "9"c) Then
-                    ulCode = (ulCode * 16UI) + CUInt(AscW(wch)) - CUInt(SyntaxFacts.ascw_0)
+                    ulCode = (ulCode * 16UI) + CUInt(AscW(wch)) - CUInt(AscW("0"c))
 
                 ElseIf XmlCharType.InRange(wch, "a"c, "f"c) Then
-                    ulCode = (ulCode * 16UI) + 10UI + CUInt(AscW(wch)) - CUInt(SyntaxFacts.ascw_LA)
+                    ulCode = (ulCode * 16UI) + 10UI + CUInt(AscW(wch)) - CUInt(AscW("a"c))
 
                 ElseIf XmlCharType.InRange(wch, "A"c, "F"c) Then
-                    ulCode = (ulCode * 16UI) + 10UI + CUInt(AscW(wch)) - CUInt(SyntaxFacts.ascw_UA)
+                    ulCode = (ulCode * 16UI) + 10UI + CUInt(AscW(wch)) - CUInt(AscW("A"c))
                 Else
                     Return False
                 End If
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 wch = pwcText(i)
 
                 If XmlCharType.InRange(wch, "0"c, "9"c) Then
-                    ulCode = (ulCode * 10) + AscW(wch) - SyntaxFacts.ascw_0
+                    ulCode = (ulCode * 10) + AscW(wch) - AscW("0"c)
                 Else
                     Return False
                 End If

@@ -33,7 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private ReadOnly Property ShouldReportXmlError As Boolean
             Get
-                Return Not _IsScanningXmlDoc Or (_options.DocumentationMode = DocumentationMode.Diagnose)
+                Return Not _IsScanningXmlDoc OrElse
+                    _options.DocumentationMode = DocumentationMode.Diagnose
             End Get
         End Property
 

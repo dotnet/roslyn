@@ -90,9 +90,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const FULLWIDTH_APOSTROPHE = ChrW(&HFF07)              REM  ＇ / "'"w
         Friend Const FULLWIDTH_QUOTATION_MARK = ChrW(&HFF02)          REM  ＂ / """"w
 
-        Friend Const FULLWIDTH_DIGIT_ZERO = "０"c ' ChrW(&HFF10)              REM  ０ / "0"w
-        Friend Const FULLWIDTH_DIGIT_SEVEN = "７"c ' ChrW(&HFF17)             REM  ７ / "7"w
-        Friend Const FULLWIDTH_DIGIT_NINE = "９"c 'ChrW(&HFF19)              REM  ９ / "9"w
+        Friend Const FULLWIDTH_DIGIT_ZERO = ChrW(&HFF10)              REM  ０ / "0"w
+        Friend Const FULLWIDTH_DIGIT_SEVEN = ChrW(&HFF17)             REM  ７ / "7"w
+        Friend Const FULLWIDTH_DIGIT_NINE = ChrW(&HFF19)              REM  ９ / "9"w
 
         Friend Const FULLWIDTH_LOW_LINE = ChrW(&HFF3F)                REM  ＿ / "_"w
         Friend Const FULLWIDTH_COLON = ChrW(&HFF1A)                   REM  ： / ":"w
@@ -237,9 +237,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             IsPropConnectorPunctuation(CharacterProperties)
         End Function
 
-        Friend Const ascw_0 As Integer = AscW("0"c)
-        Friend Const ascw_UA As Integer = 10 - AscW("A"c)
-        Friend Const ascw_LA As Integer = 10 - AscW("a"c)
+        Private Const ascw_0 As Integer = AscW("0"c)
+        Private Const ascw_UA As Integer = 10 - AscW("A"c)
+        Private Const ascw_LA As Integer = 10 - AscW("a"c)
 
         ' TODO: replace CByte with something faster.
         Friend Shared Function IntegralLiteralCharacterValue(Digit As Char) As Byte

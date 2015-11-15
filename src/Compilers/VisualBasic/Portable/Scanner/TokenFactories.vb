@@ -57,9 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared ReadOnly s_wsListKeyHasher As Func(Of SyntaxListBuilder, Integer) =
             Function(builder)
                 Dim code = 0
-                Dim value As VisualBasicSyntaxNode
                 For i = 0 To builder.Count - 1
-                    value = builder(i)
+                    Dim value = builder(i)
                     ' shift because there could be the same trivia nodes in the list
                     code = (code << 1) Xor RuntimeHelpers.GetHashCode(value)
                 Next
@@ -133,25 +132,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End Region
 
         Private Shared Function CanCache(trivia As SyntaxListBuilder) As Boolean
-            Dim t As SyntaxKind = Nothing
             For i = 0 To trivia.Count - 1
-                t = trivia(i).Kind
-                If t <> SyntaxKind.WhitespaceTrivia Or
-                   t <> SyntaxKind.EndOfLineTrivia Or
-                   t <> SyntaxKind.LineContinuationTrivia Or
-                   t <> SyntaxKind.DocumentationCommentExteriorTrivia Then
-                    Return False
-                End If
-                'Select Case t.Kind
-                '    Case SyntaxKind.WhitespaceTrivia,
-                '        SyntaxKind.EndOfLineTrivia,
-                '        SyntaxKind.LineContinuationTrivia,
-                '        SyntaxKind.DocumentationCommentExteriorTrivia
+                Dim t = trivia(i)
+                Select Case t.Kind
+                    Case SyntaxKind.WhitespaceTrivia,
+                        SyntaxKind.EndOfLineTrivia,
+                        SyntaxKind.LineContinuationTrivia,
+                        SyntaxKind.DocumentationCommentExteriorTrivia
 
-                '        'do nothing
-                '    Case Else
-                '        Return False
-                'End Select
+                        'do nothing
+                    Case Else
+                        Return False
+                End Select
             Next
             Return True
         End Function
