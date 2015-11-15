@@ -1717,30 +1717,36 @@ FullWidthRepeat2:
 
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.ShortLiteral
+                            literalKind = NumericLiteralKind.Integral
                             Here += 1
                         End If
 
                     Case "%"c
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.Integer
+                            literalKind = NumericLiteralKind.Integral
                             Here += 1
                         End If
 
                     Case "I"c, "i"c
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.IntegerLiteral
+                            literalKind = NumericLiteralKind.Integral
                             Here += 1
                         End If
 
                     Case "&"c
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.Long
+                            literalKind = NumericLiteralKind.Integral
                             Here += 1
                         End If
 
                     Case "L"c, "l"c
                         If literalKind <> NumericLiteralKind.Float Then
                             TypeCharacter = TypeCharacter.LongLiteral
+                            literalKind = NumericLiteralKind.Integral
+
                             Here += 1
                         End If
 
@@ -1748,6 +1754,7 @@ FullWidthRepeat2:
                         If Base = LiteralBase.Decimal Then
                             TypeCharacter = TypeCharacter.Decimal
                             literalKind = NumericLiteralKind.Decimal
+
                             Here += 1
                         End If
 
