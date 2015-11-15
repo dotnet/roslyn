@@ -81,9 +81,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return _originalParam.HasByRefBeforeCustomModifiers
+                Return _originalParam.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 
@@ -178,8 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 #End Region
 
-        Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), hasByRefBeforeCustomModifiers As Boolean) As ParameterSymbol
-            Return New SourceClonedParameterSymbolWithCustomModifiers(_originalParam, DirectCast(Me.ContainingSymbol, MethodSymbol), Me.Ordinal, type, customModifiers, hasByRefBeforeCustomModifiers)
+        Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
+            Return New SourceClonedParameterSymbolWithCustomModifiers(_originalParam, DirectCast(Me.ContainingSymbol, MethodSymbol), Me.Ordinal, type, customModifiers, countOfCustomModifiersPrecedingByRef)
         End Function
 
         Friend NotInheritable Class SourceClonedParameterSymbolWithCustomModifiers
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly _type As TypeSymbol
             Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
-            Private ReadOnly _hasByRefBeforeCustomModifiers As Boolean
+            Private ReadOnly _countOfCustomModifiersPrecedingByRef As UShort
 
             Friend Sub New(
                 originalParam As SourceParameterSymbol,
@@ -195,12 +195,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 newOrdinal As Integer,
                 type As TypeSymbol,
                 customModifiers As ImmutableArray(Of CustomModifier),
-                hasByRefBeforeCustomModifiers As Boolean
+                countOfCustomModifiersPrecedingByRef As UShort
             )
                 MyBase.New(originalParam, newOwner, newOrdinal)
                 _type = type
                 _customModifiers = If(customModifiers.IsDefault, ImmutableArray(Of CustomModifier).Empty, customModifiers)
-                _hasByRefBeforeCustomModifiers = hasByRefBeforeCustomModifiers
+                _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+
+                Debug.Assert(_countOfCustomModifiersPrecedingByRef = 0 OrElse IsByRef)
+                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length)
             End Sub
 
             Public Overrides ReadOnly Property Type As TypeSymbol
@@ -215,13 +218,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
                 Get
-                    Return _hasByRefBeforeCustomModifiers
+                    Return _countOfCustomModifiersPrecedingByRef
                 End Get
             End Property
 
-            Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), hasByRefBeforeCustomModifiers As Boolean) As ParameterSymbol
+            Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
                 Throw ExceptionUtilities.Unreachable
             End Function
         End Class

@@ -2,11 +2,9 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -34,10 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
         public void ExecuteCommand(GoToDefinitionCommandArgs args, Action nextHandler)
         {
-            var textBuffer = args.SubjectBuffer;
-
             var caretPos = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (caretPos.HasValue && TryExecuteCommand(textBuffer.CurrentSnapshot, caretPos.Value))
+            if (caretPos.HasValue && TryExecuteCommand(args.SubjectBuffer.CurrentSnapshot, caretPos.Value))
             {
                 return;
             }
@@ -84,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             {
                 var workspace = document.Project.Solution.Workspace;
                 var notificationService = workspace.Services.GetService<INotificationService>();
-                notificationService.SendNotification(errorMessage, EditorFeaturesResources.GoToDefinition, NotificationSeverity.Information);
+                notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.GoToDefinition, severity: NotificationSeverity.Information);
             }
 
             return true;

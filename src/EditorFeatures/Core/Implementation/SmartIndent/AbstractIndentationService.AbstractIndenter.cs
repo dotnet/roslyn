@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             protected readonly IEnumerable<IFormattingRule> Rules;
             protected readonly BottomUpBaseIndentationFinder Finder;
 
+            private static readonly Func<SyntaxToken, bool> _tokenHasDirective = tk => tk.ContainsDirectives &&
+                                                  (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
+
             public AbstractIndenter(Document document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
             {
                 this.OptionSet = optionSet;
@@ -45,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                          new ChainedFormattingRules(this.Rules, OptionSet),
                          this.TabSize,
                          this.OptionSet.GetOption(FormattingOptions.IndentationSize, this.Document.Root.Language),
-                         tokenStream: null);
+                         tokenStream: null,
+                         lastToken: default(SyntaxToken));
             }
 
             public abstract IndentationResult? GetDesiredIndentation();
@@ -113,43 +117,56 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     throw new ArgumentNullException(nameof(Tree));
                 }
 
-                var line = this.LineToBeIndented;
-                var syntaxFacts = this.Document.Document.GetLanguageService<ISyntaxFactsService>();
-
-                Func<ITextSnapshotLine, bool> predicate = currentLine =>
+                if (LineToBeIndented.LineNumber <= 0)
                 {
-                    // line is empty
-                    if (string.IsNullOrWhiteSpace(currentLine.GetText()))
+                    return null;
+                }
+
+                var syntaxFacts = this.Document.Document.GetLanguageService<ISyntaxFactsService>();
+                var snapshot = this.LineToBeIndented.Snapshot;
+
+                var lineNumber = this.LineToBeIndented.LineNumber - 1;
+                while (lineNumber >= 0)
+                {
+                    var actualLine = snapshot.GetLineFromLineNumber(lineNumber);
+
+                    // Empty line, no indentation to match.
+                    if (string.IsNullOrWhiteSpace(actualLine.GetText()))
                     {
-                        return false;
+                        lineNumber--;
+                        continue;
                     }
 
-                    // okay, now check whether it is preprocessor line or not
+                    // No preprocessors in the entire tree, so this
+                    // line definitely doesn't have one
                     var root = Tree.GetRoot(CancellationToken);
                     if (!root.ContainsDirectives)
                     {
-                        return true;
+                        return snapshot.GetLineFromLineNumber(lineNumber);
                     }
 
-                    // check whether current position is part of inactive section
-                    if (syntaxFacts.IsInInactiveRegion(this.Tree, currentLine.Extent.Start, CancellationToken))
+                    // This line is inside an inactive region. Examine the 
+                    // first preceding line not in an inactive region.
+                    var disabledSpan = syntaxFacts.GetInactiveRegionSpanAroundPosition(this.Tree, actualLine.Extent.Start, CancellationToken);
+                    if (disabledSpan != default(TextSpan))
                     {
-                        // well, treat all of this portion as blank lines
-                        return false;
+                        var targetLine = snapshot.GetLineNumberFromPosition(disabledSpan.Start);
+                        lineNumber = targetLine - 1;
+                        continue;
                     }
 
-                    Func<SyntaxToken, bool> tokenHasDirective = tk => tk.ContainsDirectives &&
-                                                                      (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
-                    if (HasPreprocessorCharacter(currentLine) &&
-                        root.DescendantTokens(currentLine.Extent.Span.ToTextSpan(), tk => tk.FullWidth() > 0).Any(tokenHasDirective))
+                    // A preprocessor directive starts on this line.
+                    if (HasPreprocessorCharacter(actualLine) &&
+                        root.DescendantTokens(actualLine.Extent.Span.ToTextSpan(), tk => tk.FullWidth() > 0).Any(_tokenHasDirective))
                     {
-                        return false;
+                        lineNumber--;
+                        continue;
                     }
 
-                    return true;
-                };
+                    return snapshot.GetLineFromLineNumber(lineNumber);
+                }
 
-                return line.GetPreviousMatchingLine(predicate);
+                return null;
             }
 
             protected abstract bool HasPreprocessorCharacter(ITextSnapshotLine currentLine);

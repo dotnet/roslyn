@@ -17,24 +17,19 @@ namespace Microsoft.CodeAnalysis
     public abstract class CommandLineParser
     {
         private readonly CommonMessageProvider _messageProvider;
-        private readonly bool _isInteractive;
+        internal readonly bool IsScriptRunner;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
 
-        internal CommandLineParser(CommonMessageProvider messageProvider, bool isInteractive)
+        internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptRunner)
         {
             Debug.Assert(messageProvider != null);
             _messageProvider = messageProvider;
-            _isInteractive = isInteractive;
+            IsScriptRunner = isScriptRunner;
         }
 
         internal CommonMessageProvider MessageProvider
         {
             get { return _messageProvider; }
-        }
-
-        public bool IsInteractive
-        {
-            get { return _isInteractive; }
         }
 
         protected abstract string RegularFileExtension { get; }
@@ -61,14 +56,14 @@ namespace Microsoft.CodeAnalysis
             return PortableShim.Directory.EnumerateFiles(directory, fileNamePattern, searchOption);
         }
 
-        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories);
+        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories);
 
         /// <summary>
         /// Parses a command line.
         /// </summary>
         /// <param name="args">A collection of strings representing the command line arguments.</param>
         /// <param name="baseDirectory">The base directory used for qualifying file locations.</param>
-        /// <param name="sdkDirectory">The directory to search for mscorlib.</param>
+        /// <param name="sdkDirectory">The directory to search for mscorlib, or null if not available.</param>
         /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         /// <returns>a <see cref="CommandLineArguments"/> object representing the parsed command line.</returns>
         public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
@@ -76,9 +71,14 @@ namespace Microsoft.CodeAnalysis
             return CommonParse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
+        private static bool IsOption(string arg)
+        {
+            return !string.IsNullOrEmpty(arg) && (arg[0] == '/' || arg[0] == '-');
+        }
+
         internal static bool TryParseOption(string arg, out string name, out string value)
         {
-            if (string.IsNullOrEmpty(arg) || (arg[0] != '/' && arg[0] != '-'))
+            if (!IsOption(arg))
             {
                 name = null;
                 value = null;
@@ -188,6 +188,38 @@ namespace Microsoft.CodeAnalysis
             return string.Empty;
         }
 
+        protected ImmutableArray<KeyValuePair<string, string>> ParsePathMap(string pathMap, IList<Diagnostic> errors)
+        {
+            var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance();
+            if (pathMap.IsEmpty())
+            {
+                return pathMapBuilder.ToImmutableAndFree();
+            }
+
+            foreach (var kEqualsV in pathMap.Split(','))
+            {
+                var kv = kEqualsV.Split('=');
+                if (kv.Length != 2)
+                {
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
+                    continue;
+                }
+                var from = PathUtilities.TrimTrailingSeparators(kv[0]);
+                var to = PathUtilities.TrimTrailingSeparators(kv[1]);
+
+                if (from.Length == 0 || (to.Length == 0 && kv[1] != "/"))
+                {
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
+                }
+                else
+                {
+                    pathMapBuilder.Add(new KeyValuePair<string, string>(from, to));
+                }
+            }
+
+            return pathMapBuilder.ToImmutableAndFree();
+        }
+
         internal void ParseOutputFile(
             string value,
             IList<Diagnostic> errors,
@@ -199,7 +231,7 @@ namespace Microsoft.CodeAnalysis
             outputDirectory = null;
             string invalidPath = null;
 
-            string unquoted = RemoveAllQuotes(value);
+            string unquoted = RemoveQuotesAndSlashes(value);
             ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
             if (outputFileName == null ||
                 !MetadataHelpers.IsValidAssemblyOrModuleName(outputFileName))
@@ -220,7 +252,7 @@ namespace Microsoft.CodeAnalysis
             string pdbPath = null;
             string invalidPath = null;
 
-            string unquoted = RemoveAllQuotes(value);
+            string unquoted = RemoveQuotesAndSlashes(value);
             ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
             if (outputFileName == null ||
                 PathUtilities.ChangeExtension(outputFileName, extension: null).Length == 0)
@@ -266,30 +298,58 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<string> rawArguments,
             IList<Diagnostic> diagnostics,
             List<string> processedArgs,
-            List<string> scriptArgs,
+            List<string> scriptArgsOpt,
             string baseDirectory,
             List<string> responsePaths = null)
         {
             bool parsingScriptArgs = false;
+            bool sourceFileSeen = false;
+            bool optionsEnded = false;
 
-            Stack<string> args = new Stack<string>(rawArguments.Reverse());
+            var args = new Stack<string>(rawArguments.Reverse());
             while (args.Count > 0)
             {
-                //EDMAURER trim off whitespace. Otherwise behavioral differences arise
-                //when the strings which represent args are constructed by cmd or users.
-                //cmd won't produce args with whitespace at the end.
+                // EDMAURER trim off whitespace. Otherwise behavioral differences arise
+                // when the strings which represent args are constructed by cmd or users.
+                // cmd won't produce args with whitespace at the end.
                 string arg = args.Pop().TrimEnd();
 
                 if (parsingScriptArgs)
                 {
-                    scriptArgs.Add(arg);
+                    scriptArgsOpt.Add(arg);
                     continue;
                 }
 
-                if (arg.StartsWith("@", StringComparison.Ordinal))
+                if (scriptArgsOpt != null)
+                {
+                    // The order of the following two checks matters.
+                    //
+                    // Command line:               Script:    Script args:
+                    //   csi -- script.csx a b c   script.csx      ["a", "b", "c"]
+                    //   csi script.csx -- a b c   script.csx      ["--", "a", "b", "c"]
+                    //   csi -- @script.csx a b c  @script.csx     ["a", "b", "c"]
+                    //
+                    if (sourceFileSeen)
+                    {
+                        // csi/vbi: at most one script can be specified on command line, anything else is a script arg:
+                        parsingScriptArgs = true;
+                        scriptArgsOpt.Add(arg);
+                        continue;
+                    }
+
+                    if (!optionsEnded && arg == "--")
+                    {
+                        // csi/vbi: no argument past "--" should be treated as an option/response file
+                        optionsEnded = true;
+                        processedArgs.Add(arg);
+                        continue;
+                    }
+                }
+
+                if (!optionsEnded && arg.StartsWith("@", StringComparison.Ordinal))
                 {
                     // response file:
-                    string path = RemoveAllQuotes(arg.Substring(1)).TrimEnd(null);
+                    string path = RemoveQuotesAndSlashes(arg.Substring(1)).TrimEnd(null);
                     string resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
                     if (resolvedPath != null)
                     {
@@ -316,13 +376,10 @@ namespace Microsoft.CodeAnalysis
                         diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InputFileNameTooLong, path));
                     }
                 }
-                else if (arg == "--" && scriptArgs != null)
-                {
-                    parsingScriptArgs = true;
-                }
                 else
                 {
                     processedArgs.Add(arg);
+                    sourceFileSeen |= optionsEnded || !IsOption(arg);
                 }
             }
         }
@@ -496,17 +553,17 @@ namespace Microsoft.CodeAnalysis
 
             if (length >= 1)
             {
-                filePath = RemoveAllQuotes(parts[offset + 0]);
+                filePath = RemoveQuotesAndSlashes(parts[offset + 0]);
             }
 
             if (length >= 2)
             {
-                resourceName = RemoveAllQuotes(parts[offset + 1]);
+                resourceName = RemoveQuotesAndSlashes(parts[offset + 1]);
             }
 
             if (length >= 3)
             {
-                accessibility = RemoveAllQuotes(parts[offset + 2]);
+                accessibility = RemoveQuotesAndSlashes(parts[offset + 2]);
             }
 
             if (String.IsNullOrWhiteSpace(filePath))
@@ -526,15 +583,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Remove all double quote characters from the given string.
-        /// </summary>
-        internal static string RemoveAllQuotes(string arg)
-        {
-            return arg != null ? arg.Replace("\"", "") : null;
-        }
-
-        /// <summary>
-        /// Split a command line by the same rules as Main would get the commands.
+        /// Split a command line by the same rules as Main would get the commands except the original
+        /// state of backslashes and quotes are preserved.  For example in normal Windows command line 
+        /// parsing the following command lines would produce equivalent Main arguments:
+        /// 
+        ///     - /r:a,b
+        ///     - /r:"a,b"
+        /// 
+        /// This method will differ as the latter will have the quotes preserved.  The only case where 
+        /// quotes are removed is when the entire argument is surrounded by quotes without any inner
+        /// quotes. 
         /// </summary>
         /// <remarks>
         /// Rules for command line parsing, according to MSDN:
@@ -562,88 +620,197 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public static IEnumerable<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments)
         {
-            bool inQuotes = false;
-            int backslashCount = 0;
-
-            // separate the line into multiple arguments on whitespace. 
-            // we maintain the inQuotes state to ensure we do not break line while in a quoted text.
-            // we also need to count slashes since odd number of slashes before a quote 
-            // makes that quote just a regular char
-            return Split(commandLine,
-                (c =>
-                {
-                    if (c == '\\')
-                    {
-                        backslashCount += 1;
-                    }
-                    else if (c == '\"')
-                    {
-                        if ((backslashCount & 1) != 1)
-                        {
-                            inQuotes = !inQuotes;
-                        }
-                        backslashCount = 0;
-                    }
-                    else
-                    {
-                        backslashCount = 0;
-                    }
-
-                    return !inQuotes && IsCommandLineDelimiter(c);
-                }))
-            .Select(arg => arg.Trim())                                                                  // Trim whitespace
-            .TakeWhile(arg => (!removeHashComments || !arg.StartsWith("#", StringComparison.Ordinal)))  // If removeHashComments is true, skip all arguments after one that starts with '#'
-            .Select(arg => UnquoteAndUnescape(NormalizeBackslashes(arg)))                               // Remove quotes and handle backslashes.
-            .Where(arg => !string.IsNullOrEmpty(arg));                        							// Don't produce empty strings.
+            char? unused;
+            return SplitCommandLineIntoArguments(commandLine, removeHashComments, out unused);
         }
 
-        // Once the line is split into arguments we need to remove quotes 
-        // that are not escaped, and need to remove slashes that are used for escaping
-        private static string UnquoteAndUnescape(string v)
+        private static IEnumerable<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, out char? illegalChar)
         {
-            if (v.IndexOf('"') < 0 && v.IndexOf('\\') < 0)
-            {
-                return v;
-            }
+            var builder = new StringBuilder(commandLine.Length);
+            var list = new List<string>();
+            var i = 0;
 
-            // split on " 
-            // except for preceded by \ like  \" 
-            // ignore pairs like \\
-            bool afterSingleBackslash = false;
-            var split = Split(v, c =>
+            illegalChar = null;
+            while (i < commandLine.Length)
+            {
+                while (i < commandLine.Length && char.IsWhiteSpace(commandLine[i]))
                 {
-                    if (!afterSingleBackslash && c == '\"')
+                    i++;
+                }
+
+                if (i == commandLine.Length)
+                {
+                    break;
+                }
+
+                if (commandLine[i] == '#' && removeHashComments)
+                {
+                    break;
+                }
+
+                var quoteCount = 0;
+                builder.Length = 0;
+                while (i < commandLine.Length && (!char.IsWhiteSpace(commandLine[i]) || (quoteCount % 2 != 0)))
+                {
+                    var current = commandLine[i];
+                    switch (current)
                     {
-                        return true;
+                        case '\\':
+                            {
+                                var slashCount = 0;
+                                do
+                                {
+                                    builder.Append(commandLine[i]);
+                                    i++;
+                                    slashCount++;
+                                } while (i < commandLine.Length && commandLine[i] == '\\');
+
+                                // Slashes not followed by a quote character can be ignored for now
+                                if (i >= commandLine.Length || commandLine[i] != '"')
+                                {
+                                    break;
+                                }
+
+                                // If there is an odd number of slashes then it is escaping the quote
+                                // otherwise it is just a quote.
+                                if (slashCount % 2 == 0)
+                                {
+                                    quoteCount++;
+                                }
+
+                                builder.Append('"');
+                                i++;
+                                break;
+                            }
+
+                        case '"':
+                            builder.Append(current);
+                            quoteCount++;
+                            i++;
+                            break;
+
+                        default:
+                            if ((current >= 0x1 && current <= 0x1f) || current == '|')
+                            {
+                                if (illegalChar == null)
+                                {
+                                    illegalChar = current;
+                                }
+                            }
+                            else
+                            {
+                                builder.Append(current);
+                            }
+
+                            i++;
+                            break;
                     }
+                }
 
-                    afterSingleBackslash = !afterSingleBackslash & c == '\\';
-                    return false;
-                }).ToArray();
-
-
-            // unescape escaped \"  and \\
-            for (int i = 0; i < split.Length; i++)
-            {
-                if (split[i].IndexOf('\\') >= 0)
+                // If the quote string is surrounded by quotes with no interior quotes then 
+                // remove the quotes here. 
+                if (quoteCount == 2 && builder[0] == '"' && builder[builder.Length - 1] == '"')
                 {
-                    split[i] = split[i].Replace(@"\""", @"""");
-                    split[i] = split[i].Replace(@"\\", @"\");
+                    builder.Remove(0, length: 1);
+                    builder.Remove(builder.Length - 1, length: 1);
+                }
+
+                if (builder.Length > 0)
+                {
+                    list.Add(builder.ToString());
                 }
             }
 
-            // the behavior of unpaired quote seems to be not well defined
-            // Experimentally I can see the following behaviors:
-            // 1) command arg parsing fails (Main is not called)
-            // 2) the text following the last quote is appended to the last argv as-is
-            // We will use strategy #2 for unpaired quote. 
-            // It is a broken and unlikely case but we have to do something.
-            return string.Join("", split);
+            return list;
         }
 
-        private static bool IsCommandLineDelimiter(char c)
+        /// <summary>
+        /// Remove the extraneous quotes and slashes from the argument.  This function is designed to have
+        /// compat behavior with the native compiler.
+        /// </summary>
+        /// <remarks>
+        /// Mimics the function RemoveQuotes from the native C# compiler.  The native VB equivalent of this 
+        /// function is called RemoveQuotesAndSlashes.  It has virtually the same behavior except for a few 
+        /// quirks in error cases.  
+        /// </remarks>
+        internal static string RemoveQuotesAndSlashes(string arg)
         {
-            return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+            if (arg == null)
+            {
+                return arg;
+            }
+
+            var pool = PooledStringBuilder.GetInstance();
+            var builder = pool.Builder;
+            var i = 0;
+            while (i < arg.Length)
+            {
+                var cur = arg[i];
+                switch (cur)
+                {
+                    case '\\':
+                        ProcessSlashes(builder, arg, ref i);
+                        break;
+                    case '"':
+                        // Intentionally dropping quotes that don't have explicit escaping.
+                        i++;
+                        break;
+                    default:
+                        builder.Append(cur);
+                        i++;
+                        break;
+                }
+            }
+
+            return pool.ToStringAndFree();
+        }
+
+        /// <summary>
+        /// Mimic behavior of the native function by the same name.
+        /// </summary>
+        internal static void ProcessSlashes(StringBuilder builder, string arg, ref int i)
+        {
+            Debug.Assert(arg != null);
+            Debug.Assert(i < arg.Length);
+
+            var slashCount = 0;
+            while (i < arg.Length && arg[i] == '\\')
+            {
+                slashCount++;
+                i++;
+            }
+
+            if (i < arg.Length && arg[i] == '"')
+            {
+                // Before a quote slashes are interpretted as escape sequences for other slashes so
+                // output one for every two.
+                while (slashCount >= 2)
+                {
+                    builder.Append('\\');
+                    slashCount -= 2;
+                }
+
+                Debug.Assert(slashCount >= 0);
+
+                // If there is an odd number of slashes then the quote is escaped and hence a part
+                // of the output.  Otherwise it is a normal quote and can be ignored. 
+                if (slashCount == 1)
+                {
+                    // The quote is escaped so eat it.
+                    builder.Append('"');
+                }
+
+                i++;
+            }
+            else
+            {
+                // Slashes that aren't followed by quotes are simply slashes.
+                while (slashCount > 0)
+                {
+                    builder.Append('\\');
+                    slashCount--;
+                }
+            }
         }
 
         /// <summary>
@@ -670,69 +837,12 @@ namespace Microsoft.CodeAnalysis
             yield return str.Substring(nextPiece);
         }
 
-        // In the input, the backslashes not preceding quotes are not escaped 
-        // (possibly to not force the user to type so many slashes). 
-        // That makes it hard to either unescape slashes after quotes are removed 
-        // or remove quotes after slashes are unescaped.
-        // NormalizeBackslashes makes the slashes that do not precede quotes to 
-        // be "escaped" the same way as the slashes that do. 
-        // This way we can later unescape all slashes in the same way and 
-        // not rely on presence of quotes.
-        private static string NormalizeBackslashes(string input)
-        {
-            int i = input.IndexOf('\\');
-
-            // Simple case -- no backslashes.
-            if (i < 0)
-                return input;
-
-            var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
-            builder.Append(input, 0, i);
-
-            int backslashCount = 0;
-            do
-            {
-                char c = input[i];
-                if (c == '\\')
-                {
-                    ++backslashCount;
-                }
-                else
-                {
-                    // Add right amount of pending backslashes.
-                    if (c == '\"')
-                    {
-                        AddBackslashes(builder, backslashCount);
-                    }
-                    else
-                    {
-                        AddBackslashes(builder, backslashCount * 2);
-                    }
-
-                    builder.Append(c);
-                    backslashCount = 0;
-                }
-            } while (++i < input.Length);
-
-            AddBackslashes(builder, backslashCount * 2);
-            return pooledBuilder.ToStringAndFree();
-        }
-
-        /// <summary>
-        /// Add "count" backslashes to a StringBuilder. 
-        /// </summary>
-        private static void AddBackslashes(StringBuilder builder, int count)
-        {
-            builder.Append('\\', count);
-        }
-
         private static readonly char[] s_pathSeparators = { ';', ',' };
         private static readonly char[] s_wildcards = new[] { '*', '?' };
 
         internal static IEnumerable<string> ParseSeparatedPaths(string str)
         {
-            return ParseSeparatedStrings(str, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).Select(path => RemoveAllQuotes(path));
+            return ParseSeparatedStrings(str, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).Select(RemoveQuotesAndSlashes);
         }
 
         /// <summary>
@@ -777,13 +887,15 @@ namespace Microsoft.CodeAnalysis
             string extension = PathUtilities.GetExtension(resolvedPath);
 
             bool isScriptFile;
-            if (IsInteractive)
+            if (IsScriptRunner)
             {
                 isScriptFile = !string.Equals(extension, RegularFileExtension, StringComparison.OrdinalIgnoreCase);
             }
             else
             {
-                isScriptFile = string.Equals(extension, ScriptFileExtension, StringComparison.OrdinalIgnoreCase);
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //isScriptFile = string.Equals(extension, ScriptFileExtension, StringComparison.OrdinalIgnoreCase);
+                isScriptFile = false;
             }
 
             return new CommandLineSourceFile(resolvedPath, isScriptFile);
@@ -791,14 +903,14 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<CommandLineSourceFile> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
-            Debug.Assert(!arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
+            Debug.Assert(IsScriptRunner || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
 
             // We remove all doubles quotes from a file name. So that, for example:
             //   "Path With Spaces"\foo.cs
             // becomes
             //   Path With Spaces\foo.cs
 
-            string path = RemoveAllQuotes(arg);
+            string path = RemoveQuotesAndSlashes(arg);
 
             int wildcard = path.IndexOfAny(s_wildcards);
             if (wildcard != -1)

@@ -4,7 +4,7 @@ param(
 )
 
 $repoRoot = Resolve-Path "$PSScriptRoot\..\..\..\"
-$nugetDir = Resolve-Path "$repoRoot\.nuget"
+$nugetDir = Resolve-Path "$repoRoot"
 $packagesDir = Resolve-Path "$repoRoot\packages"
 
 [xml]$configFile = Get-Content "$nugetDir\NuGet.Config"

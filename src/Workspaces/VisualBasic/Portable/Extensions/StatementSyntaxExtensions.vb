@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         Return typeBlock.WithBlockStatement(newBegin)
                     Case SyntaxKind.EnumBlock
                         Dim enumBlock = DirectCast(member, EnumBlockSyntax)
-                        Dim newEnumStatement = DirectCast(enumBlock.EnumStatement.WithAttributeLists(attributeLists), EnumStatementSyntax)
+                        Dim newEnumStatement = enumBlock.EnumStatement.WithAttributeLists(attributeLists)
                         Return enumBlock.WithEnumStatement(newEnumStatement)
                     Case SyntaxKind.ClassStatement
                         Return DirectCast(member, ClassStatementSyntax).WithAttributeLists(attributeLists)

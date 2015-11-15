@@ -231,16 +231,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId);
-                if (project.IsSubmission)
+                if (project.IsSubmission && project.SupportsCompilation)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // If we are referencing another project, store the link in the other direction
                     // so we walk across it later
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    if (compilation.PreviousSubmission != null)
+                    var previous = compilation.ScriptCompilationInfo.PreviousScriptCompilation;
+
+                    if (previous != null)
                     {
-                        var referencedProject = solution.GetProject(compilation.PreviousSubmission.Assembly, cancellationToken);
+                        var referencedProject = solution.GetProject(previous.Assembly, cancellationToken);
                         List<ProjectId> referencingSubmissions = null;
 
                         if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out referencingSubmissions))

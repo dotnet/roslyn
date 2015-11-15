@@ -107,14 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = this.BaseMethodParameters;
             foreach (var p in parameters)
             {
-                builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type), ordinal++, p.RefKind, p.Name));
+                builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type).Type, ordinal++, p.RefKind, p.Name));
             }
             return builder.ToImmutableAndFree();
         }
 
         public sealed override TypeSymbol ReturnType
         {
-            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType); }
+            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType).Type; }
         }
 
         public sealed override bool IsVararg

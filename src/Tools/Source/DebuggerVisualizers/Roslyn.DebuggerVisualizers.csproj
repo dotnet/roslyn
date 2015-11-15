@@ -43,7 +43,9 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.DebuggerVisualizers, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.DebuggerVisualizers, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -59,9 +61,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IL\ILDebuggerVisualizer.cs" />
+    <Compile Include="IL\ILDeltaDebuggerVisualizer.cs" />
+    <Compile Include="IL\ILDeltaVisualizerObjectSource.cs" />
     <Compile Include="Metadata\MetadataDeltaDebuggerVisualizer.cs" />
-    <Compile Include="PDB\PdbDebuggerVisualizer.cs" />
+    <Compile Include="Metadata\MetadataDeltaVisualizerObjectSource.cs" />
+    <Compile Include="PDB\PdbDeltaDebuggerVisualizer.cs" />
+    <Compile Include="PDB\PdbDeltaVisualizerObjectSource.cs" />
     <Compile Include="UI\TextViewer.cs">
       <SubType>form</SubType>
     </Compile>
@@ -74,10 +79,9 @@
       <DependentUpon>TextViewer.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Install.cmd" />
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

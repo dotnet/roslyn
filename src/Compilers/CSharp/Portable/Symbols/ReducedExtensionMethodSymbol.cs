@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _reducedFrom = reducedFrom;
             _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, out _typeParameters);
-            _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArguments);
+            _typeArguments = _typeMap.SubstituteTypesWithoutModifiers(reducedFrom.TypeArguments);
         }
 
         internal override MethodSymbol CallsiteReducedFromMethod
@@ -333,12 +333,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeSymbol ReturnType
         {
-            get { return _typeMap.SubstituteType(_reducedFrom.ReturnType); }
+            get { return _typeMap.SubstituteType(_reducedFrom.ReturnType).Type; }
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
         {
-            get { return _reducedFrom.ReturnTypeCustomModifiers; }
+            get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.ReturnType, _reducedFrom.ReturnTypeCustomModifiers); }
         }
 
         internal override int ParameterCount
@@ -446,7 +446,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbol Type
             {
-                get { return _containingMethod._typeMap.SubstituteType(this.underlyingParameter.Type); }
+                get { return _containingMethod._typeMap.SubstituteType(this.underlyingParameter.Type).Type; }
+            }
+
+            public override ImmutableArray<CustomModifier> CustomModifiers
+            {
+                get
+                {
+                    return _containingMethod._typeMap.SubstituteCustomModifiers(this.underlyingParameter.Type, this.underlyingParameter.CustomModifiers);
+                }
             }
         }
     }

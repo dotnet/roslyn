@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
     {
         #region "Fix all occurrences tests"
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public void TestFixAllInDocument()
@@ -114,10 +114,10 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public void TestFixAllInProject()
@@ -232,10 +232,10 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public void TestFixAllInSolution()
@@ -361,10 +361,10 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public void TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
@@ -497,7 +497,7 @@ class B3 : I1, I2
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         #endregion

@@ -86,6 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default,
             Optional specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)) = Nothing,
             Optional concurrentBuild As Boolean = True,
+            Optional deterministic As Boolean = False, ' TODO(5431): Enable deterministic mode by default
             Optional xmlReferenceResolver As XmlReferenceResolver = Nothing,
             Optional sourceReferenceResolver As SourceReferenceResolver = Nothing,
             Optional metadataReferenceResolver As MetadataReferenceResolver = Nothing,
@@ -94,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyClass.New(
                 outputKind,
+                False,
                 moduleName,
                 mainTypeName,
                 scriptClassName,
@@ -115,8 +117,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
                 concurrentBuild,
+                deterministic:=False,' TODO: fix this
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
+                debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 metadataReferenceResolver:=metadataReferenceResolver,
@@ -128,7 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub New(
             outputKind As OutputKind,
-            moduleName As String,
+            reportSuppressedDiagnostics As Boolean,
+            ModuleName As String,
             mainTypeName As String,
             scriptClassName As String,
             globalImports As IEnumerable(Of GlobalImport),
@@ -149,8 +154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             generalDiagnosticOption As ReportDiagnostic,
             specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
             concurrentBuild As Boolean,
+            deterministic As Boolean,
             suppressEmbeddedDeclarations As Boolean,
             extendedCustomDebugInformation As Boolean,
+            debugPlusMode As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
             metadataReferenceResolver As MetadataReferenceResolver,
@@ -160,7 +167,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(
                 outputKind:=outputKind,
-                moduleName:=moduleName,
+                reportSuppressedDiagnostics:=reportSuppressedDiagnostics,
+                moduleName:=ModuleName,
                 mainTypeName:=mainTypeName,
                 scriptClassName:=scriptClassName,
                 cryptoKeyContainer:=cryptoKeyContainer,
@@ -174,7 +182,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 warningLevel:=1,
                 specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
                 concurrentBuild:=concurrentBuild,
+                deterministic:=deterministic,
                 extendedCustomDebugInformation:=extendedCustomDebugInformation,
+                debugPlusMode:=debugPlusMode,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 metadataReferenceResolver:=metadataReferenceResolver,
@@ -199,7 +209,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New(other As VisualBasicCompilationOptions)
             MyClass.New(
                 outputKind:=other.OutputKind,
-                moduleName:=other.ModuleName,
+                reportSuppressedDiagnostics:=other.ReportSuppressedDiagnostics,
+                ModuleName:=other.ModuleName,
                 mainTypeName:=other.MainTypeName,
                 scriptClassName:=other.ScriptClassName,
                 globalImports:=other.GlobalImports,
@@ -221,7 +232,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption:=other.GeneralDiagnosticOption,
                 specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
                 concurrentBuild:=other.ConcurrentBuild,
+                deterministic:=other.Deterministic,
                 extendedCustomDebugInformation:=other.ExtendedCustomDebugInformation,
+                debugPlusMode:=other.DebugPlusMode,
                 xmlReferenceResolver:=other.XmlReferenceResolver,
                 sourceReferenceResolver:=other.SourceReferenceResolver,
                 metadataReferenceResolver:=other.MetadataReferenceResolver,
@@ -229,6 +242,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=other.StrongNameProvider,
                 metadataImportOptions:=other.MetadataImportOptions)
         End Sub
+
+        Friend Overrides Function GetImports() As ImmutableArray(Of String)
+            ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
+            Throw ExceptionUtilities.Unreachable
+        End Function
 
         ''' <summary>
         ''' Gets the global imports collection.
@@ -525,6 +543,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with a different deterministic mode specified.
+        ''' <param name="deterministic"> The deterministic mode. </param>
+        ''' <returns> A new instance of VisualBasicCompilationOptions, if the concurrent build is different; otherwise the current instance.</returns>
+        ''' </summary>
+        Public Shadows Function WithDeterministic(deterministic As Boolean) As VisualBasicCompilationOptions
+            If deterministic = Me.Deterministic Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.Deterministic = deterministic}
+        End Function
+
+        ''' <summary>
         ''' Creates a new VisualBasicCompilationOptions instance with a different extended custom debug information specified.
         ''' </summary>
         ''' <param name="extendedCustomDebugInformation">The extended custom debug information setting. </param>        
@@ -535,6 +566,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {.ExtendedCustomDebugInformation_internal_protected_set = extendedCustomDebugInformation}
+        End Function
+
+        ''' <summary>
+        ''' Creates a new VisualBasicCompilationOptions instance with a different extended custom debug information specified.
+        ''' </summary>
+        ''' <param name="debugPlusMode">The extended custom debug information setting. </param>        
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the extended custom debug information is different; otherwise current instance.</returns>        
+        Friend Function WithDebugPlusMode(debugPlusMode As Boolean) As VisualBasicCompilationOptions
+            If debugPlusMode = Me.DebugPlusMode Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.DebugPlusMode_internal_protected_set = debugPlusMode}
         End Function
 
         ''' <summary>
@@ -620,6 +664,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.Platform = value}
         End Function
 
+        Protected Overrides Function CommonWithDeterministic(deterministic As Boolean) As CompilationOptions
+            Return Me.WithDeterministic(deterministic)
+        End Function
+
         Protected Overrides Function CommonWithGeneralDiagnosticOption(value As ReportDiagnostic) As CompilationOptions
             Return Me.WithGeneralDiagnosticOption(value)
         End Function
@@ -630,6 +678,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonWithSpecificDiagnosticOptions(specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As CompilationOptions
             Return Me.WithSpecificDiagnosticOptions(specificDiagnosticOptions)
+        End Function
+
+        Protected Overrides Function CommonWithReportSuppressedDiagnostics(reportSuppressedDiagnostics As Boolean) As CompilationOptions
+            Return Me.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
         End Function
 
         <Obsolete>
@@ -674,6 +726,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the dictionary of report warning is different; otherwise current instance.</returns>        
         Public Shadows Function WithSpecificDiagnosticOptions(value As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As VisualBasicCompilationOptions
             Return New VisualBasicCompilationOptions(Me) With {.SpecificDiagnosticOptions = value.ToImmutableDictionaryOrEmpty()}
+        End Function
+
+        ''' <summary>
+        ''' Creates a new <see cref="VisualBasicCompilationOptions"/> instance with specified suppress diagnostics reporting option.
+        ''' </summary>
+        ''' <param name="value">Report suppressed diagnostics setting.</param>        
+        ''' <returns>A new instance of VisualBasicCompilationOptions, if the value is different from the current value; otherwise current instance.</returns>        
+        Public Shadows Function WithReportSuppressedDiagnostics(value As Boolean) As VisualBasicCompilationOptions
+            If value = Me.ReportSuppressedDiagnostics Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.ReportSuppressedDiagnostics = value}
         End Function
 
         ''' <summary>
@@ -898,5 +963,137 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
             Return VisualBasicDiagnosticFilter.Filter(diagnostic, GeneralDiagnosticOption, SpecificDiagnosticOptions)
         End Function
+
+        ' 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        Public Sub New(
+            outputKind As OutputKind,
+            moduleName As String,
+            mainTypeName As String,
+            scriptClassName As String,
+            globalImports As IEnumerable(Of GlobalImport),
+            rootNamespace As String,
+            optionStrict As OptionStrict,
+            optionInfer As Boolean,
+            optionExplicit As Boolean,
+            optionCompareText As Boolean,
+            parseOptions As VisualBasicParseOptions,
+            embedVbCoreRuntime As Boolean,
+            optimizationLevel As OptimizationLevel,
+            checkOverflow As Boolean,
+            cryptoKeyContainer As String,
+            cryptoKeyFile As String,
+            cryptoPublicKey As ImmutableArray(Of Byte),
+            delaySign As Boolean?,
+            platform As Platform,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            concurrentBuild As Boolean,
+            xmlReferenceResolver As XmlReferenceResolver,
+            sourceReferenceResolver As SourceReferenceResolver,
+            metadataReferenceResolver As MetadataReferenceResolver,
+            assemblyIdentityComparer As AssemblyIdentityComparer,
+            strongNameProvider As StrongNameProvider)
+
+            MyClass.New(
+                outputKind,
+                moduleName,
+                mainTypeName,
+                scriptClassName,
+                globalImports,
+                rootNamespace,
+                optionStrict,
+                optionInfer,
+                optionExplicit,
+                optionCompareText,
+                parseOptions,
+                embedVbCoreRuntime,
+                optimizationLevel,
+                checkOverflow,
+                cryptoKeyContainer,
+                cryptoKeyFile,
+                cryptoPublicKey,
+                delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic:=False,' TODO: fix this
+                xmlReferenceResolver:=xmlReferenceResolver,
+                sourceReferenceResolver:=sourceReferenceResolver,
+                metadataReferenceResolver:=metadataReferenceResolver,
+                assemblyIdentityComparer:=assemblyIdentityComparer,
+                strongNameProvider:=strongNameProvider)
+        End Sub
+
+        '' Bad constructor, do not use!
+        '' Violates the rules for optional parameter overloads detailed at
+        '' https://github.com/dotnet/roslyn/blob/e8fdb391703dcb5712ff6a5b83d768d784cba4cf/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md
+        Public Sub New(
+            outputKind As OutputKind,
+            reportSuppressedDiagnostics As Boolean,
+            Optional moduleName As String = Nothing,
+            Optional mainTypeName As String = Nothing,
+            Optional scriptClassName As String = WellKnownMemberNames.DefaultScriptClassName,
+            Optional globalImports As IEnumerable(Of GlobalImport) = Nothing,
+            Optional rootNamespace As String = Nothing,
+            Optional optionStrict As OptionStrict = OptionStrict.Off,
+            Optional optionInfer As Boolean = True,
+            Optional optionExplicit As Boolean = True,
+            Optional optionCompareText As Boolean = False,
+            Optional parseOptions As VisualBasicParseOptions = Nothing,
+            Optional embedVbCoreRuntime As Boolean = False,
+            Optional optimizationLevel As OptimizationLevel = OptimizationLevel.Debug,
+            Optional checkOverflow As Boolean = True,
+            Optional cryptoKeyContainer As String = Nothing,
+            Optional cryptoKeyFile As String = Nothing,
+            Optional cryptoPublicKey As ImmutableArray(Of Byte) = Nothing,
+            Optional delaySign As Boolean? = Nothing,
+            Optional platform As Platform = Platform.AnyCpu,
+            Optional generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default,
+            Optional specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)) = Nothing,
+            Optional concurrentBuild As Boolean = True,
+            Optional deterministic As Boolean = False,
+            Optional xmlReferenceResolver As XmlReferenceResolver = Nothing,
+            Optional sourceReferenceResolver As SourceReferenceResolver = Nothing,
+            Optional metadataReferenceResolver As MetadataReferenceResolver = Nothing,
+            Optional assemblyIdentityComparer As AssemblyIdentityComparer = Nothing,
+            Optional strongNameProvider As StrongNameProvider = Nothing)
+
+            MyClass.New(
+                outputKind,
+                reportSuppressedDiagnostics,
+                moduleName,
+                mainTypeName,
+                scriptClassName,
+                globalImports,
+                rootNamespace,
+                optionStrict,
+                optionInfer,
+                optionExplicit,
+                optionCompareText,
+                parseOptions,
+                embedVbCoreRuntime,
+                optimizationLevel,
+                checkOverflow,
+                cryptoKeyContainer,
+                cryptoKeyFile,
+                cryptoPublicKey,
+                delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic,
+                suppressEmbeddedDeclarations:=False,
+                extendedCustomDebugInformation:=True,
+                debugPlusMode:=False,
+                xmlReferenceResolver:=xmlReferenceResolver,
+                sourceReferenceResolver:=sourceReferenceResolver,
+                metadataReferenceResolver:=metadataReferenceResolver,
+                assemblyIdentityComparer:=assemblyIdentityComparer,
+                strongNameProvider:=strongNameProvider,
+                metadataImportOptions:=MetadataImportOptions.Public)
+
+        End Sub
     End Class
 End Namespace

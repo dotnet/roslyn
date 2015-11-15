@@ -357,5 +357,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
             }
         }
+
+        public static bool IsOpenBraceOrCommaOfObjectInitializer(this SyntaxToken token)
+        {
+            return (token.IsKind(SyntaxKind.OpenBraceToken) || token.IsKind(SyntaxKind.CommaToken)) &&
+                token.Parent.IsKind(SyntaxKind.ObjectInitializerExpression);
+        }
+
+        public static bool IsOpenBraceOfAccessorList(this SyntaxToken token)
+        {
+            return token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);
+        }
     }
 }

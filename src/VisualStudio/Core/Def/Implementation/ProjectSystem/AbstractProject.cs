@@ -1083,7 +1083,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // For 'Shared' projects, IVSHierarchy returns a hierarchy item with < character in its name (i.e. <SharedProjectName>)
                 // as a child of the root item. There is no such item in the 'visual' hierarchy in solution explorer and no such folder
                 // is present on disk either. Since this is not a real 'folder', we exclude it from the contents of Document.Folders.
-                // Note: The parent of the hierarchy item that contains < characher in its name is VSITEMID.Root. So we don't need to
+                // Note: The parent of the hierarchy item that contains < character in its name is VSITEMID.Root. So we don't need to
                 // worry about accidental propagation out of the Shared project to any containing 'Solution' folders - the check for
                 // VSITEMID.Root below already takes care of that.
                 var name = (string)nameObj;
@@ -1141,10 +1141,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
-                string id = ServicesVSResources.ERR_CantReadRulesetFileId;
-                string category = ServicesVSResources.ErrorCategory;
                 string message = string.Format(ServicesVSResources.ERR_CantReadRulesetFileMessage, ruleSetFile.FilePath, ruleSetFile.GetException().Message);
-                DiagnosticData data = new DiagnosticData(id, category, message, ServicesVSResources.ERR_CantReadRulesetFileMessage, DiagnosticSeverity.Error, true, 0, this.Workspace, this.Id);
+                var data = new DiagnosticData(
+                    id: IDEDiagnosticIds.ErrorReadingRulesetId,
+                    category: FeaturesResources.ErrorCategory,
+                    message: message,
+                    enuMessageForBingSearch: ServicesVSResources.ERR_CantReadRulesetFileMessage,
+                    severity: DiagnosticSeverity.Error,
+                    isEnabledByDefault: true,
+                    warningLevel: 0,
+                    workspace: this.Workspace,
+                    projectId: this.Id,
+                    title: ServicesVSResources.ERR_CantReadRulesetFileTitle);
 
                 this.HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(this.Id, RuleSetErrorId, SpecializedCollections.SingletonEnumerable(data));
             }
@@ -1163,12 +1171,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // set obj output path if changed
                 _objOutputPathOpt = objOutputPath;
 
-                var metadataService = this.Workspace.Services.GetService<IMetadataService>();
-
-                _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(
-                    new AssemblyReferenceResolver(
-                        CreateMetadataReferenceResolver(projectDirectory: this.ContainingDirectoryPathOpt, outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)),
-                        metadataService.GetProvider()));
+                _compilationOptions = _compilationOptions.WithMetadataReferenceResolver(CreateMetadataReferenceResolver(
+                    metadataService: this.Workspace.Services.GetService<IMetadataService>(), 
+                    projectDirectory: this.ContainingDirectoryPathOpt, 
+                    outputDirectory: Path.GetDirectoryName(_objOutputPathOpt)));
 
                 if (_pushingChangesToWorkspaceHosts)
                 {
@@ -1243,9 +1249,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             project.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project));
         }
 
-        private static MetadataFileReferenceResolver CreateMetadataReferenceResolver(string projectDirectory, string outputDirectory)
+        private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, string projectDirectory, string outputDirectory)
         {
-            var assemblySearchPaths = ImmutableArray.Create<string>();
+            ImmutableArray<string> assemblySearchPaths;
             if (projectDirectory != null && outputDirectory != null)
             {
                 assemblySearchPaths = ImmutableArray.Create(projectDirectory, outputDirectory);
@@ -1258,8 +1264,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 assemblySearchPaths = ImmutableArray.Create(outputDirectory);
             }
+            else
+            {
+                assemblySearchPaths = ImmutableArray<string>.Empty;
+            }
 
-            return new MetadataFileReferenceResolver(assemblySearchPaths, baseDirectory: projectDirectory);
+            return new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(assemblySearchPaths, baseDirectory: projectDirectory));
         }
 
         private bool TryGetOutputPathFromBuildManager(out string binOutputPath)
@@ -1309,7 +1319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Conditional("DEBUG")]
         private void ValidateReferences()
         {
-            // can happen when project is unloaded and reloaded or in venus (aspx) case
+            // can happen when project is unloaded and reloaded or in Venus (aspx) case
             if (_filePathOpt == null || _binOutputPathOpt == null || _objOutputPathOpt == null)
             {
                 return;

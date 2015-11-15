@@ -1,16 +1,18 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Composition
-Imports System.ComponentModel.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Public Class NavigationBarControllerTests
         Friend ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(NavigationBarWaiter)))
 
+        <[Shared]>
         <Export(GetType(IAsynchronousOperationListener))>
         <Export(GetType(IAsynchronousOperationWaiter))>
         <Export(GetType(NavigationBarWaiter))>
@@ -19,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Inherits AsynchronousOperationListener
         End Class
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
         Public Sub DoNotRecomputeAfterFullRecompute()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -52,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
-        Public Sub ProjectionBuffersWork()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
+        Public Async Function ProjectionBuffersWork() As Task
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -75,15 +77,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.TextBuffer)
 
-                workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
-                    .Select(Function(waiter) waiter.CreateWaitTask()) _
-                    .PumpingWaitAll()
+                Dim waiters = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter)
+                Await waiters.WaitAllAsync().ConfigureAwait(True)
 
                 Assert.True(presentItemsCalled)
             End Using
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestNavigationBarInCSharpLinkedFiles()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -140,7 +141,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestNavigationBarInVisualBasicLinkedFiles()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -200,7 +201,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestProjectItemsAreSortedCSharp()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -243,7 +244,7 @@ class C
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestProjectItemsAreSortedVisualBasic()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
@@ -282,8 +283,8 @@ End Class
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Sub TestNavigationBarRefreshesAfterProjectRename()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        Public Async Function TestNavigationBarRefreshesAfterProjectRename() As Task
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj">
@@ -317,15 +318,11 @@ End Class
 
                 workspace.OnProjectNameChanged(workspace.Projects.Single().Id, "VBProj2", "VBProj2.vbproj")
 
-                workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.Workspace).Single().Value.CreateWaitTask().PumpingWait()
-                workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.NavigationBar).Single().Value.CreateWaitTask().PumpingWait()
-
-                workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
-                    .Select(Function(waiter) waiter.CreateWaitTask()) _
-                    .PumpingWaitAll()
-
+                Await workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.Workspace).Single().Value.CreateWaitTask().ConfigureAwait(True)
+                Await workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.NavigationBar).Single().Value.CreateWaitTask().ConfigureAwait(True)
+                Await workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter).WaitAllAsync().ConfigureAwait(True)
                 Assert.Equal("VBProj2", projectName)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -23,24 +23,25 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
-    public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IUseFixture<TWorkspaceFixture>
+    public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
         protected readonly Mock<ICompletionSession> MockCompletionSession;
         internal CompletionListProvider CompletionProvider;
         protected TWorkspaceFixture WorkspaceFixture;
 
-        public AbstractCompletionProviderTests()
+        protected AbstractCompletionProviderTests(TWorkspaceFixture workspaceFixture)
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
-
             MockCompletionSession = new Mock<ICompletionSession>(MockBehavior.Strict);
-        }
 
-        public void SetFixture(TWorkspaceFixture workspaceFixture)
-        {
             this.WorkspaceFixture = workspaceFixture;
             this.CompletionProvider = CreateCompletionProvider();
+        }
+
+        public override void Dispose()
+        {
+            this.WorkspaceFixture.CloseTextView();
+            base.Dispose();
         }
 
         protected static bool CanUseSpeculativeSemanticModel(Document document, int position)
@@ -61,18 +62,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return GetCompletionService(document).GetCompletionRules();
         }
 
-        internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo)
+        internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options = null)
         {
-            var context = new CompletionListContext(document, position, triggerInfo, CancellationToken.None);
+            options = options ?? document.Project.Solution.Workspace.Options;
+            var context = new CompletionListContext(document, position, triggerInfo, options, CancellationToken.None);
 
             provider.ProduceCompletionListAsync(context).Wait();
 
             return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
         }
 
-        internal CompletionList GetCompletionList(Document document, int position, CompletionTriggerInfo triggerInfo)
+        internal CompletionList GetCompletionList(Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options = null)
         {
-            return GetCompletionList(this.CompletionProvider, document, position, triggerInfo);
+            return GetCompletionList(this.CompletionProvider, document, position, triggerInfo, options);
         }
 
         private void CheckResults(Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph)
@@ -354,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        private void VerifyProviderCommitCheckResults(Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar, string textTypedSoFar)
+        private void VerifyProviderCommitCheckResults(Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
         {
             var textBuffer = WorkspaceFixture.Workspace.Documents.Single().TextBuffer;
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
@@ -363,13 +365,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var completionRules = GetCompletionRules(document);
-            var textChange = completionRules.IsCommitCharacter(firstItem, commitChar.HasValue ? commitChar.Value : ' ', textTypedSoFar)
-                ? completionRules.GetTextChange(firstItem, commitChar, textTypedSoFar)
-                : new TextChange();
+            var commitChar = commitCharOpt ?? '\t';
 
-            var oldText = document.GetTextAsync().Result;
-            var newText = oldText.WithChanges(textChange);
-            Assert.Equal(expectedCodeAfterCommit, newText.ToString());
+            var text = document.GetTextAsync().Result;
+
+            if (commitChar == '\t' || completionRules.IsCommitCharacter(firstItem, commitChar, textTypedSoFar))
+            {
+                var textChange = completionRules.GetTextChange(firstItem, commitChar, textTypedSoFar);
+
+                // Adjust TextChange to include commit character, so long as it isn't TAB.
+                if (commitChar != '\t')
+                {
+                    textChange = new TextChange(textChange.Span, textChange.NewText.TrimEnd(commitChar) + commitChar);
+                }
+
+                text = text.WithChanges(textChange);
+            }
+            else
+            {
+                // nothing was committed, but we should insert the commit character.
+                var textChange = new TextChange(new TextSpan(firstItem.FilterSpan.End, 0), commitChar.ToString());
+                text = text.WithChanges(textChange);
+            }
+
+            Assert.Equal(expectedCodeAfterCommit, text.ToString());
         }
 
         protected void VerifyItemInEditorBrowsableContexts(string markup, string referencedCode, string item, int expectedSymbolsSameSolution, int expectedSymbolsMetadataReference,

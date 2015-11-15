@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             _esentStorage.Initialize();
         }
 
-        public string EsentDirectory { get; private set; }
+        public string EsentDirectory { get; }
 
         public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
         private EsentStorage.ProjectDocumentTableAccessor GetAccessor(EsentStorage.Key key)
         {
             return key.DocumentIdOpt.HasValue ?
-                (EsentStorage.ProjectDocumentTableAccessor)_esentStorage.GetDocumentTableAccessor() :
+                _esentStorage.GetDocumentTableAccessor() :
                 (EsentStorage.ProjectDocumentTableAccessor)_esentStorage.GetProjectTableAccessor();
         }
 

@@ -55,12 +55,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="name">The simple name of the assembly.</param>
         /// <param name="version">The version of the assembly.</param>
-        /// <param name="cultureName">The name of the culture to associate with the assembly.</param>
+        /// <param name="cultureName">
+        /// The name of the culture to associate with the assembly. 
+        /// Specify null, <see cref="string.Empty"/>, or "neutral" (any casing) to represent <see cref="System.Globalization.CultureInfo.InvariantCulture"/>.
+        /// The name can be an arbitrary string that doesn't contain NUL character, the legality of the culture name is not validated.
+        /// </param>
         /// <param name="publicKeyOrToken">The public key or public key token of the assembly.</param>
         /// <param name="hasPublicKey">Indicates whether <paramref name="publicKeyOrToken"/> represents a public key.</param>
         /// <param name="isRetargetable">Indicates whether the assembly is retargetable.</param>
         /// <param name="contentType">Specifies the binding model for how this object will be treated in comparisons.</param>
-        /// <exception cref="ArgumentException">If <paramref name="name"/> is null, empty or contains an embedded null character.</exception>
+        /// <exception cref="ArgumentException">If <paramref name="name"/> is null, empty or contains a NUL character.</exception>
+        /// <exception cref="ArgumentException">If <paramref name="cultureName"/> contains a NUL character.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="contentType"/> is not a value of the <see cref="AssemblyContentType"/> enumeration.</exception>
         /// <exception cref="ArgumentException"><paramref name="version"/> contains values that are not greater than or equal to zero and less than or equal to ushort.MaxValue.</exception>
         /// <exception cref="ArgumentException"><paramref name="hasPublicKey"/> is true and <paramref name="publicKeyOrToken"/> is not set.</exception>
@@ -118,7 +123,7 @@ namespace Microsoft.CodeAnalysis
 
             _name = name;
             _version = version ?? NullVersion;
-            _cultureName = cultureName ?? string.Empty;
+            _cultureName = NormalizeCultureName(cultureName);
             _isRetargetable = isRetargetable;
             _contentType = contentType;
             InitializeKey(publicKeyOrToken, hasPublicKey, out _publicKey, out _lazyPublicKeyToken);
@@ -139,7 +144,7 @@ namespace Microsoft.CodeAnalysis
 
             _name = name;
             _version = version ?? NullVersion;
-            _cultureName = cultureName ?? string.Empty;
+            _cultureName = NormalizeCultureName(cultureName);
             _isRetargetable = false;
             _contentType = AssemblyContentType.Default;
             InitializeKey(publicKeyOrToken, hasPublicKey, out _publicKey, out _lazyPublicKeyToken);
@@ -162,13 +167,29 @@ namespace Microsoft.CodeAnalysis
 
             _name = name;
             _version = version ?? NullVersion;
-            _cultureName = cultureName ?? string.Empty;
+            _cultureName = NormalizeCultureName(cultureName);
             _contentType = IsValid(contentType) ? contentType : AssemblyContentType.Default;
             _isRetargetable = isRetargetable && _contentType != AssemblyContentType.WindowsRuntime;
             InitializeKey(publicKeyOrToken, hasPublicKey, out _publicKey, out _lazyPublicKeyToken);
         }
 
-        static private void InitializeKey(ImmutableArray<byte> publicKeyOrToken, bool hasPublicKey,
+        private static string NormalizeCultureName(string cultureName)
+        {
+            // Treat "neutral" culture as invariant culture name, although it is technically not a legal culture name.
+            //
+            // A few reasons:
+            // 1) Invariant culture is displayed as "neutral" in the identity display name.
+            //    Thus a) an identity with culture "neutral" wouldn't roundrip serialization to display name.
+            //         b) an identity with culture "neutral" wouldn't compare equal to invariant culture identity, 
+            //            yet their display names are the same which is confusing.
+            //
+            // 2) The implementation of AssemblyName.CultureName on Mono incorrectly returns "neutral" for invariant culture identities.
+
+            return cultureName == null || AssemblyIdentityComparer.CultureComparer.Equals(cultureName, InvariantCultureDisplay) ? 
+                string.Empty : cultureName;
+        }
+
+        private static void InitializeKey(ImmutableArray<byte> publicKeyOrToken, bool hasPublicKey,
             out ImmutableArray<byte> publicKey, out ImmutableArray<byte> publicKeyToken)
         {
             if (hasPublicKey)
@@ -185,10 +206,12 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool IsValidCultureName(string name)
         {
-            // NOTE: if these checks change, the error messages emitted by the compilers when
-            //       this case is detected will also need to change. They currently directly
-            //       name the presence of the NUL character as the reason that the culture
-            //       name is invalid.
+            // The native compiler doesn't enforce that the culture be anything in particular. 
+            // AssemblyIdentity should preserve user input even if it is of dubious utility.
+            
+            // Note: If these checks change, the error messages emitted by the compilers when
+            // this case is detected will also need to change. They currently directly
+            // name the presence of the NUL character as the reason that the culture name is invalid.
             return name == null || name.IndexOf('\0') < 0;
         }
 
@@ -477,7 +500,7 @@ namespace Microsoft.CodeAnalysis
             // AssemblyDef always has full key or no key:
             var publicKeyBytes = name.GetPublicKey();
             ImmutableArray<byte> publicKey = (publicKeyBytes != null) ? ImmutableArray.Create(publicKeyBytes) : ImmutableArray<byte>.Empty;
-
+            
             return new AssemblyIdentity(
                 name.Name,
                 name.Version,
@@ -487,6 +510,20 @@ namespace Microsoft.CodeAnalysis
                 isRetargetable: (name.Flags & AssemblyNameFlags.Retargetable) != 0,
                 contentType: name.ContentType);
         }
+
+        internal static AssemblyIdentity FromAssemblyReference(AssemblyName name)
+        {
+            // AssemblyRef either has PKT or no key:
+            return new AssemblyIdentity(
+                name.Name,
+                name.Version,
+                name.CultureName,
+                ImmutableArray.Create(name.GetPublicKeyToken()),
+                hasPublicKey: false,
+                isRetargetable: (name.Flags & AssemblyNameFlags.Retargetable) != 0,
+                contentType: name.ContentType);
+        }
+
         #endregion
     }
 }

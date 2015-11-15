@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_Private_SameType()
             Dim input =
 <Workspace>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_Private_WrappedInProperty()
             Dim input =
 <Workspace>
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_MultipleVariableDeclarators()
             Dim input =
 <Workspace>
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_Public_OtherType()
             Dim input =
 <Workspace>
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_Inaccessible()
             Dim input =
 <Workspace>
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_InDependentProject1()
             Dim input =
 <Workspace>
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpInaccessibleStaticField()
             Dim input =
 <Workspace>
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_VBInaccessibleStaticField()
             Dim input =
 <Workspace>
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpInaccessibleStaticProtectedField()
             Dim input =
 <Workspace>
@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_VBInaccessibleStaticProtectedField()
             Dim input =
 <Workspace>
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpInaccessibleInstanceProtectedField()
             Dim input =
 <Workspace>
@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_VBInaccessibleInstanceProtectedField()
             Dim input =
 <Workspace>
@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(539598)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_EnumMember1()
             Dim input =
 <Workspace>
@@ -314,7 +314,7 @@ class Program
         End Sub
 
         <WorkItem(539598)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_EnumMember2()
             Dim input =
 <Workspace>
@@ -337,7 +337,7 @@ class Program
         End Sub
 
         <WorkItem(540515)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_AcrossSubmission()
             Dim input =
 <Workspace>
@@ -351,7 +351,25 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(4952, "https://github.com/dotnet/roslyn/pull/4952")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub Field_AcrossSubmission_Command()
+            Dim input =
+<Workspace>
+    <Submission Language="C#" CommonReferences="true">
+        object {|Definition:$$foo|};
+    </Submission>
+    <Submission Language="NoCompilation" CommonReferences="false">
+        #help
+    </Submission>
+    <Submission Language="C#" CommonReferences="true">
+        [|foo|]
+    </Submission>
+</Workspace>
+            Test(input)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefField()
             Dim input =
 <Workspace>
@@ -372,7 +390,7 @@ class Definition:Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefField2()
             Dim input =
 <Workspace>

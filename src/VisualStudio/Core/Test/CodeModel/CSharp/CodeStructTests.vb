@@ -9,7 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "Attributes tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Attributes1()
             Dim code =
 <Code>
@@ -19,7 +19,7 @@ struct $$C { }
             TestAttributes(code, NoElements)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Attributes2()
             Dim code =
 <Code>
@@ -32,7 +32,7 @@ struct $$C { }
             TestAttributes(code, IsElement("Serializable"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Attributes3()
             Dim code =
 <Code>using System;
@@ -45,7 +45,7 @@ struct $$C { }
             TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Attributes4()
             Dim code =
 <Code>using System;
@@ -60,7 +60,7 @@ struct $$C { }
 
 #Region "Bases tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Base1()
             Dim code =
 <Code>
@@ -70,7 +70,7 @@ struct $$S { }
             TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Base2()
             Dim code =
 <Code>
@@ -85,7 +85,7 @@ struct $$S : System.IDisposable { }
 
 #Region "DataTypeKind tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub DataTypeKind1()
             Dim code =
 <Code>
@@ -95,7 +95,7 @@ struct $$S { }
             TestDataTypeKind(code, EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindMain)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub DataTypeKind2()
             Dim code =
 <Code>
@@ -111,7 +111,7 @@ partial struct S { }
 
 #Region "FullName tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub FullName1()
             Dim code =
 <Code>
@@ -121,7 +121,7 @@ struct $$S { }
             TestFullName(code, "S")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub FullName2()
             Dim code =
 <Code>
@@ -134,7 +134,7 @@ namespace N
             TestFullName(code, "N.S")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub FullName3()
             Dim code =
 <Code>
@@ -154,7 +154,7 @@ namespace N
 
 #Region "ImplementedInterfaces tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ImplementedInterfaces1()
             Dim code =
 <Code>
@@ -168,7 +168,7 @@ struct $$S : System.IDisposable { }
 
 #Region "Name tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Name1()
             Dim code =
 <Code>
@@ -178,7 +178,7 @@ struct $$S { }
             TestName(code, "S")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Name2()
             Dim code =
 <Code>
@@ -191,7 +191,7 @@ namespace N
             TestName(code, "S")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Name3()
             Dim code =
 <Code>
@@ -211,7 +211,7 @@ namespace N
 
 #Region "Parent tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Parent1()
             Dim code =
 <Code>
@@ -221,7 +221,7 @@ struct $$S { }
             TestParent(code, IsFileCodeModel)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Parent2()
             Dim code =
 <Code>
@@ -234,7 +234,7 @@ namespace N
             TestParent(code, IsElement("N", kind:=EnvDTE.vsCMElement.vsCMElementNamespace))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Parent3()
             Dim code =
 <Code>
@@ -253,7 +253,7 @@ namespace N
 #End Region
 
 #Region "Parts tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Parts1()
             Dim code =
 <Code>
@@ -265,7 +265,7 @@ struct $$S
             TestParts(code, 1)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Parts2()
             Dim code =
 <Code>
@@ -277,7 +277,7 @@ partial struct $$S
             TestParts(code, 1)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Parts3()
             Dim code =
 <Code>
@@ -295,7 +295,7 @@ partial struct S
 #End Region
 
 #Region "AddAttribute tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
 <Code>
@@ -314,7 +314,7 @@ struct S { }
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute2()
             Dim code =
 <Code>
@@ -336,7 +336,7 @@ struct S { }
         End Sub
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute_BelowDocComment()
             Dim code =
 <Code>
@@ -361,7 +361,7 @@ struct S { }
 
 #Region "AddFunction tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddFunction1()
             Dim code =
 <Code>
@@ -386,7 +386,7 @@ struct S
 
 #Region "AddImplementedInterface tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImplementedInterface1()
             Dim code =
 <Code>
@@ -396,7 +396,7 @@ struct $$S { }
             TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", Nothing)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImplementedInterface2()
             Dim code =
 <Code>
@@ -413,7 +413,7 @@ interface I { }
             TestAddImplementedInterface(code, "I", -1, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImplementedInterface3()
             Dim code =
 <Code>
@@ -432,7 +432,7 @@ interface J { }
             TestAddImplementedInterface(code, "J", -1, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImplementedInterface4()
             Dim code =
 <Code>
@@ -451,7 +451,7 @@ interface J { }
             TestAddImplementedInterface(code, "J", 0, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddImplementedInterface5()
             Dim code =
 <Code>
@@ -476,7 +476,7 @@ interface K { }
 
 #Region "RemoveImplementedInterface tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub RemoveImplementedInterface1()
             Dim code =
 <Code>
@@ -495,7 +495,7 @@ interface I { }
 #End Region
 
 #Region "Set Name tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetName1()
             Dim code =
 <Code>
@@ -514,6 +514,25 @@ struct Bar
             TestSetName(code, expected, "Bar", NoThrow(Of String)())
         End Sub
 #End Region
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TypeDescriptor_GetProperties()
+            Dim code =
+<Code>
+struct $$S
+{
+}
+</Code>
+
+            Dim expectedPropertyNames =
+                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
+                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
+                 "ExtenderCATID", "Parent", "Namespace", "Bases", "Members", "Access", "Attributes",
+                 "DocComment", "Comment", "DerivedTypes", "ImplementedInterfaces", "IsAbstract",
+                 "IsGeneric", "DataTypeKind", "Parts"}
+
+            TestPropertyDescriptors(code, expectedPropertyNames)
+        End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

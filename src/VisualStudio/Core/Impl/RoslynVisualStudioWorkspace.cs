@@ -56,13 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             var project = ProjectTracker.GetProject(documentId.ProjectId);
             if (project == null)
             {
-                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, "documentId");
+                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, nameof(documentId));
             }
 
             var document = project.GetDocumentOrAdditionalDocument(documentId);
             if (document == null)
             {
-                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, "documentId");
+                throw new ArgumentException(ServicesVSResources.DocumentIdNotFromWorkspace, nameof(documentId));
             }
 
             var provider = project as IProjectCodeModelProvider;
@@ -124,8 +124,22 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             // We need to ensure the file is saved, only if a global undo transaction is open
             var globalUndoService = this.Services.GetService<IGlobalUndoService>();
-            bool needsSave = globalUndoService.IsGlobalTransactionOpen(this);
-            bool needsUndoDisabled = needsSave && this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(this.CurrentSolution.GetDocument(hostDocument.Id));
+            var needsSave = globalUndoService.IsGlobalTransactionOpen(this);
+
+            var needsUndoDisabled = false;
+            if (needsSave)
+            {
+                if (this.CurrentSolution.ContainsDocument(hostDocument.Id))
+                {
+                    // Disable undo on generated documents
+                    needsUndoDisabled = this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(this.CurrentSolution.GetDocument(hostDocument.Id));
+                }
+                else
+                {
+                    // Enable undo on "additional documents" or if no document can be found.
+                    needsUndoDisabled = false;
+                }
+            }
 
             return new InvisibleEditor(ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
         }
@@ -172,8 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, _navigableItemsPresenters,
-                containingTypeSymbol: null, throwOnHiddenDefinition: false, cancellationToken: cancellationToken);
+                searchSymbol, searchProject, _navigableItemsPresenters, cancellationToken: cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -268,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 if (syntaxNode != null)
                 {
-                    var codeElement = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(syntaxNode);
+                    var codeElement = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(syntaxNode);
                     if (codeElement != null)
                     {
                         return codeElement;

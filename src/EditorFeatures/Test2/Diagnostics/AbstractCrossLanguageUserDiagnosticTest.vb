@@ -19,9 +19,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
 
         Protected Sub Test(definition As XElement,
-                           expected As String,
+                           Optional expected As String = Nothing,
                            Optional codeActionIndex As Integer = 0,
-                           Optional verifyTokens As Boolean = True)
+                           Optional verifyTokens As Boolean = True,
+                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing)
             Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
                 Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(codeActionIndex).Action
@@ -31,17 +32,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim oldSolution = workspace.CurrentSolution
                 Dim updatedSolution = edit.ChangedSolution
 
-                Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
+                If fileNameToExpected Is Nothing Then
+                    Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
 
-                Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
-
-                If verifyTokens Then
-                    Utilities.AssertEx.TokensAreEqual(expected, actual, updatedDocument.Project.Language)
+                    Verify(expected, verifyTokens, updatedDocument)
                 Else
-                    AssertEx.Equal(expected, actual)
+                    For Each kvp In fileNameToExpected
+                        Dim updatedDocument = updatedSolution.Projects.SelectMany(Function(p) p.Documents).Single(Function(d) d.Name = kvp.Key)
+                        Verify(kvp.Value, verifyTokens, updatedDocument)
+                    Next
                 End If
-
             End Using
+        End Sub
+
+        Private Shared Sub Verify(expected As String, verifyTokens As Boolean, updatedDocument As Document)
+            Dim actual = updatedDocument.GetTextAsync().Result.ToString().Trim()
+
+            If verifyTokens Then
+                Utilities.AssertEx.TokensAreEqual(expected, actual, updatedDocument.Project.Language)
+            Else
+                AssertEx.Equal(expected, actual)
+            End If
         End Sub
 
         Friend Function GetDiagnosticAndFix(workspace As TestWorkspace) As Tuple(Of Diagnostic, CodeFixCollection)
@@ -68,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             For Each diagnostic In diagnostics
                 Dim fixes = New List(Of CodeFix)
-                Dim context = New CodeFixContext(_document, diagnostic, Sub(a, d) fixes.Add(New CodeFix(a, d)), CancellationToken.None)
+                Dim context = New CodeFixContext(_document, diagnostic, Sub(a, d) fixes.Add(New CodeFix(_document.Project, a, d)), CancellationToken.None)
                 providerAndFixer.Item2.RegisterCodeFixesAsync(context).Wait()
                 If fixes.Any() Then
                     Yield Tuple.Create(diagnostic, New CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes))
@@ -116,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         Protected Sub TestAddUnresolvedMetadataReference(xmlDefinition As XElement,
                                                          expectedProjectToReceiveReference As String,
-                                                         expectedAssemblyIdentity As AssemblyIdentity,
+                                                         expectedAssemblyIdentity As String,
                                                          Optional index As Integer = 0)
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(xmlDefinition)
@@ -129,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 Dim postOp = operations.OfType(Of TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.Operation).FirstOrDefault()
                 Assert.NotEqual(Nothing, postOp)
-                Assert.Equal(expectedAssemblyIdentity, postOp.AssemblyIdentity)
+                Assert.Equal(expectedAssemblyIdentity, postOp.AssemblyIdentity.GetDisplayName())
                 Assert.Equal(expectedProjectToReceiveReference, workspace.CurrentSolution.GetProject(postOp.ProjectId).Name)
             End Using
         End Sub

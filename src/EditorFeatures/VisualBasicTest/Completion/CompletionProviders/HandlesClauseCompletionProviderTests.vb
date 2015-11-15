@@ -1,17 +1,22 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class HandlesClauseCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
         Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New HandlesClauseCompletionProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestMeEvent()
             Dim text = <text>Public Class Class1
         ' Declare an event. 
@@ -27,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             VerifyItemExists(text, "Ev_Event")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546497)>
         Public Sub SuggestMeEventInDerived()
             Dim text = <text>Public Class Base
@@ -43,7 +48,7 @@ End Class</text>.Value
             VerifyItemExists(text, "Click")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546497)>
         Public Sub SuggestMeEventInIndirectDerived()
             Dim text = <text>Public Class Base
@@ -62,7 +67,7 @@ End Class
             VerifyItemExists(text, "Click")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestMyBaseEvent()
             Dim text = <text>Public Class BaseClass
     Public Event Event1()
@@ -76,7 +81,7 @@ End Class</text>.Value
             VerifyItemExists(text, "Event1")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestMyClassEventEvent()
             Dim text = <text>Public Class Class1
         ' Declare an event. 
@@ -92,7 +97,7 @@ End Class</text>.Value
             VerifyItemExists(text, "Ev_Event")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestField()
             Dim text = <text>Public Class Class1
         ' Declare an event. 
@@ -112,7 +117,7 @@ End Class</text>.Value
             VerifyItemExists(text, "handlee")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestFieldEvent()
             Dim text = <text>Public Class Class1
         ' Declare an event. 
@@ -132,7 +137,7 @@ End Class</text>.Value
             VerifyItemExists(text, "Ev_Event")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(546508)>
         Public Sub SuggestGenericFieldEvent()
             Dim text = <text>Class A
@@ -150,7 +155,7 @@ End Class</text>.Value
         End Sub
 
         <WorkItem(546494)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SuggestFieldDerivedEvent()
             Dim text = <text>Public Class Base
     Public Event Click()
@@ -168,7 +173,7 @@ End Class
         End Sub
 
         <WorkItem(546513)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InheritedFieldOfNestedType()
             Dim text = <text>Class container
     'Delegate Sub MyDele(x As Integer)
@@ -186,7 +191,7 @@ End Class
         End Sub
 
         <WorkItem(546511)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DoNotShowMeShadowedEvents()
             Dim text = <text>Public Class Base
     Protected Event B()
@@ -203,7 +208,7 @@ End Class
             VerifyItemIsAbsent(text, "B", "Event Base.B()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInTrivia()
             Dim text = <text>Public Class Class1
         ' Declare an event. 

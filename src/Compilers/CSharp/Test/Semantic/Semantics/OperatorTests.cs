@@ -6550,9 +6550,13 @@ class P
 
         private sealed class EmptyRewriter : BoundTreeRewriter
         {
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw new NotImplementedException();
+            }
         }
 
-        private sealed class FindCompoundAssignmentWalker : BoundTreeWalker
+        private sealed class FindCompoundAssignmentWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             internal BoundCompoundAssignmentOperator FirstNode;
 
@@ -8675,6 +8679,79 @@ namespace roslynChanges
 @"System.Int64
 System.Int32
 ");
+        }
+
+        [Fact, WorkItem(4132, "https://github.com/dotnet/roslyn/issues/4132")]
+        public void Issue4132()
+        {
+            string source = @"
+using System;
+
+namespace NullableMathRepro
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int? x = 0;
+            x += 5;
+            Console.WriteLine(""'x' is {0}"", x);
+
+            IntHolder? y = 0;
+            y += 5;
+            Console.WriteLine(""'y' is {0}"", y);
+        }
+    }
+
+    struct IntHolder
+    {
+        private int x;
+
+        public static implicit operator int (IntHolder ih)
+        {
+            Console.WriteLine(""operator int (IntHolder ih)"");
+            return ih.x;
+        }
+
+        public static implicit operator IntHolder(int i)
+        {
+            Console.WriteLine(""operator IntHolder(int i)"");
+            return new IntHolder { x = i };
+        }
+
+        public override string ToString()
+        {
+            return x.ToString();
+        }
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"'x' is 5
+operator IntHolder(int i)
+operator int (IntHolder ih)
+operator IntHolder(int i)
+'y' is 5");
+        }
+
+        [Fact, WorkItem(4027, "https://github.com/dotnet/roslyn/issues/4027")]
+        public void NotSignExtendedOperand()
+        {
+            string source = @"
+class MainClass
+{
+    public static void Main ()
+    {
+        short a = 0;
+        int b = 0;
+        a |= (short)b;
+        a = (short)(a | (short)b);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            compilation.VerifyDiagnostics();
         }
     }
 }

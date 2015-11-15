@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
 
                 var sorted = _analyzerItems.OrderBy(item => item.AnalyzerReference.Display).ToArray();
-                for (int i = 0; i < sorted.Count(); i++)
+                for (int i = 0; i < sorted.Length; i++)
                 {
                     _analyzerItems.Move(_analyzerItems.IndexOf(sorted[i]), i);
                 }
@@ -118,11 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void NotifyPropertyChanged(string propertyName)
         {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public bool HasItems

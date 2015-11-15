@@ -233,11 +233,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+            ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
             {
                 get
                 {
-                    return UnderlyingParameterTypeInformation.HasByRefBeforeCustomModifiers;
+                    return UnderlyingParameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
                 }
             }
 

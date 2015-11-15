@@ -16,18 +16,31 @@ namespace Microsoft.CodeAnalysis.Text
         /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
         /// if the stream contains invalid UTF-8 bytes.
         /// </summary>
-        private static readonly Encoding s_fallbackEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        private static readonly Encoding s_utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         /// <summary>
-        /// Encoding to use when UTF-8 fails. If available, we use CodePage 1252. If not, we use Latin1.
+        /// Encoding to use when UTF-8 fails. We try to find the following, in order, if available:
+        ///     1. The default ANSI codepage
+        ///     2. CodePage 1252.
+        ///     3. Latin1.
         /// </summary>
-        private static readonly Encoding s_defaultEncoding = GetDefaultEncoding();
+        private static readonly Encoding s_fallbackEncoding = GetFallbackEncoding();
 
-        private static Encoding GetDefaultEncoding()
+        private static Encoding GetFallbackEncoding()
         {
             try
             {
-                return PortableShim.Encoding.GetEncoding(1252);
+                if (CoreClrShim.CodePagesEncodingProvider.Type != null)
+                {
+                    // If we're running on CoreCLR we have to register the CodePagesEncodingProvider
+                    // first
+                    CoreClrShim.Encoding.RegisterProvider(CoreClrShim.CodePagesEncodingProvider.Instance);
+                }
+
+                // Try to get the default ANSI code page in the operating system's
+                // regional and language settings, and fall back to 1252 otherwise
+                return PortableShim.Encoding.GetEncoding(0)
+                    ?? PortableShim.Encoding.GetEncoding(1252);
             }
             catch (NotSupportedException)
             {
@@ -54,7 +67,20 @@ namespace Microsoft.CodeAnalysis.Text
         /// <paramref name="defaultEncoding"/> is null and the stream appears to be a binary file.
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
-        internal static SourceText Create(Stream stream, Encoding defaultEncoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+        internal static SourceText Create(Stream stream,
+            Encoding defaultEncoding = null,
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+        {
+            return Create(stream,
+                () => s_fallbackEncoding,
+                defaultEncoding: defaultEncoding,
+                checksumAlgorithm: checksumAlgorithm);
+        }
+
+        // internal for testing
+        internal static SourceText Create(Stream stream, Func<Encoding> getEncoding,
+            Encoding defaultEncoding = null,
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.CanRead && stream.CanSeek);
@@ -64,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 try
                 {
-                    return Decode(stream, s_fallbackEncoding, checksumAlgorithm, throwIfBinaryDetected: false);
+                    return Decode(stream, s_utf8Encoding, checksumAlgorithm, throwIfBinaryDetected: false);
                 }
                 catch (DecoderFallbackException)
                 {
@@ -74,12 +100,13 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                return Decode(stream, defaultEncoding ?? s_defaultEncoding, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
+                return Decode(stream, defaultEncoding ?? getEncoding(), checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
             }
             catch (DecoderFallbackException e)
             {
                 throw new InvalidDataException(e.Message);
             }
+
         }
 
         /// <summary>
@@ -201,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Text
             // than the buffer size. The default buffer size is 4KB, so this will incur a 4KB
             // allocation for any files less than 4KB. That's why, for example, the command
             // line compiler actually specifies a very small buffer size.
-            return stream.Read(buffer, 0, length) == length;
+            return stream.TryReadAll(buffer, 0, length) == length;
         }
     }
 }

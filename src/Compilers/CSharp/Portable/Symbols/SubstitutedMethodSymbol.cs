@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return returnType;
                 }
 
-                returnType = Map.SubstituteType(originalDefinition.ReturnType);
+                returnType = Map.SubstituteType(originalDefinition.ReturnType).Type;
                 return Interlocked.CompareExchange(ref _lazyReturnType, returnType, null) ?? returnType;
             }
         }
@@ -473,8 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // According to spec, custom modifiers cannot be generic, and so need not be subjected to type substitution.
-                return originalDefinition.ReturnTypeCustomModifiers;
+                return Map.SubstituteCustomModifiers(originalDefinition.ReturnType, originalDefinition.ReturnTypeCustomModifiers);
             }
         }
 

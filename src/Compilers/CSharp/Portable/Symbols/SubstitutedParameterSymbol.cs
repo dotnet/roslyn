@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
@@ -52,9 +53,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return type;
                 }
 
-                type = ((TypeMap)mapOrType).SubstituteType(this.underlyingParameter.Type);
-                _mapOrType = type;
+                TypeWithModifiers substituted = ((TypeMap)mapOrType).SubstituteType(this.underlyingParameter.Type);
+
+                type = substituted.Type;
+
+                if (substituted.CustomModifiers.IsDefaultOrEmpty)
+                {
+                    _mapOrType = type;
+                }
+
                 return type;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> CustomModifiers
+        {
+            get
+            {
+                var map = _mapOrType as TypeMap;
+                return map != null ? map.SubstituteCustomModifiers(this.underlyingParameter.Type, this.underlyingParameter.CustomModifiers) : this.underlyingParameter.CustomModifiers;
             }
         }
 

@@ -78,7 +78,7 @@ Public Class DB
 End Class
                         </file>
                     </compilation>,
-                    references:=DefaultReferences,
+                    references:=DefaultVbReferences,
                     options:=TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -211,7 +211,7 @@ End Module
   IL_0019:  dup
   IL_001a:  callvirt   "Sub System.Action.Invoke()"
   IL_001f:  ldloc.0
-  IL_0020:  dup
+  IL_0020:  ldloc.0
   IL_0021:  ldfld      "M1._Closure$__0-0.$VB$Local_X As Integer"
   IL_0026:  ldloc.0
   IL_0027:  ldfld      "M1._Closure$__0-0.$VB$Local_X As Integer"
@@ -268,7 +268,7 @@ End Module
   IL_0019:  dup
   IL_001a:  callvirt   "Sub System.Action.Invoke()"
   IL_001f:  ldloc.0
-  IL_0020:  dup
+  IL_0020:  ldloc.0
   IL_0021:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_0026:  ldloc.0
   IL_0027:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
@@ -338,7 +338,7 @@ End Module
   IL_0020:  dup
   IL_0021:  callvirt   "Sub System.Action.Invoke()"
   IL_0026:  ldloc.0
-  IL_0027:  dup
+  IL_0027:  ldloc.0
   IL_0028:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_002d:  ldloc.0
   IL_002e:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
@@ -411,7 +411,7 @@ End Module
   IL_0028:  add.ovf
   IL_0029:  callvirt   "Sub System.Action(Of Integer).Invoke(Integer)"
   IL_002e:  ldloc.0
-  IL_002f:  dup
+  IL_002f:  ldloc.0
   IL_0030:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_x As Integer"
   IL_0035:  ldloc.0
   IL_0036:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_x As Integer"
@@ -1152,21 +1152,21 @@ End Module
             <![CDATA[
 {
   // Code size       44 (0x2c)
-  .maxstack  4
-  .locals init (M1.C1._Closure$__1-0(Of T) V_0) //$VB$Closure_0
+  .maxstack  3
+  .locals init (System.Action V_0) //d1
   IL_0000:  newobj     "Sub M1.C1._Closure$__1-0(Of T)..ctor()"
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  ldftn      "Sub M1.C1._Closure$__1-0(Of T)._Lambda$__0()"
-  IL_000d:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_0012:  dup
+  IL_0005:  dup
+  IL_0006:  ldftn      "Sub M1.C1._Closure$__1-0(Of T)._Lambda$__0()"
+  IL_000c:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
   IL_0013:  callvirt   "Sub System.Action.Invoke()"
-  IL_0018:  ldloc.0
-  IL_0019:  dup
-  IL_001a:  ldfld      "M1.C1._Closure$__1-0(Of T).$VB$Local_X As Integer"
-  IL_001f:  ldc.i4.5
-  IL_0020:  add.ovf
-  IL_0021:  stfld      "M1.C1._Closure$__1-0(Of T).$VB$Local_X As Integer"
+  IL_0018:  dup
+  IL_0019:  ldfld      "M1.C1._Closure$__1-0(Of T).$VB$Local_X As Integer"
+  IL_001e:  ldc.i4.5
+  IL_001f:  add.ovf
+  IL_0020:  stfld      "M1.C1._Closure$__1-0(Of T).$VB$Local_X As Integer"
+  IL_0025:  ldloc.0
   IL_0026:  callvirt   "Sub System.Action.Invoke()"
   IL_002b:  ret
 }
@@ -1986,7 +1986,7 @@ End Module
   IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001e:  stelem.ref
   IL_001f:  ldloc.2
-  IL_0020:  dup
+  IL_0020:  ldloc.2
   IL_0021:  ldfld      "Module1._Closure$__0-0.$VB$Local_x As Integer"
   IL_0026:  ldc.i4.1
   IL_0027:  add.ovf
@@ -2060,7 +2060,7 @@ End Module
 ]]>)
             c.VerifyIL("Module1.Main", <![CDATA[
 {
-  // Code size      126 (0x7e)
+  // Code size      127 (0x7f)
   .maxstack  4
   .locals init (System.Action() V_0, //a
                 Integer V_1, //S
@@ -2080,7 +2080,7 @@ End Module
   IL_0012:  stloc.3
   IL_0013:  ldc.i4.0
   IL_0014:  stfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
-  IL_0019:  br.s       IL_0064
+  IL_0019:  br.s       IL_0065
   IL_001b:  ldloc.s    V_4
   IL_001d:  newobj     "Sub Module1._Closure$__0-1..ctor(Module1._Closure$__0-1)"
   IL_0022:  stloc.s    V_4
@@ -2096,32 +2096,32 @@ End Module
   IL_0041:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0046:  stelem.ref
   IL_0047:  ldloc.s    V_4
-  IL_0049:  dup
-  IL_004a:  ldfld      "Module1._Closure$__0-1.$VB$Local_x As Integer"
-  IL_004f:  ldc.i4.1
-  IL_0050:  add.ovf
-  IL_0051:  stfld      "Module1._Closure$__0-1.$VB$Local_x As Integer"
-  IL_0056:  ldloc.2
-  IL_0057:  dup
-  IL_0058:  ldfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
-  IL_005d:  ldloc.3
-  IL_005e:  add.ovf
-  IL_005f:  stfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
-  IL_0064:  ldloc.3
-  IL_0065:  ldc.i4.s   31
-  IL_0067:  shr
-  IL_0068:  ldloc.2
-  IL_0069:  ldfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
-  IL_006e:  xor
-  IL_006f:  ldloc.3
-  IL_0070:  ldc.i4.s   31
-  IL_0072:  shr
-  IL_0073:  ldc.i4.5
-  IL_0074:  xor
-  IL_0075:  ble.s      IL_001b
-  IL_0077:  ldloc.0
-  IL_0078:  call       "Sub Module1.Dump(System.Action())"
-  IL_007d:  ret
+  IL_0049:  ldloc.s    V_4
+  IL_004b:  ldfld      "Module1._Closure$__0-1.$VB$Local_x As Integer"
+  IL_0050:  ldc.i4.1
+  IL_0051:  add.ovf
+  IL_0052:  stfld      "Module1._Closure$__0-1.$VB$Local_x As Integer"
+  IL_0057:  ldloc.2
+  IL_0058:  ldloc.2
+  IL_0059:  ldfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
+  IL_005e:  ldloc.3
+  IL_005f:  add.ovf
+  IL_0060:  stfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
+  IL_0065:  ldloc.3
+  IL_0066:  ldc.i4.s   31
+  IL_0068:  shr
+  IL_0069:  ldloc.2
+  IL_006a:  ldfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
+  IL_006f:  xor
+  IL_0070:  ldloc.3
+  IL_0071:  ldc.i4.s   31
+  IL_0073:  shr
+  IL_0074:  ldc.i4.5
+  IL_0075:  xor
+  IL_0076:  ble.s      IL_001b
+  IL_0078:  ldloc.0
+  IL_0079:  call       "Sub Module1.Dump(System.Action())"
+  IL_007e:  ret
 }
 ]]>)
         End Sub

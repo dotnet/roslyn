@@ -2356,19 +2356,21 @@ class Program
             var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("Program.M",
-@"{
+@"
+{
   // Code size       25 (0x19)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  callvirt   ""int B.P.get""
   IL_0007:  callvirt   ""void A.Q.set""
   IL_000c:  ldarg.0
-  IL_000d:  dup
+  IL_000d:  ldarg.0
   IL_000e:  callvirt   ""int A.Q.get""
   IL_0013:  callvirt   ""void B.P.set""
   IL_0018:  ret
-}");
+}
+");
         }
 
         [Fact]
@@ -3090,6 +3092,65 @@ public class D
 }
 ");
         }
+
+        [Fact]
+        public void RefInstanceFieldA()
+        {
+            string source = @"
+public class D
+{
+  
+    public class Moo
+    {
+        public int I;
+
+        public Moo()
+        {
+        }
+    }
+
+    public static void Main()
+    {
+        Moo obj = new Moo();
+
+        System.Console.Write(obj.I);
+        obj.I = 42;
+        System.Console.Write(obj.I);
+        obj.I = 7;
+        System.Console.Write(obj.I);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe ,expectedOutput: "0427");
+
+            compilation.VerifyIL("D.Main",
+@"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (D.Moo V_0) //obj
+  IL_0000:  newobj     ""D.Moo..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldfld      ""int D.Moo.I""
+  IL_000c:  call       ""void System.Console.Write(int)""
+  IL_0011:  ldloc.0
+  IL_0012:  ldc.i4.s   42
+  IL_0014:  stfld      ""int D.Moo.I""
+  IL_0019:  ldloc.0
+  IL_001a:  ldfld      ""int D.Moo.I""
+  IL_001f:  call       ""void System.Console.Write(int)""
+  IL_0024:  ldloc.0
+  IL_0025:  ldc.i4.7
+  IL_0026:  stfld      ""int D.Moo.I""
+  IL_002b:  ldloc.0
+  IL_002c:  ldfld      ""int D.Moo.I""
+  IL_0031:  call       ""void System.Console.Write(int)""
+  IL_0036:  ret
+}
+");
+        }
+
 
         [Fact]
         public void RefStaticField()
@@ -4012,56 +4073,57 @@ public class D
 ");
 
             compilation.VerifyIL("D.Main",
-@"{
+@"
+{
   // Code size      116 (0x74)
   .maxstack  5
   .locals init (D.C1 V_0, //c
-           int V_1,
-           int V_2)
+                int V_1,
+                int V_2)
   IL_0000:  newobj     ""D.C1..ctor()""
-  IL_0005:  stloc.0   
-  IL_0006:  ldloc.0   
-  IL_0007:  ldc.i4.2  
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.2
   IL_0008:  call       ""int D.GetInt(int)""
-  IL_000d:  stloc.1   
-  IL_000e:  ldc.i4.3  
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.3
   IL_000f:  call       ""int D.GetInt(int)""
-  IL_0014:  ldloc.1   
+  IL_0014:  ldloc.1
   IL_0015:  callvirt   ""int D.C1.Foo(int, int)""
-  IL_001a:  pop       
+  IL_001a:  pop
   IL_001b:  ldstr      "" ""
   IL_0020:  call       ""void System.Console.Write(string)""
-  IL_0025:  ldloc.0   
-  IL_0026:  ldc.i4.1  
+  IL_0025:  ldloc.0
+  IL_0026:  ldc.i4.1
   IL_0027:  call       ""int D.GetInt(int)""
-  IL_002c:  ldloc.0   
-  IL_002d:  ldc.i4.2  
+  IL_002c:  ldloc.0
+  IL_002d:  ldc.i4.2
   IL_002e:  call       ""int D.GetInt(int)""
-  IL_0033:  stloc.1   
-  IL_0034:  ldc.i4.3  
+  IL_0033:  stloc.1
+  IL_0034:  ldc.i4.3
   IL_0035:  call       ""int D.GetInt(int)""
-  IL_003a:  ldloc.1   
+  IL_003a:  ldloc.1
   IL_003b:  callvirt   ""int D.C1.Foo(int, int)""
   IL_0040:  callvirt   ""int D.C1.Foo(int, int)""
-  IL_0045:  pop       
+  IL_0045:  pop
   IL_0046:  ldstr      "" ""
   IL_004b:  call       ""void System.Console.Write(string)""
-  IL_0050:  ldloc.0   
-  IL_0051:  ldc.i4.1  
+  IL_0050:  ldloc.0
+  IL_0051:  ldc.i4.1
   IL_0052:  call       ""int D.GetInt(int)""
-  IL_0057:  stloc.1   
-  IL_0058:  ldloc.0   
-  IL_0059:  ldc.i4.2  
+  IL_0057:  stloc.1
+  IL_0058:  ldloc.0
+  IL_0059:  ldc.i4.2
   IL_005a:  call       ""int D.GetInt(int)""
-  IL_005f:  stloc.2   
-  IL_0060:  ldc.i4.3  
+  IL_005f:  stloc.2
+  IL_0060:  ldc.i4.3
   IL_0061:  call       ""int D.GetInt(int)""
-  IL_0066:  ldloc.2   
+  IL_0066:  ldloc.2
   IL_0067:  callvirt   ""int D.C1.Foo(int, int)""
-  IL_006c:  ldloc.1   
+  IL_006c:  ldloc.1
   IL_006d:  callvirt   ""int D.C1.Foo(int, int)""
-  IL_0072:  pop       
-  IL_0073:  ret       
+  IL_0072:  pop
+  IL_0073:  ret
 }
 ");
         }
@@ -4116,45 +4178,41 @@ public class D
             compilation.VerifyIL("D.Main",
 @"
 {
-  // Code size       72 (0x48)
+  // Code size       68 (0x44)
   .maxstack  6
-  .locals init (D.C1 V_0, //c
-  int V_1,
-  int V_2,
-  int V_3,
-  int V_4)
+  .locals init (int V_0,
+                int V_1,
+                int V_2,
+                int V_3)
   IL_0000:  newobj     ""D.C1..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  ldc.i4.1
-  IL_0008:  call       ""int D.GetInt(int)""
-  IL_000d:  stloc.1
-  IL_000e:  ldloc.0
-  IL_000f:  dup
-  IL_0010:  ldc.i4.1
-  IL_0011:  call       ""int D.GetInt(int)""
-  IL_0016:  stloc.3
-  IL_0017:  ldloc.0
-  IL_0018:  ldc.i4.2
-  IL_0019:  call       ""int D.GetInt(int)""
-  IL_001e:  stloc.s    V_4
-  IL_0020:  ldc.i4.3
-  IL_0021:  call       ""int D.GetInt(int)""
-  IL_0026:  ldloc.s    V_4
-  IL_0028:  callvirt   ""int D.C1.Foo(int, int)""
-  IL_002d:  ldloc.3
-  IL_002e:  callvirt   ""int D.C1.Foo(int, int)""
-  IL_0033:  stloc.2
-  IL_0034:  ldc.i4.3
-  IL_0035:  call       ""int D.GetInt(int)""
-  IL_003a:  ldloc.2
-  IL_003b:  callvirt   ""int D.C1.Foo(int, int)""
-  IL_0040:  ldloc.1
-  IL_0041:  callvirt   ""int D.C1.Foo(int, int)""
-  IL_0046:  pop
-  IL_0047:  ret
-}
-");
+  IL_0005:  dup
+  IL_0006:  ldc.i4.1
+  IL_0007:  call       ""int D.GetInt(int)""
+  IL_000c:  stloc.0
+  IL_000d:  dup
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  call       ""int D.GetInt(int)""
+  IL_0015:  stloc.2
+  IL_0016:  ldc.i4.2
+  IL_0017:  call       ""int D.GetInt(int)""
+  IL_001c:  stloc.3
+  IL_001d:  ldc.i4.3
+  IL_001e:  call       ""int D.GetInt(int)""
+  IL_0023:  ldloc.3
+  IL_0024:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_0029:  ldloc.2
+  IL_002a:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_002f:  stloc.1
+  IL_0030:  ldc.i4.3
+  IL_0031:  call       ""int D.GetInt(int)""
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_003c:  ldloc.0
+  IL_003d:  callvirt   ""int D.C1.Foo(int, int)""
+  IL_0042:  pop
+  IL_0043:  ret
+}");
         }
 
         //This is mostly to test array creation.
@@ -4753,14 +4811,15 @@ public class D
             var compilation = CompileAndVerify(source, expectedOutput: @"2 8 16 24 576 288");
 
             compilation.VerifyIL("D.Main",
-@"{
+@"
+{
   // Code size      119 (0x77)
   .maxstack  3
   .locals init (int V_0) //x
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  dup
+  IL_0003:  ldloc.0
   IL_0004:  add
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -4768,7 +4827,7 @@ public class D
   IL_000c:  ldstr      "" ""
   IL_0011:  call       ""void System.Console.Write(string)""
   IL_0016:  ldloc.0
-  IL_0017:  dup
+  IL_0017:  ldloc.0
   IL_0018:  ldc.i4.s   31
   IL_001a:  and
   IL_001b:  shl
@@ -4778,7 +4837,7 @@ public class D
   IL_0023:  ldstr      "" ""
   IL_0028:  call       ""void System.Console.Write(string)""
   IL_002d:  ldloc.0
-  IL_002e:  dup
+  IL_002e:  ldloc.0
   IL_002f:  add
   IL_0030:  conv.i8
   IL_0031:  dup
@@ -4904,7 +4963,8 @@ public class D
             var compilation = CompileAndVerify(source, expectedOutput: @"-25 4294967295 1073741823");
 
             compilation.VerifyIL("D.Main",
-@"{
+@"
+{
   // Code size       50 (0x32)
   .maxstack  2
   .locals init (uint V_0) //ux
@@ -4917,7 +4977,7 @@ public class D
   IL_0013:  ldc.i4.1
   IL_0014:  stloc.0
   IL_0015:  ldloc.0
-  IL_0016:  dup
+  IL_0016:  ldloc.0
   IL_0017:  sub
   IL_0018:  ldloc.0
   IL_0019:  sub
@@ -5779,7 +5839,7 @@ public class D
   // Code size        7 (0x7)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  ldind.i4
   IL_0003:  ldc.i4.1
   IL_0004:  add
@@ -5958,7 +6018,7 @@ public class D
   // Code size        7 (0x7)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  ldind.i4
   IL_0003:  ldc.i4.1
   IL_0004:  add
@@ -6776,11 +6836,12 @@ class Program
             var compilation = CompileAndVerify(source, expectedOutput: @"0");
 
             compilation.VerifyIL("Program.Main",
-@"{
+@"
+{
   // Code size       54 (0x36)
   .maxstack  2
   .locals init (bool V_0, //x
-  int V_1)
+                int V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -6804,6 +6865,66 @@ class Program
 }
 ");
         }
+
+        [Fact]
+        public void TemporariesA()
+        {
+            string source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        bool x = true;
+        int y = (x != true).GetType().GetHashCode() - x.GetType().GetHashCode(); // Temps involved
+        Console.Write((y + y).ToString()); // Temp involved
+    }
+    public void test()
+    {
+        this.bar(1).ToString(); // Temp involved
+    }
+    public int bar(int x)
+    {
+        return 0;
+    }
+}";
+
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe ,expectedOutput: @"0");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (bool V_0, //x
+                int V_1, //y
+                int V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ceq
+  IL_0006:  box        ""bool""
+  IL_000b:  call       ""System.Type object.GetType()""
+  IL_0010:  callvirt   ""int object.GetHashCode()""
+  IL_0015:  ldloc.0
+  IL_0016:  box        ""bool""
+  IL_001b:  call       ""System.Type object.GetType()""
+  IL_0020:  callvirt   ""int object.GetHashCode()""
+  IL_0025:  sub
+  IL_0026:  stloc.1
+  IL_0027:  ldloc.1
+  IL_0028:  ldloc.1
+  IL_0029:  add
+  IL_002a:  stloc.2
+  IL_002b:  ldloca.s   V_2
+  IL_002d:  call       ""string int.ToString()""
+  IL_0032:  call       ""void System.Console.Write(string)""
+  IL_0037:  ret
+}
+");
+        }
+
 
         [Fact]
         public void EmitObjectToStringOnSimpleType()
@@ -8631,6 +8752,79 @@ class A
         }
 
         [Fact]
+        public void PreIncrementUnusedA()
+        {
+            string source = @"
+using System;
+class A
+{
+    public static void Main()
+    {
+        int[] x = new int[3];
+        x[0] = 1;
+        x[1] = 2;
+        x[2] = 3;
+
+        ++x[0];
+
+        Console.WriteLine(x[0]);
+        Console.WriteLine(x[1]);
+        Console.WriteLine(x[2]);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe,  expectedOutput: @"2
+2
+3");
+
+            compilation.VerifyIL("A.Main",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (int[] V_0) //x
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""int""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  stelem.i4
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.2
+  IL_000e:  stelem.i4
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.2
+  IL_0011:  ldc.i4.3
+  IL_0012:  stelem.i4
+  IL_0013:  ldloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldelema    ""int""
+  IL_001a:  dup
+  IL_001b:  ldind.i4
+  IL_001c:  ldc.i4.1
+  IL_001d:  add
+  IL_001e:  stind.i4
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldelem.i4
+  IL_0022:  call       ""void System.Console.WriteLine(int)""
+  IL_0027:  ldloc.0
+  IL_0028:  ldc.i4.1
+  IL_0029:  ldelem.i4
+  IL_002a:  call       ""void System.Console.WriteLine(int)""
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4.2
+  IL_0031:  ldelem.i4
+  IL_0032:  call       ""void System.Console.WriteLine(int)""
+  IL_0037:  ret
+}
+");
+        }
+
+
+        [Fact]
         public void PostIncrementUnusedStruct()
         {
             string source = @"
@@ -8717,6 +8911,56 @@ struct S1
   IL_001b:  ldfld      ""int S1.y""
   IL_0020:  call       ""void System.Console.WriteLine(int)""
   IL_0025:  ret
+}
+");
+        }
+
+        [Fact]
+        public void PostIncrementUnusedStruct1a()
+        {
+            string source = @"
+using System;
+class A
+{
+    public S1 x = new S1();
+
+    public static void Main()
+    {
+        var v = new A();
+        v.x.y+=42;
+
+        Console.WriteLine(v.x.y);
+    }
+}
+
+struct S1
+{
+    public int y;
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"42", options: TestOptions.ReleaseDebugExe);
+
+            compilation.VerifyIL("A.Main",
+@"
+{
+  // Code size       40 (0x28)
+  .maxstack  3
+  .locals init (A V_0) //v
+  IL_0000:  newobj     ""A..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldflda     ""S1 A.x""
+  IL_000c:  ldflda     ""int S1.y""
+  IL_0011:  dup
+  IL_0012:  ldind.i4
+  IL_0013:  ldc.i4.s   42
+  IL_0015:  add
+  IL_0016:  stind.i4
+  IL_0017:  ldloc.0
+  IL_0018:  ldflda     ""S1 A.x""
+  IL_001d:  ldfld      ""int S1.y""
+  IL_0022:  call       ""void System.Console.WriteLine(int)""
+  IL_0027:  ret
 }
 ");
         }
@@ -9424,7 +9668,7 @@ VerifyIL("MyClass.Main", @"
   IL_001e:  ldc.i4.0
   IL_001f:  stloc.3
   IL_0020:  ldloc.0
-  IL_0021:  dup
+  IL_0021:  ldloc.0
   IL_0022:  ldc.r8     1.00000000362749E-15
   IL_002b:  mul
   IL_002c:  add
@@ -9434,7 +9678,7 @@ VerifyIL("MyClass.Main", @"
   IL_0031:  ldc.i4.1
   IL_0032:  stloc.3
   IL_0033:  ldloc.0
-  IL_0034:  dup
+  IL_0034:  ldloc.0
   IL_0035:  neg
   IL_0036:  ldc.r8     1.00000000362749E-15
   IL_003f:  mul
@@ -9957,7 +10201,7 @@ class Test
         }
 
         [WorkItem(528183, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void TestExternWithoutDLLImport()
         {
             string source = @"
@@ -12401,19 +12645,20 @@ Aggregate = 1,
 ";
             CompileAndVerify(source).VerifyIL("EdmFunction.SetFunctionAttribute", @"
 {
-  // Code size        9 (0x9)
+  // Code size       10 (0xa)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  ldind.u1
-  IL_0003:  dup
-  IL_0004:  ldarg.1
-  IL_0005:  and
-  IL_0006:  xor
-  IL_0007:  stind.i1
-  IL_0008:  ret
+  IL_0003:  ldarg.0
+  IL_0004:  ldind.u1
+  IL_0005:  ldarg.1
+  IL_0006:  and
+  IL_0007:  xor
+  IL_0008:  stind.i1
+  IL_0009:  ret
 }
-            ");
+");
         }
 
         [Fact]
@@ -14004,5 +14249,583 @@ using System;
 }                                                                                         
 ");
         }
+
+        [Fact]
+        public void NamedParamsOptimizationAndParams001()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test(a1: 5, a2: 42.ToString());
+        Test(a2: 42.ToString(), a1: 5);
+    }
+
+    public static void Test(int a1, params object[] a2)
+    {
+        System.Console.WriteLine(a2[0]);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"42
+42");
+
+            compilation.VerifyIL("Program.Main",
+    @"
+{
+  // Code size       51 (0x33)
+  .maxstack  5
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.5
+  IL_0001:  ldc.i4.1
+  IL_0002:  newarr     ""object""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.s   42
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       ""string int.ToString()""
+  IL_0013:  stelem.ref
+  IL_0014:  call       ""void Program.Test(int, params object[])""
+  IL_0019:  ldc.i4.5
+  IL_001a:  ldc.i4.1
+  IL_001b:  newarr     ""object""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldc.i4.s   42
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""string int.ToString()""
+  IL_002c:  stelem.ref
+  IL_002d:  call       ""void Program.Test(int, params object[])""
+  IL_0032:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void NamedParamsOptimizationAndParams002()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test(a2: 42.ToString(), a1: 5.ToString());
+    }
+
+    public static void Test(string a1, params object[] a2)
+    {
+        System.Console.WriteLine(a2[0]);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"42");
+
+            compilation.VerifyIL("Program.Main",
+    @"
+{
+  // Code size       36 (0x24)
+  .maxstack  5
+  .locals init (object V_0,
+                int V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  call       ""string int.ToString()""
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.5
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  call       ""string int.ToString()""
+  IL_0014:  ldc.i4.1
+  IL_0015:  newarr     ""object""
+  IL_001a:  dup
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldloc.0
+  IL_001d:  stelem.ref
+  IL_001e:  call       ""void Program.Test(string, params object[])""
+  IL_0023:  ret
+}
+");
+
+        }
+
+        [Fact]
+        public void NamedParamsOptimizationAndParams003()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test(a2: 42.ToString(), a1: 5);
+    }
+
+    public static void Test(int a1, int aOpt = 333, params object[] a2)
+    {
+        System.Console.WriteLine(a2[0]);
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"42");
+
+            compilation.VerifyIL("Program.Main",
+    @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  6
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.5
+  IL_0001:  ldc.i4     0x14d
+  IL_0006:  ldc.i4.1
+  IL_0007:  newarr     ""object""
+  IL_000c:  dup
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.s   42
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""string int.ToString()""
+  IL_0018:  stelem.ref
+  IL_0019:  call       ""void Program.Test(int, int, params object[])""
+  IL_001e:  ret
+}
+");
+
+        }
+
+        [Fact]
+        [WorkItem(4196, "https://github.com/dotnet/roslyn/issues/4196")]
+        public void BadDefaultParameterValue()
+        {
+            // In this DLL there is an optional parameter which has a corrupted metadata value
+            // as the default argument.  This can happen in legitimate code when run through an
+            // obfuscator program.  For compatibility with the native compiler we need to treat
+            // the value as default(T) 
+            string source = @"
+using System;
+using BadDefaultParameterValue;
+
+class Program
+{
+    static void Main()
+    {
+        Util.M(""test"");
+    }
+}";
+
+            var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
+            var compilation = CompileAndVerify(source, additionalRefs: new[] { testReference });
+            compilation.VerifyIL("Program.Main", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldstr      ""test""
+  IL_0005:  ldnull
+  IL_0006:  call       ""void BadDefaultParameterValue.Util.M(string, string)""
+  IL_000b:  ret
+}");
+        }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void InplaceCtorUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        private static S1[] arr = new S1[1];
+
+        struct S1
+        {
+            public int a, b;
+            public S1(int a, int b)
+            {
+                this.a = a;
+                this.b = b;
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            var arg = System.Math.Max(1, 2);
+            var val = new S1(arg, arg);
+            arr[0] = val;
+            System.Console.WriteLine(arr[0].a);
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "2");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (int V_0, //arg
+                Program.S1 V_1) //val
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""int System.Math.Max(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""Program.S1..ctor(int, int)""
+  IL_0011:  ldsfld     ""Program.S1[] Program.arr""
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldloc.1
+  IL_0018:  stelem     ""Program.S1""
+  IL_001d:  ldsfld     ""Program.S1[] Program.arr""
+  IL_0022:  ldc.i4.0
+  IL_0023:  ldelema    ""Program.S1""
+  IL_0028:  ldfld      ""int Program.S1.a""
+  IL_002d:  call       ""void System.Console.WriteLine(int)""
+  IL_0032:  ret
+}
+");
+        }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void TernaryConsequenceUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        static bool foo()
+        {
+            return true;
+        }
+
+        static void Main(string[] args)
+        {
+            bool arg;
+            var val = (arg = foo())? arg & arg : false;
+
+            System.Console.WriteLine(val);
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (bool V_0) //arg
+  IL_0000:  call       ""bool Program.foo()""
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldc.i4.0
+  IL_000a:  br.s       IL_000f
+  IL_000c:  ldloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  and
+  IL_000f:  call       ""void System.Console.WriteLine(bool)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void CoalesceUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        static string foo()
+        {
+            return ""hi"";
+        }
+
+        static void Main(string[] args)
+        {
+            string str;
+            var val = (str = foo()) ?? str + ""aa"";
+
+            System.Console.WriteLine(val);
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "hi");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (string V_0) //str
+  IL_0000:  call       ""string Program.foo()""
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  dup
+  IL_0008:  brtrue.s   IL_0016
+  IL_000a:  pop
+  IL_000b:  ldloc.0
+  IL_000c:  ldstr      ""aa""
+  IL_0011:  call       ""string string.Concat(string, string)""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
+}
+");
+        }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void TernaryUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string sline = GetString();
+
+            var lastChar = sline.Length == 0 ? '\0' : sline[sline.Length - 1];
+
+            System.Console.WriteLine(lastChar);
+        }
+
+        private static string GetString()
+        {
+            return ""hello"";
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "o");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (string V_0) //sline
+  IL_0000:  call       ""string Program.GetString()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  callvirt   ""int string.Length.get""
+  IL_000c:  brfalse.s  IL_001e
+  IL_000e:  ldloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  callvirt   ""int string.Length.get""
+  IL_0015:  ldc.i4.1
+  IL_0016:  sub
+  IL_0017:  callvirt   ""char string.this[int].get""
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldc.i4.0
+  IL_001f:  call       ""void System.Console.WriteLine(char)""
+  IL_0024:  ret
+}
+");
+        }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void LogicalOpUsesLocal()
+        { 
+            string source = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string tokenString = GetString();
+
+
+            if (tokenString[tokenString.Length - 1] != 'L' && tokenString[tokenString.Length -1] != 'l')
+            {
+                System.Console.WriteLine(""hi"");
+            }
+            }
+
+            private static string GetString()
+            {
+                return ""hello"";
+            }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "hi");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       53 (0x35)
+  .maxstack  3
+  .locals init (string V_0) //tokenString
+  IL_0000:  call       ""string Program.GetString()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   ""int string.Length.get""
+  IL_000d:  ldc.i4.1
+  IL_000e:  sub
+  IL_000f:  callvirt   ""char string.this[int].get""
+  IL_0014:  ldc.i4.s   76
+  IL_0016:  beq.s      IL_0034
+  IL_0018:  ldloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  callvirt   ""int string.Length.get""
+  IL_001f:  ldc.i4.1
+  IL_0020:  sub
+  IL_0021:  callvirt   ""char string.this[int].get""
+  IL_0026:  ldc.i4.s   108
+  IL_0028:  beq.s      IL_0034
+  IL_002a:  ldstr      ""hi""
+  IL_002f:  call       ""void System.Console.WriteLine(string)""
+  IL_0034:  ret
+}
+");
+        }
+
+        [WorkItem(5880, "https://github.com/dotnet/roslyn/issues/5880")]
+        [Fact]
+        public void StuctCtorArgTernary()
+        {
+            string source = @"
+   using System.Collections.Generic;
+   using System;
+
+   class Program
+    {
+        struct TextSpan
+        {
+            private int start;
+            private int length;
+
+            public int Start => start;
+            public int End => start + length;
+            public int Length => length;
+
+            public TextSpan(int start, int length)
+            {
+                this.start = start;
+                this.length = length;
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            int length = 123;
+            int start = 5;
+
+            var list = new List<TextSpan>(10);
+            list.Add(new TextSpan(0, 10));
+            list.Add(new TextSpan(0, 10));
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var span = list[i];
+                if (span.End < start)
+                {
+                    continue;
+                }
+
+                var newStart = Math.Min(Math.Max(span.Start + 10, 0), length);
+                var newSpan = new TextSpan(newStart, newStart >= length ? 0 : span.Length);
+
+                list[i] = newSpan;
+            }
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size      135 (0x87)
+  .maxstack  4
+  .locals init (int V_0, //length
+                int V_1, //start
+                System.Collections.Generic.List<Program.TextSpan> V_2, //list
+                int V_3, //i
+                Program.TextSpan V_4, //span
+                int V_5, //newStart
+                Program.TextSpan V_6) //newSpan
+  IL_0000:  ldc.i4.s   123
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.5
+  IL_0004:  stloc.1
+  IL_0005:  ldc.i4.s   10
+  IL_0007:  newobj     ""System.Collections.Generic.List<Program.TextSpan>..ctor(int)""
+  IL_000c:  stloc.2
+  IL_000d:  ldloc.2
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.s   10
+  IL_0011:  newobj     ""Program.TextSpan..ctor(int, int)""
+  IL_0016:  callvirt   ""void System.Collections.Generic.List<Program.TextSpan>.Add(Program.TextSpan)""
+  IL_001b:  ldloc.2
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldc.i4.s   10
+  IL_001f:  newobj     ""Program.TextSpan..ctor(int, int)""
+  IL_0024:  callvirt   ""void System.Collections.Generic.List<Program.TextSpan>.Add(Program.TextSpan)""
+  IL_0029:  ldc.i4.0
+  IL_002a:  stloc.3
+  IL_002b:  br.s       IL_007d
+  IL_002d:  ldloc.2
+  IL_002e:  ldloc.3
+  IL_002f:  callvirt   ""Program.TextSpan System.Collections.Generic.List<Program.TextSpan>.this[int].get""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloca.s   V_4
+  IL_0038:  call       ""int Program.TextSpan.End.get""
+  IL_003d:  ldloc.1
+  IL_003e:  blt.s      IL_0079
+  IL_0040:  ldloca.s   V_4
+  IL_0042:  call       ""int Program.TextSpan.Start.get""
+  IL_0047:  ldc.i4.s   10
+  IL_0049:  add
+  IL_004a:  ldc.i4.0
+  IL_004b:  call       ""int System.Math.Max(int, int)""
+  IL_0050:  ldloc.0
+  IL_0051:  call       ""int System.Math.Min(int, int)""
+  IL_0056:  stloc.s    V_5
+  IL_0058:  ldloca.s   V_6
+  IL_005a:  ldloc.s    V_5
+  IL_005c:  ldloc.s    V_5
+  IL_005e:  ldloc.0
+  IL_005f:  bge.s      IL_006a
+  IL_0061:  ldloca.s   V_4
+  IL_0063:  call       ""int Program.TextSpan.Length.get""
+  IL_0068:  br.s       IL_006b
+  IL_006a:  ldc.i4.0
+  IL_006b:  call       ""Program.TextSpan..ctor(int, int)""
+  IL_0070:  ldloc.2
+  IL_0071:  ldloc.3
+  IL_0072:  ldloc.s    V_6
+  IL_0074:  callvirt   ""void System.Collections.Generic.List<Program.TextSpan>.this[int].set""
+  IL_0079:  ldloc.3
+  IL_007a:  ldc.i4.1
+  IL_007b:  add
+  IL_007c:  stloc.3
+  IL_007d:  ldloc.3
+  IL_007e:  ldloc.2
+  IL_007f:  callvirt   ""int System.Collections.Generic.List<Program.TextSpan>.Count.get""
+  IL_0084:  blt.s      IL_002d
+  IL_0086:  ret
+}");
+        }
+
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter<SyntaxTrivia>
+    internal partial class CSharpTriviaFormatter
     {
         private class DocumentationCommentExteriorCommentRewriter : CSharpSyntaxRewriter
         {

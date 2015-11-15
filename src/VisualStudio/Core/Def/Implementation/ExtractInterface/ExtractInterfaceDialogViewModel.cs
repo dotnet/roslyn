@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         {
             private readonly IGlyphService _glyphService;
 
-            public ISymbol MemberSymbol { get; private set; }
+            public ISymbol MemberSymbol { get; }
 
             private static SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,

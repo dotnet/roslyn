@@ -460,6 +460,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Do not yet attempt to deal with params arrays or optional arguments.
             BuildStoresToTemps(expanded, argsToParamsOpt, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
 
+
+            // all the formal arguments, except missing optionals, are now in place. 
+            // Optimize away unnecessary temporaries.
+            // Necessary temporaries have their store instructions merged into the appropriate 
+            // argument expression.
+            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            OptimizeTemporaries(actualArguments, refKinds, storesToTemps, temporariesBuilder);
+
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
@@ -468,13 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Step three: Now fill in the optional arguments.
             InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, enableCallerInfo);
-
-            // Step four: all the arguments are now in place. Optimize away unnecessary temporaries.
-            // Necessary temporaries have their store instructions merged into the appropriate 
-            // argument expression.
-            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            OptimizeTemporaries(actualArguments, refKinds, storesToTemps, temporariesBuilder);
-
+            
             if (isComReceiver)
             {
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temporariesBuilder);
@@ -723,7 +725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the actual expression we were storing and add it as an argument - this one does
                 // not need a temp. if there are any unclaimed stores before the found one, add them
                 // as side effects that precede this arg, they cannot happen later.
-                if (argument.Kind == BoundKind.Local)
+                // NOTE: missing optional parameters are not filled yet and therefore nulls - no need to do anything for them
+                if (argument?.Kind == BoundKind.Local)
                 {
                     var correspondingStore = -1;
                     for (int i = firstUnclaimedStore; i < tempStores.Count; i++)
@@ -871,8 +874,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(parameter.IsOptional);
             ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
             BoundExpression defaultValue;
-
             SourceLocation callerSourceLocation;
+
+            // For compatibility with the native compiler we treat all bad imported constant
+            // values as default(T).  
+            if (defaultConstantValue != null && defaultConstantValue.IsBad)
+            {
+                defaultConstantValue = ConstantValue.Null;
+            }
 
             if (parameter.IsCallerLineNumber && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {

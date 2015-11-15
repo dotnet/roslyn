@@ -1214,11 +1214,14 @@ class Class1
                 {
                     i = 1;
                 }
-                finally {}
+                finally
+                {
+                    j = 2;
+                }
                 break;
 
             default:
-                i = 2;                
+                i = 2;
                 break;
         }
 
@@ -1229,45 +1232,46 @@ class Class1
             var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Class1.Main", @"
 {
-  // Code size       28 (0x1c)
+  // Code size       30 (0x1e)
   .maxstack  1
   .locals init (int V_0, //j
-  int V_1) //i
+                int V_1) //i
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.3
   IL_0003:  stloc.1
   IL_0004:  ldloc.0
-  IL_0005:  brtrue.s   IL_0012
+  IL_0005:  brtrue.s   IL_0014
   IL_0007:  nop
   .try
-{
-  .try
-{
-  IL_0008:  ldc.i4.0
-  IL_0009:  stloc.1
-  IL_000a:  leave.s    IL_0014
-}
-  catch object
-{
-  IL_000c:  pop
-  IL_000d:  ldc.i4.1
-  IL_000e:  stloc.1
-  IL_000f:  leave.s    IL_0014
-}
-}
+  {
+    .try
+    {
+      IL_0008:  ldc.i4.0
+      IL_0009:  stloc.1
+      IL_000a:  leave.s    IL_0016
+    }
+    catch object
+    {
+      IL_000c:  pop
+      IL_000d:  ldc.i4.1
+      IL_000e:  stloc.1
+      IL_000f:  leave.s    IL_0016
+    }
+  }
   finally
-{
-  IL_0011:  endfinally
-}
-  IL_0012:  ldc.i4.2
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""void System.Console.Write(int)""
-  IL_001a:  ldloc.1
-  IL_001b:  ret
-}
-"
+  {
+    IL_0011:  ldc.i4.2
+    IL_0012:  stloc.0
+    IL_0013:  endfinally
+  }
+  IL_0014:  ldc.i4.2
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  call       ""void System.Console.Write(int)""
+  IL_001c:  ldloc.1
+  IL_001d:  ret
+}"
             );
         }
 
@@ -3213,102 +3217,6 @@ struct A
 
         [WorkItem(543673, "DevDiv")]
         [Fact()]
-        public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_5()
-        {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int(A a)"
-
-            var text =
-@"using System;
- 
-struct A
-{
-    public static implicit operator int(A a)
-    {
-        Console.WriteLine(""0"");
-        return 0;
-    }
- 
-    public static implicit operator int(A? a)
-    {
-        Console.WriteLine(""1"");
-        return 0;
-    }
- 
-    class B
-    {
-        static void Main()
-        {
-            A? aNullable = new A();
-            switch(aNullable)
-            {
-                default: break;
-            }
-
-            A a = new A();
-            switch(a)
-            {
-                default: break;
-            }
-        }
-    }
-}
-";
-            CompileAndVerify(text, expectedOutput: @"1
-0");
-        }
-
-        [WorkItem(543673, "DevDiv")]
-        [Fact()]
-        public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_6()
-        {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int?(A a)"
-
-            var text =
-@"using System;
- 
-struct A
-{
-    public static implicit operator int?(A a)
-    {
-        Console.WriteLine(""0"");
-        return 0;
-    }
- 
-    public static implicit operator int?(A? a)
-    {
-        Console.WriteLine(""1"");
-        return 0;
-    }
- 
-    class B
-    {
-        static void Main()
-        {
-            A? aNullable = new A();
-            switch(aNullable)
-            {
-                default: break;
-            }
-
-            A a = new A();
-            switch(a)
-            {
-                default: break;
-            }
-        }
-    }
-}
-";
-            CompileAndVerify(text, expectedOutput: @"1
-0");
-        }
-
-        [WorkItem(543673, "DevDiv")]
-        [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
             var text =
@@ -3354,8 +3262,6 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
             var text =
 @"using System;
  
@@ -4890,7 +4796,7 @@ namespace ConsoleApplication24
             ERR_ExternAliasNotAllowed = 7015,
             ERR_ConflictingAliasAndDefinition = 7016,
             ERR_GlobalDefinitionOrStatementExpected = 7017,
-            ERR_NoScriptsSpecified = 7018,
+            ERR_ExpectedSingleScript = 7018,
             ERR_RecursivelyTypedVariable = 7019,
             ERR_ReturnNotAllowedInScript = 7020,
             ERR_NamespaceNotAllowedInScript = 7021,
@@ -6740,6 +6646,156 @@ class Program {
 "
             );
         }
+
+        [WorkItem(4701, "https://github.com/dotnet/roslyn/issues/4701")]
+        [Fact]
+        public void Regress4701()
+        {
+            var text = @"
+using System;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        private void SwtchTest()
+        {
+            int? i;
+
+            i = 1;
+            switch (i)
+            {
+                case null:
+                    Console.WriteLine(""In Null case"");
+                    i = 1;
+                    break;
+                default:
+                    Console.WriteLine(""In DEFAULT case"");
+                    i = i + 2;
+                    break;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var p = new Program();
+        p.SwtchTest();
+    }
+}
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "In DEFAULT case");
+            compVerifier.VerifyIL("ConsoleApplication1.Program.SwtchTest",
+@"
+{
+  // Code size       96 (0x60)
+  .maxstack  2
+  .locals init (int? V_0, //i
+                int V_1,
+                int? V_2,
+                int? V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       ""int?..ctor(int)""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""bool int?.HasValue.get""
+  IL_000f:  brfalse.s  IL_001b
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""int int?.GetValueOrDefault()""
+  IL_0018:  stloc.1
+  IL_0019:  br.s       IL_002e
+  IL_001b:  ldstr      ""In Null case""
+  IL_0020:  call       ""void System.Console.WriteLine(string)""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldc.i4.1
+  IL_0028:  call       ""int?..ctor(int)""
+  IL_002d:  ret
+  IL_002e:  ldstr      ""In DEFAULT case""
+  IL_0033:  call       ""void System.Console.WriteLine(string)""
+  IL_0038:  ldloc.0
+  IL_0039:  stloc.2
+  IL_003a:  ldc.i4.2
+  IL_003b:  stloc.1
+  IL_003c:  ldloca.s   V_2
+  IL_003e:  call       ""bool int?.HasValue.get""
+  IL_0043:  brtrue.s   IL_0050
+  IL_0045:  ldloca.s   V_3
+  IL_0047:  initobj    ""int?""
+  IL_004d:  ldloc.3
+  IL_004e:  br.s       IL_005e
+  IL_0050:  ldloca.s   V_2
+  IL_0052:  call       ""int int?.GetValueOrDefault()""
+  IL_0057:  ldloc.1
+  IL_0058:  add
+  IL_0059:  newobj     ""int?..ctor(int)""
+  IL_005e:  stloc.0
+  IL_005f:  ret
+}
+"
+            );
+        }
+
+        [WorkItem(4701, "https://github.com/dotnet/roslyn/issues/4701")]
+        [Fact]
+        public void Regress4701a()
+        {
+            var text = @"
+using System;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        private void SwtchTest()
+        {
+            string i = null;
+
+            i = ""1"";
+            switch (i)
+            {
+                case null:
+                    Console.WriteLine(""In Null case"");
+                    break;
+                default:
+                    Console.WriteLine(""In DEFAULT case"");
+                    break;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var p = new Program();
+        p.SwtchTest();
+    }
+}
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "In DEFAULT case");
+            compVerifier.VerifyIL("ConsoleApplication1.Program.SwtchTest",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  1
+  .locals init (string V_0) //i
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldstr      ""1""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldstr      ""In Null case""
+  IL_0010:  call       ""void System.Console.WriteLine(string)""
+  IL_0015:  ret
+  IL_0016:  ldstr      ""In DEFAULT case""
+  IL_001b:  call       ""void System.Console.WriteLine(string)""
+  IL_0020:  ret
+}
+"
+            );
+        }
+
 
         #endregion
     }

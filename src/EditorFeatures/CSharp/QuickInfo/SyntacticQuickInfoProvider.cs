@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -59,12 +61,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
                 return null;
             }
 
-            // If the open brace is the first token of the node (like in the case of a block node or
-            // an accessor list node), then walk up one higher so we can show more useful context
-            // (like the method a block belongs to).
-            if (parent.GetFirstToken() == openBrace)
+            var spanStart = parent.SpanStart;
+            var spanEnd = openBrace.Span.End;
+
+            // If the parent is a scope block, check and include nearby comments around the open brace
+            // LeadingTrivia is preferred
+            if (IsScopeBlock(parent))
             {
-                parent = parent.Parent;
+                MarkInterestedSpanNearbyScopeBlock(parent, openBrace, ref spanStart, ref spanEnd);
+            }
+            // If the parent is a child of a property/method declaration, object/array creation, or control flow node..
+            // then walk up one higher so we can show more useful context
+            else if (parent.GetFirstToken() == openBrace)
+            {
+                spanStart = parent.Parent.SpanStart;
             }
 
             // Now that we know what we want to display, create a small elision buffer with that
@@ -76,8 +86,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
                 return null;
             }
 
-            var span = new SnapshotSpan(textSnapshot, Span.FromBounds(parent.SpanStart, openBrace.Span.End));
+            var span = new SnapshotSpan(textSnapshot, Span.FromBounds(spanStart, spanEnd));
             return this.CreateElisionBufferDeferredContent(span);
+        }
+
+        private static bool IsScopeBlock(SyntaxNode node)
+        {
+            var parent = node.Parent;
+            return node.IsKind(SyntaxKind.Block)
+                && (parent.IsKind(SyntaxKind.Block)
+                    || parent.IsKind(SyntaxKind.SwitchSection)
+                    || parent.IsKind(SyntaxKind.GlobalStatement));
+        }
+
+        private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)
+        {
+            SyntaxTrivia nearbyComment;
+
+            var searchListAbove = openBrace.LeadingTrivia.Reverse();
+            if (TryFindFurthestNearbyComment(ref searchListAbove, out nearbyComment))
+            {
+                spanStart = nearbyComment.SpanStart;
+                return;
+            }
+
+            var nextToken = block.FindToken(openBrace.FullSpan.End);
+            var searchListBelow = nextToken.LeadingTrivia;
+            if (TryFindFurthestNearbyComment(ref searchListBelow, out nearbyComment))
+            {
+                spanEnd = nearbyComment.Span.End;
+                return;
+            }
+        }
+
+        private static bool TryFindFurthestNearbyComment<T>(ref T triviaSearchList, out SyntaxTrivia nearbyTrivia)
+            where T : IEnumerable<SyntaxTrivia>
+        {
+            nearbyTrivia = default(SyntaxTrivia);
+
+            foreach (var trivia in triviaSearchList)
+            {
+                if (IsCommentTrivia(trivia))
+                {
+                    nearbyTrivia = trivia;
+                }
+                else if(!trivia.IsKind(SyntaxKind.WhitespaceTrivia) && !trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                {
+                    break;
+                }
+            }
+
+            return IsCommentTrivia(nearbyTrivia);
+        }
+
+        private static bool IsCommentTrivia(SyntaxTrivia trivia)
+        {
+            return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
         }
     }
 }

@@ -1,10 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
+using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -12,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     public partial class ExtractMethodTests : ExtractMethodBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod1()
         {
             var code = @"using System;
@@ -47,7 +55,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod2()
         {
             var code = @"using System;
@@ -83,7 +91,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod3()
         {
             var code = @"using System;
@@ -119,7 +127,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod4()
         {
             var code = @"using System;
@@ -160,7 +168,7 @@ class Program
             TestExtractMethod(code, expected, temporaryFailing: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod5()
         {
             var code = @"using System;
@@ -200,7 +208,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod6()
         {
             var code = @"using System;
@@ -242,7 +250,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod7()
         {
             var code = @"using System;
@@ -280,7 +288,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod8()
         {
             var code = @"using System;
@@ -318,7 +326,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod9()
         {
             var code = @"using System;
@@ -359,7 +367,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod10()
         {
             var code = @"using System;
@@ -407,7 +415,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod11()
         {
             var code = @"using System;
@@ -445,7 +453,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod11_1()
         {
             var code = @"using System;
@@ -481,7 +489,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod12()
         {
             var code = @"using System;
@@ -524,7 +532,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ControlVariableInForeachStatement()
         {
             var code = @"using System;
@@ -564,7 +572,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod14()
         {
             var code = @"using System;
@@ -605,7 +613,7 @@ class Program
             TestExtractMethod(code, expected, temporaryFailing: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod15()
         {
             var code = @"using System;
@@ -649,7 +657,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod16()
         {
             var code = @"using System;
@@ -688,7 +696,7 @@ class Program
         }
 
         [WorkItem(538932)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod17()
         {
             var code = @"using System;
@@ -730,7 +738,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod18()
         {
             var code = @"using System;
@@ -777,7 +785,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod19()
         {
             var code = @"using System;
@@ -811,7 +819,7 @@ unsafe class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod20()
         {
             var code = @"using System;
@@ -846,7 +854,7 @@ class Program
         }
 
         [WorkItem(542677)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod21()
         {
             var code = @"using System;
@@ -886,7 +894,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod22()
         {
             var code = @"using System;
@@ -938,7 +946,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod23()
         {
             var code = @"using System;
@@ -974,7 +982,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod24()
         {
             var code = @"using System;
@@ -1003,7 +1011,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod25()
         {
             var code = @"using System;
@@ -1043,7 +1051,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod26()
         {
             var code = @"using System;
@@ -1083,7 +1091,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod27()
         {
             var code = @"using System;
@@ -1135,7 +1143,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod28()
         {
             var code = @"using System;
@@ -1169,7 +1177,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod29()
         {
             var code = @"using System;
@@ -1221,7 +1229,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod30()
         {
             var code = @"using System;
@@ -1255,7 +1263,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod31()
         {
             var code = @"using System;
@@ -1297,7 +1305,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod32()
         {
             var code = @"using System;
@@ -1330,7 +1338,7 @@ class Program
         }
 
         [WorkItem(3792, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod33()
         {
             var code = @"using System;
@@ -1370,7 +1378,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod34()
         {
             var code = @"using System;
@@ -1407,7 +1415,7 @@ class Program
         }
 
         [WorkItem(538239)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod35()
         {
             var code = @"using System;
@@ -1437,7 +1445,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod36()
         {
             var code = @"using System;
@@ -1467,7 +1475,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod37()
         {
             var code = @"using System;
@@ -1498,7 +1506,7 @@ class Program
         }
 
         [WorkItem(538231)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod38()
         {
             var code = @"using System;
@@ -1561,7 +1569,7 @@ class Program
         }
 
         [WorkItem(538231)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod39()
         {
             var code = @"using System;
@@ -1627,7 +1635,7 @@ class Program
         }
 
         [WorkItem(538303)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod40()
         {
             var code = @"class Program
@@ -1641,7 +1649,7 @@ class Program
         }
 
         [WorkItem(868414)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodWithLeadingTrivia()
         {
             // ensure that the extraction doesn't result in trivia moving up a line:
@@ -1676,7 +1684,7 @@ class C
         }
 
         [WorkItem(632351)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodFailForTypeInFromClause()
         {
             var code = @"class Program
@@ -1690,7 +1698,7 @@ class C
         }
 
         [WorkItem(632351)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodFailForTypeInFromClause_1()
         {
             var code = @"class Program
@@ -1704,7 +1712,7 @@ class C
         }
 
         [WorkItem(538314)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod41()
         {
             var code = @"class Program
@@ -1739,7 +1747,7 @@ class C
         }
 
         [WorkItem(538327)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod42()
         {
             var code = @"using System;
@@ -1776,7 +1784,7 @@ class Program
         }
 
         [WorkItem(538327)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod43()
         {
             var code = @"using System;
@@ -1827,7 +1835,7 @@ class Program
         }
 
         [WorkItem(538328)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod44()
         {
             var code = @"using System;
@@ -1866,7 +1874,7 @@ class Program
         }
 
         [WorkItem(538393)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod45()
         {
             var code = @"using System;
@@ -1900,7 +1908,7 @@ class Program
         }
 
         [WorkItem(538393)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod46()
         {
             var code = @"using System;
@@ -1949,7 +1957,7 @@ class Program
         }
 
         [WorkItem(538399)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod47()
         {
             var code = @"using System;
@@ -1986,7 +1994,7 @@ class Program
         }
 
         [WorkItem(538401)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod48()
         {
             var code = @"using System;
@@ -2021,7 +2029,7 @@ class Program
         }
 
         [WorkItem(538405)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod49()
         {
             var code = @"using System;
@@ -2053,7 +2061,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodNormalProperty()
         {
             var code = @"
@@ -2094,7 +2102,7 @@ class Class
         }
 
         [WorkItem(538932)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodAutoProperty()
         {
             var code = @"
@@ -2129,7 +2137,7 @@ class Class
         }
 
         [WorkItem(538402)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix3994()
         {
             var code = @"using System;
@@ -2164,7 +2172,7 @@ class Program
         }
 
         [WorkItem(538404)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix3996()
         {
             var code = @"class A<T>
@@ -2213,7 +2221,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void InsertionPoint()
         {
             var code = @"class Test
@@ -2249,7 +2257,7 @@ class Program
         }
 
         [WorkItem(538980)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4757()
         {
             var code = @"class GenericMethod
@@ -2278,7 +2286,7 @@ class Program
         }
 
         [WorkItem(538980)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4757_2()
         {
             var code = @"class GenericMethod<T1>
@@ -2312,7 +2320,7 @@ class Program
         }
 
         [WorkItem(538980)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4757_3()
         {
             var code = @"class GenericMethod
@@ -2346,7 +2354,7 @@ class Program
         }
 
         [WorkItem(538422)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4758()
         {
             var code = @"using System;
@@ -2378,7 +2386,7 @@ class TestOutParameter
         }
 
         [WorkItem(538422)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4758_2()
         {
             var code = @"class TestOutParameter
@@ -2408,7 +2416,7 @@ class TestOutParameter
         }
 
         [WorkItem(538984)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4761()
         {
             var code = @"using System;
@@ -2440,7 +2448,7 @@ class A
         }
 
         [WorkItem(538997)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4779()
         {
             var code = @"using System;
@@ -2476,7 +2484,7 @@ class Program
         }
 
         [WorkItem(538997)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4779_2()
         {
             var code = @"using System;
@@ -2512,7 +2520,7 @@ class Program
         }
 
         [WorkItem(4780, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4780()
         {
             var code = @"using System;
@@ -2546,7 +2554,7 @@ class Program
         }
 
         [WorkItem(4780, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4780_2()
         {
             var code = @"using System;
@@ -2580,7 +2588,7 @@ class Program
         }
 
         [WorkItem(4782, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4782()
         {
             var code = @"class A<T>
@@ -2619,7 +2627,7 @@ class Program
         }
 
         [WorkItem(4782, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4782_2()
         {
             var code = @"class A<T>
@@ -2640,7 +2648,7 @@ class Program
         }
 
         [WorkItem(4791, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4791()
         {
             var code = @"class Program
@@ -2672,7 +2680,7 @@ class Program
         }
 
         [WorkItem(539019)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4809()
         {
             var code = @"class Program
@@ -2700,7 +2708,7 @@ class Program
         }
 
         [WorkItem(539029)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4813()
         {
             var code = @"using System;
@@ -2732,7 +2740,7 @@ class Program
         }
 
         [WorkItem(538425)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4031()
         {
             var code = @"using System;
@@ -2774,7 +2782,7 @@ class Program
         }
 
         [WorkItem(527499)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix3992()
         {
             var code = @"using System;
@@ -2809,7 +2817,7 @@ class Program
         }
 
         [WorkItem(539029)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4823()
         {
             var code = @"class Program
@@ -2853,7 +2861,7 @@ class Program
         }
 
         [WorkItem(538985)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4762()
         {
             var code = @"class Program
@@ -2885,7 +2893,7 @@ class Program
         }
 
         [WorkItem(538966)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BugFix4744()
         {
             var code = @"class Program
@@ -2916,7 +2924,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoNoNoYesNoNo()
         {
             var code = @"using System;
@@ -2959,7 +2967,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoNoNoYesNoYes()
         {
             var code = @"using System;
@@ -3002,7 +3010,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoNoNoYesYesNo()
         {
             var code = @"using System;
@@ -3049,7 +3057,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoNoNoYesYesYes()
         {
             var code = @"using System;
@@ -3096,7 +3104,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoNoYesYesNoNo()
         {
             var code = @"using System;
@@ -3140,7 +3148,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoNoYesYesNoYes()
         {
             var code = @"using System;
@@ -3185,7 +3193,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoNoYesYesYesNo()
         {
             var code = @"using System;
@@ -3235,7 +3243,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoNoYesYesYesYes()
         {
             var code = @"using System;
@@ -3284,7 +3292,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoYesNoNoNoNo()
         {
             var code = @"using System;
@@ -3302,7 +3310,7 @@ class Program
             ExpectExtractMethodToFail(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoYesNoNoNoYes()
         {
             var code = @"using System;
@@ -3322,7 +3330,7 @@ class Program
             ExpectExtractMethodToFail(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoYesNoYesNoNo()
         {
             var code = @"using System;
@@ -3365,7 +3373,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoYesNoYesNoYes()
         {
             var code = @"using System;
@@ -3413,7 +3421,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoYesYesNoNoNo()
         {
             var code = @"using System;
@@ -3450,7 +3458,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoYesYesNoNoYes()
         {
             var code = @"using System;
@@ -3492,7 +3500,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoYesYesYesNoNo()
         {
             var code = @"using System;
@@ -3539,7 +3547,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoNoYesYesYesNoYes()
         {
             var code = @"using System;
@@ -3591,7 +3599,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesNoNoYesNoNo()
         {
             var code = @"using System;
@@ -3626,7 +3634,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesNoNoYesNoYes()
         {
             var code = @"using System;
@@ -3667,7 +3675,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesNoNoYesYesNo()
         {
             var code = @"using System;
@@ -3708,7 +3716,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesNoNoYesYesYes()
         {
             var code = @"using System;
@@ -3753,7 +3761,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesNoYesYesNoNo()
         {
             var code = @"using System;
@@ -3790,7 +3798,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesNoYesYesNoYes()
         {
             var code = @"using System;
@@ -3829,7 +3837,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesNoYesYesYesNo()
         {
             var code = @"using System;
@@ -3872,7 +3880,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesNoYesYesYesYes()
         {
             var code = @"using System;
@@ -3915,7 +3923,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesYesNoYesNoNo()
         {
             var code = @"using System;
@@ -3948,7 +3956,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesYesNoYesNoYes()
         {
             var code = @"using System;
@@ -3986,7 +3994,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesYesYesYesNoNo()
         {
             var code = @"using System;
@@ -4021,7 +4029,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoNoYesYesYesYesNoYes()
         {
             var code = @"using System;
@@ -4061,7 +4069,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoNoNoYesYesNo()
         {
             var code = @"using System;
@@ -4110,7 +4118,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoNoNoYesYesYes()
         {
             var code = @"using System;
@@ -4159,7 +4167,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoNoYesYesYesNo()
         {
             var code = @"using System;
@@ -4210,7 +4218,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoNoYesYesYesYes()
         {
             var code = @"using System;
@@ -4261,7 +4269,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoYesNoNoYesNo()
         {
             var code = @"using System;
@@ -4281,7 +4289,7 @@ class Program
             ExpectExtractMethodToFail(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoYesNoNoYesYes()
         {
             var code = @"using System;
@@ -4303,7 +4311,7 @@ class Program
             ExpectExtractMethodToFail(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoYesNoYesYesNo()
         {
             var code = @"using System;
@@ -4352,7 +4360,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoYesNoYesYesYes()
         {
             var code = @"using System;
@@ -4405,7 +4413,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoYesYesNoYesNo()
         {
             var code = @"using System;
@@ -4447,7 +4455,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoYesYesNoYesYes()
         {
             var code = @"using System;
@@ -4493,7 +4501,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoYesYesYesYesNo()
         {
             var code = @"using System;
@@ -4545,7 +4553,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesNoYesYesYesYesYes()
         {
             var code = @"using System;
@@ -4601,7 +4609,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesYesNoNoYesYesNo()
         {
             var code = @"using System;
@@ -4642,7 +4650,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesYesNoNoYesYesYes()
         {
             var code = @"using System;
@@ -4687,7 +4695,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesYesNoYesYesYesNo()
         {
             var code = @"using System;
@@ -4731,7 +4739,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesYesNoYesYesYesYes()
         {
             var code = @"using System;
@@ -4775,7 +4783,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesYesYesNoYesYesNo()
         {
             var code = @"using System;
@@ -4812,7 +4820,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesYesYesNoYesYesYes()
         {
             var code = @"using System;
@@ -4853,7 +4861,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesYesYesYesYesYesNo()
         {
             var code = @"using System;
@@ -4895,7 +4903,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_NoYesYesYesYesYesYesYes()
         {
             var code = @"using System;
@@ -4941,7 +4949,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoNoNoYesNoNoNo()
         {
             var code = @"using System;
@@ -4978,7 +4986,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoNoNoYesNoNoYes()
         {
             var code = @"using System;
@@ -5015,7 +5023,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoNoNoYesNoYesNo()
         {
             var code = @"using System;
@@ -5056,7 +5064,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoNoNoYesNoYesYes()
         {
             var code = @"using System;
@@ -5097,7 +5105,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoNoNoYesYesNoNo()
         {
             var code = @"using System;
@@ -5144,7 +5152,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoNoNoYesYesNoYes()
         {
             var code = @"using System;
@@ -5191,7 +5199,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoNoNoYesYesYesNo()
         {
             var code = @"using System;
@@ -5242,7 +5250,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoNoNoYesYesYesYes()
         {
             var code = @"using System;
@@ -5293,7 +5301,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoYesNoYesYesNoNo()
         {
             var code = @"using System;
@@ -5334,7 +5342,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoYesNoYesYesNoYes()
         {
             var code = @"using System;
@@ -5375,7 +5383,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoYesNoYesYesYesNo()
         {
             var code = @"using System;
@@ -5420,7 +5428,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesNoYesNoYesYesYesYes()
         {
             var code = @"using System;
@@ -5465,7 +5473,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesYesNoNoYesYesYesNo()
         {
             var code = @"using System;
@@ -5518,7 +5526,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesYesNoNoYesYesYesYes()
         {
             var code = @"using System;
@@ -5571,7 +5579,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesYesYesNoYesYesYesNo()
         {
             var code = @"using System;
@@ -5617,7 +5625,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void MatrixCase_YesYesYesNoYesYesYesYes()
         {
             var code = @"using System;
@@ -5664,7 +5672,7 @@ class Program
         }
 
         [WorkItem(539049)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodInProperty1()
         {
             var code = @"class C2
@@ -5716,7 +5724,7 @@ class C3
         }
 
         [WorkItem(539049)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodInProperty2()
         {
             var code = @"class C3
@@ -5753,7 +5761,7 @@ class C3
         }
 
         [WorkItem(539049)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodInProperty3()
         {
             var code = @"class C3
@@ -5789,7 +5797,7 @@ class C3
         }
 
         [WorkItem(539029)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodProperty()
         {
             var code = @"class Program
@@ -5836,7 +5844,7 @@ class C3
         }
 
         [WorkItem(539196)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodWithDeclareOneMoreVariablesInSameLineBeUsedAfter()
         {
             var code = @"class C
@@ -5867,7 +5875,7 @@ class C3
         }
 
         [WorkItem(539196)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodWithDeclareOneMoreVariablesInSameLineNotBeUsedAfter()
         {
             var code = @"class C
@@ -5893,7 +5901,7 @@ class C3
         }
 
         [WorkItem(539214)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodForSplitOutStatementWithComments()
         {
             var code = @"class C
@@ -5929,7 +5937,7 @@ class C3
         }
 
         [WorkItem(539225)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug5098()
         {
             var code = @"class Program
@@ -5945,7 +5953,7 @@ class C3
         }
 
         [WorkItem(539229)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug5107()
         {
             var code = @"class Program
@@ -5979,7 +5987,7 @@ class C3
         }
 
         [WorkItem(539500)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void LambdaLiftedVariable1()
         {
             var code = @"class Program
@@ -6023,7 +6031,7 @@ class C3
         }
 
         [WorkItem(539488)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void LambdaLiftedVariable2()
         {
             var code = @"class Program
@@ -6073,7 +6081,7 @@ class C3
         }
 
         [WorkItem(539531)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug5533()
         {
             var code = @"using System;
@@ -6111,7 +6119,7 @@ class Program
         }
 
         [WorkItem(539531)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug5533_1()
         {
             var code = @"using System;
@@ -6149,7 +6157,7 @@ class Program
         }
 
         [WorkItem(539531)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug5533_2()
         {
             var code = @"using System;
@@ -6188,7 +6196,7 @@ class Program
         }
 
         [WorkItem(539531)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug5533_3()
         {
             var code = @"using System;
@@ -6226,7 +6234,7 @@ class Program
         }
 
         [WorkItem(539859)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void LambdaLiftedVariable3()
         {
             var code = @"using System;
@@ -6276,7 +6284,7 @@ class Program
         }
 
         [WorkItem(539882)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug5982()
         {
             var code = @"using System;
@@ -6312,7 +6320,7 @@ class Program
         }
 
         [WorkItem(539932)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6041()
         {
             var code = @"using System;
@@ -6346,7 +6354,7 @@ class Program
         }
 
         [WorkItem(540183)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod50()
         {
             var code = @"class C
@@ -6387,7 +6395,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod51()
         {
             var code = @"class C
@@ -6436,7 +6444,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod52()
         {
             var code = @"class C
@@ -6472,7 +6480,7 @@ class Program
         }
 
         [WorkItem(539963)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod53()
         {
             var code = @"class Class
@@ -6488,7 +6496,7 @@ enum Enum { }";
         }
 
         [WorkItem(539964)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod54()
         {
             var code = @"class Class
@@ -6502,7 +6510,7 @@ enum Enum { }";
         }
 
         [WorkItem(540072)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6220()
         {
             var code = @"class C
@@ -6531,7 +6539,7 @@ enum Enum { }";
         }
 
         [WorkItem(540072)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6220_1()
         {
             var code = @"class C
@@ -6560,7 +6568,7 @@ enum Enum { }";
         }
 
         [WorkItem(540071)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6219()
         {
             var code = @"class C
@@ -6589,7 +6597,7 @@ enum Enum { }";
         }
 
         [WorkItem(540080)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6230()
         {
             var code = @"class C
@@ -6618,7 +6626,7 @@ enum Enum { }";
         }
 
         [WorkItem(540080)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6230_1()
         {
             var code = @"class C
@@ -6647,7 +6655,7 @@ enum Enum { }";
         }
 
         [WorkItem(540052)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6197()
         {
             var code = @"using System;
@@ -6690,7 +6698,7 @@ class Program
         }
 
         [WorkItem(6277, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6277()
         {
             var code = @"using System;
@@ -6726,7 +6734,7 @@ class Program
         }
 
         [WorkItem(540151)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ArgumentlessReturnWithConstIfExpression()
         {
             var code = @"using System;
@@ -6762,7 +6770,7 @@ class Program
         }
 
         [WorkItem(540151)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ArgumentlessReturnWithConstIfExpression_1()
         {
             var code = @"using System;
@@ -6802,7 +6810,7 @@ class Program
         }
 
         [WorkItem(540151)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ArgumentlessReturnWithConstIfExpression_2()
         {
             var code = @"using System;
@@ -6835,7 +6843,7 @@ class Program
         }
 
         [WorkItem(540151)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ArgumentlessReturnWithConstIfExpression_3()
         {
             var code = @"using System;
@@ -6873,7 +6881,7 @@ class Program
         }
 
         [WorkItem(540154)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6313()
         {
             var code = @"using System;
@@ -6912,7 +6920,7 @@ class Program
         }
 
         [WorkItem(540154)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6313_1()
         {
             var code = @"using System;
@@ -6933,7 +6941,7 @@ class Program
         }
 
         [WorkItem(540154)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6313_2()
         {
             var code = @"using System;
@@ -6954,7 +6962,7 @@ class Program
         }
 
         [WorkItem(540154)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6313_3()
         {
             var code = @"using System;
@@ -7010,7 +7018,7 @@ class Program
         }
 
         [WorkItem(540154)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6313_4()
         {
             var code = @"using System;
@@ -7080,7 +7088,7 @@ class Program
         }
 
         [WorkItem(540154)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6313_5()
         {
             var code = @"using System;
@@ -7126,7 +7134,7 @@ class Program
         }
 
         [WorkItem(540154)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6313_6()
         {
             var code = @"using System;
@@ -7150,7 +7158,7 @@ class Program
         }
 
         [WorkItem(540170)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6333()
         {
             var code = @"using System;
@@ -7183,7 +7191,7 @@ class Program
         }
 
         [WorkItem(540216)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6393()
         {
             var code = @"using System;
@@ -7216,7 +7224,7 @@ class Program
         }
 
         [WorkItem(540184)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6351()
         {
             var code = @"class Test
@@ -7261,7 +7269,7 @@ class Program
         }
 
         [WorkItem(540184)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6351_1()
         {
             var code = @"class Test
@@ -7306,7 +7314,7 @@ class Program
         }
 
         [WorkItem(540184)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6351_2()
         {
             var code = @"class Test
@@ -7349,7 +7357,7 @@ class Program
         }
 
         [WorkItem(538229)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug3790()
         {
             var code = @"class Test
@@ -7391,7 +7399,7 @@ class Program
         }
 
         [WorkItem(538229)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug3790_1()
         {
             var code = @"class Test
@@ -7432,7 +7440,7 @@ class Program
         }
 
         [WorkItem(538229)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug3790_2()
         {
             var code = @"class Test
@@ -7473,7 +7481,7 @@ class Program
         }
 
         [WorkItem(540333)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6560()
         {
             var code = @"using System;
@@ -7504,7 +7512,7 @@ class Program
         }
 
         [WorkItem(540335)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6562()
         {
             var code = @"using System;
@@ -7527,7 +7535,7 @@ class Program
         }
 
         [WorkItem(540335)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6562_1()
         {
             var code = @"using System;
@@ -7539,7 +7547,7 @@ class Program
         }
 
         [WorkItem(540335)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6562_2()
         {
             var code = @"using System;
@@ -7562,7 +7570,7 @@ class Program
         }
 
         [WorkItem(540335)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6562_3()
         {
             var code = @"using System;
@@ -7585,7 +7593,7 @@ class Program
         }
 
         [WorkItem(540361)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6598()
         {
             var code = @"using System;
@@ -7603,7 +7611,7 @@ class
         }
 
         [WorkItem(540372)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void Bug6613()
         {
             var code = @"#define A
@@ -7640,7 +7648,7 @@ class Program
         }
 
         [WorkItem(540396)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void InvalidSelection_MethodBody()
         {
             var code = @"using System;
@@ -7665,7 +7673,7 @@ class Program
         }
 
         [WorkItem(541586)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void StructThis()
         {
             var code = @"struct S
@@ -7691,7 +7699,7 @@ class Program
         }
 
         [WorkItem(541627)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void DontUseConvertedTypeForImplicitNumericConversion()
         {
             var code = @"class T
@@ -7719,7 +7727,7 @@ class Program
         }
 
         [WorkItem(541668)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void BreakInSelection()
         {
             var code = @"using System;
@@ -7759,7 +7767,7 @@ class Program
         }
 
         [WorkItem(541671)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void UnreachableCodeWithReturnStatement()
         {
             var code = @"class Program
@@ -7795,7 +7803,7 @@ class Program
         }
 
         [WorkItem(539862)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void DontBlindlyPutCapturedVariable1()
         {
             var code = @"using System;
@@ -7853,7 +7861,7 @@ namespace Ros
         }
 
         [WorkItem(539862)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void DontBlindlyPutCapturedVariable2()
         {
             var code = @"using System;
@@ -7891,7 +7899,7 @@ class Program
         }
 
         [WorkItem(541889)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void DontCrashOnRangeVariableSymbol()
         {
             var code = @"class Test
@@ -7905,7 +7913,7 @@ class Program
             ExpectExtractMethodToFail(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractRangeVariable()
         {
             var code = @"using System.Linq;
@@ -7936,7 +7944,7 @@ class Test
         }
 
         [WorkItem(542155)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void GenericWithErrorType()
         {
             var code = @"using Foo.Utilities;
@@ -7997,7 +8005,7 @@ namespace Foo.Utilities
         }
 
         [WorkItem(542105)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void NamedArgument()
         {
             var code = @"using System;
@@ -8032,7 +8040,7 @@ class C
         }
 
         [WorkItem(542213)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void QueryExpressionVariable()
         {
             var code = @"using System;
@@ -8075,7 +8083,7 @@ class Program
         }
 
         [WorkItem(542465)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void IsExpression()
         {
             var code = @"using System;
@@ -8117,7 +8125,7 @@ class IsTest
         }
 
         [WorkItem(542526)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TypeParametersInConstraint()
         {
             var code = @"using System;
@@ -8150,7 +8158,7 @@ class A
         }
 
         [WorkItem(542619)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void GlobalNamespaceInReturnType()
         {
             var code = @"class Program
@@ -8179,7 +8187,7 @@ class A
         }
 
         [WorkItem(542582)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodExpandSelectionOnFor()
         {
             var code = @"using System;
@@ -8214,7 +8222,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodNotContainerOnFor()
         {
             var code = @"using System;
@@ -8245,7 +8253,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodExpandSelectionOnForeach()
         {
             var code = @"using System;
@@ -8280,7 +8288,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodNotContainerOnForeach()
         {
             var code = @"using System;
@@ -8317,7 +8325,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodNotContainerOnElseClause()
         {
             var code = @"using System;
@@ -8358,7 +8366,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodExpandSelectionOnLabel()
         {
             var code = @"using System;
@@ -8395,7 +8403,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodNotContainerOnLabel()
         {
             var code = @"using System;
@@ -8432,7 +8440,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodExpandSelectionOnSwitch()
         {
             var code = @"using System;
@@ -8471,7 +8479,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodNotContainerOnSwitch()
         {
             var code = @"using System;
@@ -8510,7 +8518,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodExpandSelectionOnDo()
         {
             var code = @"using System;
@@ -8545,7 +8553,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodNotContainerOnDo()
         {
             var code = @"using System;
@@ -8582,7 +8590,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodExpandSelectionOnWhile()
         {
             var code = @"using System;
@@ -8617,7 +8625,7 @@ class Program
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodExpandSelectionOnStruct()
         {
             var code = @"using System;
@@ -8643,7 +8651,7 @@ struct Foo
         }
 
         [WorkItem(542619)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodIncludeGlobal()
         {
             var code = @"class Program
@@ -8680,7 +8688,7 @@ struct Foo
         }
 
         [WorkItem(542582)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodExpandSelection()
         {
             var code = @"class Program
@@ -8712,7 +8720,7 @@ struct Foo
         }
 
         [WorkItem(542594)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodRename1()
         {
             var code = @"class Program
@@ -8747,7 +8755,7 @@ struct Foo
         }
 
         [WorkItem(542594)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodRename2()
         {
             var code = @"class Program
@@ -8793,7 +8801,7 @@ struct Foo
         }
 
         [WorkItem(542632)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodInInteractive1()
         {
             var code = @"int i; [|i = 2|]; i = 3;";
@@ -8805,11 +8813,11 @@ int NewMethod()
 }
 
 i = 3;";
-            TestExtractMethod(code, expected, parseOptions: Interactive);
+            TestExtractMethod(code, expected, parseOptions: Options.Script);
         }
 
         [WorkItem(542670)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TypeParametersInConstraint1()
         {
             var code = @"using System;
@@ -8843,7 +8851,7 @@ class A
 
         [WorkItem(706894)]
         [WorkItem(543012)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TypeParametersInConstraint2()
         {
             var code = @"
@@ -8891,7 +8899,7 @@ class A
 
         [WorkItem(706894)]
         [WorkItem(543012)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TypeParametersInConstraint3()
         {
             var code = @"
@@ -8938,7 +8946,7 @@ class A
         }
 
         [WorkItem(543012)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TypeParametersInConstraint4()
         {
             var code = @"
@@ -9009,7 +9017,7 @@ class B : A
         }
 
         [WorkItem(543012)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TypeParametersInConstraintBestEffort()
         {
             var code = @"
@@ -9062,7 +9070,7 @@ class B : A<string>
         }
 
         [WorkItem(542672)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ConstructedTypes()
         {
             var code = @"using System;
@@ -9097,7 +9105,7 @@ class Program
         }
 
         [WorkItem(542792)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TypeInDefault()
         {
             var code = @"using System;
@@ -9160,8 +9168,8 @@ class Node<K, T> where T : new()
         }
 
         [WorkItem(542708)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public void InteractiveArgumentException()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public void Script_ArgumentException()
         {
             var code = @"using System;
 public static void GetNonVirtualMethod<TDelegate>( Type type, string name)
@@ -9181,11 +9189,11 @@ Type GetDelegateType(Type delegateType)
     return delegateType;
 }";
 
-            TestExtractMethod(code, expected, parseOptions: Interactive);
+            TestExtractMethod(code, expected, parseOptions: Options.Script);
         }
 
         [WorkItem(529008)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ReadOutSideIsUnReachable()
         {
             var code = @"class Test
@@ -9226,7 +9234,7 @@ Type GetDelegateType(Type delegateType)
             TestExtractMethod(code, expected, allowMovingDeclaration: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         [WorkItem(543186)]
         public void AnonymousTypePropertyName()
         {
@@ -9253,7 +9261,7 @@ Type GetDelegateType(Type delegateType)
         }
 
         [WorkItem(543662)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ArgumentOfBaseConstrInit()
         {
             var code = @"class O
@@ -9277,7 +9285,7 @@ Type GetDelegateType(Type delegateType)
             TestExtractMethod(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void UnsafeType()
         {
             var code = @"
@@ -9306,7 +9314,7 @@ unsafe class O
         }
 
         [WorkItem(544144)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void CastExpressionWithImplicitUserDefinedConversion()
         {
             var code = @"
@@ -9347,7 +9355,7 @@ class C
         }
 
         [WorkItem(544387)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void FixedPointerVariable()
         {
             var code = @"
@@ -9384,7 +9392,7 @@ class Test
         }
 
         [WorkItem(544444)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void PointerDeclarationStatement()
         {
             var code = @"
@@ -9415,7 +9423,7 @@ class Program
         }
 
         [WorkItem(544446)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void PrecededByCastExpr()
         {
             var code = @"
@@ -9444,7 +9452,7 @@ class Program
         }
 
         [WorkItem(542944)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExpressionWithLocalConst()
         {
             var code = @"class Program
@@ -9473,7 +9481,7 @@ class Program
         }
 
         [WorkItem(542944)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExpressionWithLocalConst2()
         {
             var code = @"class Program
@@ -9503,7 +9511,7 @@ class Program
         }
 
         [WorkItem(544675)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void HiddenPosition()
         {
             var code = @"class Program
@@ -9521,7 +9529,7 @@ class Program
         }
 
         [WorkItem(530609)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void NoCrashInteractive()
         {
             var code = @"[|if (true)
@@ -9536,11 +9544,11 @@ void NewMethod()
     }
 }";
 
-            TestExtractMethod(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Interactive));
+            TestExtractMethod(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
 
         [WorkItem(530322)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethodShouldNotBreakFormatting()
         {
             var code =
@@ -9572,7 +9580,7 @@ void NewMethod()
         }
 
         [WorkItem(604389)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestExtractLiteralExpression()
         {
             var code =
@@ -9610,7 +9618,7 @@ class C
         }
 
         [WorkItem(604389)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestExtractCollectionInitializer()
         {
             var code =
@@ -9648,7 +9656,7 @@ class C
         }
 
         [WorkItem(854662)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestExtractCollectionInitializer2()
         {
             var code =
@@ -9684,7 +9692,7 @@ class Program
         }
 
         [WorkItem(530267)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestCoClassImplicitConversion()
         {
             var code =
@@ -9728,7 +9736,7 @@ class C : I
         }
 
         [WorkItem(530710)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestOverloadResolution()
         {
             var code =
@@ -9788,7 +9796,7 @@ static class E
         }
 
         [WorkItem(530710)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestOverloadResolution1()
         {
             var code =
@@ -9848,7 +9856,7 @@ static class E
         }
 
         [WorkItem(530710)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestOverloadResolution2()
         {
             var code =
@@ -9908,7 +9916,7 @@ static class E
         }
 
         [WorkItem(731924)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestTreatEnumSpecial()
         {
             var code =
@@ -9956,7 +9964,7 @@ class Program
         }
 
         [WorkItem(756222)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestReturnStatementInAsyncMethod()
         {
             var code =
@@ -9990,7 +9998,7 @@ class C
         }
 
         [WorkItem(574576)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestAsyncMethodWithRefOrOutParameters()
         {
             var code =
@@ -10012,7 +10020,7 @@ class C
         }
 
         [WorkItem(1025272)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestAsyncMethodWithWellKnownValueType()
         {
             var code =
@@ -10068,7 +10076,7 @@ class Program
             ExpectExtractMethodToFail(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestAsyncMethodWithWellKnownValueType1()
         {
             var code =
@@ -10097,7 +10105,7 @@ class Program
             ExpectExtractMethodToFail(code, allowMovingDeclaration: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestDontPutOutOrRefForStructOff()
         {
             var code =
@@ -10130,7 +10138,7 @@ namespace ClassLibrary9
             ExpectExtractMethodToFail(code, dontPutOutOrRefOnStruct: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestDontPutOutOrRefForStructOn()
         {
             var code =
@@ -10196,7 +10204,7 @@ namespace ClassLibrary9
             TestExtractMethod(code, expected, dontPutOutOrRefOnStruct: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod_Argument1()
         {
             var service = new CSharpExtractMethodService();
@@ -10206,7 +10214,7 @@ namespace ClassLibrary9
             }));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractMethod_Argument2()
         {
             var solution = new AdhocWorkspace().CurrentSolution;
@@ -10221,11 +10229,43 @@ namespace ClassLibrary9
             service.ExtractMethodAsync(document, default(TextSpan)).Wait();
         }
 
-        private CSharpParseOptions Interactive
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Trait(Traits.Feature, Traits.Features.Interactive)]
+        public void ExtractMethodCommandDisabledInSubmission()
         {
-            get
+            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+
+            using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
+                <Workspace>
+                    <Submission Language=""C#"" CommonReferences=""true"">  
+                        typeof(string).$$Name
+                    </Submission>
+                </Workspace> "),
+                workspaceKind: WorkspaceKind.Interactive,
+                exportProvider: exportProvider))
             {
-                return new CSharpParseOptions(kind: SourceCodeKind.Interactive);
+                // Force initialization.
+                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+
+                var textView = workspace.Documents.Single().GetTextView();
+
+                var handler = new ExtractMethodCommandHandler(
+                    workspace.GetService<ITextBufferUndoManagerProvider>(),
+                    workspace.GetService<IEditorOperationsFactoryService>(),
+                    workspace.GetService<IInlineRenameService>(),
+                    workspace.GetService<Host.IWaitIndicator>());
+                var delegatedToNext = false;
+                Func<CommandState> nextHandler = () =>
+                {
+                    delegatedToNext = true;
+                    return CommandState.Unavailable;
+                };
+
+                var state = handler.GetCommandState(new Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
             }
         }
     }

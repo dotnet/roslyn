@@ -135,7 +135,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
         SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId);
+        TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Given a <see cref="SyntaxNode"/>, return the <see cref="TextSpan"/> representing the span of the member body
+        /// it is contained within. This <see cref="TextSpan"/> is used to determine whether speculative binding should be
+        /// used in performance-critical typing scenarios. Note: if this method fails to find a relevant span, it returns
+        /// an empty <see cref="TextSpan"/> at position 0.
+        /// </summary>
         TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node);
 
         /// <summary>

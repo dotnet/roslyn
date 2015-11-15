@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestCSharpLanguageDebugInfoGetDataTipSpanAndText()
         {
             Test("class [|C$$|] { }");
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             Test("delegate void [|C$$|] ();"); // Without the space, that position is actually on the open paren.
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void Test1()
         {
             Test(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void Test2()
         {
             Test(
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void Test3()
         {
             Test(
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void Test4()
         {
             Test(
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void Test5()
         {
             Test(
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void Test6()
         {
             TestNoDataTip(
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void Test7()
         {
             Test(
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void Test8()
         {
             TestNoDataTip(
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestVar()
         {
             Test(
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "int");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestVariableType()
         {
             Test(
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestVariableIdentifier()
         {
             Test(
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WorkItem(539910)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestLiterals()
         {
             Test(
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }", "int");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestNonExpressions()
         {
             TestNoDataTip(
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestParameterIdentifier()
         {
             Test(
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WorkItem(942699)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestCatchIdentifier()
         {
             Test(
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestEvent()
         {
             Test(
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestMethod()
         {
             Test(
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestTypeParameter()
         {
             Test("class C<T, [|$$U|], V> { }");
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void UsingAlias()
         {
             Test(
@@ -316,7 +316,7 @@ static class Static
         }
 
         [WorkItem(540921)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestForEachIdentifier()
         {
             Test(
@@ -332,7 +332,7 @@ static class Static
         }
 
         [WorkItem(546328)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestProperty()
         {
             Test(
@@ -361,7 +361,7 @@ static class Static
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
         public void TestQueryIdentifier()
         {
             Test( // From
@@ -406,7 +406,7 @@ static class Static
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
         public void TestConditionalAccessExpression()
         {
             var sourceTemplate = @"
@@ -478,7 +478,7 @@ class D
             Test(string.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)]
         public void TestConditionalAccessExpression_Trivia()
         {
             var sourceTemplate = @"

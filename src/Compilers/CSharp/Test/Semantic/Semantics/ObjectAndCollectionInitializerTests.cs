@@ -1987,6 +1987,18 @@ class Y
 ";
             var compilation = CreateCompilationWithMscorlib(source);
 
+            compilation.VerifyDiagnostics(
+    // (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
+    // class Base : IEnumerable<int>
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IEnumerable<int>").WithArguments("Base", "System.Collections.Generic.IEnumerable<int>.GetEnumerator()").WithLocation(5, 14),
+    // (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable.GetEnumerator()'
+    // class Base : IEnumerable<int>
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IEnumerable<int>").WithArguments("Base", "System.Collections.IEnumerable.GetEnumerator()").WithLocation(5, 14),
+    // (17,32): error CS0122: 'X.Add(string)' is inaccessible due to its protection level
+    //         var z = new X { String.Empty };
+    Diagnostic(ErrorCode.ERR_BadAccess, "Empty").WithArguments("X.Add(string)").WithLocation(17, 32)
+                );
+
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -1999,8 +2011,8 @@ class Y
             symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
 
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason);
+            Assert.Equal("void X.Add(System.String x)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
         }
 
         [WorkItem(529787, "DevDiv")]

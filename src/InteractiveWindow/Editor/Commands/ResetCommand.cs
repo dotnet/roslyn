@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     {
         private const string CommandName = "reset";
         private const string NoConfigParameterName = "noconfig";
+        private static readonly int NoConfigParameterNameLength = NoConfigParameterName.Length;
         private readonly IStandardClassificationService _registry;
 
         [ImportingConstructor]
@@ -26,8 +27,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public override string Description
         {
-            // TODO: Needs localization...
-            get { return "Reset the execution environment to the initial state, keep history."; }
+            get { return InteractiveWindowResources.ResetCommandDescription; }
         }
 
         public override IEnumerable<string> Names
@@ -44,60 +44,72 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             get
             {
-                // TODO: Needs localization...
-                yield return new KeyValuePair<string, string>(NoConfigParameterName, "Reset to a clean environment (only mscorlib referenced), do not run initialization script.");
+                yield return new KeyValuePair<string, string>(NoConfigParameterName, InteractiveWindowResources.ResetCommandParametersDescription);
             }
         }
 
         public override Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
         {
-            int noConfigStart, noConfigEnd;
-            if (!TryParseArguments(arguments, out noConfigStart, out noConfigEnd))
+            bool initialize;
+            if (!TryParseArguments(arguments, out initialize))
             {
                 ReportInvalidArguments(window);
                 return ExecutionResult.Failed;
             }
 
-            return window.Operations.ResetAsync(initialize: noConfigStart > -1);
-        }
-
-        internal static string BuildCommandLine(bool initialize)
-        {
-            string result = CommandName;
-            return initialize ? result : result + " " + NoConfigParameterName;
+            return window.Operations.ResetAsync(initialize);
         }
 
         public override IEnumerable<ClassificationSpan> ClassifyArguments(ITextSnapshot snapshot, Span argumentsSpan, Span spanToClassify)
         {
             string arguments = snapshot.GetText(argumentsSpan);
-
-            int noConfigStart, noConfigEnd;
-            if (TryParseArguments(arguments, out noConfigStart, out noConfigEnd))
+            int argumentsStart = argumentsSpan.Start;
+            foreach (var pos in GetNoConfigPositions(arguments))
             {
-                if (noConfigStart > -1)
-                {
-                    yield return new ClassificationSpan(new SnapshotSpan(snapshot, Span.FromBounds(argumentsSpan.Start + noConfigStart, argumentsSpan.Start + noConfigEnd)), _registry.Keyword);
-                }
+                var snapshotSpan = new SnapshotSpan(snapshot, new Span(argumentsStart + pos, NoConfigParameterNameLength));
+                yield return new ClassificationSpan(snapshotSpan, _registry.Keyword);
             }
         }
 
-        private static bool TryParseArguments(string arguments, out int noConfigStart, out int noConfigEnd)
+        /// <remarks>
+        /// Internal for testing.
+        /// </remarks>
+        internal static IEnumerable<int> GetNoConfigPositions(string arguments)
         {
-            noConfigStart = noConfigEnd = -1;
-
-            string noconfig = arguments.Trim();
-            if (noconfig.Length == 0)
+            int startIndex = 0;
+            while (true)
             {
+                int index = arguments.IndexOf(NoConfigParameterName, startIndex, StringComparison.Ordinal);
+                if (index < 0) yield break;
+
+                if ((index == 0 || char.IsWhiteSpace(arguments[index - 1])) &&
+                    (index + NoConfigParameterNameLength == arguments.Length || char.IsWhiteSpace(arguments[index + NoConfigParameterNameLength])))
+                {
+                    yield return index;
+                }
+
+                startIndex = index + NoConfigParameterNameLength;
+            }
+        }
+
+        /// <remarks>
+        /// Internal for testing.
+        /// </remarks>
+        internal static bool TryParseArguments(string arguments, out bool initialize)
+        {
+            var trimmed = arguments.Trim();
+            if (trimmed.Length == 0)
+            {
+                initialize = true;
+                return true;
+            }
+            else if (string.Equals(trimmed, NoConfigParameterName, StringComparison.Ordinal))
+            {
+                initialize = false;
                 return true;
             }
 
-            if (string.Compare(noconfig, NoConfigParameterName, StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                noConfigStart = arguments.IndexOf(noconfig, StringComparison.OrdinalIgnoreCase);
-                noConfigEnd = noConfigStart + noconfig.Length;
-                return true;
-            }
-
+            initialize = false;
             return false;
         }
     }

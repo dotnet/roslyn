@@ -12,24 +12,22 @@
     <RootNamespace>Roslyn.VisualStudio.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.CSharp.UnitTests</AssemblyName>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.VisualStudio.Composition, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.dll</HintPath>
     </Reference>
-    <Reference Include="..\..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="xunit">
-      <HintPath>..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>TestUtilities.FX45</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
@@ -62,9 +60,9 @@
       <Project>{8CEE3609-A5A9-4A9B-86D7-33118F5D6B33}</Project>
       <Name>EditorServicesTest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\TestUtilities.csproj">
+    <ProjectReference Include="..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities</Name>
+      <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
@@ -94,7 +92,7 @@
       <Project>{C0E80510-4FBE-4B0C-AF2C-4F473787722C}</Project>
       <Name>ServicesVisualStudioImpl</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\CSharp\CSharpFeatures.csproj">
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
       <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
       <Name>CSharpFeatures</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -104,7 +102,7 @@
       <Name>TextEditorFeatures</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -165,10 +163,6 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -226,11 +220,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

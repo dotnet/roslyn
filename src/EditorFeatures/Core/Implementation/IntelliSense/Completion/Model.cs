@@ -5,12 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -94,10 +92,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             CompletionItem updatedBuilder = builder;
             CompletionItem updatedDefaultBuilder = GetDefaultBuilder(defaultTrackingSpanInSubjectBuffer);
 
-            if (completionService != null && workspace != null && triggerInfo.TriggerReason != CompletionTriggerReason.Snippets)
+            if (completionService != null && 
+                workspace != null && 
+                workspace.Kind != WorkspaceKind.Interactive && // TODO (https://github.com/dotnet/roslyn/issues/5107): support in interactive
+                workspace.Options.GetOption(InternalFeatureOnOffOptions.Snippets) && 
+                triggerInfo.TriggerReason != CompletionTriggerReason.Snippets)
             {
                 // In order to add snippet expansion notes to completion item descriptions, update
-                // all of the provided CompletionItems to DisplayCompletionItems which will proxy
+                // all of the provided CompletionItems to DescriptionModifyingCompletionItem which will proxy
                 // requests to the original completion items and add the snippet expansion note to
                 // the description if necessary. We won't do this if the list was triggered to show
                 // snippet shortcuts.

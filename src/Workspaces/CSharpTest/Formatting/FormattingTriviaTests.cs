@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1721,6 +1718,46 @@ class Program
             var actual = formatted.ToFullString();
             var expected = "class C\n{\n}";
 
+            Assert.Equal(expected, actual);
+        }
+
+        [WorkItem(4019, "https://github.com/dotnet/roslyn/issues/4019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatWithTabs()
+        {
+
+            var code = @"#region Assembly mscorlib
+// C:\
+#endregion
+
+using System.Collections;
+
+class F
+{
+    string s;
+}";
+            var expected = @"#region Assembly mscorlib
+// C:\
+#endregion
+
+using System.Collections;
+
+class F
+{
+	string s;
+}";
+            var tree = SyntaxFactory.ParseCompilationUnit(code);
+
+            var newLineText = SyntaxFactory.ElasticEndOfLine(DefaultWorkspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp));
+
+            tree = tree.ReplaceTokens(tree.DescendantTokens(descendIntoTrivia: true)
+                                          .Where(tr => tr.IsKind(SyntaxKind.EndOfDirectiveToken)), (o, r) => o.WithTrailingTrivia(o.LeadingTrivia.Add(newLineText))
+                                                                                                              .WithLeadingTrivia(SyntaxFactory.TriviaList())
+                                                                                                              .WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation));
+
+            var formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, true));
+
+            var actual = formatted.ToFullString();
             Assert.Equal(expected, actual);
         }
     }

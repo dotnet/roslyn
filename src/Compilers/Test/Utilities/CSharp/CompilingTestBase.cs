@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // Provide an Emit.Module so that the lowering passes will be run
                 var module = new PEAssemblyBuilder(
                     (SourceAssemblySymbol)compilation.Assembly,
-                    EmitOptions.Default,
-                    OutputKind.ConsoleApplication,
-                    GetDefaultModulePropertiesForSerialization(),
-                    Enumerable.Empty<ResourceDescription>());
+                    emitOptions: EmitOptions.Default,
+                    outputKind: OutputKind.ConsoleApplication,
+                    serializationProperties: GetDefaultModulePropertiesForSerialization(),
+                    manifestResources: Enumerable.Empty<ResourceDescription>());
 
                 TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, compilation, module);
 

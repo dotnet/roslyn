@@ -86,17 +86,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyCommandLineSplitter("   \t   ", new string[0]);
             VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", new[] { "abc", "def", "baz", "quuz" });
             VerifyCommandLineSplitter(@"  ""abc def""  fi""ddle dee de""e  ""hi there ""dude  he""llo there""  ",
-                                        new string[] { @"abc def", @"fiddle dee dee", @"hi there dude", @"hello there" });
+                                        new string[] { @"abc def", @"fi""ddle dee de""e", @"""hi there ""dude", @"he""llo there""" });
             VerifyCommandLineSplitter(@"  ""abc def \"" baz quuz"" ""\""straw berry"" fi\""zz \""buzz fizzbuzz",
-                                        new string[] { @"abc def "" baz quuz", @"""straw berry", @"fi""zz", @"""buzz", @"fizzbuzz" });
+                                        new string[] { @"abc def \"" baz quuz", @"\""straw berry", @"fi\""zz", @"\""buzz", @"fizzbuzz" });
             VerifyCommandLineSplitter(@"  \\""abc def""  \\\""abc def"" ",
-                                        new string[] { @"\abc def", @"\""abc", @"def" });
+                                        new string[] { @"\\""abc def""", @"\\\""abc", @"def"" " });
             VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" ",
-                                        new string[] { @"\\abc def", @"\\""abc", @"def" });
+                                        new string[] { @"\\\\""abc def""", @"\\\\\""abc", @"def"" " });
             VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" q a r ",
-                                        new string[] { @"\\abc def", @"\\""abc", @"def q a r" });
+                                        new string[] { @"\\\\""abc def""", @"\\\\\""abc", @"def"" q a r " });
             VerifyCommandLineSplitter(@"abc #Comment ignored",
                                         new string[] { @"abc" }, removeHashComments: true);
+            VerifyCommandLineSplitter(@"""foo bar"";""baz"" ""tree""",
+                                        new string[] { @"""foo bar"";""baz""", "tree" });
+            VerifyCommandLineSplitter(@"/reference:""a, b"" ""test""",
+                                        new string[] { @"/reference:""a, b""", "test" });
+            VerifyCommandLineSplitter(@"fo""o ba""r",
+                                        new string[] { @"fo""o ba""r" });
         }
 
         [Fact]
@@ -1092,6 +1098,142 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: file.Path, actual: includePaths[0]);
             Assert.Equal(expected: include1.Path, actual: includePaths[1]);
             Assert.Equal(expected: include2.Path, actual: includePaths[2]);
+        }
+
+        [Fact]
+        public void ParseSeperatedStrings_ExcludeSeparatorChar()
+        {
+            Assert.Equal(
+                CommandLineParser.ParseSeparatedStrings(@"a,b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                new[] { "a", "b" });
+
+            Assert.Equal(
+                CommandLineParser.ParseSeparatedStrings(@"a,,b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                new[] { "a", "b" });
+
+            Assert.Equal(
+                CommandLineParser.ParseSeparatedStrings(@"a,,b", new[] { ',' }, StringSplitOptions.None),
+                new[] { "a", "", "b" });
+        }
+
+        /// <summary>
+        /// This function considers quotes when splitting out the strings.  Ensure they are properly
+        /// preserved in the final string.
+        /// </summary>
+        [Fact]
+        public void ParseSeperatedStrings_IncludeQuotes()
+        {
+            Assert.Equal(
+                CommandLineParser.ParseSeparatedStrings(@"""a"",b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                new[] { @"""a""", "b" });
+
+            Assert.Equal(
+                CommandLineParser.ParseSeparatedStrings(@"""a,b""", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                new[] { @"""a,b""" });
+
+            Assert.Equal(
+                CommandLineParser.ParseSeparatedStrings(@"""a"",""b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                new[] { @"""a""", @"""b" });
+        }
+
+        /// <summary>
+        /// This function should always preserve the slashes as they exist in the original command
+        /// line.  The only serve to decide whether quotes should count as grouping constructors
+        /// or not. 
+        /// </summary>
+        [Fact]
+        public void SplitCommandLineIntoArguments_Slashes()
+        {
+            Assert.Equal(
+                new[] { @"\\test" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"\\test", removeHashComments: false));
+
+            // Even though there are an even number of slashes here that doesn't factor into the 
+            // output.  It just means the quote is a grouping construct.
+            Assert.Equal(
+                new[] { @"\\""test" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"\\""test", removeHashComments: false));
+
+            Assert.Equal(
+                new[] { @"\\\""test" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"\\\""test", removeHashComments: false));
+
+            Assert.Equal(
+                new[] { @"\\\test" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"\\\test", removeHashComments: false));
+
+            Assert.Equal(
+                new[] { @"\\\\\test" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"\\\\\test", removeHashComments: false));
+        }
+
+        /// <summary>
+        /// Quotes are used as grouping constructs unless they are escaped by an odd number of slashes.
+        /// </summary>
+        [Fact]
+        public void SplitCommandLineIntoArguments_Quotes()
+        {
+            Assert.Equal(
+                new[] { @"a", @"b" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"a b", removeHashComments: false));
+
+            Assert.Equal(
+                new[] { @"a b" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"""a b""", removeHashComments: false));
+
+            Assert.Equal(
+                new[] { @"a ", @"b""" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"""a "" b""", removeHashComments: false));
+
+            // In this case the inner quote is escaped so it doesn't count as a real quote.  Strings which have
+            // outer quotes with no real inner quotes have the outer quotes removed. 
+            Assert.Equal(
+                new[] { @"a \"" b" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"""a \"" b""", removeHashComments: false));
+
+
+            Assert.Equal(
+                new[] { @"\a", @"b" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"\a b", removeHashComments: false));
+
+            // Escaped quote is not a grouping construct
+            Assert.Equal(
+                new[] { @"\""a", @"b\""" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"\""a b\""", removeHashComments: false));
+
+            // Unescaped quote is a grouping construct. 
+            Assert.Equal(
+                new[] { @"\\""a b\\""" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"\\""a b\\""", removeHashComments: false));
+
+            Assert.Equal(
+                new[] { @"""a""m""b""" },
+                CommandLineParser.SplitCommandLineIntoArguments(@"""a""m""b""", removeHashComments: false));
+        }
+
+        /// <summary>
+        /// Test all of the cases around slashes in the RemoveQuotes function.  
+        /// </summary>
+        /// <remarks>
+        /// It's important to remember this is testing slash behavior on the strings as they 
+        /// are passed to RemoveQuotes, not as they are passed to the command line.  Command 
+        /// line arguments have already gone through an initial round of processing.  So a
+        /// string that appears here as "\\test.cs" actually came through the command line
+        /// as \"\\test.cs\". 
+        /// </remarks>
+        [Fact]
+        public void RemoveQuotes()
+        {
+            Assert.Equal(@"\\test.cs", CommandLineParser.RemoveQuotesAndSlashes(@"\\test.cs"));
+            Assert.Equal(@"\\test.cs", CommandLineParser.RemoveQuotesAndSlashes(@"""\\test.cs"""));
+            Assert.Equal(@"\\\test.cs", CommandLineParser.RemoveQuotesAndSlashes(@"\\\test.cs"));
+            Assert.Equal(@"\\\\test.cs", CommandLineParser.RemoveQuotesAndSlashes(@"\\\\test.cs"));
+            Assert.Equal(@"\\test\a\b.cs", CommandLineParser.RemoveQuotesAndSlashes(@"\\test\a\b.cs"));
+            Assert.Equal(@"\\\\test\\a\\b.cs", CommandLineParser.RemoveQuotesAndSlashes(@"\\\\test\\a\\b.cs"));
+            Assert.Equal(@"a""b.cs", CommandLineParser.RemoveQuotesAndSlashes(@"a\""b.cs"));
+            Assert.Equal(@"a"" mid ""b.cs", CommandLineParser.RemoveQuotesAndSlashes(@"a\"" mid \""b.cs"));
+            Assert.Equal(@"a mid b.cs", CommandLineParser.RemoveQuotesAndSlashes(@"a"" mid ""b.cs"));
+            Assert.Equal(@"a.cs", CommandLineParser.RemoveQuotesAndSlashes(@"""a.cs"""));
         }
     }
 }

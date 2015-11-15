@@ -606,7 +606,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
 
         public static string Generate(MethodDeclarationSyntax methodDeclaration, SemanticModel semanticModel)
         {
-            var symbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(methodDeclaration);
+            var symbol = semanticModel.GetDeclaredSymbol(methodDeclaration);
             var builder = new MethodXmlBuilder(symbol, semanticModel);
 
             builder.GenerateBlock(methodDeclaration.Body);

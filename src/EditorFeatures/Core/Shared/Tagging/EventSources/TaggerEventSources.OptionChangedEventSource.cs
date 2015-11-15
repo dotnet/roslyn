@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 
@@ -18,14 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public OptionChangedEventSource(ITextBuffer subjectBuffer, IOption option, TaggerDelay delay) : base(subjectBuffer, delay)
             {
                 _option = option;
-            }
-
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.OptionChanged;
-                }
             }
 
             protected override void ConnectToWorkspace(Workspace workspace)

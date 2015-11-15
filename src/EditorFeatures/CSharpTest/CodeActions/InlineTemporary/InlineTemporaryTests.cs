@@ -37,83 +37,83 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             return fixedRoot.Members[0].Members[0].BodyOpt;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void NotWithNoInitializer1()
         {
             TestMissing(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void NotWithNoInitializer2()
         {
             TestMissing(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void NotOnSecondWithNoInitializer()
         {
             TestMissing(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void NotOnField()
         {
             TestMissing(@"class C { int [||]x = 42; void M() { System.Console.WriteLine(x); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void SingleStatement()
         {
             TestMissing(GetTreeText(@"{ int [||]x = 27; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void MultipleDeclarators_First()
         {
             TestMissing(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void MultipleDeclarators_Second()
         {
             TestMissing(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void MultipleDeclarators_Last()
         {
             TestMissing(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Escaping1()
         {
             TestFixOne(@"{ int [||]x = 0; Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Escaping2()
         {
             TestFixOne(@"{ int [||]@x = 0; Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Escaping3()
         {
             TestFixOne(@"{ int [||]@x = 0; Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Escaping4()
         {
             TestFixOne(@"{ int [||]x = 0; Console.WriteLine(@x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Escaping5()
         {
             var code = @"
@@ -140,7 +140,7 @@ class C
             Test(code, expected, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Call()
         {
             var code = @"
@@ -167,7 +167,7 @@ class C
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Conversion_NoChange()
         {
             var code = @"
@@ -194,14 +194,14 @@ class C
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Conversion_NoConversion()
         {
             TestFixOne(@"{ int [||]x = 3; x.ToString(); }",
                        @"{ 3.ToString(); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Conversion_DifferentOverload()
         {
             Test(
@@ -229,7 +229,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Conversion_DifferentMethod()
         {
             Test(
@@ -273,7 +273,7 @@ class C
     compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Conversion_SameMethod()
         {
             Test(
@@ -317,14 +317,14 @@ class C
     compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void NoCastOnVar()
         {
             TestFixOne(@"{ var [||]x = 0; Console.WriteLine(x); }",
                        @"{ Console.WriteLine(0); }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void DoubleAssignment()
         {
             var code = @"
@@ -349,21 +349,21 @@ class C
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestAnonymousType1()
         {
             TestFixOne(@"{ int [||]x = 42; var a = new { x }; }",
                        @"{ var a = new { x = 42 }; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestParenthesizedAtReference_Case3()
         {
             TestFixOne(@"{ int [||]x = 1 + 1; int y = x * 2; }",
                        @"{ int y = (1 + 1) * 2; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void DontBreakOverloadResolution_Case5()
         {
             var code = @"
@@ -394,7 +394,7 @@ class C
             Test(code, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void DontTouchUnrelatedBlocks()
         {
             var code = @"
@@ -421,7 +421,7 @@ class C
             Test(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestLambdaParenthesizeAndCast_Case7()
         {
             var code = @"
@@ -447,7 +447,7 @@ class C
         }
 
         [WorkItem(538094)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParseAmbiguity1()
         {
             Test(
@@ -475,7 +475,7 @@ class C
         }
 
         [WorkItem(538094), WorkItem(541462)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParseAmbiguity2()
         {
             Test(
@@ -503,7 +503,7 @@ class C
         }
 
         [WorkItem(538094)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParseAmbiguity3()
         {
             Test(
@@ -532,7 +532,7 @@ class C
         }
 
         [WorkItem(544924)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParseAmbiguity4()
         {
             Test(
@@ -566,7 +566,7 @@ class Program
         }
 
         [WorkItem(544613)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParseAmbiguity5()
         {
             Test(
@@ -592,7 +592,7 @@ class Program
         }
 
         [WorkItem(538131)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestArrayInitializer()
         {
             TestFixOne(@"{ int[] [||]x = { 3, 4, 5 }; int a = Array.IndexOf(x, 3); }",
@@ -600,7 +600,7 @@ class Program
         }
 
         [WorkItem(545657)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestArrayInitializer2()
         {
             var initial = @"
@@ -626,7 +626,7 @@ class Program
         }
 
         [WorkItem(545657)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestArrayInitializer3()
         {
             var initial = @"
@@ -659,7 +659,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_RefParameter1()
         {
             var initial =
@@ -705,7 +705,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_RefParameter2()
         {
             var initial =
@@ -741,7 +741,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_AssignExpression()
         {
             var initial =
@@ -771,7 +771,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_AddAssignExpression1()
         {
             var initial =
@@ -801,7 +801,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_AddAssignExpression2()
         {
             var initial =
@@ -833,7 +833,7 @@ class C
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_SubtractAssignExpression()
         {
             var initial =
@@ -863,7 +863,7 @@ class Program
             Test(initial, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_MultiplyAssignExpression()
         {
             var initial =
@@ -893,7 +893,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_DivideAssignExpression()
         {
             var initial =
@@ -923,7 +923,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_ModuloAssignExpression()
         {
             var initial =
@@ -953,7 +953,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_AndAssignExpression()
         {
             var initial =
@@ -983,7 +983,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_OrAssignExpression()
         {
             var initial =
@@ -1013,7 +1013,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_ExclusiveOrAssignExpression()
         {
             var initial =
@@ -1043,7 +1043,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_LeftShiftAssignExpression()
         {
             var initial =
@@ -1073,7 +1073,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_RightShiftAssignExpression()
         {
             var initial =
@@ -1103,7 +1103,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_PostIncrementExpression()
         {
             var initial =
@@ -1133,7 +1133,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_PreIncrementExpression()
         {
             var initial =
@@ -1163,7 +1163,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_PostDecrementExpression()
         {
             var initial =
@@ -1193,7 +1193,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_PreDecrementExpression()
         {
             var initial =
@@ -1223,7 +1223,7 @@ class Program
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_AddressOfExpression()
         {
             var initial = @"
@@ -1252,7 +1252,7 @@ class C
         }
 
         [WorkItem(545342)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConflict_UsedBeforeDeclaration()
         {
             var initial =
@@ -1278,7 +1278,7 @@ class C
             Test(initial, expected, index: 0, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Preprocessor1()
         {
             TestFixOne(@"
@@ -1303,7 +1303,7 @@ class C
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Preprocessor2()
         {
             TestFixOne(@"
@@ -1328,7 +1328,7 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Preprocessor3()
         {
             TestFixOne(@"
@@ -1354,7 +1354,7 @@ compareTokens: false);
         }
 
         [WorkItem(540164)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TriviaOnArrayInitializer()
         {
             var initial =
@@ -1380,7 +1380,7 @@ compareTokens: false);
         }
 
         [WorkItem(540156)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ProperlyFormatWhenRemovingDeclarator1()
         {
             var initial =
@@ -1407,7 +1407,7 @@ compareTokens: false);
         }
 
         [WorkItem(540156)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ProperlyFormatWhenRemovingDeclarator2()
         {
             var initial =
@@ -1434,7 +1434,7 @@ compareTokens: false);
         }
 
         [WorkItem(540156)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ProperlyFormatWhenRemovingDeclarator3()
         {
             var initial =
@@ -1461,7 +1461,7 @@ compareTokens: false);
         }
 
         [WorkItem(540186)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ProperlyFormatAnonymousTypeMember()
         {
             var initial =
@@ -1487,7 +1487,7 @@ compareTokens: false);
         }
 
         [WorkItem(6356, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineToAnonymousTypeProperty()
         {
             var initial =
@@ -1513,7 +1513,7 @@ compareTokens: false);
         }
 
         [WorkItem(528075)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineIntoDelegateInvocation()
         {
             var initial =
@@ -1541,7 +1541,7 @@ class Program
         }
 
         [WorkItem(541341)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineAnonymousMethodIntoNullCoalescingExpression()
         {
             var initial =
@@ -1571,7 +1571,7 @@ class Program
         }
 
         [WorkItem(541341)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineLambdaIntoNullCoalescingExpression()
         {
             var initial =
@@ -1601,7 +1601,7 @@ class Program
         }
 
         [WorkItem(538079)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForBoxingOperation1()
         {
             var initial =
@@ -1631,7 +1631,7 @@ class A
         }
 
         [WorkItem(538079)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForBoxingOperation2()
         {
             var initial =
@@ -1663,7 +1663,7 @@ class A
         }
 
         [WorkItem(538079)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForBoxingOperation3()
         {
             var initial =
@@ -1693,7 +1693,7 @@ class A
         }
 
         [WorkItem(538079)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForBoxingOperation4()
         {
             var initial =
@@ -1723,7 +1723,7 @@ class A
         }
 
         [WorkItem(538079)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForBoxingOperation5()
         {
             var initial =
@@ -1753,7 +1753,7 @@ class A
         }
 
         [WorkItem(540278)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestLeadingTrivia()
         {
             Test(
@@ -1781,7 +1781,7 @@ compareTokens: false);
         }
 
         [WorkItem(540278)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestLeadingAndTrailingTrivia()
         {
             Test(
@@ -1810,7 +1810,7 @@ compareTokens: false);
         }
 
         [WorkItem(540278)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestTrailingTrivia()
         {
             Test(
@@ -1837,7 +1837,7 @@ compareTokens: false);
         }
 
         [WorkItem(540278)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestPreprocessor()
         {
             Test(
@@ -1867,7 +1867,7 @@ compareTokens: false);
         }
 
         [WorkItem(540277)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestFormatting()
         {
             Test(
@@ -1892,7 +1892,7 @@ compareTokens: false);
         }
 
         [WorkItem(541694)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestSwitchSection()
         {
             Test(
@@ -1928,7 +1928,7 @@ compareTokens: false);
         }
 
         [WorkItem(542647)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void UnparenthesizeExpressionIfNeeded1()
         {
             Test(
@@ -1961,7 +1961,7 @@ class C
         }
 
         [WorkItem(545619)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void UnparenthesizeExpressionIfNeeded2()
         {
             Test(
@@ -1994,7 +1994,7 @@ class Program
         }
 
         [WorkItem(542656)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParenthesizeIfNecessary1()
         {
             Test(
@@ -2030,7 +2030,7 @@ class A
         }
 
         [WorkItem(544626)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParenthesizeIfNecessary2()
         {
             Test(
@@ -2054,7 +2054,7 @@ class C
     static void Main()
     {
         Action<string> g = null;
-        var h = (Foo<string>) + g;
+        var h = Foo + g;
     }
 
     static void Foo<T>(T y) { }
@@ -2064,7 +2064,7 @@ class C
         }
 
         [WorkItem(544415)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParenthesizeAddressOf1()
         {
             Test(
@@ -2094,7 +2094,7 @@ unsafe class C
         }
 
         [WorkItem(544922)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParenthesizeAddressOf2()
         {
             Test(
@@ -2124,7 +2124,7 @@ unsafe class C
         }
 
         [WorkItem(544921)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParenthesizePointerIndirection1()
         {
             Test(
@@ -2154,7 +2154,7 @@ unsafe class C
         }
 
         [WorkItem(544614)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParenthesizePointerIndirection2()
         {
             Test(
@@ -2184,7 +2184,7 @@ unsafe class C
         }
 
         [WorkItem(544563)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void DontInlineStackAlloc()
         {
             TestMissing(
@@ -2203,7 +2203,7 @@ unsafe class C
         }
 
         [WorkItem(543744)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineTempLambdaExpressionCastingError()
         {
             Test(
@@ -2229,7 +2229,7 @@ class Program
             compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForNull()
         {
             Test(
@@ -2257,7 +2257,7 @@ class C
             compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastIfNeeded1()
         {
             Test(
@@ -2283,7 +2283,7 @@ class C
         }
 
         [WorkItem(545161)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastIfNeeded2()
         {
             Test(
@@ -2318,7 +2318,7 @@ class C
         }
 
         [WorkItem(544612)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineIntoBracketedList()
         {
             Test(
@@ -2351,7 +2351,7 @@ class C
         }
 
         [WorkItem(542648)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void ParenthesizeAfterCastIfNeeded()
         {
             Test(
@@ -2387,7 +2387,7 @@ class Program
         }
 
         [WorkItem(544635)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForEnumZeroIfBoxed()
         {
             Test(
@@ -2420,7 +2420,7 @@ class Program
 
         [WorkItem(544636)]
         [WorkItem(554010)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForMethodGroupIfNeeded1()
         {
             Test(
@@ -2451,7 +2451,7 @@ class Program
 
         [WorkItem(544978)]
         [WorkItem(554010)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForMethodGroupIfNeeded2()
         {
             Test(
@@ -2481,7 +2481,7 @@ class Program
         }
 
         [WorkItem(545103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void DontInsertCastForTypeThatNoLongerBindsToTheSameType()
         {
             Test(
@@ -2517,7 +2517,7 @@ class A<T>
         }
 
         [WorkItem(545170)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCorrectCastForDelegateCreationExpression()
         {
             Test(
@@ -2550,7 +2550,7 @@ class Program
         }
 
         [WorkItem(545523)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void DontInsertCastForObjectCreationIfUnneeded()
         {
             Test(
@@ -2580,7 +2580,7 @@ class Program
             compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void DontInsertCastInForeachIfUnneeded01()
         {
             Test(
@@ -2616,7 +2616,7 @@ class Program
             compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastInForeachIfNeeded01()
         {
             Test(
@@ -2652,7 +2652,7 @@ class Program
             compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastInForeachIfNeeded02()
         {
             Test(
@@ -2689,7 +2689,7 @@ class Program
         }
 
         [WorkItem(545601)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastToKeepGenericMethodInference()
         {
             Test(
@@ -2724,7 +2724,7 @@ class C
         }
 
         [WorkItem(545601)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastForKeepImplicitArrayInference()
         {
             Test(
@@ -2759,7 +2759,7 @@ class C
         }
 
         [WorkItem(545601)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertASingleCastToNotBreakOverloadResolution()
         {
             Test(
@@ -2792,7 +2792,7 @@ class C
         }
 
         [WorkItem(545601)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertASingleCastToNotBreakOverloadResolutionInLambdas()
         {
             Test(
@@ -2827,7 +2827,7 @@ class C
         }
 
         [WorkItem(545601)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertASingleCastToNotBreakResolutionOfOperatorOverloads()
         {
             Test(
@@ -2894,7 +2894,7 @@ class C
         }
 
         [WorkItem(545561)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastToNotBreakOverloadResolutionInUncheckedContext()
         {
             Test(
@@ -2939,7 +2939,7 @@ class X
         }
 
         [WorkItem(545564)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastToNotBreakOverloadResolutionInUnsafeContext()
         {
             Test(
@@ -2988,7 +2988,7 @@ static class C
         }
 
         [WorkItem(545783)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InsertCastToNotBreakOverloadResolutionInNestedLambdas()
         {
             Test(
@@ -3031,7 +3031,7 @@ class C
         }
 
         [WorkItem(546069)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestBrokenVariableDeclarator()
         {
             TestMissing(
@@ -3045,7 +3045,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestHiddenRegion1()
         {
             TestMissing(
@@ -3062,7 +3062,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestHiddenRegion2()
         {
             TestMissing(
@@ -3080,7 +3080,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestHiddenRegion3()
         {
             Test(
@@ -3112,7 +3112,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestHiddenRegion4()
         {
             Test(
@@ -3146,7 +3146,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestHiddenRegion5()
         {
             TestMissing(
@@ -3166,7 +3166,7 @@ compareTokens: false);
         }
 
         [WorkItem(530743)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineFromLabeledStatement()
         {
             Test(
@@ -3201,7 +3201,7 @@ class Program
         }
 
         [WorkItem(529698)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineCompoundAssignmentIntoInitializer()
         {
             Test(
@@ -3234,7 +3234,7 @@ class Program
         }
 
         [WorkItem(609497)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Bugfix_609497()
         {
             Test(
@@ -3265,7 +3265,7 @@ class Program
         }
 
         [WorkItem(636319)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Bugfix_636319()
         {
             Test(
@@ -3298,7 +3298,7 @@ class Program
         }
 
         [WorkItem(609492)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Bugfix_609492()
         {
             Test(
@@ -3331,7 +3331,7 @@ class Program
         }
 
         [WorkItem(529950)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void InlineTempDoesNotInsertUnnecessaryExplicitTypeInLambdaParameter()
         {
             Test(
@@ -3377,7 +3377,7 @@ static class C
         }
 
         [WorkItem(619425)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Bugfix_619425_RestrictedSimpleNameExpansion()
         {
             Test(
@@ -3418,7 +3418,7 @@ class A<B>
         }
 
         [WorkItem(529840)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void Bugfix_529840_DetectSemanticChangesAtInlineSite()
         {
             Test(
@@ -3482,7 +3482,7 @@ class A
         }
 
         [WorkItem(1091946)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConditionalAccessWithConversion()
         {
             Test(
@@ -3505,7 +3505,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestSimpleConditionalAccess()
         {
             Test(
@@ -3528,7 +3528,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConditionalAccessWithConditionalExpression()
         {
             Test(
@@ -3551,7 +3551,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
         public void TestConditionalAccessWithExtensionMethodInvocation()
         {
@@ -3608,7 +3608,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
         public void TestConditionalAccessWithExtensionMethodInvocation_2()
         {
@@ -3675,7 +3675,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestAliasQualifiedNameIntoInterpolation()
         {
             Test(
@@ -3698,7 +3698,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConditionalExpressionIntoInterpolation()
         {
             Test(
@@ -3721,7 +3721,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestConditionalExpressionIntoInterpolationWithFormatClause()
         {
             Test(
@@ -3744,7 +3744,7 @@ class A
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public void TestInvocationExpressionIntoInterpolation()
         {
             Test(
@@ -3765,6 +3765,127 @@ class A
         var y = $""{s.ToUpper()}"";
     }
 }");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void DontParenthesizeInterpolatedStringWithNoInterpolation()
+        {
+            Test(
+            @"
+class C
+{
+    public void M()
+    {
+        var [|s1|] = $""hello"";
+        var s2 = string.Replace(s1, ""world"");
+    }
+}
+", @"
+class C
+{
+    public void M()
+    {
+        var s2 = string.Replace($""hello"", ""world"");
+    }
+}");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void DontParenthesizeInterpolatedStringWithInterpolation()
+        {
+            Test(
+            @"
+class C
+{
+    public void M(int x)
+    {
+        var [|s1|] = $""hello {x}"";
+        var s2 = string.Replace(s1, ""world"");
+    }
+}
+", @"
+class C
+{
+    public void M(int x)
+    {
+        var s2 = string.Replace($""hello {x}"", ""world"");
+    }
+}");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void InlineFormattableStringIntoCallSiteRequiringFormattableString()
+        {
+            const string initial = @"
+using System;
+" + CodeSnippets.FormattableStringType + @"
+class C
+{
+    static void M(FormattableString s)
+    {
+    }
+
+    static void N(int x, int y)
+    {
+        FormattableString [||]s = $""{x}, {y}"";
+        M(s);
+    }
+}";
+
+            const string expected = @"
+using System;
+" + CodeSnippets.FormattableStringType + @"
+class C
+{
+    static void M(FormattableString s)
+    {
+    }
+
+    static void N(int x, int y)
+    {
+        M($""{x}, {y}"");
+    }
+}";
+
+            Test(initial, expected, compareTokens: false);
+        }
+
+        [WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void InlineFormattableStringIntoCallSiteWithFormattableStringOverload()
+        {
+            const string initial = @"
+using System;
+" + CodeSnippets.FormattableStringType + @"
+class C
+{
+    static void M(string s) { }
+    static void M(FormattableString s) { }
+
+    static void N(int x, int y)
+    {
+        FormattableString [||]s = $""{x}, {y}"";
+        M(s);
+    }
+}";
+
+            const string expected = @"
+using System;
+" + CodeSnippets.FormattableStringType + @"
+class C
+{
+    static void M(string s) { }
+    static void M(FormattableString s) { }
+
+    static void N(int x, int y)
+    {
+        M((FormattableString)$""{x}, {y}"");
+    }
+}";
+            Test(initial, expected, compareTokens: false);
         }
     }
 }

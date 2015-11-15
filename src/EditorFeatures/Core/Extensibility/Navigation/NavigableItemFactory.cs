@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -11,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
 {
     internal static partial class NavigableItemFactory
     {
-        public static INavigableItem GetItemFromSymbolLocation(Solution solution, ISymbol symbol, Location location)
+        public static INavigableItem GetItemFromSymbolLocation(Solution solution, ISymbol symbol, Location location, string displayString = null)
         {
-            return new SymbolLocationNavigableItem(solution, symbol, location);
+            return new SymbolLocationNavigableItem(solution, symbol, location, displayString);
         }
 
         public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
@@ -21,10 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
         }
 
-        public static IEnumerable<INavigableItem> GetItemsfromPreferredSourceLocations(Solution solution, ISymbol symbol)
+
+        public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(Solution solution, ISymbol symbol, string displayString = null)
         {
             var locations = GetPreferredSourceLocations(solution, symbol);
-            return locations.Select(loc => GetItemFromSymbolLocation(solution, symbol, loc));
+            return locations.Select(loc => GetItemFromSymbolLocation(solution, symbol, loc, displayString));
         }
 
         public static IEnumerable<Location> GetPreferredSourceLocations(Solution solution, ISymbol symbol)
@@ -55,6 +57,24 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             return visibleSourceLocations.Any()
                 ? visibleSourceLocations
                 : locations.Where(loc => loc.IsInSource);
+        }
+
+        public static string GetSymbolDisplayString(Project project, ISymbol symbol)
+        {
+            var symbolDisplayService = project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
+            switch (symbol.Kind)
+            {
+                case SymbolKind.NamedType:
+                    return symbolDisplayService.ToDisplayString(symbol, s_shortFormatWithModifiers);
+
+                case SymbolKind.Method:
+                    return symbol.IsStaticConstructor()
+                        ? symbolDisplayService.ToDisplayString(symbol, s_shortFormatWithModifiers)
+                        : symbolDisplayService.ToDisplayString(symbol, s_shortFormat);
+
+                default:
+                    return symbolDisplayService.ToDisplayString(symbol, s_shortFormat);
+            }
         }
 
         private static readonly SymbolDisplayFormat s_shortFormat =

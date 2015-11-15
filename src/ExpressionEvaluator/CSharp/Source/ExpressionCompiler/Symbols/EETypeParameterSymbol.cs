@@ -101,13 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // Remap constraints from sourceTypeParameter since constraints
             // may be defined in terms of other type parameters.
-            return this.TypeMap.SubstituteTypes(constraintTypes);
+            return this.TypeMap.SubstituteTypesWithoutModifiers(constraintTypes);
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
             var type = _sourceTypeParameter.GetDeducedBaseType(inProgress);
-            return this.TypeMap.SubstituteType(type);
+            return this.TypeMap.SubstituteType(type).AsTypeSymbolOnly();
         }
 
         internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)

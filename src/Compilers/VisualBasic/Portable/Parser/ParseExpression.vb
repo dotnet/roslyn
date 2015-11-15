@@ -50,9 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Try
                 _recursionDepth += 1
-                If _recursionDepth >= MaxUncheckedRecursionDepth Then
-                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
-                End If
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
 
                 '// Note: this function will only ever return NULL if the flag "BailIfFirstTokenIsRejected" is set,
                 '// and if the first token isn't a valid way to start an expression. In all other error scenarios
@@ -943,6 +941,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                current.Kind = SyntaxKind.IsNotKeyword Then
 
                 operatorToken = DirectCast(current, KeywordSyntax)
+
+                If operatorToken.Kind = SyntaxKind.IsNotKeyword Then
+                    operatorToken = CheckFeatureAvailability(Feature.TypeOfIsNot, operatorToken)
+                End If
 
                 GetNextToken()
 

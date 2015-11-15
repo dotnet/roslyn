@@ -1,0 +1,14 @@
+﻿{
+  "dependencies": {
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta-20151016-11",
+    "Microsoft.DiaSymReader": "1.0.6"
+  },
+  "frameworks": {
+    "net45": { }
+  },
+  "runtimes": {
+    "win7-anycpu": { },
+    "win7": { },
+    "ubuntu.14.04-anycpu": { }
+  }
+}

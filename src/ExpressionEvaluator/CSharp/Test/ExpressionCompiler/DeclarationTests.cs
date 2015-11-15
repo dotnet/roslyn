@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // Expression with format specifiers with ';' as statement.
             result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ','");
+            Assert.Equal(error, "error CS1073: Unexpected token ','");
             Assert.Null(result);
 
             // Assignment without ';' as statement.
@@ -245,23 +245,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // Statement without ';' as statement.
             result = context.CompileExpression("int o", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "(1,1): error CS1525: Invalid expression term 'int'");
+            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
 
             // Neither statement nor expression as statement.
             result = context.CompileExpression("M(;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "(1,3): error CS1026: ) expected");
+            Assert.Equal(error, "error CS1026: ) expected");
 
             // Statement without ';' as expression.
             result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal(error, "(1,1): error CS1525: Invalid expression term 'int'");
+            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
 
             // Statement with ';' as expression.
             result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal(error, "(1,1): error CS1525: Invalid expression term 'int'");
+            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
 
             // Neither statement nor expression as expression.
             result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal(error, "(1,3): error CS1026: ) expected");
+            Assert.Equal(error, "error CS1026: ) expected");
         }
 
         [Fact]
@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,1): error CS1525: Invalid expression term 'int'");
+            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
         }
 
         [Fact]
@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
+            Assert.Equal(error, "error CS1056: Unexpected character '$'");
 
             // $exception
             context.CompileExpression(
@@ -997,7 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
+            Assert.Equal(error, "error CS1056: Unexpected character '$'");
 
             // $ReturnValue
             context.CompileExpression(
@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
+            Assert.Equal(error, "error CS1056: Unexpected character '$'");
 
             // $x
             context.CompileExpression(
@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
+            Assert.Equal(error, "error CS1056: Unexpected character '$'");
         }
 
         /// <summary>
@@ -1378,7 +1378,7 @@ class C
                 declaration,
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,

@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "Microsoft.NetFX20": "1.0.3"
+  },
+  "frameworks": {
+    "net20": { }
+  }
+}

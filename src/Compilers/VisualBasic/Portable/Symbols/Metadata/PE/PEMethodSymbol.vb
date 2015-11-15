@@ -928,7 +928,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If count > 0 Then
                 Dim builder = ImmutableArray.CreateBuilder(Of ParameterSymbol)(count)
                 For i As Integer = 0 To count - 1 Step 1
-                    builder.Add(New PEParameterSymbol(moduleSymbol, Me, i, paramInfo(i + 1), isBad))
+                    builder.Add(PEParameterSymbol.Create(moduleSymbol, Me, i, paramInfo(i + 1), isBad))
 
                     If isBad Then
                         hasBadParameter = True
@@ -942,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' paramInfo(0) contains information about return "parameter"
             Debug.Assert(Not paramInfo(0).IsByRef)
-            Dim returnParam = New PEParameterSymbol(moduleSymbol, Me, 0, paramInfo(0), isBad)
+            Dim returnParam = PEParameterSymbol.Create(moduleSymbol, Me, 0, paramInfo(0), isBad)
 
             If mrEx IsNot Nothing OrElse hasBadParameter OrElse isBad Then
                 InitializeUseSiteErrorInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))

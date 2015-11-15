@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Windows.Input;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -111,23 +110,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private void OnEditorSessionDismissed()
         {
             AssertIsForeground();
-
-            var dismissed = this.Dismissed;
-            if (dismissed != null)
-            {
-                dismissed(this, new EventArgs());
-            }
+            this.Dismissed?.Invoke(this, new EventArgs());
         }
 
         internal void OnCompletionItemCommitted(CompletionItem completionItem)
         {
             AssertIsForeground();
-
-            var completionItemCommitted = this.ItemCommitted;
-            if (completionItemCommitted != null)
-            {
-                completionItemCommitted(this, new CompletionItemEventArgs(completionItem));
-            }
+            this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(completionItem));
         }
 
         private void OnCompletionSetSelectionStatusChanged(object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs)
@@ -163,17 +152,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // No editor session, nothing to do here.
                 return;
             }
-
-            // Slimy bit of nastiness: When we dismiss the presenter session, that will
-            // inadvertantly trigger a LostAggregateFocus event for the view. The reason for this
-            // is long and ugly, but essentially when the completion presenter gets keyboard
-            // focus, it posts a message to surrender focus to the view. However, if the we're
-            // stopping the model computation because the presenter was double-clicked, that
-            // message is still sitting in the queue. Then, when the session is dimissed below
-            // a LostAggregateFocus event gets triggered when the presenter's space reservation
-            // manager is popped off the stack. To work around this, we set focus back to the
-            // view here.
-            Keyboard.Focus(((IWpfTextView)_textView).VisualElement);
 
             _editorSessionOpt.Dismiss();
             _editorSessionOpt = null;

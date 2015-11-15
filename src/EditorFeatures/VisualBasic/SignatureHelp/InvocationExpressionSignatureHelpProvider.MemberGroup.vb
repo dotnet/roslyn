@@ -82,6 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
             Dim format = MinimallyQualifiedWithoutParametersFormat
             format = format.RemoveMemberOptions(SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeContainingType)
             format = format.RemoveKindOptions(SymbolDisplayKindOptions.IncludeMemberKeyword)
+            format = format.WithMiscellaneousOptions(format.MiscellaneousOptions And (Not SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers))
 
             result.AddRange(symbol.ToMinimalDisplayParts(semanticModel, position, format))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))

@@ -24,15 +24,10 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-        // TODO: Temporary workaround to support interactive.
-        // Remove when https://github.com/dotnet/roslyn/issues/3719 is fixed.
-        internal IMethodSymbol EntryPointOpt { get; }
-
-        internal EmitResult(bool success, ImmutableArray<Diagnostic> diagnostics, IMethodSymbol entryPointOpt)
+        internal EmitResult(bool success, ImmutableArray<Diagnostic> diagnostics)
         {
             Success = success;
             Diagnostics = diagnostics;
-            EntryPointOpt = entryPointOpt;
         }
 
         protected virtual string GetDebuggerDisplay()

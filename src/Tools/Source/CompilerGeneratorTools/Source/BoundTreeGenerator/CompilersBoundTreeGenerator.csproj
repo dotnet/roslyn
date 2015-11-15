@@ -8,6 +8,7 @@
     <NonShipping>True</NonShipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{02459936-CD2C-4F61-B671-5C518F2A3DDC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.Internal.BoundTreeGenerator</RootNamespace>
@@ -32,10 +33,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

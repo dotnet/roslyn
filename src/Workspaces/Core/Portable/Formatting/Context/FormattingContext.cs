@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode);
+            var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode, endToken);
             var results = initialContextFinder.Do(startToken, endToken);
 
             if (results.Item1 != null)
@@ -106,7 +106,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                                                 formattingRules,
                                                 this.OptionSet.GetOption(FormattingOptions.TabSize, _language),
                                                 this.OptionSet.GetOption(FormattingOptions.IndentationSize, _language),
-                                                _tokenStream);
+                                                _tokenStream,
+                                                endToken);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,

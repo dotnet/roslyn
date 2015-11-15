@@ -1239,6 +1239,7 @@ class C : G<C[,][]>
             Assert.Equal(c, carr2.ElementType);
             Assert.Equal(2, carr1.Rank);
             Assert.Equal(1, carr2.Rank);
+            Assert.True(carr2.IsSZArray);
         }
 
         [Fact]
@@ -1900,6 +1901,175 @@ class D : B {
             var typeInfo = model.GetTypeInfo(baseY);
             Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int64, typeInfo.ConvertedType.SpecialType);
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_01()
+        {
+            var text =
+@"
+using static CrashTest.Crash<CrashTest.Class2>; 
+
+namespace CrashTest 
+{ 
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_02()
+        {
+            var text =
+@"
+using static CrashTest.Crash<object>; 
+
+namespace CrashTest 
+{ 
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+
+    class Class3
+    {
+        AbstractClass Test()
+        {
+            return null;
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (6,11): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
+    //     class Class2 : AbstractClass 
+    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Class2").WithArguments("CrashTest.Crash<T>", "CrashTest.Crash<object>.AbstractClass", "T", "object").WithLocation(6, 11),
+    // (21,23): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
+    //         AbstractClass Test()
+    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Test").WithArguments("CrashTest.Crash<T>", "CrashTest.Crash<object>.AbstractClass", "T", "object").WithLocation(21, 23)
+                );
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_03()
+        {
+            var text =
+@"
+using static CrashTest.Crash<CrashTest.Class2>; 
+
+namespace CrashTest 
+{ 
+    [System.Obsolete]
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    [System.Obsolete]
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (2,30): warning CS0612: 'Class2' is obsolete
+    // using static CrashTest.Crash<CrashTest.Class2>; 
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "CrashTest.Class2").WithArguments("CrashTest.Class2").WithLocation(2, 30)
+                );
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_04()
+        {
+            var text =
+@"
+using static CrashTest.Crash<CrashTest.Class2>; 
+
+namespace CrashTest 
+{ 
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        [System.Obsolete]
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (11,18): warning CS0612: 'Crash<T>.AbstractClass' is obsolete
+    //         where T: Crash<T>.AbstractClass 
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Crash<T>.AbstractClass").WithArguments("CrashTest.Crash<T>.AbstractClass").WithLocation(11, 18),
+    // (6,20): warning CS0612: 'Crash<Class2>.AbstractClass' is obsolete
+    //     class Class2 : AbstractClass 
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "AbstractClass").WithArguments("CrashTest.Crash<CrashTest.Class2>.AbstractClass").WithLocation(6, 20)
+                );
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_05()
+        {
+            var text =
+@"
+using CrashTest.Crash<CrashTest.Class2>; 
+
+namespace CrashTest 
+{ 
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (2,7): error CS0138: A 'using namespace' directive can only be applied to namespaces; 'Crash<Class2>' is a type not a namespace. Consider a 'using static' directive instead
+    // using CrashTest.Crash<CrashTest.Class2>; 
+    Diagnostic(ErrorCode.ERR_BadUsingNamespace, "CrashTest.Crash<CrashTest.Class2>").WithArguments("CrashTest.Crash<CrashTest.Class2>").WithLocation(2, 7),
+    // (6,20): error CS0246: The type or namespace name 'AbstractClass' could not be found (are you missing a using directive or an assembly reference?)
+    //     class Class2 : AbstractClass 
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AbstractClass").WithArguments("AbstractClass").WithLocation(6, 20),
+    // (2,1): hidden CS8019: Unnecessary using directive.
+    // using CrashTest.Crash<CrashTest.Class2>; 
+    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using CrashTest.Crash<CrashTest.Class2>;").WithLocation(2, 1)
+                );
         }
     }
 }

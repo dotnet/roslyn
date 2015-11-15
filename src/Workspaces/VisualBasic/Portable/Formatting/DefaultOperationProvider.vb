@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Sub AddSuppressOperations(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
+        Public Sub AddSuppressOperations(operations As List(Of SuppressOperation), node As SyntaxNode, lastToken As SyntaxToken, optionSet As OptionSet, nextAction As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
         End Sub
 
         Public Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AnchorIndentationOperation)) Implements IFormattingRule.AddAnchorIndentationOperations

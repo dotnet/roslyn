@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Dev10 does not report this error when inferring a type parameter's type. Create a new object() type
                         ' to suppress the error.
 
-                        inferredType = New ArrayTypeSymbol(arrayType.ElementType, Nothing, arrayType.Rank, arrayLiteral.Binder.Compilation.Assembly)
+                        inferredType = ArrayTypeSymbol.CreateVBArray(arrayType.ElementType, Nothing, arrayType.Rank, arrayLiteral.Binder.Compilation.Assembly)
                     Else
                         inferredType = arrayLiteral.InferredType
                     End If
@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             firstInferredType = currentTypeInfo.ResultType
 
                         ElseIf Not firstInferredType.IsSameTypeIgnoringCustomModifiers(currentTypeInfo.ResultType) Then
-                            ' Whidbey failed hard here, in orca's we added dominant type information.
+                            ' Whidbey failed hard here, in Orcas we added dominant type information.
                             Graph.MarkInferenceLevel(InferenceLevel.Orcas)
                         End If
                     Next
@@ -820,7 +820,7 @@ HandleAsAGeneralExpression:
 
                             If Not madeInferenceProgress Then
                                 ' Did not make progress trying to force incoming edges for nodes with TypesHints, just inferring all now,
-                                ' will infer object if no typehints.
+                                ' will infer object if no type hints.
                                 For Each child As InferenceNode In childNodes
                                     If child.NodeType = InferenceNodeType.TypeParameterNode AndAlso
                                        child.InferTypeAndPropagateHints() Then
@@ -969,7 +969,7 @@ HandleAsAGeneralExpression:
                             ' Perform the conversions to the element type of the ParamArray here.
                             Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                            If arrayType.Rank <> 1 Then
+                            If Not arrayType.IsSZArray Then
                                 Continue For
                             End If
 
@@ -1211,9 +1211,11 @@ HandleAsAGeneralExpression:
 
             Private Shared Function ArgumentTypePossiblyMatchesParamarrayShape(argument As BoundExpression, paramType As TypeSymbol) As Boolean
                 Dim argumentType As TypeSymbol = argument.Type
+                Dim isArrayLiteral As Boolean = False
 
                 If argumentType Is Nothing Then
                     If argument.Kind = BoundKind.ArrayLiteral Then
+                        isArrayLiteral = True
                         argumentType = DirectCast(argument, BoundArrayLiteral).InferredType
                     Else
                         Return False
@@ -1229,10 +1231,13 @@ HandleAsAGeneralExpression:
                     Dim argumentArray = DirectCast(argumentType, ArrayTypeSymbol)
                     Dim paramArrayType = DirectCast(paramType, ArrayTypeSymbol)
 
-                    If argumentArray.Rank <> paramArrayType.Rank Then
+                    ' We can ignore IsSZArray value for an inferred type of an array literal as long as its rank matches.
+                    If argumentArray.Rank <> paramArrayType.Rank OrElse
+                       (Not isArrayLiteral AndAlso argumentArray.IsSZArray <> paramArrayType.IsSZArray) Then
                         Return False
                     End If
 
+                    isArrayLiteral = False
                     argumentType = argumentArray.ElementType
                     paramType = paramArrayType.ElementType
                 End While
@@ -1491,8 +1496,11 @@ HandleAsAGeneralExpression:
                     If argumentType.IsArrayType() Then
                         Dim parameterArray = DirectCast(parameterType, ArrayTypeSymbol)
                         Dim argumentArray = DirectCast(argumentType, ArrayTypeSymbol)
+                        Dim argumentIsAarrayLiteral = TypeOf argumentArray Is ArrayLiteralTypeSymbol
 
-                        If parameterArray.Rank = argumentArray.Rank Then
+                        ' We can ignore IsSZArray value for an inferred type of an array literal as long as its rank matches. 
+                        If parameterArray.Rank = argumentArray.Rank AndAlso
+                           (argumentIsAarrayLiteral OrElse parameterArray.IsSZArray = argumentArray.IsSZArray) Then
                             Return InferTypeArgumentsFromArgument(
                                     argumentLocation,
                                     argumentArray.ElementType,
@@ -1500,7 +1508,7 @@ HandleAsAGeneralExpression:
                                     parameterArray.ElementType,
                                     param,
                                     digThroughToBasesAndImplements,
-                                    Conversions.CombineConversionRequirements(inferenceRestrictions, If(TypeOf argumentArray Is ArrayLiteralTypeSymbol, RequiredConversion.Any, RequiredConversion.ArrayElement)))
+                                    Conversions.CombineConversionRequirements(inferenceRestrictions, If(argumentIsAarrayLiteral, RequiredConversion.Any, RequiredConversion.ArrayElement)))
                         End If
                     End If
 
@@ -1716,7 +1724,7 @@ HandleAsAGeneralExpression:
                 Dim baseSearchTypeKind As SymbolKind = baseSearchType.Kind
 
                 If baseSearchTypeKind <> SymbolKind.NamedType AndAlso baseSearchTypeKind <> SymbolKind.TypeParameter AndAlso
-                   Not (baseSearchTypeKind = SymbolKind.ArrayType AndAlso DirectCast(baseSearchType, ArrayTypeSymbol).Rank = 1) Then
+                   Not (baseSearchTypeKind = SymbolKind.ArrayType AndAlso DirectCast(baseSearchType, ArrayTypeSymbol).IsSZArray) Then
                     ' The things listed above are the only ones that have bases that could ever lead anywhere useful.
                     ' NamedType is satisfied by interfaces, structures, enums, delegates and modules as well as just classes.
                     Return False
@@ -2067,10 +2075,7 @@ HandleAsAGeneralExpression:
                                 Dim inferenceSignature As New UnboundLambda.TargetSignature(delegateParams, unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void))
                                 Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic)) = unboundLambda.InferReturnType(inferenceSignature)
 
-                                If returnTypeInfo.Key Is LambdaSymbol.ReturnTypeIsUnknown Then
-                                    lambdaReturnType = Nothing
-
-                                ElseIf Not returnTypeInfo.Value.IsDefault AndAlso returnTypeInfo.Value.HasAnyErrors() Then
+                                If Not returnTypeInfo.Value.IsDefault AndAlso returnTypeInfo.Value.HasAnyErrors() Then
                                     lambdaReturnType = Nothing
 
                                     ' Let's keep return type inference errors
@@ -2079,6 +2084,10 @@ HandleAsAGeneralExpression:
                                     End If
 
                                     Me.Diagnostic.AddRange(returnTypeInfo.Value)
+
+                                ElseIf returnTypeInfo.Key Is LambdaSymbol.ReturnTypeIsUnknown Then
+                                    lambdaReturnType = Nothing
+
                                 Else
                                     Dim boundLambda As BoundLambda = unboundLambda.Bind(New UnboundLambda.TargetSignature(inferenceSignature.ParameterTypes,
                                                                                                                           inferenceSignature.IsByRef,
@@ -2098,6 +2107,15 @@ HandleAsAGeneralExpression:
                                         End If
                                     Else
                                         lambdaReturnType = Nothing
+
+                                        ' Let's preserve diagnostics that caused the failure
+                                        If Not boundLambda.Diagnostics.IsDefaultOrEmpty Then
+                                            If Me.Diagnostic Is Nothing Then
+                                                Me.Diagnostic = New DiagnosticBag()
+                                            End If
+
+                                            Me.Diagnostic.AddRange(boundLambda.Diagnostics)
+                                        End If
                                     End If
                                 End If
 
@@ -2186,23 +2204,26 @@ HandleAsAGeneralExpression:
                 ' arguments as they stand right now, with some of them still being uninferred.
 
                 Dim methodSymbol As MethodSymbol = Candidate
-                Dim typeArguments(_typeParameterNodes.Length - 1) As TypeSymbol
+                Dim typeArguments = ArrayBuilder(Of TypeWithModifiers).GetInstance(_typeParameterNodes.Length)
 
                 For i As Integer = 0 To _typeParameterNodes.Length - 1 Step 1
                     Dim typeNode As TypeParameterNode = _typeParameterNodes(i)
+                    Dim newType As TypeSymbol
 
                     If typeNode Is Nothing OrElse typeNode.CandidateInferredType Is Nothing Then
                         'No substitution
-                        typeArguments(i) = methodSymbol.TypeParameters(i)
+                        newType = methodSymbol.TypeParameters(i)
                     Else
-                        typeArguments(i) = typeNode.CandidateInferredType
+                        newType = typeNode.CandidateInferredType
                     End If
+
+                    typeArguments.Add(New TypeWithModifiers(newType))
                 Next
 
-                Dim partialSubstitution = TypeSubstitution.CreateAdditionalMethodTypeParameterSubstitution(methodSymbol.ConstructedFrom, typeArguments.AsImmutableOrNull())
+                Dim partialSubstitution = TypeSubstitution.CreateAdditionalMethodTypeParameterSubstitution(methodSymbol.ConstructedFrom, typeArguments.ToImmutableAndFree())
 
                 ' Now we apply the partial substitution to the delegate type, leaving uninferred type parameters as is
-                Return parameterType.InternalSubstituteTypeParameters(partialSubstitution)
+                Return parameterType.InternalSubstituteTypeParameters(partialSubstitution).Type
             End Function
 
             Public Sub ReportAmbiguousInferenceError(typeInfos As ArrayBuilder(Of DominantTypeDataTypeInference))

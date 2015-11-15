@@ -110,6 +110,8 @@
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Reset</ButtonText>
+          <CanonicalName>.InteractiveConsole.Reset</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.Reset</LocCanonicalName>
         </Strings>
       </Button>
       
@@ -119,26 +121,40 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Execute or Paste Input</ButtonText>
-          <CanonicalName>ExecuteOrPasteInput</CanonicalName>
-          <LocCanonicalName>ExecuteOrPasteInput</LocCanonicalName>
+          <CanonicalName>.InteractiveConsole.ExecuteOrPasteInput</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.ExecuteOrPasteInput</LocCanonicalName>
         </Strings>
       </Button>
 
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidHistoryPrevious" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="MoveUp" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/5295)
+        <Icon guid="ImageCatalogGuid" id="LastHistoryCommand" /> 
+        -->
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>History Previous</ButtonText>
+          <CanonicalName>.InteractiveConsole.HistoryPrevious</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.HistoryPrevious</LocCanonicalName>
         </Strings>
       </Button>
 
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidHistoryNext" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="MoveDown" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/5295)
+        <Icon guid="ImageCatalogGuid" id="ListMembers" />
+        -->
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>History Next</ButtonText>
+          <CanonicalName>.InteractiveConsole.HistoryNext</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.HistoryNext</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -148,6 +164,8 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Search History Next</ButtonText>
+          <CanonicalName>.InteractiveConsole.SearchHistoryNext</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.SearchHistoryNext</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -157,9 +175,10 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Search History Previous</ButtonText>
+          <CanonicalName>.InteractiveConsole.SearchHistoryPrevious</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.SearchHistoryPrevious</LocCanonicalName>
         </Strings>
       </Button>
-
 
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuClearGroup"/>
@@ -167,6 +186,8 @@
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Clear Screen</ButtonText>
+          <CanonicalName>.InteractiveConsole.ClearScreen</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.ClearScreen</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -176,6 +197,8 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Break Line</ButtonText>
+          <CanonicalName>.InteractiveConsole.BreakLine</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.BreakLine</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -188,6 +211,8 @@
                 <Strings>
                     <CommandName>cmdidAbortExecution</CommandName>
                     <ButtonText>Cancel Execution</ButtonText>
+                    <CanonicalName>.InteractiveConsole.CancelExecution</CanonicalName>
+                    <LocCanonicalName>.InteractiveConsole.CancelExecution</LocCanonicalName>
                 </Strings>
             </Button>
             -->
@@ -198,7 +223,9 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Execute In Interactive</ButtonText>
+          <ButtonText>Execute in Interactive</ButtonText>
+          <CanonicalName>.InteractiveConsole.ExecuteInInteractive</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.ExecuteInInteractive</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -207,17 +234,25 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Copy To Interactive</ButtonText>
+          <ButtonText>Copy to Interactive</ButtonText>
+          <CanonicalName>.InteractiveConsole.CopyToInteractive</CanonicalName>
+          <LocCanonicalName>.InteractiveConsole.CopyToInteractive</LocCanonicalName>
         </Strings>
       </Button>
     </Buttons>
   </Commands>
 
   <CommandPlacements>
-    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0100">
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidReset" priority="0x0100">
       <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
     </CommandPlacement>
-    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidReset" priority="0x0100">
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0101">
+      <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidHistoryPrevious" priority="0x0110">
+      <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidHistoryNext" priority="0x0111">
       <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
     </CommandPlacement>
 

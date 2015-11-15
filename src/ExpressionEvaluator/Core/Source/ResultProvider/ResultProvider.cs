@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         onCompleted(result);
                     }
-                    catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                    catch (Exception e)
                     {
                         onException(e);
                     }
@@ -831,6 +831,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return null;
             }
 
+            if(declaredType.IsFunctionPointer())
+            {
+                // Function pointers have no expansion
+                return null;
+            }
+
             if (declaredType.IsPointer)
             {
                 // If this ever happens, the element type info is just .SkipOne().
@@ -895,7 +901,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         completionRoutine();
                     }
-                    catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                    catch (Exception e)
                     {
                         _onException(e);
                     }

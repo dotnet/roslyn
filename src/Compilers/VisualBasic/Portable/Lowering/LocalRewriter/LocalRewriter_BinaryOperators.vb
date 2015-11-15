@@ -81,10 +81,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
-            Dim opKind = node.OperatorKind
+            ' Do not blow the stack due to a deep recursion on the left. 
 
-            If (opKind And BinaryOperatorKind.Lifted) <> 0 Then
-                Return RewriteLiftedIntrinsicBinaryOperator(node)
+            Dim child As BoundExpression = node.Left
+
+            If child.Kind <> BoundKind.BinaryOperator Then
+                Return RewriteBinaryOperatorSimple(node)
+            End If
+
+            Dim stack = ArrayBuilder(Of BoundBinaryOperator).GetInstance()
+            stack.Push(node)
+
+            Dim binary As BoundBinaryOperator = DirectCast(child, BoundBinaryOperator)
+
+            Do
+                stack.Push(binary)
+                child = binary.Left
+
+                If child.Kind <> BoundKind.BinaryOperator Then
+                    Exit Do
+                End If
+
+                binary = DirectCast(child, BoundBinaryOperator)
+            Loop
+
+            Dim left = VisitExpressionNode(child)
+
+            Do
+                binary = stack.Pop()
+
+                Dim right = VisitExpressionNode(binary.Right)
+
+                If (binary.OperatorKind And BinaryOperatorKind.Lifted) <> 0 Then
+                    left = FinishRewriteOfLiftedIntrinsicBinaryOperator(binary, left, right)
+                Else
+                    left = TransformRewrittenBinaryOperator(binary.Update(binary.OperatorKind, left, right, binary.Checked, binary.ConstantValueOpt, Me.VisitType(binary.Type)))
+                End If
+            Loop While binary IsNot node
+
+            Debug.Assert(stack.Count = 0)
+            stack.Free()
+
+            Return left
+        End Function
+
+        Private Function RewriteBinaryOperatorSimple(node As BoundBinaryOperator) As BoundNode
+            If (node.OperatorKind And BinaryOperatorKind.Lifted) <> 0 Then
+                Return RewriteLiftedIntrinsicBinaryOperatorSimple(node)
             End If
 
             Return TransformRewrittenBinaryOperator(DirectCast(MyBase.VisitBinaryOperator(node), BoundBinaryOperator))
@@ -717,11 +760,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Function RewriteLiftedIntrinsicBinaryOperator(node As BoundBinaryOperator) As BoundNode
-            Debug.Assert((node.OperatorKind And BinaryOperatorKind.Lifted) <> 0)
-
+        Private Function RewriteLiftedIntrinsicBinaryOperatorSimple(node As BoundBinaryOperator) As BoundNode
             Dim left As BoundExpression = VisitExpressionNode(node.Left)
             Dim right As BoundExpression = VisitExpressionNode(node.Right)
+
+            Return FinishRewriteOfLiftedIntrinsicBinaryOperator(node, left, right)
+        End Function
+
+        Private Function FinishRewriteOfLiftedIntrinsicBinaryOperator(node As BoundBinaryOperator, left As BoundExpression, right As BoundExpression) As BoundExpression
+            Debug.Assert((node.OperatorKind And BinaryOperatorKind.Lifted) <> 0)
 
             If Me._inExpressionLambda Then
                 Return node.Update(node.OperatorKind, left, right, node.Checked, node.ConstantValueOpt, node.Type)
@@ -852,7 +899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             leftHasNoValue As Boolean,
                                                             rightHasNoValue As Boolean,
                                                             leftHasValue As Boolean,
-                                                            rightHasValue As Boolean) As BoundNode
+                                                            rightHasValue As Boolean) As BoundExpression
 
             Debug.Assert(left.Type.IsNullableOfBoolean AndAlso right.Type.IsNullableOfBoolean AndAlso node.Type.IsNullableOfBoolean)
             Debug.Assert(Not (leftHasNoValue And rightHasNoValue))
@@ -946,10 +993,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' x And y is rewritten into:
             '
             ' tempX = x
-            ' [tempY = y] ' if not shortcircuiting
+            ' [tempY = y] ' if not short-circuiting
             ' If (tempX.HasValue AndAlso Not tempX.GetValueOrDefault(),
             '   False?,                             ' result based on the left operand
-            '   If ((tempY = y).HasValue,           ' if shortcircuiting, otherwise just "y.HasValue"
+            '   If ((tempY = y).HasValue,           ' if short-circuiting, otherwise just "y.HasValue"
             '       If (tempY.GetValueOrDefault(),  ' innermost If
             '           tempX,
             '           False?),
@@ -1009,7 +1056,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '       nestedIf,
                     '       Null)
                     '
-                    ' note that we use init of the Right as a target of HasValue when shortcircuiting 
+                    ' note that we use init of the Right as a target of HasValue when short-circuiting 
                     ' it will run only if we do not get result after looking at left
                     '
                     ' NOTE: when not short circuiting we use captured right and evaluate init 

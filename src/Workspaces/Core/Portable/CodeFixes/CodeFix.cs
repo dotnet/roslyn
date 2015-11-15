@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     internal class CodeFix
     {
+        internal readonly Project Project;
         internal readonly CodeAction Action;
         internal readonly ImmutableArray<Diagnostic> Diagnostics;
 
@@ -41,15 +42,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        internal CodeFix(CodeAction action, Diagnostic diagnostic)
+        internal CodeFix(Project project, CodeAction action, Diagnostic diagnostic)
         {
+            this.Project = project;
             this.Action = action;
             this.Diagnostics = ImmutableArray.Create(diagnostic);
         }
 
-        internal CodeFix(CodeAction action, ImmutableArray<Diagnostic> diagnostics)
+        internal CodeFix(Project project, CodeAction action, ImmutableArray<Diagnostic> diagnostics)
         {
             Debug.Assert(!diagnostics.IsDefault);
+            this.Project = project;
             this.Action = action;
             this.Diagnostics = diagnostics;
         }

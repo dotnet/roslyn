@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -153,8 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (var current = node; binder == null; current = current.ParentOrStructuredTriviaParent)
             {
                 Debug.Assert(current != null); // Why were we asked for an enclosing binder for a node outside our root?
-
                 StatementSyntax stmt = current as StatementSyntax;
+                TypeOfExpressionSyntax typeOfExpression;
                 if (stmt != null)
                 {
                     if (LookupPosition.IsInStatementScope(position, stmt))
@@ -197,9 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (current.Kind() == SyntaxKind.TypeOfExpression && typeOfArgument == null)
+                else if (current.Kind() == SyntaxKind.TypeOfExpression &&
+                    typeOfArgument == null &&
+                    LookupPosition.IsBetweenTokens(
+                        position,
+                        (typeOfExpression = (TypeOfExpressionSyntax)current).OpenParenToken,
+                        typeOfExpression.CloseParenToken))
                 {
-                    typeOfArgument = ((TypeOfExpressionSyntax)current).Type;
+                    typeOfArgument = typeOfExpression.Type;
                     typeOfEncounteredBeforeUnexpectedAnonymousFunction = unexpectedAnonymousFunction == null;
                 }
                 else
@@ -762,6 +768,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return _root.SyntaxTree;
             }
+        }
+
+        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        {
+            CSharpSyntaxNode bindableNode;
+
+            BoundNode lowestBoundNode;
+            BoundNode highestBoundNode;
+            BoundNode boundParent;
+
+            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
+            BoundNode result;
+            switch (options)
+            {
+                case GetOperationOptions.Parent:
+                    result = boundParent;
+                    break;
+                case GetOperationOptions.Highest:
+                    result = highestBoundNode;
+                    break;
+                case GetOperationOptions.Lowest:
+                default:
+                    result = lowestBoundNode;
+                    break;
+            }
+
+            // Screen out bound nodes that aren't appropriate as IOperations.
+            if (result != null && result.Kind == BoundKind.EqualsValue)
+            {
+                result = ((BoundEqualsValue)result).Value;
+            }
+
+            return result as IOperation;
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))

@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Debug.Assert(type.ContainingType Is Nothing OrElse Not type.ContainingType.IsUnboundGenericType)
 
                 Dim genericType As NamedTypeSymbol = type
-                Dim oldArguments = ArrayBuilder(Of TypeSymbol).GetInstance()
+                Dim oldArguments = ArrayBuilder(Of TypeWithModifiers).GetInstance()
                 Dim startOfNonInterfaceArguments As Integer = Integer.MaxValue
 
                 ' Collect generic arguments for the type and its containers.
@@ -407,29 +407,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         startOfNonInterfaceArguments = oldArguments.Count
                     End If
 
-                    If genericType.Arity > 0 Then
-                        oldArguments.AddRange(genericType.TypeArgumentsNoUseSiteDiagnostics)
+                    Dim arity As Integer = genericType.Arity
+
+                    If arity > 0 Then
+                        Dim args = genericType.TypeArgumentsNoUseSiteDiagnostics
+
+                        If genericType.HasTypeArgumentsCustomModifiers Then
+                            Dim modifiers = genericType.TypeArgumentsCustomModifiers
+
+                            For i As Integer = 0 To arity - 1
+                                oldArguments.Add(New TypeWithModifiers(args(i), modifiers(i)))
+                            Next
+                        Else
+                            For i As Integer = 0 To arity - 1
+                                oldArguments.Add(New TypeWithModifiers(args(i)))
+                            Next
+                        End If
                     End If
 
                     genericType = genericType.ContainingType
                 End While
 
+                Dim anythingRetargeted As Boolean = Not originalDefinition.Equals(newDefinition)
+
                 ' retarget the arguments
-                Dim newArguments = ArrayBuilder(Of TypeSymbol).GetInstance(oldArguments.Count)
+                Dim newArguments = ArrayBuilder(Of TypeWithModifiers).GetInstance(oldArguments.Count)
 
                 For Each arg In oldArguments
+                    Dim modifiersHaveChanged As Boolean = False
+
                     ' generic instantiation is a signature
-                    newArguments.Add(DirectCast(arg.Accept(Me, RetargetOptions.RetargetPrimitiveTypesByTypeCode), TypeSymbol))
+                    Dim newArg = New TypeWithModifiers(DirectCast(arg.Type.Accept(Me, RetargetOptions.RetargetPrimitiveTypesByTypeCode), TypeSymbol),
+                                                       RetargetModifiers(arg.CustomModifiers, modifiersHaveChanged))
+
+                    If Not anythingRetargeted AndAlso (modifiersHaveChanged OrElse newArg.Type <> arg.Type) Then
+                        anythingRetargeted = True
+                    End If
+
+                    newArguments.Add(newArg)
                 Next
-
-                ' See if definition or any of the arguments were retargeted
-                Dim anythingRetargeted As Boolean = False
-
-                If Not originalDefinition.Equals(newDefinition) Then
-                    anythingRetargeted = True
-                Else
-                    anythingRetargeted = Not newArguments.SequenceEqual(oldArguments)
-                End If
 
                 ' See if it is or its enclosing type is a non-interface closed over NoPia local types.
                 Dim noPiaIllegalGenericInstantiation As Boolean = IsNoPiaIllegalGenericInstantiation(oldArguments, newArguments, startOfNonInterfaceArguments)
@@ -474,12 +490,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Return DirectCast(constructedType, NamedTypeSymbol)
             End Function
 
-            Private Function IsNoPiaIllegalGenericInstantiation(oldArguments As ArrayBuilder(Of TypeSymbol), newArguments As ArrayBuilder(Of TypeSymbol), startOfNonInterfaceArguments As Integer) As Boolean
+            Private Function IsNoPiaIllegalGenericInstantiation(oldArguments As ArrayBuilder(Of TypeWithModifiers), newArguments As ArrayBuilder(Of TypeWithModifiers), startOfNonInterfaceArguments As Integer) As Boolean
                 ' TODO: Do we need to check constraints on type parameters as well?
 
                 If UnderlyingModule.ContainsExplicitDefinitionOfNoPiaLocalTypes Then
                     For i As Integer = startOfNonInterfaceArguments To oldArguments.Count - 1 Step 1
-                        If IsOrClosedOverAnExplicitLocalType(oldArguments(i)) Then
+                        If IsOrClosedOverAnExplicitLocalType(oldArguments(i).Type) Then
                             Return True
                         End If
                     Next
@@ -489,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                 If assembliesToEmbedTypesFrom.Length > 0 Then
                     For i As Integer = startOfNonInterfaceArguments To oldArguments.Count - 1 Step 1
-                        If MetadataDecoder.IsOrClosedOverATypeFromAssemblies(oldArguments(i), assembliesToEmbedTypesFrom) Then
+                        If MetadataDecoder.IsOrClosedOverATypeFromAssemblies(oldArguments(i).Type, assembliesToEmbedTypesFrom) Then
                             Return True
                         End If
                     Next
@@ -499,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                 If Not linkedAssemblies.IsDefaultOrEmpty Then
                     For i As Integer = startOfNonInterfaceArguments To newArguments.Count - 1 Step 1
-                        If MetadataDecoder.IsOrClosedOverATypeFromAssemblies(newArguments(i), linkedAssemblies) Then
+                        If MetadataDecoder.IsOrClosedOverATypeFromAssemblies(newArguments(i).Type, linkedAssemblies) Then
                             Return True
                         End If
                     Next
@@ -563,7 +579,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Return type
                 End If
 
-                Return New ArrayTypeSymbol(newElement, newModifiers, type.Rank, RetargetingAssembly)
+                If type.IsSZArray Then
+                    Return ArrayTypeSymbol.CreateSZArray(newElement, newModifiers, RetargetingAssembly)
+                End If
+
+                Return ArrayTypeSymbol.CreateMDArray(newElement, newModifiers, type.Rank, type.Sizes, type.LowerBounds, RetargetingAssembly)
             End Function
 
             Friend Function RetargetModifiers(oldModifiers As ImmutableArray(Of CustomModifier), ByRef modifiersHaveChanged As Boolean) As ImmutableArray(Of CustomModifier)

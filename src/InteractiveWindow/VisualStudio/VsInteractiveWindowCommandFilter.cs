@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -122,35 +123,75 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 
             public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
             {
-                switch (_layer)
+                try
                 {
-                    case CommandFilterLayer.PreLanguage:
-                        return _window.PreLanguageCommandFilterQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+                    switch (_layer)
+                    {
+                        case CommandFilterLayer.PreLanguage:
+                            return _window.PreLanguageCommandFilterQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
 
-                    case CommandFilterLayer.PreEditor:
-                        return _window.PreEditorCommandFilterQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+                        case CommandFilterLayer.PreEditor:
+                            return _window.PreEditorCommandFilterQueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+
+                        default:
+                            throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(_layer);
+                    }
                 }
-
-                throw new InvalidOperationException();
+                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                {
+                    // Exceptions should not escape from command filters.
+                    return _window._editorCommandFilter.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+                }
             }
 
             public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
             {
-                switch (_layer)
+                try
                 {
-                    case CommandFilterLayer.PreLanguage:
-                        return _window.PreLanguageCommandFilterExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                    switch (_layer)
+                    {
+                        case CommandFilterLayer.PreLanguage:
+                            return _window.PreLanguageCommandFilterExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
 
-                    case CommandFilterLayer.PreEditor:
-                        return _window.PreEditorCommandFilterExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                        case CommandFilterLayer.PreEditor:
+                            return _window.PreEditorCommandFilterExec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+
+                        default:
+                            throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(_layer);
+                    }
                 }
-
-                throw new InvalidOperationException();
+                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                {
+                    // Exceptions should not escape from command filters.
+                    return _window._editorCommandFilter.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+                }
             }
         }
 
         private int PreEditorCommandFilterQueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
+            if (pguidCmdGroup == Guids.InteractiveCommandSetId)
+            {
+                switch ((CommandIds)prgCmds[0].cmdID)
+                {
+                    case CommandIds.BreakLine:
+                        prgCmds[0].cmdf = _window.CurrentLanguageBuffer != null ? CommandEnabled : CommandDisabled;
+                        prgCmds[0].cmdf |= (uint)OLECMDF.OLECMDF_DEFHIDEONCTXTMENU;
+                        return VSConstants.S_OK;
+                }
+            }
+            else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
+            {
+                switch ((VSConstants.VSStd97CmdID)prgCmds[0].cmdID)
+                {
+                    // TODO: Add support of rotating clipboard ring 
+                    // https://github.com/dotnet/roslyn/issues/5651
+                    case VSConstants.VSStd97CmdID.PasteNextTBXCBItem:
+                        prgCmds[0].cmdf = CommandDisabled;
+                        return VSConstants.S_OK;
+                }
+            }
+
             return _editorCommandFilter.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
 
@@ -233,13 +274,38 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     case VSConstants.VSStd2KCmdID.EOL_EXT:
                         _window.Operations.End(true);
                         return VSConstants.S_OK;
+                    case VSConstants.VSStd2KCmdID.CUTLINE:
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                operations.CutLine();
+                                return VSConstants.S_OK;
+                            }
+                        }
+                        break;
+                    case VSConstants.VSStd2KCmdID.DELETELINE:
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                operations.DeleteLine();
+                                return VSConstants.S_OK;
+                            }
+                        }
+                        break;
+
                 }
             }
             else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
             {
-                // undo/redo support:
                 switch ((VSConstants.VSStd97CmdID)nCmdID)
                 {
+                    // TODO: Add support of rotating clipboard ring 
+                    // https://github.com/dotnet/roslyn/issues/5651
+                    case VSConstants.VSStd97CmdID.PasteNextTBXCBItem:
+                        return (int)OLE.Interop.Constants.OLECMDERR_E_NOTSUPPORTED;
+
                     case VSConstants.VSStd97CmdID.Paste:
                         _window.Operations.Paste();
                         return VSConstants.S_OK;
@@ -247,6 +313,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     case VSConstants.VSStd97CmdID.Cut:
                         _window.Operations.Cut();
                         return VSConstants.S_OK;
+
+                    case VSConstants.VSStd97CmdID.Copy:
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                operations.Copy();
+                                return VSConstants.S_OK;
+                            }
+                        }
+                        break;
 
                     case VSConstants.VSStd97CmdID.Delete:
                         if (_window.Operations.Delete())
@@ -367,6 +444,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                 // undo/redo support:
                 switch ((VSConstants.VSStd97CmdID)nCmdID)
                 {
+                    // TODO: remove (https://github.com/dotnet/roslyn/issues/5642)
+                    case VSConstants.VSStd97CmdID.FindReferences:
+                        return VSConstants.S_OK;
                     case VSConstants.VSStd97CmdID.Undo:
                     case VSConstants.VSStd97CmdID.MultiLevelUndo:
                     case VSConstants.VSStd97CmdID.MultiLevelUndoList:

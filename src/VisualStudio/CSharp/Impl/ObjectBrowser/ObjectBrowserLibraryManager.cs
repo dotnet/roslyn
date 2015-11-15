@@ -10,13 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
     internal class ObjectBrowserLibraryManager : AbstractObjectBrowserLibraryManager
     {
         public ObjectBrowserLibraryManager(IServiceProvider serviceProvider)
-            : base(LanguageNames.CSharp, Guids.CSharpLibraryId, serviceProvider)
+            : base(LanguageNames.CSharp, Guids.CSharpLibraryId, __SymbolToolLanguage.SymbolToolLanguage_CSharp, serviceProvider)
         {
-        }
-
-        public override __SymbolToolLanguage SymbolToolLanguage
-        {
-            get { return __SymbolToolLanguage.SymbolToolLanguage_CSharp; }
         }
 
         internal override AbstractDescriptionBuilder CreateDescriptionBuilder(

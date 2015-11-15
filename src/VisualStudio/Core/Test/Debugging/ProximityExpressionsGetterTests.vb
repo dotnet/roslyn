@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                 Dim index = 0
                 Dim statements = document.GetSyntaxRootAsync(CancellationToken.None).Result.DescendantTokens().Select(Function(t) t.GetAncestor(Of StatementSyntax)()).Distinct().WhereNotNull()
                 For Each statement In statements
-                    builder.AppendLine("<Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>")
+                    builder.AppendLine("<WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>")
                     builder.AppendLine("Public Sub TestAtStartOfStatement_" & index & "()")
 
                     Dim token = statement.GetFirstToken()
@@ -162,7 +162,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                                                   End Sub)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(538819)>
         <WorkItem(527754)>
         Public Sub TestIsValid1()
@@ -174,32 +174,32 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
 End Module</text>.Value, "local", True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Sub TestIsValidWithDiagnostics()
             ' local doesn't exist in this context
             TestIsValid("class Class { void Method() { string local; } $$}", "local", False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Sub TestIsValidReferencingLocalBeforeDeclaration()
             TestIsValid("class Class { void Method() { $$int i; int j; } }", "j", False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Sub TestIsValidReferencingUndefinedVariable()
             TestIsValid("class Class { void Method() { $$int i; int j; } }", "k", False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Sub TestIsValidNoTypeSymbol()
             TestIsValid("namespace Namespace$$ { }", "foo", False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
         Public Sub TestIsValidLocalAfterPosition()
             TestIsValid("class Class { void Method() { $$ int i; string local; } }", "local", False)
@@ -221,13 +221,13 @@ End Module</text>.Value, "local", True)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(538819)>
         Public Sub TestDebugInfo1()
             TestLanguageDebugInfoTryGetProximityExpressions("$$Module M : End Module", Array.Empty(Of String)(), False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Sub TestTryDo1()
             TestTryDo(<text>Module M
     Sub S
@@ -237,18 +237,18 @@ End Module</text>.Value, "local", True)
 End Module</text>.NormalizedValue, "local")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Sub TestStatementTerminatorToken()
             TestTryDo(<text>Module M$$
 </text>.Value)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Sub TestNoParentToken()
             TestTryDo(<text>$$</text>.NormalizedValue)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Sub TestCatchParameters()
             TestTryDo(<text>
 Module M
@@ -265,7 +265,7 @@ End Module
         End Sub
 
         <WorkItem(538847)>
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Sub TestMultipleStatementsOnSameLine()
             TestTryDo(<text>
 Imports System

@@ -48,6 +48,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ''' <summary>
+        ''' Returns custom modifiers for the type arguments that have been substituted for the type parameters. 
+        ''' </summary>
+        Friend MustOverride ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+
+        Friend Function CreateEmptyTypeArgumentsCustomModifiers() As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Dim arity = Me.Arity
+
+            If arity > 0 Then
+                Return CreateEmptyTypeArgumentsCustomModifiers(arity)
+            Else
+                Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
+            End If
+        End Function
+
+        Friend Shared Function CreateEmptyTypeArgumentsCustomModifiers(arity As Integer) As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Debug.Assert(arity > 0)
+            Return ArrayBuilder(Of ImmutableArray(Of CustomModifier)).GetInstance(arity, ImmutableArray(Of CustomModifier).Empty).ToImmutableAndFree()
+        End Function
+
+        Friend MustOverride ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
+
         Friend MustOverride ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
         Friend Function TypeArgumentsWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of TypeSymbol)
@@ -189,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' For delegate types, gets the delegate's invoke method.  Returns null on
-        ''' all other kinds of types.  Note that is is possible to have an ill-formed 
+        ''' all other kinds of types.  Note that it is possible to have an ill-formed 
         ''' delegate type imported from metadata which does not have an Invoke method.
         ''' Such a type will be classified as a delegate but its DelegateInvokeMethod
         ''' would be null.
@@ -482,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Validate the map for use of alpha-renamed type parameters.
             substitution.ThrowIfSubstitutingToAlphaRenamedTypeParameter()
 
-            Return DirectCast(InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+            Return DirectCast(InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
         End Function
 
         ''' <summary>
@@ -990,6 +1012,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
             Next
+
+            If Me.HasTypeArgumentsCustomModifiers Then
+                Dim modifiersErrorInfo As DiagnosticInfo = Nothing
+
+                For Each modifiers In Me.TypeArgumentsCustomModifiers
+                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(modifiers))
+                Next
+
+                Return MergeUseSiteErrorInfo(argsErrorInfo, modifiersErrorInfo)
+            End If
 
             Return argsErrorInfo
         End Function

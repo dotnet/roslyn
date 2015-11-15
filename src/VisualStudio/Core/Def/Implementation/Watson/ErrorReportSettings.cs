@@ -228,14 +228,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
         /// <summary>
         /// Gets the file path being added to report
         /// </summary>
-        public string Path { get; private set; }
+        public string Path { get; }
         /// <summary>
         /// Gets the type of the file being added to report.
         /// </summary>
-        public ErrorFileType Type { get; private set; }
+        public ErrorFileType Type { get; }
         /// <summary>
         /// Gets the flags of the file being added to report.
         /// </summary>
-        public ErrorFileFlags Flags { get; private set; }
+        public ErrorFileFlags Flags { get; }
     }
 }

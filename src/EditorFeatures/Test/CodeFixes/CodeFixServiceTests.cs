@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 {
     public class CodeFixServiceTests
     {
-        [Fact]
+        [WpfFact]
         public void TestGetFirstDiagnosticWithFixAsync()
         {
             var diagnosticService = new TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
@@ -56,28 +57,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCodeFixWithExceptionInRegisterMethod()
         {
             GetFirstDiagnosticWithFix(new ErrorCases.ExceptionInRegisterMethod());
             GetAddedFixes(new ErrorCases.ExceptionInRegisterMethod());
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCodeFixWithExceptionInRegisterMethodAsync()
         {
             GetFirstDiagnosticWithFix(new ErrorCases.ExceptionInRegisterMethodAsync());
             GetAddedFixes(new ErrorCases.ExceptionInRegisterMethodAsync());
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCodeFixWithExceptionInFixableDiagnosticIds()
         {
             GetDefaultFixes(new ErrorCases.ExceptionInFixableDiagnosticIds());
             GetAddedFixes(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
-        [Fact]
+        [WpfFact]
+        public void TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
+        {
+            GetDefaultFixes(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+            GetAddedFixes(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+        }
+
+        [WpfFact]
         public void TestGetCodeFixWithExceptionInGetFixAllProvider()
         {
             GetAddedFixes(new ErrorCases.ExceptionInGetFixAllProvider());

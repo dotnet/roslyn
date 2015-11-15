@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class TypeInferenceSimplifierTests
         Inherits AbstractSimplificationTests
         <WorkItem(734369)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestDontSimplify1()
             Dim input =
         <Workspace>
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Sub
 
         <WorkItem(734369)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestSimplify_ArrayElementConversion()
             Dim input =
         <Workspace>
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Test(input, expected, simplificationOptionSet)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestDontSimplify_Using()
             Dim input =
         <Workspace>
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Test(input, expected, simplificationOptionSet)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestDontSimplify_For_0()
             Dim input =
         <Workspace>
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Test(input, expected, simplificationOptionSet)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestDontSimplify_For_1()
             Dim input =
         <Workspace>
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Sub
 
         <WorkItem(734377)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestSimplify1()
             Dim input =
         <Workspace>
@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Test(input, expected, simplificationOptionSet)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestSimplify2()
             Dim input =
         <Workspace>
@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Test(input, expected, simplificationOptionSet)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestSimplify_For_1()
             Dim input =
         <Workspace>
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "Type Argument Expand/Reduce for Generic Method Calls - 639136"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestSimplify_For_GenericMethods()
             Dim input =
         <Workspace>
@@ -471,7 +471,7 @@ class D : C
             Test(input, expected, simplificationOptionSet)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub TestSimplify_For_GenericMethods_VB()
             Dim input =
         <Workspace>
@@ -527,7 +527,7 @@ End Class
         End Sub
 
         <WorkItem(734377)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_ExplicitTypeDecl_FieldDecl()
             Dim input =
         <Workspace>
@@ -573,7 +573,7 @@ End Namespace
         End Sub
 
         <WorkItem(860111)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_ExplicitTypeDecl_MustGetNewSMForAnyReducer()
             Dim input =
         <Workspace>

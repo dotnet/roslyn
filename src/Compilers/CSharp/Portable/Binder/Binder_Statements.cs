@@ -213,6 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInCatch, node.YieldKeyword);
             }
+            else if (BindingTopLevelScriptCode)
+            {
+                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
+            }
 
             return new BoundYieldReturnStatement(node, argument);
         }
@@ -222,6 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Flags.Includes(BinderFlags.InFinallyBlock))
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInFinally, node.YieldKeyword);
+            }
+            else if (BindingTopLevelScriptCode)
+            {
+                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
             GetIteratorElementType(node, diagnostics);
@@ -342,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = LookupResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+            var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
 
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement    
             // In this case we create new label symbol on the fly, and an error is reported by parser
@@ -357,14 +365,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check to see if this label (illegally) hides a label from an enclosing scope
-            result.Clear();
-            this.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
-            if (result.IsMultiViable)
+            if (binder != null)
             {
-                // The label '{0}' shadows another label by the same name in a contained scope
-                Error(diagnostics, ErrorCode.ERR_LabelShadow, node.Identifier, node.Identifier.ValueText);
-                hasError = true;
+                result.Clear();
+                binder.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+                if (result.IsMultiViable)
+                {
+                    // The label '{0}' shadows another label by the same name in a contained scope
+                    Error(diagnostics, ErrorCode.ERR_LabelShadow, node.Identifier, node.Identifier.ValueText);
+                    hasError = true;
+                }
             }
+
             diagnostics.Add(node, useSiteDiagnostics);
             result.Free();
 
@@ -1559,6 +1571,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IdentifierName:
                     eventSyntax = syntax;
                     break;
+                case SyntaxKind.MemberBindingExpression:
+                    eventSyntax = ((MemberBindingExpressionSyntax)syntax).Name;
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
@@ -2263,7 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateParameterType = delegateParameters[i].Type;
                     var delegateRefKind = delegateParameters[i].RefKind;
 
-                    if (!lambdaParameterType.Equals(delegateParameterType, ignoreCustomModifiers: true, ignoreDynamic: true))
+                    if (!lambdaParameterType.Equals(delegateParameterType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                     {
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
 
@@ -2787,14 +2802,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 arg = BindValue(expressionSyntax, diagnostics, BindValueKind.RValue);
             }
+            else
+            {
+                // If this is a void return statement in a script, return default(T).
+                var interactiveInitializerMethod = this.ContainingMemberOrLambda as SynthesizedInteractiveInitializerMethod;
+                if (interactiveInitializerMethod != null)
+                {
+                    arg = new BoundDefaultOperator(interactiveInitializerMethod.GetNonNullSyntaxNode(), interactiveInitializerMethod.ResultType);
+                }
+            }
 
             bool hasErrors;
-            if (BindingTopLevelScriptCode)
-            {
-                diagnostics.Add(ErrorCode.ERR_ReturnNotAllowedInScript, syntax.ReturnKeyword.GetLocation());
-                hasErrors = true;
-            }
-            else if (IsDirectlyInIterator)
+            if (IsDirectlyInIterator)
             {
                 diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
                 hasErrors = true;

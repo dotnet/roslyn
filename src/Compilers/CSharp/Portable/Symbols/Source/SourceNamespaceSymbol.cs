@@ -111,11 +111,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
-                // namespace decl node we want to return. here we will wrap the original syntax reference in 
-                // the translation syntax reference so that we can lazily manipulate a node return to the caller
-                return _mergedDeclaration.Declarations.SelectAsArray(s_declaringSyntaxReferencesSelector);
+                // PERF: Declaring references are cached for compilations with event queue.
+                return this.DeclaringCompilation?.EventQueue != null ? GetCachedDeclaringReferences() : ComputeDeclaringReferencesCore();
             }
+        }
+
+        private ImmutableArray<SyntaxReference> GetCachedDeclaringReferences()
+        {
+            ImmutableArray<SyntaxReference> declaringReferences;
+            if (!Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(this, this.DeclaringCompilation, out declaringReferences))
+            {
+                declaringReferences = ComputeDeclaringReferencesCore();
+                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(this, this.DeclaringCompilation, declaringReferences);
+            }
+
+            return declaringReferences;
+        }
+
+        private ImmutableArray<SyntaxReference> ComputeDeclaringReferencesCore()
+        {
+            // SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
+            // namespace decl node we want to return. here we will wrap the original syntax reference in 
+            // the translation syntax reference so that we can lazily manipulate a node return to the caller
+            return _mergedDeclaration.Declarations.SelectAsArray(s_declaringSyntaxReferencesSelector);
         }
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
@@ -437,6 +455,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+        }
+
+        internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (this.IsGlobalNamespace)
+            {
+                return true;
+            }
+
+            // Check if any namespace declaration block intersects with the given tree/span.
+            foreach (var syntaxRef in this.DeclaringSyntaxReferences)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (syntaxRef.SyntaxTree != tree)
+                {
+                    continue;
+                }
+
+                if (!definedWithinSpan.HasValue)
+                {
+                    return true;
+                }
+
+                var syntax = syntaxRef.GetSyntax(cancellationToken);
+                if (syntax.FullSpan.IntersectsWith(definedWithinSpan.Value))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private struct NameToSymbolMapBuilder

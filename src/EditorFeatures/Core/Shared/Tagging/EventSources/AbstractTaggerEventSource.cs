@@ -2,7 +2,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
@@ -22,33 +21,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public event EventHandler UIUpdatesPaused;
         public event EventHandler UIUpdatesResumed;
 
-        public abstract string EventKind { get; }
-
-        protected virtual void RaiseChanged(TextContentChangedEventArgs textChangedEventArgs = null)
+        protected virtual void RaiseChanged()
         {
-            var changed = this.Changed;
-            if (changed != null)
-            {
-                changed(this, new TaggerEventArgs(EventKind, _delay, textChangedEventArgs));
-            }
+            this.Changed?.Invoke(this, new TaggerEventArgs(_delay));
         }
 
         protected virtual void RaiseUIUpdatesPaused()
         {
-            var uiUpdatesPaused = this.UIUpdatesPaused;
-            if (uiUpdatesPaused != null)
-            {
-                uiUpdatesPaused(this, EventArgs.Empty);
-            }
+            this.UIUpdatesPaused?.Invoke(this, EventArgs.Empty);
         }
 
         protected virtual void RaiseUIUpdatesResumed()
         {
-            var uiUpdatesResumed = this.UIUpdatesResumed;
-            if (uiUpdatesResumed != null)
-            {
-                uiUpdatesResumed(this, EventArgs.Empty);
-            }
+            this.UIUpdatesResumed?.Invoke(this, EventArgs.Empty);
         }
     }
 }

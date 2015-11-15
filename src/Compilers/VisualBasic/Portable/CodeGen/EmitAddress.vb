@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return Not IsStackLocal(local) OrElse local.IsByRef
 
                 Case BoundKind.Dup
-                    ' For a dupped locals we assume that if the dup 
+                    ' For a dupped local we assume that if the dup 
                     ' is created for byref local it does have home
                     Return DirectCast(expression, BoundDup).IsReference
 
@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         ''' <summary>
-        ''' Special HasHome for fields. Fields have homes when they are writeable.
+        ''' Special HasHome for fields. Fields have homes when they are writable.
         ''' </summary>
         Private Function HasHome(fieldAccess As BoundFieldAccess) As Boolean
             Dim field = fieldAccess.FieldSymbol
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         ''' <summary>
-        ''' Checks if it is allowed to take a writeable reference to expression according to VB rules.
+        ''' Checks if it is allowed to take a writable reference to expression according to VB rules.
         ''' </summary>
         Private Function AllowedToTakeRef(expression As BoundExpression, addressKind As AddressKind) As Boolean
 
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         ''' <summary>
-        ''' Checks if it is allowed to take a writeable reference to expression according to VB rules.
+        ''' Checks if it is allowed to take a writable reference to expression according to VB rules.
         ''' </summary>
         Private Function AllowedToTakeRef(boundLocal As BoundLocal, addressKind As AddressKind) As Boolean
             Debug.Assert(addressKind <> CodeGenerator.AddressKind.Immutable, "immutable address is always ok")
@@ -402,7 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.EmitOpCode(ILOpCode.Readonly)
             End If
 
-            If (arrayAccess.Indices.Length = 1) Then
+            If DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol).IsSZArray Then
                 _builder.EmitOpCode(ILOpCode.Ldelema)
                 EmitSymbolToken(elementType, arrayAccess.Syntax)
             Else

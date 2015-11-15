@@ -3,9 +3,18 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
+
+// Point-in-time conflict between System.Reflection.Metadata and temporary internal Roslyn.Reflection.Metadata
+// Replace this with using System.Reflection.Metadata.Decoding and uncomment type parameters when switching
+// back to public System.Reflection.Metadata API. 
+using ArrayShape = Roslyn.Reflection.Metadata.Decoding.ArrayShape;
+using CustomModifier = Roslyn.Reflection.Metadata.Decoding.CustomModifier<object>;
+using MethodSignature = Roslyn.Reflection.Metadata.Decoding.MethodSignature<object>;
+using ISignatureTypeProvider = Roslyn.Reflection.Metadata.Decoding.ISignatureTypeProvider<object>;
+using PrimitiveTypeCode = Roslyn.Reflection.Metadata.Decoding.PrimitiveTypeCode;
+using SignatureDecoder = Roslyn.Reflection.Metadata.Decoding.SignatureDecoder;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
@@ -89,7 +98,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]byte[] signature)
         {
-            var localSignatureHandle = _symMethod.MetadataReader.GetMethodBody(_symMethod.Handle).LocalSignature;
+            var localSignatureHandle = _symMethod.MetadataReader.GetMethodDebugInformation(_symMethod.DebugHandle).LocalSignature;
             var metadataImport = _symMethod.SymReader.PdbReader.MetadataImport;
             var local = _symMethod.MetadataReader.GetLocalVariable(_handle);
 
@@ -139,7 +148,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return HResult.S_OK;
         }
 
-        private sealed class DummyTypeProvider : ISignatureTypeProvider<object>
+        private sealed class DummyTypeProvider : ISignatureTypeProvider/*<object>*/
         {
             public DummyTypeProvider(MetadataReader reader)
             {
@@ -151,17 +160,17 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             public object GetArrayType(object elementType, ArrayShape shape) => null;
             public object GetByReferenceType(object elementType) => null;
-            public object GetFunctionPointerType(MethodSignature<object> signature) => null;
+            public object GetFunctionPointerType(MethodSignature/*<object>*/ signature) => null;
             public object GetGenericInstance(object genericType, ImmutableArray<object> typeArguments) => null;
             public object GetGenericMethodParameter(int index) => null;
             public object GetGenericTypeParameter(int index) => null;
-            public object GetModifiedType(object unmodifiedType, ImmutableArray<CustomModifier<object>> customModifiers) => null;
+            public object GetModifiedType(object unmodifiedType, ImmutableArray<CustomModifier/*<object>*/> customModifiers) => null;
             public object GetPinnedType(object elementType) => null;
             public object GetPointerType(object elementType) => null;
             public object GetPrimitiveType(PrimitiveTypeCode typeCode) => null;
             public object GetSZArrayType(object elementType) => null;
-            public object GetTypeFromDefinition(TypeDefinitionHandle handle) => null;
-            public object GetTypeFromReference(TypeReferenceHandle handle) => null;
+            public object GetTypeFromDefinition(TypeDefinitionHandle handle, bool? isValueType) => null;
+            public object GetTypeFromReference(TypeReferenceHandle handle, bool? isValueType) => null;
         }
     }
 }

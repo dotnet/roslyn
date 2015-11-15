@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim symbol = RenameLocationSet.ReferenceProcessing.GetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
+                Dim symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
 
                 If symbol Is Nothing Then
                     AssertEx.Fail("The symbol touching the $$ could not be found.")
@@ -82,10 +82,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Next
                 End If
 
-                Dim locations = RenameLocationSet.FindAsync(symbol, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
+                Dim locations = RenameLocations.FindAsync(symbol, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
                 Dim originalName = symbol.Name.Split("."c).Last()
 
-                Dim result = ConflictResolver.ResolveConflictsAsync(locations, originalName, renameTo, optionSet, CancellationToken.None).Result
+                Dim result = ConflictResolver.ResolveConflictsAsync(locations, originalName, renameTo, optionSet, hasConflict:=Nothing, cancellationToken:=CancellationToken.None).Result
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 End If
 
                 Assert.Equal(replacementText, newText)
-            Catch ex As AssertException
+            Catch ex As XunitException
                 _failedAssert = True
                 Throw
             End Try
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Assert.True(type.HasFlag(reference.Type))
 
                 _unassertedRelatedLocations.Remove(reference)
-            Catch ex As AssertException
+            Catch ex As XunitException
                 _failedAssert = True
                 Throw
             End Try
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Sub AssertReplacementTextInvalid()
             Try
                 Assert.False(_resolution.ReplacementTextValid)
-            Catch ex As AssertException
+            Catch ex As XunitException
                 _failedAssert = True
                 Throw
             End Try

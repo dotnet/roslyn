@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             // sig help in this case.
             if (this.TextView.TypeCharWasHandledStrangely(this.SubjectBuffer, args.TypedChar))
             {
-                // If we we were computing anything, we stop.  We only want to process a typechar
+                // If we were computing anything, we stop.  We only want to process a typechar
                 // if it was a normal character.
                 DismissSessionIfActive();
                 return;

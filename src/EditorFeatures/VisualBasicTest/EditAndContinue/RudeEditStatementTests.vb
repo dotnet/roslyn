@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
 #Region "Matching"
 
-        <Fact>
+        <WpfFact>
         Public Sub Match1()
             Dim src1 = <text>
 Dim x As Integer = 1 
@@ -60,7 +60,7 @@ End If
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub KnownMatches_Root()
             Dim src1 As String = "Console.WriteLine(1)"
             Dim src2 As String = "Console.WriteLine(2)"
@@ -82,7 +82,7 @@ End If
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Locals_Rename1()
             Dim src1 = "Dim x = 1"
             Dim src2 = "Dim y = 1"
@@ -102,7 +102,7 @@ End If
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Locals_Rename2()
             Dim src1 = "Dim x As Integer = 1"
             Dim src2 = "Dim y As Integer = 1"
@@ -122,7 +122,7 @@ End If
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Locals_TypeChange()
             Dim src1 = "Dim x As Integer = 1"
             Dim src2 = "Dim x As Byte = 1"
@@ -142,7 +142,7 @@ End If
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub BlocksWithLocals1()
             Dim src1 = <text>
 While True : Dim a As Integer = 1 : End While
@@ -177,7 +177,7 @@ While True : Dim b As Integer = 5 : End While
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub LoopBlocksWithLocals1()
             Dim src1 = <text>
 Do While True : Dim a As Integer : Loop
@@ -228,7 +228,7 @@ Do : Dim a As Integer : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub IfBlocksWithLocals1()
             Dim src1 = <text>
 If X : Dim a As Integer = 1 : End If
@@ -262,7 +262,7 @@ If X : Dim b As Integer = 5 : End If
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub IfBlocksWithLocals2()
             Dim src1 = <text>
 If X Then Dim a As Integer = 1
@@ -292,7 +292,7 @@ If Y : Dim a As Integer = 5 : End If
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub IfBlockToStatement()
             Dim src1 = <text>
 If X Then Console.WriteLine(1) Else Console.WriteLine(2)
@@ -316,7 +316,7 @@ If X Then : Console.WriteLine(1) : Else : Console.WriteLine(2) : End If
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub BlocksWithLocals2()
             Dim src1 = <text>
 While True : Dim a As Integer = 1 : End While
@@ -353,7 +353,7 @@ While True : While True : Dim a As Integer = 2 : End While : End While
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub BlocksWithLocals3()
             Dim src1 = <text>
 Do : Dim a = 1, b = 2, c = 3 : Console.WriteLine(a + b + c) : Loop
@@ -410,7 +410,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithLambdas1()
             Dim src1 = "Dim a = Sub() Console.WriteLine(1)" & vbLf
             Dim src2 = "Dim a = Sub() Console.WriteLine(2)" & vbLf
@@ -432,7 +432,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_From1()
             Dim src1 = "Dim result = From a In F(Function() 0), b In Q(Function() 2) Select a + b" & vbLf
             Dim src2 = "Dim result = From a In F(Function() 1), b In Q(Function() 3) Select a - b" & vbLf
@@ -462,7 +462,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_From2()
             Dim src1 = "Dim result = From a In F(Function() 0) From b In Q(Function() 2) Select a + b" & vbLf
             Dim src2 = "Dim result = From a In F(Function() 1) From b In Q(Function() 3) Select a - b" & vbLf
@@ -496,7 +496,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_From3()
             Dim src1 = "Dim result = From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b" & vbLf
             Dim src2 = "Dim result = From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b" & vbLf
@@ -528,7 +528,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_Aggregate1()
             Dim src1 = "Dim result = From a In {1} Aggregate b In Q(Function() 2) Into c = Sum(Q(Function() 4)) Select 5" & vbLf
             Dim src2 = "Dim result = From a In {10} Aggregate b In Q(Function() 3) Into c = Sum(Q(Function() 5)) Select 50" & vbLf
@@ -561,7 +561,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_Aggregate2()
             Dim src1 = "Dim result = From q in {0} Aggregate b In Q(Function() 1) Join c In Q(Function() 3) On c Equals b Skip Q(Function() 5) Select b Into Count()" & vbLf
             Dim src2 = "Dim result = From q in {0} Aggregate b In Q(Function() 2) Join c In Q(Function() 4) On c Equals b Skip Q(Function() 6) Select b Into Count()" & vbLf
@@ -599,7 +599,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_Select1()
             Dim src1 = "Dim result = From a As Integer In {0} Select a, b = Q(Function() 1), c = Q(Function() 3)" & vbLf
             Dim src2 = "Dim result = From a As Integer In {0} Select a, b = Q(Function() 2), c = Q(Function() 4)" & vbLf
@@ -629,7 +629,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_Let1()
             Dim src1 = "Dim result = From a In {0} Let b = Q(Function() 1), c = Q(Function() 3) Select a" & vbLf
             Dim src2 = "Dim result = From a In {0} Let b = Q(Function() 2), c = Q(Function() 4) Select a" & vbLf
@@ -660,7 +660,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_GroupBy1()
             Dim src1 = "Dim result = From a In {0} Group a = Q(Function() 1) By b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a" & vbLf
             Dim src2 = "Dim result = From a In {0} Group a = Q(Function() 2) By b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a" & vbLf
@@ -692,7 +692,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_GroupBy2()
             Dim src1 = "Dim result = From a In {0} Group z = Q(Function() 0) By a = Q(Function() 1), b = Q(Function() 3) Into Sum(Q(Function() 5)) Select a" & vbLf
             Dim src2 = "Dim result = From a In {0} Group By a = Q(Function() 2), b = Q(Function() 4) Into Sum(Q(Function() 6)) Select a" & vbLf
@@ -725,7 +725,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchMethodBodiesWithQueries_Join1()
             Dim src1 = "Dim result = From a In {0} Join b In {1} On Q(Function() 1) Equals Q(Function() 3) And Q(Function() 5) Equals Q(Function() 7) Select a" & vbLf
             Dim src2 = "Dim result = From a In {0} Join b In {1} On Q(Function() 2) Equals Q(Function() 4) And Q(Function() 6) Equals Q(Function() 8) Select a" & vbLf
@@ -758,7 +758,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
 
         ' TODO: test GroupBy with known matches across CRVs (coming from active statement tracking)
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchLambdas1()
             Dim src1 = "Dim x As Action(Of Object) = Sub(a) Console.WriteLine(a)" & vbLf
             Dim src2 = "Dim x As Action(Of Object) = Sub(b)" & vbLf & "Console.WriteLine(b) : End Sub"
@@ -778,7 +778,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchLambdas2()
             Dim src1 = "F(Function(x) (x + 1), 1, Function(y) As Integer" & vbLf & " Return y + 1 : End Function, Function(x As Integer) x, Async Function(u) u)"
             Dim src2 = "F(Function(y) (y + 1), G(), Function(x) (x + 1), Function(x) x, Function(u) u, Async Function(u, v) (u + v))"
@@ -801,7 +801,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchLambdas3()
             Dim src1 = "AddHandler a, Async Function(u) u"
             Dim src2 = "AddHandler a, Function(u) u"
@@ -820,7 +820,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchLambdas4()
             Dim src1 = "For Each a In z : Dim e = From q In a.Where(Function(l) l > 10) Select q + 1 : Next"
             Dim src2 = "For Each a In z : Dim e = From q In a.Where(Function(l) l < 0) Select q + 1 : Next"
@@ -850,7 +850,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchLambdas5()
             Dim src1 = "F(Function(a) Function(b) Function(c) d)"
             Dim src2 = "F(Function(a) Function(b) Function(c) d)"
@@ -874,7 +874,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchLambdas6()
             Dim src1 = "F(Function(a) Function(b) Function(c) d)"
             Dim src2 = "F(Function(a) G(Function(b) H(Function(c) d)))"
@@ -898,7 +898,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchLambdas7()
             Dim src1 = <text>
 F(Sub(a)
@@ -955,7 +955,7 @@ F(Sub(a)
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchQueries1()
             Dim src1 = <text>
 Dim q = From c In cars
@@ -998,7 +998,7 @@ Dim q = From c In cars
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchQueries2()
             Dim src1 = <text>
 Dim q = From c In cars
@@ -1093,7 +1093,7 @@ Dim q = From c In cars
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchQueries3()
             Dim src1 = "
 Dim q = From a In seq1
@@ -1149,7 +1149,7 @@ Dim q = From a In seq1
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchQueries4()
             Dim src1 = "F(From a In b Group Join c In (Function() d)() On Function(e1) Function(e2) (e1 - e2) Equals Function(f1) Function(f2) (f1 - f2) Into g = Group, h = Sum(Function(f) f + 1) Select g)"
             Dim src2 = "F(From a In b Group Join c In (Function() d + 1)() On Function(e1) Function(e2) (e1 + e2) Equals Function(f1) Function(f2) (f1 + f2) Into g = Group, h = Sum(Function(f) f + 2) Select g)"
@@ -1191,7 +1191,7 @@ Dim q = From a In seq1
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchQueries_Aggregate1()
             Dim src1 = "
 Dim result = From a In {1}
@@ -1239,7 +1239,7 @@ Dim result = From a In {10}
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchYields()
             Dim src1 = <text>
 Yield 1
@@ -1274,7 +1274,7 @@ Next
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MatchExceptionHandlers()
             Dim src1 = "
 Try
@@ -1319,7 +1319,7 @@ End Try
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub KnownMatches()
             Dim src1 = "Console.WriteLine(1   ) : Console.WriteLine( 1  )"
             Dim src2 = "Console.WriteLine(  1 ) : Console.WriteLine(   1)"
@@ -1356,10 +1356,47 @@ End Try
 
             expected.AssertEqual(actual)
         End Sub
+
+        <WpfFact>
+        Public Sub StringLiteral_update()
+            Dim src1 = "Dim a = ""Hello1"""
+            Dim src2 = "Dim a = ""Hello2"""
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits("Update [a = ""Hello1""]@12 -> [a = ""Hello2""]@12")
+        End Sub
+
+        <WpfFact>
+        Public Sub InterpolatedStringText_update()
+            Dim src1 = "Dim a = $""Hello1"""
+            Dim src2 = "Dim a = $""Hello2"""
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits("Update [a = $""Hello1""]@12 -> [a = $""Hello2""]@12")
+        End Sub
+
+        <WpfFact>
+        Public Sub Interpolation_update()
+            Dim src1 = "Dim a = $""Hello{123}"""
+            Dim src2 = "Dim a = $""Hello{124}"""
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits("Update [a = $""Hello{123}""]@12 -> [a = $""Hello{124}""]@12")
+        End Sub
+
+        <WpfFact>
+        Public Sub InterpolationFormatClause_update()
+            Dim src1 = "Dim a = $""Hello{123:N1}"""
+            Dim src2 = "Dim a = $""Hello{123:N2}"""
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits("Update [a = $""Hello{123:N1}""]@12 -> [a = $""Hello{123:N2}""]@12")
+        End Sub
+
 #End Region
 
 #Region "Misc"
-        <Fact>
+        <WpfFact>
         Public Sub VariableDeclaration_Insert()
             Dim src1 = "If x = 1 : x += 1 : End If"
             Dim src2 = "Dim x = 1 : If x = 1 : x += 1 : End If"
@@ -1371,7 +1408,7 @@ End Try
                 "Insert [x]@12")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub VariableDeclaration_Update()
             Dim src1 = "Dim x = F(1), y = G(2)"
             Dim src2 = "Dim x = F(3), y = G(4)"
@@ -1382,7 +1419,7 @@ End Try
                 "Update [y = G(2)]@22 -> [y = G(4)]@22")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Redim1()
             Dim src1 = "ReDim Preserve a(F(Function() 1), 10, 20)"
             Dim src2 = "ReDim a(F(Function() 2), 1, 2)"
@@ -1394,7 +1431,7 @@ End Try
                 "Update [Function() 1]@27 -> [Function() 2]@18")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Assignments()
             Dim src1 = "a = F(Function() 1) : " &
                        "a += F(Function() 2) : " &
@@ -1437,7 +1474,7 @@ End Try
                 "Update [Function() ""a""]@272 -> [Function() ""b""]@294")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub EventStatements()
             Dim src1 = "AddHandler e, Function(f) f : RemoveHandler e, Function(f) f : RaiseEvent e()"
             Dim src2 = "RemoveHandler e, Function(f) (f + 1) : AddHandler e, Function(f) f : RaiseEvent e()"
@@ -1448,7 +1485,7 @@ End Try
                 "Update [Function(f) f]@55 -> [Function(f) (f + 1)]@25")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ExpressionStatements()
             Dim src1 = "Call F(Function(a) a)"
             Dim src2 = "F(Function(a) (a + 1))"
@@ -1459,7 +1496,7 @@ End Try
                 "Update [Function(a) a]@15 -> [Function(a) (a + 1)]@10")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ThrowReturn()
             Dim src1 = "Throw F(Function(a) a) : Return Function(b) b"
             Dim src2 = "Throw F(Function(b) b) : Return Function(a) a"
@@ -1470,7 +1507,7 @@ End Try
                 "Move [Function(a) a]@16 -> @40")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub OnErrorGoToLabel()
             Dim src1 = "On Error GoTo ErrorHandler : Exit Sub : On Error GoTo label1 : " & vbLf & "label1:" & vbLf & "Resume Next"
             Dim src2 = "On Error GoTo -1 : On Error GoTo 0 : Exit Sub : " & vbLf & "label2:" & vbLf & "Resume"
@@ -1488,7 +1525,7 @@ End Try
 
 #Region "Select"
 
-        <Fact>
+        <WpfFact>
         Public Sub Select_Reorder1()
             Dim src1 = "Select Case a : Case 1 : f() : End Select : " &
                        "Select Case b : Case 2 : g() : End Select"
@@ -1503,7 +1540,7 @@ End Try
                 "Move [g()]@77 -> @77")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Select_Case_Reorder()
             Dim src1 = "Select Case expr : Case 1 :      f() : Case 2, 3, 4 : g() : End Select"
             Dim src2 = "Select Case expr : Case 2, 3, 4: g() : Case 1       : f() : End Select"
@@ -1513,7 +1550,7 @@ End Try
                 "Reorder [Case 2, 3, 4 : g()]@47 -> @27")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Select_Case_Update()
             Dim src1 = "Select Case expr : Case 1 : f() : End Select"
             Dim src2 = "Select Case expr : Case 2 : f() : End Select"
@@ -1527,7 +1564,7 @@ End Try
 
 #Region "Try, Catch, Finally"
 
-        <Fact>
+        <WpfFact>
         Public Sub TryInsert1()
             Dim src1 = "x += 1"
             Dim src2 = "Try : x += 1 : Catch : End Try"
@@ -1542,7 +1579,7 @@ End Try
                 "Insert [Catch]@23")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TryDelete1()
             Dim src1 = "Try : x += 1 : Catch : End Try"
             Dim src2 = "x += 1"
@@ -1557,7 +1594,7 @@ End Try
                 "Delete [End Try]@31")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TryReorder()
             Dim src1 = "Try : x += 1 : Catch :  End Try : Try : y += 1 : Catch :::  End Try"
             Dim src2 = "Try : y += 1 : Catch :: End Try : Try : x += 1 : Catch :::: End Try"
@@ -1567,7 +1604,7 @@ End Try
                 "Reorder [Try : y += 1 : Catch :::  End Try]@42 -> @8")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Finally_DeleteHeader()
             Dim src1 = "Try : Catch e AS E1 : Finally : End Try"
             Dim src2 = "Try : Catch e AS E1 : End Try"
@@ -1578,7 +1615,7 @@ End Try
                 "Delete [Finally]@30")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Finally_InsertHeader()
             Dim src1 = "Try : Catch e AS E1 : End Try"
             Dim src2 = "Try : Catch e AS E1 : Finally : End Try"
@@ -1589,7 +1626,7 @@ End Try
                 "Insert [Finally]@30")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchUpdate()
             Dim src1 = "Try : Catch e As Exception : End Try"
             Dim src2 = "Try : Catch e As IOException : End Try"
@@ -1599,7 +1636,7 @@ End Try
                 "Update [Catch e As Exception]@14 -> [Catch e As IOException]@14")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub WhenUpdate()
             Dim src1 = "Try : Catch e As Exception When e.Message = ""a"" : End Try"
             Dim src2 = "Try : Catch e As Exception When e.Message = ""b"" : End Try"
@@ -1609,7 +1646,7 @@ End Try
                 "Update [When e.Message = ""a""]@35 -> [When e.Message = ""b""]@35")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub WhenCatchUpdate()
             Dim src1 = "Try : Catch e As Exception When e.Message = ""a"" : End Try"
             Dim src2 = "Try : Catch e As IOException When e.Message = ""a"" : End Try"
@@ -1619,7 +1656,7 @@ End Try
                 "Update [Catch e As Exception When e.Message = ""a""]@14 -> [Catch e As IOException When e.Message = ""a""]@14")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchInsert()
             Dim src1 = "Try : Catch e As Exception : End Try"
             Dim src2 = "Try : Catch e As IOException : Catch e As Exception : End Try"
@@ -1630,7 +1667,7 @@ End Try
                 "Insert [Catch e As IOException]@14")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub WhenInsert()
             Dim src1 = "Try : Catch e As Exception : End Try"
             Dim src2 = "Try : Catch e As Exception When e.Message = ""a"" : End Try"
@@ -1640,7 +1677,7 @@ End Try
                 "Insert [When e.Message = ""a""]@35")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub WhenDelete()
             Dim src1 = "Try : Catch e As Exception When e.Message = ""a"" : End Try"
             Dim src2 = "Try : Catch e As Exception : End Try"
@@ -1650,7 +1687,7 @@ End Try
                 "Delete [When e.Message = ""a""]@35")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchBodyUpdate()
             Dim src1 = "Try : Catch e As E : x += 1 : End Try"
             Dim src2 = "Try : Catch e As E : y += 1 : End Try"
@@ -1660,7 +1697,7 @@ End Try
                 "Update [x += 1]@29 -> [y += 1]@29")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchDelete()
             Dim src1 = "Try : Catch e As IOException : Catch e As Exception : End Try"
             Dim src2 = "Try : Catch e As IOException : End Try"
@@ -1671,7 +1708,7 @@ End Try
                 "Delete [Catch e As Exception]@39")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchReorder()
             Dim src1 = "Try : Catch e As IOException : Catch e As Exception : End Try"
             Dim src2 = "Try : Catch e As Exception : Catch e As IOException : End Try"
@@ -1681,7 +1718,7 @@ End Try
                 "Reorder [Catch e As Exception]@39 -> @14")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchInsertDelete()
             Dim src1 = "Try : x += 1 : Catch e As E : Catch e As Exception : End Try : " &
                        "Try : Console.WriteLine() : Finally : End Try"
@@ -1698,7 +1735,7 @@ End Try
                 "Delete [Catch e As E]@23")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Catch_DeleteHeader1()
             Dim src1 = "Try : Catch e As E1 : Catch e As E2 : End Try"
             Dim src2 = "Try : Catch e As E1 : End Try"
@@ -1711,7 +1748,7 @@ End Try
 #End Region
 
 #Region "With"
-        <Fact>
+        <WpfFact>
         Public Sub WithBlock_Insert()
             Dim src1 = ""
             Dim src2 = "With a : F(.x) : End With"
@@ -1724,7 +1761,7 @@ End Try
                 "Insert [End With]@25")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub WithBlock_Delete()
             Dim src1 = "With a : F(.x) : End With"
             Dim src2 = ""
@@ -1737,7 +1774,7 @@ End Try
                 "Delete [End With]@25")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub WithBlock_Reorder()
             Dim src1 = "With a : F(.x) : End With  :  With a : F(.y) : End With"
             Dim src2 = "With a : F(.y) : End With  :  With a : F(.x) : End With"
@@ -1749,7 +1786,7 @@ End Try
 #End Region
 
 #Region "Using"
-        <Fact>
+        <WpfFact>
         Public Sub Using1()
             Dim src1 As String = "Using a : Using b : Foo() : End Using : End Using"
             Dim src2 As String = "Using a : Using c : Using b : Foo() : End Using : End Using : End Using"
@@ -1762,7 +1799,7 @@ End Try
                 "Insert [End Using]@58")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Using_DeleteHeader()
             Dim src1 As String = "Using a : Foo() : End Using"
             Dim src2 As String = "Foo()"
@@ -1775,7 +1812,7 @@ End Try
                 "Delete [End Using]@26")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Using_InsertHeader()
             Dim src1 As String = "Foo()"
             Dim src2 As String = "Using a : Foo() : End Using"
@@ -1790,7 +1827,7 @@ End Try
 #End Region
 
 #Region "SyncLock"
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock1()
             Dim src1 As String = "SyncLock a : SyncLock b : Foo() : End SyncLock : End SyncLock"
             Dim src2 As String = "SyncLock a : SyncLock c : SyncLock b : Foo() : End SyncLock : End SyncLock : End SyncLock"
@@ -1803,7 +1840,7 @@ End Try
                 "Insert [End SyncLock]@70")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_DeleteHeader()
             Dim src1 As String = "SyncLock a : Foo() : End SyncLock"
             Dim src2 As String = "Foo()"
@@ -1816,7 +1853,7 @@ End Try
                 "Delete [End SyncLock]@29")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_InsertHeader()
             Dim src1 As String = "Foo()"
             Dim src2 As String = "SyncLock a : Foo() : End SyncLock"
@@ -1831,7 +1868,7 @@ End Try
 #End Region
 
 #Region "For Each"
-        <Fact>
+        <WpfFact>
         Public Sub ForEach1()
             Dim src1 As String = "For Each a In e : For Each b In f : Foo() : Next : Next"
             Dim src2 As String = "For Each a In e : For Each c In g : For Each b In f : Foo() : Next : Next : Next"
@@ -1864,7 +1901,7 @@ End Try
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Swap1()
             Dim src1 As String = "For Each a In e : For Each b In f : Foo() : Next : Next"
             Dim src2 As String = "For Each b In f : For Each a In e : Foo() : Next : Next"
@@ -1892,7 +1929,7 @@ End Try
             expected.AssertEqual(actual)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Foreach_DeleteHeader()
             Dim src1 As String = "For Each a In b : Foo() : Next"
             Dim src2 As String = "Foo()"
@@ -1905,7 +1942,7 @@ End Try
                 "Delete [Next]@34")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Foreach_InsertHeader()
             Dim src1 As String = "Foo()"
             Dim src2 As String = "For Each a In b : Foo() : Next"
@@ -1920,7 +1957,7 @@ End Try
 #End Region
 
 #Region "For"
-        <Fact>
+        <WpfFact>
         Public Sub For1()
             Dim src1 = "For a = 0 To 10 : For a = 0 To 20 : Foo() : Next : Next"
             Dim src2 = "For a = 0 To 10 : For b = 0 To 10 : For a = 0 To 20 : Foo() : Next : Next : Next"
@@ -1933,7 +1970,7 @@ End Try
                 "Insert [Next]@77")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub For2()
             Dim src1 = "For a = 0 To 10 Step 1 : For a = 0 To 20 : Foo() : Next : Next"
             Dim src2 = "For a = 0 To 10 Step 2 : For b = 0 To 10 Step 4 : For a = 0 To 20 Step 5 : Foo() : Next : Next : Next"
@@ -1949,7 +1986,7 @@ End Try
                 "Insert [Step 5]@74")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub For_DeleteHeader()
             Dim src1 As String = "For a = 0 To 10 : Foo() : Next"
             Dim src2 As String = "Foo()"
@@ -1962,7 +1999,7 @@ End Try
                 "Delete [Next]@34")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub For_DeleteStep()
             Dim src1 As String = "For a = 0 To 10 Step 1 : Foo() : Next"
             Dim src2 As String = "For a = 0 To 10 : Foo() : Next"
@@ -1972,7 +2009,7 @@ End Try
                 "Delete [Step 1]@24")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub For_InsertStep()
             Dim src1 As String = "For a = 0 To 10 : Foo() : Next"
             Dim src2 As String = "For a = 0 To 10 Step 1 : Foo() : Next"
@@ -1982,7 +2019,7 @@ End Try
                 "Insert [Step 1]@24")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub For_InsertHeader()
             Dim src1 As String = "Foo()"
             Dim src2 As String = "For a = 0 To 10 : Foo() : Next"
@@ -1997,7 +2034,7 @@ End Try
 #End Region
 
 #Region "Do, While, Loop"
-        <Fact>
+        <WpfFact>
         Public Sub While1()
             Dim src1 As String = "While a : While b : Foo() : End While : End While"
             Dim src2 As String = "While a : While c : While b : Foo() : End While : End While : End While"
@@ -2010,7 +2047,7 @@ End Try
                 "Insert [End While]@58")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub DoWhile1()
             Dim src1 As String = "While a : While b : Foo() : End While : End While"
             Dim src2 As String = "Do While a : While c : Do Until b : Foo() : Loop : End While : Loop"
@@ -2031,7 +2068,7 @@ End Try
                 "Insert [Until b]@34")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub While_DeleteHeader()
             Dim src1 As String = "While a : Foo() : End While"
             Dim src2 As String = "Foo()"
@@ -2044,7 +2081,7 @@ End Try
                 "Delete [End While]@26")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub While_InsertHeader()
             Dim src1 As String = "Foo()"
             Dim src2 As String = "While a : Foo() : End While"
@@ -2057,7 +2094,7 @@ End Try
                 "Insert [End While]@26")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Do1()
             Dim src1 = "Do : Do : Foo() : Loop While b : Loop Until a"
             Dim src2 = "Do : Do : Do : Foo() : Loop While b : Loop: Loop Until a"
@@ -2070,7 +2107,7 @@ End Try
                 "Insert [Loop]@46")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Do_DeleteHeader()
             Dim src1 = "Do : Foo() : Loop"
             Dim src2 = "Foo()"
@@ -2083,7 +2120,7 @@ End Try
                 "Delete [Loop]@21")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Do_InsertHeader()
             Dim src1 = "Foo()"
             Dim src2 = "Do : Foo() : Loop"
@@ -2098,7 +2135,7 @@ End Try
 #End Region
 
 #Region "If"
-        <Fact>
+        <WpfFact>
         Public Sub IfStatement_TestExpression_Update1()
             Dim src1 = "Dim x = 1 : If x = 1 : x += 1 : End If"
             Dim src2 = "Dim x = 1 : If x = 2 : x += 1 : End If"
@@ -2108,7 +2145,7 @@ End Try
                 "Update [If x = 1]@20 -> [If x = 2]@20")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub IfStatement_TestExpression_Update2()
             Dim src1 = "Dim x = 1 : If x = 1 Then x += 1" & vbLf
             Dim src2 = "Dim x = 1 : If x = 2 Then x += 1" & vbLf
@@ -2118,7 +2155,7 @@ End Try
                 "Update [If x = 1 Then x += 1]@20 -> [If x = 2 Then x += 1]@20")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub IfStatement_TestExpression_Update3()
             Dim src1 = "Dim x = 1 : If x = 1 : x += 1 : End If" & vbLf
             Dim src2 = "Dim x = 1 : If x = 2 Then x += 1" & vbLf
@@ -2130,7 +2167,7 @@ End Try
                 "Delete [End If]@40")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ElseClause_Insert()
             Dim src1 = "If x = 1 : x += 1 : End If"
             Dim src2 = "If x = 1 : x += 1 : Else : y += 1 : End If"
@@ -2142,7 +2179,7 @@ End Try
                 "Insert [y += 1]@35")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ElseClause_InsertMove()
             Dim src1 = "If x = 1 : x += 1 : Else : y += 1 : End If"
             Dim src2 = "If x = 1 : x += 1 : ElseIf x = 2 : y += 1 : End If"
@@ -2156,7 +2193,7 @@ End Try
                 "Delete [Else]@28")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub If1()
             Dim src1 As String = "If a : If b : Foo() : End If : End If"
             Dim src2 As String = "If a : If c : If b : Foo() : End If : End If : End If"
@@ -2169,7 +2206,7 @@ End Try
                 "Insert [End If]@46")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub If_DeleteHeader()
             Dim src1 = "If a : Foo() : End If"
             Dim src2 = "Foo()"
@@ -2182,7 +2219,7 @@ End Try
                 "Delete [End If]@23")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub If_InsertHeader()
             Dim src1 = "Foo()"
             Dim src2 = "If a : Foo() : End If"
@@ -2195,7 +2232,7 @@ End Try
                 "Insert [End If]@23")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Else_DeleteHeader()
             Dim src1 As String = "If a : Foo( ) : Else : Foo(  ) : End If"
             Dim src2 As String = "If a : Foo( ) : Foo(  ) : End If"
@@ -2207,7 +2244,7 @@ End Try
                 "Delete [Else]@24")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Else_InsertHeader()
             Dim src1 = "If a : Foo( ) : End If : Foo(  )"
             Dim src2 = "If a : Foo( ) : Else : Foo(  ) : End If"
@@ -2219,7 +2256,7 @@ End Try
                 "Move [Foo(  )]@33 -> @31")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ElseIf_DeleteHeader()
             Dim src1 = "If a : Foo( ) : ElseIf b : Foo(  ) : End If"
             Dim src2 = "If a : Foo( ) : End If : Foo(  )"
@@ -2231,7 +2268,7 @@ End Try
                 "Delete [ElseIf b]@24")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ElseIf_InsertHeader()
             Dim src1 = "If a : Foo( ) : Foo(  ) : End If"
             Dim src2 = "If a : Foo( ) : Else If b : Foo(  ) : End If"
@@ -2245,7 +2282,7 @@ End Try
 #End Region
 
 #Region "Lambdas"
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_InVariableDeclarator()
             Dim src1 = "Dim x = Function(a) a, y = Function(b) b"
             Dim src2 = "Dim x = Sub(a) a, y = Function(b) (b + 1)"
@@ -2256,7 +2293,7 @@ End Try
                 "Update [Function(b) b]@35 -> [Function(b) (b + 1)]@30")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_InExpressionStatement()
             Dim src1 = "F(Function(a) a, Function(b) b)"
             Dim src2 = "F(Function(b) b, Function(a)(a+1))"
@@ -2267,7 +2304,7 @@ End Try
                 "Update [Function(a) a]@10 -> [Function(a)(a+1)]@25")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_InWhile()
             Dim src1 = "While F(Function(a) a) : End While"
             Dim src2 = "Do : Loop While F(Function(a) a)"
@@ -2281,7 +2318,7 @@ End Try
                 "Move [Function(a) a]@16 -> @26")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_InLambda()
             Dim src1 = "F(Sub()" & vbLf & "G(Function(x) y) : End Sub)"
             Dim src2 = "F(Function(q) G(Sub(x) f()))"
@@ -2291,7 +2328,7 @@ End Try
                 "Update [Sub()" & vbLf & "G(Function(x) y) : End Sub]@10 -> [Function(q) G(Sub(x) f())]@10")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Insert_Static_Top()
             Dim src1 = "
 Imports System
@@ -2315,7 +2352,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Insert_Static_Nested1()
             Dim src1 = "
 Imports System
@@ -2347,7 +2384,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Insert_ThisOnly_Top1()
             Dim src1 = "
 Imports System
@@ -2384,7 +2421,7 @@ End Class"
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Insert_ThisOnly_Top2()
             Dim src1 = "
 Imports System
@@ -2421,7 +2458,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "x", "x"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Insert_ThisOnly_Nested1()
             Dim src1 = "
 Imports System
@@ -2459,7 +2496,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Insert_ThisOnly_Nested2()
             Dim src1 = "
 Imports System
@@ -2509,7 +2546,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_InsertAndDelete_Scopes1()
             Dim src1 = "
 Imports System
@@ -2587,7 +2624,7 @@ End Class"
                 Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.LambdaExpression, "Me", "x3"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_CeaseCapture_This()
             Dim src1 = "
 Imports System
@@ -2616,7 +2653,7 @@ End Class
                 Diagnostic(RudeEditKind.NotCapturingVariable, "F", "Me"))
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature1()
             Dim src1 = "
 Imports System
@@ -2653,7 +2690,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature2()
             Dim src1 = "
 Imports System
@@ -2690,7 +2727,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a, b)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature3()
             Dim src1 = "
 Imports System
@@ -2727,7 +2764,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function(a)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature_EmptyBody1()
             Dim src1 = "
 Imports System
@@ -2768,7 +2805,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Sub(a)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature_EmptyBody2()
             Dim src1 = "
 Imports System
@@ -2809,7 +2846,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function()", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Signature_SyntaxOnly1()
             Dim src1 = "
 Imports System
@@ -2845,7 +2882,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature_ReturnType1()
             Dim src1 = "
 Imports System
@@ -2885,7 +2922,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Sub(a)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Signature_BodySyntaxOnly()
             Dim src1 = "
 Imports System
@@ -2923,7 +2960,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Signature_ParameterName1()
             Dim src1 = "
 Imports System
@@ -2959,7 +2996,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_Signature_ParameterRefness1()
             Dim src1 = "
 Imports System
@@ -3002,7 +3039,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a As Integer)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_DelegateType1()
             Dim src1 = "
 Imports System
@@ -3046,7 +3083,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_SourceType1()
             Dim src1 = "
 Imports System
@@ -3088,7 +3125,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_SourceType2()
             Dim src1 = "
 Imports System
@@ -3137,7 +3174,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_SourceTypeAndMetadataType1()
             Dim src1 = "
 Namespace [System]
@@ -3189,7 +3226,7 @@ End Namespace
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Generic1()
             Dim src1 = "
 Delegate Function D1(Of S, T)(a As S, b As T) As T
@@ -3228,7 +3265,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_Generic2()
             Dim src1 = "
 Delegate Function D1(Of S, T)(a As S, b As T) As Integer
@@ -3267,7 +3304,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a, b)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_CapturedParameters1()
             Dim src1 = "
 Imports System
@@ -3297,7 +3334,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")>
+        <WpfFact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")>
         Public Sub Lambdas_Update_CapturedParameters2()
             Dim src1 = "
 Imports System
@@ -3339,7 +3376,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_CeaseCapture_Closure1()
             Dim src1 = "
 Imports System
@@ -3375,7 +3412,7 @@ End Class
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a2)", "y", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_CeaseCapture_IndexerParameter2()
             Dim src1 = "
 Imports System
@@ -3402,7 +3439,7 @@ End Class
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_CeaseCapture_MethodParameter1()
             Dim src1 = "
 Imports System
@@ -3425,7 +3462,7 @@ End Class
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"))
         End Sub
 
-        <Fact, WorkItem(1290)>
+        <WpfFact, WorkItem(1290)>
         Public Sub Lambdas_Update_CeaseCapture_LambdaParameter1()
             Dim src1 = "
 Imports System
@@ -3457,7 +3494,7 @@ End Class
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_DeleteCapture1()
             Dim src1 = "
 Imports System
@@ -3488,7 +3525,7 @@ End Class
                 Diagnostic(RudeEditKind.DeletingCapturedVariable, "Sub F()", "y"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Capturing_IndexerGetterParameter2()
             Dim src1 = "
 Imports System
@@ -3516,7 +3553,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Capturing_IndexerSetterParameter1()
             Dim src1 = "
 Imports System
@@ -3549,7 +3586,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Capturing_MethodParameter1()
             Dim src1 = "
 Imports System
@@ -3572,7 +3609,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "a2", "a2"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Capturing_LambdaParameter1()
             Dim src1 = "
 Imports System
@@ -3603,7 +3640,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_StaticToThisOnly1()
             Dim src1 = "
 Imports System
@@ -3630,7 +3667,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_StaticToThisOnly_Partial()
             Dim src1 = "
 Imports System
@@ -3667,7 +3704,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "Me").WithFirstLine("Partial Sub F() ' impl"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_StaticToThisOnly3()
             Dim src1 = "
 Imports System
@@ -3696,7 +3733,7 @@ End Class
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "Function(a1)", "Me", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_StaticToClosure1()
             Dim src1 = "
 Imports System
@@ -3730,7 +3767,7 @@ End Class
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", VBFeaturesResources.LambdaExpression).WithFirstLine("x   ' 2"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_ThisOnlyToClosure1()
             Dim src1 = "
 Imports System
@@ -3761,7 +3798,7 @@ End Class
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "y", "y", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Nested1()
             Dim src1 = "
 Imports System
@@ -3795,7 +3832,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Nested2()
             Dim src1 = "
 Imports System
@@ -3828,7 +3865,7 @@ End Class
                 Diagnostic(RudeEditKind.CapturingVariable, "a1", "a1").WithFirstLine("Function(a1)"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Accessing_Closure1()
             Dim src1 = "
 Imports System
@@ -3861,7 +3898,7 @@ End Class
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Accessing_Closure2()
             Dim src1 = "
 Imports System
@@ -3913,7 +3950,7 @@ End Class"
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "x0", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Accessing_Closure3()
             Dim src1 = "
 Imports System
@@ -3967,7 +4004,7 @@ End Class"
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x0", "x0", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_Update_Accessing_Closure4()
             Dim src1 = "
 Imports System
@@ -4029,7 +4066,7 @@ End Class
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function(a)", "y1", VBFeaturesResources.LambdaExpression).WithFirstLine("G(Function(a) x)       ' error: disconnecting previously connected closures"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_RenameCapturedLocal1()
             Dim src1 = "
 Imports System
@@ -4062,7 +4099,7 @@ End Class
                 Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_RenameCapturedLocal2()
             Dim src1 = "
 Imports System
@@ -4096,7 +4133,7 @@ End Class
 #End Region
 
 #Region "Queries"
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_Select1()
             Dim src1 = "
 Imports System
@@ -4123,7 +4160,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", VBFeaturesResources.SelectClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_Select2()
             Dim src1 = "
 Imports System
@@ -4150,7 +4187,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", VBFeaturesResources.SelectClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_Select3()
             Dim src1 = "
 Imports System
@@ -4177,7 +4214,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", VBFeaturesResources.SelectClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_From1()
             Dim src1 = "
 Imports System
@@ -4204,7 +4241,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", VBFeaturesResources.FromClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_From2()
             Dim src1 = "
 Imports System
@@ -4230,7 +4267,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_From3()
             Dim src1 = "
 Imports System
@@ -4258,7 +4295,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_FromInAggregate1()
             Dim src1 = "
 Imports System
@@ -4289,7 +4326,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_FromInAggregate2()
             Dim src1 = "
 Imports System
@@ -4320,7 +4357,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_FromInAggregate3()
             Dim src1 = "
 Imports System
@@ -4351,7 +4388,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_Let1()
             Dim src1 = "
 Imports System
@@ -4380,7 +4417,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Let", VBFeaturesResources.LetClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_OrderBy1()
             Dim src1 = "
 Imports System
@@ -4409,7 +4446,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 1.0 Descending", VBFeaturesResources.OrderingClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_OrderBy2()
             Dim src1 = "
 Imports System
@@ -4438,7 +4475,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 2.0 Ascending", VBFeaturesResources.OrderingClause))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Join1()
             Dim src1 = "
 Imports System
@@ -4467,7 +4504,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Join2()
             Dim src1 = "
 Imports System
@@ -4496,7 +4533,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Join3()
             Dim src1 = "
 Imports System
@@ -4525,7 +4562,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Join4()
             Dim src1 = "
 Imports System
@@ -4554,7 +4591,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Join5()
             Dim src1 = "
 Imports System
@@ -4583,7 +4620,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Join()
             Dim src1 = "
 Imports System
@@ -4612,7 +4649,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_GroupJoin1()
             Dim src1 = "
 Imports System
@@ -4641,7 +4678,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_GroupJoin2()
             Dim src1 = "
 Imports System
@@ -4670,7 +4707,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_GroupJoin3()
             Dim src1 = "
 Imports System
@@ -4699,7 +4736,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_GroupJoin4()
             Dim src1 = "
 Imports System
@@ -4729,7 +4766,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_GroupBy1()
             Dim src1 = "
 Imports System
@@ -4767,7 +4804,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group", "Group By clause"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Update_Signature_Partition1()
             Dim src1 = "
 Imports System
@@ -4803,7 +4840,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Aggregate1()
             Dim src1 = "
 Imports System
@@ -4833,7 +4870,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Aggregate2()
             Dim src1 = "
 Imports System
@@ -4863,7 +4900,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Aggregate3()
             Dim src1 = "
 Imports System
@@ -4893,7 +4930,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Aggregate", "Aggregate clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Aggregate4()
             Dim src1 = "
 Imports System
@@ -4923,7 +4960,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_Update_Signature_Aggregate5()
             Dim src1 = "
 Imports System
@@ -4953,7 +4990,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", "Select clause"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_FromSelect_Update()
             Dim src1 = "F(From a In b Select c)"
             Dim src2 = "F(From a In c Select c + 1)"
@@ -4964,7 +5001,7 @@ End Class
                 "Update [c]@29 -> [c + 1]@29")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_FromSelect_Delete()
             Dim src1 = "F(From a In b From c In d Select a + c)"
             Dim src2 = "F(From a In b Select c + 1)"
@@ -4977,7 +5014,7 @@ End Class
                 "Delete [c]@27")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_GroupBy_Update()
             Dim src1 = "F(From a In b Group a By a.x Into g Select g)"
             Dim src2 = "F(From a In b Group z By z.y Into h Select h)"
@@ -4990,7 +5027,7 @@ End Class
                 "Update [g]@51 -> [h]@51")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_OrderBy_Reorder()
             Dim src1 = "F(From a In b Order By a.x, a.b Descending, a.c Ascending Select a.d)"
             Dim src2 = "F(From a In b Order By a.x, a.c Ascending, a.b Descending Select a.d)"
@@ -5000,7 +5037,7 @@ End Class
                 "Reorder [a.c Ascending]@52 -> @36")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_GroupJoin()
             Dim src1 = "F(From a1 In b1 Group Join c1 In d1 On e1 Equals f1 Into g1 = Group, h1 = Sum(f1) Select g1)"
             Dim src2 = "F(From a2 In b2 Group Join c2 In d2 On e2 Equals f2 Into g2 = Group, h2 = Sum(f2) Select g2)"
@@ -5041,7 +5078,7 @@ End Class
                 "Update [c1]@35 -> [c2]@35")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_CapturedTransparentIdentifiers_FromClause1()
             Dim src1 As String = "
 Imports System
@@ -5090,7 +5127,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_CapturedTransparentIdentifiers_LetClause1()
             Dim src1 As String = "
 Imports System
@@ -5127,7 +5164,7 @@ End Class"
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212)>
         Public Sub Queries_CapturedTransparentIdentifiers_JoinClause1()
             Dim src1 As String = "
 Imports System
@@ -5167,7 +5204,7 @@ End Class"
                 Diagnostic(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, "Group Join", "method"))
         End Sub
 
-        <Fact, WorkItem(1312)>
+        <WpfFact, WorkItem(1312)>
         Public Sub Queries_CeaseCapturingTransparentIdentifiers1()
             Dim src1 As String = "
 Imports System
@@ -5210,7 +5247,7 @@ End Class"
                 Diagnostic(RudeEditKind.NotCapturingVariable, "b In {2}", "b"))
         End Sub
 
-        <Fact, WorkItem(1312)>
+        <WpfFact, WorkItem(1312)>
         Public Sub Queries_CapturingTransparentIdentifiers1()
             Dim src1 As String = "
 Imports System
@@ -5252,7 +5289,7 @@ End Class"
                 Diagnostic(RudeEditKind.CapturingVariable, "b", "b"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_AccessingCapturedTransparentIdentifier1()
             Dim src1 = "
 Imports System
@@ -5292,7 +5329,7 @@ End Class
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", VBFeaturesResources.SelectClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_AccessingCapturedTransparentIdentifier2()
             Dim src1 = "
 Imports System
@@ -5333,7 +5370,7 @@ End Class
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", VBFeaturesResources.SelectClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_AccessingCapturedTransparentIdentifier3()
             Dim src1 = "
 Imports System
@@ -5373,7 +5410,7 @@ End Class
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a", "a", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_NotAccessingCapturedTransparentIdentifier1()
             Dim src1 = "
 Imports System
@@ -5414,7 +5451,7 @@ End Class
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Select", "a", VBFeaturesResources.SelectClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_NotAccessingCapturedTransparentIdentifier2()
             Dim src1 = "
 Imports System
@@ -5454,7 +5491,7 @@ End Class
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "Function()", "a", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_Insert1()
             Dim src1 = "
 Imports System
@@ -5481,7 +5518,7 @@ End Class
 #End Region
 
 #Region "Yield"
-        <Fact>
+        <WpfFact>
         Public Sub Yield_Update1()
             Dim src1 = <text>
 Yield 1
@@ -5499,7 +5536,7 @@ Yield 4
 
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Yield_Update2()
             Dim src1 = <text>
 Yield 1
@@ -5516,7 +5553,7 @@ Yield 4
                 "Update [Yield 2]@58 -> [Yield 4]@58")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Yield_Insert()
             Dim src1 = <text>
 Yield 1
@@ -5533,7 +5570,7 @@ Yield 3
                 "Insert [Yield 3]@66")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Yield_Delete()
             Dim src1 = <text>
 Yield 1
@@ -5552,7 +5589,7 @@ Yield 2
 #End Region
 
 #Region "Await"
-        <Fact>
+        <WpfFact>
         Public Sub Await_Update1()
             Dim src1 = <text>
 Await F(1)
@@ -5569,7 +5606,7 @@ Await F(4)
                 "Update [Await F(2)]@51 -> [Await F(4)]@51")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Await_Insert()
             Dim src1 = <text>
 Await F(1)
@@ -5586,7 +5623,7 @@ Await F(3)
                 "Insert [Await F(2)]@51")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Await_Delete()
             Dim src1 = <text>
 Await F(1)

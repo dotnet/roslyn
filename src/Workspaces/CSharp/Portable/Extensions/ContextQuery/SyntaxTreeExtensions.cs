@@ -231,14 +231,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 ? contextOpt.LeftToken
                 : syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
+            var token = contextOpt != null
+                ? contextOpt.TargetToken
+                : leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsAnyAccessorDeclarationContext(position))
+            {
+                return false;
+            }
+
             if (syntaxTree.IsMemberDeclarationContext(position, leftToken, cancellationToken))
             {
                 return true;
             }
-
-            var token = contextOpt != null
-                ? contextOpt.TargetToken
-                : leftToken.GetPreviousTokenIfTouchingWord(position);
 
             // A member can also show up after certain types of modifiers
             if (canBePartial &&
@@ -487,16 +492,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 ? contextOpt.LeftToken
                 : syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            if (syntaxTree.IsTypeDeclarationContext(position, leftToken, cancellationToken))
-            {
-                return true;
-            }
-
             // If we're touching the right of an identifier, move back to
             // previous token.
             var token = contextOpt != null
                 ? contextOpt.TargetToken
                 : leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            if (token.IsAnyAccessorDeclarationContext(position))
+            {
+                return false;
+            }
+
+            if (syntaxTree.IsTypeDeclarationContext(position, leftToken, cancellationToken))
+            {
+                return true;
+            }
 
             // A type can also show up after certain types of modifiers
             if (canBePartial &&
@@ -1906,7 +1916,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     {
                         var objectCreation = (ObjectCreationExpressionSyntax)token.Parent.Parent;
                         var type = semanticModelOpt.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
-                        if (type != null && !type.CanSupportCollectionInitializer())
+                        var containingSymbol = semanticModelOpt.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+                        if (type != null && !type.CanSupportCollectionInitializer(containingSymbol))
                         {
                             return false;
                         }
@@ -2164,9 +2175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.Parent.IsParentKind(SyntaxKind.InvocationExpression))
             {
                 var invocationExpression = (InvocationExpressionSyntax)token.Parent.Parent;
-                if (!invocationExpression.IsParentKind(SyntaxKind.ConditionalAccessExpression) &&
-                    !invocationExpression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                    !invocationExpression.IsParentKind(SyntaxKind.PointerMemberAccessExpression) &&
+                if (!invocationExpression.IsRightSideOfDotOrArrowOrColonColon() &&
                     invocationExpression.Expression.IsKind(SyntaxKind.IdentifierName) &&
                     ((IdentifierNameSyntax)invocationExpression.Expression).Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword))
                 {

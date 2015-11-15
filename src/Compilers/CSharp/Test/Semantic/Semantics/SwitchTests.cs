@@ -1165,13 +1165,7 @@ struct Conv
 	}		
 }
 ";
-            // Note that the error message we produce here is not very good; the user would reasonably point out
-            // that the switch expression could be converted to a "corresponding nullable type" via the 
-            // lifted user-defined conversion.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                    // (12,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                    // 		switch(C)
-                    Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C"));
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1305,9 +1299,6 @@ struct A
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (22,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
-                //             switch(aNullable)
-                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "aNullable").WithLocation(22, 20),
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20));
@@ -1369,7 +1360,7 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_3()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion (both applicable in non-lifted form)
 
             var text =
 @"using System;
@@ -1417,7 +1408,7 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_4()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion (both applicable in non-lifted form)
 
             var text =
 @"using System;
@@ -1465,9 +1456,7 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_5()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int(A a)"
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1505,16 +1494,18 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //             switch(a)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
+                );
         }
 
         [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_6()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int?(A a)"
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1552,14 +1543,18 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //             switch(a)
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
+                );
         }
 
         [WorkItem(543673, "DevDiv")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1613,8 +1608,8 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_2()
         {
-            // Dev10 behavior: 1st switch expression is an ambiguous user defined conversion
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 1st switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1671,7 +1666,7 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1725,8 +1720,8 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_4()
         {
-            // Dev10 behavior: 1st switch expression is an ambiguous user defined conversion
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 1st switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1783,8 +1778,8 @@ struct A
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_4_1()
         {
-            // Dev10 behavior: 1st switch expression is an ambiguous user defined conversion
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
+            // 1st switch expression is an ambiguous user defined conversion
+            // 2nd switch expression is an ambiguous user defined conversion
 
             var text =
 @"using System;
@@ -1843,12 +1838,162 @@ struct A
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
         }
 
+        [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
+        [Fact()]
+        public void ImplicitNullableUserDefinedConversionToSwitchGoverningTypeString01()
+        {
+            var text =
+@"using System;
+ 
+struct A
+{
+    public static implicit operator string(A a1)
+    {
+        Console.WriteLine(nameof(a1));
+        return nameof(a1);
+    }
+    class B
+    {
+        static void Main()
+        {
+            A? aNullable = new A();
+            switch(aNullable)
+            {
+                default: break;
+            }
+        }
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput: "a1");
+        }
+
+        [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
+        [Fact()]
+        public void ImplicitNullableUserDefinedConversionToSwitchGoverningTypeString02()
+        {
+            var text =
+@"using System;
+ 
+struct A
+{
+    public static implicit operator string(A a1)
+    {
+        Console.WriteLine(nameof(a1));
+        return nameof(a1);
+    }
+    public static implicit operator string(A? a2)
+    {
+        Console.WriteLine(nameof(a2));
+        return nameof(a2);
+    }
+    class B
+    {
+        static void Main()
+        {
+            A? aNullable = new A();
+            switch(aNullable)
+            {
+                default: break;
+            }
+        }
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput: "a2");
+        }
+
+        [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
+        [Fact()]
+        public void ImplicitNullableUserDefinedConversionToSwitchGoverningTypeInt()
+        {
+            var text =
+@"using System;
+class Program
+{
+  static void Main(string[] args)
+  {
+    M(default(X));
+    M(null);
+  }
+  static void M(X? x)
+  {
+    switch (x)
+    {
+      case null:
+        Console.WriteLine(""null"");
+        break;
+      case 1:
+        Console.WriteLine(1);
+        break;
+    }
+  }
+}
+struct X
+{
+    public static implicit operator int? (X x)
+    {
+        return 1;
+    }
+}";
+            CompileAndVerify(text, expectedOutput:
+@"1
+null");
+        }
+
+        [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
+        [Fact()]
+        public void ImplicitUserDefinedConversionToSwitchGoverningType_42()
+        {
+            var text =
+@"using System;
+
+struct A
+{
+    public static implicit operator int?(A a)
+    {
+        Console.WriteLine(""0"");
+    return 0;
+    }
+
+    public static implicit operator string (A? a)
+    {
+        Console.WriteLine(""1"");
+        return """";
+    }
+
+    class B
+    {
+        static void Main()
+        {
+            A? aNullable = new A();
+            switch (aNullable) // only A?->string is applicable in non-lifted form
+            {
+                case """":
+                default: break;
+            }
+
+            A a = new A();
+            switch (a) // both operators applicable in non-lifted form -> error
+            {
+                default: break;
+            }
+        }
+    }
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (29,21): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
+                //             switch (a) // both operators applicable in non-lifted form -> error
+                Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(29, 21)
+                );
+        }
+
         #endregion
 
-        #region "Control Flow analysis: CS14001 Switch fall out error tests"
+        #region "Control Flow analysis: CS8070 Switch fall out error tests"
 
         [Fact]
-        public void CS14001_SwitchFallOut_DefaultLabel()
+        public void CS8070_SwitchFallOut_DefaultLabel()
         {
             var text = @"using System;
 class Test
@@ -1863,7 +2008,7 @@ class Test
 			case 2:
 				Console.WriteLine(i);
 				break;
-            default:                        // CS14001
+            default:                        // CS8070
                 Console.WriteLine(i);
 		}
 	}
@@ -1876,13 +2021,13 @@ class Test
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (14,13): error CS14001: Control cannot fall out of switch from final case label ('default')
-                //             default:                        // CS14001
+                // (14,13): error CS8070: Control cannot fall out of switch from final case label ('default')
+                //             default:                        // CS8070
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(14, 13));
         }
 
         [Fact]
-        public void CS14001_SwitchFallOutError()
+        public void CS8070_SwitchFallOutError()
         {
             var text = @"
 namespace Test
@@ -1908,13 +2053,13 @@ namespace Test
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (15,17): error CS14001: Control cannot fall out of switch from final case label ('case 11')
+                // (15,17): error CS8070: Control cannot fall out of switch from final case label ('case 11')
                 //                 case 11:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 11:").WithArguments("case 11:").WithLocation(15, 17));
         }
 
         [Fact]
-        public void CS14001_ErrorsInMultipleSwitchStmtsAreReported()
+        public void CS8070_ErrorsInMultipleSwitchStmtsAreReported()
         {
             var text = @"
 namespace Test
@@ -1958,15 +2103,62 @@ namespace Test
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (15,17): error CS14001: Control cannot fall out of switch from final case label ('case 11:')
+                // (15,17): error CS8070: Control cannot fall out of switch from final case label ('case 11:')
                 //                 case 11:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 11:").WithArguments("case 11:").WithLocation(15, 17),
-                // (24,17): error CS14001: Control cannot fall out of switch from final case label ('case 5:')
+                // (24,17): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
                 //                 case 5:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:").WithLocation(24, 17),
-                // (32,17): error CS14001: Control cannot fall out of switch from final case label ('default:')
+                // (32,17): error CS8070: Control cannot fall out of switch from final case label ('default:')
                 //                 default:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(32, 17));
+        }
+
+        [Fact]
+        public void SwitchFallOut_Script()
+        {
+            var source =
+@"using System;
+switch (1)
+{
+    default:
+        Console.WriteLine(1);
+    case 2:
+        Console.WriteLine(2);
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS0163: Control cannot fall through from one case label ('default:') to another
+                //     default:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "default:").WithArguments("default:").WithLocation(4, 5),
+                // (6,5): error CS8070: Control cannot fall out of switch from final case label ('case 2:')
+                //     case 2:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 2:").WithArguments("case 2:").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void SwitchFallOut_Submission()
+        {
+            var source =
+@"using System;
+switch (1)
+{
+    case 1:
+        Console.WriteLine(1);
+    default:
+        Console.WriteLine(2);
+}";
+            var submission = CSharpCompilation.CreateScriptCompilation(
+                "s0.dll",
+                syntaxTree: SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script),
+                references: new[] { MscorlibRef, SystemCoreRef });
+            submission.VerifyDiagnostics(
+                // (4,5): error CS0163: Control cannot fall through from one case label ('case 1:') to another
+                //     case 1:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 1:").WithArguments("case 1:").WithLocation(4, 5),
+                // (6,5): error CS8070: Control cannot fall out of switch from final case label ('default:')
+                //     default:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "default:").WithArguments("default:").WithLocation(6, 5));
         }
 
         #endregion
@@ -2221,7 +2413,7 @@ class SwitchTest
         }
     }
 }";
-            // CONSIDER:    Native compiler doesn't generate CS14001, we may want to do the same.
+            // CONSIDER:    Native compiler doesn't generate CS8070, we may want to do the same.
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (8,18): error CS0118: 'System' is a namespace but is used like a variable
@@ -2230,7 +2422,7 @@ class SwitchTest
                 // (11,22): error CS0159: No such label 'System' within the scope of the goto statement
                 //                 goto System;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "System").WithArguments("System"),
-                // (10,13): error CS14001: Control cannot fall out of switch from final case label ('case 5:')
+                // (10,13): error CS8070: Control cannot fall out of switch from final case label ('case 5:')
                 //             case 5:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 5:").WithArguments("case 5:"));
         }

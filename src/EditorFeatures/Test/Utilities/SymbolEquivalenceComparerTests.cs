@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
             WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
 
-        [Fact]
+        [WpfFact]
         public void TestArraysAreEquivalent()
         {
             var csharpCode =
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestArraysInDifferentLanguagesAreEquivalent()
         {
             var csharpCode =
@@ -161,7 +161,7 @@ end class";
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestFields()
         {
             var csharpCode1 =
@@ -217,7 +217,7 @@ class Type2
         }
 
         [WorkItem(538124)]
-        [Fact]
+        [WpfFact]
         public void TestFieldsAcrossLanguages()
         {
             var csharpCode1 =
@@ -267,7 +267,7 @@ end class";
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestFieldsInGenericTypes()
         {
             var code =
@@ -316,7 +316,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsWithDifferentReturnTypeNotEquivalent()
         {
             var csharpCode1 =
@@ -343,7 +343,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsWithDifferentNamesAreNotEquivalent()
         {
             var csharpCode1 =
@@ -370,7 +370,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsWithDifferentAritiesAreNotEquivalent()
         {
             var csharpCode1 =
@@ -397,7 +397,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsWithDifferentParametersAreNotEquivalent()
         {
             var csharpCode1 =
@@ -424,7 +424,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsWithDifferentTypeParameters()
         {
             var csharpCode1 =
@@ -453,7 +453,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsWithSameParameters()
         {
             var csharpCode1 =
@@ -482,7 +482,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsWithDifferentParameterNames()
         {
             var csharpCode1 =
@@ -511,7 +511,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsAreEquivalentOutToRef()
         {
             var csharpCode1 =
@@ -538,7 +538,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsNotEquivalentRemoveOut()
         {
             var csharpCode1 =
@@ -565,7 +565,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsAreEquivalentIgnoreParams()
         {
             var csharpCode1 =
@@ -594,7 +594,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsNotEquivalentDifferentParameterTypes()
         {
             var csharpCode1 =
@@ -621,7 +621,7 @@ class D
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsAcrossLanguages()
         {
             var csharpCode1 =
@@ -668,7 +668,7 @@ end class";
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMethodsInGenericTypesAcrossLanguages()
         {
             var csharpCode1 =
@@ -715,7 +715,7 @@ end class";
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestObjectAndDynamicAreNotEqualNormally()
         {
             var csharpCode1 =
@@ -737,7 +737,7 @@ end class";
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestObjectAndDynamicAreEqualInSignatures()
         {
             var csharpCode1 =
@@ -768,7 +768,7 @@ end class";
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestUnequalGenericsInSignatures()
         {
             var csharpCode1 =
@@ -803,7 +803,7 @@ class Type1
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGenericsWithDynamicAndObjectInSignatures()
         {
             var csharpCode1 =
@@ -840,7 +840,7 @@ class Type1
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestDynamicAndUnrelatedTypeInSignatures()
         {
             var csharpCode1 =
@@ -875,7 +875,7 @@ class Type1
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNamespaces()
         {
             var csharpCode1 =
@@ -948,7 +948,7 @@ class Type1
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNamedTypesEquivalent()
         {
             var csharpCode1 =
@@ -996,7 +996,7 @@ class Type2<Y>
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNamedTypesDifferentIfNameChanges()
         {
             var csharpCode1 =
@@ -1023,7 +1023,7 @@ class Type2
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNamedTypesDifferentIfTypeKindChanges()
         {
             var csharpCode1 =
@@ -1050,7 +1050,7 @@ class Type1
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNamedTypesDifferentIfArityChanges()
         {
             var csharpCode1 =
@@ -1077,7 +1077,7 @@ class Type1<T>
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNamedTypesDifferentIfContainerDifferent()
         {
             var csharpCode1 =
@@ -1112,7 +1112,7 @@ class Other
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAliasedTypes1()
         {
             var csharpCode1 =
@@ -1148,7 +1148,7 @@ class Type1
         }
 
         [WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")]
-        [Fact]
+        [WpfFact]
         public void TestRefVersusOut()
         {
             var csharpCode1 =
@@ -1188,7 +1188,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCSharpReducedExtensionMethodsAreEquivalent()
         {
             var code = @"
@@ -1254,7 +1254,7 @@ class Test
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestVisualBasicReducedExtensionMethodsAreEquivalent()
         {
             var code = @"
@@ -1330,7 +1330,7 @@ End Class
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestDifferentModules()
         {
             var csharpCode =
@@ -1357,7 +1357,7 @@ End Class
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AssemblyComparer1()
         {
             var references = new[] { TestReferences.NetFx.v4_0_30319.mscorlib };
@@ -1417,7 +1417,7 @@ End Class
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void CustomModifiers_Methods1()
         {
             const string ilSource = @"
@@ -1457,7 +1457,7 @@ End Class
 }
 ";
             MetadataReference r1, r2;
-            using (var tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource))
+            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
             {
                 byte[] bytes = File.ReadAllBytes(tempAssembly.Path);
                 r1 = MetadataReference.CreateFromImage(bytes);

@@ -1,6 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
@@ -8,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         Public Class LanguageInteraction
 
 #Region "Generics"
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestTypeParameterWithConstraints()
                 Dim code = <text>Class Program
     Private Function MyMethod1(Of TT As {ICloneable, New})() As Object
@@ -34,7 +39,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestTypeParameter()
                 Dim code = <text>Class Program
     Public Function Method(Of T, R)() As String
@@ -67,7 +72,7 @@ End Class</text>
                 TestExtractMethod(code, expected, allowMovingDeclaration:=False)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestTypeOfTypeParameter()
                 Dim code = <text>Imports System
 
@@ -94,7 +99,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestTypeParameterDataFlowOut()
                 Dim code = <text>Imports System.Collections.Generic
 Imports System.Linq
@@ -140,11 +145,11 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            ' C# disallows this. since vbc supports "Don’t Copy Back ByRef" VB extract method allows this
+            ' C# disallows this. since vbc supports "Don't Copy Back ByRef" VB extract method allows this
             ' Note that we have to expand Extract Method's selection here to avoid breaking semantics since
             ' this ByRef will not perform copy back to i after Extract Method occurs.
             ' http://blogs.msdn.com/b/jaredpar/archive/2010/01/21/the-many-cases-of-byref.aspx
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestByRefArgument()
                 Dim code = <text>Class Program
     Private Shared Sub Main(args As String())
@@ -183,7 +188,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestDefaultOfT()
                 Dim code = <text>Imports System.Collections.Generic
 Imports System.Linq
@@ -214,7 +219,7 @@ End Class</text>
 #End Region
 
             <WorkItem(527791)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestExplicitLineContinuation()
                 Dim code = <text>Imports System
 Module Program
@@ -241,7 +246,7 @@ End Module</text>
             End Sub
 
             <WorkItem(527791)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestImplicitLineContinuation()
                 Dim code = <text>Imports System
 Module Program
@@ -267,7 +272,7 @@ End Module</text>
                 TestExtractMethod(code, expected, temporaryFailing:=True)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestStatementSeparator()
                 Dim code = <text>Imports System
 Module Program
@@ -290,7 +295,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestMeKeyword()
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -325,7 +330,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestMeKeywordWithByRef()
                 Dim code = <text>Public Class Class1
     Dim x As Integer
@@ -351,7 +356,7 @@ End Class</text>
             End Sub
 
             <WorkItem(5168, "DevDiv_Projects/Roslyn"), WorkItem(542878)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestStatementWithMyClassKeyword()
                 Dim code = <text>Public Class Class1
     Dim x As Integer
@@ -377,7 +382,7 @@ End Class</text>
             End Sub
 
             <WorkItem(5171, "DevDiv_Projects/Roslyn"), WorkItem(542878)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestMyClassKeyword()
                 Dim code = <text>Public Class Class1
     Dim x As Integer
@@ -403,7 +408,7 @@ End Class</text>
             End Sub
 
             <WorkItem(5173, "DevDiv_Projects/Roslyn")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestMyBaseKeyword()
                 Dim code = <text>MustInherit Class A
     Property X As Integer
@@ -436,7 +441,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestConstructorWithArgs()
                 Dim code = <text>Class A
     Protected x As Integer = 1
@@ -466,7 +471,7 @@ End Class</text>
             End Sub
 
             <WorkItem(5170, "DevDiv_Projects/Roslyn")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestStaticLocalVariable()
                 Dim code = <text>Public Class Class1
     Function MySub(ByVal sales As Decimal) As Decimal
@@ -481,7 +486,7 @@ End Class</text>
 
             <WorkItem(5170, "DevDiv_Projects/Roslyn")>
             <WorkItem(530808)>
-            <Fact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestStaticLocalVariable2()
                 Dim code = <text>Public Class Class1
     Function MySub(ByVal sales As Decimal) As Decimal
@@ -505,7 +510,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestTypeCharacter1()
                 Dim code = <text>Class A
     Public Function Foo(ByVal params&amp;)
@@ -528,7 +533,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestAddressOf()
                 Dim code = <text>Delegate Sub SimpleDelegate()
 Module Test
@@ -561,7 +566,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestAddressOf1()
                 Dim code = <text>Delegate Sub SimpleDelegate()
 Module Test
@@ -594,7 +599,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestArrayLiterals()
                 Dim code = <text>Class Class1
     Sub Test()
@@ -616,7 +621,7 @@ End Class</text>
             End Sub
 
             <WorkItem(539282)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestXmlLiteral1()
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -638,7 +643,7 @@ End Class</text>
             End Sub
 
             <WorkItem(5176, "DevDiv_Projects/Roslyn")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestXmlLiteral2()
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -660,7 +665,7 @@ End Class</text>
             End Sub
 
             <WorkItem(5179, "DevDiv_Projects/Roslyn")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestUnboundMethodCall()
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -684,7 +689,7 @@ End Class</text>
             End Sub
 
             <WorkItem(5180, "DevDiv_Projects/Roslyn")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestWithEvents()
                 Dim code = <text>Class Raiser
     Public Event E1()
@@ -705,7 +710,7 @@ End Module</text>
                 ExpectExtractMethodToFail(code)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestEvents()
                 Dim code = <text>Class Raiser
     [|Public Event E1()|]
@@ -727,7 +732,7 @@ End Module</text>
             End Sub
 
             <WorkItem(539286)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestFieldInitializers()
                 Dim code = <text>Class Class1
     Public y As Integer = [|10|]
@@ -744,7 +749,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestWithBlockBody()
                 Dim code = <text>Public Class Class1
     Function MySub() As Integer
@@ -791,7 +796,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestExceptionFilter()
                 Dim code = <text>Imports System
 Public Class Class1
@@ -828,7 +833,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestStatementsInTryBlock()
                 Dim code = <text>Imports System
 
@@ -869,7 +874,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestStatementsInCatchBlock()
                 Dim code = <text>Imports System
 
@@ -909,7 +914,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestStatementsInFinallyBlock()
                 Dim code = <text>Imports System
 
@@ -950,7 +955,7 @@ End Module</text>
             End Sub
 
             <WorkItem(539292)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestCallStatement()
                 Dim code = <text>Public Class Class1
     Function MySub() As Integer
@@ -981,7 +986,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestSignatureDoesContainShared()
                 Dim code = <text>Class Test
     Shared x As Integer = 5
@@ -1004,7 +1009,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestSignatureDoesContainShared2()
                 Dim code = <text>Class Test
     Sub Test()
@@ -1025,7 +1030,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestSignatureDoesNotContainShared()
                 Dim code = <text>Class Test
     Private x As Integer = 5
@@ -1048,7 +1053,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestSignatureAccessModifierIsNotPublic()
                 Dim code = <text>Public Class Test
     Public x As Integer = 5
@@ -1071,7 +1076,7 @@ End Class</text>
                 TestExtractMethod(code, expected, temporaryFailing:=True)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestSignatureAccessModifierIsNotProtected()
                 Dim code = <text>Protected Class Test
     Protected x As Integer = 5
@@ -1094,7 +1099,7 @@ End Class</text>
                 TestExtractMethod(code, expected, temporaryFailing:=True)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestSignatureAccessModifierIsNotFriend()
                 Dim code = <text>Friend Class Test
     Friend x As Integer = 5
@@ -1118,7 +1123,7 @@ End Class</text>
             End Sub
 
             <WorkItem(539413)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BugFix5370()
                 Dim code = <text>Class Test
     Sub Main(args As String())
@@ -1153,7 +1158,7 @@ End Class</text>
                 TestExtractMethod(code, expected, temporaryFailing:=True)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestEscapedIdentifiers()
                 Dim code = <text>Module Program
     Class C
@@ -1181,7 +1186,7 @@ End Module</text>
             End Sub
 
             <WorkItem(6626, "DevDiv_Projects/Roslyn")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestSectionBeforeUnreachableCode()
                 Dim code = <text>Module Program
     Class C
@@ -1212,7 +1217,7 @@ End Module</text>
             End Sub
 
             <WorkItem(540394)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestForLoopBody()
                 Dim code = <text>Module Program
     Class C
@@ -1248,7 +1253,7 @@ End Module</text>
             End Sub
 
             <WorkItem(540399)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestExpressionLambda()
                 Dim code = <text>Imports System
 Imports System.Collections.Generic
@@ -1302,7 +1307,7 @@ End Module</text>
             End Sub
 
             <WorkItem(540411)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestExpressionLambdaParameter()
                 Dim code = <text>Imports System
 Imports System.Collections.Generic
@@ -1357,7 +1362,7 @@ End Module</text>
 
             <WorkItem(540422)>
             <WorkItem(530596)>
-            <Fact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestArrayWithDecrementIndex()
                 Dim code = <text>Imports System
 Imports System.Collections.Generic
@@ -1393,7 +1398,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540465)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestIfExpression()
                 Dim code = <text>Imports System
 Imports System.Collections
@@ -1432,7 +1437,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestSingleLineElseStatement()
                 Dim code = <text>Imports System
 
@@ -1461,7 +1466,7 @@ End Module</text>
                 TestExtractMethod(code, expected, allowMovingDeclaration:=False)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestPropertySetter()
                 Dim code = <text>Class Program
     Private _FirstName As String
@@ -1496,7 +1501,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestCollectionInitializer()
                 Dim code = <text>Imports System.Collections.Generic
 Class B
@@ -1516,7 +1521,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540511)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BugFix6788()
                 Dim code = <text>Imports System
  
@@ -1557,7 +1562,7 @@ End Class</text>
             End Sub
 
             <WorkItem(542139)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub MinimalTypeNameGeneration()
                 Dim code = <text>Module M
     Sub Main
@@ -1591,7 +1596,7 @@ End Namespace</text>
             End Sub
 
             <WorkItem(542105)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub NamedArgument()
                 Dim code = <text>Module M
     Sub Main
@@ -1619,7 +1624,7 @@ End Module</text>
             End Sub
 
             <WorkItem(542094)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TypeName()
                 Dim code = <text>Module M
     Sub Main()
@@ -1641,7 +1646,7 @@ End Module</text>
             End Sub
 
             <WorkItem(542092)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub RangeArgument()
                 Dim code = <text>Module M
     Sub Main()
@@ -1665,7 +1670,7 @@ End Module</text>
             End Sub
 
             <WorkItem(542026), WorkItem(543100)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub NextStatement()
                 Dim code = <text>Module M
     Sub Main()
@@ -1691,7 +1696,7 @@ End Module</text>
             End Sub
 
             <WorkItem(542030)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub NextStatementWithMultipleControlVariables()
                 Dim code = <text>Module M
     Sub Main
@@ -1717,7 +1722,7 @@ End Module</text>
             End Sub
 
             <WorkItem(542067)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub SelectQueryOperator1()
                 Dim code = <text>Imports System.Linq
 Module Program
@@ -1741,7 +1746,7 @@ End Module</text>
             End Sub
 
             <WorkItem(542067)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub SelectQueryOperator2()
                 Dim code = <text>Imports System.Linq
 Module Program
@@ -1765,7 +1770,7 @@ End Module</text>
             End Sub
 
             <WorkItem(542067)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub SelectQueryOperator3()
                 Dim code = <text>Imports System.Linq
 Module Program
@@ -1789,7 +1794,7 @@ End Module</text>
             End Sub
 
             <WorkItem(542067)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub SelectQueryOperator4()
                 Dim code = <text>Imports System.Linq
 Module Program
@@ -1812,7 +1817,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestSyncLockBlock()
                 Dim code = <text>Imports System
 
@@ -1853,7 +1858,7 @@ End Class</text>
                 TestExtractMethod(code, expected, temporaryFailing:=True)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestUsingBlock()
                 Dim code = <text>Imports System
 
@@ -1884,7 +1889,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestWithBlockExpression()
                 Dim code = <text>Module Program
     Sub Main()
@@ -1922,7 +1927,7 @@ End Class</text>
             End Sub
 
             <WorkItem(543017)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestCaseBlock()
                 Dim code = <text>Imports System
 
@@ -1955,7 +1960,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestStructureBlock()
                 Dim code = <text>Structure A
     Shared x As Integer = [|5 * 3|]
@@ -1973,7 +1978,7 @@ End Structure</text>
             End Sub
 
             <WorkItem(542804)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AnonymousType()
                 Dim code = <text>Option Infer On
 Imports System
@@ -1998,7 +2003,7 @@ End Class
             End Sub
 
             <WorkItem(542878)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub MyClassInstance()
                 Dim code = <text>Public Class Class1
     Dim x As Integer
@@ -2023,7 +2028,7 @@ End Class</text>
             End Sub
 
             <WorkItem(542904)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub GeneratedMethodBeforeAttribute()
                 Dim code = <text>Module Program
     Sub Main(args As String())
@@ -2052,7 +2057,7 @@ End Module</text>
             End Sub
 
             <WorkItem(10341, "DevDiv_Projects/Roslyn")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TryCatchPartDontCrash()
                 Dim code = <text>Module Program
     Sub Main(nwindConn As String())
@@ -2139,7 +2144,7 @@ End Class</text>
             End Sub
 
             <WorkItem(542878)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub MyBaseInstance()
                 Dim code = <text>Public Class Class1
     Dim x As Integer
@@ -2164,7 +2169,7 @@ End Class</text>
             End Sub
 
             <WorkItem(542878)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub MeInstanceExpression()
                 Dim code = <text>Public Class Class1
     Dim x As Integer
@@ -2189,7 +2194,7 @@ End Class</text>
             End Sub
 
             <WorkItem(543304)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ExtractMethodForLambdaInSyncLock()
                 Dim code = <text>Class Program
     Public Shared Sub Main(args As String())
@@ -2203,7 +2208,7 @@ End Class</text>
             End Sub
 
             <WorkItem(543332)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ReturnStatement1()
                 Dim code = <text>Option Infer On
 Option Strict On
@@ -2244,7 +2249,7 @@ End Class</text>
             End Sub
 
             <WorkItem(543304)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub LambdaParameter1()
                 Dim code = <text>Class C1
     Shared Sub Main()
@@ -2271,7 +2276,7 @@ End Class</text>
             End Sub
 
             <WorkItem(543096)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub SelectBlock()
                 Dim code = <text>Imports System
 Module Program
@@ -2305,7 +2310,7 @@ End Module</text>
             End Sub
 
             <WorkItem(529182)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub CastExpressionImplicitConversion()
                 Dim code = <text>
 Module Program
@@ -2329,7 +2334,7 @@ End Module</text>
             End Sub
 
             <WorkItem(539310)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ReadOnlyFields_WrittenTo()
                 Dim code = <text>
 Class M
@@ -2342,7 +2347,7 @@ End Class</text>
             End Sub
 
             <WorkItem(539310)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ReadOnlyFields()
                 Dim code = <text>
 Class M
@@ -2369,7 +2374,7 @@ End Class</text>
             End Sub
 
             <WorkItem(544972)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AnonymousDelegate()
                 Dim code = <text>Option Infer On
  
@@ -2384,7 +2389,7 @@ End Module
             End Sub
 
             <WorkItem(544971)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AnonymousDelegate2()
                 Dim code = <text>Option Infer On
  
@@ -2399,7 +2404,7 @@ End Module
             End Sub
 
             <WorkItem(545128)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub NoValidRangeOfStatementToExtract()
                 Dim code = <text>Imports System
 Imports System.Collections.Generic
@@ -2418,7 +2423,7 @@ End Module</text>
             End Sub
 
             <WorkItem(543581)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub NoInitializedDueToGoToLabel()
                 Dim code = <text>Module Program
     Sub Main(args As String())
@@ -2454,7 +2459,7 @@ End Module</text>
             End Sub
 
             <WorkItem(545292)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub LocalConst()
                 Dim code = <text>Class C
     Sub Method()
@@ -2466,7 +2471,7 @@ End Class</text>
             End Sub
 
             <WorkItem(543582)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ArgumentForByRefParameter()
                 Dim code = <text>Module Module1
     Sub Main(args As String())
@@ -2499,7 +2504,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ByRefArgument1()
                 Dim code = <code>Module M
     Sub Main()
@@ -2531,7 +2536,7 @@ End Module</code>
 
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ByRefArgument2()
                 Dim code = <code>Module M
     Sub Main()
@@ -2565,7 +2570,7 @@ End Module</code>
 
             <WorkItem(545153)>
             <WorkItem(530596)>
-            <Fact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub CreateDelegateFromMethod()
                 Dim code = <text>Imports System
 Imports System.Linq
@@ -2594,7 +2599,7 @@ End Module</text>
             End Sub
 
             <WorkItem(544459)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BangOperator()
                 Dim code = <text>Class S
         Default Property Def(s As String) As String
@@ -2636,7 +2641,7 @@ End Module</text>
             End Sub
 
             <WorkItem(544327)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ObjectInitializer_RValue()
                 Dim code = <text>Class C
     Public X As Long = 1
@@ -2668,7 +2673,7 @@ End Module</text>
             End Sub
 
             <WorkItem(545169)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub XmlEmbeddedExpression()
                 Dim code = <text>Module M
     Sub Main()
@@ -2690,7 +2695,7 @@ End Module</text>
             End Sub
 
             <WorkItem(544597)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub DefaultValueForAutoImplementedProperty()
                 Dim code = <text>Class B
     Property IntList() As New List(Of Integer) With {.Capacity = [|100|]}
@@ -2708,7 +2713,7 @@ End Class </text>
             End Sub
 
             <WorkItem(545546)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ExpressionInWithBlock()
                 Dim code = <text>Module Program
     Sub Main()
@@ -2734,7 +2739,7 @@ End Module</text>
             End Sub
 
             <WorkItem(545635), WorkItem(718154)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub RangeArgument_Field()
                 Dim code = <text>Module Program
     ' Extract method
@@ -2756,7 +2761,7 @@ End Module
             End Sub
 
             <WorkItem(545628)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub NoEmptyTokenAtEndOfSelection()
                 Dim code = <text>Module Program
     Dim x = &lt;x&gt;&lt;%= Sub() [|If True Then Return :|]%&gt;&lt;/x&gt;
@@ -2774,7 +2779,7 @@ End Module</text>
             End Sub
 
             <WorkItem(545628)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub NoEmptyTokenAtEndOfSelection2()
                 Dim code = <text>Module Program
     Dim x = &lt;x&gt;&lt;%= [|Sub() If True Then Return :|]%&gt;&lt;/x&gt;
@@ -2784,7 +2789,7 @@ End Module</text>
             End Sub
 
             <WorkItem(545593)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TypeParameterInReturnType()
                 Dim code = <text>Imports System
 Imports System.Linq
@@ -2809,7 +2814,7 @@ End Module</text>
             End Sub
 
             <WorkItem(544663)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub MadePropertyWithParameterNotValidLValue()
                 Dim code = <text>Friend Module Module1
     Class c1
@@ -2854,7 +2859,7 @@ End Module</text>
             End Sub
 
             <WorkItem(530322)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ExtractMethodShouldNotBreakFormatting()
                 Dim code =
 <text>
@@ -2885,7 +2890,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AwaitExpression_Normal_SingleStatement()
                 Dim code =
 <text>
@@ -2919,7 +2924,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AwaitExpression_Normal_MultipleStatements()
                 Dim code =
 <text>
@@ -2961,7 +2966,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AwaitExpression_Normal_ExpressionWithReturn()
                 Dim code =
 <text>
@@ -3003,7 +3008,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AwaitExpression_Normal_ExpressionInAwaitExpression()
                 Dim code =
 <text>
@@ -3036,7 +3041,7 @@ End Class
             End Sub
 
             <WorkItem(718152)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AwaitExpression_Normal_AwaitWithReturnParameter()
                 Dim code =
 <text>
@@ -3075,7 +3080,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AwaitExpression_Normal_AwaitWithReturnParameter_Error()
                 Dim code =
 <text>
@@ -3094,7 +3099,7 @@ End Class
                 ExpectExtractMethodToFail(code)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AwaitExpression_AsyncLambda()
                 Dim code =
 <text>
@@ -3126,7 +3131,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AwaitExpression_AsyncLambda_Body()
                 Dim code =
 <text>
@@ -3158,7 +3163,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AwaitExpression_AsyncLambda_WholeExpression()
                 Dim code =
 <text>
@@ -3191,7 +3196,7 @@ End Class
             End Sub
 
             <WorkItem(530812)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestOverloadResolution()
                 Dim code =
 <text>
@@ -3234,7 +3239,7 @@ End Module
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestDontPutOutOrRefOnStructOff()
                 Dim code =
 <text>
@@ -3264,7 +3269,7 @@ End Namespace
                 ExpectExtractMethodToFail(code, dontPutOutOrRefOnStruct:=False)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestDontPutOutOrRefOnStructOn()
                 Dim code =
 <text>
@@ -3323,7 +3328,7 @@ End Namespace
             End Sub
 
             <WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub HandleFormattableStringTargetTyping1()
                 Const code = "
 Imports System
@@ -3356,6 +3361,45 @@ Namespace N
 End Namespace"
 
                 TestExtractMethod(code, expected)
+            End Sub
+
+            <WpfFact>
+            <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Trait(Traits.Feature, Traits.Features.Interactive)>
+            Public Sub ExtractMethodCommandDisabledInSubmission()
+                Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+
+                Using workspace = TestWorkspaceFactory.CreateWorkspace(
+                <Workspace>
+                    <Submission Language="Visual Basic" CommonReferences="true">  
+                        GetType(String).$$Name
+                    </Submission>
+                </Workspace>,
+                workspaceKind:=WorkspaceKind.Interactive,
+                exportProvider:=exportProvider)
+
+                    ' Force initialization.
+                    workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
+
+                    Dim textView = workspace.Documents.Single().GetTextView()
+
+                    Dim handler = New ExtractMethodCommandHandler(
+                        workspace.GetService(Of ITextBufferUndoManagerProvider)(),
+                        workspace.GetService(Of IEditorOperationsFactoryService)(),
+                        workspace.GetService(Of IInlineRenameService)(),
+                        workspace.GetService(Of Host.IWaitIndicator)())
+                    Dim delegatedToNext = False
+                    Dim nextHandler =
+                    Function()
+                        delegatedToNext = True
+                        Return CommandState.Unavailable
+                    End Function
+
+                    Dim state = handler.GetCommandState(New Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler)
+                    Assert.True(delegatedToNext)
+                    Assert.False(state.IsAvailable)
+                End Using
             End Sub
 
         End Class

@@ -277,6 +277,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        private static bool IsDynamicAssignment(ExpressionSyntax castExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (castExpression.IsRightSideOfAnyAssignExpression())
+            {
+                var assignmentExpression = (AssignmentExpressionSyntax)castExpression.Parent;
+                var assignmentType = semanticModel.GetTypeInfo(assignmentExpression.Left, cancellationToken).Type;
+
+                return assignmentType?.Kind == SymbolKind.DynamicType;
+            }
+
+            return false;
+        }
+
         public static bool IsUnnecessaryCast(this CastExpressionSyntax cast, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var speculationAnalyzer = new SpeculationAnalyzer(cast,
@@ -307,10 +320,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // 1. Dynamic Expressions
             // 2. If there is any other argument which is dynamic
             // 3. Dynamic Invocation
+            // 4. Assignment to dynamic
             if ((expressionType != null &&
                 (expressionType.IsErrorType() ||
                  expressionType.Kind == SymbolKind.DynamicType)) ||
-                IsDynamicInvocation(cast, semanticModel, cancellationToken))
+                IsDynamicInvocation(cast, semanticModel, cancellationToken) ||
+                IsDynamicAssignment(cast, semanticModel, cancellationToken))
             {
                 return false;
             }
@@ -323,6 +338,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (CastPassedToParamsArrayDefinitelyCantBeRemoved(cast, castType, semanticModel, cancellationToken))
             {
                 return false;
+            }
+
+            // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
+            // in order to call string.Format(...) anyway.
+            if (castType?.SpecialType == SpecialType.System_Object &&
+                cast.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation))
+            {
+                return true;
             }
 
             if (speculationAnalyzer.ReplacementChangesSemantics())
@@ -360,9 +383,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
                 return false;
             }
-            else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric && IsInExplicitCheckedOrUncheckedContext(cast))
+            else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric)
             {
-                // Don't remove any explicit numeric casts in explicit checked/unchecked context.
+                // Don't remove any explicit numeric casts.
                 // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
                 return false;
             }
@@ -451,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         // We should not remove the cast to "float?".
                         // However, cast to "int?" is unnecessary and should be removable.
-                        return expressionToCastType.IsImplicit && !((ITypeSymbol)expressionType).IsNullable();
+                        return expressionToCastType.IsImplicit && !expressionType.IsNullable();
                     }
                     else if (expressionToCastType.IsImplicit && expressionToCastType.IsNumeric && !castToOuterType.IsIdentity)
                     {
@@ -556,27 +579,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 default:
                     return false;
             }
-        }
-
-        private static bool IsInExplicitCheckedOrUncheckedContext(CastExpressionSyntax cast)
-        {
-            SyntaxNode currentNode = cast;
-
-            do
-            {
-                switch (currentNode.Kind())
-                {
-                    case SyntaxKind.UncheckedExpression:
-                    case SyntaxKind.UncheckedStatement:
-                    case SyntaxKind.CheckedExpression:
-                    case SyntaxKind.CheckedStatement:
-                        return true;
-                }
-
-                currentNode = currentNode.Parent;
-            } while (currentNode is ExpressionSyntax || currentNode is StatementSyntax);
-
-            return false;
         }
     }
 }

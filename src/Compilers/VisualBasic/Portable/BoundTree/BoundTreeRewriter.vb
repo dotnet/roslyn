@@ -52,4 +52,93 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
     End Class
+
+    Friend MustInherit Class BoundTreeRewriterWithStackGuard
+        Inherits BoundTreeRewriter
+
+        Private _recursionDepth As Integer
+
+        Protected Sub New()
+        End Sub
+
+        Protected Sub New(recursionDepth As Integer)
+            _recursionDepth = recursionDepth
+        End Sub
+
+        Protected ReadOnly Property RecursionDepth As Integer
+            Get
+                Return _recursionDepth
+            End Get
+        End Property
+
+        Public Overrides Function Visit(node As BoundNode) As BoundNode
+            Dim expression = TryCast(node, BoundExpression)
+
+            If expression IsNot Nothing Then
+                Return VisitExpressionWithStackGuard(_recursionDepth, expression)
+            End If
+
+            Return MyBase.Visit(node)
+        End Function
+
+        Protected Overloads Function VisitExpressionWithStackGuard(expression As BoundExpression) As BoundExpression
+            Return VisitExpressionWithStackGuard(_recursionDepth, expression)
+        End Function
+
+        Protected NotOverridable Overrides Function VisitExpressionWithoutStackGuard(node As BoundExpression) As BoundExpression
+            Return DirectCast(MyBase.Visit(node), BoundExpression)
+        End Function
+
+    End Class
+
+    Friend MustInherit Class BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        Inherits BoundTreeRewriterWithStackGuard
+
+        Protected Sub New()
+        End Sub
+
+        Protected Sub New(recursionDepth As Integer)
+            MyBase.New(recursionDepth)
+        End Sub
+
+        Public NotOverridable Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
+            Dim child As BoundExpression = node.Left
+
+            If child.Kind <> BoundKind.BinaryOperator Then
+                Return MyBase.VisitBinaryOperator(node)
+            End If
+
+            Dim stack = ArrayBuilder(Of BoundBinaryOperator).GetInstance()
+            stack.Push(node)
+
+            Dim binary As BoundBinaryOperator = DirectCast(child, BoundBinaryOperator)
+
+            Do
+                stack.Push(binary)
+                child = binary.Left
+
+                If child.Kind <> BoundKind.BinaryOperator Then
+                    Exit Do
+                End If
+
+                binary = DirectCast(child, BoundBinaryOperator)
+            Loop
+
+
+            Dim left = DirectCast(Me.Visit(child), BoundExpression)
+
+            Do
+                binary = stack.Pop()
+
+                Dim right = DirectCast(Me.Visit(binary.Right), BoundExpression)
+                Dim type As TypeSymbol = Me.VisitType(binary.Type)
+                left = binary.Update(binary.OperatorKind, left, right, binary.Checked, binary.ConstantValueOpt, type)
+            Loop While stack.Count > 0
+
+            Debug.Assert(binary Is node)
+            stack.Free()
+
+            Return left
+        End Function
+    End Class
 End Namespace

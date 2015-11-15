@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,12 +10,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class EnumAndCompletionListTagCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public EnumAndCompletionListTagCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override CompletionListProvider CreateCompletionProvider()
         {
             return new EnumAndCompletionListTagCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NullableEnum()
         {
             var markup = @"class Program
@@ -36,7 +41,7 @@ enum Colors
             VerifyItemExists(markup, "Colors");
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(545678)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public void EditorBrowsable_EnumMemberAlways()
@@ -66,7 +71,7 @@ public enum Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(545678)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public void EditorBrowsable_EnumMemberNever()
@@ -96,7 +101,7 @@ public enum Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(545678)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public void EditorBrowsable_EnumMemberAdvanced()
@@ -138,7 +143,7 @@ public enum Foo
         }
 
         [WorkItem(8540099)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInComment()
         {
             var markup = @"class Program
@@ -160,7 +165,7 @@ enum Colors
         }
 
         [WorkItem(827897)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InYieldReturn()
         {
             var markup =
@@ -178,7 +183,7 @@ class Program
         }
 
         [WorkItem(827897)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InAsyncMethodReturnStatement()
         {
             var markup =
@@ -196,7 +201,7 @@ class Program
             VerifyItemExists(markup, "DayOfWeek");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NoCompletionListTag()
         {
             var markup =
@@ -218,7 +223,7 @@ class Program
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CompletionList()
         {
             var markup =
@@ -241,7 +246,7 @@ class Program
             VerifyItemExists(markup, "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CompletionListCrefToString()
         {
             var markup =
@@ -264,7 +269,7 @@ class Program
             VerifyItemExists(markup, "string", glyph: (int)Glyph.ClassPublic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CompletionListEmptyCref()
         {
             var markup =
@@ -287,7 +292,7 @@ class Program
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CompletionListInaccessibleType()
         {
             var markup =
@@ -312,7 +317,7 @@ class Program
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CompletionListNotAType()
         {
             var markup =
@@ -338,7 +343,7 @@ class Program
         }
 
         [WorkItem(828196)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SuggestAlias()
         {
             var markup = @"
@@ -354,7 +359,7 @@ class Program
         }
 
         [WorkItem(828196)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SuggestAlias2()
         {
             var markup = @"
@@ -375,7 +380,7 @@ class Program
         }
 
         [WorkItem(828196)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SuggestAlias3()
         {
             var markup = @"
@@ -400,7 +405,7 @@ class Program
         }
 
         [WorkItem(828196)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInParameterNameContext()
         {
             var markup = @"
@@ -418,6 +423,46 @@ class C
 }
 ";
             VerifyItemIsAbsent(markup, "E");
+        }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedProperty()
+        {
+            var markup =
+@"class C
+{
+    Colors Colors => $$
+}
+
+enum Colors
+{
+    Red,
+    Blue,
+    Green,
+}
+";
+            VerifyItemExists(markup, "Colors");
+        }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedMethod()
+        {
+            var markup =
+@"class C
+{
+    Colors GetColors() => $$
+}
+
+enum Colors
+{
+    Red,
+    Blue,
+    Green,
+}
+";
+            VerifyItemExists(markup, "Colors");
         }
     }
 }

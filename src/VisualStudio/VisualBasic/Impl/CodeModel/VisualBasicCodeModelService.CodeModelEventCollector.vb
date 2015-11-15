@@ -894,7 +894,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim typesChange As CodeModelEventType = 0
                 Dim valuesChange As CodeModelEventType = 0
 
-                If Not StringComparer.OrdinalIgnoreCase.Equals(oldParameter.Identifier.ToString(), newParameter.Identifier.ToString()) Then
+                If Not StringComparer.OrdinalIgnoreCase.Equals(Me.CodeModelService.GetParameterName(oldParameter), Me.CodeModelService.GetParameterName(newParameter)) Then
                     namesChange = CodeModelEventType.Rename
                     hasChanges = True
                 End If

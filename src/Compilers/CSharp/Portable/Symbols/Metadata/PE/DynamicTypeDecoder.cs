@@ -232,7 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Native compiler encodes bools for each type argument, starting from type arguments for the outermost containing type to those for the given namedType.
             ImmutableArray<TypeSymbol> typeArguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
-            ImmutableArray<TypeSymbol> transformedTypeArguments = TransformTypeArguments(typeArguments);
+            var customModifiers = namedType.HasTypeArgumentsCustomModifiers ? namedType.TypeArgumentsCustomModifiers : default(ImmutableArray<ImmutableArray<CustomModifier>>);
+
+            ImmutableArray<TypeSymbol> transformedTypeArguments = TransformTypeArguments(typeArguments); // Note, modifiers are not involved, this is behavior of the native compiler.
 
             if (transformedTypeArguments.IsDefault)
             {
@@ -240,14 +242,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // Construct a new namedType, if required.
-            if (newContainingType != containingType)
+            bool containerIsChanged = (newContainingType != containingType);
+
+            if (containerIsChanged || transformedTypeArguments != typeArguments)
             {
-                namedType = namedType.OriginalDefinition.AsMember(newContainingType);
-                return namedType.ConstructIfGeneric(transformedTypeArguments);
-            }
-            else if (transformedTypeArguments != typeArguments)
-            {
-                return namedType.ConstructedFrom.Construct(transformedTypeArguments);
+                var newTypeArguments = customModifiers.IsDefault ?
+                                       transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers) :
+                                       transformedTypeArguments.Zip(customModifiers, (t, m) => new TypeWithModifiers(t, m)).AsImmutable();
+
+                if (containerIsChanged)
+                {
+                    namedType = namedType.OriginalDefinition.AsMember(newContainingType);
+                    return namedType.ConstructIfGeneric(newTypeArguments);
+                }
+
+                return namedType.ConstructedFrom.Construct(newTypeArguments, unbound: false);
             }
             else
             {
@@ -304,7 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return transformedElementType == arrayType.ElementType ?
                 arrayType :
-                new ArrayTypeSymbol(_containingAssembly, transformedElementType, arrayType.CustomModifiers, arrayType.Rank);
+                arrayType.IsSZArray ?
+                    ArrayTypeSymbol.CreateSZArray(_containingAssembly, transformedElementType, arrayType.CustomModifiers) :
+                    ArrayTypeSymbol.CreateMDArray(_containingAssembly, transformedElementType, arrayType.Rank, arrayType.Sizes, arrayType.LowerBounds, arrayType.CustomModifiers);
         }
 
         private PointerTypeSymbol TransformPointerType(PointerTypeSymbol pointerType)

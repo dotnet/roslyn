@@ -5476,7 +5476,7 @@ BC30661: Field or property 'p1' is not found.
         End Sub
 
         <Fact, WorkItem(2604, "https://github.com/dotnet/roslyn/issues/2604")>
-        Public Sub FailureDueToAnErrorInALambda()
+        Public Sub FailureDueToAnErrorInALambda_01()
 
             Dim compilationDef =
 <compilation>
@@ -5525,6 +5525,238 @@ BC30451: 'doesntexist' is not declared. It may be inaccessible due to its protec
 BC30451: 'doesntexist' is not declared. It may be inaccessible due to its protection level.
         M2(0, Function() doesntexist)
                          ~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(4587, "https://github.com/dotnet/roslyn/issues/4587")>
+        Public Sub FailureDueToAnErrorInALambda_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+Imports System.Linq
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+
+
+    Private Async Function GetDataAsync(cs As Characters, imax As Integer) As Task
+        Dim Roles = Await cs.GetRoleAsync()
+
+        Dim RoleTasks = Roles.Select(
+            Async Function(role As Role) As Task
+                Dim Lines = Await role.GetLines()
+                If imax <= LinesKey Then Return
+
+                Dim SentenceTasks = Lines.Select(
+                    Async Function(Sentence) As Task
+                        Dim Words = Await Sentence.GetWordsAsync()
+                        If imax <= WordsKey Then Return
+
+                        Dim WordTasks = Words.Select(
+                            Async Function(Word) As Task
+                                Dim Letters = Await Word.GetLettersAsync()
+                                If imax <= LettersKey Then Return
+
+                                Dim StrokeTasks = Letters.Select(
+                                    Async Function(Stroke) As Task
+                                        Dim endpoints = Await Stroke.GetEndpointsAsync()
+
+                                        Await Task.WhenAll(endpoints.ToArray())
+                                    End Function)
+                                Await Task.WhenAll(StrokeTasks.ToArray())
+                            End Function)
+                        Await Task.WhenAll(WordTasks.ToArray())
+                    End Function)
+                Await Task.WhenAll(SentenceTasks.ToArray())
+            End Function)
+    End Function
+
+
+
+    Function RetryAsync(Of T)(f As Func(Of Task(Of T))) As Task(Of T)
+        Return f()
+    End Function
+
+End Module
+
+
+Friend Class Characters
+    Function GetRoleAsync() As Task(Of List(Of Role))
+        Return Nothing
+    End Function
+End Class
+
+Class Role
+    Function GetLines() As Task(Of List(Of Line))
+        Return Nothing
+    End Function
+End Class
+
+Public Class Line
+End Class
+]]>
+
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30451: 'LinesKey' is not declared. It may be inaccessible due to its protection level.
+                If imax <= LinesKey Then Return
+                           ~~~~~~~~
+BC30456: 'GetWordsAsync' is not a member of 'Line'.
+                        Dim Words = Await Sentence.GetWordsAsync()
+                                          ~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'WordsKey' is not declared. It may be inaccessible due to its protection level.
+                        If imax <= WordsKey Then Return
+                                   ~~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                        Await Task.WhenAll(WordTasks.ToArray())
+                                   ~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                Await Task.WhenAll(SentenceTasks.ToArray())
+                           ~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(4587, "https://github.com/dotnet/roslyn/issues/4587")>
+        Public Sub FailureDueToAnErrorInALambda_03()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+Imports System.Linq
+
+Module Module1
+ 
+    Sub Main()
+    End Sub
+
+ 
+    Private Async Function GetDataAsync(DeliveryWindow As DeliveryWindow,
+                                        MaxDepth As Integer) As Task
+ 
+        Dim Vendors = Await RetryAsync(Function() DeliveryWindow.GetVendorsAsync())
+ 
+        Dim VendorTasks = Vendors.Select(Async Function(vendor As DeliveryWindowVendor) As Task
+                                             Dim Departments = Await RetryAsync(Async Function() Await vendor.GetDeliveryWindowDepartmentsAsync())
+ 
+                                             If MaxDepth <= DepartmentsKey Then
+                                                 Return
+                                             End If
+ 
+                                             Dim DepartmentTasks = Departments.Select(Async Function(Department) As Task
+                                                                                          Dim Vendor9s = Await RetryAsync(Async Function() Await Department.GetDeliveryWindowVendor9Async())
+ 
+                                                                                          If MaxDepth <= Vendor9Key Then
+                                                                                              Return
+                                                                                          End If
+ 
+                                                                                          Dim Vendor9Tasks = Vendor9s.Select(Async Function(Vendor9) As Task
+                                                                                                                                 Dim poTypes = Await RetryAsync(Async Function() Await Vendor9.GetDeliveryWindowPOTypesAsync())
+ 
+                                                                                                                                 If MaxDepth <= POTypesKey Then
+                                                                                                                                     Return
+                                                                                                                                 End If
+ 
+                                                                                                                                 Dim POTypeTasks = poTypes.Select(Async Function(poType) As Task
+                                                                                                                                                                      Dim pos = Await RetryAsync(Async Function() Await poType.GetDeliveryWindowPOAsync())
+ 
+                                                                                                                                                                      If MaxDepth <= POsKey Then
+                                                                                                                                                                          Return
+                                                                                                                                                                      End If
+ 
+                                                                                                                                                                      Dim POTasks = pos.ToList() _
+                                                                                                                                                                                       .Select(Async Function(po) As Task
+                                                                                                                                                                                                   Await RetryAsync(Async Function() Await po.GetDeliveryWindowPOLineAsync())
+                                                                                                                                                                                               End Function) _
+                                                                                                                                                                                       .ToArray()
+ 
+ 
+                                                                                                                                                                      Await Task.WhenAll(POTasks.ToArray())
+                                                                                                                                                                  End Function)
+ 
+ 
+                                                                                                                                 Await Task.WhenAll(POTypeTasks.ToArray())
+                                                                                                                             End Function)
+ 
+ 
+                                                                                          Await Task.WhenAll(Vendor9Tasks.ToArray())
+                                                                                      End Function)
+ 
+                                             Await Task.WhenAll(DepartmentTasks.ToArray())
+                                         End Function)
+ 
+        Await Task.WhenAll(VendorTasks.ToArray())
+    End Function
+ 
+    Function RetryAsync(Of T)(f As Func(Of Task(Of T))) As Task(Of T)
+        Return f()
+    End Function
+End Module
+ 
+Friend Class DeliveryWindow
+    Function GetVendorsAsync() As Task(Of List(Of DeliveryWindowVendor))
+        Return Nothing
+    End Function
+End Class
+ 
+Class DeliveryWindowVendor
+    Function GetDeliveryWindowDepartmentsAsync() As Task(Of List(Of DeliveryWindowDepartments))
+        Return Nothing
+    End Function
+End Class
+ 
+Public Class DeliveryWindowDepartments
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30451: 'DepartmentsKey' is not declared. It may be inaccessible due to its protection level.
+                                             If MaxDepth <= DepartmentsKey Then
+                                                            ~~~~~~~~~~~~~~
+BC30456: 'GetDeliveryWindowVendor9Async' is not a member of 'DeliveryWindowDepartments'.
+                                                                                          Dim Vendor9s = Await RetryAsync(Async Function() Await Department.GetDeliveryWindowVendor9Async())
+                                                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'Vendor9Key' is not declared. It may be inaccessible due to its protection level.
+                                                                                          If MaxDepth <= Vendor9Key Then
+                                                                                                         ~~~~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                                                                                          Await Task.WhenAll(Vendor9Tasks.ToArray())
+                                                                                                     ~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                                             Await Task.WhenAll(DepartmentTasks.ToArray())
+                                                        ~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+        Await Task.WhenAll(VendorTasks.ToArray())
+                   ~~~~~~~
 ]]></expected>)
         End Sub
 

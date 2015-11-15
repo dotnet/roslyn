@@ -357,6 +357,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     var originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalOtherPartOfConditional, originalExpressionType);
                     var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newOtherPartOfConditional, newExpressionType);
 
+                    // If this changes a boxing operation in one of the branches, we assume that semantics will change.
+                    if (originalConversion.IsBoxing != newConversion.IsBoxing)
+                    {
+                        return true;
+                    }
+
                     if (!ConversionsAreCompatible(originalConversion, newConversion))
                     {
                         return true;
@@ -377,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                     var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                     var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
-                    for (int i = 0; i < originalSwitchLabels.Count(); i++)
+                    for (int i = 0; i < originalSwitchLabels.Length; i++)
                     {
                         var originalSwitchLabel = originalSwitchLabels[i] as CaseSwitchLabelSyntax;
                         if (originalSwitchLabel != null)
@@ -415,6 +421,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return previousOriginalNode != null &&
                     ReplacementBreaksCollectionInitializerAddMethod((ExpressionSyntax)previousOriginalNode, (ExpressionSyntax)previousReplacedNode);
+            }
+            else if (currentOriginalNode.Kind() == SyntaxKind.Interpolation)
+            {
+                return ReplacementBreaksInterpolation((InterpolationSyntax)currentOriginalNode, (InterpolationSyntax)currentReplacedNode);
             }
 
             return false;
@@ -573,6 +583,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull);
         }
 
+        private bool ReplacementBreaksInterpolation(InterpolationSyntax interpolation, InterpolationSyntax newInterpolation)
+        {
+            return !TypesAreCompatible(interpolation.Expression, newInterpolation.Expression);
+        }
+
         private bool ReplacementBreaksIsOrAsExpression(BinaryExpressionSyntax originalIsOrAsExpression, BinaryExpressionSyntax newIsOrAsExpression)
         {
             // Special case: Lambda expressions and anonymous delegates cannot appear
@@ -603,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             if (assignmentExpression.IsCompoundAssignExpression() &&
                 assignmentExpression.Kind() != SyntaxKind.LeftShiftAssignmentExpression &&
                 assignmentExpression.Kind() != SyntaxKind.RightShiftAssignmentExpression &&
-                ReplacementBreaksCompoundAssignExpression(assignmentExpression.Left, assignmentExpression.Right, newAssignmentExpression.Left, newAssignmentExpression.Right))
+                ReplacementBreaksCompoundAssignment(assignmentExpression.Left, assignmentExpression.Right, newAssignmentExpression.Left, newAssignmentExpression.Right))
             {
                 return true;
             }

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -86,7 +87,7 @@ End Class
             Dim comp = CreateCompilationWithMscorlib({source}, {libRef}, TestOptions.DebugDll)
             Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
 
-            Const expectedError = "(1,1): error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
+            Const expectedError = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
             Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Lib")
 
             Dim resultProperties As ResultProperties = Nothing
@@ -97,7 +98,7 @@ End Class
                 "parameter",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -144,7 +145,7 @@ End Class
             Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim expectedMissingAssemblyIdentity As AssemblyIdentity = New AssemblyIdentity("pe2")
-            Dim expectedError = $"(1,6): error BC31424: Type 'Forwarded' in assembly '{context.Compilation.Assembly.Identity}' has been forwarded to assembly '{expectedMissingAssemblyIdentity}'. Either a reference to '{expectedMissingAssemblyIdentity}' is missing from your project or the type 'Forwarded' is missing from assembly '{expectedMissingAssemblyIdentity}'."
+            Dim expectedError = $"error BC31424: Type 'Forwarded' in assembly '{context.Compilation.Assembly.Identity}' has been forwarded to assembly '{expectedMissingAssemblyIdentity}'. Either a reference to '{expectedMissingAssemblyIdentity}' is missing from your project or the type 'Forwarded' is missing from assembly '{expectedMissingAssemblyIdentity}'."
 
             Dim resultProperties As ResultProperties = Nothing
             Dim actualError As String = Nothing
@@ -154,7 +155,7 @@ End Class
                 "New Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -177,7 +178,7 @@ End Class
             comp.AssertNoErrors()
             Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
 
-            Const expectedError = "(1,2): error BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types."
+            Const expectedError = "error BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types."
 
             Dim resultProperties As ResultProperties = Nothing
             Dim actualError As String = Nothing
@@ -187,7 +188,7 @@ End Class
                 "<value/>",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -212,7 +213,7 @@ End Class
             Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
 
-            Const expectedError = "(1,2): error BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual' is not defined."
+            Const expectedError = "error BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Operators.CompareObjectEqual' is not defined."
             Dim expectedMissingAssemblyIdentity = EvaluationContextBase.MicrosoftVisualBasicIdentity
 
             Dim resultProperties As ResultProperties = Nothing
@@ -223,7 +224,7 @@ End Class
                 "o = o",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -249,7 +250,7 @@ End Class
             Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
             Dim globalNamespace = context.Compilation.GlobalNamespace
 
-            Dim expectedIdentity = New AssemblyIdentity("Windows.Storage", contentType:=Reflection.AssemblyContentType.WindowsRuntime)
+            Dim expectedIdentity = New AssemblyIdentity("Windows.Storage", contentType:=AssemblyContentType.WindowsRuntime)
 
             Dim actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.Storage"}, globalNamespace).Single()
             Assert.Equal(expectedIdentity, actualIdentity)
@@ -261,7 +262,7 @@ End Class
             Assert.Equal(expectedIdentity, actualIdentity)
 
 
-            expectedIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=Reflection.AssemblyContentType.WindowsRuntime)
+            expectedIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=AssemblyContentType.WindowsRuntime)
 
             actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml"}, globalNamespace).Single()
             Assert.Equal(expectedIdentity, actualIdentity)
@@ -285,7 +286,7 @@ End Class
             comp.AssertNoErrors()
             Dim context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef)
 
-            Const expectedErrorTemplate = "(1,2): error BC30456: '{0}' is not a member of 'Integer()'."
+            Const expectedErrorTemplate = "error BC30456: '{0}' is not a member of 'Integer()'."
             Dim expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity
 
             Dim resultProperties As ResultProperties = Nothing
@@ -296,7 +297,7 @@ End Class
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -309,7 +310,7 @@ End Class
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -348,7 +349,7 @@ End Class
                 "C.M")
             Dim aliases = ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version = 4.0.0.0, Culture = neutral, PublicKeyToken = b03f5f7f11d50a3a", stowed:=True))
 
-            Const expectedError = "(1,1): error BC30002: Type 'System.Void' is not defined."
+            Const expectedError = "error BC30002: Type 'System.Void' is not defined."
             Dim expectedMissingAssemblyIdentity = comp.Assembly.CorLibrary.Identity
 
             Dim resultProperties As ResultProperties = Nothing
@@ -359,7 +360,7 @@ End Class
                 "$stowedexception",
                 DkmEvaluationFlags.TreatAsExpression,
                 aliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -385,7 +386,7 @@ End Class
             Assert.True(runtimeAssemblies.Any())
             Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
 
-            Const expectedError = "(1,1): error BC30456: 'UI' is not a member of 'Windows'."
+            Const expectedError = "error BC30456: 'UI' is not a member of 'Windows'."
             Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Windows.UI", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
 
             Dim resultProperties As ResultProperties = Nothing
@@ -395,7 +396,7 @@ End Class
                 "Windows.UI.Colors",
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -423,7 +424,7 @@ End Class
             Assert.True(runtimeAssemblies.Any())
             Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
 
-            Const expectedError = "(1,1): error BC30456: 'Xaml' is not a member of 'Windows.UI'."
+            Const expectedError = "error BC30456: 'Xaml' is not a member of 'Windows.UI'."
             Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
 
             Dim resultProperties As ResultProperties = Nothing
@@ -433,7 +434,7 @@ End Class
                 "Windows.[UI].Xaml.Application",
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -458,7 +459,7 @@ End Class
             Assert.True(runtimeAssemblies.Any())
             Dim context = CreateMethodContextWithReferences(comp, "C.M", ImmutableArray.Create(MscorlibRef).Concat(runtimeAssemblies))
 
-            Const expectedError = "(1,9): error BC30002: Type 'Windows.UI.Colors' is not defined."
+            Const expectedError = "error BC30002: Type 'Windows.UI.Colors' is not defined."
             Dim expectedMissingAssemblyIdentity = New AssemblyIdentity("Windows.UI", contentType:=System.Reflection.AssemblyContentType.WindowsRuntime)
 
             Dim resultProperties As ResultProperties = Nothing
@@ -468,7 +469,7 @@ End Class
                 "GetType([Windows].UI.Colors)",
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 actualError,
                 actualMissingAssemblyIdentities,
@@ -544,6 +545,7 @@ End Class"
             Dim compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                 runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
                 "args.Where(Function(a) a.Length > 0)",
+                ImmutableArray(Of [Alias]).Empty,
                 Function(_1, _2) context, ' ignore new blocks and just keep using the same failed context...
                 Function(assemblyIdentity As AssemblyIdentity, ByRef uSize As UInteger)
                     retryCount += 1

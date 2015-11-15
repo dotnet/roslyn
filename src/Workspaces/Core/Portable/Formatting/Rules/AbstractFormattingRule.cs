@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// </summary>
     internal abstract class AbstractFormattingRule : IFormattingRule
     {
-        public virtual void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public virtual void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
         }

@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.IsParams)
             {
                 ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
-                if ((object)arrayType != null)
+                if ((object)arrayType != null && arrayType.IsSZArray)
                 {
                     return arrayType.ElementType;
                 }

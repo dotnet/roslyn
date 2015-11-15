@@ -48,7 +48,7 @@ Friend Module MetadataTestHelpers
                 Continue For
             End If
 
-            Throw TestExceptionUtilities.Unreachable
+            Throw New InvalidOperationException()
         Next
 
         Dim options = If(importInternals, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), TestOptions.ReleaseDll)

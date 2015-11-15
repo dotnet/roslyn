@@ -5,6 +5,7 @@
 *.suo
 *.user
 *.sln.docstates
+.vs/
 
 # Build results
 [Bb]inaries/
@@ -17,14 +18,18 @@ x64/
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
 
+# NuGet restore semaphore
+build/ToolsetPackages/toolsetpackages.semaphore
+
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 UnitTestResults.html
 
 # NuGet V3 artifacts
-*lock.json
 *-packages.config
+*.nuget.props
+*.nuget.targets
 
 *_i.c
 *_p.c

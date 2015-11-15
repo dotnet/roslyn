@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class ForLoopTests
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyForWithIndex()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyForEach()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
         Public Sub VerifyIndexMatchedInner1()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class c1",
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                  caret:={3, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
         Public Sub VerifyIndexMatchedInner2()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
         Public Sub VerifyIndexSharedNext()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class c1",
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                  caret:={3, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyNestedFor()
             VerifyStatementEndConstructApplied(
                 before:={"' NestedFor",
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={5, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyNestedForEach()
             VerifyStatementEndConstructApplied(
                 before:={"Class C",
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={5, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyReCommitForEach()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 caret:={2, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyForAtIncorrectLocation()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 caret:={1, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInvalidForSyntax()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",

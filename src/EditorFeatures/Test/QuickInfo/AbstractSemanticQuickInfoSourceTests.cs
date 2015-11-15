@@ -189,12 +189,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                 content.TypeSwitch(
                         (QuickInfoDisplayDeferredContent qiContent) =>
                         {
-                            var actualContent = ((QuickInfoDisplayDeferredContent)qiContent).MainDescription.ClassifiableContent;
+                            var actualContent = qiContent.MainDescription.ClassifiableContent;
                             ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
                         },
                         (ClassifiableDeferredContent classifiable) =>
                         {
-                            var actualContent = ((ClassifiableDeferredContent)classifiable).ClassifiableContent;
+                            var actualContent = classifiable.ClassifiableContent;
                             ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
                         });
             };
@@ -276,6 +276,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                 var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
                 Assert.Equal(expectedText, quickInfoContent.UsageText.ClassifiableContent.GetFullText());
                 Assert.Equal(expectsWarningGlyph, quickInfoContent.WarningGlyph != null && quickInfoContent.WarningGlyph.Glyph == Glyph.CompletionWarning);
+            };
+        }
+
+        protected Action<object> Exceptions(string expectedText)
+        {
+            return (content) =>
+            {
+                var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
+                Assert.Equal(expectedText, quickInfoContent.ExceptionText.ClassifiableContent.GetFullText());
             };
         }
 

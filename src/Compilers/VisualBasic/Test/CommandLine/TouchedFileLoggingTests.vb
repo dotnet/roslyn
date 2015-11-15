@@ -6,7 +6,7 @@ Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CompilerServer
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
+Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Xunit
 
@@ -169,6 +169,7 @@ End Class
 
                 Dim outWriter = New StringWriter()
                 Dim cmd = New VisualBasicCompilerServer(
+                    New DesktopCompilerServerHost(),
                     {"/nologo",
                      "/touchedfiles:" + touchedBase,
                      source1},

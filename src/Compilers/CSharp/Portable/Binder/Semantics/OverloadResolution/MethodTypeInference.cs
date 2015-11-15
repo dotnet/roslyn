@@ -493,10 +493,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or there may be input parameters fixed to _unfixed_ method type variables.
             // Both of those scenarios are legal.)
 
-            var fixedArguments = ArrayBuilder<TypeSymbol>.GetInstance(_methodTypeParameters.Length, fillWithValue: null);
+            var fixedArguments = ArrayBuilder<TypeWithModifiers>.GetInstance(_methodTypeParameters.Length);
             for (int iParam = 0; iParam < _methodTypeParameters.Length; iParam++)
             {
-                fixedArguments[iParam] = IsUnfixed(iParam) ? _methodTypeParameters[iParam] : _fixedResults[iParam];
+                fixedArguments.Add(new TypeWithModifiers(IsUnfixed(iParam) ? _methodTypeParameters[iParam] : _fixedResults[iParam]));
             }
 
             TypeMap typeMap = new TypeMap(_constructedContainingTypeOfMethod, _methodTypeParameters, fixedArguments.ToImmutableAndFree());
@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var arraySource = (ArrayTypeSymbol)source;
             var arrayTarget = (ArrayTypeSymbol)target;
-            if (arraySource.Rank != arrayTarget.Rank)
+            if (!arraySource.HasSameShapeAs(arrayTarget))
             {
                 return false;
             }
@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (target.IsArray())
             {
                 var arrayTarget = (ArrayTypeSymbol)target;
-                if (arrayTarget.Rank != source.Rank)
+                if (!arrayTarget.HasSameShapeAs(source))
                 {
                     return null;
                 }
@@ -1636,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Or it might be IEnum<T> and source is rank one.
 
-            if (source.Rank != 1)
+            if (!source.IsSZArray)
             {
                 return null;
             }

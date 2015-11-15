@@ -110,6 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
+            /// <summary>
+            /// Returns whether the specified <see cref="SyntaxTrivia"/> token is also the end of the line.  This will
+            /// be true for <see cref="SyntaxKind.EndOfLineTrivia"/>, <see cref="SyntaxKind.SingleLineCommentTrivia"/>,
+            /// and all preprocessor directives.
+            /// </summary>
             private static bool IsEndOfLine(SyntaxTrivia trivia)
             {
                 return trivia.Kind() == SyntaxKind.EndOfLineTrivia

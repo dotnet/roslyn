@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -40,6 +41,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             editorOperation.InsertNewLine();
         }
 
+        protected override bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken)
+        {
+            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+            var endToken = root.FindToken(position);
+            if (endToken.IsMissing)
+            {
+                return false;
+            }
+
+            var tokenToLeft = root.FindTokenOnLeftOfPosition(position);
+            var startToken = endToken.GetPreviousToken();
+
+            // case 1:
+            //      Consider code like so: try {|}
+            //      With auto brace completion on, user types `{` and `Return` in a hurry.
+            //      During typing, it is possible that shift was still down and not released after typing `{`.
+            //      So we've got an unintentional `shift + enter` and also we have nothing to complete this, 
+            //      so we put in a newline,
+            //      which generates code like so : try { } 
+            //                                     |
+            //      which is not useful as : try {
+            //                                  |
+            //                               }
+            //      To support this, we treat `shift + enter` like `enter` here.
+            var afterOpenBrace = startToken.Kind() == SyntaxKind.OpenBraceToken
+                              && endToken.Kind() == SyntaxKind.CloseBraceToken
+                              && tokenToLeft == startToken
+                              && endToken.Parent.IsKind(SyntaxKind.Block)
+                              && FormattingRangeHelper.AreTwoTokensOnSameLine(startToken, endToken);
+
+            return afterOpenBrace;
+        }
+
         protected override void FormatAndApply(Document document, int position, CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
@@ -75,41 +110,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var root = tree.GetRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var text = tree.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-            var owningNode = GetOwningNode(root, position);
-            if (owningNode == null)
-            {
-                return null;
-            }
-
-            SyntaxToken lastToken;
-            if (!TryGetLastToken(text, position, owningNode, out lastToken))
-            {
-                return null;
-            }
-
-            if (!CheckLocation(text, position, owningNode, lastToken))
-            {
-                return null;
-            }
-
-            // so far so good. we only add semi-colon if it makes statement syntax error free
             var semicolon = SyntaxFacts.GetText(SyntaxKind.SemicolonToken);
 
-            var textToParse = owningNode.NormalizeWhitespace().ToFullString() + semicolon;
-
-            // currently, Parsing a field is not supported. as a workaround, wrap the field in a type and parse
-            var node = owningNode.TypeSwitch(
-                (UsingDirectiveSyntax n) => (SyntaxNode)SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options),
-                (BaseFieldDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
-                (StatementSyntax n) => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options));
-
-            if (node == null)
+            // Go through the set of owning nodes in leaf to root chain.
+            foreach (var owningNode in GetOwningNodes(root, position))
             {
-                return null;
+                SyntaxToken lastToken;
+                if (!TryGetLastToken(text, position, owningNode, out lastToken))
+                {
+                    // If we can't get last token, there is nothing more to do, just skip
+                    // the other owning nodes and return.
+                    return null;
+                }
+
+                if (!CheckLocation(text, position, owningNode, lastToken))
+                {
+                    // If we failed this check, we indeed got the intended owner node and
+                    // inserting line ender here would introduce errors.
+                    return null;
+                }
+
+                // so far so good. we only add semi-colon if it makes statement syntax error free
+                var textToParse = owningNode.NormalizeWhitespace().ToFullString() + semicolon;
+
+                // currently, Parsing a field is not supported. as a workaround, wrap the field in a type and parse
+                var node = owningNode.TypeSwitch(
+                    (BaseFieldDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                    (BaseMethodDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                    (BasePropertyDeclarationSyntax n) => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
+                    (StatementSyntax n) => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
+                    (UsingDirectiveSyntax n) => (SyntaxNode)SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options));
+
+                // Insert line ender if we didn't introduce any diagnostics, if not try the next owning node.
+                if (node != null && !node.ContainsDiagnostics)
+                {
+                    return semicolon;
+                }
             }
 
-            return node.ContainsDiagnostics ? null : semicolon;
+            return null;
         }
 
         /// <summary>
@@ -178,18 +217,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         }
 
         /// <summary>
-        /// get last token of the given using/field/statement if one exists
+        /// get last token of the given using/field/statement/expression bodied member if one exists
         /// </summary>
         private static bool TryGetLastToken(SourceText text, int position, SyntaxNode owningNode, out SyntaxToken lastToken)
         {
             lastToken = owningNode.GetLastToken(includeZeroWidth: true);
-
-            // regardless whether it is missing token or not, if last token is close brace
-            // don't do anything
-            if (lastToken.Kind() == SyntaxKind.CloseBraceToken)
-            {
-                return false;
-            }
 
             // last token must be on the same line as the caret
             var line = text.Lines.GetLineFromPosition(position);
@@ -217,20 +249,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         }
 
         /// <summary>
-        /// find owning usings/field/statement of the given position
+        /// find owning usings/field/statement/expression-bodied member of the given position
         /// </summary>
-        private static SyntaxNode GetOwningNode(SyntaxNode root, int position)
+        private static IEnumerable<SyntaxNode> GetOwningNodes(SyntaxNode root, int position)
         {
             // make sure caret position is somewhere we can find a token
             var token = root.FindTokenFromEnd(position);
             if (token.Kind() == SyntaxKind.None)
             {
-                return null;
+                return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
             }
 
             return token.GetAncestors<SyntaxNode>()
-                        .Where(n => n is StatementSyntax || n is BaseFieldDeclarationSyntax || n is UsingDirectiveSyntax)
-                        .FirstOrDefault();
+                        .Where(AllowedConstructs)
+                        .Select(OwningNode);
+        }
+
+        private static bool AllowedConstructs(SyntaxNode n)
+        {
+            return n is StatementSyntax ||
+                   n is BaseFieldDeclarationSyntax ||
+                   n is UsingDirectiveSyntax ||
+                   n is ArrowExpressionClauseSyntax;
+        }
+
+        private static SyntaxNode OwningNode(SyntaxNode n)
+        {
+            return n is ArrowExpressionClauseSyntax ? n.Parent : n;
         }
     }
 }

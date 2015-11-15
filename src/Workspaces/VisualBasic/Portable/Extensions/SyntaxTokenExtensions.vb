@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         ''' <summary>
-        ''' Returns true if is a given token is a child token of of a certain type of parent node.
+        ''' Returns true if is a given token is a child token of a certain type of parent node.
         ''' </summary>
         ''' <typeparam name="TParent">The type of the parent node.</typeparam>
         ''' <param name="token">The token that we are testing.</param>

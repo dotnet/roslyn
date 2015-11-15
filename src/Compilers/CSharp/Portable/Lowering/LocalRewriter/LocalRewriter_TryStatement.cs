@@ -16,13 +16,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             var origSawAwait = _sawAwait;
             _sawAwait = false;
 
-            ImmutableArray<BoundCatchBlock> catchBlocks = (ImmutableArray<BoundCatchBlock>)this.VisitList(node.CatchBlocks);
+            var optimizing = this._compilation.Options.OptimizationLevel == OptimizationLevel.Release;
+            ImmutableArray<BoundCatchBlock> catchBlocks =
+                // When optimizing and we have a try block without side-effects, we can discard the catch blocks.
+                (optimizing && !HasSideEffects(tryBlock)) ? ImmutableArray<BoundCatchBlock>.Empty
+                : this.VisitList(node.CatchBlocks);
             BoundBlock finallyBlockOpt = (BoundBlock)this.Visit(node.FinallyBlockOpt);
 
             _sawAwaitInExceptionHandler |= _sawAwait;
             _sawAwait |= origSawAwait;
 
-            return node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
+            if (optimizing && !HasSideEffects(finallyBlockOpt))
+            {
+                finallyBlockOpt = null;
+            }
+
+            return (catchBlocks.IsDefaultOrEmpty && finallyBlockOpt == null)
+                ? (BoundNode)tryBlock
+                : (BoundNode)node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
+        }
+
+        /// <summary>
+        /// Is there any code to execute in the given statement that could have side-effects,
+        /// such as throwing an exception? This implementation is conservative, in the sense
+        /// that it may return true when the statement actually may have no side effects.
+        /// </summary>
+        private static bool HasSideEffects(BoundStatement statement)
+        {
+            if (statement == null) return false;
+            switch (statement.Kind)
+            {
+                case BoundKind.NoOpStatement:
+                    return true;
+                case BoundKind.Block:
+                    {
+                        var block = (BoundBlock)statement;
+                        foreach (var stmt in block.Statements)
+                        {
+                            if (HasSideEffects(stmt)) return true;
+                        }
+                        return false;
+                    }
+                case BoundKind.SequencePoint:
+                    {
+                        var sequence = (BoundSequencePoint)statement;
+                        return HasSideEffects(sequence.StatementOpt);
+                    }
+                case BoundKind.SequencePointWithSpan:
+                    {
+                        var sequence = (BoundSequencePointWithSpan)statement;
+                        return HasSideEffects(sequence.StatementOpt);
+                    }
+                default:
+                    return true;
+            }
+
         }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)

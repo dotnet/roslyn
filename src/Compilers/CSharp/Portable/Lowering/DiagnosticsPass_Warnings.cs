@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This pass detects and reports diagnostics that do not affect lambda convertibility.
     /// This part of the partial class focuses on expression and operator warnings.
     /// </summary>
-    internal sealed partial class DiagnosticsPass : BoundTreeWalker
+    internal sealed partial class DiagnosticsPass : BoundTreeWalkerWithStackGuard
     {
         private void CheckArguments(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<BoundExpression> arguments, Symbol method)
         {
@@ -212,7 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsComCallWithRefOmitted(MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt)
         {
-            if ((object)method.ContainingType == null || !method.ContainingType.IsComImport) return false;
+            if (method.ParameterCount != arguments.Length ||
+                (object)method.ContainingType == null || 
+                !method.ContainingType.IsComImport) return false;
+
             for (int i = 0; i < arguments.Length; i++)
             {
                 if (method.Parameters[i].RefKind != RefKind.None && (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt[i] == RefKind.None)) return true;
@@ -238,7 +241,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
-            CheckForBitwiseOrSignExtend(node, node.Operator.Kind, node.Left, node.Right);
+            BoundExpression left = node.Left;
+
+            if (!node.Operator.Kind.IsDynamic() && !node.LeftConversion.IsIdentity && node.LeftConversion.Exists)
+            {
+                // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
+                left = new BoundConversion(left.Syntax, left, node.LeftConversion, node.Operator.Kind.IsChecked(),
+                                           explicitCastInCode: false, constantValueOpt: null, type: node.Operator.LeftType);
+            }
+
+            CheckForBitwiseOrSignExtend(node, node.Operator.Kind, left, node.Right);
             CheckLiftedCompoundAssignment(node);
 
             if (_inExpressionLambda)

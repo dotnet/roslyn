@@ -82,6 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private _seenOnErrorOrResume As Boolean
 
+        Protected _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException As Boolean = False ' By default, just let the original exception to bubble up.
+
         Friend Sub New(info As FlowAnalysisInfo, suppressConstExpressionsSupport As Boolean, Optional trackStructsWithIntrinsicTypedFields As Boolean = False)
             MyBase.New(info, suppressConstExpressionsSupport)
             Me.initiallyAssignedVariables = Nothing
@@ -187,16 +189,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overloads Shared Sub Analyze(info As FlowAnalysisInfo, diagnostics As DiagnosticBag, suppressConstExpressionsSupport As Boolean)
             Dim walker = New DataFlowPass(info, suppressConstExpressionsSupport)
+
+            If diagnostics IsNot Nothing Then
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = True
+            End If
+
             Try
                 Dim result As Boolean = walker.Analyze()
                 Debug.Assert(result)
                 If diagnostics IsNot Nothing Then
                     diagnostics.AddRange(walker.diagnostics)
                 End If
+
+            Catch ex As CancelledByStackGuardException When diagnostics IsNot Nothing
+                ex.AddAnError(diagnostics)
             Finally
                 walker.Free()
             End Try
         End Sub
+
+        Protected Overrides Function ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() As Boolean
+            Return _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException
+        End Function
 
         Protected Overrides Sub Free()
             Me._alreadyReported = BitVector.Null
@@ -1005,7 +1019,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Note that data flow API should never report compiler generated variables 
         ''' as well as those should not generate any diagnostics (like being unassigned, etc...).
         ''' 
-        ''' But when the analysis is used for iterators or anync captures it should process 
+        ''' But when the analysis is used for iterators or async captures it should process 
         ''' compiler generated locals as well...
         ''' </summary>
         Protected Overridable ReadOnly Property ProcessCompilerGeneratedLocals As Boolean
@@ -1643,46 +1657,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitQueryExpression(node As BoundQueryExpression) As BoundNode
-            Visit(node.LastOperator)
+            VisitRvalue(node.LastOperator)
             Return Nothing
         End Function
 
         Public Overrides Function VisitQuerySource(node As BoundQuerySource) As BoundNode
-            Visit(node.Expression)
+            VisitRvalue(node.Expression)
             Return Nothing
         End Function
 
         Public Overrides Function VisitQueryableSource(node As BoundQueryableSource) As BoundNode
-            Visit(node.Source)
+            VisitRvalue(node.Source)
             Return Nothing
         End Function
 
         Public Overrides Function VisitToQueryableCollectionConversion(node As BoundToQueryableCollectionConversion) As BoundNode
-            Visit(node.ConversionCall)
+            VisitRvalue(node.ConversionCall)
             Return Nothing
         End Function
 
         Public Overrides Function VisitQueryClause(node As BoundQueryClause) As BoundNode
-            Visit(node.UnderlyingExpression)
+            VisitRvalue(node.UnderlyingExpression)
             Return Nothing
         End Function
 
         Public Overrides Function VisitAggregateClause(node As BoundAggregateClause) As BoundNode
             If node.CapturedGroupOpt IsNot Nothing Then
-                Visit(node.CapturedGroupOpt)
+                VisitRvalue(node.CapturedGroupOpt)
             End If
 
-            Visit(node.UnderlyingExpression)
+            VisitRvalue(node.UnderlyingExpression)
             Return Nothing
         End Function
 
         Public Overrides Function VisitOrdering(node As BoundOrdering) As BoundNode
-            Visit(node.UnderlyingExpression)
+            VisitRvalue(node.UnderlyingExpression)
             Return Nothing
         End Function
 
         Public Overrides Function VisitRangeVariableAssignment(node As BoundRangeVariableAssignment) As BoundNode
-            Visit(node.Value)
+            VisitRvalue(node.Value)
             Return Nothing
         End Function
 
@@ -2001,7 +2015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.SetPlaceholderSubstitute(placeholder, New BoundLocal(localDecl.Syntax, localToUseAsSubstitute, localToUseAsSubstitute.Type))
             End If
 
-            Visit(node.Initializer)
+            VisitRvalue(node.Initializer)
             Visit(localDecl)  ' TODO: do we really need that?
 
             ' Visit all other declarations

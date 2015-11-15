@@ -484,7 +484,7 @@ End Class
 #End Region
 
 #Region "DllImportAttribute, MethodImplAttribute, PreserveSigAttribute"
-        ''' 6879: Pseudo DllImport looks very different in metadata Metadata: pinvokeimpl(...) +
+        ''' 6879: Pseudo DllImport looks very different in metadata: pinvokeimpl(...) +
         ''' PreserveSig
         <WorkItem(540573, "DevDiv")>
         <Fact>
@@ -1796,7 +1796,7 @@ End Class
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
-                    Assert.False(FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
+                    Assert.False(MetadataValidation.FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
                     Dim import = reader.GetImportedMethods().Single().GetImport()
                     Assert.Equal(MethodImportAttributes.CharSetAnsi, import.Attributes And MethodImportAttributes.CharSetMask)
                 End Sub)
@@ -1828,7 +1828,7 @@ End Class
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
 
-                    Assert.False(FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
+                    Assert.False(MetadataValidation.FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
 
                     Dim import = reader.GetImportedMethods().Single().GetImport()
                     Assert.Equal(MethodImportAttributes.None, import.Attributes And MethodImportAttributes.CharSetMask)
@@ -2451,7 +2451,7 @@ End Structure
                     Dim peFileReader = assembly.GetMetadataReader()
 
                     For Each ca In peFileReader.CustomAttributes
-                        Dim name = GetAttributeName(peFileReader, ca)
+                        Dim name = MetadataValidation.GetAttributeName(peFileReader, ca)
                         Assert.NotEqual("SpecialNameAttribute", name)
                     Next
 
@@ -2576,7 +2576,7 @@ End Class
                     Dim peFileReader = assembly.GetMetadataReader()
 
                     For Each ca In peFileReader.CustomAttributes
-                        Dim name = GetAttributeName(peFileReader, ca)
+                        Dim name = MetadataValidation.GetAttributeName(peFileReader, ca)
                         Assert.NotEqual("SerializableAttribute", name)
                         Assert.NotEqual("NonSerializedAttribute", name)
                     Next
@@ -4248,12 +4248,12 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E
 
 #Region "WindowsRuntimeImportAttribute"
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190")>
         <WorkItem(531295, "DevDiv")>
         Public Sub TestWindowsRuntimeImportAttribute()
             Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
+                <file name="a.vb">
+                    <![CDATA[
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -4272,8 +4272,8 @@ Class A
 	End Sub
 End Class
 ]]>
-                             </file>
-                         </compilation>
+                </file>
+            </compilation>
 
             Dim sourceValidator =
                 Sub(m As ModuleSymbol)
@@ -4338,7 +4338,7 @@ End Class
         Public Sub TestSynthesizedSTAThread()
             Dim source =
     <compilation>
-        <file name="a.vb">
+                    <file name="a.vb">
             Imports System
             Module Module1
                 Sub foo()
@@ -4348,7 +4348,7 @@ End Class
                 End Sub
             End Module
         </file>
-    </compilation>
+                </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
@@ -4369,7 +4369,7 @@ End Class
         Public Sub TestNoSynthesizedSTAThread_01()
             Dim source =
     <compilation>
-        <file name="a.vb">
+                        <file name="a.vb">
             Imports System
             Module Module1
                 Sub foo()
@@ -4379,7 +4379,7 @@ End Class
                 End Sub
             End Module
         </file>
-    </compilation>
+                    </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.AssertNoErrors()
@@ -4400,8 +4400,8 @@ End Class
         Public Sub TestNoSynthesizedSTAThread_02()
             Dim source =
 <compilation>
-    <file name="a.vb">
-        <![CDATA[ 
+                            <file name="a.vb">
+                                <![CDATA[ 
             Imports System
                 Module Module1
             Sub foo()
@@ -4412,8 +4412,8 @@ End Class
             End Sub
             End Module
         ]]>
-    </file>
-</compilation>
+                            </file>
+                        </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
@@ -4434,8 +4434,8 @@ End Class
         Public Sub TestNoSynthesizedSTAThread_03()
             Dim source =
 <compilation>
-    <file name="a.vb">
-        <![CDATA[ 
+                                <file name="a.vb">
+                                    <![CDATA[ 
             Imports System
                 Module Module1
             Sub foo()
@@ -4446,8 +4446,8 @@ End Class
             End Sub
             End Module
         ]]>
-    </file>
-</compilation>
+                                </file>
+                            </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
@@ -4470,8 +4470,8 @@ End Class
         <Fact, WorkItem(81)>
         Public Sub DisallowRequiredAttributeInSource()
             Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
+                                    <file name="a.vb">
+                                        <![CDATA[
 Namespace VBClassLibrary
 
     <System.Runtime.CompilerServices.RequiredAttribute(GetType(RS))>
@@ -4497,8 +4497,8 @@ Namespace VBClassLibrary
 
 End Namespace
 ]]>
-                             </file>
-                         </compilation>
+                                    </file>
+                                </compilation>
 
             Dim comp = CreateCompilationWithMscorlib(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
@@ -4539,8 +4539,8 @@ BC37235: The RequiredAttribute attribute is not permitted on Visual Basic types.
                 ]]>
 
             Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
+                                        <file name="a.vb">
+                                            <![CDATA[
 Module M
     Sub Main()
         Dim r = New RequiredAttrClass()
@@ -4548,8 +4548,8 @@ Module M
     End Sub
 End Module
 ]]>
-                             </file>
-                         </compilation>
+                                        </file>
+                                    </compilation>
 
             Dim ilReference = CompileIL(ilSource.Value)
 
@@ -4637,8 +4637,8 @@ BC30649: 'RequiredAttrClass' is an unsupported type.
                 ]]>
 
             Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
+                                            <file name="a.vb">
+                                                <![CDATA[
 Imports RequiredAttr
 
 Public Class C
@@ -4651,8 +4651,8 @@ Public Class C
     End Function
 End Class
 ]]>
-                             </file>
-                         </compilation>
+                                            </file>
+                                        </compilation>
 
             Dim ilReference = CompileIL(ilSource.Value)
 
@@ -4674,10 +4674,10 @@ BC30657: 'sc1_method' has a return type that is not supported or parameter types
 #End Region
 
         <Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")>
-        Public Sub TestAttributePropagationForAsyncAndIterators()
+        Public Sub TestAttributePropagationForAsyncAndIterators_01()
             Dim source =
             <compilation>
-                <file name="attr.vb"><![CDATA[
+                                                <file name="attr.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports System.Threading.Tasks
@@ -4724,8 +4724,8 @@ Class MyAttribute
     Inherits System.Attribute
 End Class
             ]]>
-                </file>
-            </compilation>
+                                                </file>
+                                            </compilation>
 
             Dim attributeValidator As Action(Of ModuleSymbol) =
             Sub(m As ModuleSymbol)
@@ -4755,35 +4755,121 @@ End Class
             CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
         End Sub
 
-        Private Shared Function CheckAttributePropagation(moveNext As MethodSymbol) As String
+        Private Shared Function CheckAttributePropagation(symbol As Symbol) As String
             Dim result = ""
 
-            If moveNext.GetAttributes("", "MyAttribute").Any() Then
+            If symbol.GetAttributes("", "MyAttribute").Any() Then
                 result += "MyAttribute is present" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerNonUserCodeAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerNonUserCodeAttribute").Any() Then
                 result += "DebuggerNonUserCodeAttribute is missing" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerHiddenAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerHiddenAttribute").Any() Then
                 result += "DebuggerHiddenAttribute is missing" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerStepperBoundaryAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerStepperBoundaryAttribute").Any() Then
                 result += "DebuggerStepperBoundaryAttribute is missing" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerStepThroughAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerStepThroughAttribute").Any() Then
                 result += "DebuggerStepThroughAttribute is missing" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Runtime.CompilerServices", "CompilerGeneratedAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Runtime.CompilerServices", "CompilerGeneratedAttribute").Any() Then
                 result += "CompilerGeneratedAttribute is missing" & vbCr
             End If
 
             Return result
         End Function
+
+        <Fact, WorkItem(4521, "https://github.com/dotnet/roslyn/issues/4521")>
+        Public Sub TestAttributePropagationForAsyncAndIterators_02()
+            Dim source =
+            <compilation>
+                                                    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+
+<MyAttribute>
+<System.Diagnostics.DebuggerNonUserCodeAttribute>
+<System.Diagnostics.DebuggerStepThroughAttribute>
+Class Program1
+
+    Shared Sub Main()
+    End Sub
+
+    Public Async Function test1() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Private Async Function DoNothing() As Task(Of Integer)
+        Return 1
+    End Function
+
+    Public Iterator Function Test3() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+End Class
+
+Class Program2
+
+    Shared Sub Main()
+    End Sub
+
+    Public Async Function test2() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Private Async Function DoNothing() As Task(Of Integer)
+        Return 1
+    End Function
+
+    Public Iterator Function Test4() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+End Class
+
+Class MyAttribute
+    Inherits System.Attribute
+End Class
+            ]]>
+                                                    </file>
+                                                </compilation>
+
+            Dim attributeValidator As Action(Of ModuleSymbol) =
+            Sub(m As ModuleSymbol)
+                Dim program1 = m.GlobalNamespace.GetTypeMember("Program1")
+                Dim program2 = m.GlobalNamespace.GetTypeMember("Program2")
+
+                Assert.Equal("DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program1.GetMember(Of MethodSymbol)("test1").
+                                                           GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+
+                Assert.Equal("DebuggerNonUserCodeAttribute is missing" & vbCr & "DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr & "DebuggerStepThroughAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program2.GetMember(Of MethodSymbol)("test2").
+                                                           GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+
+                Assert.Equal("DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program1.GetMember(Of MethodSymbol)("Test3").
+                                                           GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+
+                Assert.Equal("DebuggerNonUserCodeAttribute is missing" & vbCr & "DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr & "DebuggerStepThroughAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program2.GetMember(Of MethodSymbol)("Test4").
+                                                           GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+            End Sub
+
+            CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
+        End Sub
 
     End Class
 End Namespace

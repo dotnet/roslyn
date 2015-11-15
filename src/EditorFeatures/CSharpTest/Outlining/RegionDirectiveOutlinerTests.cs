@@ -26,20 +26,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
             TestTrivia(expectedRegionName, code, SyntaxKind.RegionDirectiveTrivia, autoCollapse: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void BrokenRegion()
         {
             TestRegion(null, "$$#region Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void SimpleRegion()
         {
             TestRegion("Foo", @"$$[|#region Foo
 #endregion|]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         [WorkItem(539361)]
         public void RegressionFor5284()
         {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         [WorkItem(953668)]
         public void RegionsShouldBeCollapsedByDefault()
         {
@@ -86,6 +86,22 @@ class C
     {
     }
     #endregion|]
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]
+        public void SpacesBetweenPoundAndRegionShouldNotAffectBanner()
+        {
+            TestRegion("Region", @"
+class C
+{
+[|#  region R$$egion
+    static void Main(string[] args)
+    {
+    }
+#  endregion|]
 }
 ");
         }

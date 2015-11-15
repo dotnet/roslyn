@@ -171,8 +171,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch)) <> 0 Then
-                results = results Or MethodSignatureComparer.DetailedReturnTypeCompare(prop1.Type, Nothing, prop1.TypeCustomModifiers,
-                                                                                       prop2.Type, Nothing, prop2.TypeCustomModifiers,
+                results = results Or MethodSignatureComparer.DetailedReturnTypeCompare(New TypeWithModifiers(prop1.Type, prop1.TypeCustomModifiers), Nothing,
+                                                                                       New TypeWithModifiers(prop2.Type, prop2.TypeCustomModifiers), Nothing,
                                                                                        comparisons)
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done

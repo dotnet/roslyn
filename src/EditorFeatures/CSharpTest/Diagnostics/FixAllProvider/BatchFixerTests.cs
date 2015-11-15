@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
 
         #region "Fix all occurrences tests"
 
-        [Fact, WorkItem(320)]
+        [WpfFact, WorkItem(320)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public void TestFixAllInDocument_QualifyWithThis()
         {
@@ -152,7 +152,7 @@ class C
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false);
+            Test(input, expected, compareTokens: false);
         }
 
         #endregion

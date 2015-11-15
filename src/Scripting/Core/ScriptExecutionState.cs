@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// <summary>
     /// Represents the submission states and globals that get passed to a script entry point when run.
     /// </summary>
-    internal class ScriptExecutionState
+    internal sealed class ScriptExecutionState
     {
         private object[] _submissionStates;
         private int _count;
@@ -49,41 +51,55 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
-        public int Count
+        public int SubmissionStateCount => _count;
+
+        public object GetSubmissionState(int index)
         {
-            get { return _count; }
+            Debug.Assert(index >= 0 && index < _count);
+            return _submissionStates[index];
         }
 
-        public object this[int index]
+        internal async Task<TResult> RunSubmissionsAsync<TResult>(
+            ImmutableArray<Func<object[], Task>> precedingExecutors,
+            Func<object[], Task> currentExecutor,
+            CancellationToken cancellationToken)
         {
-            get { return _submissionStates[index]; }
-        }
+            Debug.Assert(_frozen == 0);
 
-        /// <summary>
-        /// Run's the submission with this state. Submission's state get added to this as a side-effect.
-        /// </summary>
-        public T RunSubmission<T>(Func<object[], T> submissionRunner)
-        {
-            if (_frozen != 0)
+            foreach (var executor in precedingExecutors)
             {
-                throw new InvalidOperationException(ScriptingResources.ExecutionStateFrozen);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                EnsureStateCapacity();
+                await executor(_submissionStates).ConfigureAwait(continueOnCapturedContext: false);
+                AdvanceStateCounter();
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
+            EnsureStateCapacity();
+            TResult result = await ((Task<TResult>)currentExecutor(_submissionStates)).ConfigureAwait(continueOnCapturedContext: false);
+            AdvanceStateCounter();
+
+            return result;
+        }
+
+        private void EnsureStateCapacity()
+        {
             // make sure there is enough free space for the submission to add its state
             if (_count >= _submissionStates.Length)
             {
-                Array.Resize(ref _submissionStates, Math.Max(_count + 1, _submissionStates.Length * 2));
+                Array.Resize(ref _submissionStates, Math.Max(_count, _submissionStates.Length * 2));
             }
+        }
 
-            var result = submissionRunner(_submissionStates);
-
+        private void AdvanceStateCounter()
+        {
             // check to see if state was added (submissions that don't make declarations don't add state)
             if (_submissionStates[_count] != null)
             {
                 _count++;
             }
-
-            return result;
         }
     }
 }

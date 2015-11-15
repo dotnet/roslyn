@@ -8833,7 +8833,7 @@ End Module
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
 {
-  // Code size      242 (0xf2)
+  // Code size      243 (0xf3)
   .maxstack  4
   .locals init (Integer V_0,
                 Integer V_1,
@@ -8862,91 +8862,91 @@ End Module
     IL_0023:  stloc.s    V_4
     IL_0025:  ldloc.s    V_4
     IL_0027:  ldloc.s    V_4
-    IL_0029:  dup
-    IL_002a:  call       "Function Program.LoopType.op_Subtraction(Program.LoopType, Program.LoopType) As Program.LoopType"
-    IL_002f:  call       "Function Program.LoopType.op_GreaterThanOrEqual(Program.LoopType, Program.LoopType) As Boolean"
-    IL_0034:  stloc.s    V_5
-    IL_0036:  stloc.s    V_6
-    IL_0038:  br.s       IL_0057
-    IL_003a:  ldc.i4.4
-    IL_003b:  stloc.2
-    IL_003c:  call       "Function Program.M4() As Boolean"
-    IL_0041:  brtrue.s   IL_004a
-    IL_0043:  ldc.i4.6
-    IL_0044:  stloc.2
-    IL_0045:  call       "Sub Program.M1()"
-    IL_004a:  ldc.i4.7
-    IL_004b:  stloc.2
-    IL_004c:  ldloc.s    V_6
-    IL_004e:  ldloc.s    V_4
-    IL_0050:  call       "Function Program.LoopType.op_Addition(Program.LoopType, Program.LoopType) As Program.LoopType"
-    IL_0055:  stloc.s    V_6
-    IL_0057:  ldloc.s    V_5
-    IL_0059:  brtrue.s   IL_0065
-    IL_005b:  ldloc.s    V_6
-    IL_005d:  ldloc.3
-    IL_005e:  call       "Function Program.LoopType.op_GreaterThanOrEqual(Program.LoopType, Program.LoopType) As Boolean"
-    IL_0063:  br.s       IL_006d
-    IL_0065:  ldloc.s    V_6
-    IL_0067:  ldloc.3
-    IL_0068:  call       "Function Program.LoopType.op_LessThanOrEqual(Program.LoopType, Program.LoopType) As Boolean"
-    IL_006d:  brtrue.s   IL_003a
-    IL_006f:  ldc.i4.8
-    IL_0070:  stloc.2
-    IL_0071:  call       "Sub Program.M2()"
-    IL_0076:  leave.s    IL_00e9
-    IL_0078:  ldloc.1
-    IL_0079:  ldc.i4.1
-    IL_007a:  add
-    IL_007b:  ldc.i4.0
-    IL_007c:  stloc.1
-    IL_007d:  switch    (
-        IL_00aa,
+    IL_0029:  ldloc.s    V_4
+    IL_002b:  call       "Function Program.LoopType.op_Subtraction(Program.LoopType, Program.LoopType) As Program.LoopType"
+    IL_0030:  call       "Function Program.LoopType.op_GreaterThanOrEqual(Program.LoopType, Program.LoopType) As Boolean"
+    IL_0035:  stloc.s    V_5
+    IL_0037:  stloc.s    V_6
+    IL_0039:  br.s       IL_0058
+    IL_003b:  ldc.i4.4
+    IL_003c:  stloc.2
+    IL_003d:  call       "Function Program.M4() As Boolean"
+    IL_0042:  brtrue.s   IL_004b
+    IL_0044:  ldc.i4.6
+    IL_0045:  stloc.2
+    IL_0046:  call       "Sub Program.M1()"
+    IL_004b:  ldc.i4.7
+    IL_004c:  stloc.2
+    IL_004d:  ldloc.s    V_6
+    IL_004f:  ldloc.s    V_4
+    IL_0051:  call       "Function Program.LoopType.op_Addition(Program.LoopType, Program.LoopType) As Program.LoopType"
+    IL_0056:  stloc.s    V_6
+    IL_0058:  ldloc.s    V_5
+    IL_005a:  brtrue.s   IL_0066
+    IL_005c:  ldloc.s    V_6
+    IL_005e:  ldloc.3
+    IL_005f:  call       "Function Program.LoopType.op_GreaterThanOrEqual(Program.LoopType, Program.LoopType) As Boolean"
+    IL_0064:  br.s       IL_006e
+    IL_0066:  ldloc.s    V_6
+    IL_0068:  ldloc.3
+    IL_0069:  call       "Function Program.LoopType.op_LessThanOrEqual(Program.LoopType, Program.LoopType) As Boolean"
+    IL_006e:  brtrue.s   IL_003b
+    IL_0070:  ldc.i4.8
+    IL_0071:  stloc.2
+    IL_0072:  call       "Sub Program.M2()"
+    IL_0077:  leave.s    IL_00ea
+    IL_0079:  ldloc.1
+    IL_007a:  ldc.i4.1
+    IL_007b:  add
+    IL_007c:  ldc.i4.0
+    IL_007d:  stloc.1
+    IL_007e:  switch    (
+        IL_00ab,
         IL_0000,
         IL_0007,
         IL_000e,
-        IL_003a,
-        IL_004a,
-        IL_0043,
-        IL_004a,
-        IL_006f,
-        IL_0076)
-    IL_00aa:  leave.s    IL_00de
-    IL_00ac:  ldloc.2
-    IL_00ad:  stloc.1
-    IL_00ae:  ldloc.0
-    IL_00af:  switch    (
-        IL_00bc,
-        IL_0078)
-    IL_00bc:  leave.s    IL_00de
+        IL_003b,
+        IL_004b,
+        IL_0044,
+        IL_004b,
+        IL_0070,
+        IL_0077)
+    IL_00ab:  leave.s    IL_00df
+    IL_00ad:  ldloc.2
+    IL_00ae:  stloc.1
+    IL_00af:  ldloc.0
+    IL_00b0:  switch    (
+        IL_00bd,
+        IL_0079)
+    IL_00bd:  leave.s    IL_00df
   }
   filter
   {
-    IL_00be:  isinst     "System.Exception"
-    IL_00c3:  ldnull
-    IL_00c4:  cgt.un
-    IL_00c6:  ldloc.0
-    IL_00c7:  ldc.i4.0
-    IL_00c8:  cgt.un
-    IL_00ca:  and
-    IL_00cb:  ldloc.1
-    IL_00cc:  ldc.i4.0
-    IL_00cd:  ceq
-    IL_00cf:  and
-    IL_00d0:  endfilter
+    IL_00bf:  isinst     "System.Exception"
+    IL_00c4:  ldnull
+    IL_00c5:  cgt.un
+    IL_00c7:  ldloc.0
+    IL_00c8:  ldc.i4.0
+    IL_00c9:  cgt.un
+    IL_00cb:  and
+    IL_00cc:  ldloc.1
+    IL_00cd:  ldc.i4.0
+    IL_00ce:  ceq
+    IL_00d0:  and
+    IL_00d1:  endfilter
   }  // end filter
   {  // handler
-    IL_00d2:  castclass  "System.Exception"
-    IL_00d7:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_00dc:  leave.s    IL_00ac
+    IL_00d3:  castclass  "System.Exception"
+    IL_00d8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00dd:  leave.s    IL_00ad
   }
-  IL_00de:  ldc.i4     0x800a0033
-  IL_00e3:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00e8:  throw
-  IL_00e9:  ldloc.1
-  IL_00ea:  brfalse.s  IL_00f1
-  IL_00ec:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_00f1:  ret
+  IL_00df:  ldc.i4     0x800a0033
+  IL_00e4:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00e9:  throw
+  IL_00ea:  ldloc.1
+  IL_00eb:  brfalse.s  IL_00f2
+  IL_00ed:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00f2:  ret
 }
 ]]>)
 
@@ -18725,7 +18725,7 @@ Module Module1
             If x = ERROR_INVALID_WINDOW_HANDLE Then
                 Console.WriteLine(ERROR_INVALID_WINDOW_HANDLE_DESCR & "    Error!")
             Else
-                Console.WriteLine(ERROR_INVALID_WINDOW_HANDLE_DESCR & "    Incorrect Behaviour!")
+                Console.WriteLine(ERROR_INVALID_WINDOW_HANDLE_DESCR & "    Incorrect Behavior!")
             End If
             Console.WriteLine(Err.LastDllError)
         End If

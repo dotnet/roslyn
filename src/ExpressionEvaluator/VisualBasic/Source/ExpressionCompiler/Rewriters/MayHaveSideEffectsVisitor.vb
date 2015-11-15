@@ -3,9 +3,12 @@
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
     Friend NotInheritable Class MayHaveSideEffectsVisitor
-        Inherits BoundTreeWalker
+        Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
         Private _mayHaveSideEffects As Boolean
+
+        Private Sub New()
+        End Sub
 
         Friend Shared Function MayHaveSideEffects(node As BoundNode) As Boolean
             Dim visitor = New MayHaveSideEffectsVisitor()
@@ -17,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If _mayHaveSideEffects Then
                 Return Nothing
             End If
+
             Return MyBase.Visit(node)
         End Function
 
@@ -28,6 +32,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ' not. (Since this visitor is run on the bound tree before
         ' lowering, properties are not represented as calls.)
         Public Overrides Function VisitCall(node As BoundCall) As BoundNode
+            Return SetMayHaveSideEffects()
+        End Function
+
+        Public Overrides Function VisitLateInvocation(node As BoundLateInvocation) As BoundNode
             Return SetMayHaveSideEffects()
         End Function
 

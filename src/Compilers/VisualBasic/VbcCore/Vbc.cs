@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {

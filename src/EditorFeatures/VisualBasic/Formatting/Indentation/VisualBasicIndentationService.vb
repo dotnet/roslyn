@@ -90,7 +90,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
             Dim currentNode = startNode
             Do While currentNode IsNot Nothing
-                Dim operations = FormattingOperations.GetAlignTokensOperations(formattingRules, currentNode, optionSet)
+                Dim operations = FormattingOperations.GetAlignTokensOperations(
+                    formattingRules, currentNode, lastToken:=Nothing, optionSet:=optionSet)
 
                 If Not operations.Any() Then
                     currentNode = currentNode.Parent

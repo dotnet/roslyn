@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class CapturedVariableRewriter : BoundTreeRewriter
+    internal sealed class CapturedVariableRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         internal static BoundNode Rewrite(
             ParameterSymbol targetMethodThisParameter,

@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             Assert.Throws<ArgumentNullException>(() => builder.WriteUTF16((string)null));
             Assert.Throws<ArgumentNullException>(() => builder.WriteUTF8(null, allowUnpairedSurrogates: true));
             Assert.Throws<ArgumentNullException>(() => builder.WriteUTF8(null, allowUnpairedSurrogates: true));
-            Assert.Throws<ArgumentNullException>(() => builder.WriteBytes((Stream)null, 0));
+            Assert.Throws<ArgumentNullException>(() => builder.TryWriteBytes((Stream)null, 0));
             Assert.Throws<ArgumentNullException>(() => builder.WriteBytes(null));
             Assert.Throws<ArgumentNullException>(() => builder.WriteBytes(null, 0, 0));
             Assert.Throws<ArgumentNullException>(() => builder.WriteBytes((byte*)null, 0));
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             Assert.Throws<ArgumentNullException>(() => builder.WriteContentTo((Stream)null));
             Assert.Throws<ArgumentNullException>(() => builder.WriteContentTo((BlobBuilder)null));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => builder.WriteBytes(new MemoryStream(), -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => builder.TryWriteBytes(new MemoryStream(), -1));
             Assert.Throws<ArgumentOutOfRangeException>(() => builder.WriteBytes(0, -1));
             Assert.Throws<ArgumentOutOfRangeException>(() => builder.WriteBytes(new byte[] { }, 1, 0));
             Assert.Throws<ArgumentOutOfRangeException>(() => builder.WriteBytes(new byte[] { }, 0, 1));
@@ -855,6 +855,49 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
 
             builder1.Free();
             builder2.Free();
+        }
+
+        [Fact]
+        public void ProperStreamRead()
+        {
+            var firstRead = true;
+            var sourceArray = new byte[] { 1, 2, 3, 4 };
+            int sourceOffset = 0;
+
+            var stream = new TestStream(readFunc: (buf, offset, count) =>
+            {
+                if (firstRead)
+                {
+                    count = count / 2;
+                    firstRead = false;
+                }
+                Array.Copy(sourceArray, sourceOffset, buf, offset, count);
+                sourceOffset += count;
+                return count;
+            });
+
+            var builder = PooledBlobBuilder.GetInstance(sourceArray.Length);
+            Assert.Equal(sourceArray.Length, builder.TryWriteBytes(stream, sourceArray.Length));
+            Assert.Equal(sourceArray, builder.ToArray());
+
+            builder.Free();
+        }
+
+        [Fact]
+        public void PrematureEndOfStream()
+        {
+            var sourceArray = new byte[] { 1, 2, 3, 4 };
+            var stream = new MemoryStream(sourceArray);
+
+            var destArray = new byte[6];
+            var builder = PooledBlobBuilder.GetInstance(destArray.Length);
+
+            // Try to write more bytes than exist in the stream
+            Assert.Equal(4, builder.TryWriteBytes(stream, 6));
+
+            Assert.Equal(sourceArray, builder.ToArray());
+
+            builder.Free();
         }
     }
 }

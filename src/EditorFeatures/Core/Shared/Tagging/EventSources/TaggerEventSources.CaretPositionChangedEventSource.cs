@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -21,14 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 Contract.ThrowIfNull(subjectBuffer);
 
                 _textView = textView;
-            }
-
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.CaretPositionChanged;
-                }
             }
 
             public override void Connect()

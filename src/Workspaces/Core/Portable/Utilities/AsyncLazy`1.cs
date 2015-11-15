@@ -217,7 +217,7 @@ namespace Roslyn.Utilities
                 request.RegisterForCancellation(OnAsynchronousRequestCancelled, cancellationToken);
 
                 // Since we already registered for cancellation, it's possible that the registration has
-                // cancelled this new computation if we were the only requestor.
+                // cancelled this new computation if we were the only requester.
                 if (newAsynchronousComputation != null)
                 {
                     StartAsynchronousComputation(newAsynchronousComputation.Value, requestToCompleteSynchronously: request, callerCancellationToken: cancellationToken);
@@ -372,18 +372,18 @@ namespace Roslyn.Utilities
                 // a state that was complete.
                 try
                 {
-                    // We avoid creating a full closure just to pass the token along
-                    // Also, use TaskContinuationOptions.ExecuteSynchronously so that we inline 
-                    // the continuation if asynchronousComputeFunction completes synchronously
                     var task = computationToStart.AsynchronousComputeFunction(cancellationToken);
 
-                    task.ContinueWith(
-                        (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s).Token),
-                        computationToStart.CancellationTokenSource,
-                        cancellationToken,
-                        TaskContinuationOptions.ExecuteSynchronously,
-                        TaskScheduler.Default);
-
+                    // As an optimization, if the task is already completed, mark the 
+                    // request as being completed as well.
+                    //
+                    // Note: we want to do this before we do the .ContinueWith below. That way, 
+                    // when the async call to CompleteWithTask runs, it sees that we've already
+                    // completed and can bail immediately.  If we were to do this after we 
+                    // kicked off the async work, then we'd have the chance that both would
+                    // run concurrently and we'd have a higher change of hitting the race condition
+                    // of calling AsyncMethodBuilder.SetResult simultaneously (and thus having 
+                    // the InvalidOperationException that we have to ignore).
                     if (requestToCompleteSynchronously != null && task.IsCompleted)
                     {
                         using (TakeLock(CancellationToken.None))
@@ -395,6 +395,16 @@ namespace Roslyn.Utilities
                         // to the caller of GetValueAsync yet
                         requestToCompleteSynchronously.CompleteFromTaskSynchronously(task);
                     }
+
+                    // We avoid creating a full closure just to pass the token along
+                    // Also, use TaskContinuationOptions.ExecuteSynchronously so that we inline 
+                    // the continuation if asynchronousComputeFunction completes synchronously
+                    task.ContinueWith(
+                        (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s).Token),
+                        computationToStart.CancellationTokenSource,
+                        cancellationToken,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
@@ -409,7 +419,7 @@ namespace Roslyn.Utilities
 
                 // We can only be here if the computation was cancelled, which means all requests for the value
                 // must have been cancelled. Therefore, the ThrowIfCancellationRequested above must have thrown
-                // because that token from the requestor was cancelled.
+                // because that token from the requester was cancelled.
                 throw ExceptionUtilities.Unreachable;
             }
         }

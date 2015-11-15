@@ -57,15 +57,18 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
             public const string CodeActionsIntroduceVariable = "CodeActions.IntroduceVariable";
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
+            public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";
+            public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
+            public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeGeneration = "CodeGeneration";
             public const string CodeGenerationSortDeclarations = "CodeGeneration.SortDeclarations";
             public const string CodeModel = "CodeModel";
@@ -93,6 +96,9 @@ namespace Roslyn.Test.Utilities
             public const string F1Help = "F1Help";
             public const string Formatting = "Formatting";
             public const string GoToDefinition = "GoToDefinition";
+            public const string GoToImplementation = "GoToImplementation";
+            public const string GoToAdjacentMember = "GoToAdjacentMember";
+            public const string Interactive = "Interactive";
             public const string InteractiveHost = "InteractiveHost";
             public const string KeywordHighlighting = "KeywordHighlighting";
             public const string KeywordRecommending = "KeywordRecommending";
@@ -123,7 +129,10 @@ namespace Roslyn.Test.Utilities
             public const string TypeInferenceService = "TypeInferenceService";
             public const string Venus = "Venus";
             public const string VsLanguageBlock = "VsLanguageBlock";
+            public const string VsNavInfo = "VsNavInfo";
             public const string XmlTagCompletion = "XmlTagCompletion";
+            public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
+            public const string CodeActionsAddNew = "CodeActions.AddNew";
         }
     }
 }

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -116,7 +115,8 @@ namespace Microsoft.CodeAnalysis.Editor.SignatureHelp
             var token = syntaxFacts.FindTokenOnLeftOfPosition(root, position);
             if (triggerReason == SignatureHelpTriggerReason.TypeCharCommand)
             {
-                if (isTriggerToken(token))
+                if (isTriggerToken(token) &&
+                    !syntaxFacts.IsInNonUserCode(root.SyntaxTree, position, cancellationToken))
                 {
                     expression = token.GetAncestor<TSyntax>();
                     return true;

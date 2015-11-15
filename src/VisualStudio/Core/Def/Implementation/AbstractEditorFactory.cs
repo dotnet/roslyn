@@ -146,7 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out textBufferFlags)) &&
                 0 != (textBufferFlags & ((uint)BUFFERSTATEFLAGS.BSF_FILESYS_READONLY | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY)))
             {
-                ((IVsPersistDocData2)textBuffer).SetDocDataReadOnly(1);
                 readOnlyStatus = READONLYSTATUS.ROSTATUS_ReadOnly;
             }
 

@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var compilation = CreateCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
-                options: (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe),
-                parseOptions: TestOptions.Regular.WithDeterministicFeature());
+                options: (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithDeterministic(true));
 
             Guid result = default(Guid);
             base.CompileAndVerify(compilation, validator: a =>
@@ -36,10 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         private ImmutableArray<byte> EmitDeterministic(string source, Platform platform, DebugInformationFormat pdbFormat, bool optimize)
         {
-            var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform);
+            var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
 
-            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef }, options: options,
-                parseOptions: TestOptions.Regular.WithFeature("dEtErmInIstIc", "true")); // expect case-insensitivity
+            var compilation = CreateCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef }, options: options);
 
             // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
             // between calls to Emit.
@@ -49,6 +47,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
 
             return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: new MemoryStream());
+        }
+
+        [Fact, WorkItem(4578, "https://github.com/dotnet/roslyn/issues/4578")]
+        public void BanVersionWildcards()
+        {
+            string source = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
+            var compilationDeterministic = CreateCompilation(
+                source,
+                assemblyName: "DeterminismTest", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+            var compilationNonDeterministic = CreateCompilation(
+                source, 
+                assemblyName: "DeterminismTest", 
+                references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(false));
+
+            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null);
+            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null);
+
+            Assert.False(resultDeterministic.Success);   
+            Assert.True(resultNonDeterministic.Success);   
         }
 
         [Fact, WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
@@ -135,12 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void TestWriteOnlyStream()
         {
-            var tree = CSharpSyntaxTree.ParseText("class Program { static void Main() { } }",
-                TestOptions.Regular.WithDeterministicFeature());
+            var tree = CSharpSyntaxTree.ParseText("class Program { static void Main() { } }");
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
                                                        new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
-                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
         }

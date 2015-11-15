@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Check constraints.
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var typeParams = method.TypeParameters;
-            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
+            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
             diagnosticsBuilder.Free();

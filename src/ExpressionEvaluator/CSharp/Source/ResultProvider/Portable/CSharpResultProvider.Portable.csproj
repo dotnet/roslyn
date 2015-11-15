@@ -18,6 +18,9 @@
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
+      <Link>Compiler\Parser\UnicodeCharacterUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Parser\CharacterInfo.cs">
       <Link>Compiler\Parser\CharacterInfo.cs</Link>
     </Compile>
@@ -52,6 +55,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
     <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

@@ -1391,7 +1391,7 @@ End Module
 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource.Value)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource.Value)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 

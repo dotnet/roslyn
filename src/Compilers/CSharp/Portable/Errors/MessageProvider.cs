@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
+            bool hasPragmaSuppression;
             return CSharpDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
                                                               true,
                                                               diagnosticInfo.MessageIdentifier,
@@ -116,14 +117,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               diagnosticInfo.Category,
                                                               options.WarningLevel,
                                                               options.GeneralDiagnosticOption,
-                                                              options.SpecificDiagnosticOptions);
+                                                              options.SpecificDiagnosticOptions,
+                                                              out hasPragmaSuppression);
         }
 
         public override int ERR_FailedToCreateTempFile { get { return (int)ErrorCode.ERR_CantMakeTempFile; } }
 
         // command line:
-        public override int ERR_NoScriptsSpecified { get { return (int)ErrorCode.ERR_NoScriptsSpecified; } }
+        public override int ERR_ExpectedSingleScript { get { return (int)ErrorCode.ERR_ExpectedSingleScript; } }
         public override int ERR_OpenResponseFile { get { return (int)ErrorCode.ERR_OpenResponseFile; } }
+        public override int ERR_InvalidPathMap { get { return (int)ErrorCode.ERR_InvalidPathMap; } }
         public override int FTL_InputFileNameTooLong { get { return (int)ErrorCode.FTL_InputFileNameTooLong; } }
         public override int ERR_FileNotFound { get { return (int)ErrorCode.ERR_FileNotFound; } }
         public override int ERR_NoSourceFile { get { return (int)ErrorCode.ERR_NoSourceFile; } }

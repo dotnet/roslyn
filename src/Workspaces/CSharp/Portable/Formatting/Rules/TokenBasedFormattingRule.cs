@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -200,7 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     previousToken.Kind() == SyntaxKind.BaseKeyword ||
                     previousToken.Kind() == SyntaxKind.ThisKeyword ||
                     previousToken.Kind() == SyntaxKind.NewKeyword ||
-                    previousToken.Parent.Kind() == SyntaxKind.OperatorDeclaration ||
                     previousToken.IsGenericGreaterThanToken() ||
                     currentToken.IsParenInArgumentList())
                 {
@@ -229,7 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * )
-            // * [
             // * ]
             // * ,
             // * .
@@ -237,12 +236,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             switch (currentToken.Kind())
             {
                 case SyntaxKind.CloseParenToken:
-                case SyntaxKind.OpenBracketToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.CommaToken:
                 case SyntaxKind.DotToken:
                 case SyntaxKind.MinusGreaterThanToken:
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // * [
+            if (currentToken.IsKind(SyntaxKind.OpenBracketToken) && 
+                !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
+            {
+                if (previousToken.IsOpenBraceOfAccessorList() ||
+                    previousToken.IsLastTokenOfNode<AccessorDeclarationSyntax>())
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+                else
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
             }
 
             // case * :

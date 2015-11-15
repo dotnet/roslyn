@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -13,6 +14,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public IEnumerable<Lazy<TExport, TMetadata>> GetExports<TExport, TMetadata>()
         {
-            return (IEnumerable<Lazy<TExport, TMetadata>>)Workspace.ExportProvider.GetExports<TExport, TMetadata>();
+            return Workspace.ExportProvider.GetExports<TExport, TMetadata>();
         }
 
         public T GetExportedValue<T>()
@@ -148,6 +150,46 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public IEnumerable<T> GetExportedValues<T>()
         {
             return Workspace.ExportProvider.GetExportedValues<T>();
+        }
+
+        protected static IEnumerable<Lazy<TProvider, OrderableLanguageMetadata>> CreateLazyProviders<TProvider>(
+            TProvider[] providers,
+            string languageName)
+        {
+            if (providers == null)
+            {
+                return Array.Empty<Lazy<TProvider, OrderableLanguageMetadata>>();
+            }
+
+            return providers.Select(p =>
+                new Lazy<TProvider, OrderableLanguageMetadata>(
+                    () => p,
+                    new OrderableLanguageMetadata(
+                        new Dictionary<string, object> {
+                            {"Language", languageName },
+                            {"Name", string.Empty }}),
+                    true));
+        }
+
+        protected static IEnumerable<Lazy<TProvider, OrderableLanguageAndRoleMetadata>> CreateLazyProviders<TProvider>(
+            TProvider[] providers,
+            string languageName,
+            string[] roles)
+        {
+            if (providers == null)
+            {
+                return Array.Empty<Lazy<TProvider, OrderableLanguageAndRoleMetadata>>();
+            }
+
+            return providers.Select(p =>
+                new Lazy<TProvider, OrderableLanguageAndRoleMetadata>(
+                    () => p,
+                    new OrderableLanguageAndRoleMetadata(
+                        new Dictionary<string, object> {
+                            {"Language", languageName },
+                            {"Name", string.Empty },
+                            {"Roles", roles }}),
+                    true));
         }
         #endregion
 
@@ -212,11 +254,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return TextView.Caret.Position;
         }
 
-        public void WaitForAsynchronousOperations()
+        /// <summary>
+        /// Used in synchronous methods to ensure all outstanding <see cref="IAsyncToken"/> work has been
+        /// completed.
+        /// </summary>
+        public void AssertNoAsynchronousOperationsRunning()
         {
             var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            var tasks = waiters.Select(w => w.CreateWaitTask()).ToList();
-            tasks.PumpingWaitAll();
+            Assert.False(waiters.Any(x => x.HasPendingWork), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
+        }
+
+        public async Task WaitForAsynchronousOperationsAsync()
+        {
+            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
+            await waiters.WaitAllAsync().ConfigureAwait(true);
         }
 
         public void AssertMatchesTextStartingAtLine(int line, string text)
@@ -344,7 +395,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             commandHandler(new SelectAllCommandArgs(TextView, SubjectBuffer), nextHandler);
         }
-
         #endregion
     }
 }

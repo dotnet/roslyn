@@ -1,53 +1,68 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
-    internal abstract class AbstractDiagnosticsTaggerProvider<TTag> :
-        AbstractAsynchronousTaggerProvider<AbstractAggregatedDiagnosticsTagSource<TTag>, TTag>, ITaggerProvider
+    /// <summary>
+    /// Diagnostics works slightly differently than the rest of the taggers.  For diagnostics,
+    /// we want to try to have an individual tagger per diagnostic producer per buffer.  
+    /// However, the editor only allows a single tagger provider per buffer.  So in order to
+    /// get the abstraction we want, we create one outer tagger provider that is associated
+    /// with the buffer.  Then, under the covers, we create individual async taggers for each
+    /// diagnostic producer we hear about for that buffer.   
+    /// 
+    /// In essence, we have one tagger that wraps a multitude of taggers it delegates to.
+    /// Each of these taggers is nicely asynchronous and properly works within the async
+    /// tagging infrastructure. 
+    /// </summary>
+    internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> :
+        ForegroundThreadAffinitizedObject,
+        ITaggerProvider
         where TTag : ITag
     {
-        protected readonly DiagnosticService DiagnosticService;
+        private readonly object _uniqueKey = new object();
+        private readonly IDiagnosticService _diagnosticService;
+        private readonly IForegroundNotificationService _notificationService;
+        private readonly IAsynchronousOperationListener _listener;
 
-        public AbstractDiagnosticsTaggerProvider(
+        protected AbstractDiagnosticsTaggerProvider(
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListener listener)
-            : base(listener, notificationService)
         {
-            this.DiagnosticService = diagnosticService as DiagnosticService;
+            _diagnosticService = diagnosticService;
+            _notificationService = notificationService;
+            _listener = listener;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
-        {
-            if (subjectBuffer == null)
-            {
-                throw new ArgumentNullException(nameof(subjectBuffer));
-            }
+        protected internal abstract IEnumerable<Option<bool>> Options { get; }
+        protected internal abstract bool IsEnabled { get; }
+        protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
+        protected internal abstract ITagSpan<TTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
 
-            return this.GetOrCreateTagger<T>(null, subjectBuffer);
+        ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+        {
+            return CreateTagger<T>(buffer);
         }
 
-        internal sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out AbstractAggregatedDiagnosticsTagSource<TTag> tagSource)
+        public IAccurateTagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            return subjectBuffer.Properties.TryGetProperty(UniqueKey, out tagSource);
+            var tagger = buffer.Properties.GetOrCreateSingletonProperty(
+                _uniqueKey, () => new AggregatingTagger(this, buffer));
+            tagger.OnTaggerCreated();
+            return tagger as IAccurateTagger<T>;
         }
 
-        protected sealed override void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, AbstractAggregatedDiagnosticsTagSource<TTag> tagSource)
+        private void RemoveTagger(AggregatingTagger tagger, ITextBuffer buffer)
         {
-            subjectBuffer.Properties.AddProperty(UniqueKey, tagSource);
-        }
-
-        protected sealed override void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            subjectBuffer.Properties.RemoveProperty(UniqueKey);
+            buffer.Properties.RemoveProperty(_uniqueKey);
         }
     }
 }

@@ -49,6 +49,18 @@ namespace Roslyn.Utilities
                 }
             }
 
+            private static class _RuntimeEnvironment
+            {
+                internal static readonly Type TypeOpt = ReflectionUtilities.TryGetType("System.Runtime.InteropServices.RuntimeEnvironment, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+
+                internal static readonly Func<string> GetRuntimeDirectoryOpt = TypeOpt?
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("GetRuntimeDirectory", SpecializedCollections.EmptyArray<Type>())?
+                    .CreateDelegate<Func<string>>();
+            }
+
+            internal static string TryGetRuntimeDirectory() => _RuntimeEnvironment.GetRuntimeDirectoryOpt?.Invoke();
+
             private static class _Assembly
             {
                 internal static readonly Type Type = typeof(Assembly);
@@ -74,9 +86,19 @@ namespace Roslyn.Utilities
                     .CreateDelegate<Func<Assembly, bool>>();
             }
 
+            private static class _Module
+            {
+                internal static readonly Type Type = typeof(Module);
+
+                internal static readonly Func<Module, Guid> get_ModuleVersionId = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("get_ModuleVersionId")
+                    .CreateDelegate<Func<Module, Guid>>();
+            }
+
             private static class _ResolveEventArgs
             {
-                internal static readonly Type Type = Type.GetType("System.ResolveEventArgs", throwOnError: false);
+                internal static readonly Type Type = ReflectionUtilities.TryGetType("System.ResolveEventArgs");
 
                 internal static readonly MethodInfo get_Name = Type
                     .GetTypeInfo()
@@ -89,8 +111,8 @@ namespace Roslyn.Utilities
 
             private static class _AppDomain
             {
-                internal static readonly Type Type = Type.GetType("System.AppDomain", throwOnError: false);
-                internal static readonly Type ResolveEventHandlerType = Type.GetType("System.ResolveEventHandler", throwOnError: false);
+                internal static readonly Type Type = ReflectionUtilities.TryGetType("System.AppDomain");
+                internal static readonly Type ResolveEventHandlerType = ReflectionUtilities.TryGetType("System.ResolveEventHandler");
 
                 internal static readonly MethodInfo get_CurrentDomain = Type
                     .GetTypeInfo()
@@ -99,6 +121,10 @@ namespace Roslyn.Utilities
                 internal static readonly MethodInfo add_AssemblyResolve = Type
                     .GetTypeInfo()
                     .GetDeclaredMethod("add_AssemblyResolve", ResolveEventHandlerType);
+
+                internal static readonly MethodInfo remove_AssemblyResolve = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("remove_AssemblyResolve", ResolveEventHandlerType);
             }
 
             internal static Assembly LoadAssembly(byte[] peImage)
@@ -129,6 +155,11 @@ namespace Roslyn.Utilities
                 }
 
                 return _Assembly.get_Location(assembly);
+            }
+
+            internal static Guid GetModuleVersionId(Module module)
+            {
+                return _Module.get_ModuleVersionId(module);
             }
 
             internal static bool IsAssemblyFromGlobalAssemblyCache(Assembly assembly)
@@ -165,7 +196,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            internal static void AddAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)
+            internal static object GetCurrentAppDomain()
             {
                 if (_AppDomain.get_CurrentDomain == null ||
                     _AppDomain.add_AssemblyResolve == null ||
@@ -175,10 +206,30 @@ namespace Roslyn.Utilities
                     throw new PlatformNotSupportedException();
                 }
 
-                object currentAppDomain = _AppDomain.get_CurrentDomain.Invoke(null, SpecializedCollections.EmptyArray<object>());
+                return _AppDomain.get_CurrentDomain.Invoke(null, SpecializedCollections.EmptyArray<object>());
+            }
+
+            internal static void GetOrRemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler, MethodInfo handlerOperation)
+            {
+                if (_AppDomain.add_AssemblyResolve == null)
+                {
+                    throw new PlatformNotSupportedException();
+                }
+
+                object currentAppDomain = GetCurrentAppDomain();
                 object resolveEventHandler = new AssemblyResolveWrapper(handler).GetHandler();
 
-                _AppDomain.add_AssemblyResolve.Invoke(currentAppDomain, new[] { resolveEventHandler });
+                handlerOperation.Invoke(currentAppDomain, new[] { resolveEventHandler });
+            }
+
+            internal static void AddAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)
+            {
+                GetOrRemoveAssemblyResolveHandler(handler, _AppDomain.add_AssemblyResolve);
+            }
+
+            internal static void RemoveAssemblyResolveHandler(Func<string, Assembly, Assembly> handler)
+            {
+                GetOrRemoveAssemblyResolveHandler(handler, _AppDomain.remove_AssemblyResolve);
             }
         }
     }

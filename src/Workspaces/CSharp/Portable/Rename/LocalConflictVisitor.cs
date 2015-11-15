@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         private void VisitQueryInternal(FromClauseSyntax fromClause, QueryBodySyntax body)
         {
             // This is somewhat ornery: we need to collect all the locals being introduced
-            // since they're all in scope throught all parts of the query.
+            // since they're all in scope through all parts of the query.
             var tokens = new List<SyntaxToken>();
 
             if (fromClause != null)

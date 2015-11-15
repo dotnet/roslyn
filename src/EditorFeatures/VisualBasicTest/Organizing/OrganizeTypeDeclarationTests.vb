@@ -5,6 +5,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Roslyn.Test.EditorUtilities
@@ -16,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeTypeDeclarationTests
         Inherits AbstractOrganizerTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestFieldsWithoutInitializers1()
             Dim initial =
     <element>class C 
@@ -34,7 +38,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestFieldsWithoutInitializers2()
 
             Dim initial =
@@ -53,7 +57,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestFieldsWithInitializers1()
 
             Dim initial =
@@ -72,7 +76,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestFieldsWithInitializers2()
 
             Dim initial =
@@ -91,7 +95,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestEnumStatement()
 
             Dim initial =
@@ -114,7 +118,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestSharedInstance()
 
             Dim initial =
@@ -135,7 +139,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestAccessibility()
 
             Dim initial =
@@ -158,7 +162,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestSharedAccessibility()
 
             Dim initial =
@@ -191,7 +195,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestMethodsAccessModifiers()
 
             Dim initial =
@@ -224,7 +228,7 @@ End class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestGenerics()
 
             Dim initial =
@@ -261,7 +265,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestInsidePPRegion()
 
             Dim initial =
@@ -284,7 +288,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestInsidePPRegion2()
 
             Dim initial =
@@ -317,7 +321,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestInsidePPRegion3()
 
             Dim initial =
@@ -346,7 +350,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestInsidePPRegion4()
 
             Dim initial =
@@ -375,7 +379,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestInsidePPRegion5()
 
             Dim initial =
@@ -406,7 +410,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestInsidePPRegion6()
 
             Dim initial =
@@ -447,7 +451,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestPinned()
 
             Dim initial =
@@ -492,7 +496,7 @@ end class</element>
             Check(initial, final)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TestSensitivity()
             Dim initial =
 <element>class 
@@ -586,7 +590,7 @@ end class</element>
 
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestWhitespaceBetweenMethods1()
             Dim initial =
 <element>class Program
@@ -609,7 +613,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestWhitespaceBetweenMethods2()
             Dim initial =
 <element>class Program
@@ -634,7 +638,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestWhitespaceBetweenMethods3()
             Dim initial =
 <element>class Program
@@ -659,7 +663,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestWhitespaceBetweenMethods4()
             Dim initial =
 <element>class Program
@@ -686,7 +690,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestWhitespaceBetweenMethods5()
             Dim initial =
 <element>class Program
@@ -715,7 +719,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestWhitespaceBetweenMethods6()
             Dim initial =
 <element>class Program
@@ -746,7 +750,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestMoveComments1()
             Dim initial =
 <element>class Program
@@ -771,7 +775,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestMoveComments2()
             Dim initial =
 <element>class Program
@@ -798,7 +802,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestMoveDocComments1()
             Dim initial =
 <element>class Program
@@ -823,7 +827,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestMoveDocComments2()
             Dim initial =
 <element>class Program
@@ -850,7 +854,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestDontMoveBanner()
             Dim initial =
 <element>class Program
@@ -877,7 +881,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub TestDontMoveBanner2()
             Dim initial =
 <element>class Program
@@ -910,7 +914,7 @@ end class</element>
         End Sub
 
         <WorkItem(537614)>
-        <Fact>
+        <WpfFact>
         Public Sub Bug2592()
             Dim initial =
 <element>Namespace Acme
@@ -938,6 +942,58 @@ End Namespace</element>
     End Class
 End Namespace</element>
             Check(initial, final)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Trait(Traits.Feature, Traits.Features.Interactive)>
+        Public Sub OrganizingCommandsDisabledInSubmission()
+            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(
+                <Workspace>
+                    <Submission Language="Visual Basic" CommonReferences="true">  
+                        Class C
+                            Private $foo As Object
+                        End Class
+                    </Submission>
+                </Workspace>,
+                workspaceKind:=WorkspaceKind.Interactive,
+                exportProvider:=exportProvider)
+
+                ' Force initialization.
+                workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
+
+                Dim textView = workspace.Documents.Single().GetTextView()
+
+                Dim handler = New OrganizeDocumentCommandHandler(workspace.GetService(Of Host.IWaitIndicator))
+                Dim delegatedToNext = False
+                Dim nextHandler =
+                    Function()
+                        delegatedToNext = True
+                        Return CommandState.Unavailable
+                    End Function
+
+                Dim state = handler.GetCommandState(New Commands.SortImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+
+                delegatedToNext = False
+                state = handler.GetCommandState(New Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+
+                delegatedToNext = False
+                state = handler.GetCommandState(New Commands.RemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+
+                delegatedToNext = False
+                state = handler.GetCommandState(New Commands.OrganizeDocumentCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+            End Using
         End Sub
     End Class
 End Namespace

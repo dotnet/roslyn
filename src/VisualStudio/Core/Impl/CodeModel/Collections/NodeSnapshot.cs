@@ -47,14 +47,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             int ordinal;
             this.CodeModelService.GetOptionNameAndOrdinal(_parentNode, node, out name, out ordinal);
 
-            return (EnvDTE.CodeElement)CodeOptionsStatement.Create(_state, this.FileCodeModel, name, ordinal);
+            return CodeOptionsStatement.Create(_state, this.FileCodeModel, name, ordinal);
         }
 
         private EnvDTE.CodeElement CreateCodeImport(SyntaxNode node)
         {
             var name = this.CodeModelService.GetImportNamespaceOrType(node);
 
-            return (EnvDTE.CodeElement)CodeImport.Create(_state, this.FileCodeModel, _parentElement, name);
+            return CodeImport.Create(_state, this.FileCodeModel, _parentElement, name);
         }
 
         private EnvDTE.CodeElement CreateCodeAttribute(SyntaxNode node)
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 }
 
                 // The node must be something that the FileCodeModel can create.
-                return this.FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(node);
+                return this.FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(node);
             }
         }
     }

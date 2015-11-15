@@ -1024,7 +1024,7 @@ End class
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource1.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource1.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -1083,7 +1083,7 @@ End class
          = {type(class 'CF1, ForwarderTargetAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null')}
 ]]>
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource2.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource2.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -1194,7 +1194,7 @@ End Class
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 

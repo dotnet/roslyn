@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 #Region "C# Tests"
 
         <WorkItem(604392)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub NoExpansionForPropertyNamesOfObjectInitializers()
             Dim input =
 <Workspace>
@@ -51,7 +51,7 @@ class C
         End Sub
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_SimpleIdentifierAliasExpansion_AliasBinds()
             Dim input =
 <Workspace>
@@ -107,7 +107,7 @@ namespace LongNamespace
         End Sub
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_SimpleIdentifierAliasExpansion_AliasDoesNotBind()
             Dim input =
 <Workspace>
@@ -148,8 +148,121 @@ namespace NS
             Test(input, expected)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        Public Sub CSharp_GenericNameExpansion_DontExpandAnonymousTypes()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType) { }
+
+    static void M()
+    {
+        {|Expand:Mumble|}(new { x = 42 });
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType) { }
+
+    static void M()
+    {
+        global::C.Mumble(new { x = 42 });
+    }
+}
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        Public Sub CSharp_LambdaParameter_DontExpandAnonymousTypes1()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int&gt; lambda) { }
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, {|Expand:a => a.x|});
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int&gt; lambda) { }
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, a => a.x);
+    }
+}
+</code>
+
+            Test(input, expected, expandParameter:=True)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        Public Sub CSharp_LambdaParameter_DontExpandAnonymousTypes2()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int, int&gt; lambda) { }
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, {|Expand:(a, y) => a.x|});
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int, int&gt; lambda) { }
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, (a, y) => a.x);
+    }
+}
+</code>
+
+            Test(input, expected, expandParameter:=True)
+        End Sub
+
+#End Region
+
+#Region "Visual Basic tests"
+
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_SimpleIdentifierAliasExpansion_AliasBinds()
             Dim input =
 <Workspace>
@@ -203,7 +316,7 @@ End Namespace
         End Sub
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2805"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/2805"), Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_SimpleIdentifierAliasExpansion_AliasDoesNotBind()
             Dim input =
 <Workspace>
@@ -237,6 +350,7 @@ End Namespace
 
             Test(input, expected)
         End Sub
+
 #End Region
 
     End Class

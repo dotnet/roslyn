@@ -17,8 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TypeMap : AbstractTypeParameterMap
     {
+        public static readonly System.Func<TypeSymbol, TypeWithModifiers> TypeSymbolAsTypeWithModifiers = t => new TypeWithModifiers(t);
+
         // Only when the caller passes allowAlpha=true do we tolerate substituted (alpha-renamed) type parameters as keys
-        internal TypeMap(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeSymbol> to, bool allowAlpha = false)
+        internal TypeMap(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeWithModifiers> to, bool allowAlpha = false)
             : base(ConstructMapping(from, to))
         {
             // mapping contents are read-only hereafter
@@ -27,41 +29,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Only when the caller passes allowAlpha=true do we tolerate substituted (alpha-renamed) type parameters as keys
         internal TypeMap(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeParameterSymbol> to, bool allowAlpha = false)
-            : this(from, StaticCast<TypeSymbol>.From(to), allowAlpha)
+            : this(from, to.SelectAsArray(TypeSymbolAsTypeWithModifiers), allowAlpha)
         {
             // mapping contents are read-only hereafter
         }
 
-        internal TypeMap(SmallDictionary<TypeParameterSymbol, TypeSymbol> mapping)
-            : base(new SmallDictionary<TypeParameterSymbol, TypeSymbol>(mapping, ReferenceEqualityComparer.Instance))
+        internal TypeMap(SmallDictionary<TypeParameterSymbol, TypeWithModifiers> mapping)
+            : base(new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(mapping, ReferenceEqualityComparer.Instance))
         {
             // mapping contents are read-only hereafter
             Debug.Assert(!mapping.Keys.Any(tp => tp is SubstitutedTypeParameterSymbol));
         }
 
-        private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ForType(NamedTypeSymbol containingType)
+        private static SmallDictionary<TypeParameterSymbol, TypeWithModifiers> ForType(NamedTypeSymbol containingType)
         {
             var substituted = containingType as SubstitutedNamedTypeSymbol;
             return (object)substituted != null ?
-                new SmallDictionary<TypeParameterSymbol, TypeSymbol>(substituted.TypeSubstitution.Mapping, ReferenceEqualityComparer.Instance) :
-                new SmallDictionary<TypeParameterSymbol, TypeSymbol>(ReferenceEqualityComparer.Instance);
+                new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(substituted.TypeSubstitution.Mapping, ReferenceEqualityComparer.Instance) :
+                new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(ReferenceEqualityComparer.Instance);
         }
-        internal TypeMap(NamedTypeSymbol containingType, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeSymbol> typeArguments)
+        internal TypeMap(NamedTypeSymbol containingType, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithModifiers> typeArguments)
             : base(ForType(containingType))
         {
             for (int i = 0; i < typeParameters.Length; i++)
             {
                 TypeParameterSymbol tp = typeParameters[i];
-                TypeSymbol ta = typeArguments[i];
-                if (!ReferenceEquals(tp, ta))
+                TypeWithModifiers ta = typeArguments[i];
+                if (!ta.Is(tp))
                 {
                     Mapping.Add(tp, ta);
                 }
             }
         }
 
-        private static readonly SmallDictionary<TypeParameterSymbol, TypeSymbol> s_emptyDictionary =
-            new SmallDictionary<TypeParameterSymbol, TypeSymbol>(ReferenceEqualityComparer.Instance);
+        private static readonly SmallDictionary<TypeParameterSymbol, TypeWithModifiers> s_emptyDictionary =
+            new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(ReferenceEqualityComparer.Instance);
 
         private TypeMap()
             : base(s_emptyDictionary)
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var newTp = synthesized ?
                     new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp) :
                     new SubstitutedTypeParameterSymbol(newOwner, result, tp);
-                result.Mapping.Add(tp, newTp);
+                result.Mapping.Add(tp, new TypeWithModifiers(newTp));
                 newTypeParametersBuilder.Add(newTp);
             }
 
@@ -125,23 +127,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
         }
 
-        private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeSymbol> to)
+        private static SmallDictionary<TypeParameterSymbol, TypeWithModifiers> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeWithModifiers> to)
         {
-            SmallDictionary<TypeParameterSymbol, TypeSymbol> mapping = new SmallDictionary<TypeParameterSymbol, TypeSymbol>(ReferenceEqualityComparer.Instance);
+            var mapping = new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(ReferenceEqualityComparer.Instance);
 
             Debug.Assert(from.Length == to.Length);
 
             for (int i = 0; i < from.Length; i++)
             {
                 TypeParameterSymbol tp = from[i];
-                TypeSymbol ta = to[i];
-                if (!ReferenceEquals(tp, ta))
+                TypeWithModifiers ta = to[i];
+                if (!ta.Is(tp))
                 {
                     mapping.Add(tp, ta);
                 }
             }
 
             return mapping;
+        }
+
+        public ImmutableArray<ImmutableArray<CustomModifier>> GetTypeArgumentsCustomModifiersFor(NamedTypeSymbol originalDefinition)
+        {
+            Debug.Assert((object)originalDefinition != null);
+            Debug.Assert(originalDefinition.IsDefinition);
+            Debug.Assert(originalDefinition.Arity > 0);
+
+            var result = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(originalDefinition.Arity);
+
+            foreach (TypeParameterSymbol tp in originalDefinition.TypeArguments)
+            {
+                result.Add(SubstituteTypeParameter(tp).CustomModifiers);
+            }
+
+            return result.ToImmutableAndFree();
         }
     }
 }
