@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.Collections;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;

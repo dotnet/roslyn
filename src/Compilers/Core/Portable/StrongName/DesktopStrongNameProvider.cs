@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -186,7 +187,23 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                return StrongNameKeys.Create(keyFilePath, messageProvider);
+
+                try
+                {
+                    string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath);
+                    if (resolvedKeyFile == null)
+                    {
+                        throw new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
+                    }
+
+                    Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
+                    var fileContent = ImmutableArray.Create(ReadAllBytes(resolvedKeyFile));
+                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
+                }
+                catch (IOException ex)
+                {
+                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
+                }
             }
             else if (!string.IsNullOrEmpty(keyContainerName))
             {

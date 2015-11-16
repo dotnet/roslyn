@@ -86,61 +86,68 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        //Last seen key file blob and corresponding public key.
-        //In IDE typing scenarios we often need to infer public key from the same
-        //key file blob repeatedly and it is relatively expensive.
-        //So we will store last seen blob and corresponding key here.
-        private static Tuple<ImmutableArray<byte>, ImmutableArray<byte>> s_lastSeenKeyPair;
-
         internal static StrongNameKeys Create(string keyFilePath, CommonMessageProvider messageProvider)
         {
             if (string.IsNullOrEmpty(keyFilePath))
             {
                 return None;
             }
-            ImmutableArray<byte> keyPair;
-            ImmutableArray<byte> publicKey;
 
             try
             {
                 Debug.Assert(PathUtilities.IsAbsolute(keyFilePath));
                 var fileContent = ImmutableArray.Create(PortableShim.File.ReadAllBytes(keyFilePath));
 
-                // Check the key pair cache
-                var cachedKeyPair = s_lastSeenKeyPair;
-                if (cachedKeyPair != null && fileContent == cachedKeyPair.Item1)
-                {
-                    keyPair = cachedKeyPair.Item1;
-                    publicKey = cachedKeyPair.Item2;
-                }
-                else
-                {
-                    if (MetadataHelpers.IsValidPublicKey(fileContent))
-                    {
-                        publicKey = fileContent;
-                        keyPair = default(ImmutableArray<byte>);
-                    }
-                    else if (CryptoBlobParser.TryGetPublicKey(fileContent, out publicKey))
-                    {
-                        keyPair = fileContent;
-                    }
-                    else
-                    {
-                        throw new IOException(CodeAnalysisResources.InvalidPublicKey);
-                    }
-
-                    // Cache the key pair
-                    cachedKeyPair = new Tuple<ImmutableArray<byte>, ImmutableArray<byte>>(
-                        keyPair, publicKey);
-                    Interlocked.Exchange(ref s_lastSeenKeyPair, cachedKeyPair);
-                }
-
-                return new StrongNameKeys(keyPair, publicKey, null, keyFilePath);
+                return CreateHelper(fileContent, keyFilePath);
             }
             catch (IOException ex)
             {
                 return new StrongNameKeys(GetKeyFileError(messageProvider, keyFilePath, ex.Message));
             }
+        }
+
+        //Last seen key file blob and corresponding public key.
+        //In IDE typing scenarios we often need to infer public key from the same
+        //key file blob repeatedly and it is relatively expensive.
+        //So we will store last seen blob and corresponding key here.
+        private static Tuple<ImmutableArray<byte>, ImmutableArray<byte>> s_lastSeenKeyPair;
+
+        // Note: Errors are reported by throwing an IOException
+        internal static StrongNameKeys CreateHelper(ImmutableArray<byte> keyFileContent, string keyFilePath)
+        {
+            ImmutableArray<byte> keyPair;
+            ImmutableArray<byte> publicKey;
+
+            // Check the key pair cache
+            var cachedKeyPair = s_lastSeenKeyPair;
+            if (cachedKeyPair != null && keyFileContent == cachedKeyPair.Item1)
+            {
+                keyPair = cachedKeyPair.Item1;
+                publicKey = cachedKeyPair.Item2;
+            }
+            else
+            {
+                if (MetadataHelpers.IsValidPublicKey(keyFileContent))
+                {
+                    publicKey = keyFileContent;
+                    keyPair = default(ImmutableArray<byte>);
+                }
+                else if (CryptoBlobParser.TryGetPublicKey(keyFileContent, out publicKey))
+                {
+                    keyPair = keyFileContent;
+                }
+                else
+                {
+                    throw new IOException(CodeAnalysisResources.InvalidPublicKey);
+                }
+
+                // Cache the key pair
+                cachedKeyPair = new Tuple<ImmutableArray<byte>, ImmutableArray<byte>>(
+                    keyPair, publicKey);
+                Interlocked.Exchange(ref s_lastSeenKeyPair, cachedKeyPair);
+            }
+
+            return new StrongNameKeys(keyPair, publicKey, null, keyFilePath);
         }
 
         internal static StrongNameKeys Create(StrongNameProvider providerOpt, string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider)
