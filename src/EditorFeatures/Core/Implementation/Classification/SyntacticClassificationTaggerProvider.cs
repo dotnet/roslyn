@@ -3,13 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -26,10 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal partial class SyntacticClassificationTaggerProvider : ITaggerProvider
     {
         private readonly IForegroundNotificationService _notificationService;
-        private readonly IViewSupportsClassificationService _viewSupportsClassificationServiceOpt;
-        private readonly ITextBufferAssociatedViewService _associatedViewService;
-        private readonly IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> _editorClassificationLanguageServices;
-        private readonly IEnumerable<Lazy<ILanguageService, ContentTypeLanguageMetadata>> _contentTypesToLanguageNames;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly ClassificationTypeMap _typeMap;
 
@@ -39,18 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public SyntacticClassificationTaggerProvider(
             IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
-            [Import(AllowDefault = true)] IViewSupportsClassificationService viewSupportsClassificationServiceOpt,
-            ITextBufferAssociatedViewService associatedViewService,
-            [ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> allLanguageServices,
-            [ImportMany] IEnumerable<Lazy<ILanguageService, ContentTypeLanguageMetadata>> contentTypes,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _notificationService = notificationService;
             _typeMap = typeMap;
-            _viewSupportsClassificationServiceOpt = viewSupportsClassificationServiceOpt;
-            _associatedViewService = associatedViewService;
-            _editorClassificationLanguageServices = allLanguageServices.Where(s => s.Metadata.ServiceType == typeof(IEditorClassificationService).AssemblyQualifiedName);
-            _contentTypesToLanguageNames = contentTypes.Where(x => x.Metadata.DefaultContentType != null);
             _asyncListeners = asyncListeners;
         }
 
@@ -65,26 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (!_tagComputers.TryGetValue(buffer, out tagComputer))
             {
                 var asyncListener = new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.Classification);
-
-                var languageName = _contentTypesToLanguageNames.FirstOrDefault(x => buffer.ContentType.MatchesAny(x.Metadata.DefaultContentType))?.Metadata.Language;
-                var editorClassificationService = _editorClassificationLanguageServices.FirstOrDefault(x => x.Metadata.Language == languageName).Value as IEditorClassificationService;
-
-                if (editorClassificationService == null)
-                {
-                    return null;
-                }
-
-                tagComputer = new TagComputer(
-                    buffer,
-                    _notificationService,
-                    asyncListener,
-                    _typeMap,
-                    this,
-                    _viewSupportsClassificationServiceOpt,
-                    _associatedViewService, 
-                    editorClassificationService,
-                    languageName);
-
+                tagComputer = new TagComputer(buffer, _notificationService, asyncListener, _typeMap, this);
                 _tagComputers.Add(buffer, tagComputer);
             }
 

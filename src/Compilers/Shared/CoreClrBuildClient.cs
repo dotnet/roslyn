@@ -25,9 +25,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
         {
-            // BTODO: Should be using BuildClient.GetCommandLineArgs(arguments) here.  But the native invoke 
+            // Should be using BuildClient.GetCommandLineArgs(arguments) here.  But the native invoke 
             // ends up giving us both CoreRun and the exe file.  Need to find a good way to remove the host 
             // as well as the EXE argument. 
+            // https://github.com/dotnet/roslyn/issues/6677
             var client = new CoreClrBuildClient(language, compileFunc);
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();

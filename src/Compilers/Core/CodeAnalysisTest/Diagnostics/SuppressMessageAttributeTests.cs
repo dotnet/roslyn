@@ -466,6 +466,30 @@ class C
         }
 
         [Fact]
+        [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
+        public void SuppressSyntaxDiagnosticsOnEnumFieldsCSharp()
+        {
+            VerifyCSharp(@"
+// before module attributes
+[module: System.Diagnostics.CodeAnalysis.SuppressMessage(""Test"", ""Comment"", Scope=""Member"" Target=""E.Field1"")]
+// before enum
+public enum E
+{
+    // before Field1 declaration
+    Field1, // after Field1 declaration
+    Field2 // after Field2 declaration
+}
+// after enum
+",
+                new[] { new WarningOnCommentAnalyzer() },
+                Diagnostic("Comment", "// before module attributes"),
+                Diagnostic("Comment", "// before enum"),
+                Diagnostic("Comment", "// after Field1 declaration"),
+                Diagnostic("Comment", "// after Field2 declaration"),
+                Diagnostic("Comment", "// after enum"));
+        }
+
+        [Fact]
         public void SuppressSyntaxDiagnosticsOnFieldsBasic()
         {
             VerifyTokenDiagnosticsBasic(@"

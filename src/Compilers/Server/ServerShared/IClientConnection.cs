@@ -20,26 +20,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// A value which can be used to identify this connection for logging purposes only.  It has 
         /// no guarantee of uniqueness.  
         /// </summary>
-        string LoggingIdentifier
-        {
-            get;
-        }
+        string LoggingIdentifier { get; }
 
         /// <summary>
-        /// Read the <see cref="BuildRequest"/> object from the client connection.
+        /// Server the connection and return the result.
         /// </summary>
-        Task<BuildRequest> ReadBuildRequest(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Write the <see cref="BuildRequest"/> object to the client connection.
-        /// </summary>
-        Task WriteBuildResponse(BuildResponse response, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Create a <see cref="Task"/> object which will complete if the client connection is broken
-        /// by the client.
-        /// </summary>
-        Task CreateMonitorDisconnectTask(CancellationToken cancellationToken);
+        /// <param name="cancellationToken"></param>
+        Task<ConnectionData> HandleConnection(CancellationToken cancellationToken);
 
         /// <summary>
         /// Close the underlying client connection.
