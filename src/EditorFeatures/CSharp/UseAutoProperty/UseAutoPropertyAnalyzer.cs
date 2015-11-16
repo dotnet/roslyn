@@ -12,9 +12,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
-    // https://github.com/dotnet/roslyn/issues/5408
-    //[Export]
-    //[DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [Export]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class UseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
