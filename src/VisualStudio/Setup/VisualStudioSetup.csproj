@@ -20,9 +20,7 @@
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OfficialBuild)' == 'true'">
-    <DefineConstants>$(DefineConstants);OFFICIAL_BUILD</DefineConstants>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -191,7 +189,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyRedirects.cs" Condition="('$(AssemblyVersion)' == '42.42.42.42') or ('$(OfficialBuild)' == 'true')" />
+    <Compile Include="AssemblyRedirects.cs" />
     <Compile Include="ProvideRoslynBindingRedirection.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
