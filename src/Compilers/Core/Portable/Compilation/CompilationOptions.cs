@@ -49,8 +49,9 @@ namespace Microsoft.CodeAnalysis
         /// Specifies public key used to generate strong name for the compilation assembly, or empty if not specified.
         /// </summary>
         /// <remarks>
-        /// If specified the values of <see cref="CryptoKeyFile"/> and <see cref="CryptoKeyContainer"/> must be null.
-        /// If <see cref="PublicSign"/> is true the assembly is marked as signed but not actually signed (aka "OSS signing").
+        /// If specified the values of <see cref="CryptoKeyFile"/> and <see cref="CryptoKeyContainer"/>
+        /// must be null. If <see cref="PublicSign"/> is true the assembly is marked as fully signed
+        /// but only signed with the public key (aka "OSS signing").
         /// </remarks>
         public ImmutableArray<byte> CryptoPublicKey { get; protected set; }
 
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis
         /// Mark the compilation assembly as fully signed, but only sign with the public key.
         /// </summary>
         /// <remarks>
-        /// If true, the assembly is marked as signed, but is not actually signed.
+        /// If true, the assembly is marked as signed, but is only signed with the public key.
         /// </remarks>
         public bool PublicSign { get; protected set; }
 
