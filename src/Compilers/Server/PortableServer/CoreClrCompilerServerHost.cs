@@ -15,17 +15,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class CoreClrCompilerServerHost : CompilerServerHost
     {
-        private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _assemblyReferenceProvider = (path, properties) => new CachingMetadataReference(path, properties);
-        private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader = CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault();
+        public override IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
 
-        public override IAnalyzerAssemblyLoader AnalyzerAssemblyLoader => _analyzerAssemblyLoader;
-
-        public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => _assemblyReferenceProvider;
+        public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
 
         internal CoreClrCompilerServerHost(string clientDirectory)
             :base(clientDirectory : clientDirectory, sdkDirectory: null)
         {
-
+            AssemblyReferenceProvider = (path, properties) => new CachingMetadataReference(path, properties);
+            AnalyzerAssemblyLoader = CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault();
         }
 
         public override bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)

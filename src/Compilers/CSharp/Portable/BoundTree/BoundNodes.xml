@@ -43,7 +43,7 @@
     <!-- Expression representing the value. -->
     <Field Name="Value" Type="BoundExpression"/>
   </Node>
-    
+
   <Node Name="BoundGlobalStatementInitializer" Base="BoundInitializer">
     <Field Name="Statement" Type="BoundStatement"/>
   </Node>

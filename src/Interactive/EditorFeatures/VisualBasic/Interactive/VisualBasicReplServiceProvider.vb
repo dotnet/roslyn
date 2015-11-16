@@ -3,8 +3,8 @@
 Imports Microsoft.CodeAnalysis.Interactive
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
-Imports Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
-Imports Microsoft.CodeAnalysis.Scripting.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Scripting
+Imports Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
