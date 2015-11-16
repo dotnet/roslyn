@@ -2162,24 +2162,6 @@ FullWidthRepeat2:
             Else
                 Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidDate)
             End If
-
-            'Return BadDate(precedingTrivia, Here)
-            ''baddate:
-            ''            ' // If we can find a closing #, then assume it's a malformed date,
-            ''            ' // otherwise, it's not a date
-
-            ''            While Peep(Here, ch) AndAlso Not (IsHash(ch) OrElse IsNewLine(ch))
-            ''                Here += 1
-            ''            End While
-
-            ''            If Not Peep(Here, ch) OrElse IsNewLine(ch) Then
-            ''                ' // No closing #
-            ''                Return Nothing
-            ''            Else
-            ''                Debug.Assert(IsHash(ch))
-            ''                Here += 1  ' consume trailing #
-            ''                Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidDate)
-            ''            End If
         End Function
 
         Private Function BadDate(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), Here As Integer) As SyntaxToken

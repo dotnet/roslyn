@@ -22,17 +22,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim len = 0
             Do
-                If c = " "c OrElse c = CHARACTER_TABULATION Then
-                    len += 1
-                ElseIf c = CARRIAGE_RETURN OrElse c = LINE_FEED Then
-                    If len > 0 Then
-                        builder.Add(MakeWhiteSpaceTrivia(GetText(len)))
-                        len = 0
-                    End If
-                    builder.Add(ScanNewlineAsTrivia(c))
-                Else
-                    Exit Do
-                End If
+                Select Case c
+                    Case " "c, CHARACTER_TABULATION
+                        len += 1
+                    Case CARRIAGE_RETURN, LINE_FEED
+                        If len > 0 Then
+
+                            builder.Add(MakeWhiteSpaceTrivia(GetText(len)))
+                            len = 0
+                        End If
+                        builder.Add(ScanNewlineAsTrivia(c))
+                    Case Else
+                        Exit Do
+                End Select
+                'If c = " "c OrElse c = CHARACTER_TABULATION Then
+                '    len += 1
+                'ElseIf c = CARRIAGE_RETURN OrElse c = LINE_FEED Then
+                '    If len > 0 Then
+                '        builder.Add(MakeWhiteSpaceTrivia(GetText(len)))
+                '        len = 0
+                '    End If
+                '    builder.Add(ScanNewlineAsTrivia(c))
+                'Else
+                '    Exit Do
+                'End If
 
                 If Not Peep(len, c) Then
                     Exit Do
