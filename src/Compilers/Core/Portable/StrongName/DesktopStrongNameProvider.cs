@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -187,21 +188,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                try
-                {
-                    string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath);
-                    if (resolvedKeyFile == null)
-                    {
-                        throw new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
-                    }
-
-                    Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                    ReadKeysFromPath(resolvedKeyFile, out keyPair, out publicKey);
-                }
-                catch (IOException ex)
-                {
-                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
-                }
+                return StrongNameKeys.Create(keyFilePath, messageProvider);
             }
             else if (!string.IsNullOrEmpty(keyContainerName))
             {
@@ -224,29 +211,6 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 publicKey = GetPublicKey(keyContainer);
-            }
-            catch (Exception ex)
-            {
-                throw new IOException(ex.Message);
-            }
-        }
-
-        private void ReadKeysFromPath(string fullPath, out ImmutableArray<byte> keyPair, out ImmutableArray<byte> publicKey)
-        {
-            ImmutableArray<byte> fileContent;
-            try
-            {
-                fileContent = ImmutableArray.Create(ReadAllBytes(fullPath));
-                if (MetadataHelpers.IsValidPublicKey(fileContent))
-                {
-                    publicKey = ImmutableArray.CreateRange(fileContent);
-                    keyPair = default(ImmutableArray<byte>);
-                }
-                else
-                {
-                    publicKey = GetPublicKey(fileContent);
-                    keyPair = ImmutableArray.CreateRange(fileContent);
-                }
             }
             catch (Exception ex)
             {
@@ -304,54 +268,6 @@ namespace Microsoft.CodeAnalysis
             strongName.StrongNameFreeBuffer(keyBlob);
 
             return pubKey.AsImmutableOrNull();
-        }
-
-
-        //Last seen key file blob and corresponding public key.
-        //In IDE typing scenarios we often need to infer public key from the same 
-        //key file blob repeatedly and it is relatively expensive.
-        //So we will store last seen blob and corresponding key here.
-        private static Tuple<ImmutableArray<byte>, ImmutableArray<byte>> s_lastSeenKeyPair;
-
-        // internal for testing
-        /// <exception cref="IOException"/>
-        internal ImmutableArray<byte> GetPublicKey(ImmutableArray<byte> keyFileContents)
-        {
-            try
-            {
-                var lastSeen = s_lastSeenKeyPair;
-                if (lastSeen != null && ByteSequenceComparer.Equals(lastSeen.Item1, keyFileContents))
-                {
-                    return lastSeen.Item2;
-                }
-
-                IClrStrongName strongName = GetStrongNameInterface();
-
-                IntPtr keyBlob;
-                int keyBlobByteCount;
-
-                //EDMAURER use marshal to be safe?
-                unsafe
-                {
-                    fixed (byte* p = keyFileContents.DangerousGetUnderlyingArray())
-                    {
-                        strongName.StrongNameGetPublicKey(null, (IntPtr)p, keyFileContents.Length, out keyBlob, out keyBlobByteCount);
-                    }
-                }
-
-                byte[] pubKey = new byte[keyBlobByteCount];
-                Marshal.Copy(keyBlob, pubKey, 0, keyBlobByteCount);
-                strongName.StrongNameFreeBuffer(keyBlob);
-
-                var result = pubKey.AsImmutableOrNull();
-                s_lastSeenKeyPair = Tuple.Create(keyFileContents, result);
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                throw new IOException(ex.Message);
-            }
         }
 
         /// <exception cref="IOException"/>

@@ -129,14 +129,6 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
-        public override int ERR_InvalidPublicKeyFile
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         public override int ERR_PublicKeyContainerFailure
         {
             get { throw new NotImplementedException(); }

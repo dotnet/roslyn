@@ -429,15 +429,27 @@ public class C {}
                     .WithCryptoKeyFile(snk.Path)
                     .WithPublicSign(true));
 
-            comp.VerifyDiagnostics(
-    // error CS8103: Expected only a public key in file 'snkFile' -- file contains either a keypair or the public key is invalid.
-    Diagnostic(ErrorCode.ERR_InvalidPublicKeyFile).WithArguments(snk.Path).WithLocation(1, 1),
-    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+            comp.VerifyDiagnostics();
 
             Assert.True(comp.Options.PublicSign);
             Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
             Assert.NotNull(comp.Options.CryptoKeyFile);
+
+            var outStrm = new MemoryStream();
+            var emitResult = comp.Emit(outStrm);
+            Assert.True(emitResult.Success);
+
+            outStrm.Position = 0;
+
+            // Verify that the sign bit is set
+            using (var reader = new PEReader(outStrm))
+            {
+                Assert.True(reader.HasMetadata);
+
+                var flags = reader.PEHeaders.CorHeader.Flags;
+                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
+            }
         }
 
         [Fact]

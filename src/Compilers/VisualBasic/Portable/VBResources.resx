@@ -5338,7 +5338,4 @@
   <data name="ERR_InvalidPathMap" xml:space="preserve">
     <value>The pathmap option was incorrectly formatted.</value>
   </data>
-  <data name="ERR_InvalidPublicKeyFile" xml:space="preserve">
-    <value>Expected only a public key in file '{0}' -- file contains either a keypair or the public key is invalid.</value>
-  </data>
 </root>

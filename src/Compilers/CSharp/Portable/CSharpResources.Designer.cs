@@ -5273,15 +5273,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected only a public key in file &apos;{0}&apos; -- file contains either a keypair or the public key is invalid..
-        /// </summary>
-        internal static string ERR_InvalidPublicKeyFile {
-            get {
-                return ResourceManager.GetString("ERR_InvalidPublicKeyFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Type of conditional expression cannot be determined because there is no implicit conversion between &apos;{0}&apos; and &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_InvalidQM {

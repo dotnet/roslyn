@@ -6117,15 +6117,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Expected only a public key in file &apos;{0}&apos; -- file contains either a keypair or the public key is invalid..
-        '''</summary>
-        Friend ReadOnly Property ERR_InvalidPublicKeyFile() As String
-            Get
-                Return ResourceManager.GetString("ERR_InvalidPublicKeyFile", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Invalid signature public key specified in AssemblySignatureKeyAttribute..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidSignaturePublicKey() As String

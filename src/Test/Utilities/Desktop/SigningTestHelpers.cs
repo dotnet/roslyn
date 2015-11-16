@@ -22,7 +22,7 @@ namespace Roslyn.Test.Utilities
         private static bool s_keyInstalled;
         internal const string TestContainerName = "RoslynTestContainer";
 
-        internal static readonly ImmutableArray<byte> PublicKey = new DesktopStrongNameProvider().GetPublicKey(ImmutableArray.Create(TestResources.General.snKey));
+        internal static readonly ImmutableArray<byte> PublicKey = ImmutableArray.Create(TestResources.General.snPublicKey);
 
         // Modifies machine wide state.
         internal unsafe static void InstallKey()
