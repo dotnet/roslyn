@@ -394,6 +394,18 @@ pi = i + j + k + l;
             Assert.Equal(16, script.ContinueWith<int>("pi").EvaluateAsync().Result);
         }
 
+        [WorkItem(100639)]
+        [Fact]
+        public void ExternDestructor()
+        {
+            var script = CSharpScript.Create(
+@"class C
+{
+    extern ~C();
+}");
+            Assert.Null(script.EvaluateAsync().Result);
+        }
+
         #endregion
 
         #region Chaining
