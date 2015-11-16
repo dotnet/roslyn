@@ -3616,8 +3616,8 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { "/publicsign:-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-    // error CS2007: Unrecognized option: '/publicsign:-'
-    Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/publicsign:-").WithLocation(1, 1));
+                // error CS2007: Unrecognized option: '/publicsign:-'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/publicsign:-").WithLocation(1, 1));
 
             Assert.False(parsedArgs.CompilationOptions.PublicSign);
         }
