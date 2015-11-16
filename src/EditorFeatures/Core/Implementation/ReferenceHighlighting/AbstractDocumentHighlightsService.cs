@@ -1,11 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -247,23 +249,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
         private async Task<ValueTuple<Document, TextSpan>?> GetLocationSpanAsync(Solution solution, Location location, CancellationToken cancellationToken)
         {
-            if (location != null && location.IsInSource)
+            try
             {
-                var tree = location.SourceTree;
-
-                var document = solution.GetDocument(tree);
-                var syntaxFacts = document?.Project?.LanguageServices?.GetService<ISyntaxFactsService>();
-
-                if (syntaxFacts != null)
+                if (location != null && location.IsInSource)
                 {
-                    // Specify findInsideTrivia: true to ensure that we search within XML doc comments.
-                    var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    var token = root.FindToken(location.SourceSpan.Start, findInsideTrivia: true);
+                    var tree = location.SourceTree;
 
-                    return syntaxFacts.IsGenericName(token.Parent) || syntaxFacts.IsIndexerMemberCRef(token.Parent)
-                        ? ValueTuple.Create(document, token.Span)
-                        : ValueTuple.Create(document, location.SourceSpan);
+                    var document = solution.GetDocument(tree);
+                    var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+
+                    if (syntaxFacts != null)
+                    {
+                        // Specify findInsideTrivia: true to ensure that we search within XML doc comments.
+                        var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                        var token = root.FindToken(location.SourceSpan.Start, findInsideTrivia: true);
+
+                        return syntaxFacts.IsGenericName(token.Parent) || syntaxFacts.IsIndexerMemberCRef(token.Parent)
+                            ? ValueTuple.Create(document, token.Span)
+                            : ValueTuple.Create(document, location.SourceSpan);
+                    }
                 }
+            }
+            catch (NullReferenceException e) when (FatalError.ReportWithoutCrash(e))
+            {
+                // We currently are seeing a strange null references crash in this code.  We have
+                // a strong belief that this is recoverable, but we'd like to know why it is 
+                // happening.  This exception filter allows us to report the issue and continue
+                // without damaging the user experience.  Once we get more crash reports, we
+                // can figure out the root cause and address appropriately.  This is preferable
+                // to just using conditionl access operators to be resilient (as we won't actually
+                // know why this is happening).
             }
 
             return null;
