@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lazySemanticModel = body == null ? null : new Lazy<SemanticModel>(() =>
                     {
                         var syntax = body.Syntax;
-                        var semanticModel = (CSharpSemanticModel)_compilation.GetSemanticModel(syntax.SyntaxTree);
+                        var semanticModel = (CSharpSemanticModel)AnalyzerDriver.GetOrCreateCachedSemanticModel(syntax.SyntaxTree, _compilation, _cancellationToken);
                         var memberModel = semanticModel.GetMemberModel(syntax);
                         if (memberModel != null)
                         {

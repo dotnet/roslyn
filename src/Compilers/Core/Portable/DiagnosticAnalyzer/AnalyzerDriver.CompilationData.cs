@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-
                 model = compilation.GetSemanticModel(tree);
 
                 // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.

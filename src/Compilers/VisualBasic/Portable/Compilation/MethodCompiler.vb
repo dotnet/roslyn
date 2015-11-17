@@ -1186,7 +1186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim lazySemanticModel = New Lazy(Of SemanticModel)(
                             Function()
                                 Dim syntax = block.Syntax
-                                Dim semanticModel = CType(compilation.GetSemanticModel(syntax.SyntaxTree), SyntaxTreeSemanticModel)
+                                Dim semanticModel = DirectCast(AnalyzerDriver.GetOrCreateCachedSemanticModel(syntax.SyntaxTree, compilation, _cancellationToken), SyntaxTreeSemanticModel)
                                 Dim memberModel = CType(semanticModel.GetMemberSemanticModel(syntax), MethodBodySemanticModel)
                                 If memberModel IsNot Nothing Then
                                     memberModel.CacheBoundNodes(block, syntax)

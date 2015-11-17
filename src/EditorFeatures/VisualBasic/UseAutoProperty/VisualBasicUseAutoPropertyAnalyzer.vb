@@ -9,9 +9,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
     ' https://github.com/dotnet/roslyn/issues/5408
-    '<Export>
-    '<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class UseAutoPropertyAnalyzer
+    <Export>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+    Friend Class VisualBasicUseAutoPropertyAnalyzer
         Inherits AbstractUseAutoPropertyAnalyzer(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ExpressionSyntax)
 
         Private ReadOnly semanticFacts As New VisualBasicSemanticFactsService()
@@ -23,12 +23,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
         Protected Overrides Function SupportsPropertyInitializer(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic10
         End Function
-
-        Protected Overrides Sub RegisterIneligibleFieldsAction(context As CompilationStartAnalysisContext, ineligibleFields As ConcurrentBag(Of IFieldSymbol))
-            ' There are no syntactic constructs that make a field ineligible to be replaced with 
-            ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
-            ' doesn't apply to VB.
-        End Sub
 
         Protected Overrides Function GetFieldInitializer(variable As ModifiedIdentifierSyntax, cancellationToken As CancellationToken) As ExpressionSyntax
             Dim declarator = TryCast(variable.Parent, VariableDeclaratorSyntax)

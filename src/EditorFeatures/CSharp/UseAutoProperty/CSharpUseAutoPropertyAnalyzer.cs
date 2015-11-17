@@ -13,9 +13,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
     // https://github.com/dotnet/roslyn/issues/5408
-    //[Export]
-    //[DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class UseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
+    [Export]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
         {
@@ -27,42 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
         }
 
-        protected override void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields)
-        {
-            context.RegisterSyntaxNodeAction(snac => AnalyzeArgument(ineligibleFields, snac), SyntaxKind.Argument);
-        }
-
         protected override ExpressionSyntax GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
         {
             return variable.Initializer?.Value;
-        }
-
-        private void AnalyzeArgument(ConcurrentBag<IFieldSymbol> ineligibleFields, SyntaxNodeAnalysisContext context)
-        {
-            // An argument will disqualify a field if that field is used in a ref/out position.  
-            // We can't change such field references to be property references in C#.
-            var argument = (ArgumentSyntax)context.Node;
-            if (argument.RefOrOutKeyword.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
-
-            var cancellationToken = context.CancellationToken;
-            var symbolInfo = context.SemanticModel.GetSymbolInfo(argument.Expression, cancellationToken);
-            AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
-            foreach (var symbol in symbolInfo.CandidateSymbols)
-            {
-                AddIneligibleField(symbol, ineligibleFields);
-            }
-        }
-
-        private static void AddIneligibleField(ISymbol symbol, ConcurrentBag<IFieldSymbol> ineligibleFields)
-        {
-            var field = symbol as IFieldSymbol;
-            if (field != null)
-            {
-                ineligibleFields.Add(field);
-            }
         }
 
         private bool CheckExpressionSyntactically(ExpressionSyntax expression)
