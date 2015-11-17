@@ -865,6 +865,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return aliasSymbol.Target as ITypeSymbol;
             }
 
+            var methodSymbol = symbol as IMethodSymbol;
+            if (methodSymbol != null)
+            {
+                return methodSymbol.ReturnType as ITypeSymbol;
+            }
+
             return symbol as ITypeSymbol;
         }
 
