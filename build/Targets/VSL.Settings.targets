@@ -138,6 +138,11 @@
     <HighEntropyVA>true</HighEntropyVA>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Host processes are only really useful for a few of our programs; most need command line arguments -->
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+
   <!--
     If TargetNetFX20 is true the project targets Framework 2.0 reference assemblies provided by Microsoft.NetFX20 nuget package.
     Use the latest Framework toolset to build, but set msbuild properties below
