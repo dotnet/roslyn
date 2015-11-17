@@ -29,4 +29,4 @@ using Roslyn.VisualStudio.Setup;
     OldVersionUpperBound = "1.0.99.0",
     NewVersion = "1.1.0.0",
     PublicKeyToken = "b03f5f7f11d50a3a",
-    GenerateCodeBase = ProvideRoslynBindingRedirectionAttribute.GenerateCodeBase)]
+    GenerateCodeBase = true)]
