@@ -138,10 +138,13 @@ compile_toolset()
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
 save_toolset()
 {
-    mkdir -p Binaries/Bootstrap/csccore
-    mkdir -p Binaries/Bootstrap/vbccore
-    cp Binaries/$BUILD_CONFIGURATION/csccore/* Binaries/Bootstrap/csccore
-    cp Binaries/$BUILD_CONFIGURATION/vbccore/* Binaries/Bootstrap/vbccore
+    local vbcTarget=Binaries/Bootstrap/vbccore
+    local cscTarget=Binaries/Bootstrap/csccore
+
+    mkdir -p $vbcTarget
+    mkdir -p $cscTarget
+    cp Binaries/$BUILD_CONFIGURATION/csccore/* $cscTarget
+    cp Binaries/$BUILD_CONFIGURATION/vbccore/* $vbcTarget
 }
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces
