@@ -7577,7 +7577,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A ref or out argument must be an assignable variable.
+        ///   Looks up a localized string similar to A ref or out value must be an assignable variable.
         /// </summary>
         internal static string ERR_RefLvalueExpected {
             get {
@@ -7622,7 +7622,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A readonly field cannot be passed ref or out (except in a constructor).
+        ///   Looks up a localized string similar to A readonly field cannot be used as a ref or out value (except in a constructor).
         /// </summary>
         internal static string ERR_RefReadonly {
             get {
@@ -7631,7 +7631,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be passed ref or out (except in a constructor).
+        ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; cannot be used as a ref or out value (except in a constructor).
         /// </summary>
         internal static string ERR_RefReadonly2 {
             get {
@@ -7640,7 +7640,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass &apos;{0}&apos; as a ref or out argument because it is read-only.
+        ///   Looks up a localized string similar to Cannot use &apos;{0}&apos; as a ref or out value because it is read-only.
         /// </summary>
         internal static string ERR_RefReadonlyLocal {
             get {
@@ -7649,7 +7649,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass fields of &apos;{0}&apos; as a ref or out argument because it is a &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot use fields of &apos;{0}&apos; as a ref or out value because it is a &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_RefReadonlyLocal2Cause {
             get {
@@ -7658,7 +7658,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass &apos;{0}&apos; as a ref or out argument because it is a &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Cannot use &apos;{0}&apos; as a ref or out value because it is a &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_RefReadonlyLocalCause {
             get {
@@ -7667,7 +7667,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A static readonly field cannot be passed ref or out (except in a static constructor).
+        ///   Looks up a localized string similar to A static readonly field cannot be used as a ref or out value (except in a static constructor).
         /// </summary>
         internal static string ERR_RefReadonlyStatic {
             get {
@@ -7676,7 +7676,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be passed ref or out (except in a static constructor).
+        ///   Looks up a localized string similar to Fields of static readonly field &apos;{0}&apos; cannot be used as a ref or out value (except in a static constructor).
         /// </summary>
         internal static string ERR_RefReadonlyStatic2 {
             get {
@@ -7721,7 +7721,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return a reference to local &apos;{0}&apos; because it is not a ref local.
+        ///   Looks up a localized string similar to Cannot return local &apos;{0}&apos; by reference because it is not a ref local.
         /// </summary>
         internal static string ERR_RefReturnLocal {
             get {
@@ -7730,7 +7730,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return a reference to a member of local &apos;{0}&apos; because it is not a ref local.
+        ///   Looks up a localized string similar to Cannot return a member of local &apos;{0}&apos; by reference because it is not a ref local.
         /// </summary>
         internal static string ERR_RefReturnLocal2 {
             get {
@@ -10665,7 +10665,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Passing &apos;{0}&apos; as ref or out or taking its address may cause a runtime exception because it is a field of a marshal-by-reference class.
+        ///   Looks up a localized string similar to Using &apos;{0}&apos; as a ref or out value or taking its address may cause a runtime exception because it is a field of a marshal-by-reference class.
         /// </summary>
         internal static string WRN_ByRefNonAgileField {
             get {
@@ -10674,7 +10674,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Passing a field of a marshal-by-reference class as ref or out or taking its address may cause a runtime exception.
+        ///   Looks up a localized string similar to Using a field of a marshal-by-reference class as a ref or out value or taking its address may cause a runtime exception.
         /// </summary>
         internal static string WRN_ByRefNonAgileField_Title {
             get {
@@ -13447,7 +13447,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A volatile field should not normally be passed using a ref or out parameter, since it will not be treated as volatile within the scope of the function. There are exceptions to this, such as when calling an interlocked API..
+        ///   Looks up a localized string similar to A volatile field should not normally be used as a ref or out value, since it will not be treated as volatile. There are exceptions to this, such as when calling an interlocked API..
         /// </summary>
         internal static string WRN_VolatileByRef_Description {
             get {
