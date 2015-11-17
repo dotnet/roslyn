@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         onCompleted(result);
                     }
-                    catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                    catch (Exception e)
                     {
                         onException(e);
                     }
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         completionRoutine();
                     }
-                    catch (Exception e) when (ExpressionEvaluatorFatalError.ReportNonFatalException(e, DkmComponentManager.ReportCurrentNonFatalException))
+                    catch (Exception e)
                     {
                         _onException(e);
                     }

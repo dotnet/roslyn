@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public DateTime? LastProcessedTime;
             public TimeSpan? KeepAlive;
             public bool HasDetectedBadConnection;
+            public bool HitKeepAliveTimeout;
 
             public void ConnectionProcessed(int count)
             {
@@ -37,6 +38,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void DetectedBadConnection()
             {
                 HasDetectedBadConnection = true;
+            }
+
+            public void KeepAliveReached()
+            {
+                HitKeepAliveTimeout = true;
             }
         }
 
@@ -185,11 +191,12 @@ class Hello
                 .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
 
-            var dispatcher = new ServerDispatcher(connectionHost.Object, new EmptyDiagnosticListener());
+            var listener = new TestableDiagnosticListener();
+            var dispatcher = new ServerDispatcher(connectionHost.Object, listener);
             var startTime = DateTime.Now;
             dispatcher.ListenAndDispatchConnections(keepAlive);
 
-            Assert.True((DateTime.Now - startTime) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         /// <summary>
@@ -209,7 +216,7 @@ class Hello
 
             Assert.Equal(1, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
-            Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         /// <summary>
@@ -235,7 +242,7 @@ class Hello
 
             Assert.Equal(count, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
-            Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         /// <summary>
@@ -282,7 +289,7 @@ class Hello
             await dispatcherTask.ConfigureAwait(true);
             Assert.Equal(totalCount, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
-            Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+            Assert.True(listener.HitKeepAliveTimeout);
         }
 
         [Fact]
@@ -319,6 +326,63 @@ class Hello
 
             Assert.True(listener.HasDetectedBadConnection);
             Assert.True(listenCancellationToken.IsCancellationRequested);
+        }
+
+        [Fact]
+        public void MutexStopsServerStarting()
+        {
+            var mutexName = Guid.NewGuid().ToString("N");
+
+            bool holdsMutex;
+            using (var mutex = new Mutex(initiallyOwned: true,
+                                         name: mutexName,
+                                         createdNew: out holdsMutex))
+            {
+                Assert.True(holdsMutex);
+                try
+                {
+                    var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
+                    var result = VBCSCompiler.Run(mutexName, host.Object, keepAlive: null);
+                    Assert.Equal(CommonCompiler.Failed, result);
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+            }
+        }
+
+        [Fact]
+        public void MutexAcquiredWhenRunningServer()
+        {
+            var mutexName = Guid.NewGuid().ToString("N");
+            var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
+            host
+                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Returns(() =>
+                {
+                    // Use a thread instead of Task to guarantee this code runs on a different
+                    // thread and we can validate the mutex state. 
+                    var source = new TaskCompletionSource<bool>();
+                    var thread = new Thread(_ => 
+                    {
+                        Mutex mutex;
+                        Assert.True(Mutex.TryOpenExisting(mutexName, out mutex));
+                        Assert.False(mutex.WaitOne(millisecondsTimeout: 0));
+                        source.SetResult(true);
+                    });
+
+                    // Synchronously wait here.  Don't returned a Task value because we need to 
+                    // ensure the above check completes before the server hits a timeout and 
+                    // releases the mutex. 
+                    thread.Start();
+                    source.Task.Wait();
+
+                    return new TaskCompletionSource<IClientConnection>().Task;
+                });
+
+            var result = VBCSCompiler.Run(mutexName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
+            Assert.Equal(CommonCompiler.Succeeded, result);
         }
     }
 }

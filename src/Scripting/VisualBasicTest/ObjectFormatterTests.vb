@@ -1,10 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 Imports ObjectFormatterFixtures
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
 
     Public Class ObjectFormatterTests
         Inherits ObjectFormatterTestBase
@@ -69,4 +70,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic.UnitTests
 
         ' TODO: port tests from C#
     End Class
+
 End Namespace

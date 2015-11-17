@@ -994,7 +994,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
@@ -1015,8 +1015,8 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />

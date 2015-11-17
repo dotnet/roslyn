@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics();
 
-            code = "#load \"a.csx\"";
             resolver = TestSourceReferenceResolver.Create(
                 KeyValuePair.Create("a.csx", "#load \"b.csx\""),
                 KeyValuePair.Create("b.csx", code));

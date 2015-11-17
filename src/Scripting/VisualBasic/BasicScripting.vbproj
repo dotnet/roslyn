@@ -8,7 +8,7 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{3E7DEA65-317B-4F43-A25D-62F18D96CFD7}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>Microsoft.CodeAnalysis.Scripting.VisualBasic</AssemblyName>
+    <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Scripting</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
@@ -54,7 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBScriptingResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.Scripting.VisualBasic</CustomToolNamespace>
+      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.Scripting</CustomToolNamespace>
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>VBScriptingResources.Designer.vb</LastGenOutput>
     </EmbeddedResource>
@@ -67,8 +67,8 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
