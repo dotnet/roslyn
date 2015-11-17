@@ -13,13 +13,13 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class CoreClrShim
     {
-        
+
         internal static class AssemblyLoadContext
         {
             internal static readonly Type Type = ReflectionUtilities.TryGetType(
                "System.Runtime.Loader.AssemblyLoadContext, System.Runtime.Loader, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
         }
-        
+
         internal static class CodePagesEncodingProvider
         {
             internal static readonly Type Type = ReflectionUtilities.TryGetType(

@@ -193,11 +193,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var dir = Temp.CreateDirectory();
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
             var analyzerFile = TestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
-            var loadDomain = AppDomain.CreateDomain("AnalyzerTestDomain", null, dir.Path, dir.Path, false);
-            var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
-            remoteTest.SetAssert(RemoteAssert.Instance);
-            remoteTest.TestSuccess(analyzerFile.Path);
-            AppDomain.Unload(loadDomain);
+            var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
+            try
+            {
+                var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
+                remoteTest.SetAssert(RemoteAssert.Instance);
+                remoteTest.TestSuccess(analyzerFile.Path);
+            }
+            finally
+            {
+                AppDomain.Unload(loadDomain);
+            }
         }
 
         [ConditionalFact(typeof(x86))]

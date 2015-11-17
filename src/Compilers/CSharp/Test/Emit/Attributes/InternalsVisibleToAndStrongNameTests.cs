@@ -398,7 +398,7 @@ public class C {}";
         }
 
         [Fact]
-        public void PublicKeyFromOptions_OssSigned()
+        public void PublicKeyFromOptions_PublicSign()
         {
             // attributes are ignored
             string source = @"
@@ -407,7 +407,7 @@ public class C {}";
 public class C {}
 ";
 
-            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey));
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithCryptoPublicKey(s_publicKey).WithPublicSign(true));
             c.VerifyDiagnostics();
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, c.Assembly.Identity.PublicKey));
 
@@ -417,6 +417,119 @@ public class C {}
             Assert.True(identity.HasPublicKey);
             AssertEx.Equal(identity.PublicKey, s_publicKey);
             Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+        }
+
+        [Fact]
+        public void SnkFile_PublicSign()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+
+            var comp = CreateCompilationWithMscorlib("public class C{}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyFile(snk.Path)
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics();
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
+            Assert.NotNull(comp.Options.CryptoKeyFile);
+
+            var outStrm = new MemoryStream();
+            var emitResult = comp.Emit(outStrm);
+            Assert.True(emitResult.Success);
+
+            outStrm.Position = 0;
+
+            // Verify that the sign bit is set
+            using (var reader = new PEReader(outStrm))
+            {
+                Assert.True(reader.HasMetadata);
+
+                var flags = reader.PEHeaders.CorHeader.Flags;
+                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
+            }
+        }
+
+        [Fact]
+        public void PublicKeyFile_PublicSign()
+        {
+            var pubKeyFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snPublicKey);
+
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyFile(pubKeyFile.Path)
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics();
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
+            Assert.NotNull(comp.Options.CryptoKeyFile);
+
+            var outStrm = new MemoryStream();
+            var emitResult = comp.Emit(outStrm);
+            Assert.True(emitResult.Success);
+
+            outStrm.Position = 0;
+
+            // Verify that the sign bit is set
+            using (var reader = new PEReader(outStrm))
+            {
+                Assert.True(reader.HasMetadata);
+
+                var flags = reader.PEHeaders.CorHeader.Flags;
+                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
+            }
+        }
+
+        [Fact]
+        public void KeyContainerNoSNProvider_PublicSign()
+        {
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyContainer("roslynTestContainer")
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics(
+    // error CS7028: Error signing output with public key from container 'roslynTestContainer' -- Assembly signing not supported.
+    Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("roslynTestContainer", "Assembly signing not supported.").WithLocation(1, 1),
+    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void KeyContainerDesktopProvider_PublicSign()
+        {
+            var comp = CreateCompilationWithMscorlib("public class C {}",
+                options: TestOptions.ReleaseDll
+                    .WithCryptoKeyContainer("roslynTestContainer")
+                    .WithStrongNameProvider(s_defaultProvider)
+                    .WithPublicSign(true));
+
+            comp.VerifyDiagnostics();
+
+            Assert.True(comp.Options.PublicSign);
+            Assert.Null(comp.Options.DelaySign);
+            Assert.False(comp.IsRealSigned);
+            Assert.NotNull(comp.Options.CryptoKeyContainer);
+
+            var outStrm = new MemoryStream();
+            var emitResult = comp.Emit(outStrm);
+            Assert.True(emitResult.Success);
+
+            outStrm.Position = 0;
+
+            // Verify that the sign bit is set
+            using (var reader = new PEReader(outStrm))
+            {
+                Assert.True(reader.HasMetadata);
+
+                var flags = reader.PEHeaders.CorHeader.Flags;
+                Assert.True(flags.HasFlag(CorFlags.StrongNameSigned));
+            }
         }
 
         [Fact]

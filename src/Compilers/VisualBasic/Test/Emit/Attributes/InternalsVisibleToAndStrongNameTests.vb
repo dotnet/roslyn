@@ -392,7 +392,7 @@ End Class
         options:=TestOptions.ReleaseDll.WithCryptoKeyFile(tmp.Path).WithStrongNameProvider(New DesktopStrongNameProvider()))
 
         other.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(tmp.Path, New ArgumentException().Message))
+            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(tmp.Path, CodeAnalysisResources.InvalidPublicKey))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub

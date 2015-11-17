@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// result.
         /// </summary>
         void DetectedBadConnection();
+
+        /// <summary>
+        /// Called when the server is shutting down because the keep alive timeout was reached.
+        /// </summary>
+        void KeepAliveReached();
     }
 
     internal sealed class EmptyDiagnosticListener : IDiagnosticListener
@@ -39,6 +44,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         public void DetectedBadConnection()
+        {
+        }
+
+        public void KeepAliveReached()
         {
         }
     }

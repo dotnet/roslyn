@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Verify(dynamicView,
                 EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             Verify(GetChildren(dynamicView),
-                EvalFailedResult(Resources.ErrorName, "No further information on this object could be discovered"));
+                EvalFailedResult(Resources.ErrorName, DynamicDebugViewEmptyMessage));
         }
 
         [Fact]
