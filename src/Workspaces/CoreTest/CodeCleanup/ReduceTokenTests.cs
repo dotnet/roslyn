@@ -1838,11 +1838,13 @@ Module Program
         Const i5 As Integer = -0060
         Const i6 As Integer = 000
         Const i7 As UInteger = 0060UI
+        Const i8 As Integer = &H0000FFFFI
         Const l0 As Long = 0060L
         Const l1 As Long = 0060&
         Const l2 As ULong = 0060UL
         Const s0 As Short = 0060S
         Const s1 As UShort = 0060US
+        Const s2 As Short = &H0000FFFFS
     End Sub
 End Module
 |]";
@@ -1858,11 +1860,13 @@ Module Program
         Const i5 As Integer = -60
         Const i6 As Integer = 0
         Const i7 As UInteger = 60UI
+        Const i8 As Integer = &HFFFFI
         Const l0 As Long = 60L
         Const l1 As Long = 60&
         Const l2 As ULong = 60UL
         Const s0 As Short = 60S
         Const s1 As UShort = 60US
+        Const s2 As Short = &HFFFFS
     End Sub
 End Module
 ";
@@ -1876,12 +1880,18 @@ End Module
             var code = @"[|
 Module Program
     Sub Main(args As String())
-        Const s0 As Short = &HFFFF
-        Const s1 As Short = &O177777
-        Const i0 As Integer = &O37777777777
-        Const i1 As Integer = &HFFFFFFFF
-        Const l0 As Long = &HFFFFFFFFFFFFFFFF
-        Const l1 As Long = &O1777777777777777777777
+        Const s0 As Short = &HFFFFS
+        Const s1 As Short = &O177777S
+        Const s2 As Short = &H8000S
+        Const s3 As Short = &O100000S
+        Const i0 As Integer = &O37777777777I
+        Const i1 As Integer = &HFFFFFFFFI
+        Const i2 As Integer = &H80000000I
+        Const i3 As Integer = &O20000000000I
+        Const l0 As Long = &HFFFFFFFFFFFFFFFFL
+        Const l1 As Long = &O1777777777777777777777L
+        Const l2 As Long = &H8000000000000000L
+        Const l2 As Long = &O1000000000000000000000L
     End Sub
 End Module
 |]";
@@ -1889,12 +1899,18 @@ End Module
             var expected = @"
 Module Program
     Sub Main(args As String())
-        Const s0 As Short = &HFFFF
-        Const s1 As Short = &O177777
-        Const i0 As Integer = &O37777777777
-        Const i1 As Integer = &HFFFFFFFF
-        Const l0 As Long = &HFFFFFFFFFFFFFFFF
-        Const l1 As Long = &O1777777777777777777777
+        Const s0 As Short = &HFFFFS
+        Const s1 As Short = &O177777S
+        Const s2 As Short = &H8000S
+        Const s3 As Short = &O100000S
+        Const i0 As Integer = &O37777777777I
+        Const i1 As Integer = &HFFFFFFFFI
+        Const i2 As Integer = &H80000000I
+        Const i3 As Integer = &O20000000000I
+        Const l0 As Long = &HFFFFFFFFFFFFFFFFL
+        Const l1 As Long = &O1777777777777777777777L
+        Const l2 As Long = &H8000000000000000L
+        Const l2 As Long = &O1000000000000000000000L
     End Sub
 End Module
 ";
@@ -1910,13 +1926,10 @@ End Module
 Module Module1
     Sub Main()
         Dim sMax As Short = 0032768S
-        Dim sMin As Short = -0032769S
         Dim usMax As UShort = 00655536US
         Dim iMax As Integer = 002147483648I
-        Dim iMin As Integer = -002147483649I
         Dim uiMax As UInteger = 004294967296UI
         Dim lMax As Long = 009223372036854775808L
-        Dim lMin As Long = -009223372036854775809L
         Dim ulMax As ULong = 0018446744073709551616UL
         Dim z As Long = &O37777777777777777777777
         Dim x As Long = &HFFFFFFFFFFFFFFFFF
@@ -1928,13 +1941,10 @@ End Module
 Module Module1
     Sub Main()
         Dim sMax As Short = 0032768S
-        Dim sMin As Short = -0032769S
         Dim usMax As UShort = 00655536US
         Dim iMax As Integer = 002147483648I
-        Dim iMin As Integer = -002147483649I
         Dim uiMax As UInteger = 004294967296UI
         Dim lMax As Long = 009223372036854775808L
-        Dim lMin As Long = -009223372036854775809L
         Dim ulMax As ULong = 0018446744073709551616UL
         Dim z As Long = &O37777777777777777777777
         Dim x As Long = &HFFFFFFFFFFFFFFFFF

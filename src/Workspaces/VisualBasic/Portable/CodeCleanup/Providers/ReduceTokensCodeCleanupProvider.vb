@@ -91,14 +91,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                             Return newNode
                         End If
 
-                        'If we have a hex or octal based literal and it is negative we don't need to process it
-                        'as this should already be reduced as far as it can be
-                        If (base.Value = LiteralBase.Hexadecimal OrElse base.Value = LiteralBase.Octal) AndAlso IsNegative(literal.Value) Then
-                            Return newNode
-                        End If
-
                         'fetch the string representation of this value in the correct base.
-                        Dim valueText As String = GetIntegerLiteralValueString(value, base.Value) + GetTypeCharString(literal.GetTypeCharacter())
+                        Dim valueText As String = GetIntegerLiteralValueString(literal.Value, base.Value) + GetTypeCharString(literal.GetTypeCharacter())
 
                         If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
                             Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
@@ -269,14 +263,35 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return valueText
             End Function
 
-            Private Function GetIntegerLiteralValueString(value As ULong, base As LiteralBase) As String
+            Private Function GetIntegerLiteralValueString(value As Object, base As LiteralBase) As String
                 Select Case base
                     Case LiteralBase.Decimal
-                        Return value.ToString(CultureInfo.InvariantCulture)
+                        Return CType(value, ULong).ToString(CultureInfo.InvariantCulture)
                     Case LiteralBase.Hexadecimal
-                        Return $"&H{value.ToString("X")}"
+                        Dim valueString = ""
+                        If TypeOf (value) Is Short Then
+                            valueString = CType(value, Short).ToString("X")
+                        ElseIf TypeOf (value) Is Integer Then
+                            valueString = CType(value, Integer).ToString("X")
+                        ElseIf TypeOf (value) Is Long Then
+                            valueString = CType(value, Long).ToString("X")
+                        Else
+                            valueString = CType(value, ULong).ToString("X")
+                        End If
+
+                        Return "&H" & valueString
                     Case LiteralBase.Octal
-                        Return $"&O{ConvertToOctalString(value)}"
+                        Dim val1 As ULong
+                        If TypeOf (value) Is Short Then
+                            val1 = CType(value, UShort)
+                        ElseIf TypeOf (value) Is Integer Then
+                            val1 = CType(value, UInteger)
+                        ElseIf TypeOf (value) Is Long Then
+                            val1 = CType(value, ULong)
+                        Else
+                            val1 = CType(value, ULong)
+                        End If
+                        Return $"&O{ConvertToOctalString(val1)}"
                     Case Else
                         Throw ExceptionUtilities.Unreachable
                 End Select
@@ -317,16 +332,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private Function HasOverflow(diagnostics As IEnumerable(Of Diagnostic)) As Boolean
                 Return diagnostics.Any(Function(diagnostic As Diagnostic) diagnostic.Id = "BC30036")
-            End Function
-
-            Private Function IsNegative(value As Object) As Boolean
-                If TypeOf (value) Is UShort OrElse TypeOf (value) Is UInteger OrElse TypeOf (value) Is ULong Then
-                    Return False
-                End If
-
-                Dim val As Long = CType(value, Long)
-
-                Return val < 0L
             End Function
         End Class
     End Class
