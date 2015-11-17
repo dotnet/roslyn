@@ -72,6 +72,7 @@
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
+    <Compile Include="StrongName\CryptoBlobParser.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -191,7 +192,7 @@
     <Compile Include="Desktop\DesktopAssemblyIdentityComparer.Fx.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerFileReference.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerLoadFailureEventArgs.cs" />
-    <Compile Include="Desktop\DesktopStrongNameProvider.cs" />
+    <Compile Include="StrongName\DesktopStrongNameProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\IAnalyzerAssemblyLoader.cs" />
@@ -523,8 +524,8 @@
     <Compile Include="SpecialType.cs" />
     <Compile Include="SpecialTypeExtensions.cs" />
     <Compile Include="SpecialTypes.cs" />
-    <Compile Include="StrongNameKeys.cs" />
-    <Compile Include="StrongNameProvider.cs" />
+    <Compile Include="StrongName\StrongNameKeys.cs" />
+    <Compile Include="StrongName\StrongNameProvider.cs" />
     <Compile Include="SwitchConstantValueHelper.cs" />
     <Compile Include="SymbolDisplay\AbstractSymbolDisplayVisitor.cs" />
     <Compile Include="SymbolDisplay\AbstractSymbolDisplayVisitor_Minimal.cs" />
