@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.LanguageServices;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -82,6 +84,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override CompletionItemRules GetCompletionItemRules()
         {
             return ItemRules.Instance;
+        }
+
+        protected override Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        {
+            var recommender = context.GetLanguageService<IRecommendationService>();
+            var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
+
+            var inferredTypes = typeInferrer.InferTypes(context.SemanticModel, position, cancellationToken)?.ToSet();
+            if (inferredTypes == null || inferredTypes.Any())
+            {
+                return SpecializedTasks.EmptyEnumerable<ISymbol>();
+            }
+
+            var symbols = recommender.GetRecommendedSymbolsAtPosition(context.Workspace, context.SemanticModel, position, options, cancellationToken);
+            return Task.FromResult(symbols.Where(s => inferredTypes.Contains(s.GetSymbolType())));
         }
     }
 }
