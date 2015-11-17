@@ -214,18 +214,246 @@ public class Test
 }";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-    // (13,30): error CS1657: Cannot pass 'ro' as a ref or out argument because it is a 'foreach iteration variable'
+    // (13,30): error CS1657: Cannot use 'ro' as a ref or out value because it is a 'foreach iteration variable'
     //             ref char r = ref ro;
     Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "ro").WithArguments("ro", "foreach iteration variable").WithLocation(13, 30),
-    // (18,24): error CS8924: Cannot return a reference to local 'ro' because it is not a ref local
+    // (18,24): error CS8924: Cannot return local 'ro' by reference because it is not a ref local
     //             return ref ro;
     Diagnostic(ErrorCode.ERR_RefReturnLocal, "ro").WithArguments("ro").WithLocation(18, 24),
-    // (23,30): error CS1655: Cannot pass fields of 'ro' as a ref or out argument because it is a 'foreach iteration variable'
+    // (23,30): error CS1655: Cannot use fields of 'ro' as a ref or out value because it is a 'foreach iteration variable'
     //             ref char r = ref ro.x;
     Diagnostic(ErrorCode.ERR_RefReadonlyLocal2Cause, "ro.x").WithArguments("ro", "foreach iteration variable").WithLocation(23, 30),
-    // (28,24): error CS8925: Cannot return a reference to a member of local 'ro' because it is not a ref local
+    // (28,24): error CS8925: Cannot return a member of local 'ro' by reference because it is not a ref local
     //             return ref ro.x;
     Diagnostic(ErrorCode.ERR_RefReturnLocal2, "ro").WithArguments("ro").WithLocation(28, 24)
+            );
+        }
+
+        [Fact]
+        public void RefRangeVar()
+        {
+            var text = @"
+using System.Linq;
+
+public class Test
+{
+    public struct S1
+    {
+        public char x;
+    }
+
+    delegate ref char D1();
+
+    static void Test1()
+    {
+        var x = from ch in ""qqq""
+            select(D1)(() => ref ch);
+
+        var y = from s in new S1[10]
+            select(D1)(() => ref s.x);
+    }
+
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            comp.VerifyDiagnostics(
+    // (16,34): error CS8913: Cannot return the range variable 'ch' by reference
+    //             select(D1)(() => ref ch);
+    Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "ch").WithArguments("ch").WithLocation(16, 34),
+    // (19,34): error CS8913: Cannot return the range variable 's' by reference
+    //             select(D1)(() => ref s.x);
+    Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "s.x").WithArguments("s").WithLocation(19, 34)
+            );
+        }
+        
+        [Fact]
+        public void RefMethodGroup()
+        {
+            var text = @"
+
+public class Test
+{
+    public struct S1
+    {
+        public char x;
+    }
+
+    delegate ref char D1();
+
+    static ref char Test1()
+    {
+        ref char r = ref M;
+        ref char r1 = ref MR;
+
+        if (1.ToString() != null)
+        {
+            return ref M;
+        }
+        else
+        {
+            return ref MR;
+        }
+    }
+
+    static char M()
+    {
+        return default(char);
+    }
+
+    static ref char MR()
+    {
+        return ref (new char[1])[0];
+    }
+
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            comp.VerifyDiagnostics(
+    // (14,26): error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'
+    //         ref char r = ref M;
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(14, 26),
+    // (15,27): error CS1657: Cannot use 'MR' as a ref or out value because it is a 'method group'
+    //         ref char r1 = ref MR;
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "MR").WithArguments("MR", "method group").WithLocation(15, 27),
+    // (19,24): error CS8914: Cannot return 'M' by reference because it is a 'method group'
+    //             return ref M;
+    Diagnostic(ErrorCode.ERR_RefReturnReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(19, 24),
+    // (23,24): error CS8914: Cannot return 'MR' by reference because it is a 'method group'
+    //             return ref MR;
+    Diagnostic(ErrorCode.ERR_RefReturnReadonlyLocalCause, "MR").WithArguments("MR", "method group").WithLocation(23, 24)
+            );
+        }
+
+        [Fact]
+        public void RefReadonlyField()
+        {
+            var text = @"
+public class Test
+{
+    public struct S1
+    {
+        public char x;
+    }
+
+    public static readonly char s1;
+    public static readonly S1 s2;
+
+    public readonly char i1;
+    public readonly S1 i2;
+
+    public Test()
+    {
+        if (1.ToString() != null)
+        {
+            // not an error
+            ref char temp = ref i1;
+            temp.ToString();
+        }
+        else
+        {
+            // not an error
+            ref char temp = ref i2.x;
+            temp.ToString();
+        }
+
+        if (1.ToString() != null)
+        {
+            // error
+            ref char temp = ref s1;
+            temp.ToString();
+        }
+        else
+        {
+            // error
+            ref char temp = ref s2.x;
+            temp.ToString();
+        }
+
+    }
+
+    static Test()
+    {
+        if (1.ToString() != null)
+        {
+            // not an error
+            ref char temp = ref s1;
+            temp.ToString();
+        }
+        else
+        {
+            // not an error
+            ref char temp = ref s2.x;
+            temp.ToString();
+        }
+    }
+
+    ref char Test1()
+    {
+        if (1.ToString() != null)
+        {
+            ref char temp = ref i1;
+            temp.ToString();
+
+            return ref i1;
+        }
+        else
+        {
+            ref char temp = ref i2.x;
+            temp.ToString();
+
+            return ref i2.x;
+        }
+    }
+
+    ref char Test2()
+    {
+        if (1.ToString() != null)
+        {
+            ref char temp = ref s1;
+            temp.ToString();
+
+            return ref s1;
+        }
+        else
+        {
+            ref char temp = ref s2.x;
+            temp.ToString();
+
+            return ref s2.x;
+        }
+    }
+
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (33,33): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+    //             ref char temp = ref s1;
+    Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "s1").WithLocation(33, 33),
+    // (39,33): error CS1651: Fields of static readonly field 'Test.s2' cannot be used as a ref or out value (except in a static constructor)
+    //             ref char temp = ref s2.x;
+    Diagnostic(ErrorCode.ERR_RefReadonlyStatic2, "s2.x").WithArguments("Test.s2").WithLocation(39, 33),
+    // (65,33): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+    //             ref char temp = ref i1;
+    Diagnostic(ErrorCode.ERR_RefReadonly, "i1").WithLocation(65, 33),
+    // (68,24): error CS8916: A readonly field cannot be returned by reference
+    //             return ref i1;
+    Diagnostic(ErrorCode.ERR_RefReturnReadonly, "i1").WithLocation(68, 24),
+    // (72,33): error CS1649: Members of readonly field 'Test.i2' cannot be used as a ref or out value (except in a constructor)
+    //             ref char temp = ref i2.x;
+    Diagnostic(ErrorCode.ERR_RefReadonly2, "i2.x").WithArguments("Test.i2").WithLocation(72, 33),
+    // (75,24): error CS8918: Members of readonly field 'Test.i2' cannot be returned by reference
+    //             return ref i2.x;
+    Diagnostic(ErrorCode.ERR_RefReturnReadonly2, "i2.x").WithArguments("Test.i2").WithLocation(75, 24),
+    // (83,33): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+    //             ref char temp = ref s1;
+    Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "s1").WithLocation(83, 33),
+    // (86,24): error CS8917: A static readonly field cannot be returned by reference
+    //             return ref s1;
+    Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic, "s1").WithLocation(86, 24),
+    // (90,33): error CS1651: Fields of static readonly field 'Test.s2' cannot be used as a ref or out value (except in a static constructor)
+    //             ref char temp = ref s2.x;
+    Diagnostic(ErrorCode.ERR_RefReadonlyStatic2, "s2.x").WithArguments("Test.s2").WithLocation(90, 33),
+    // (93,24): error CS8919: Fields of static readonly field 'Test.s2' cannot be returned by reference
+    //             return ref s2.x;
+    Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic2, "s2.x").WithArguments("Test.s2").WithLocation(93, 24)
             );
         }
 

@@ -841,7 +841,7 @@
     <value>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</value>
   </data>
   <data name="ERR_RefReadonly" xml:space="preserve">
-    <value>A readonly field cannot be passed ref or out (except in a constructor)</value>
+    <value>A readonly field cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_PtrExpected" xml:space="preserve">
     <value>The * or -&gt; operator must be applied to a pointer</value>
@@ -850,16 +850,16 @@
     <value>A pointer must be indexed by only one value</value>
   </data>
   <data name="WRN_ByRefNonAgileField" xml:space="preserve">
-    <value>Passing '{0}' as ref or out or taking its address may cause a runtime exception because it is a field of a marshal-by-reference class</value>
+    <value>Using '{0}' as a ref or out value or taking its address may cause a runtime exception because it is a field of a marshal-by-reference class</value>
   </data>
   <data name="WRN_ByRefNonAgileField_Title" xml:space="preserve">
-    <value>Passing a field of a marshal-by-reference class as ref or out or taking its address may cause a runtime exception</value>
+    <value>Using a field of a marshal-by-reference class as a ref or out value or taking its address may cause a runtime exception</value>
   </data>
   <data name="ERR_AssgReadonlyStatic" xml:space="preserve">
     <value>A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)</value>
   </data>
   <data name="ERR_RefReadonlyStatic" xml:space="preserve">
-    <value>A static readonly field cannot be passed ref or out (except in a static constructor)</value>
+    <value>A static readonly field cannot be used as a ref or out value (except in a static constructor)</value>
   </data>
   <data name="ERR_AssgReadonlyProp" xml:space="preserve">
     <value>Property or indexer '{0}' cannot be assigned to -- it is read only</value>
@@ -1207,7 +1207,7 @@
     <value>A reference to a volatile field will not be treated as volatile</value>
   </data>
   <data name="WRN_VolatileByRef_Description" xml:space="preserve">
-    <value>A volatile field should not normally be passed using a ref or out parameter, since it will not be treated as volatile within the scope of the function. There are exceptions to this, such as when calling an interlocked API.</value>
+    <value>A volatile field should not normally be used as a ref or out value, since it will not be treated as volatile. There are exceptions to this, such as when calling an interlocked API.</value>
   </data>
   <data name="ERR_ComImportWithImpl" xml:space="preserve">
     <value>Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract</value>
@@ -2369,7 +2369,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The referenced file '{0}' is not an assembly</value>
   </data>
   <data name="ERR_RefLvalueExpected" xml:space="preserve">
-    <value>A ref or out argument must be an assignable variable</value>
+    <value>A ref or out value must be an assignable variable</value>
   </data>
   <data name="ERR_BaseInStaticMeth" xml:space="preserve">
     <value>Keyword 'base' is not available in a static method</value>
@@ -2615,7 +2615,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot assign to '{0}' because it is read-only</value>
   </data>
   <data name="ERR_RefReadonlyLocal" xml:space="preserve">
-    <value>Cannot pass '{0}' as a ref or out argument because it is read-only</value>
+    <value>Cannot use '{0}' as a ref or out value because it is read-only</value>
   </data>
   <data name="ERR_CantUseRequiredAttribute" xml:space="preserve">
     <value>The RequiredAttribute attribute is not permitted on C# types</value>
@@ -2744,25 +2744,25 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
   </data>
   <data name="ERR_RefReadonly2" xml:space="preserve">
-    <value>Members of readonly field '{0}' cannot be passed ref or out (except in a constructor)</value>
+    <value>Members of readonly field '{0}' cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_AssgReadonlyStatic2" xml:space="preserve">
     <value>Fields of static readonly field '{0}' cannot be assigned to (except in a static constructor or a variable initializer)</value>
   </data>
   <data name="ERR_RefReadonlyStatic2" xml:space="preserve">
-    <value>Fields of static readonly field '{0}' cannot be passed ref or out (except in a static constructor)</value>
+    <value>Fields of static readonly field '{0}' cannot be used as a ref or out value (except in a static constructor)</value>
   </data>
   <data name="ERR_AssgReadonlyLocal2Cause" xml:space="preserve">
     <value>Cannot modify members of '{0}' because it is a '{1}'</value>
   </data>
   <data name="ERR_RefReadonlyLocal2Cause" xml:space="preserve">
-    <value>Cannot pass fields of '{0}' as a ref or out argument because it is a '{1}'</value>
+    <value>Cannot use fields of '{0}' as a ref or out value because it is a '{1}'</value>
   </data>
   <data name="ERR_AssgReadonlyLocalCause" xml:space="preserve">
     <value>Cannot assign to '{0}' because it is a '{1}'</value>
   </data>
   <data name="ERR_RefReadonlyLocalCause" xml:space="preserve">
-    <value>Cannot pass '{0}' as a ref or out argument because it is a '{1}'</value>
+    <value>Cannot use '{0}' as a ref or out value because it is a '{1}'</value>
   </data>
   <data name="WRN_ErrorOverride" xml:space="preserve">
     <value>{0}. See also error CS{1}.</value>
@@ -4754,10 +4754,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot return or a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
-    <value>Cannot return a reference to local '{0}' because it is not a ref local</value>
+    <value>Cannot return local '{0}' by reference because it is not a ref local</value>
   </data>
   <data name="ERR_RefReturnLocal2" xml:space="preserve">
-    <value>Cannot return a reference to a member of local '{0}' because it is not a ref local</value>
+    <value>Cannot return a member of local '{0}' by reference because it is not a ref local</value>
   </data>
   <data name="ERR_RefReturnReceiver" xml:space="preserve">
     <value>Cannot return '{0}' by reference because its receiver may not be returned by reference</value>
