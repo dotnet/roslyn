@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly string _originalText;
             private readonly string _replacementText;
             private readonly OptionSet _optionSet;
-            private readonly Func<IEnumerable<ISymbol>, bool?> _hasConflictCallback;
+            private readonly RenameCallbacks _callbacks;
             private readonly CancellationToken _cancellationToken;
 
             private readonly RenameAnnotation _renamedSymbolDeclarationAnnotation;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 string originalText,
                 string replacementText,
                 OptionSet optionSet,
-                Func<IEnumerable<ISymbol>, bool?> newSymbolsAreValid,
+                RenameCallbacks callbacks,
                 CancellationToken cancellationToken)
             {
                 _renameLocationSet = renameLocationSet;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _originalText = originalText;
                 _replacementText = replacementText;
                 _optionSet = optionSet;
-                _hasConflictCallback = newSymbolsAreValid;
+                _callbacks = callbacks;
                 _cancellationToken = cancellationToken;
 
                 _renamedSymbolDeclarationAnnotation = new RenameAnnotation();
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // fixed them because of rename).  Also, don't bother checking if a custom
                         // callback was provided.  The caller might be ok with a rename that introduces
                         // errors.
-                        if (!documentIdErrorStateLookup[documentId] && _hasConflictCallback == null)
+                        if (!documentIdErrorStateLookup[documentId] && _callbacks?.HasConflict == null)
                         {
                             conflictResolution.NewSolution.GetDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", _cancellationToken, ignoreErrorCodes).Wait(_cancellationToken);
                         }
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 // the spans would have been modified and so we need to adjust the old position
                                 // to the new position for which we use the renameSpanTracker, which was tracking
                                 // & mapping the old span -> new span during rename
-                                hasConflict = _hasConflictCallback?.Invoke(newReferencedSymbols) ??
+                                hasConflict = _callbacks?.HasConflict?.Invoke(newReferencedSymbols) ??
                                     await CheckForConflictAsync(conflictResolution, renamedSymbolInNewSolution, newDocument, conflictAnnotation, newReferencedSymbols).ConfigureAwait(false);
                             }
 
@@ -766,6 +766,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             renameSpansTracker,
                             _optionSet,
                             _renameAnnotations,
+                            _callbacks,
                             _cancellationToken);
 
                         var renameRewriterLanguageService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();

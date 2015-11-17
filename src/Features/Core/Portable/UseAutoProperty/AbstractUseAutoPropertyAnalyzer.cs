@@ -28,29 +28,19 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor, FadedTokenDescriptor);
 
-        protected abstract void RegisterIneligibleFieldsAction(CompilationStartAnalysisContext context, ConcurrentBag<IFieldSymbol> ineligibleFields);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
         protected abstract TExpression GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
-        protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
-        protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract string GetGetterFieldName(IMethodSymbol getMethod, CancellationToken cancellationToken);
+        protected abstract string GetSetterFieldName(IMethodSymbol setMethod, CancellationToken cancellationToken);
         protected abstract SyntaxNode GetNodeToFade(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(csac =>
-            {
-                var analysisResults = new ConcurrentBag<AnalysisResult>();
-                var ineligibleFields = new ConcurrentBag<IFieldSymbol>();
-
-                csac.RegisterSymbolAction(sac => AnalyzeProperty(analysisResults, sac), SymbolKind.Property);
-                RegisterIneligibleFieldsAction(csac, ineligibleFields);
-
-                csac.RegisterCompilationEndAction(cac => Process(analysisResults, ineligibleFields, cac));
-            });
+            context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
         }
 
-        private void AnalyzeProperty(ConcurrentBag<AnalysisResult> analysisResults, SymbolAnalysisContext symbolContext)
+        private void AnalyzeProperty(SymbolAnalysisContext symbolContext)
         {
             var property = (IPropertySymbol)symbolContext.Symbol;
             if (property.IsIndexer)
@@ -100,8 +90,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            var semanticModel = symbolContext.Compilation.GetSemanticModel(propertyDeclaration.SyntaxTree);
-            var getterField = GetGetterField(semanticModel, property.GetMethod, cancellationToken);
+            var getterField = GetGetterField(containingType, property.GetMethod, cancellationToken);
             if (getterField == null)
             {
                 return;
@@ -110,6 +99,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // If the user made the field readonly, we only want to convert it to a property if we
             // can keep it readonly.
             if (getterField.IsReadOnly && !SupportsReadOnlyProperties(symbolContext.Compilation))
+            {
+                return;
+            }
+
+            // Don't want to remove constants.
+            if (getterField.IsConst)
+            {
+                return;
+            }
+
+            // Field and property should match in static-ness
+            if (getterField.IsStatic != property.IsStatic)
             {
                 return;
             }
@@ -126,19 +127,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            // Don't want to remove constants.
-            if (getterField.IsConst)
-            {
-                return;
-            }
-
             if (getterField.DeclaringSyntaxReferences.Length != 1)
-            {
-                return;
-            }
-
-            // Field and property should match in static-ness
-            if (getterField.IsStatic != property.IsStatic)
             {
                 return;
             }
@@ -147,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
-                var setterField =  GetSetterField(semanticModel, containingType, setMethod, cancellationToken);
+                var setterField =  GetSetterField(containingType, setMethod, cancellationToken);
                 if (setterField != getterField)
                 {
                     // If there is a getter and a setter, they both need to agree on which field they are 
@@ -182,62 +171,52 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator,
-                property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+            var result = new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator,
+                property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            ProcessResult(result, symbolContext);
         }
 
-        private IFieldSymbol GetSetterField(
-            SemanticModel semanticModel, ISymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
+        private IFieldSymbol GetSetterField(INamedTypeSymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
         {
-            return CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken));
+            cancellationToken.ThrowIfCancellationRequested();
+            return CheckFieldAccessExpression(containingType, GetSetterFieldName(setMethod, cancellationToken), cancellationToken);
         }
 
-        private IFieldSymbol GetGetterField(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
+        private IFieldSymbol GetGetterField(INamedTypeSymbol containingType, IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
-            return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken));
+            cancellationToken.ThrowIfCancellationRequested();
+            return CheckFieldAccessExpression(containingType, GetGetterFieldName(getMethod, cancellationToken), cancellationToken);
         }
 
-        private IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression)
+        private IFieldSymbol CheckFieldAccessExpression(INamedTypeSymbol containingType, string fieldName, CancellationToken cancellationToken)
         {
-            if (expression == null)
+            cancellationToken.ThrowIfCancellationRequested();
+            if (string.IsNullOrWhiteSpace(fieldName))
             {
                 return null;
             }
 
-            var symbolInfo = semanticModel.GetSymbolInfo(expression);
-            if (symbolInfo.Symbol == null || symbolInfo.Symbol.Kind != SymbolKind.Field)
+            var symbols = containingType.GetMembers(fieldName);
+            if (symbols.Length != 1)
             {
                 return null;
             }
 
-            var field = (IFieldSymbol)symbolInfo.Symbol;
-            if (field.DeclaringSyntaxReferences.Length > 1)
+            var symbol = symbols[0];
+            if (symbol?.Kind != SymbolKind.Field)
             {
                 return null;
             }
 
-            return field;
-        }
-
-        private void Process(
-            ConcurrentBag<AnalysisResult> analysisResults,
-            ConcurrentBag<IFieldSymbol> ineligibleFields,
-            CompilationAnalysisContext compilationContext)
-        {
-            var ineligibleFieldsSet = new HashSet<IFieldSymbol>(ineligibleFields);
-            foreach (var result in analysisResults)
+            if (symbol.DeclaringSyntaxReferences.Length > 1)
             {
-                var field = result.Field;
-                if (ineligibleFieldsSet.Contains(field))
-                {
-                    continue;
-                }
-
-                Process(result, compilationContext);
+                return null;
             }
+
+            return (IFieldSymbol)symbol;
         }
 
-        private void Process(AnalysisResult result, CompilationAnalysisContext compilationContext)
+        private void ProcessResult(AnalysisResult result, SymbolAnalysisContext compilationContext)
         {
             // Check if there are additional reasons we think this field might be ineligible for 
             // replacing with an auto prop.

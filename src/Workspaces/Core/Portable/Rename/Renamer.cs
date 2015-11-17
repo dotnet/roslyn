@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         public static Task<Solution> RenameSymbolAsync(Solution solution, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RenameSymbolAsync(solution, symbol, newName, optionSet, filter: null, cancellationToken: cancellationToken);
+            return RenameSymbolAsync(solution, symbol, newName, optionSet, callbacks: null, cancellationToken: cancellationToken);
         }
 
         internal static Task<RenameLocations> GetRenameLocationsAsync(Solution solution, ISymbol symbol, OptionSet options, CancellationToken cancellationToken)
@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Rename
         internal static async Task<Solution> RenameAsync(
             RenameLocations locations,
             string newName,
-            Func<Location, bool> filter = null,
-            Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
+            RenameCallbacks callbacks,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (string.IsNullOrEmpty(newName))
@@ -51,17 +50,17 @@ namespace Microsoft.CodeAnalysis.Rename
             cancellationToken.ThrowIfCancellationRequested();
 
             var symbol = locations.Symbol;
-            if (filter != null)
+            if (callbacks?.Filter != null)
             {
                 locations = new RenameLocations(
-                    locations.Locations.Where(loc => filter(loc.Location)).ToSet(),
+                    locations.Locations.Where(loc => callbacks.Filter(loc.Location)).ToSet(),
                     symbol, locations.Solution,
                     locations.ReferencedSymbols, locations.ImplicitLocations,
                     locations.Options);
             }
 
             var conflictResolution = await ConflictResolver.ResolveConflictsAsync(
-                locations, symbol.Name, newName, locations.Options, hasConflict, cancellationToken).ConfigureAwait(false);
+                locations, symbol.Name, newName, locations.Options, callbacks, cancellationToken).ConfigureAwait(false);
 
             return conflictResolution.NewSolution;
         }
@@ -71,8 +70,7 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol symbol,
             string newName,
             OptionSet options,
-            Func<Location, bool> filter,
-            Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
+            RenameCallbacks callbacks,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (solution == null)
@@ -89,7 +87,31 @@ namespace Microsoft.CodeAnalysis.Rename
 
             options = options ?? solution.Workspace.Options;
             var renameLocations = await GetRenameLocationsAsync(solution, symbol, options, cancellationToken).ConfigureAwait(false);
-            return await RenameAsync(renameLocations, newName, filter, hasConflict, cancellationToken).ConfigureAwait(false);
+            return await RenameAsync(renameLocations, newName, callbacks, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    internal class RenameCallbacks
+    {
+        public readonly Func<Location, bool> Filter;
+        public readonly Func<IEnumerable<ISymbol>, bool?> HasConflict;
+        public readonly Func<Document, SyntaxToken, SyntaxToken, SyntaxToken> OnTokenRenamed;
+
+        /// <param name="filter">Called on rename locations to determine if they should be renamed or not.</param>
+        /// <param name="hasConflict">Called after renaming references.  Can be used by callers to 
+        /// indicate if the new symbols that the reference binds to should be considered to be ok or
+        /// are in conflict.  'true' means they are conflicts.  'false' means they are not conflicts.
+        /// 'null' means that the default conflict check should be used.</param>
+        /// <param name="onTokenRenamed">Called after a token is actually renamed.  Can be used by callers to 
+        /// Further manipulate the result (for example, by adding additional annotations to the new token).</param>
+        public RenameCallbacks(
+            Func<Location, bool> filter = null,
+            Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
+            Func<Document, SyntaxToken, SyntaxToken, SyntaxToken> onTokenRenamed = null)
+        {
+            Filter = filter;
+            HasConflict = hasConflict;
+            OnTokenRenamed = onTokenRenamed;
         }
     }
 }
