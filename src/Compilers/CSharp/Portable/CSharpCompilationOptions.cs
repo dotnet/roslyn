@@ -145,10 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        internal override ImmutableArray<string> GetImports()
-        {
-            return Usings;
-        }
+        internal override ImmutableArray<string> GetImports() => Usings;
 
         public new CSharpCompilationOptions WithOutputKind(OutputKind kind)
         {
@@ -245,15 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { Usings = usings };
         }
 
-        public CSharpCompilationOptions WithUsings(IEnumerable<string> usings)
-        {
-            return new CSharpCompilationOptions(this) { Usings = usings.AsImmutableOrEmpty() };
-        }
+        public CSharpCompilationOptions WithUsings(IEnumerable<string> usings) =>
+            new CSharpCompilationOptions(this) { Usings = usings.AsImmutableOrEmpty() };
 
-        public CSharpCompilationOptions WithUsings(params string[] usings)
-        {
-            return WithUsings((IEnumerable<string>)usings);
-        }
+        public CSharpCompilationOptions WithUsings(params string[] usings) => WithUsings((IEnumerable<string>)usings);
 
         public new CSharpCompilationOptions WithOptimizationLevel(OptimizationLevel value)
         {
@@ -305,25 +297,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { PublicSign = publicSign };
         }
 
-        protected override CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value)
-        {
-            return this.WithGeneralDiagnosticOption(value);
-        }
+        protected override CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value) => WithGeneralDiagnosticOption(value);
 
-        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
-        {
-            return this.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
-        }
+        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions) =>
+            WithSpecificDiagnosticOptions(specificDiagnosticOptions);
 
-        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions)
-        {
-            return this.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
-        }
+        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions) =>
+            WithSpecificDiagnosticOptions(specificDiagnosticOptions);
 
-        protected override CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics)
-        {
-            return this.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics);
-        }
+        protected override CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics) =>
+            WithReportSuppressedDiagnostics(reportSuppressedDiagnostics);
 
         public new CSharpCompilationOptions WithGeneralDiagnosticOption(ReportDiagnostic value)
         {
@@ -350,10 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values };
         }
 
-        public new CSharpCompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> values)
-        {
-            return new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values.ToImmutableDictionaryOrEmpty() };
-        }
+        public new CSharpCompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> values) =>
+            new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values.ToImmutableDictionaryOrEmpty() };
 
         public new CSharpCompilationOptions WithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics)
         {
@@ -477,52 +458,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
         }
 
-        protected override CompilationOptions CommonWithDeterministic(bool deterministic)
-        {
-            return WithDeterministic(deterministic);
-        }
+        protected override CompilationOptions CommonWithDeterministic(bool deterministic) => WithDeterministic(deterministic);
 
-        protected override CompilationOptions CommonWithOutputKind(OutputKind kind)
-        {
-            return WithOutputKind(kind);
-        }
+        protected override CompilationOptions CommonWithOutputKind(OutputKind kind) => WithOutputKind(kind);
 
-        protected override CompilationOptions CommonWithPlatform(Platform platform)
-        {
-            return WithPlatform(platform);
-        }
+        protected override CompilationOptions CommonWithPlatform(Platform platform) => WithPlatform(platform);
 
         protected override CompilationOptions CommonWithPublicSign(bool publicSign) => WithPublicSign(publicSign);
 
-        protected override CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value)
-        {
-            return WithOptimizationLevel(value);
-        }
+        protected override CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value) => WithOptimizationLevel(value);
 
-        protected override CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer)
-        {
-            return WithAssemblyIdentityComparer(comparer);
-        }
+        protected override CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer) =>
+            WithAssemblyIdentityComparer(comparer);
 
-        protected override CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver resolver)
-        {
-            return WithXmlReferenceResolver(resolver);
-        }
+        protected override CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver resolver) =>
+            WithXmlReferenceResolver(resolver);
 
-        protected override CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver resolver)
-        {
-            return WithSourceReferenceResolver(resolver);
-        }
+        protected override CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver resolver) =>
+            WithSourceReferenceResolver(resolver);
 
-        protected override CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver)
-        {
-            return WithMetadataReferenceResolver(resolver);
-        }
+        protected override CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver) =>
+            WithMetadataReferenceResolver(resolver);
 
-        protected override CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider)
-        {
-            return WithStrongNameProvider(provider);
-        }
+        protected override CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider) =>
+            WithStrongNameProvider(provider);
 
         [Obsolete]
         protected override CompilationOptions CommonWithFeatures(ImmutableArray<string> features)

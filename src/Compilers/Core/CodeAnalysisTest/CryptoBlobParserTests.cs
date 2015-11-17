@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static ImmutableArray<byte> HexToBin(string input)
         {
-            Debug.Assert(input != null && (input.Length & 1) == 0, "invalid input string.");
+            Assert.True(input != null && (input.Length & 1) == 0, "invalid input string.");
 
             var result = new byte[input.Length >> 1];
 
