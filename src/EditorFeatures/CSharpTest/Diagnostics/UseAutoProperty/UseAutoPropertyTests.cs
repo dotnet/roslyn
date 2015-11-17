@@ -265,5 +265,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         {
             await TestMissingAsync(@"class Class { public int [|P|] { get; set; } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestSingleLine1()
+        {
+            Test(
+@"class Class
+{
+    [|int i|];
+    int P { get { return i; } }
+}",
+@"class Class
+{
+    int P { get; }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestSingleLine2()
+        {
+            Test(
+@"class Class
+{
+    [|int i|];
+    int P
+    {
+        get { return i; }
+    }
+}",
+@"class Class
+{
+    int P { get; }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public void TestSingleLine3()
+        {
+            Test(
+@"class Class
+{
+    [|int i|];
+    int P
+    {
+        get { return i; }
+        set { i = value; }
+    }
+}",
+@"class Class
+{
+    int P { get; set; }
+}", compareTokens: false);
+        }
     }
 }
