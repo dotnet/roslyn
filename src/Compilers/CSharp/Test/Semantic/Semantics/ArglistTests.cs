@@ -209,18 +209,19 @@ public struct C
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-// (8,30): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
-//         TypedReference tr2 = __makeref(tr1); // CS1601
-Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(tr1)").WithArguments("System.TypedReference"),
-// (9,40): error CS1510: A ref or out argument must be an assignable variable
-//         TypedReference tr3 = __makeref(123); // CS1510
-Diagnostic(ErrorCode.ERR_RefLvalueExpected, "123"),
-// (10,40): error CS0206: A property or indexer may not be passed as an out or ref parameter
-//         TypedReference tr4 = __makeref(P); // CS0206
-Diagnostic(ErrorCode.ERR_RefProperty, "P").WithArguments("C.P"),
-// (11,40): error CS0199: A static readonly field cannot be passed ref or out (except in a static constructor)
-//         TypedReference tr5 = __makeref(R);
-Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "R")
+    // (8,30): error CS1601: Cannot make reference to variable of type 'TypedReference'
+    //         TypedReference tr2 = __makeref(tr1); // CS1601
+    Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(tr1)").WithArguments("System.TypedReference").WithLocation(8, 30),
+    // (9,40): error CS1510: A ref or out value must be an assignable variable
+    //         TypedReference tr3 = __makeref(123); // CS1510
+    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "123").WithLocation(9, 40),
+    // (10,40): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         TypedReference tr4 = __makeref(P); // CS0206
+    Diagnostic(ErrorCode.ERR_RefProperty, "P").WithArguments("C.P").WithLocation(10, 40),
+    // (11,40): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+    //         TypedReference tr5 = __makeref(R); // CS0199
+    Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "R").WithLocation(11, 40)
+
                 );
         }
 
