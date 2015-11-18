@@ -48,7 +48,7 @@ class ReallyDerived : Foo // should not be shown as inherited by Base
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -96,7 +96,7 @@ interface I3 : I2 // should not be shown as inherited by I
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -156,7 +156,7 @@ End Class
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -209,7 +209,7 @@ End Interface
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

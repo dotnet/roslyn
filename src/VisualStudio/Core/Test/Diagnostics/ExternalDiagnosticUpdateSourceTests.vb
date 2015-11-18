@@ -47,11 +47,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.AddNewErrors(project.DocumentIds.First(), diagnostic)
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
 
                 expected = 0
                 source.ClearErrors(project.Id)
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
             End Using
         End Function
 
@@ -76,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
                                                           Assert.Equal(1, a.Diagnostics.Length)
                                                       End Sub
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
             End Using
         End Function
 
@@ -101,10 +101,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(workspace, project.Id))))
 
                 source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
             End Using
         End Function
 

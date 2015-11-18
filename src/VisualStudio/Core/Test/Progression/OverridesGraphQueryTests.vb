@@ -33,7 +33,7 @@ class Foo : Base, IComparable
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New OverridesGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New OverridesGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -78,7 +78,7 @@ class Foo : Base, IComparable
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New OverridesGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New OverridesGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

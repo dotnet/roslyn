@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
 
                 Dim node = outputContext.Graph.Nodes.Single()
 
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -85,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 Dim oldSolution = testState.GetSolution()
                 Dim newSolution = oldSolution.RemoveProject(oldSolution.ProjectIds.FirstOrDefault())
-                Dim outputContext = Await testState.GetGraphContextAfterQueryWithSolution(inputGraph, newSolution, New ContainsChildrenGraphQuery(), GraphContextDirection.Self).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryWithSolution(inputGraph, newSolution, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
 
                 ''' ContainsChildren should be set to false, so following updates will be tractable.
 

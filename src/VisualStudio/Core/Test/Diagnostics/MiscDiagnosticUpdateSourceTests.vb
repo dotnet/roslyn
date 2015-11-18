@@ -48,9 +48,9 @@ class 123 { }
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                    Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
+                    Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None)
 
-                    Await listener.CreateWaitTask().ConfigureAwait(True)
+                    Await listener.CreateWaitTask()
 
                     Dim snapshot = buffer.CurrentSnapshot
                     Dim spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray()
@@ -79,7 +79,7 @@ class 123 { }
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
@@ -104,7 +104,7 @@ End Class
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using

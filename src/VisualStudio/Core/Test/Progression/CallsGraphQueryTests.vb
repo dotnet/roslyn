@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -70,7 +70,7 @@ class A
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -106,7 +106,7 @@ class A
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -155,7 +155,7 @@ class C
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -208,7 +208,7 @@ class Test
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

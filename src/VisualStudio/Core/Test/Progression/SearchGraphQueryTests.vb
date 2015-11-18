@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="F"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="F"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -85,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="M"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="M"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -132,7 +132,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -180,7 +180,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Foo"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Foo"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -227,7 +227,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Z"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Z"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -266,7 +266,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -300,7 +300,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C.B"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -322,7 +322,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -356,7 +356,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -390,7 +390,7 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom)
 
                 ' When searching, don't descend into projects with a null FilePath because they are artifacts and not
                 ' representable in the Solution Explorer, e.g., Venus projects create sub-projects with a null file
