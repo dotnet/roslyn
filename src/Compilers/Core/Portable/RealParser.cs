@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="s">The decimal floating-point constant's string</param>
         /// <param name="d">The nearest double value, if conversion succeeds</param>
-        /// <returns>True of the input was converted; false if there was an overflow</returns>
+        /// <returns>True if the input was converted; false if there was an overflow</returns>
         public static bool TryParseDouble(string s, out double d)
         {
             var str = DecimalFloatingPointString.FromSource(s);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="s">The float floating-point constant's string</param>
         /// <param name="f">The nearest float value, if conversion succeeds</param>
-        /// <returns>True of the input was converted; false if there was an overflow</returns>
+        /// <returns>True if the input was converted; false if there was an overflow</returns>
         public static bool TryParseFloat(string s, out float f)
         {
             var str = DecimalFloatingPointString.FromSource(s);
