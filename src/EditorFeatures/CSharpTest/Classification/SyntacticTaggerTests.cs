@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     checkpoint.Release();
                 };
 
-                await checkpoint.Task.ConfigureAwait(true);
+                await checkpoint.Task;
                 checkpoint = new Checkpoint();
 
                 // Now apply an edit that require us to reclassify more that just the current line
                 subjectBuffer.Insert(document.CursorPosition.Value, "\"");
 
-                await checkpoint.Task.ConfigureAwait(true);
+                await checkpoint.Task;
                 Assert.Equal(subjectBuffer.CurrentSnapshot.Length, span.Length);
             }
         }

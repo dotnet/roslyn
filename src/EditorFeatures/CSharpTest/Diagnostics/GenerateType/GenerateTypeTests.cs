@@ -131,7 +131,7 @@ index: 2);
 @"class Program { void Main ( ) { [|Foo|] f ; } } ",
 @"internal class Foo { } ",
 expectedContainers: Array.Empty<string>(),
-expectedDocumentName: "Foo.cs").ConfigureAwait(true);
+expectedDocumentName: "Foo.cs");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -141,7 +141,7 @@ expectedDocumentName: "Foo.cs").ConfigureAwait(true);
 @"class Class { [|TestNamespace|].Foo f; }",
 @"namespace TestNamespace { internal class Foo { } }",
 expectedContainers: new List<string> { "TestNamespace" },
-expectedDocumentName: "Foo.cs").ConfigureAwait(true);
+expectedDocumentName: "Foo.cs");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -412,7 +412,7 @@ index: 1);
 @"class Class { static void Main(string[] args) { [|N|].C c; } }",
 @"namespace N { internal class C { } }",
 expectedContainers: new List<string> { "N" },
-expectedDocumentName: "C.cs").ConfigureAwait(true);
+expectedDocumentName: "C.cs");
         }
 
         [WorkItem(538558)]
@@ -1025,7 +1025,7 @@ index: 1);
 @"class Class { void F() { new [|Foo|].Bar(); } }",
 @"namespace Foo { internal class Bar { public Bar() { } } }",
 expectedContainers: new List<string> { "Foo" },
-expectedDocumentName: "Bar.cs").ConfigureAwait(true);
+expectedDocumentName: "Bar.cs");
         }
 
         [WorkItem(539620)]
@@ -1520,7 +1520,7 @@ string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", Featur
 @"class C : [|Foo|]",
 "internal class Foo { }",
 Array.Empty<string>(),
-"Foo.cs").ConfigureAwait(true);
+"Foo.cs");
         }
 
         [WorkItem(543886)]
@@ -1682,7 +1682,7 @@ namespace Namespace1.Namespace2
                 expectedContainers: Array.Empty<string>(),
                 expectedDocumentName: "ClassB.cs",
                 compareTokens: false,
-                isLine: false).ConfigureAwait(true);
+                isLine: false);
         }
 
         [WorkItem(932602)]
@@ -1714,7 +1714,7 @@ namespace Namespace1.Namespace2.Namespace3
                 expectedContainers: new List<string> { "Namespace1", "Namespace2" },
                 expectedDocumentName: "ClassB.cs",
                 compareTokens: false,
-                isLine: false).ConfigureAwait(true);
+                isLine: false);
         }
 
         [WorkItem(612700)]

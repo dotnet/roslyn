@@ -1427,7 +1427,7 @@ class C
                         edit.Apply();
                     }
 
-                    await waiter.CreateWaitTask().ConfigureAwait(true);
+                    await waiter.CreateWaitTask();
                 }
             }
         }
@@ -1452,7 +1452,7 @@ class C
                 var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
                 using (var disposable = (IDisposable)tagger)
                 {
-                    await waiter.CreateWaitTask().ConfigureAwait(true);
+                    await waiter.CreateWaitTask();
 
                     var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
                     var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);

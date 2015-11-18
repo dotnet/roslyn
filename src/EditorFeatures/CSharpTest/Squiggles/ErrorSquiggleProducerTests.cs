@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForError()
         {
-            var spans = await GetErrorSpans("class C {").ConfigureAwait(true);
+            var spans = await GetErrorSpans("class C {");
             Assert.Equal(1, spans.Count());
 
             var firstSpan = spans.First();
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForWarning()
         {
-            var spans = await GetErrorSpans("class C { long x = 5l; }").ConfigureAwait(true);
+            var spans = await GetErrorSpans("class C { long x = 5l; }");
             Assert.Equal(1, spans.Count());
             Assert.Equal(PredefinedErrorTypeNames.Warning, spans.First().Tag.ErrorType);
         }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml))
             {
-                var spans = await GetErrorSpans(workspace).ConfigureAwait(true);
+                var spans = await GetErrorSpans(workspace);
 
                 Assert.Equal(1, spans.Count());
                 Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
@@ -110,7 +110,7 @@ class Program
                 };
 
                 var spans =
-                    (await GetErrorSpans(workspace, analyzerMap).ConfigureAwait(true))
+                    (await GetErrorSpans(workspace, analyzerMap))
                         .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
 
                 Assert.Equal(3, spans.Length);
@@ -138,14 +138,14 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorDoesNotCrashPastEOF()
         {
-            var spans = await GetErrorSpans("class C { int x =").ConfigureAwait(true);
+            var spans = await GetErrorSpans("class C { int x =");
             Assert.Equal(3, spans.Count());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task SemanticErrorReported()
         {
-            var spans = await GetErrorSpans("class C : Bar { }").ConfigureAwait(true);
+            var spans = await GetErrorSpans("class C : Bar { }");
             Assert.Equal(1, spans.Count());
 
             var firstSpan = spans.First();
@@ -162,7 +162,7 @@ class Program
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -174,7 +174,7 @@ class Program
                     // Now remove the document.
                     workspace.CloseDocument(workspace.Documents.First().Id);
                     workspace.OnDocumentRemoved(workspace.Documents.First().Id);
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
                     spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
                     // And we should have no errors for this document.
@@ -192,7 +192,7 @@ class Program
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -205,7 +205,7 @@ class Program
                     workspace.CloseDocument(workspace.Documents.First().Id);
                     workspace.OnDocumentRemoved(workspace.Documents.First().Id);
                     workspace.OnProjectRemoved(workspace.Projects.First().Id);
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
                     spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
                     // And we should have no errors for this document.
@@ -238,7 +238,7 @@ class Program
                             CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
                             CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
 
-                var spans = await GetErrorsFromUpdateSource(workspace, document, updateArgs).ConfigureAwait(true);
+                var spans = await GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
                 Assert.Equal(1, spans.Count());
                 var first = spans.First();
@@ -271,7 +271,7 @@ class Program
                             CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
                             CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
 
-                var spans = await GetErrorsFromUpdateSource(workspace, document, updateArgs).ConfigureAwait(true);
+                var spans = await GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
                 Assert.Equal(2, spans.Count());
                 var first = spans.First();
@@ -293,7 +293,7 @@ class Program
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(content))
             {
-                return await GetErrorSpans(workspace).ConfigureAwait(true);
+                return await GetErrorSpans(workspace);
             }
         }
     }

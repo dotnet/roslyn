@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             var workspaceWaiter = workspace.ExportProvider
                 .GetExports<IAsynchronousOperationListener, FeatureMetadata>()
                 .First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
-            await workspaceWaiter.CreateWaitTask().ConfigureAwait(true);
+            await workspaceWaiter.CreateWaitTask();
         }
 
         [WpfFact]
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 workspace.AddTestProject(project);
 
                 // wait for all previous operations to complete
-                await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
+                await WaitForWorkspaceOperationsToComplete(workspace);
 
                 var solution = workspace.CurrentSolution;
                 bool workspaceChanged = false;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 workspace.OnParseOptionsChanged(project.Id, project.ParseOptions);
 
                 // wait for any new outstanding operations to complete (there shouldn't be any)
-                await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
+                await WaitForWorkspaceOperationsToComplete(workspace);
 
                 // same solution instance == nothing changed
                 Assert.Equal(solution, workspace.CurrentSolution);
@@ -486,7 +486,7 @@ class D { }
                 // this solution should have the change
                 var solutionZ = workspace.CurrentSolution;
                 var docZ = solutionZ.GetDocument(document1.Id);
-                var docZText = await docZ.GetTextAsync().ConfigureAwait(true);
+                var docZText = await docZ.GetTextAsync();
 
                 var compilation2Z = solutionZ.GetProject(id2).GetCompilationAsync().Result;
                 var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
@@ -660,14 +660,14 @@ class D { }
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
                 // prove the document has the correct text
-                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().ConfigureAwait(true)).ToString());
+                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync()).ToString());
 
                 // fork the solution to introduce a change.
                 var oldSolution = workspace.CurrentSolution;
                 var newSolution = oldSolution.WithDocumentText(document.Id, SourceText.From(newText));
 
                 // prove that current document text is unchanged
-                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().ConfigureAwait(true)).ToString());
+                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync()).ToString());
 
                 // prove buffer is unchanged too
                 Assert.Equal(startText, buffer.CurrentSnapshot.GetText());
@@ -759,7 +759,7 @@ class D { }
                     workspace.CloseDocument(document.Id);
 
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-                    await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
+                    await WaitForWorkspaceOperationsToComplete(workspace);
 
                     // Wait to receive signal that events have fired.
                     Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
@@ -777,7 +777,7 @@ class D { }
                     workspace.CloseDocument(document.Id);
 
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-                    await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
+                    await WaitForWorkspaceOperationsToComplete(workspace);
 
                     // Verifying that an event has not been called is difficult to prove.  
                     // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
@@ -814,7 +814,7 @@ class D { }
 
                 var additionalDocument = project.GetAdditionalDocument(additionalDoc.Id);
 
-                Assert.Equal("some text", (await additionalDocument.GetTextAsync().ConfigureAwait(true)).ToString());
+                Assert.Equal("some text", (await additionalDocument.GetTextAsync()).ToString());
             }
         }
 
@@ -834,7 +834,7 @@ class D { }
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 
                 var project = workspace.CurrentSolution.Projects.Single();
-                var oldVersion = await project.GetSemanticVersionAsync().ConfigureAwait(true);
+                var oldVersion = await project.GetSemanticVersionAsync();
 
                 // fork the solution to introduce a change.
                 var oldSolution = workspace.CurrentSolution;
@@ -847,8 +847,8 @@ class D { }
                 Assert.Equal(newText, buffer.CurrentSnapshot.GetText());
 
                 // Text changes are considered top level changes and they change the project's semantic version.
-                Assert.Equal(await doc.GetTextVersionAsync().ConfigureAwait(true), await doc.GetTopLevelChangeTextVersionAsync().ConfigureAwait(true));
-                Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync().ConfigureAwait(true));
+                Assert.Equal(await doc.GetTextVersionAsync(), await doc.GetTopLevelChangeTextVersionAsync());
+                Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync());
             }
         }
 
@@ -865,8 +865,8 @@ class D { }
                 workspace.AddTestProject(project1);
                 var buffer = additionalDoc.GetTextBuffer();
                 var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
-                var text = await doc.GetTextAsync(CancellationToken.None).ConfigureAwait(true);
-                var version = await doc.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(true);
+                var text = await doc.GetTextAsync(CancellationToken.None);
+                var version = await doc.GetTextVersionAsync(CancellationToken.None);
 
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 
