@@ -92,13 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
 
             var inferredTypes = typeInferrer.InferTypes(context.SemanticModel, position, cancellationToken)?.ToSet();
-            if (inferredTypes == null || inferredTypes.Any())
+            if (inferredTypes == null || !inferredTypes.Any())
             {
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
             }
 
             var symbols = recommender.GetRecommendedSymbolsAtPosition(context.Workspace, context.SemanticModel, position, options, cancellationToken);
-            return Task.FromResult(symbols.Where(s => inferredTypes.Contains(s.GetSymbolType())));
+            var result = Task.FromResult(symbols.Where(s => inferredTypes.Contains(s.GetSymbolType())));
+            return result;
         }
     }
 }

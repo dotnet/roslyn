@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayAndInsertionText.Item1,
                 context,
                 Glyph.EnumMember,
-                preselect:=preselect,
+                preselectionPriority:=PreselectionPriority.Highest,
                 supportedPlatforms:=supportedPlatformData)
 
         End Function

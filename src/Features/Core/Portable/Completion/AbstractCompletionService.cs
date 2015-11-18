@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // the snippet item doesn't have its preselect bit set.
             // We'll special case this by not preferring later items
             // if they are snippets and the other candidate is preselected.
-            if (existingItem.Preselect && item.CompletionProvider is ISnippetCompletionProvider)
+            if (existingItem.PreselectionPriority != PreselectionPriority.Default && item.CompletionProvider is ISnippetCompletionProvider)
             {
                 return existingItem;
             }

@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayAndInsertionText.Item1,
                 context,
                 symbols(0).GetGlyph(),
-                preselect:=preselect,
+                preselectionPriority:=PreselectionPriority.Highest,
                 supportedPlatforms:=supportedPlatformData,
                 rules:=ItemRules.Instance)
         End Function

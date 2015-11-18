@@ -955,13 +955,12 @@ Class Foo
         Bar(0$$
     End Sub
 End Class
-class Foo
                               </Document>)
 
                 state.SendTypeChars(", ")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Numeros.Dos", isSoftSelected:=True)
-                Assert.Equal(1, state.CurrentCompletionPresenterSession.CompletionItems.Where(Function(c) c.DisplayText = "Numeros").Count())
+
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem(displayText:="Numeros", isSoftSelected:=True).ConfigureAwait(True)
             End Using
         End Function
 

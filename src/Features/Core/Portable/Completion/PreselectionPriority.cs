@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal enum PreselectionPriority
     {
-        Highest,
-        Optional,
-        Default
+        Highest = 2,
+        Optional = 1,
+        Default = 0
     }
 }

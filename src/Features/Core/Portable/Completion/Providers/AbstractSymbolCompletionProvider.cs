@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateItem(displayAndInsertionText, position, symbols, context, textChangeSpan, preselect, supportedPlatformData);
         }
 
-        protected virtual CompletionItem CreateItem(ValueTuple<string, string> displayAndInsertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan textChangeSpan, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected virtual CompletionItem CreateItem(ValueTuple<string, string> displayAndInsertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan textChangeSpan, bool preselectionPriority, SupportedPlatformData supportedPlatformData)
         {
             return new SymbolCompletionItem(
                 this,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols,
                 context,
                 supportedPlatforms: supportedPlatformData,
-                preselect: preselect,
+                preselectionPriority: preselectionPriority ? PreselectionPriority.Optional : PreselectionPriority.Default,
                 rules: GetCompletionItemRules());
         }
 

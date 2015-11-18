@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// preferred over another item if the ICompletionRules currently in effect deem them
         /// otherwise identical.
         /// </summary>
-        public bool Preselect { get; }
+        public PreselectionPriority PreselectionPriority { get; }
 
         /// <summary>
         /// The span(respective to the original document text when this completion item was created)
@@ -100,14 +100,14 @@ namespace Microsoft.CodeAnalysis.Completion
             Glyph? glyph = null,
             string sortText = null,
             string filterText = null,
-            bool preselect = false,
+            PreselectionPriority preselectionPriority = PreselectionPriority.Default,
             bool isBuilder = false,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
             CompletionItemRules rules = null)
             : this(completionProvider, displayText, filterSpan,
                    description.IsDefault ? (Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>>)null : c => Task.FromResult(description),
-                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
+                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselectionPriority, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
         {
         }
 
@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.Completion
             Glyph? glyph,
             string sortText = null,
             string filterText = null,
-            bool preselect = false,
+            PreselectionPriority preselectionPriority = PreselectionPriority.Default,
             bool isBuilder = false,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
             CompletionItemRules rules = null) :
                 this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText,
-                     filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
+                     filterText, preselectionPriority, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
         {
         }
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Completion
             bool hasAsyncDescription,
             string sortText,
             string filterText,
-            bool preselect,
+            PreselectionPriority preselectionPriority,
             bool isBuilder,
             bool showsWarningIcon,
             bool shouldFormatOnCommit,
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.Glyph = glyph;
             this.SortText = sortText ?? displayText;
             this.FilterText = filterText ?? displayText;
-            this.Preselect = preselect;
+            this.PreselectionPriority = preselectionPriority;
             this.FilterSpan = filterSpan;
             this.IsBuilder = isBuilder;
             this.ShowsWarningIcon = showsWarningIcon;
