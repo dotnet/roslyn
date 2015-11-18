@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IList<TypeKindOptions> assertTypeKindAbsent = null,
             bool isCancelled = false)
         {
-            using (var testState = new GenerateTypeTestState(initial, isLine, projectName, typeName, existingFilename, languageName))
+            using (var testState = await GenerateTypeTestState.CreateAsync(initial, isLine, projectName, typeName, existingFilename, languageName))
             {
                 // Initialize the viewModel values
                 testState.TestGenerateTypeOptionsService.SetGenerateTypeOptions(

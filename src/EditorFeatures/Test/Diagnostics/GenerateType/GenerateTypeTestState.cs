@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CaseCorrection;
 using Microsoft.CodeAnalysis.CSharp.GenerateType;
@@ -33,20 +34,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         public Project ProjectToBeModified { get; }
         public Project TriggeredProject { get; }
         public string TypeName { get; }
-        public GenerateTypeTestState(
+
+        public static async Task<GenerateTypeTestState> CreateAsync(
             string initial,
             bool isLine,
             string projectToBeModified,
             string typeName,
             string existingFileName,
             string languageName)
-            : this(projectToBeModified, typeName, existingFileName, languageName == LanguageNames.CSharp
-                  ? isLine ? CSharpWorkspaceFactory.CreateWorkspaceFromFile(initial, exportProvider: s_exportProvider) : CSharpWorkspaceFactory.CreateWorkspace(initial, exportProvider: s_exportProvider)
-                  : isLine ? VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(initial, exportProvider: s_exportProvider) : VisualBasicWorkspaceFactory.CreateWorkspace(initial, exportProvider: s_exportProvider))
         {
+            var workspace = languageName == LanguageNames.CSharp
+                  ? isLine ? await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(initial, exportProvider: s_exportProvider) : await TestWorkspaceFactory.CreateWorkspaceAsync(initial, exportProvider: s_exportProvider)
+                  : isLine ? await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initial, exportProvider: s_exportProvider) : await TestWorkspaceFactory.CreateWorkspaceAsync(initial, exportProvider: s_exportProvider);
+
+            return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
         }
 
-        public GenerateTypeTestState(string projectToBeModified, string typeName, string existingFileName, TestWorkspace testWorkspace)
+        private GenerateTypeTestState(string projectToBeModified, string typeName, string existingFileName, TestWorkspace testWorkspace)
         {
             Workspace = testWorkspace;
             _testDocument = Workspace.Documents.SingleOrDefault(d => d.CursorPosition.HasValue);
