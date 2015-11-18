@@ -1772,5 +1772,121 @@ End Namespace
         End Sub
 #End Region
 
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub GoToDefinitionToAnonymousTypeImplicitlyNamedProperty_CSharp()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class MyClass
+{
+    public string Prop1 { get; set; }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var instance = new MyClass();
+
+        var x = new
+        {
+            instance.[|Prop1|]
+        };
+
+        var z = x.Prop$$1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub GoToDefinitionFromAnonymousTypeImplicitlyNamedProperty_CSharp()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class MyClass
+{
+    public string [|Prop1|] { get; set; }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var instance = new MyClass();
+
+        var x = new
+        {
+            instance.Pro$$p1
+        };
+
+        var z = x.Prop1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub GoToDefinitionToAnonymousTypeImplicitlyNamedProperty_VB()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Public Class C
+    Public Prop1 = String.Empty
+End Class
+Class Program
+    Shared Sub Main(args As String())
+        Dim instance = New C()
+
+        Dim x = New With {instance.[|Prop1|]}
+
+        Dim z = x.Pr$$op1
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub GoToDefinitionFromAnonymousTypeImplicitlyNamedProperty_VB()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Public Class C
+    Public [|Prop1|] = String.Empty
+End Class
+Class Program
+    Shared Sub Main(args As String())
+        Dim instance = New C()
+
+        Dim x = New With {instance.Pro$$p1}
+
+        Dim z = x.Prop1
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
     End Class
 End Namespace

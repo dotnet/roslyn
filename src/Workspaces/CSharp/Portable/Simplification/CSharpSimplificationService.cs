@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             yield return new CSharpParenthesesReducer();
             yield return new CSharpExtensionMethodReducer();
             yield return new CSharpEscapingReducer();
+            yield return new CSharpAnonymousTypePropertyReducer();
             yield return new CSharpMiscellaneousReducer();
         }
 

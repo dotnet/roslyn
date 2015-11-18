@@ -15,7 +15,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     public static partial class SymbolFinder
     {
         /// <summary>
-        /// Finds the symbol that is associated with a position in the text of a document.
+        /// Finds the symbol that is associated with a position in the text of a document. If 
+        /// multiple symbols are associated with the token (e.g. implicitly named anonymous type
+        /// properties), then referenced symbols are preferred over the defined symbol. If the
+        /// defined symbol is required in this case, use <see cref="ModelExtensions.GetDeclaredSymbol(SemanticModel, SyntaxNode, CancellationToken)"/>
+        /// with the corresponding <see cref="SyntaxNode"/>.
         /// </summary>
         /// <param name="semanticModel">The semantic model associated with the document.</param>
         /// <param name="position">The character position within the document.</param>

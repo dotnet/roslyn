@@ -71,6 +71,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return typeInfo.Type ?? symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
+        /// <summary>
+        /// Returns the symbols defined by or referenced by the given <paramref name="token"/>.
+        /// This may return both definition and referenced symbols (e.g. for implicitly named
+        /// anonymous type properties). If multiple symbols are returned, the first returned 
+        /// symbol is the preferred symbol to use for navigation, etc.
+        /// </summary>
         public static IEnumerable<ISymbol> GetSymbols(
             this SemanticModel semanticModel,
             SyntaxToken token,
@@ -112,8 +118,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var declaredSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);
             if (declaredSymbol != null)
             {
-                yield return declaredSymbol;
-                yield break;
+                // Return anonymous type property declarations after any reference symbols at this
+                // token. This is done later in the method.
+                if (!declaredSymbol.IsAnonymousTypeProperty())
+                {
+                    yield return declaredSymbol;
+                    yield break;
+                }
             }
 
             var aliasInfo = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
@@ -175,6 +186,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     yield return symbol;
                 }
+            }
+
+            // Return anonymous type property declarations after any reference symbols.
+            if (declaredSymbol != null)
+            {
+                yield return declaredSymbol;
             }
         }
 

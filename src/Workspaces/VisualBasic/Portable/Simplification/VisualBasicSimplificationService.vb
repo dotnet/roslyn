@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 New VisualBasicNameReducer(),
                 New VisualBasicParenthesesReducer(),
                 New VisualBasicCallReducer(),
+                New VisualBasicNamedFieldInitializerReducer(),
                 New VisualBasicEscapingReducer(), ' order before VisualBasicMiscellaneousReducer, see RenameNewOverload test
                 New VisualBasicMiscellaneousReducer(),
                 New VisualBasicCastReducer(),
