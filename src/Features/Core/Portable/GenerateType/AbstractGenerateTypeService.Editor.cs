@@ -391,21 +391,21 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location> enclosingNamespaceGeneratedTypeToAddAndLocation = null;
                 if (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange)
                 {
-                    enclosingNamespaceGeneratedTypeToAddAndLocation = _service.GetOrGenerateEnclosingNamespaceSymbol(
+                    enclosingNamespaceGeneratedTypeToAddAndLocation = await _service.GetOrGenerateEnclosingNamespaceSymbolAsync(
                      namedType,
                      containers,
                      generateTypeOptionsResult.ExistingDocument,
                      root,
-                     _cancellationToken).WaitAndGetResult(_cancellationToken);
+                     _cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    enclosingNamespaceGeneratedTypeToAddAndLocation = _targetLanguageService.GetOrGenerateEnclosingNamespaceSymbol(
+                    enclosingNamespaceGeneratedTypeToAddAndLocation = await _targetLanguageService.GetOrGenerateEnclosingNamespaceSymbolAsync(
                      namedType,
                      containers,
                      generateTypeOptionsResult.ExistingDocument,
                      root,
-                     _cancellationToken).WaitAndGetResult(_cancellationToken);
+                     _cancellationToken).ConfigureAwait(false);
                 }
 
                 var solution = _document.Project.Solution;

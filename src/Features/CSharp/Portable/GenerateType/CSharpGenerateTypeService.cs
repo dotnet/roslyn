@@ -576,7 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
         }
 
-        public override async Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbol(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken)
+        public override async Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(
+            INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken)
         {
             var compilationUnit = (CompilationUnitSyntax)selectedDocumentRoot;
             var semanticModel = await selectedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
