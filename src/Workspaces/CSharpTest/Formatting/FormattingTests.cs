@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Format1()
         {
-            await AssertFormatAsync("namespace A { }", "namespace A{}").ConfigureAwait(true);
+            await AssertFormatAsync("namespace A { }", "namespace A{}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             var expected = @"class A
 {
 }";
-            await AssertFormatAsync(expected, content).ConfigureAwait(true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -45,7 +45,7 @@ int             i               =               20          ;           }";
     int i = 20;
 }";
 
-            await AssertFormatAsync(expected, content).ConfigureAwait(true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -63,7 +63,7 @@ int             i               =               20          ;           int     
     T.S           =           Test(           10              );
 }";
 
-            await AssertFormatAsync(expected, content).ConfigureAwait(true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -86,7 +86,7 @@ int             i               =               20          ;           int     
     }
 }";
 
-            await AssertFormatAsync(expected, content).ConfigureAwait(true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -109,7 +109,7 @@ A           a               =               new             A                   
     };
 }";
 
-            await AssertFormatAsync(expected, content).ConfigureAwait(true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -125,7 +125,7 @@ A           a               =               new             A                   
     var a = from i in new[] { 1, 2, 3 } where i > 10 select i;
 }";
 
-            await AssertFormatAsync(expected, content).ConfigureAwait(true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -157,7 +157,7 @@ void Method()
     }
 }";
 
-            await AssertFormatAsync(expected, content).ConfigureAwait(true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -179,7 +179,7 @@ void Method()
     }
 }";
 
-            await AssertFormatAsync(expected, content).ConfigureAwait(true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -198,7 +198,7 @@ where           i       >       10          select      i           ;
             select i;
 }";
 
-            await AssertFormatAsync(expected, content).ConfigureAwait(true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -230,7 +230,7 @@ where           i       >       10          select      i           ;
         }
                         };
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -264,7 +264,7 @@ where           i       >       10          select      i           ;
     p4 = true
         };
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -298,7 +298,7 @@ System.Func<int, int> ret2 = y =>
                         return x + 1;
         };
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -322,7 +322,7 @@ System.Func<int, int> ret2 = y =>
   MessageBox.Show(this, ""Timer ticked"");
                         };
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -389,7 +389,7 @@ static void Method(int i, string s, bool b)
 {
 }
 }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -685,7 +685,7 @@ public void Method<T,R>(T t)
             }
 
 }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -709,7 +709,7 @@ static void Main()
 Program p=new Program();
 }
 }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -729,7 +729,7 @@ Program p=new Program();
 //		// TODO: Add the implementation for Class1.foo() here.
 //	
 //	}
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -753,7 +753,7 @@ int i = 0;
                     System.Console.WriteLine();
 }
 }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -775,7 +775,7 @@ class InnerClass
 {
 }
 }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -811,7 +811,7 @@ i = -i;
 z:
 i = 2 * i;
 }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -829,7 +829,7 @@ i = 2 * i;
         {
                     int i = 10;
        }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -851,7 +851,7 @@ i = 2 * i;
             int y = 0;
       int z = 0;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -867,7 +867,7 @@ i = 2 * i;
         int a = 10;
       int b;
   int c;
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -947,7 +947,7 @@ label3:
         l:
             goto l;
         }
-    }").ConfigureAwait(true);
+    }");
         }
 
         [WorkItem(766133, "DevDiv")]
@@ -987,7 +987,7 @@ class D
 {
     public int A { get; set; }
     public int B { get; set; }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1015,7 +1015,7 @@ class D
             string s = o        as       string;
             bool b   = o        is       string;
         }
-    }", false, changingOptions).ConfigureAwait(true);
+    }", false, changingOptions);
         }
 
         [WorkItem(772298, "DevDiv")]
@@ -1046,7 +1046,7 @@ class D
                 Console.WriteLine(""Nothing"");
             });
     }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1132,7 +1132,7 @@ l:
     l:
         goto l;
     }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1172,7 +1172,7 @@ l:
             switch (x) { case 1: break; case 2: break; default: break; }
             Del d = delegate(int k) { Console.WriteLine(); Console.WriteLine(); };
         }
-    }").ConfigureAwait(true);
+    }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1241,7 +1241,7 @@ class foo
         }
         void foo() { int xx = 0; int zz = 0;}
 }
-class foo{int x = 0;}", false, changingOptions).ConfigureAwait(true);
+class foo{int x = 0;}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1306,7 +1306,7 @@ class foo
 class foo
 {
     int x = 0;
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1386,7 +1386,7 @@ class foo
             Del d = delegate(int k) { Console.WriteLine(); Console.WriteLine(); };
         }
 }
-class foo{int x = 0;}", false, changingOptions).ConfigureAwait(true);
+class foo{int x = 0;}", false, changingOptions);
         }
 
         [WorkItem(991480)]
@@ -1408,7 +1408,7 @@ class foo{int x = 0;}", false, changingOptions).ConfigureAwait(true);
     {
         for (int d = 0; d < 10; ++d) { }
     }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [WorkItem(751789, "DevDiv")]
@@ -1533,7 +1533,7 @@ public class foo : System.Object
 {
     public int f { get; set; }
 }
-}").ConfigureAwait(true);
+}");
         }
 
         [WorkItem(751789, "DevDiv")]
@@ -1644,7 +1644,7 @@ public class foo : System.Object
 
 {
 }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1701,7 +1701,7 @@ if (a > b)
     return 0;
 }
 }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1764,7 +1764,7 @@ else
     return 0;
 }
 }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1831,7 +1831,7 @@ var obj1 = new {        X1 = 0,        Y1 = 1,        X2 = 2,        Y2 = 3    }
     };
 MyObject obj = new MyObject {       X1 = 0,        Y1 = 1, X2 = 2,       Y2 = 3     };
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1895,7 +1895,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
                   Y2 = 3
     };
     }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1911,13 +1911,13 @@ var obj = new {   X1 = 0,         Y1 = 1,
         a = 10,
       b,
   c
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DontInsertLineBreaksInSingleLineEnum()
         {
-            await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }").ConfigureAwait(true);
+            await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1943,7 +1943,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
                 break;
         }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1969,7 +1969,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
                     break;
         }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1999,7 +1999,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
                 }
         }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2025,7 +2025,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
             default: break;
         }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2051,7 +2051,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
             default: { break; }
         }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2071,7 +2071,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
 Foo:
 goto Foo;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2093,7 +2093,7 @@ int x = 0;
 Foo:
 goto Foo;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2119,7 +2119,7 @@ Foo:
 goto Foo;
 }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2147,7 +2147,7 @@ Foo:
 goto Foo;
 }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2167,7 +2167,7 @@ goto Foo;
     Foo:
         goto Foo;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2185,7 +2185,7 @@ goto Foo;
     {
     Foo: goto Foo;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2207,7 +2207,7 @@ goto Foo;
     Foo:
         goto Foo;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2223,7 +2223,7 @@ goto Foo;
     void M<T>() where T : I
     {
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2233,7 +2233,7 @@ goto Foo;
 {
 }", @"class C<T> where T : I
 {
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2251,7 +2251,7 @@ goto Foo;
     {
         int x = -1;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2269,7 +2269,7 @@ goto Foo;
     {
         int x = +1;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2283,7 +2283,7 @@ goto Foo;
         ++i[0];
     }
 }";
-            await AssertFormatAsync(code, code).ConfigureAwait(true);
+            await AssertFormatAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2297,7 +2297,7 @@ goto Foo;
         i[0]++;
     }
 }";
-            await AssertFormatAsync(code, code).ConfigureAwait(true);
+            await AssertFormatAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2311,7 +2311,7 @@ goto Foo;
         --i[0];
     }
 }";
-            await AssertFormatAsync(code, code).ConfigureAwait(true);
+            await AssertFormatAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2325,7 +2325,7 @@ goto Foo;
         i[0]--;
     }
 }";
-            await AssertFormatAsync(code, code).ConfigureAwait(true);
+            await AssertFormatAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2347,7 +2347,7 @@ goto Foo;
                         0, 1,
                             2);
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2365,7 +2365,7 @@ goto Foo;
     {
         if (    !           true        )           ;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2387,7 +2387,7 @@ class C { }
         
         
                     
-").ConfigureAwait(true);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2424,7 +2424,7 @@ namespace N {
 
 
 
-").ConfigureAwait(true);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2456,7 +2456,7 @@ namespace N {
 
             
 
-").ConfigureAwait(true);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2485,7 +2485,7 @@ class C
         
 
 
-").ConfigureAwait(true);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2501,7 +2501,7 @@ class C
     C   (   )  :    base    (       )  
             {
             }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2521,7 +2521,7 @@ class C
             }
 
         C       (           )               {                       }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2541,7 +2541,7 @@ class C
             var q = 
                 from c in                  from b in cs                         select b     select c;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2565,7 +2565,7 @@ class C
                             select b
     select c;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2595,7 +2595,7 @@ class C
                 3)
         select new {                b,                 c };
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2621,7 +2621,7 @@ class C
                             select b
     select c;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2639,7 +2639,7 @@ class C
         {
                 L           :                   int         i           =           10                  ;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2659,7 +2659,7 @@ class C
 int             x               =               1               ;
                 L           :                   int         i           =           10                  ;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2681,7 +2681,7 @@ int             x               =               1               ;
                 L           :                   
 int         i           =           10                  ;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2703,7 +2703,7 @@ int             x               =               1               ;
                 L           :                   int         i           =           10                  ;
                                     int             next            =                   30;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2723,7 +2723,7 @@ int             x               =               1               ;
                 L           :                   int         i           =           10                  ;
                                     int             next            =                   30;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2745,7 +2745,7 @@ int             x               =               1               ;
 int         i           =           10                  ;
                                     int             next            =                   30;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2769,7 +2769,7 @@ int         i           =           10                  ;
 int         i           =           10                  ;
                                     int             next            =                   30;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2791,7 +2791,7 @@ int         i           =           10                  ;
                     int i =
                         10;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2805,7 +2805,7 @@ int         i           =           10                  ;
 {
                                   private       int Age{get;                set;                 }
             public string Names                     {                        get;                      set;}
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2831,7 +2831,7 @@ int         i           =           10                  ;
                                       return name;
                                    }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2865,7 +2865,7 @@ int         i           =           10                  ;
             name = value;
         }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -2883,7 +2883,7 @@ int         i           =           10                  ;
         {
                 int             a           b               c           ;
         }
-    }           ").ConfigureAwait(true);
+    }           ");
         }
 
         [WorkItem(537763, "DevDiv")]
@@ -2902,7 +2902,7 @@ int         i           =           10                  ;
     {
         int         ? i = 10;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [WorkItem(537766, "DevDiv")]
@@ -2913,7 +2913,7 @@ int         i           =           10                  ;
 { }
 ", @"class Class1
 {}
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537824, "DevDiv")]
@@ -2938,7 +2938,7 @@ int         i           =           10                  ;
         }while (true);
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537774, "DevDiv")]
@@ -2958,7 +2958,7 @@ int         i           =           10                  ;
     {return 0;
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537768, "DevDiv")]
@@ -2979,7 +2979,7 @@ static void Main(string[] args)
     {
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537878, "DevDiv")]
@@ -3006,7 +3006,7 @@ static void Main(string[] args)
         }
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537783, "DevDiv")]
@@ -3029,7 +3029,7 @@ static void Main(string[] args)
         a = a++ + 5;
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537885, "DevDiv")]
@@ -3050,7 +3050,7 @@ static void Main(string[] args)
         int* p;
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537886, "DevDiv")]
@@ -3073,7 +3073,7 @@ static void Main(string[] args)
         j = ~7;
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537884, "DevDiv")]
@@ -3098,7 +3098,7 @@ static void Main(string[] args)
         };
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537884, "DevDiv")]
@@ -3123,7 +3123,7 @@ static void Main(string[] args)
         };
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537884, "DevDiv")]
@@ -3148,7 +3148,7 @@ static void Main(string[] args)
         }           ;
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537884, "DevDiv")]
@@ -3173,7 +3173,7 @@ static void Main(string[] args)
         };
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537916, "DevDiv")]
@@ -3196,7 +3196,7 @@ static void Main(string[] args)
         int* p = &a;
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537885, "DevDiv")]
@@ -3221,7 +3221,7 @@ static void Main(string[] args)
         Console.WriteLine(* p);
     }
 }
-").ConfigureAwait(true);
+");
         }
 
         [WorkItem(537905, "DevDiv")]
@@ -3229,7 +3229,7 @@ static void Main(string[] args)
         public async Task Namespaces()
         {
             await AssertFormatAsync(@"using System;
-using System.Data;", @"using System; using System.Data;").ConfigureAwait(true);
+using System.Data;", @"using System; using System.Data;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -3239,7 +3239,7 @@ using System.Data;", @"using System; using System.Data;").ConfigureAwait(true);
 {
 }", @"namespace N
     {
-}").ConfigureAwait(true);
+}");
         }
 
         [WorkItem(537902, "DevDiv")]
@@ -3260,7 +3260,7 @@ using System.Data;", @"using System; using System.Data;").ConfigureAwait(true);
         do { }
         while (i < 4);
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -3276,7 +3276,7 @@ using System.Data;", @"using System; using System.Data;").ConfigureAwait(true);
     void Test<T>(T t) where T : new (   )
     {
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -3308,7 +3308,7 @@ class Program
             return;
         }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -3321,7 +3321,7 @@ class Program
 }", @"class Program
 {
         [   Flags       ]       public       void       Method      (       )           {           }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -3335,7 +3335,7 @@ class Program
 {
         [   Flags       ]
 public       void       Method      (       )           {           }
-}").ConfigureAwait(true);
+}");
         }
 
         [WorkItem(538288, "DevDiv")]
@@ -3353,7 +3353,7 @@ public       void       Method      (       )           {           }
 public       void       Method      (       )           {
     throw new global :: System.NotImplementedException();
 }
-}").ConfigureAwait(true);
+}");
         }
 
         [WorkItem(538354, "DevDiv")]
@@ -3366,14 +3366,14 @@ public       void       Method      (       )           {
               Generic;", @"                  using
                         System.
                             Collections.
-                                Generic;").ConfigureAwait(true);
+                                Generic;");
         }
 
         [WorkItem(538354, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Tab1()
         {
-            await AssertFormatAsync(@"using System;", @"			using System;").ConfigureAwait(true);
+            await AssertFormatAsync(@"using System;", @"			using System;");
         }
 
         [WorkItem(538329, "DevDiv")]
@@ -3396,7 +3396,7 @@ public       void       Method      (       )           {
         if (true) a = 10;
         else a = 11;
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [WorkItem(538464, "DevDiv")]
@@ -3415,7 +3415,7 @@ public       void       Method      (       )           {
     {
         Func<int, int> fun = x => { return x + 1; }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact]
@@ -3439,7 +3439,7 @@ public       void       Method      (       )           {
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3457,7 +3457,7 @@ public       void       Method      (       )           {
     ~Class1() { }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3475,7 +3475,7 @@ public       void       Method      (       )           {
     }
 }";
 
-            await AssertFormatAsync(code, code).ConfigureAwait(true);
+            await AssertFormatAsync(code, code);
         }
 
         [Fact]
@@ -3497,7 +3497,7 @@ public       void       Method      (       )           {
         double d = new double();
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3523,7 +3523,7 @@ public       void       Method      (       )           {
         var t2 = sizeof(System.Object);
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3544,7 +3544,7 @@ public       void       Method      (       )           {
         var a = (int)1;
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3565,7 +3565,7 @@ public       void       Method      (       )           {
         Main(args: null);
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(539259, "DevDiv")]
@@ -3589,7 +3589,7 @@ public       void       Method      (       )           {
             delegate (int x) { return x; });
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(539338, "DevDiv")]
@@ -3605,7 +3605,7 @@ public       void       Method      (       )           {
 {
     public static string Foo { get; private set; }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(539358, "DevDiv")]
@@ -3621,7 +3621,7 @@ public       void       Method      (       )           {
 #if true
 #endif
 ";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(539542, "DevDiv")]
@@ -3649,7 +3649,7 @@ class Program
     }
 }
 ";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(539587, "DevDiv")]
@@ -3671,7 +3671,7 @@ class Program
         long b = //
         }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(539616, "DevDiv")]
@@ -3693,7 +3693,7 @@ class Program
     {
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3712,7 +3712,7 @@ class Program
     {
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3758,7 +3758,7 @@ System.Console.WriteLine(""a"");
         }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3790,7 +3790,7 @@ class Program
         };
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3820,7 +3820,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3842,7 +3842,7 @@ class Program
         int i = - -1 + + +1 + -+1 + -+1;
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3871,7 +3871,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3900,7 +3900,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3929,7 +3929,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3952,7 +3952,7 @@ class Program
         object o2 = null ?? null;
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -3983,7 +3983,7 @@ class C
                    select w;
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4008,7 +4008,7 @@ class C
                    select x into
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4029,7 +4029,7 @@ class C
     {
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4064,7 +4064,7 @@ class C
         }, isThreadSafe: true);
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4092,7 +4092,7 @@ class innerClass
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4104,7 +4104,7 @@ class innerClass
 
             var expected = @"			       W   )b";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4122,7 +4122,7 @@ class innerClass
     a,,
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4164,7 +4164,7 @@ class innerClass
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4205,7 +4205,7 @@ class innerClass
 
             Assert.NotNull(property);
 
-            var newProperty = await Formatter.FormatAsync(property, new AdhocWorkspace()).ConfigureAwait(true);
+            var newProperty = await Formatter.FormatAsync(property, new AdhocWorkspace());
 
             Assert.Equal(expected, newProperty.ToFullString());
         }
@@ -4239,7 +4239,7 @@ class Program
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4279,7 +4279,7 @@ class Program
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4318,7 +4318,7 @@ class Program
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4386,7 +4386,7 @@ class foo : System.Object
     }
 }";
 
-            await AssertFormatAsync(expectedFormattedText, text).ConfigureAwait(true);
+            await AssertFormatAsync(expectedFormattedText, text);
         }
 
         [Fact]
@@ -4417,7 +4417,7 @@ case 1: break; case 2: break; default: break;}
         }
     }
 }";
-            await AssertFormatAsync(expectedCode, code).ConfigureAwait(true);
+            await AssertFormatAsync(expectedCode, code);
         }
 
         [Fact]
@@ -4438,7 +4438,7 @@ case 1: break; case 2: break; default: break;}
 
 #line hidden";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4458,7 +4458,7 @@ public class A : Attribute
     public int[] X;
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4486,7 +4486,7 @@ public class A : Attribute
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4518,7 +4518,7 @@ using (null)
 }
 ";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4528,7 +4528,7 @@ using (null)
         {
             var code = "\u001A";
 
-            await AssertFormatAsync("", code).ConfigureAwait(true);
+            await AssertFormatAsync("", code);
         }
 
         [Fact]
@@ -4550,7 +4550,7 @@ using (null)
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4596,7 +4596,7 @@ using (null)
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4630,7 +4630,7 @@ foo:
         }
     }
 }";
-            await AssertFormatAsync(expected, code, false, changingOptions).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, false, changingOptions);
         }
 
         [Fact]
@@ -4657,7 +4657,7 @@ foo:
         }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4682,7 +4682,7 @@ foo:
                select c;
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4745,7 +4745,7 @@ class C
    List<bool> b
     );
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -4758,7 +4758,7 @@ class C
 
             var expected = @"var alwaysTriggerList = new[]
     Dim triggerOnlyWithLettersList =";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(769342, "DevDiv")]
@@ -4783,7 +4783,7 @@ class C
     class Program
     {
     }
-}", changedOptionSet: optionSet).ConfigureAwait(true);
+}", changedOptionSet: optionSet);
         }
 
         [WorkItem(797278, "DevDiv")]
@@ -4875,7 +4875,7 @@ class Program
     }
 }";
             var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceWithinOtherParentheses, true } };
-            await AssertFormatAsync(expected, code, changedOptionSet: optionSet).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -4950,7 +4950,7 @@ class Program
     }
 }";
             var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword, false } };
-            await AssertFormatAsync(expected, code, changedOptionSet: optionSet).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
         [WorkItem(766212, "DevDiv")]
@@ -4975,7 +4975,7 @@ class Program
         var digits = new List<int> { 1, 2, 3, 4 };
     }
 }";
-            await AssertFormatAsync(expectedDefault, code).ConfigureAwait(true);
+            await AssertFormatAsync(expectedDefault, code);
 
             var expectedAfterCommaDisabled = @"
 class Program
@@ -4987,7 +4987,7 @@ class Program
     }
 }";
             var optionSet = new Dictionary<OptionKey, object> { { CSharpFormattingOptions.SpaceAfterComma, false } };
-            await AssertFormatAsync(expectedAfterCommaDisabled, code, changedOptionSet: optionSet).ConfigureAwait(true);
+            await AssertFormatAsync(expectedAfterCommaDisabled, code, changedOptionSet: optionSet);
 
             var expectedBeforeCommaEnabled = @"
 class Program
@@ -4999,7 +4999,7 @@ class Program
     }
 }";
             optionSet.Add(CSharpFormattingOptions.SpaceBeforeComma, true);
-            await AssertFormatAsync(expectedBeforeCommaEnabled, code, changedOptionSet: optionSet).ConfigureAwait(true);
+            await AssertFormatAsync(expectedBeforeCommaEnabled, code, changedOptionSet: optionSet);
         }
 
         [Fact]
@@ -5040,7 +5040,7 @@ class C
     }
 }
 ";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -5101,7 +5101,7 @@ class C
     }
 }
 ";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -5136,7 +5136,7 @@ class C
     }
 }
 ";
-            await AssertFormatAsync(expected, code, false, changingOptions).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, false, changingOptions);
         }
 
         [Fact]
@@ -5173,7 +5173,7 @@ class Program
     }
 }
 ";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
@@ -5245,8 +5245,8 @@ class Program
 ";
             var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
 
-            await AssertFormatAsync(expected, code, changedOptionSet: optionSet).ConfigureAwait(true);
-            await AssertFormatAsync(expected, expected, changedOptionSet: optionSet).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
+            await AssertFormatAsync(expected, expected, changedOptionSet: optionSet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5265,7 +5265,7 @@ namespace N
 }";
 
             var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.WrappingPreserveSingleLine, false } };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5283,7 +5283,7 @@ class C
 }";
 
             var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.WrappingPreserveSingleLine, false } };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5309,7 +5309,7 @@ class Program
 }";
 
             var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false } };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5340,7 +5340,7 @@ class Program
                 { SpaceBeforeComma, false },
                 { SpaceAfterComma, false },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5371,7 +5371,7 @@ class Program
                 { SpaceBeforeComma, false },
                 { SpaceAfterComma, true },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5402,7 +5402,7 @@ class Program
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, false },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5433,7 +5433,7 @@ class Program
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, true },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5464,7 +5464,7 @@ class Program
                 { SpaceBeforeComma, false },
                 { SpaceAfterComma, false },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5495,7 +5495,7 @@ class Program
                 { SpaceBeforeComma, false },
                 { SpaceAfterComma, true },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5526,7 +5526,7 @@ class Program
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, false },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5557,7 +5557,7 @@ class Program
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, true },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5588,7 +5588,7 @@ class Program
                 { SpaceBeforeComma, false },
                 { SpaceAfterComma, false },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5619,7 +5619,7 @@ class Program
                 { SpaceBeforeComma, false },
                 { SpaceAfterComma, true },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5650,7 +5650,7 @@ class Program
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, false },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5681,7 +5681,7 @@ class Program
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, true },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5712,7 +5712,7 @@ class Program
                 { SpaceBeforeComma, false },
                 { SpaceAfterComma, false },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5743,7 +5743,7 @@ class Program
                 { SpaceBeforeComma, false },
                 { SpaceAfterComma, true },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5774,7 +5774,7 @@ class Program
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, false },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5805,7 +5805,7 @@ class Program
                 { SpaceBeforeComma, true },
                 { SpaceAfterComma, true },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5828,7 +5828,7 @@ class Program
                 { CSharpFormattingOptions.SpaceWithinSquareBrackets, true },
                 { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, false }
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5847,7 +5847,7 @@ class Program
 }";
 
             var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBeforeOpenSquareBracket, true } };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -5866,7 +5866,7 @@ class Program
 }";
 
             var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceWithinSquareBrackets, true } };
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [WorkItem(917351, "DevDiv")]
@@ -5901,7 +5901,7 @@ class Program
                 { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false }
             };
 
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [WorkItem(962416, "DevDiv")]
@@ -5941,7 +5941,7 @@ class Program
                 { CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false }
             };
 
-            await AssertFormatAsync(expected, code, changedOptionSet: options).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
         [WorkItem(953535, "DevDiv")]
@@ -5984,7 +5984,7 @@ class Program
     }
 }";
             var parseOptions = new CSharpParseOptions();
-            await AssertFormatAsync(expected, code, parseOptions: parseOptions).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, parseOptions: parseOptions);
         }
 
         [WorkItem(924172, "DevDiv")]
@@ -6010,7 +6010,7 @@ class Program
         int       s;
     }
 }";
-            await AssertFormatAsync(expected, code, changedOptionSet: changingOptions).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: changingOptions);
         }
 
         [WorkItem(899492, "DevDiv")]
@@ -6040,7 +6040,7 @@ class C
         M();
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(991547, "DevDiv")]
@@ -6068,7 +6068,7 @@ class C
         finally { }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6094,7 +6094,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6122,7 +6122,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6148,7 +6148,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6176,7 +6176,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6202,7 +6202,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6230,7 +6230,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6256,7 +6256,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6284,7 +6284,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6310,7 +6310,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6334,7 +6334,7 @@ class C
     }
 }";
 
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(1041787)]
@@ -6359,7 +6359,7 @@ class Program
     {
         Console.WriteLine("""");        // FooBar
     }
-}", false, optionSet).ConfigureAwait(true);
+}", false, optionSet);
         }
 
         [WorkItem(961559)]
@@ -6385,7 +6385,7 @@ class Program
     {
         Console.WriteLine("""");        /* FooBar */
     }
-}", false, optionSet).ConfigureAwait(true);
+}", false, optionSet);
         }
 
         [WorkItem(1100920)]
@@ -6404,7 +6404,7 @@ class Program
     {
         return $""{a} (index: 0x{ b}, size: { c}): ""
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [WorkItem(62)]
@@ -6445,7 +6445,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(285)]
@@ -6476,7 +6476,7 @@ class Program
 #endif
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(285)]
@@ -6507,7 +6507,7 @@ class Program
 #endif
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(285)]
@@ -6540,7 +6540,7 @@ class Program
 #endif
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(1118, "https://github.com/dotnet/roslyn/issues/1118")]
@@ -6548,7 +6548,7 @@ class Program
         public async Task DontAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
-            await Formatter.FormatAsync(block, new AdhocWorkspace()).ConfigureAwait(true);
+            await Formatter.FormatAsync(block, new AdhocWorkspace());
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
@@ -6571,7 +6571,7 @@ class Program
     static void Main(string[] args)
     {
     }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
@@ -6585,7 +6585,7 @@ class Program
     {
     }
 }";
-            await AssertFormatAsync(code, code).ConfigureAwait(true);
+            await AssertFormatAsync(code, code);
         }
 
         [Fact]
@@ -6623,7 +6623,7 @@ class Program
                 { CSharpFormattingOptions.SpaceAfterMethodCallName, true },
                 { CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true },
             };
-            await AssertFormatAsync(expected, code, changedOptionSet: optionSet).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
         [WorkItem(1298, "https://github.com/dotnet/roslyn/issues/1298")]
@@ -6653,7 +6653,7 @@ class Program
 public class ExcludeValidation
 {
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
@@ -6668,7 +6668,7 @@ public class ExcludeValidation
     {
     }
 }";
-            await AssertFormatAsync(code, code).ConfigureAwait(true);
+            await AssertFormatAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6694,7 +6694,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
@@ -6716,7 +6716,7 @@ class Program
     public static void M() { }
     public void F<T>() { }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
@@ -6740,7 +6740,7 @@ class Program
     public static void M () { }
     public void F<T> () { }
 }";
-            await AssertFormatAsync(expected, code, changedOptionSet: changingOptions).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: changingOptions);
         }
 
         [WorkItem(939, "https://github.com/dotnet/roslyn/issues/939")]
@@ -6768,7 +6768,7 @@ class Program
               };
     }
 }";
-            await AssertFormatAsync(code, code).ConfigureAwait(true);
+            await AssertFormatAsync(code, code);
         }
 
         [WorkItem(1184285)]
@@ -6790,7 +6790,7 @@ class Program
         var sample = new Dictionary<string, string> { [""x""] = ""d"", [""z""] = ""XX"" };
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
@@ -6825,7 +6825,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAsync(expected, code).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code);
         }
 
         [WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
@@ -6863,7 +6863,7 @@ class Program
         }
     }
 }";
-            await AssertFormatAsync(expected, code, changedOptionSet: changingOptions).ConfigureAwait(true);
+            await AssertFormatAsync(expected, code, changedOptionSet: changingOptions);
         }
 
         [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
@@ -6884,7 +6884,7 @@ class Program
 	{
 		return // Note the missing semicolon
 	} // The tab here should stay a tab
-}", changedOptionSet: optionSet).ConfigureAwait(true);
+}", changedOptionSet: optionSet);
         }
 
         [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
@@ -6907,7 +6907,7 @@ class Program
 	public Foo(readonly string bar)
 	{
 	}
-}", changedOptionSet: optionSet).ConfigureAwait(true);
+}", changedOptionSet: optionSet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6944,7 +6944,7 @@ class Program
     {
         return 42; 
     }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -6981,7 +6981,7 @@ class Program
     {
         return 42; 
     }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -7018,7 +7018,7 @@ class Program
     {
         return 42; 
     }
-}", false, changingOptions).ConfigureAwait(true);
+}", false, changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -7036,7 +7036,7 @@ class C
 }
 ";
 
-            await AssertFormatAsync(code, code).ConfigureAwait(true);
+            await AssertFormatAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -7057,7 +7057,7 @@ class C
 class C
 {
     string  Name    {    get    ;   set     ;    }
-}", changedOptionSet: changedOptionSet).ConfigureAwait(true);
+}", changedOptionSet: changedOptionSet);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -7080,7 +7080,7 @@ class Program
         [System.Diagnostics.DebuggerStepThrough]
         get { return 10; }
     }
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -7095,7 +7095,7 @@ class Program
 class Program
 {
     public int SomeProperty {    [SomeAttribute] get;    [SomeAttribute] private set; }
-}").ConfigureAwait(true);
+}");
         }
     }
 }

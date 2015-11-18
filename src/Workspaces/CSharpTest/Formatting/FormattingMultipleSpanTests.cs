@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             var content = @"namespace A{/*1*/}/*2*/";
             var expected = @"namespace A{}";
 
-            await AssertFormatAsync(content, expected).ConfigureAwait(true);
+            await AssertFormatAsync(content, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Simple1()
         {
-            await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}").ConfigureAwait(true);
+            await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -48,7 +48,7 @@ class A /*1*/{}/*2*/";
 
 class A { }";
 
-            await AssertFormatAsync(content, expected).ConfigureAwait(true);
+            await AssertFormatAsync(content, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -66,7 +66,7 @@ class A /*1*/{}/*2*/";
 
 class A { }";
 
-            await AssertFormatAsync(content, expected).ConfigureAwait(true);
+            await AssertFormatAsync(content, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -84,7 +84,7 @@ class A{}/*2*/";
 
 class A { }";
 
-            await AssertFormatAsync(content, expected).ConfigureAwait(true);
+            await AssertFormatAsync(content, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -102,7 +102,7 @@ class A{}/*2*/";
 
 class A { }";
 
-            await AssertFormatAsync(content, expected).ConfigureAwait(true);
+            await AssertFormatAsync(content, expected);
         }
 
         [Fact]
@@ -127,7 +127,7 @@ class A { }";
 }";
             var changingOptions = new Dictionary<OptionKey, object>();
             changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
-            await AssertFormatAsync(code, expected, changedOptionSet: changingOptions).ConfigureAwait(true);
+            await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
         [Fact]
@@ -152,7 +152,7 @@ class A { }";
 }";
             var changingOptions = new Dictionary<OptionKey, object>();
             changingOptions.Add(CSharpFormattingOptions.WrappingPreserveSingleLine, false);
-            await AssertFormatAsync(code, expected, changedOptionSet: changingOptions).ConfigureAwait(true);
+            await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
         [WorkItem(539231, "DevDiv")]
