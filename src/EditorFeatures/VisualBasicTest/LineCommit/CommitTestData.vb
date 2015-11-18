@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 End If
 
                 Dim realCommitFormatter As New CommitFormatter()
-                Await realCommitFormatter.CommitRegionAsync(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken).ConfigureAwait(True)
+                Await realCommitFormatter.CommitRegionAsync(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
             End Function
         End Class
     End Class

@@ -166,7 +166,7 @@ index:=1)
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Sub Main() \n Call New Foo.[|Bar|]() \n End Sub \n End Class"),
 NewLines("Namespace Foo \n Friend Class Bar \n Public Sub New() \n End Sub \n End Class \n End Namespace"),
 expectedContainers:={"Foo"},
-expectedDocumentName:="Bar.vb").ConfigureAwait(True)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -175,7 +175,7 @@ expectedDocumentName:="Bar.vb").ConfigureAwait(True)
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim x As New [|Foo|] \n End Sub \n End Module"),
 NewLines("Friend Class Foo \n End Class"),
 expectedContainers:=Array.Empty(Of String)(),
-expectedDocumentName:="Foo.vb").ConfigureAwait(True)
+expectedDocumentName:="Foo.vb")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -282,7 +282,7 @@ NewLines("Imports [|System|]"))
 NewLines("Class Base \n Sub Main \n Dim p = New [|Derived|]() \n End Sub \n End Class"),
 NewLines("Friend Class Derived \n Public Sub New() \n End Sub \n End Class"),
 expectedContainers:=Array.Empty(Of String)(),
-expectedDocumentName:="Derived.vb").ConfigureAwait(True)
+expectedDocumentName:="Derived.vb")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
