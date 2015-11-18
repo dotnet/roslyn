@@ -30,13 +30,11 @@ namespace RunTests
             }
         }
 
-        private readonly string _xunitConsolePath;
-        private readonly bool _useHtml;
+        private readonly Options _options;
 
-        internal TestRunner(string xunitConsolePath, bool useHtml)
+        internal TestRunner(Options options)
         {
-            _xunitConsolePath = xunitConsolePath;
-            _useHtml = useHtml;
+            this._options = options;
         }
 
         internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
@@ -120,8 +118,8 @@ namespace RunTests
             try
             { 
                 var assemblyName = Path.GetFileName(assemblyPath);
-                var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults");
-                var resultsFile = Path.Combine(resultsDir, $"{assemblyName}.{(_useHtml ? "html" : "xml")}");
+                var resultsFile = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{(_options.UseHtml ? "html" : "xml")}");
+                var resultsDir = Path.GetDirectoryName(resultsFile);
                 var outputLogPath = Path.Combine(resultsDir, $"{assemblyName}.out.log");
 
                 // NOTE: xUnit doesn't always create the log directory
@@ -133,13 +131,31 @@ namespace RunTests
 
                 var builder = new StringBuilder();
                 builder.AppendFormat(@"""{0}""", assemblyPath);
-                builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsFile);
+                builder.AppendFormat(@" -{0} ""{1}""", _options.UseHtml ? "html" : "xml", resultsFile);
                 builder.Append(" -noshadow -verbose");
+
+                if (!string.IsNullOrWhiteSpace(_options.Trait))
+                {
+                    var traits = _options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var trait in traits)
+                    {
+                        builder.AppendFormat(" -trait {0}", trait);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(_options.NoTrait))
+                {
+                    var traits = _options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var trait in traits)
+                    {
+                        builder.AppendFormat(" -notrait {0}", trait);
+                    }
+                }
 
                 var errorOutput = new StringBuilder();
                 var start = DateTime.UtcNow;
 
-                var xunitPath = _xunitConsolePath;
+                var xunitPath = _options.XunitPath;
                 var processOutput = await ProcessRunner.RunProcessAsync(
                     xunitPath,
                     builder.ToString(),
@@ -173,7 +189,7 @@ namespace RunTests
                         File.Delete(resultsFile);
                     }
 
-                    errorOutput.AppendLine($"Command: {_xunitConsolePath} {builder}");
+                    errorOutput.AppendLine($"Command: {_options.XunitPath} {builder}");
                     errorOutput.AppendLine($"xUnit output: {outputLogPath}");
 
                     if (processOutput.ErrorLines.Any())
@@ -190,7 +206,7 @@ namespace RunTests
 
                     // If the results are html, use Process.Start to open in the browser.
 
-                    if (_useHtml && resultData.Length > 0)
+                    if (_options.UseHtml && resultData.Length > 0)
                     {
                         Process.Start(resultsFile);
                     }
@@ -200,7 +216,7 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {assemblyPath} with {_xunitConsolePath}. {ex}");
+                throw new Exception($"Unable to run {assemblyPath} with {_options.XunitPath}. {ex}");
             }
         }
 

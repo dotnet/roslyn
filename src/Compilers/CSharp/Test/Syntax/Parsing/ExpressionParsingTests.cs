@@ -509,6 +509,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConditional02()
+        {
+            // ensure that ?: has lower precedence than assignment.
+            var text = "a ? b=c : d=e";
+            var expr = this.ParseExpression(text);
+            Assert.Equal(SyntaxKind.ConditionalExpression, expr.Kind());
+            Assert.False(expr.HasErrors);
+        }
+
+        [Fact]
         public void TestCast()
         {
             var text = "(a) b";
