@@ -1389,24 +1389,9 @@ class Test
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestAddStaticType3()
         {
-            var initialText =
-@"using System;
-
-public static class Outer
-{
-    public class Inner
-    {
-        [AttributeUsage(AttributeTargets.All)]
-        public class MyAttribute : Attribute
-        {
-        }
-    }
-}
-
-[[|My|]]
-class Test
-{}";
-            await TestMissingAsync(initialText);
+            await TestAsync(
+             @"using System ; public static class Outer { public class Inner { [ AttributeUsage ( AttributeTargets . All ) ] public class MyAttribute : Attribute { } } } [ [|My|] ] class Test { } ",
+             @"using System ; using static Outer . Inner ; public static class Outer { public class Inner { [ AttributeUsage ( AttributeTargets . All ) ] public class MyAttribute : Attribute { } } } [ My ] class Test { } ");
         }
 
         [WorkItem(773614)]
