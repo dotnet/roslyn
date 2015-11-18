@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     if (openDocuments)
                     {
-                        await workspace.OnDocumentOpenedAsync(document.Id, document.GetOpenTextContainer(), isCurrentContext: !document.IsLinkFile).ConfigureAwait(true);
+                        await workspace.OnDocumentOpenedAsync(document.Id, document.GetOpenTextContainer(), isCurrentContext: !document.IsLinkFile);
                     }
 
                     workspace.Documents.Add(document);

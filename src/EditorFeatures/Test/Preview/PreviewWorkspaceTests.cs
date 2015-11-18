@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 //// enable preview diagnostics
                 previewWorkspace.EnableDiagnostic();
 
-                var spans = await SquiggleUtilities.GetErrorSpans(workspace).ConfigureAwait(true);
+                var spans = await SquiggleUtilities.GetErrorSpans(workspace);
                 Assert.Equal(1, spans.Count);
             }
         }
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                 // create a diff view
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-                var diffView = (IWpfDifferenceViewer)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None).ConfigureAwait(true));
+                var diffView = (IWpfDifferenceViewer)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None));
 
                 var foregroundService = workspace.GetService<IForegroundNotificationService>();
                 var optionsService = workspace.Services.GetService<IOptionService>();
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                         }
 
                         // wait taggers
-                        await waiter.CreateWaitTask().ConfigureAwait(true);
+                        await waiter.CreateWaitTask();
 
                         // check left buffer
                         var leftSnapshot = leftBuffer.CurrentSnapshot;

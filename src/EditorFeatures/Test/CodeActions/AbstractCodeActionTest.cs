@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             var operations = VerifyInputsAndGetOperations(index, actions);
 
-            await VerifyPreviewContents(workspace, expectedPreviewContents, operations).ConfigureAwait(true);
+            await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
             applyChangesOperation.Apply(workspace, CancellationToken.None);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedPreviewContents != null)
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-                var content = await editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().ConfigureAwait(true);
+                var content = await editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync();
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 var previewContents = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();

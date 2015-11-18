@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
             }
 
-            await asyncListener.CreateWaitTask().ConfigureAwait(true);
+            await asyncListener.CreateWaitTask();
         }
     }
 
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 using (var disposable = tagger as IDisposable)
                 {
                     // test first update
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     var text = document.GetTextAsync().Result;
                     workspace.TryApplyChanges(document.WithText(text.WithChanges(new TextChange(new TextSpan(text.Length - 1, 1), string.Empty))).Project.Solution);
 
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
 
                     snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 using (var disposable = tagger2 as IDisposable)
                 {
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger2.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using (var wrapper = new DiagnosticTaggerWrapper(workspace, analyzerMap: null, createTaggerProvider: false))
             {
                 // First, make sure all diagnostics have been reported.
-                await wrapper.WaitForTags().ConfigureAwait(true);
+                await wrapper.WaitForTags();
 
                 // Now make the tagger.
                 var taggerProvider = wrapper.TaggerProvider;
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger1 as IDisposable)
                 {
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
 
                     // We should have tags at this point.
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         public async Task AssertNoTag()
         {
-            await WaitForAsyncOperationsAsync().ConfigureAwait(true);
+            await WaitForAsyncOperationsAsync();
 
             var tags = _tagger.GetTags(_view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         public async Task AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false)
         {
-            await WaitForAsyncOperationsAsync().ConfigureAwait(true);
+            await WaitForAsyncOperationsAsync();
 
             var tags = _tagger.GetTags(_view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private async Task WaitForAsyncOperationsAsync()
         {
             var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            await waiters.WaitAllAsync().ConfigureAwait(true);
+            await waiters.WaitAllAsync();
         }
 
         public void Dispose()
