@@ -5282,7 +5282,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid real literal.
+        ///   Looks up a localized string similar to Invalid real literal..
         /// </summary>
         internal static string ERR_InvalidReal {
             get {
