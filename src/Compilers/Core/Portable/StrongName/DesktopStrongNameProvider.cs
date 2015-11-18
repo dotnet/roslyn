@@ -6,9 +6,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
+
                 try
                 {
                     string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath);
@@ -196,7 +197,8 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                    ReadKeysFromPath(resolvedKeyFile, out keyPair, out publicKey);
+                    var fileContent = ImmutableArray.Create(ReadAllBytes(resolvedKeyFile));
+                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
                 }
                 catch (IOException ex)
                 {
@@ -231,29 +233,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void ReadKeysFromPath(string fullPath, out ImmutableArray<byte> keyPair, out ImmutableArray<byte> publicKey)
-        {
-            byte[] fileContent;
-            try
-            {
-                fileContent = ReadAllBytes(fullPath);
-                if (IsPublicKeyBlob(fileContent))
-                {
-                    publicKey = ImmutableArray.CreateRange(fileContent);
-                    keyPair = default(ImmutableArray<byte>);
-                }
-                else
-                {
-                    publicKey = GetPublicKey(fileContent);
-                    keyPair = ImmutableArray.CreateRange(fileContent);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new IOException(ex.Message);
-            }
-        }
-
         /// <exception cref="IOException"></exception>
         internal override void SignAssembly(StrongNameKeys keys, Stream inputStream, Stream outputStream)
         {
@@ -277,12 +256,6 @@ namespace Microsoft.CodeAnalysis
                 fileToSign.CopyTo(outputStream);
             }
         }
-
-        //Last seen key file blob and corresponding public key.
-        //In IDE typing scenarios we often need to infer public key from the same 
-        //key file blob repeatedly and it is relatively expensive.
-        //So we will store last seen blob and corresponding key here.
-        private static Tuple<byte[], ImmutableArray<byte>> s_lastSeenKeyPair;
 
         // EDMAURER in the event that the key is supplied as a file,
         // this type could get an instance member that caches the file
@@ -310,83 +283,6 @@ namespace Microsoft.CodeAnalysis
             strongName.StrongNameFreeBuffer(keyBlob);
 
             return pubKey.AsImmutableOrNull();
-        }
-
-        //The definition of a public key blob from StrongName.h
-
-        //typedef struct {
-        //    unsigned int SigAlgId;
-        //    unsigned int HashAlgId;
-        //    ULONG cbPublicKey;
-        //    BYTE PublicKey[1]
-        //} PublicKeyBlob; 
-
-        //__forceinline bool IsValidPublicKeyBlob(const PublicKeyBlob *p, const size_t len)
-        //{
-        //    return ((VAL32(p->cbPublicKey) + (sizeof(ULONG) * 3)) == len &&         // do the lengths match?
-        //            GET_ALG_CLASS(VAL32(p->SigAlgID)) == ALG_CLASS_SIGNATURE &&     // is it a valid signature alg?
-        //            GET_ALG_CLASS(VAL32(p->HashAlgID)) == ALG_CLASS_HASH);         // is it a valid hash alg?
-        //}
-
-        private static uint GET_ALG_CLASS(uint x) { return x & (7 << 13); }
-
-        internal static unsafe bool IsPublicKeyBlob(byte[] keyFileContents)
-        {
-            const uint ALG_CLASS_SIGNATURE = 1 << 13;
-            const uint ALG_CLASS_HASH = 4 << 13;
-
-            if (keyFileContents.Length < (4 * 3))
-            {
-                return false;
-            }
-
-            fixed (byte* p = keyFileContents)
-            {
-                return (GET_ALG_CLASS((uint)Marshal.ReadInt32((IntPtr)p)) == ALG_CLASS_SIGNATURE) &&
-                    (GET_ALG_CLASS((uint)Marshal.ReadInt32((IntPtr)p, 4)) == ALG_CLASS_HASH) &&
-                    (Marshal.ReadInt32((IntPtr)p, 8) + (4 * 3) == keyFileContents.Length);
-            }
-        }
-
-        // internal for testing
-        /// <exception cref="IOException"/>
-        internal ImmutableArray<byte> GetPublicKey(byte[] keyFileContents)
-        {
-            try
-            {
-                var lastSeen = s_lastSeenKeyPair;
-                if (lastSeen != null && ByteSequenceComparer.Equals(lastSeen.Item1, keyFileContents))
-                {
-                    return lastSeen.Item2;
-                }
-
-                IClrStrongName strongName = GetStrongNameInterface();
-
-                IntPtr keyBlob;
-                int keyBlobByteCount;
-
-                //EDMAURER use marshal to be safe?
-                unsafe
-                {
-                    fixed (byte* p = keyFileContents)
-                    {
-                        strongName.StrongNameGetPublicKey(null, (IntPtr)p, keyFileContents.Length, out keyBlob, out keyBlobByteCount);
-                    }
-                }
-
-                byte[] pubKey = new byte[keyBlobByteCount];
-                Marshal.Copy(keyBlob, pubKey, 0, keyBlobByteCount);
-                strongName.StrongNameFreeBuffer(keyBlob);
-
-                var result = pubKey.AsImmutableOrNull();
-                s_lastSeenKeyPair = Tuple.Create(keyFileContents, result);
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                throw new IOException(ex.Message);
-            }
         }
 
         /// <exception cref="IOException"/>

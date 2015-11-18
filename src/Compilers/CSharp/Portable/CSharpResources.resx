@@ -4672,6 +4672,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidPathMap" xml:space="preserve">
     <value>The pathmap option was incorrectly formatted.</value>
   </data>
+  <data name="ERR_PublicSignButNoKey" xml:space="preserve">
+    <value>Public signing was specified and requires a public key, but no public key was specified.</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>
   </data>

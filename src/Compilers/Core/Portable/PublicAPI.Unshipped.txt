@@ -1,14 +1,16 @@
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", bool elasticTrivia = false) -> TNode
-Microsoft.CodeAnalysis.CommandLineArguments.PathMap.get -> System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>>
 Microsoft.CodeAnalysis.CommandLineArguments.InteractiveMode.get -> bool
+Microsoft.CodeAnalysis.CommandLineArguments.PathMap.get -> System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>>
 Microsoft.CodeAnalysis.CommandLineArguments.ScriptArguments.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.CommandLineArguments.SourcePaths.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Compilation.ScriptClass.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.ScriptCompilationInfo.get -> Microsoft.CodeAnalysis.ScriptCompilationInfo
 Microsoft.CodeAnalysis.Compilation.WithScriptCompilationInfo(Microsoft.CodeAnalysis.ScriptCompilationInfo info) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.CompilationOptions.Deterministic.get -> bool
+Microsoft.CodeAnalysis.CompilationOptions.PublicSign.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.ReportSuppressedDiagnostics.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.WithDeterministic(bool deterministic) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithPublicSign(bool publicSign) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationOptions.WithReportSuppressedDiagnostics(bool value) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.Diagnostic.GetSuppressionInfo(Microsoft.CodeAnalysis.Compilation compilation) -> Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo
 Microsoft.CodeAnalysis.DiagnosticDescriptor.GetEffectiveSeverity(Microsoft.CodeAnalysis.CompilationOptions compilationOptions) -> Microsoft.CodeAnalysis.ReportDiagnostic
@@ -27,12 +29,12 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDia
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree tree, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.ConcurrentAnalysis.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.LogAnalyzerExecutionTime.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.OnAnalyzerException.get -> System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic>
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.ReportSuppressedDiagnostics.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo
 Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo.Attribute.get -> Microsoft.CodeAnalysis.AttributeData
@@ -54,14 +56,14 @@ Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb = 2 -> Microsoft.
 Microsoft.CodeAnalysis.MetadataReference.MetadataReference(Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
 Microsoft.CodeAnalysis.MethodKind.LocalFunction = 17 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.ParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
-Microsoft.CodeAnalysis.SourceFileResolver.PathMap.get -> System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>>
-Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.Immutable.ImmutableArray<string> searchPaths, string baseDirectory, System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>> pathMap) -> void
 Microsoft.CodeAnalysis.ScriptCompilationInfo
 Microsoft.CodeAnalysis.ScriptCompilationInfo.GlobalsType.get -> System.Type
 Microsoft.CodeAnalysis.ScriptCompilationInfo.PreviousScriptCompilation.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.ScriptCompilationInfo.ReturnType.get -> System.Type
 Microsoft.CodeAnalysis.ScriptCompilationInfo.WithPreviousScriptCompilation(Microsoft.CodeAnalysis.Compilation compilation) -> Microsoft.CodeAnalysis.ScriptCompilationInfo
 Microsoft.CodeAnalysis.SourceFileResolver.Equals(Microsoft.CodeAnalysis.SourceFileResolver other) -> bool
+Microsoft.CodeAnalysis.SourceFileResolver.PathMap.get -> System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>>
+Microsoft.CodeAnalysis.SourceFileResolver.SourceFileResolver(System.Collections.Immutable.ImmutableArray<string> searchPaths, string baseDirectory, System.Collections.Immutable.ImmutableArray<System.Collections.Generic.KeyValuePair<string, string>> pathMap) -> void
 Microsoft.CodeAnalysis.StrongNameProvider.StrongNameProvider() -> void
 abstract Microsoft.CodeAnalysis.Diagnostic.IsSuppressed.get -> bool
 abstract Microsoft.CodeAnalysis.ParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
