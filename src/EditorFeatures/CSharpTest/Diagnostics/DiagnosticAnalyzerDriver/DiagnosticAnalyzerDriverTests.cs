@@ -90,7 +90,7 @@ class C
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var source = TestResource.AllInOneCSharpCode;
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(source, TestOptions.Regular))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(source, TestOptions.Regular))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 await ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(async analyzer =>

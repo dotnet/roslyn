@@ -63,7 +63,7 @@ End Class
     <WorkItem(759)>
     Public Async Function DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
-        Using Workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source)
+        Using Workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source)
             Dim document = Workspace.CurrentSolution.Projects.Single().Documents.Single()
             Await ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(
                 Async Function(analyzer) Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length), logAnalyzerExceptionAsDiagnostics:=True))

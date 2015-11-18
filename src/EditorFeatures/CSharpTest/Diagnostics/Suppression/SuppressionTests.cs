@@ -186,12 +186,10 @@ class Class
 
                         TextSpan span;
                         var document = GetDocumentAndSelectSpan(workspace, out span);
-                        var diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span)
-                            .WaitAndGetResult(CancellationToken.None);
+                        var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
                         Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                        var allFixes = fixService.GetFixesAsync(document, span, includeSuppressionFixes: true, cancellationToken: CancellationToken.None)
-                            .WaitAndGetResult(CancellationToken.None)
+                        var allFixes = (await fixService.GetFixesAsync(document, span, includeSuppressionFixes: true, cancellationToken: CancellationToken.None))
                             .SelectMany(fixCollection => fixCollection.Fixes);
 
                         var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
