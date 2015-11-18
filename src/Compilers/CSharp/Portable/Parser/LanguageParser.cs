@@ -6500,7 +6500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: allowAnyExpression))
                     {
-                        return this.ParseExpressionStatement(this.ParseQueryExpression());
+                        return this.ParseExpressionStatement(this.ParseQueryExpression(0));
                     }
                     else
                     {
@@ -10191,11 +10191,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return false;
-        }
-
-        private QueryExpressionSyntax ParseQueryExpression()
-        {
-            return ParseQueryExpression(0);
         }
 
         private QueryExpressionSyntax ParseQueryExpression(uint precedence)
