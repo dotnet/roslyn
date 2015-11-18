@@ -156,11 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private void RaiseSpansChanged()
             {
-                var handler = this.SpansChanged;
-                if (handler != null)
-                {
-                    handler();
-                }
+                this.SpansChanged?.Invoke();
             }
 
             internal IEnumerable<RenameTrackingSpan> GetRenameTrackingSpans()

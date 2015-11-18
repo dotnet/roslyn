@@ -72,8 +72,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return workspace.CurrentSolution.GetDocument(hostDocument.Id);
         }
 
-        protected FixAllScope GetFixAllScope(string annotation)
+        protected FixAllScope? GetFixAllScope(string annotation)
         {
+            if (annotation == null)
+            {
+                return null;
+            }
+
             switch (annotation)
             {
                 case "FixAllInDocument":
@@ -84,6 +89,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 case "FixAllInSolution":
                     return FixAllScope.Solution;
+
+                case "FixAllInSelection":
+                    return FixAllScope.Custom;
             }
 
             throw new InvalidProgramException("Incorrect FixAll annotation in test");
@@ -99,9 +107,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string annotation,
             string fixAllActionId)
         {
-            foreach (var diagnostic in diagnostics)
+            if (diagnostics.IsEmpty())
             {
-                if (annotation == null)
+                return SpecializedCollections.EmptyEnumerable<Tuple<Diagnostic, CodeFixCollection>>();
+            }
+
+            FixAllScope? scope = GetFixAllScope(annotation);
+            return GetDiagnosticAndFixes(diagnostics, provider, fixer, testDriver, document, span, scope, fixAllActionId);
+        }
+
+        private IEnumerable<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixes(
+            IEnumerable<Diagnostic> diagnostics,
+            DiagnosticAnalyzer provider,
+            CodeFixProvider fixer,
+            TestDiagnosticAnalyzerDriver testDriver,
+            Document document,
+            TextSpan span,
+            FixAllScope? scope,
+            string fixAllActionId)
+        {
+            Assert.NotEmpty(diagnostics);
+
+            if (scope == null)
+            {
+                // Simple code fix.
+                foreach (var diagnostic in diagnostics)
                 {
                     var fixes = new List<CodeFix>();
                     var context = new CodeFixContext(document, diagnostic, (a, d) => fixes.Add(new CodeFix(document.Project, a, d)), CancellationToken.None);
@@ -113,38 +143,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         yield return Tuple.Create(diagnostic, codeFix);
                     }
                 }
-                else
+            }
+            else
+            {
+                // Fix all fix.
+                var fixAllProvider = fixer.GetFixAllProvider();
+                Assert.NotNull(fixAllProvider);
+
+                var fixAllContext = GetFixAllContext(diagnostics, provider, fixer, testDriver, document, scope.Value, fixAllActionId);
+                var fixAllFix = fixAllProvider.GetFixAsync(fixAllContext).WaitAndGetResult(CancellationToken.None);
+                if (fixAllFix != null)
                 {
-                    var fixAllProvider = fixer.GetFixAllProvider();
-                    Assert.NotNull(fixAllProvider);
-                    FixAllScope scope = GetFixAllScope(annotation);
-
-                    Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync =
-                        (d, diagIds, c) =>
-                        {
-                            var root = d.GetSyntaxRootAsync().Result;
-                            var diags = testDriver.GetDocumentDiagnostics(provider, d, root.FullSpan);
-                            diags = diags.Where(diag => diagIds.Contains(diag.Id));
-                            return Task.FromResult(diags);
-                        };
-
-                    Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync =
-                        (p, includeAllDocumentDiagnostics, diagIds, c) =>
-                        {
-                            var diags = includeAllDocumentDiagnostics ?
-                                testDriver.GetAllDiagnostics(provider, p) :
-                                testDriver.GetProjectDiagnostics(provider, p);
-                            diags = diags.Where(diag => diagIds.Contains(diag.Id));
-                            return Task.FromResult(diags);
-                        };
-
-                    var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
-                    var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
-                    var fixAllContext = diagnostic.Location.IsInSource ?
-                        new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None) :
-                        new FixAllContext(document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
-                    var fixAllFix = fixAllProvider.GetFixAsync(fixAllContext).WaitAndGetResult(CancellationToken.None);
-                    if (fixAllFix != null)
+                    // Same fix applies to each diagnostic in scope.
+                    foreach (var diagnostic in diagnostics)
                     {
                         var diagnosticSpan = diagnostic.Location.IsInSource ? diagnostic.Location.SourceSpan : default(TextSpan);
                         var codeFix = new CodeFixCollection(fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)));
@@ -152,6 +163,51 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     }
                 }
             }
+        }
+
+        private static FixAllContext GetFixAllContext(
+            IEnumerable<Diagnostic> diagnostics,
+            DiagnosticAnalyzer provider,
+            CodeFixProvider fixer,
+            TestDiagnosticAnalyzerDriver testDriver,
+            Document document,
+            FixAllScope scope,
+            string fixAllActionId)
+        {
+            Assert.NotEmpty(diagnostics);
+
+            if (scope == FixAllScope.Custom)
+            {
+                // Bulk fixing diagnostics in selected scope.                    
+                var diagnosticsToFix = ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, diagnostics.ToImmutableArray())));
+                return FixMultipleContext.Create(diagnosticsToFix, fixer, fixAllActionId, CancellationToken.None);
+            }
+
+            var diagnostic = diagnostics.First();
+            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync =
+                (d, diagIds, c) =>
+                {
+                    var root = d.GetSyntaxRootAsync().Result;
+                    var diags = testDriver.GetDocumentDiagnostics(provider, d, root.FullSpan);
+                    diags = diags.Where(diag => diagIds.Contains(diag.Id));
+                    return Task.FromResult(diags);
+                };
+
+            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync =
+                (p, includeAllDocumentDiagnostics, diagIds, c) =>
+                {
+                    var diags = includeAllDocumentDiagnostics ?
+                        testDriver.GetAllDiagnostics(provider, p) :
+                        testDriver.GetProjectDiagnostics(provider, p);
+                    diags = diags.Where(diag => diagIds.Contains(diag.Id));
+                    return Task.FromResult(diags);
+                };
+
+            var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
+            var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            return diagnostic.Location.IsInSource ?
+                new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None) :
+                new FixAllContext(document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
         }
 
         protected void TestEquivalenceKey(string initialMarkup, string equivalenceKey)

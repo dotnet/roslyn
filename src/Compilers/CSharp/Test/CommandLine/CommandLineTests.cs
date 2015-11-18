@@ -91,6 +91,47 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
+        // This test should only run when the machine's default encoding is shift-JIS
+        [ConditionalFact(typeof(HasShiftJisDefaultEncoding))]
+        public void CompileShiftJisOnShiftJis()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("sjis.cs").WriteAllBytes(TestResources.General.ShiftJisSource);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", src.Path });
+
+            Assert.Null(cmd.Arguments.Encoding);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+
+            var result = ProcessUtilities.Run(Path.Combine(dir.Path, "sjis.exe"), arguments: "", workingDirectory: dir.Path);
+            Assert.Equal(0, result.ExitCode);
+            Assert.Equal("星野 八郎太", File.ReadAllText(Path.Combine(dir.Path, "output.txt"), Encoding.GetEncoding(932)));
+        }
+
+        [Fact]
+        public void RunWithShiftJisFile()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("sjis.cs").WriteAllBytes(TestResources.General.ShiftJisSource);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/codepage:932", src.Path });
+
+            Assert.Equal(932, cmd.Arguments.Encoding?.WindowsCodePage);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+
+            var result = ProcessUtilities.Run(Path.Combine(dir.Path, "sjis.exe"), arguments: "", workingDirectory: dir.Path);
+            Assert.Equal(0, result.ExitCode);
+            Assert.Equal("星野 八郎太", File.ReadAllText(Path.Combine(dir.Path, "output.txt"), Encoding.GetEncoding(932)));
+        }
+
         [Fact]
         [WorkItem(946954)]
         public void CompilerBinariesAreAnyCPU()
@@ -3556,6 +3597,29 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/delaysign:-"));
 
             Assert.Null(parsedArgs.CompilationOptions.DelaySign);
+        }
+
+        [Fact]
+        public void PublicSign()
+        {
+            var parsedArgs = DefaultParse(new[] { "/publicsign", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/publicsign+", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/PUBLICsign-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/publicsign:-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/publicsign:-'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/publicsign:-").WithLocation(1, 1));
+
+            Assert.False(parsedArgs.CompilationOptions.PublicSign);
         }
 
         [WorkItem(546301, "DevDiv")]
@@ -7928,12 +7992,20 @@ class C {
             Assert.Equal(KeyValuePair.Create("K2", "V2"), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new [] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(0, parsedArgs.PathMap.Length);
+            Assert.Equal(4, parsedArgs.Errors.Count());
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[3].Code);
 
             parsedArgs = DefaultParse(new [] { "/pathmap:k=,=v", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(0, parsedArgs.PathMap.Length);
+            Assert.Equal(2, parsedArgs.Errors.Count());
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[1].Code);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
+            Assert.Equal(1, parsedArgs.Errors.Count());
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
         }
     }
 

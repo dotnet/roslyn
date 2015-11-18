@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(928113)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6651")]
         public void Constants()
         {
             var source =

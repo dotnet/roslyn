@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Used for logging all compiler diagnostics into a given <see cref="Stream"/>.
     /// This logger is responsible for closing the given stream on <see cref="Dispose"/>.
+    /// The log format is SARIF (Static Analysis Results Interchange Format)
+    /// https://github.com/sarif-standard/sarif-spec
     /// </summary>
     internal partial class ErrorLogger : IDisposable
     {
@@ -51,8 +53,13 @@ namespace Microsoft.CodeAnalysis
 
             WriteSimpleKeyValuePair(WellKnownStrings.OutputFormatVersion, OutputFormatVersion, isFirst: true);
 
+            WriteKey(WellKnownStrings.RunLogs, isFirst: false);
+            StartList();
+            StartNewEntry(isFirst: true);
+            StartGroup();
+
             var toolInfo = GetToolInfo(toolName, toolFileVersion, toolAssemblyVersion);
-            WriteKeyValuePair(WellKnownStrings.ToolInfo, toolInfo, isFirst: false);
+            WriteKeyValuePair(WellKnownStrings.ToolInfo, toolInfo, isFirst: true);
 
             WriteKey(WellKnownStrings.Issues, isFirst: false);
             StartList();
@@ -63,30 +70,10 @@ namespace Microsoft.CodeAnalysis
             var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
             builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ToolName, toolName));
             builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ToolAssemblyVersion, toolAssemblyVersion.ToString(fieldCount: 3)));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ToolFileVersion, GetToolFileVersionSubStr(toolFileVersion)));
+            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ToolFileVersion, toolFileVersion));
             return Value.Create(builder.ToImmutableAndFree(), this);
         }
 
-        private string GetToolFileVersionSubStr(string toolFileVersion)
-        {
-            // Our log format specifies that fileVersion can have at most 3 fields.
-
-            int count = 0;
-            for (int i = 0; i < toolFileVersion.Length; i++)
-            {
-                if (toolFileVersion[i] == '.')
-                {
-                    if (count == 2)
-                    {
-                        return toolFileVersion.Substring(0, i);
-                    }
-
-                    count++;
-                }
-            }
-
-            return toolFileVersion;
-        }
 
         internal static void LogDiagnostic(Diagnostic diagnostic, CultureInfo culture, ErrorLogger errorLogger)
         {
@@ -170,7 +157,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSyntaxTreePath, location.SourceTree.FilePath));
+            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSyntaxTreeUri, GetUri(location.SourceTree)));
 
             var spanInfoValue = GetSpanInfoValue(location.GetLineSpan());
             builder.Add(KeyValuePair.Create(WellKnownStrings.LocationSpanInfo, spanInfoValue));
@@ -183,13 +170,30 @@ namespace Microsoft.CodeAnalysis
             return Value.Create(ImmutableArray.Create(wrapperKvp), this);
         }
 
+        private static string GetUri(SyntaxTree syntaxTree)
+        {
+            Uri uri;
+
+            if (!Uri.TryCreate(syntaxTree.FilePath, UriKind.RelativeOrAbsolute, out uri))
+            {
+                // The only constraint on SyntaxTree.FilePath is that it can be interpreted by
+                // various resolvers so there is no guarantee we can turn the arbitrary string
+                // in to a URI. If our attempt to do so fails, use the original string as the
+                // "URI".
+                return syntaxTree.FilePath;
+            }
+
+            return uri.ToString();
+        }
+
         private Value GetSpanInfoValue(FileLinePositionSpan lineSpan)
         {
+            // Note that SARIF region lines and columns are specified to be 1-based, but FileLinePositionSpan.Line and Character are 0-based.
             var builder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanStartLine, lineSpan.StartLinePosition.Line));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanStartColumn, lineSpan.StartLinePosition.Character));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanEndLine, lineSpan.EndLinePosition.Line));
-            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanEndColumn, lineSpan.EndLinePosition.Character));
+            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanStartLine, lineSpan.StartLinePosition.Line + 1));
+            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanStartColumn, lineSpan.StartLinePosition.Character + 1));
+            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanEndLine, lineSpan.EndLinePosition.Line + 1));
+            builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.LocationSpanEndColumn, lineSpan.EndLinePosition.Character + 1));
             return Value.Create(builder.ToImmutableAndFree(), this);
         }
 
@@ -225,16 +229,9 @@ namespace Microsoft.CodeAnalysis
                 builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.CustomTags, issue.CustomTags.WhereNotNull().Join(";")));
             }
 
-            if (issue.CustomProperties.Length > 0)
+            foreach (var kvp in issue.CustomProperties)
             {
-                var customPropertiesBuilder = ArrayBuilder<KeyValuePair<string, Value>>.GetInstance();
-                foreach (var kvp in issue.CustomProperties)
-                {
-                    customPropertiesBuilder.Add(CreateSimpleKeyValuePair(kvp.Key, kvp.Value));
-                }
-
-                var customPropertiesValue = Value.Create(customPropertiesBuilder.ToImmutableAndFree(), this);
-                builder.Add(KeyValuePair.Create(WellKnownStrings.CustomProperties, customPropertiesValue));
+                builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.CustomProperties + "." + kvp.Key, kvp.Value));
             }
 
             return Value.Create(builder.ToImmutableAndFree(), this);
@@ -360,6 +357,12 @@ namespace Microsoft.CodeAnalysis
         public void Dispose()
         {
             // End issues list.
+            EndList();
+
+            // End runLog entry.
+            EndGroup();
+
+            // End runLogs list.
             EndList();
 
             // End dictionary for log file key-value pairs.

@@ -493,6 +493,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return c;
         }
 
+        public static CSharpCompilation CreateSubmissionWithExactReferences(
+           string code,
+           IEnumerable<MetadataReference> references = null,
+           CSharpCompilationOptions options = null,
+           CSharpParseOptions parseOptions = null,
+           CSharpCompilation previous = null,
+           Type returnType = null,
+           Type hostObjectType = null)
+        {
+            return CSharpCompilation.CreateScriptCompilation(
+                GetUniqueName(),
+                references: references,
+                options: options,
+                syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
+                previousScriptCompilation: previous,
+                returnType: returnType,
+                globalsType: hostObjectType);
+        }
+
         public static CSharpCompilation CreateSubmission(
            string code,
            IEnumerable<MetadataReference> references = null,
@@ -534,10 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             var compilation = CreateCompilationWithMscorlib(cSharpSource, new[] { reference }, compilationOptions);
-            if (compilationVerifier != null)
-            {
-                compilationVerifier(compilation);
-            }
+            compilationVerifier?.Invoke(compilation);
 
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }

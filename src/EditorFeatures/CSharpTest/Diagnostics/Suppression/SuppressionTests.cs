@@ -168,7 +168,7 @@ class Class
 {
     void Method()
     {
-        [|int x = 0, y = 0;|]
+        [|int x = 0, y = 0; string s;|]
     }
 }";
                     using (var workspace = CreateWorkspaceFromFile(source, parseOptions: null, compilationOptions: null))
@@ -186,19 +186,28 @@ class Class
                         TextSpan span;
                         var document = GetDocumentAndSelectSpan(workspace, out span);
                         var diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span)
-                            .WaitAndGetResult(CancellationToken.None)
-                            .Where(d => d.Id == "CS0219");
-                        Assert.Equal(2, diagnostics.Count());
+                            .WaitAndGetResult(CancellationToken.None);
+                        Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                        var fixes = fixService.GetFixesAsync(document, span, includeSuppressionFixes: true, cancellationToken: CancellationToken.None)
+                        var allFixes = fixService.GetFixesAsync(document, span, includeSuppressionFixes: true, cancellationToken: CancellationToken.None)
                             .WaitAndGetResult(CancellationToken.None)
-                            .SelectMany(fixCollection => fixCollection.Fixes)
-                            .Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
+                            .SelectMany(fixCollection => fixCollection.Fixes);
+
+                        var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
 
                         // Ensure that both the fixes have identical equivalence key, and hence get de-duplicated in LB menu.
-                        Assert.Equal(2, fixes.Count());
-                        Assert.NotNull(fixes.First().Action.EquivalenceKey);
-                        Assert.Equal(fixes.First().Action.EquivalenceKey, fixes.Last().Action.EquivalenceKey);
+                        Assert.Equal(2, cs0219Fixes.Count());
+                        var cs0219EquivalenceKey = cs0219Fixes.First().Action.EquivalenceKey;
+                        Assert.NotNull(cs0219EquivalenceKey);
+                        Assert.Equal(cs0219EquivalenceKey, cs0219Fixes.Last().Action.EquivalenceKey);
+
+                        // Ensure that there *is* a fix for the other warning and that it has a *different*
+                        // equivalence key so that it *doesn't* get de-duplicated
+                        Assert.Equal(1, diagnostics.Where(d => d.Id == "CS0168").Count());
+                        var cs0168Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0168");
+                        var cs0168EquivalenceKey = cs0168Fixes.Single().Action.EquivalenceKey;
+                        Assert.NotNull(cs0168EquivalenceKey);
+                        Assert.NotEqual(cs0219EquivalenceKey, cs0168EquivalenceKey);
                     }
                 }
 
@@ -722,7 +731,7 @@ class Class
 
                     public override void Initialize(AnalysisContext context)
                     {
-                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.FieldDeclaration, SyntaxKind.EventDeclaration);
+                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.EnumDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.FieldDeclaration, SyntaxKind.EventDeclaration);
                     }
 
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -758,7 +767,17 @@ class Class
                                 var e = (EventDeclarationSyntax)context.Node;
                                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, e.Identifier.GetLocation()));
                                 break;
+
+                            case SyntaxKind.EnumDeclaration:
+                                // Report diagnostic on each descendant comment trivia
+                                foreach (var trivia in context.Node.DescendantTrivia().Where(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia || t.Kind() == SyntaxKind.MultiLineCommentTrivia))
+                                {
+                                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, trivia.GetLocation()));
+                                }
+                                break;
                         }
+
+                                                   
                     }
                 }
 
@@ -1241,6 +1260,51 @@ using System;
 class Class
 {
     [|int field = 0;|]
+}");
+                }
+
+                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
+                public void TestSuppressionOnTriviaBetweenFields()
+                {
+                    Test(
+            @"
+using System;
+
+// suppressions on field are not relevant.
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:E.Field1"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:E.Field2"")]
+
+enum E
+{
+    [|
+    Field1, // trailing trivia for comma token which doesn't belong to span of any of the fields
+    Field2
+    |]
+}",
+            $@"
+// This file is used by Code Analysis to maintain SuppressMessage 
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given 
+// a specific target and scoped to a namespace, type, member, etc.
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:E"")]
+
+");
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    TestMissing(
+            @"
+using System;
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:E"")]
+
+enum E
+{
+    [|
+    Field1, // trailing trivia for comma token which doesn't belong to span of any of the fields
+    Field2
+    |]
 }");
                 }
 

@@ -171,13 +171,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            var script = Script.CreateInitialScript<object>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
+            var script = Script.CreateInitialScript<int>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
-                script.RunAsync(globals, cancellationToken).Wait();
-
-                // TODO: use the return value of the script https://github.com/dotnet/roslyn/issues/5773
-                return CommonCompiler.Succeeded;
+                return script.RunAsync(globals, cancellationToken).Result.ReturnValue;
             }
             catch (CompilationErrorException e)
             {
@@ -196,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             if (initialScriptCodeOpt != null)
             {
                 var script = Script.CreateInitialScript<object>(_scriptCompiler, initialScriptCodeOpt, options, globals.GetType(), assemblyLoaderOpt: null);
-                TryBuildAndRun(script, globals, ref state, cancellationToken);
+                TryBuildAndRun(script, globals, ref state, ref options, cancellationToken);
             }
 
             while (true)
@@ -254,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     newScript = state.Script.ContinueWith(code, options);
                 }
 
-                if (!TryBuildAndRun(newScript, globals, ref state, cancellationToken))
+                if (!TryBuildAndRun(newScript, globals, ref state, ref options, cancellationToken))
                 {
                     continue;
                 }
@@ -266,9 +263,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private bool TryBuildAndRun(Script<object> newScript, object globals, ref ScriptState<object> state, CancellationToken cancellationToken)
+        private bool TryBuildAndRun(Script<object> newScript, InteractiveScriptGlobals globals, ref ScriptState<object> state, ref ScriptOptions options, CancellationToken cancellationToken)
         {
-            var diagnostics = newScript.Build(cancellationToken);
+            var diagnostics = newScript.Compile(cancellationToken);
             DisplayDiagnostics(diagnostics);
             if (diagnostics.HasAnyErrors())
             {
@@ -283,18 +280,49 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 state = task.GetAwaiter().GetResult();
             }
+            catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+            {
+                _console.ForegroundColor = ConsoleColor.Red;
+                _console.Out.WriteLine(e.InnerException.Message);
+                _console.ResetColor();
+
+                return false;
+            }
             catch (Exception e)
             {
                 DisplayException(e);
                 return false;
             }
 
+            options = UpdateOptions(options, globals);
+
             return true;
+        }
+
+        private static ScriptOptions UpdateOptions(ScriptOptions options, InteractiveScriptGlobals globals)
+        {
+            var currentMetadataResolver = (RuntimeMetadataReferenceResolver)options.MetadataResolver;
+            var currentSourceResolver = (CommonCompiler.LoggingSourceFileResolver)options.SourceResolver;
+
+            string newWorkingDirectory = Directory.GetCurrentDirectory();
+            var newReferenceSearchPaths = ImmutableArray.CreateRange(globals.ReferencePaths);
+            var newSourceSearchPaths = ImmutableArray.CreateRange(globals.SourcePaths);
+
+            // remove references and imports from the options, they have been applied and will be inherited from now on:
+            return options.
+                RemoveImportsAndReferences().
+                WithMetadataResolver(currentMetadataResolver.
+                    WithRelativePathResolver(
+                        currentMetadataResolver.PathResolver.
+                            WithBaseDirectory(newWorkingDirectory).
+                            WithSearchPaths(newReferenceSearchPaths))).
+                WithSourceResolver(currentSourceResolver.
+                        WithBaseDirectory(newWorkingDirectory).
+                        WithSearchPaths(newSourceSearchPaths));
         }
 
         private void DisplayException(Exception e)
         {
-            var oldColor = _console.ForegroundColor;
             try
             {
                 _console.ForegroundColor = ConsoleColor.Red;
@@ -339,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             finally
             {
-                _console.ForegroundColor = oldColor;
+                _console.ResetColor();
             }
         }
 
@@ -385,7 +413,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return (delta != 0) ? delta : d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start;
             });
 
-            var oldColor = _console.ForegroundColor;
             try
             {
                 foreach (var diagnostic in ordered.Take(MaxDisplayCount))
@@ -403,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             finally
             {
-                _console.ForegroundColor = oldColor;
+                _console.ResetColor();
             }
         }
     }

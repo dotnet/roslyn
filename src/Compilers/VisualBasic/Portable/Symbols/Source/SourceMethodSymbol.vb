@@ -2086,6 +2086,7 @@ lReportErrorOnTwoTokens:
                                                                             isOverrides:=True))
                 End If
 
+                Debug.Assert(IsDefinition)
                 Dim overridden = overriddenMembers.OverriddenMember
 
                 If overridden IsNot Nothing Then

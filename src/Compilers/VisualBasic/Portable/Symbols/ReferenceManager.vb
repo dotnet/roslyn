@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -257,17 +258,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Function CreateAndSetSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
 
                 Dim resolutionDiagnostics = DiagnosticBag.GetInstance()
+                Dim supersedeLowerVersions = compilation.IsSubmission
+                Dim assemblyReferencesBySimpleName = PooledDictionary(Of String, List(Of ReferencedAssemblyIdentity)).GetInstance()
 
                 Try
-                    Dim boundReferenceDirectiveMap As IDictionary(Of String, MetadataReference) = Nothing
+                    Dim boundReferenceDirectiveMap As IDictionary(Of ValueTuple(Of String, String), MetadataReference) = Nothing
                     Dim boundReferenceDirectives As ImmutableArray(Of MetadataReference) = Nothing
                     Dim referencedAssemblies As ImmutableArray(Of AssemblyData) = Nothing
                     Dim modules As ImmutableArray(Of PEModule) = Nothing ' To make sure the modules are not collected ahead of time.
-                    Dim references As ImmutableArray(Of MetadataReference) = Nothing
+                    Dim explicitReferences As ImmutableArray(Of MetadataReference) = Nothing
 
                     Dim referenceMap As ImmutableArray(Of ResolvedReference) = ResolveMetadataReferences(
                         compilation,
-                        references,
+                        assemblyReferencesBySimpleName,
+                        explicitReferences,
                         boundReferenceDirectiveMap,
                         boundReferenceDirectives,
                         referencedAssemblies,
@@ -284,12 +288,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim implicitlyResolvedReferenceMap As ImmutableArray(Of ResolvedReference) = Nothing
                     Dim allAssemblyData As ImmutableArray(Of AssemblyData) = Nothing
 
-                    Dim bindingResult() As BoundInputAssembly = Bind(explicitAssemblyData,
+                    Dim bindingResult() As BoundInputAssembly = Bind(compilation,
+                                                                     explicitAssemblyData,
                                                                      modules,
-                                                                     references,
+                                                                     explicitReferences,
                                                                      referenceMap,
                                                                      compilation.Options.MetadataReferenceResolver,
                                                                      compilation.Options.MetadataImportOptions,
+                                                                     supersedeLowerVersions,
+                                                                     assemblyReferencesBySimpleName,
                                                                      allAssemblyData,
                                                                      implicitlyResolvedReferences,
                                                                      implicitlyResolvedReferenceMap,
@@ -299,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(bindingResult.Length = allAssemblyData.Length)
 
-                    references = references.AddRange(implicitlyResolvedReferences)
+                    Dim references = explicitReferences.AddRange(implicitlyResolvedReferences)
                     referenceMap = referenceMap.AddRange(implicitlyResolvedReferenceMap)
 
                     Dim referencedAssembliesMap As Dictionary(Of MetadataReference, Integer) = Nothing
@@ -311,6 +318,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         references,
                         referenceMap,
                         modules.Length,
+                        referencedAssemblies.Length,
+                        assemblyReferencesBySimpleName,
+                        supersedeLowerVersions,
                         referencedAssembliesMap,
                         referencedModulesMap,
                         aliasesOfReferencedAssemblies)
@@ -385,6 +395,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     referencedModulesMap,
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
+                                    ExplicitReferences,
+                                    implicitlyResolvedReferences,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
                                     If(corLibrary Is assemblySymbol, Nothing, corLibrary),
@@ -408,6 +420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 Finally
                     resolutionDiagnostics.Free()
+                    assemblyReferencesBySimpleName.Free()
                 End Try
             End Function
 

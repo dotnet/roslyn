@@ -6,6 +6,7 @@
     "net46": { }
   },
   "runtimes": {
-    "win7-": { }
+    "win7-anycpu": { },
+    "win7": { }
   }
 }

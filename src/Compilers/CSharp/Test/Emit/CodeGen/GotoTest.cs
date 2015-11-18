@@ -1056,5 +1056,65 @@ C: \a\b\
             var symbol = model.GetDeclaredSymbol(label);
             Assert.Equal("C", symbol.Name);
         }
+
+        [Fact]
+        public void TrailingExpression()
+        {
+            var source = @"
+goto EOF;
+EOF:";
+
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            compilation.GetDiagnostics().Verify(
+                // (3,5): error CS1733: Expected expression
+                // EOF:
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 5));
+
+            compilation = CreateSubmission(source);
+            compilation.GetDiagnostics().Verify(
+                // (3,5): error CS1733: Expected expression
+                // EOF:
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 5));
+
+            source = @"
+goto EOF;
+EOF: 42";
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            compilation.GetDiagnostics().Verify(
+                // (3,8): error CS1002: ; expected
+                // EOF: 42
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 8));
+
+            source = @"
+var obj = new object();
+goto L1;
+L1:
+L2:
+EOF: obj.ToString()";
+
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            compilation.GetDiagnostics().Verify(
+                // (6,20): error CS1002: ; expected
+                // EOF: obj.ToString()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 20),
+                // (5,1): warning CS0164: This label has not been referenced
+                // L2:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L2").WithLocation(5, 1),
+                // (6,1): warning CS0164: This label has not been referenced
+                // EOF: obj.ToString()
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "EOF").WithLocation(6, 1));
+
+            compilation = CreateSubmission(source);
+            compilation.GetDiagnostics().Verify(
+                // (6,20): error CS1002: ; expected
+                // EOF: obj.ToString()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 20),
+                // (5,1): warning CS0164: This label has not been referenced
+                // L2:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L2").WithLocation(5, 1),
+                // (6,1): warning CS0164: This label has not been referenced
+                // EOF: obj.ToString()
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "EOF").WithLocation(6, 1));
+        }
     }
 }

@@ -10,13 +10,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Scripting</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -50,16 +48,16 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>Resolvers\RelativePathResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
       <Link>Resolvers\GacFileResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>Resolvers\GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>Resolvers\GlobalAssemblyCache.Location.cs</Link>
     </Compile>
     <Compile Include="Hosting\AssemblyLoader\AssemblyAndLocation.cs" />
@@ -67,6 +65,7 @@
     <Compile Include="Hosting\AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
     <Compile Include="Hosting\AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
     <Compile Include="Hosting\AssemblyLoader\AssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoaderException.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineHelpers.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineScriptGlobals.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineRunner.cs" />
@@ -101,6 +100,7 @@
     <Compile Include="ScriptSourceResolver.cs" />
     <Compile Include="ScriptState.cs" />
     <Compile Include="ScriptVariable.cs" />
+    <Compile Include="Utilities\ConsoleShims.cs" />
     <Compile Include="Utilities\IListExtensions.cs" />
     <Compile Include="Utilities\ParameterValidationHelpers.cs" />
     <Compile Include="Utilities\TaskExtensions.cs" />
@@ -108,7 +108,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
@@ -122,8 +122,8 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>

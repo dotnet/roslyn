@@ -5048,7 +5048,10 @@
 /removeintchecks[+|-]             Remove integer checks. Default off.
 /debug[+|-]                       Emit debugging information.
 /debug:full                       Emit full debugging information (default).
+/debug:portable                   Emit debugging information in the portable format.
 /debug:pdbonly                    Emit PDB file only.
+/deterministic                    Produce a deterministic assembly
+                                  (including module version GUID and timestamp)
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.
@@ -5331,5 +5334,8 @@
   </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
+  </data>
+  <data name="ERR_InvalidPathMap" xml:space="preserve">
+    <value>The pathmap option was incorrectly formatted.</value>
   </data>
 </root>

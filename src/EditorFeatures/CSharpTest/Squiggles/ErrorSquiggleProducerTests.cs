@@ -17,6 +17,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
@@ -152,6 +154,67 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public async Task TestNoErrorsAfterDocumentRemoved()
+        {
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class"))
+            using (var wrapper = new DiagnosticTaggerWrapper(workspace))
+            {
+                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                using (var disposable = tagger as IDisposable)
+                {
+                    await wrapper.WaitForTags().ConfigureAwait(true);
+
+                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+
+                    // Initially, while the buffer is associated with a Document, we should get
+                    // error squiggles.
+                    Assert.True(spans.Count > 0);
+
+                    // Now remove the document.
+                    workspace.CloseDocument(workspace.Documents.First().Id);
+                    workspace.OnDocumentRemoved(workspace.Documents.First().Id);
+                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+
+                    // And we should have no errors for this document.
+                    Assert.True(spans.Count == 0);
+                }
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public async Task TestNoErrorsAfterProjectRemoved()
+        {
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class"))
+            using (var wrapper = new DiagnosticTaggerWrapper(workspace))
+            {
+                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                using (var disposable = tagger as IDisposable)
+                {
+                    await wrapper.WaitForTags().ConfigureAwait(true);
+
+                    var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+
+                    // Initially, while the buffer is associated with a Document, we should get
+                    // error squiggles.
+                    Assert.True(spans.Count > 0);
+
+                    // Now remove the project.
+                    workspace.CloseDocument(workspace.Documents.First().Id);
+                    workspace.OnDocumentRemoved(workspace.Documents.First().Id);
+                    workspace.OnProjectRemoved(workspace.Projects.First().Id);
+                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+
+                    // And we should have no errors for this document.
+                    Assert.True(spans.Count == 0);
+                }
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task BuildErrorZeroLengthSpan()
         {
             var workspaceXml =
@@ -169,7 +232,7 @@ class Program
             {
                 var document = workspace.Documents.First();
 
-                var updateArgs = new DiagnosticsUpdatedArgs(
+                var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
                             CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
@@ -202,7 +265,7 @@ class Program
             {
                 var document = workspace.Documents.First();
 
-                var updateArgs = new DiagnosticsUpdatedArgs(
+                var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
                             CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),

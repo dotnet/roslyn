@@ -270,13 +270,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             await waiters.WaitAllAsync().ConfigureAwait(true);
         }
 
-        public void WaitForAsynchronousOperations()
-        {
-            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            var tasks = waiters.Select(w => w.CreateWaitTask()).ToList();
-            tasks.PumpingWaitAll();
-        }
-
         public void AssertMatchesTextStartingAtLine(int line, string text)
         {
             var lines = text.Split('\r');

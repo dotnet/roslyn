@@ -3,10 +3,12 @@
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 
-Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
+
     Friend NotInheritable Class VisualBasicInteractiveCompiler
         Inherits VisualBasicCompiler
 
@@ -37,4 +39,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
             sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_COMPILERTYPE, CType(SqmServiceProvider.CompilerType.Interactive, UInteger))
         End Sub
     End Class
+
 End Namespace

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private const string RegistryKey = @"Software\Microsoft\ExpressionEvaluator";
         private const string RegistryValue = "EnableFailFast";
-        private static readonly bool s_isFailFastEnabled;
+        internal static bool IsFailFastEnabled;
 
         static ExpressionEvaluatorFatalError()
         {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                     var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
                                     if ((value != null) && (value is int))
                                     {
-                                        s_isFailFastEnabled = ((int)value == 1);
+                                        IsFailFastEnabled = ((int)value == 1);
                                     }
                                 }
                             }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static bool CrashIfFailFastEnabled(Exception exception)
         {
-            if (!s_isFailFastEnabled)
+            if (!IsFailFastEnabled)
             {
                 return false;
             }

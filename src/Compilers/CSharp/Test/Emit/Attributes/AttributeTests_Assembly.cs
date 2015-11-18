@@ -809,9 +809,7 @@ public class C {}
             {
                 var peReader = metadata.MetadataReader;
                 AssemblyDefinition row = peReader.GetAssemblyDefinition();
-
-                if (verifier != null)
-                    verifier(row);
+                verifier?.Invoke(row);
 
                 // Locale
                 // temp

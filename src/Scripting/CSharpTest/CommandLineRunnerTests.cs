@@ -458,6 +458,76 @@ C4 { }
 ", runner.Console.Out.ToString());
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6523")]
+        public void SourceSearchPaths_Change1()
+        {
+            var dir = Temp.CreateDirectory();
+            var main = dir.CreateFile("a.csx").WriteAllText("int X = 1;");
+
+            var runner = CreateRunner(input: 
+$@"SourcePaths
+#load ""a.csx""
+SourcePaths.Add(@""{dir.Path}"")
+#load ""a.csx""
+X
+");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Microsoft (R) Visual C# Interactive Compiler version 42.42.42.42
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> SourcePaths
+SearchPaths {{ }}
+> #load ""a.csx""
+«Red»
+(1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.
+«Gray»
+> SourcePaths.Add(@""{dir.Path}"")
+> #load ""a.csx""
+> X
+1
+> 
+", runner.Console.Out.ToString());
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6523")]
+        public void ReferenceSearchPaths_Change1()
+        {
+            var dir = Temp.CreateDirectory();
+            var main = dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
+
+            var runner = CreateRunner(input:
+$@"ReferencePaths
+#r ""C.dll""
+ReferencePaths.Add(@""{dir.Path}"")
+#r ""C.dll""
+new C()
+");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Microsoft (R) Visual C# Interactive Compiler version 42.42.42.42
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> ReferencePaths
+SearchPaths {{ }}
+> #r ""C.dll""
+«Red»
+(1,1): error CS0006: Metadata file 'C.dll' could not be found
+«Gray»
+> ReferencePaths.Add(@""{dir.Path}"")
+> #r ""C.dll""
+> new C()
+C {{ }}
+> 
+", runner.Console.Out.ToString());
+        }
+
         [Fact]
         public void ResponseFile()
         {
@@ -498,6 +568,47 @@ C4 { }
         }
 
         [Fact]
+        public void InitialScript1()
+        {
+            var init = Temp.CreateFile(extension: ".csx").WriteAllText(@"
+int X = 1;
+");
+            var runner = CreateRunner(new[] { "/i", init.Path }, input: 
+@"X");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+> X
+1
+> 
+", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void InitialScript_Error()
+        {
+            var reference = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C1);
+
+            var init = Temp.CreateFile(extension: ".csx").WriteAllText(@"
+1 1
+");
+            var runner = CreateRunner(new[] { $@"/r:""{reference.Path}""", "/i", init.Path }, input:
+@"new C()");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+«Red»
+{init.Path}(2,3): error CS1002: ; expected
+«Gray»
+> new C()
+C {{ }}
+> 
+", runner.Console.Out.ToString());
+        }
+
+        [Fact]
         public void HelpCommand()
         {
             var runner = CreateRunner(input:
@@ -518,6 +629,81 @@ Keyboard shortcuts:
   DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
 REPL commands:
   #help         Display help on available commands and key bindings.
+Script directives:
+  #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r ""myLib.dll"".
+  #load         Load specified script file and execute it, e.g. #load ""myScript.csx"".
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void SharedLibCopy_Different()
+        {
+            string libBaseName = "LibBase_" + Guid.NewGuid();
+            string lib1Name = "Lib1_" + Guid.NewGuid();
+            string lib2Name = "Lib2_" + Guid.NewGuid();
+
+            var libBase1 = TestCompilationFactory.CreateCompilation(@"
+public class LibBase
+{
+    public readonly int X = 1;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+
+            var libBase2 = TestCompilationFactory.CreateCompilation(@"
+public class LibBase
+{
+    public readonly int X = 2;
+}
+", new[] { TestReferences.NetFx.v4_0_30319.mscorlib }, libBaseName);
+
+            var lib1 = TestCompilationFactory.CreateCompilation(@"
+public class Lib1
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+
+            var lib2 = TestCompilationFactory.CreateCompilation(@"
+public class Lib2
+{
+    public LibBase libBase = new LibBase();
+}
+", new MetadataReference[] { TestReferences.NetFx.v4_0_30319.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+
+            var libBase1Image = libBase1.EmitToArray();
+            var libBase2Image = libBase2.EmitToArray();
+            var lib1Image = lib1.EmitToArray();
+            var lib2Image = lib2.EmitToArray();
+
+            var root = Temp.CreateDirectory();
+            var dir1 = root.CreateDirectory("1");
+            var file1 = dir1.CreateFile(lib1Name + ".dll").WriteAllBytes(lib1Image);
+            var fileBase1 = dir1.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase1Image);
+
+            var dir2 = root.CreateDirectory("2");
+            var file2 = dir2.CreateFile(lib2Name + ".dll").WriteAllBytes(lib2Image);
+            var fileBase2 = dir2.CreateFile(libBaseName + ".dll").WriteAllBytes(libBase2Image);
+
+            var runner = CreateRunner(input:
+$@"#r ""{file1.Path}""
+var l1 = new Lib1();
+#r ""{file2.Path}""
+var l2 = new Lib2();
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> #r ""{file1.Path}""
+> var l1 = new Lib1();
+> #r ""{file2.Path}""
+> var l2 = new Lib2();
+«Red»
+Assembly '{libBaseName}, Version=0.0.0.0' has already been loaded from '{fileBase1.Path}'. A different assembly with the same name and version can't be loaded: '{fileBase2.Path}'.
+«Gray»
 > ", runner.Console.Out.ToString());
         }
     }

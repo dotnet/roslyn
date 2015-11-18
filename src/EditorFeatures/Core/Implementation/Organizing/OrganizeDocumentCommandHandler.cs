@@ -5,8 +5,8 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 return !needsSemantics;
             }
 
-            return workspace.Services.GetService<IDocumentSupportsSuggestionService>().SupportsRefactorings(document);
+            return workspace.Services.GetService<IDocumentSupportsFeatureService>().SupportsRefactorings(document);
         }
 
         public void ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, Action nextHandler)
