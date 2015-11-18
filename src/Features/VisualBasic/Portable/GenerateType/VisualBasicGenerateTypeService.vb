@@ -622,7 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return TypeOf expression Is SimpleNameSyntax
         End Function
 
-        Friend Overrides Function TryAddUsingsOrImportToDocument(updatedSolution As Solution, modifiedRoot As SyntaxNode, document As Document, simpleName As SimpleNameSyntax, includeUsingsOrImports As String, cancellationToken As CancellationToken) As Solution
+        Friend Overrides Async Function TryAddUsingsOrImportToDocumentAsync(updatedSolution As Solution, modifiedRoot As SyntaxNode, document As Document, simpleName As SimpleNameSyntax, includeUsingsOrImports As String, cancellationToken As CancellationToken) As Task(Of Solution)
             ' Nothing to include
             If String.IsNullOrWhiteSpace(includeUsingsOrImports) Then
                 Return updatedSolution
@@ -631,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Dim placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language)
             Dim root As SyntaxNode = Nothing
             If (modifiedRoot Is Nothing) Then
-                root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Else
                 root = modifiedRoot
             End If

@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return expression is SimpleNameSyntax;
         }
 
-        internal override Solution TryAddUsingsOrImportToDocument(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
+        internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
         {
             // Nothing to include
             if (string.IsNullOrWhiteSpace(includeUsingsOrImports))
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             SyntaxNode root = null;
             if (modifiedRoot == null)
             {
-                root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
