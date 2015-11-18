@@ -267,9 +267,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
             return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
         }
 
-        protected bool IsWithinTheImportingNamespace(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)
+        protected async Task<bool> IsWithinTheImportingNamespaceAsync(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)
         {
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel != null)
             {
                 var namespaceSymbol = semanticModel.GetEnclosingNamespace(triggeringPosition, cancellationToken);

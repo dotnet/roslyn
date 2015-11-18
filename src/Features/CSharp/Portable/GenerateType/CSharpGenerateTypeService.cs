@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
 
                 // Check if the GFU is triggered from the namespace same as the usings namespace
-                if (IsWithinTheImportingNamespace(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken))
+                if (await IsWithinTheImportingNamespaceAsync(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken).ConfigureAwait(false))
                 {
                     return updatedSolution;
                 }

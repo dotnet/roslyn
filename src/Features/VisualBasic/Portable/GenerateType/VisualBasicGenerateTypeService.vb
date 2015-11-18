@@ -663,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Next
 
                 ' Check if the GFU is triggered from the namespace same as the imports namespace
-                If IsWithinTheImportingNamespace(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken) Then
+                If Await IsWithinTheImportingNamespaceAsync(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken).ConfigureAwait(False) Then
                     Return updatedSolution
                 End If
 
