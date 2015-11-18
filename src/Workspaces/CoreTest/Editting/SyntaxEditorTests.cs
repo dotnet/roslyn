@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
         private async Task VerifySyntaxAsync<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom(typeof(TSyntax), node);
-            var formatted = await Formatter.FormatAsync(node, _emptyWorkspace).ConfigureAwait(true);
+            var formatted = await Formatter.FormatAsync(node, _emptyWorkspace);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);
         }
@@ -54,7 +54,7 @@ public class C
 public class C
 {
     public string Y;
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact]
@@ -79,7 +79,7 @@ public class C
                 @"
 public class C
 {
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact]
@@ -106,7 +106,7 @@ public class C
 {
     public int X;
     public string Y;
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact]
@@ -133,7 +133,7 @@ public class C
 {
     public string Y;
     public int X;
-}").ConfigureAwait(true);
+}");
         }
 
         [Fact]
@@ -183,7 +183,7 @@ public class C
 {
     public object Z;
     public string Y;
-}").ConfigureAwait(true);
+}");
         }
     }
 }

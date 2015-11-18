@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
 
         protected static async Task AssertFormatAsync(Workspace workspace, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, OptionSet optionSet, SourceText sourceText)
         {
-            var result = await Formatter.GetFormattedTextChangesAsync(root, spans, workspace, optionSet).ConfigureAwait(true);
+            var result = await Formatter.GetFormattedTextChangesAsync(root, spans, workspace, optionSet);
             AssertResult(expected, sourceText, result);
         }
 
