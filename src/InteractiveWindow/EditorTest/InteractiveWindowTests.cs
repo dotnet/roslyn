@@ -644,14 +644,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             caret.MoveToPreviousCaretPosition();
             AssertCaretVirtualPosition(1, 1);
 
-            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
+            Window.Operations.Delete();
             AssertCaretVirtualPosition(1, 1);
 
             // Delete() with caret in active prompt, move caret to 
             // closest editable buffer
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
-            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
+            Window.Operations.Delete();
             AssertCaretVirtualPosition(2, 2);
         }
         
@@ -677,7 +677,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             Window.Operations.SelectAll();
 
-            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
+            Window.Operations.Delete();
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection in active prompt, no-op
@@ -689,7 +689,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             selection.Select(start, end);
 
-            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
+            Window.Operations.Delete();
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection overlaps with editable buffer, 
@@ -704,7 +704,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             selection.Select(start, end);
 
-            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
+            Window.Operations.Delete();
             Assert.Equal("> 1\r\n1\r\n> 3", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
         }
@@ -734,7 +734,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             caret.MoveToPreviousCaretPosition();  
             AssertCaretVirtualPosition(1, 1);
 
-            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
+            Window.Operations.Backspace();
             AssertCaretVirtualPosition(1, 1);
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
@@ -746,7 +746,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(3, 1);
 
-            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
+            Window.Operations.Backspace();
             AssertCaretVirtualPosition(2, 7);
             Assert.Equal("> 1\r\n1\r\n> int x;", GetTextFromCurrentSnapshot());
         }
@@ -779,7 +779,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             Window.Operations.SelectAll();
 
-            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
+            Window.Operations.Backspace();
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with selection in active prompt, no-op
@@ -791,7 +791,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             selection.Select(start, end);
 
-            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
+            Window.Operations.Backspace();
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with selection overlaps with editable buffer
@@ -805,7 +805,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             selection.Select(start, end);
 
-            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
+            Window.Operations.Backspace();
             Assert.Equal("> 1\r\n1\r\n> int x;", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 7);
         }
@@ -825,7 +825,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             caret.MoveToPreviousCaretPosition();   
             AssertCaretVirtualPosition(1, 1);
 
-            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
+            Window.Operations.Return();
             AssertCaretVirtualPosition(1, 1);
 
             // Return() with caret in active prompt, move caret to 
@@ -833,7 +833,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
 
-            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
+            Window.Operations.Return();
             AssertCaretVirtualPosition(3, 2);
         }
 
@@ -859,7 +859,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             Window.Operations.SelectAll();
 
-            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
+            Window.Operations.Return();
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Return() with selection in active prompt, no-op
@@ -871,7 +871,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             selection.Select(start, end);
 
-            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
+            Window.Operations.Return();
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection overlaps with editable buffer, 
@@ -886,7 +886,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             selection.Select(start, end);
 
-            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
+            Window.Operations.Return();
             Assert.Equal("> 1\r\n1\r\n> \r\n> 3", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(3, 2);
         }
@@ -949,8 +949,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
-            await TaskRun(() => Window.Operations.SelectAll()).ConfigureAwait(true);
-            await TaskRun(() => Window.Operations.DeleteLine()).ConfigureAwait(true);
+            Window.Operations.SelectAll();
+            Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
 
             // DeleteLine with selection in active prompt
@@ -967,7 +967,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
 
             selection.Select(caret.MoveToNextCaretPosition().VirtualBufferPosition, caret.MoveToNextCaretPosition().VirtualBufferPosition);
-            await TaskRun(() => Window.Operations.DeleteLine()).ConfigureAwait(true);
+            Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ;", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
