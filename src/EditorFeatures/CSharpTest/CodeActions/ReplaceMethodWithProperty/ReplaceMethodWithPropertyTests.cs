@@ -413,10 +413,10 @@ index: 0);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public void TestUpdateGetSetCaseInsensitive()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestUpdateGetSetCaseInsensitive()
         {
-            Test(
+            await TestAsync(
 @"using System; class C { int [||]getFoo() { } void setFoo(int i) { } }",
 @"using System; class C { int Foo { get { } set { } } }",
 index: 1);

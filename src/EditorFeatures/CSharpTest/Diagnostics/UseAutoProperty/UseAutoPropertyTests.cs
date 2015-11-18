@@ -267,9 +267,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleLine1()
+        public async Task TestSingleLine1()
         {
-            Test(
+            await TestAsync(
 @"class Class
 {
     [|int i|];
@@ -282,9 +282,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleLine2()
+        public async Task TestSingleLine2()
         {
-            Test(
+            await TestAsync(
 @"class Class
 {
     [|int i|];
@@ -300,9 +300,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public void TestSingleLine3()
+        public async Task TestSingleLine3()
         {
-            Test(
+            await TestAsync(
 @"class Class
 {
     [|int i|];
