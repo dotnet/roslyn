@@ -15,6 +15,7 @@ BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
 MONO_ARGS='--debug=mdb-optimizations --attach=disable'
+MSBUILD_ADDITIONALARGS='/v:m  /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal'
 
 export MONO_THREADS_PER_CPU=50
 
@@ -90,7 +91,7 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /p:SignAssembly=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break
@@ -128,11 +129,12 @@ run_nuget()
 # Run the compilation.  Can pass additional build arguments as parameters
 compile_toolset()
 {
+    mkdir -p 'Binaries'
     echo Compiling the toolset compilers
     echo -e "Compiling the C# compiler"
-    run_msbuild src/Compilers/CSharp/CscCore/CscCore.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild src/Compilers/CSharp/CscCore/CscCore.csproj /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Bootstrap_CscCore.log
     echo -e "Compiling the VB compiler"
-    run_msbuild src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Bootstrap_VbcCore.log
 }
 
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
@@ -152,7 +154,7 @@ save_toolset()
 clean_roslyn()
 {
     echo Cleaning the enlistment
-    mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
+    mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/BootstrapClean.log
     rm -rf Binaries/$BUILD_CONFIGURATION
 }
 
@@ -166,7 +168,7 @@ build_roslyn()
     fi
 
     echo Building CrossPlatform.sln
-    run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Build.log
 }
 
 # Install the specified Mono toolset from our Azure blob storage.
