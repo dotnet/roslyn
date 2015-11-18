@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis
                 result.Mantissa = mantissaBuilder.ToString();
                 if (i < source.Length && (source[i] == 'e' || source[i] == 'E'))
                 {
-                    const int MAX_EXP_QUAD = (1 << 14); // IEEE quad, without sign
+                    const int MAX_EXP = (1 << 30); // even playing ground
                     char exponentSign = '\0';
                     i++;
                     if (i < source.Length && (source[i] == '-' || source[i] == '+'))
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis
                     int exponentMagnitude = 0;
 
                     if (int.TryParse(source.Substring(firstExponent, lastExponent - firstExponent), out exponentMagnitude) &&
-                        exponentMagnitude <= MAX_EXP_QUAD)
+                        exponentMagnitude <= MAX_EXP)
                     {
                         if (exponentSign == '-')
                         {
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        exponent = exponentSign == '-' ? -MAX_EXP_QUAD : MAX_EXP_QUAD;
+                        exponent = exponentSign == '-' ? -MAX_EXP : MAX_EXP;
                     }
                 }
                 result.Exponent = exponent;
