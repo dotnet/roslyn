@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
     Public Class SimplifyTypeNamesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInDocument() As Task
@@ -101,7 +101,7 @@ End Class]]>
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInProject() As Task
@@ -192,7 +192,7 @@ End Class]]>
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution() As Task
@@ -283,7 +283,7 @@ End Class]]>
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution_RemoveMe() As Task
@@ -490,7 +490,7 @@ End Class]]>
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution_SimplifyMemberAccess() As Task

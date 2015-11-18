@@ -556,7 +556,6 @@ Class D
 End Class</File>.ConvertTestSourceTag()
 
             Await TestAsync(text, expected, compareTokens:=False)
-
         End Function
 
         <WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")>

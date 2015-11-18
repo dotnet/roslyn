@@ -118,7 +118,7 @@ fixAllActionEquivalenceKey:=actionId)
         End Function
 
         <WorkItem(578686)>
-        <WpfFact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllOccurrencesForAliases() As Task
             Await TestAsync(
@@ -275,7 +275,7 @@ index:=1)
         index:=0)
         End Function
 
-        <WpfFact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllFixesUnrelatedTypes() As Task
             Await TestAsync(
@@ -283,7 +283,7 @@ index:=1)
         NewLines("Imports A \n Imports B \n Imports C \n Module Program \n Sub Method1(a As FooA, b As FooB, c As FooC) \n Dim qa As FooA \n Dim qb As FooB \n Dim qc As FooC \n End Sub \n End Module \n Namespace A \n Class FooA \n End Class \n End Namespace \n Namespace B \n Class FooB \n End Class \n End Namespace \n Namespace C \n Class FooC \n End Class \n End Namespace"))
         End Function
 
-        <WpfFact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestSimplifyFixesAllNestedTypeNames() As Task
             Dim source =
@@ -351,7 +351,7 @@ index:=1)
         NewLines("[|Module M \n Sub Main() \n Dim x = (System.String).Equals("", "") \n End Sub \n End Module|]"))
         End Function
 
-        <WpfFact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        <Fact(Skip:="1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestConflicts() As Task
             Await TestAsync(

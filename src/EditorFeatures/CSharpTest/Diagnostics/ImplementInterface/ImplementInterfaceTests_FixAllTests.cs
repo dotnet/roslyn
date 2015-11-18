@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
     {
         #region "Fix all occurrences tests"
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
@@ -118,7 +118,7 @@ class B3 : I1, I2
             await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
@@ -236,7 +236,7 @@ class B3 : I1, I2
             await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
@@ -365,7 +365,7 @@ class B3 : I1, I2
             await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_DifferentAssemblyWithSameTypeName()

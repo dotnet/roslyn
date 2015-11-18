@@ -51,7 +51,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=3)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(539676)>
         Public Async Function TestNotOfferedOnResolvedBaseClassName() As Task
             Await TestMissingAsync(

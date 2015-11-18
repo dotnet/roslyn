@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
     {
         #region "Fix all occurrences tests"
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
@@ -87,7 +87,7 @@ class Program3
             await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
@@ -163,7 +163,7 @@ class Program3
             await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: null);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()

@@ -461,7 +461,7 @@ Console.WriteLine(i + 1 * k)
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(551797)>
         Public Async Function TestInlineIntoExpression3() As Task
             Dim code =
@@ -3913,7 +3913,7 @@ End Class
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         Public Async Function TestConditionalAccessWithExtensionMethodInvocation() As Task
             Dim code =
@@ -3966,7 +3966,7 @@ End Class]]>
             Await TestAsync(code, expected, compareTokens:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         Public Async Function TestConditionalAccessWithExtensionMethodInvocation_2() As Task
             Dim code =

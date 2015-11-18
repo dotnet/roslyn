@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -160,7 +160,7 @@ class Class
 }}");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
                 public async Task TestNoDuplicateSuppressionCodeFixes()
                 {
@@ -1264,7 +1264,7 @@ class Class
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
                 public async Task TestSuppressionOnTriviaBetweenFields()
                 {
@@ -1572,7 +1572,7 @@ class Class { }
                 }
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [WorkItem(1073825)]
             public async Task TestDiagnosticWithoutLocationCanBeSuppressed()
             {

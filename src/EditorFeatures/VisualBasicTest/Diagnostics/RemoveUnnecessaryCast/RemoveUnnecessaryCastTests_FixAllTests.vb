@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
     Partial Public Class RemoveUnnecessaryCastTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInDocument() As Task
@@ -171,7 +171,7 @@ End Class]]>
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInProject() As Task
@@ -308,7 +308,7 @@ End Class]]>
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution() As Task

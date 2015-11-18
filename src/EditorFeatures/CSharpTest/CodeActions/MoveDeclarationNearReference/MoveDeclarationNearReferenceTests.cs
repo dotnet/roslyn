@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference;
@@ -100,7 +100,7 @@ index: 0);
 @"class Program { static void Main ( ) { int [||]i = 5; int j = 10; Console.WriteLine(i); } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         [WorkItem(541475)]
         public async Task Regression8190()
         {

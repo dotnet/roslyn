@@ -59,7 +59,7 @@ End Class
         End Using
     End Function
 
-    <WpfFact>
+    <Fact>
     <WorkItem(759)>
     Public Async Function DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
@@ -71,7 +71,7 @@ End Class
     End Function
 
     <WorkItem(908621)>
-    <WpfFact>
+    <Fact>
     Public Sub DiagnosticServiceIsSafeAgainstAnalyzerExceptions()
         Dim analyzer = New ThrowingDiagnosticAnalyzer(Of SyntaxKind)()
         analyzer.ThrowOn(GetType(DiagnosticAnalyzer).GetProperties().Single().Name)

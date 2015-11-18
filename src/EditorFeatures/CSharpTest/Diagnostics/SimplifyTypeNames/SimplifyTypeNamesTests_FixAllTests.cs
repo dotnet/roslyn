@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
     {
         #region "Fix all occurrences tests"
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
@@ -123,7 +123,7 @@ class Program2
             await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
@@ -233,7 +233,7 @@ class Program2
             await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
@@ -343,7 +343,7 @@ class Program2
             await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_RemoveThis()
@@ -597,7 +597,7 @@ class ProgramB3
             await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
-        [WpfFact]
+        [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_SimplifyMemberAccess()

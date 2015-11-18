@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -347,7 +347,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
 @"class C { private const int {|Rename:V|} = 10 ; int [ ] array = new int [ V ] ; } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(540079)]
         public async Task TestFormattingOfReplacedExpression1()
         {
@@ -532,7 +532,7 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(10742, "DevDiv_Projects/Roslyn")]
         public async Task TestAnonymousTypeMemberAssignment()
         {
@@ -540,7 +540,7 @@ index: 1);
 @"class C { void M ( ) { var a = new { [|A = 0|] } ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(10743, "DevDiv_Projects/Roslyn")]
         public async Task TestAnonymousTypeBody()
         {

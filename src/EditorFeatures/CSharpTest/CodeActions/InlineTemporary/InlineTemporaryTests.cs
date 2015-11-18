@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -3552,7 +3552,7 @@ class A
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
         public async Task TestConditionalAccessWithExtensionMethodInvocation()
         {
@@ -3609,7 +3609,7 @@ class C
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
         public async Task TestConditionalAccessWithExtensionMethodInvocation_2()
         {

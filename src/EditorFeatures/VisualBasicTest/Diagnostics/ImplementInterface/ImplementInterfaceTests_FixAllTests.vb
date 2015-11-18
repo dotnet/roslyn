@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Implem
     Partial Public Class ImplementInterfaceTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInDocument() As Task
@@ -123,7 +123,7 @@ End Class]]>
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInProject() As Task
@@ -246,7 +246,7 @@ End Class]]>
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution() As Task
@@ -377,7 +377,7 @@ End Class]]>
             Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution_DifferentAssemblyWithSameTypeName() As Task

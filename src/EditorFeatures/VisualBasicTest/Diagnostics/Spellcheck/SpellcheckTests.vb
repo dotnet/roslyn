@@ -78,7 +78,7 @@ End Module</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "zza", "zzz")})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         <WorkItem(1065708)>
         Public Async Function TestInTypeOfIsExpression() As Task
             Dim text = <File>Imports System
@@ -91,7 +91,7 @@ End Class</File>
             Await TestExactActionSetOfferedAsync(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean")})
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         <WorkItem(1065708)>
         Public Async Function TestInTypeOfIsNotExpression() As Task
             Dim text = <File>Imports System
@@ -373,7 +373,7 @@ End Module</File>
             Await TestAsync(text, expected)
         End Function
 
-        <ConditionalWpfFact(GetType(x86))>
+        <ConditionalFact(GetType(x86))>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         <WorkItem(5391, "https://github.com/dotnet/roslyn/issues/5391")>
         Public Async Function TestSuggestEscapedPredefinedTypes() As Task

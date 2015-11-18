@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -85,7 +85,7 @@ class C
             }
         }
 
-        [WpfFact]
+        [Fact]
         [WorkItem(759)]
         public async Task DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
@@ -99,7 +99,7 @@ class C
         }
 
         [WorkItem(908621)]
-        [WpfFact]
+        [Fact]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_1()
         {
             var analyzer = new ThrowingDiagnosticAnalyzer<SyntaxKind>();
@@ -108,7 +108,7 @@ class C
         }
 
         [WorkItem(908621)]
-        [WpfFact]
+        [Fact]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_2()
         {
             var analyzer = new ThrowingDoNotCatchDiagnosticAnalyzer<SyntaxKind>();
