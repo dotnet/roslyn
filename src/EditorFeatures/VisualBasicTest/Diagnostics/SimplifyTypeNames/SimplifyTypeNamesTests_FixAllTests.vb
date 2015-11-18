@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
     Public Class SimplifyTypeNamesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInDocument()
@@ -100,7 +100,7 @@ End Class]]>
             Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInProject()
@@ -191,7 +191,7 @@ End Class]]>
             Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInSolution()
@@ -282,7 +282,7 @@ End Class]]>
             Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInSolution_RemoveMe()
@@ -489,7 +489,7 @@ End Class]]>
             Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
         End Sub
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInSolution_SimplifyMemberAccess()
