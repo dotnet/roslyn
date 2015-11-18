@@ -5282,6 +5282,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid real literal..
+        /// </summary>
+        internal static string ERR_InvalidReal {
+            get {
+                return ResourceManager.GetString("ERR_InvalidReal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid signature public key specified in AssemblySignatureKeyAttribute..
         /// </summary>
         internal static string ERR_InvalidSignaturePublicKey {

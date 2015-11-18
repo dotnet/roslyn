@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidReal, errors[0].Code);
             Assert.Equal(text, token.Text);
         }
 
