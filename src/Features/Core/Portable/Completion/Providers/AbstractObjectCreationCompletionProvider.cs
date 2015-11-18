@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -105,6 +107,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var displayService = context.GetLanguageService<ISymbolDisplayService>();
             var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
             return ValueTuple.Create(displayString, displayString);
+        }
+
+        protected override CompletionItem CreateItem(ValueTuple<string, string> displayAndInsertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan textChangeSpan, bool preselectionPriority, SupportedPlatformData supportedPlatformData)
+        {
+            return new SymbolCompletionItem(
+                this,
+                displayAndInsertionText.Item1,
+                displayAndInsertionText.Item2,
+                GetFilterText(symbols[0], displayAndInsertionText.Item1, context),
+                textChangeSpan,
+                position,
+                symbols,
+                context,
+                supportedPlatforms: supportedPlatformData,
+                preselectionPriority: PreselectionPriority.Highest,
+                rules: GetCompletionItemRules());
         }
     }
 }

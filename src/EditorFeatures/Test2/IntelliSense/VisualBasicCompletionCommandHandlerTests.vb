@@ -2266,5 +2266,57 @@ End Module]]></Document>)
                 Await state.AssertSelectedCompletionItem("T")
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection1() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Imports System.Threading
+Module Program
+    Sub Cancel(x As Integer, cancellationToken As CancellationToken)
+        Cancel(x + 1, $$)
+    End Sub
+End Module]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cancellationToken").ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection2() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim aaz As Integer
+        args = $$
+    End Sub
+End Module]]></Document>)
+                state.SendTypeChars("a")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("args").ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection_DoesNotOverrideEnumPreselection() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Enum E
+
+End Enum
+
+Module Program
+    Sub Main(args As String())
+        Dim e As E
+        Dim y As E = $$
+    End Sub
+End Module]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("E").ConfigureAwait(True)
+            End Using
+        End Function
     End Class
 End Namespace

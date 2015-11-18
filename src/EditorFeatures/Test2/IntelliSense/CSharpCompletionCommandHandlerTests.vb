@@ -1654,5 +1654,64 @@ class C
             End Using
 
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection1() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.Threading;
+class Program
+{
+    void Cancel(int x, CancellationToken cancellationToken)
+    {
+        Cancel(x + 1, cancellationToken: $$)
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cancellationToken", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+class Program
+{
+    static void Main(string[] args)
+    {
+        int aaz = 0;
+        args = $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendTypeChars("a")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("args", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection_DoesNotOverrideEnumPreselection() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+enum E
+{
+
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        E e;
+        e = $$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("E", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
     End Class
 End Namespace
