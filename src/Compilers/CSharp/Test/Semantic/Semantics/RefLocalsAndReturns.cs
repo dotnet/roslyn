@@ -174,6 +174,77 @@ class Test
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithArguments("Test.P1").WithLocation(13, 27));
         }
 
+        [Fact]
+        public void RefByValLocalParam()
+        {
+            var text = @"
+public class Test
+{
+    public struct S1
+    {
+        public char x;
+    }
+
+    ref char Test1(char arg1, S1 arg2)
+    {
+        if (1.ToString() == null)
+        {
+            char l = default(char);
+            // valid
+            ref char r = ref l;
+
+            // invalid
+            return ref l;
+        }
+
+        if (2.ToString() == null)
+        {
+            S1 l = default(S1);
+            // valid
+            ref char r = ref l.x;
+
+            // invalid
+            return ref l.x;
+        }
+
+        if (3.ToString() == null)
+        {
+            // valid
+            ref char r = ref arg1;
+
+            // invalid
+            return ref arg1;
+        }
+
+        if (4.ToString() == null)
+        {
+            // valid
+            ref char r = ref arg2.x;
+
+            // invalid
+            return ref arg2.x;
+        }
+
+        throw null;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (18,24): error CS8924: Cannot return local 'l' by reference because it is not a ref local
+    //             return ref l;
+    Diagnostic(ErrorCode.ERR_RefReturnLocal, "l").WithArguments("l").WithLocation(18, 24),
+    // (28,24): error CS8925: Cannot return a member of local 'l' by reference because it is not a ref local
+    //             return ref l.x;
+    Diagnostic(ErrorCode.ERR_RefReturnLocal2, "l").WithArguments("l").WithLocation(28, 24),
+    // (37,24): error CS8922: Cannot return a parameter by reference 'arg1' because it is not a ref or out parameter
+    //             return ref arg1;
+    Diagnostic(ErrorCode.ERR_RefReturnParameter, "arg1").WithArguments("arg1").WithLocation(37, 24),
+    // (46,24): error CS8923: Cannot return or a member of parameter 'arg2' by reference because it is not a ref or out parameter
+    //             return ref arg2.x;
+    Diagnostic(ErrorCode.ERR_RefReturnParameter2, "arg2").WithArguments("arg2").WithLocation(46, 24)
+            );
+        }
+
 
         [Fact]
         public void RefReadonlyLocal()
@@ -313,15 +384,15 @@ public class Test
     // (15,27): error CS1657: Cannot use 'MR' as a ref or out value because it is a 'method group'
     //         ref char r1 = ref MR;
     Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "MR").WithArguments("MR", "method group").WithLocation(15, 27),
-    // (19,24): error CS8914: Cannot return 'M' by reference because it is a 'method group'
+    // (19,24): error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'
     //             return ref M;
-    Diagnostic(ErrorCode.ERR_RefReturnReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(19, 24),
-    // (23,24): error CS8914: Cannot return 'MR' by reference because it is a 'method group'
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(19, 24),
+    // (23,24): error CS1657: Cannot use 'MR' as a ref or out value because it is a 'method group'
     //             return ref MR;
-    Diagnostic(ErrorCode.ERR_RefReturnReadonlyLocalCause, "MR").WithArguments("MR", "method group").WithLocation(23, 24)
+    Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "MR").WithArguments("MR", "method group").WithLocation(23, 24)
             );
         }
-
+        
         [Fact]
         public void RefReadonlyField()
         {
@@ -454,6 +525,282 @@ public class Test
     // (93,24): error CS8919: Fields of static readonly field 'Test.s2' cannot be returned by reference
     //             return ref s2.x;
     Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic2, "s2.x").WithArguments("Test.s2").WithLocation(93, 24)
+            );
+        }
+
+        [Fact]
+        public void RefReadonlyCall()
+        {
+            var text = @"
+public class Test
+{
+    public struct S1
+    {
+        public char x;
+
+        public ref S1 FooS()
+        {
+            return ref this;
+        }        
+
+        public ref char Foo()
+        {
+            return ref x;
+        }
+
+        public ref char Foo1()
+        {
+            return ref this.x;
+        }
+    }
+
+    static ref T Foo<T>(ref T arg)
+    {
+        return ref arg;
+    }
+
+    static ref char Test1()
+    {
+        char M1 = default(char);
+        S1   M2 = default(S1);
+
+        if (1.ToString() != null)
+        {
+            return ref Foo(ref M1);
+        }
+        
+        if (2.ToString() != null)
+        {
+            return ref Foo(ref M2.x);
+        }
+
+        if (3.ToString() != null)
+        {
+            return ref Foo(ref M2).x;
+        }
+        else
+        {
+            return ref M2.Foo();
+        }
+    }
+  
+
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (10,24): error CS8927: Struct members cannot return 'this' or other instance members by reference
+    //             return ref this;
+    Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(10, 24),
+    // (15,24): error CS8927: Struct members cannot return 'this' or other instance members by reference
+    //             return ref x;
+    Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(15, 24),
+    // (20,24): error CS8927: Struct members cannot return 'this' or other instance members by reference
+    //             return ref this.x;
+    Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
+    // (36,32): error CS8924: Cannot return local 'M1' by reference because it is not a ref local
+    //             return ref Foo(ref M1);
+    Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
+    // (36,24): error CS8920: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+    //             return ref Foo(ref M1);
+    Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M1)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(36, 24),
+    // (41,32): error CS8925: Cannot return a member of local 'M2' by reference because it is not a ref local
+    //             return ref Foo(ref M2.x);
+    Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
+    // (41,24): error CS8920: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+    //             return ref Foo(ref M2.x);
+    Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M2.x)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(41, 24),
+    // (46,32): error CS8924: Cannot return local 'M2' by reference because it is not a ref local
+    //             return ref Foo(ref M2).x;
+    Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
+    // (46,24): error CS8921: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
+    //             return ref Foo(ref M2).x;
+    Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24));
+        }
+
+        [Fact]
+        public void RefReturnUnreturnableLocalParam()
+        {
+            var text = @"
+public class Test
+{
+    public struct S1
+    {
+        public char x;
+    }
+
+    ref char Test1(char arg1, S1 arg2)
+    {
+        if (1.ToString() == null)
+        {
+            char l = default(char);
+            // valid
+            ref char r = ref l;
+
+            // invalid
+            return ref r;
+        }
+
+        if (2.ToString() == null)
+        {
+            S1 l = default(S1);
+            // valid
+            ref char r = ref l.x;
+
+            // invalid
+            return ref r;
+        }
+
+        if (21.ToString() == null)
+        {
+            S1 l = default(S1);
+            // valid
+            ref var r = ref l;
+
+            // invalid
+            return ref r.x;
+        }
+
+        if (3.ToString() == null)
+        {
+            // valid
+            ref char r = ref arg1;
+
+            // invalid
+            return ref r;
+        }
+
+        if (4.ToString() == null)
+        {
+            // valid
+            ref char r = ref arg2.x;
+
+            // invalid
+            return ref r;
+        }
+
+        if (41.ToString() == null)
+        {
+            // valid
+            ref S1 r = ref arg2;
+
+            // invalid
+            return ref r.x;
+        }
+
+        throw null;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (18,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    //             return ref r;
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(18, 24),
+    // (28,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    //             return ref r;
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(28, 24),
+    // (38,24): error CS8912: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
+    //             return ref r.x;
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal2, "r").WithArguments("r").WithLocation(38, 24),
+    // (47,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    //             return ref r;
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(47, 24),
+    // (56,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    //             return ref r;
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(56, 24),
+    // (65,24): error CS8912: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
+    //             return ref r.x;
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal2, "r").WithArguments("r").WithLocation(65, 24)
+
+            );
+        }
+
+        [Fact]
+        public void RefReturnSelfReferringRef()
+        {
+            var text = @"
+public class Test
+{
+    public struct S1
+    {
+        public char x;
+    }
+
+    ref char Foo(ref char a, ref char b)
+    {
+        return ref a;
+    }
+
+    ref char Test1(char arg1, S1 arg2)
+    {
+        if (1.ToString() == null)
+        {
+            ref char r = ref r;
+            return ref r;   //1
+        }
+
+        if (2.ToString() == null)
+        {
+            ref S1 r = ref r;
+            return ref r.x;  //2
+        }
+
+        if (3.ToString() == null)
+        {
+            ref char a = ref (new char[1])[0];
+            ref char invalid = ref Foo(ref a, ref a);
+
+            // valid
+            return ref r;
+        }
+
+        if (4.ToString() == null)
+        {
+            ref char a = ref (new char[1])[0];
+            ref char valid = ref Foo(ref a, ref arg1);
+
+            // valid
+            return ref valid; //4
+        }
+
+        if (5.ToString() == null)
+        {
+            ref char a = ref (new char[1])[0];
+            ref char r = ref Foo(ref a, ref r);
+
+            // invalid
+            return ref r;  //5
+        }
+
+        throw null;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (19,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    //             return ref r;   //1
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(19, 24),
+    // (25,24): error CS8912: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
+    //             return ref r.x;  //2
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal2, "r").WithArguments("r").WithLocation(25, 24),
+    // (34,24): error CS0103: The name 'r' does not exist in the current context
+    //             return ref r;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "r").WithArguments("r").WithLocation(34, 24),
+    // (43,24): error CS8911: Cannot return 'valid' by reference because it was initialized to a value that cannot be returned by reference
+    //             return ref valid; //4
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "valid").WithArguments("valid").WithLocation(43, 24),
+    // (52,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+    //             return ref r;  //5
+    Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(52, 24),
+    // (18,30): error CS0165: Use of unassigned local variable 'r'
+    //             ref char r = ref r;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "r").WithArguments("r").WithLocation(18, 30),
+    // (24,28): error CS0165: Use of unassigned local variable 'r'
+    //             ref S1 r = ref r;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "r").WithArguments("r").WithLocation(24, 28),
+    // (49,45): error CS0165: Use of unassigned local variable 'r'
+    //             ref char r = ref Foo(ref a, ref r);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "r").WithArguments("r").WithLocation(49, 45)
+
             );
         }
 

@@ -1339,10 +1339,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturningCallInExpressionTree = 8901,
 
         ERR_RefReturnLvalueExpected = 8910,
-        //ERR_RefReturnReadonlyLocal = 8912,
+        ERR_RefReturnNonreturnableLocal = 8911,
+        ERR_RefReturnNonreturnableLocal2 = 8912,
         ERR_RefReturnRangeVariable = 8913,
-        ERR_RefReturnReadonlyLocalCause = 8914,
-        //ERR_RefReturnReadonlyLocal2Cause = 8915,
+        ERR_RefReturnRangeVariable2 = 8914,
         ERR_RefReturnReadonly = 8916,
         ERR_RefReturnReadonlyStatic = 8917,
         ERR_RefReturnReadonly2 = 8918,
@@ -1353,8 +1353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnParameter2 = 8923,
         ERR_RefReturnLocal = 8924,
         ERR_RefReturnLocal2 = 8925,
-        //ERR_RefReturnReceiver = 8926,
-        // ?? ERR_RefReturnStructThis = 8927,
+        ERR_RefReturnStructThis = 8926,
 
         ERR_MustBeRefAssignable = 8930,
         ERR_MustBeRefAssignableLocal = 8931,

@@ -7685,7 +7685,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot return or assign a reference to the result of &apos;{0}&apos; because the argument passed to parameter &apos;{1}&apos; cannot be returned or assigned by reference.
+        ///   Looks up a localized string similar to Cannot return by reference a result of &apos;{0}&apos; because the argument passed to parameter &apos;{1}&apos; cannot be returned by reference.
         /// </summary>
         internal static string ERR_RefReturnCall {
             get {
@@ -7753,6 +7753,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefReturnMustHaveIdentityConversion {
             get {
                 return ResourceManager.GetString("ERR_RefReturnMustHaveIdentityConversion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return &apos;{0}&apos; by reference because it was initialized to a value that cannot be returned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnNonreturnableLocal {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnNonreturnableLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot return by reference a member of &apos;{0}&apos; because it was initialized to a value that cannot be returned by reference.
+        /// </summary>
+        internal static string ERR_RefReturnNonreturnableLocal2 {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnNonreturnableLocal2", resourceCulture);
             }
         }
         
@@ -7852,6 +7870,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefReturnReceiver {
             get {
                 return ResourceManager.GetString("ERR_RefReturnReceiver", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Struct members cannot return &apos;this&apos; or other instance members by reference.
+        /// </summary>
+        internal static string ERR_RefReturnStructThis {
+            get {
+                return ResourceManager.GetString("ERR_RefReturnStructThis", resourceCulture);
             }
         }
         
