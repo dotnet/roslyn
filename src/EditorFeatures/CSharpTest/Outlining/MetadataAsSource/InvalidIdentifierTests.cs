@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -15,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
     /// </summary>
     public class InvalidIdentifierTests : AbstractOutlinerTests
     {
-        private void Test(string fileContents, params OutliningSpan[] expectedSpans)
+        private async Task TestAsync(string fileContents, params OutliningSpan[] expectedSpans)
         {
-            var workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(WorkspaceKind.MetadataAsSource, LanguageNames.CSharp, null, null, fileContents);
+            var workspace = await TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(WorkspaceKind.MetadataAsSource, LanguageNames.CSharp, null, null, fileContents);
             var outliningService = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IOutliningService>();
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var actualOutliningSpans = outliningService.GetOutliningSpansAsync(document, CancellationToken.None).Result.Where(s => s != null).ToArray();
@@ -31,38 +32,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
 
         [WorkItem(1174405)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void PrependedDollarSign()
+        public async Task PrependedDollarSign()
         {
             var source = @"
 class C
 {
     public void $Invoke();
 }";
-            Test(source);
+            await TestAsync(source);
         }
 
         [WorkItem(1174405)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void SymbolsAndPunctuation()
+        public async Task SymbolsAndPunctuation()
         {
             var source = @"
 class C
 {
     public void !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`();
 }";
-            Test(source);
+            await TestAsync(source);
         }
 
         [WorkItem(1174405)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void IdentifierThatLooksLikeCode()
+        public async Task IdentifierThatLooksLikeCode()
         {
             var source = @"
 class C
 {
     public void } } public class CodeInjection{ } /* now everything is commented ();
 }";
-            Test(source);
+            await TestAsync(source);
         }
     }
 }

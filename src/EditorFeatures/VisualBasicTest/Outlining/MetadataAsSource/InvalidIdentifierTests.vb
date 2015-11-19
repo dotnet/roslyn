@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
     Public Class InvalidIdentifierTests
         Inherits AbstractOutlinerTests
 
-        Private Sub Test(fileContents As String, ParamArray ByVal expectedSpans As OutliningSpan())
-            Dim workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(WorkspaceKind.MetadataAsSource, LanguageNames.VisualBasic, Nothing, Nothing, fileContents)
+        Private Async Function TestAsync(fileContents As String, ParamArray ByVal expectedSpans As OutliningSpan()) As Tasks.Task
+            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(WorkspaceKind.MetadataAsSource, LanguageNames.VisualBasic, Nothing, Nothing, fileContents)
             Dim outliningService = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of IOutliningService)()
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
             Dim actualOutliningSpans = outliningService.GetOutliningSpansAsync(document, CancellationToken.None).Result.Where(Function(s) s IsNot Nothing).ToArray()
@@ -22,40 +22,39 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             For i As Integer = 0 To expectedSpans.Length - 1
                 AssertRegion(expectedSpans(i), actualOutliningSpans(i))
             Next
-        End Sub
+        End Function
 
         <WorkItem(1174405)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub PrependDollarSign()
+        Public Async Function PrependDollarSign() As Tasks.Task
             Dim source = "
 Class C
     Public Sub $Invoke()
 End Class
 "
-            Test(source)
-        End Sub
+            Await TestAsync(source)
+        End Function
 
         <WorkItem(1174405)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub SymbolsAndPunctuation()
+        Public Async Function SymbolsAndPunctuation() As Tasks.Task
             Dim source = "
 Class C
     Public Sub !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`()
 End Class
 "
-            Test(source)
-        End Sub
+            Await TestAsync(source)
+        End Function
 
         <WorkItem(1174405)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub IdentifierThatLooksLikeCode()
+        Public Async Function IdentifierThatLooksLikeCode() As Tasks.Task
             Dim source = "
 Class C
     Public Sub : End Sub : End Class "" now the document is a string until the next quote ()
 End Class
 "
-            Test(source)
-        End Sub
-
+            Await TestAsync(source)
+        End Function
     End Class
 End Namespace
