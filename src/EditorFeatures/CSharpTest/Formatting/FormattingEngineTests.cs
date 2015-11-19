@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         [WpfFact]
         [WorkItem(539682)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDocumentCommandHandler()
+        public async Task FormatDocumentCommandHandler()
         {
             var code = @"class Program
 {
@@ -45,13 +46,13 @@ int y;
 }
 ";
 
-            AssertFormatWithView(expected, code);
+            await AssertFormatWithViewAsync(expected, code);
         }
 
         [WpfFact]
         [WorkItem(539682)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDocumentPasteCommandHandler()
+        public async Task FormatDocumentPasteCommandHandler()
         {
             var code = @"class Program
 {
@@ -73,13 +74,13 @@ int y;
 }
 ";
 
-            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true);
+            await AssertFormatWithPasteOrReturnAsync(expected, code, allowDocumentChanges: true);
         }
 
         [WpfFact]
         [WorkItem(547261)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDocumentReadOnlyWorkspacePasteCommandHandler()
+        public async Task FormatDocumentReadOnlyWorkspacePasteCommandHandler()
         {
             var code = @"class Program
 {
@@ -101,13 +102,13 @@ int y;
 }
 ";
 
-            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: false);
+            await AssertFormatWithPasteOrReturnAsync(expected, code, allowDocumentChanges: false);
         }
 
         [WpfFact]
         [WorkItem(912965)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatUsingStatementOnReturn()
+        public async Task FormatUsingStatementOnReturn()
         {
             var code = @"class Program
 {
@@ -129,13 +130,13 @@ int y;
 }
 ";
 
-            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
+            await AssertFormatWithPasteOrReturnAsync(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
         [WpfFact]
         [WorkItem(912965)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatNotUsingStatementOnReturn()
+        public async Task FormatNotUsingStatementOnReturn()
         {
             var code = @"class Program
 {
@@ -157,7 +158,7 @@ int y;
 }
 ";
 
-            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
+            await AssertFormatWithPasteOrReturnAsync(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
         [WorkItem(977133)]

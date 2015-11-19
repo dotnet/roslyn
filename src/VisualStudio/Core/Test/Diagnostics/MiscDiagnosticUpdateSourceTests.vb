@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code.ToString())
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
                     New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
                     New MockDiagnosticUpdateSourceRegistrationService())
@@ -66,7 +66,7 @@ class 123 { }
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code.ToString())
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
                     New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
                     New MockDiagnosticUpdateSourceRegistrationService())

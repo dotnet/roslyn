@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
 {
     public partial class ProximityExpressionsGetterTests
     {
-        private void TestCaching(string markup, params string[][] expectedArray)
+        private async Task TestCachingAsync(string markup, params string[][] expectedArray)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(markup))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(markup))
             {
                 var testDocument = workspace.Documents.Single();
                 var spans = testDocument.AnnotatedSpans;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         //
         // We should figure out some better way to test the feature.
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestCaching1()
+        public async Task TestCaching1()
         {
             var input = @"
 class Class
@@ -84,12 +85,12 @@ class Class
     }
 }";
 
-            TestCaching(input, new[] { "args", "this" }, new[] { "i", "args", "this" }, new[] { "i", "j", "k", "this", "args" });
+            await TestCachingAsync(input, new[] { "args", "this" }, new[] { "i", "args", "this" }, new[] { "i", "j", "k", "this", "args" });
         }
 
         [WorkItem(538259)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestCaching2()
+        public async Task TestCaching2()
         {
             var input = @"
 class Program
@@ -109,12 +110,12 @@ class Program
 }
 ";
 
-            TestCaching(input, new[] { "i" }, new[] { "i", "j" }, new[] { "j", "i" }, new[] { "k", "j" }, new[] { "k", "j" }, new[] { "j" });
+            await TestCachingAsync(input, new[] { "i" }, new[] { "i", "j" }, new[] { "j", "i" }, new[] { "k", "j" }, new[] { "k", "j" }, new[] { "j" });
         }
 
         [WorkItem(538259)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-        public void TestCaching3()
+        public async Task TestCaching3()
         {
             var input = @"
 class Program
@@ -134,7 +135,7 @@ class Program
 }
 ";
 
-            TestCaching(input, new[] { "i" }, new[] { "i", "j" }, new[] { "j", "i" }, new[] { "k", }, new[] { "k", }, Array.Empty<string>());
+            await TestCachingAsync(input, new[] { "i" }, new[] { "i", "j" }, new[] { "j", "i" }, new[] { "k", }, new[] { "k", }, Array.Empty<string>());
         }
     }
 }

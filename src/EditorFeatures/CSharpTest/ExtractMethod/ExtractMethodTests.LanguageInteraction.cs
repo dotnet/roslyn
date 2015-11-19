@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -817,7 +818,7 @@ class TestClass
 
             [WorkItem(11155, "DevDiv_Projects/Roslyn")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AnonymousTypeMember1()
+            public async Task AnonymousTypeMember1()
             {
                 var code = @"using System;
  
@@ -830,7 +831,7 @@ class Program
     }
 }
 ";
-                ExpectExtractMethodToFail(code);
+                await ExpectExtractMethodToFailAsync(code);
             }
 
             [WorkItem(544259)]
@@ -862,7 +863,7 @@ class Program
 
             [WorkItem(543984)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExtractMethod_UnsafeAddressTaken()
+            public async Task ExtractMethod_UnsafeAddressTaken()
             {
                 var code = @"class C
 {
@@ -886,7 +887,7 @@ class Program
     }
 }";
 
-                ExpectExtractMethodToFail(code, expected);
+                await ExpectExtractMethodToFailAsync(code, expected);
             }
 
             [WorkItem(544387)]
@@ -926,7 +927,7 @@ class Program
 
             [WorkItem(544514)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExtractMethod_AnonymousType()
+            public async Task ExtractMethod_AnonymousType()
             {
                 var code = @"public class Test
 {
@@ -954,7 +955,7 @@ class Program
     }
 }";
 
-                ExpectExtractMethodToFail(code, expected);
+                await ExpectExtractMethodToFailAsync(code, expected);
             }
 
             [WorkItem(544920)]
@@ -990,7 +991,7 @@ unsafe class C
 
             [WorkItem(539310)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void Readonly_Field_WrittenTo()
+            public async Task Readonly_Field_WrittenTo()
             {
                 var code = @"class C
 {
@@ -1001,7 +1002,7 @@ unsafe class C
         [|i = 1;|]
     }
 }";
-                ExpectExtractMethodToFail(code);
+                await ExpectExtractMethodToFailAsync(code);
             }
 
             [WorkItem(539310)]
@@ -1038,7 +1039,7 @@ unsafe class C
 
             [WorkItem(545180)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void NodeHasSyntacticErrors()
+            public async Task NodeHasSyntacticErrors()
             {
                 var code = @"using System;
 using System.Collections.Generic;
@@ -1055,12 +1056,12 @@ class Program
     }
 }
 ";
-                ExpectExtractMethodToFail(code);
+                await ExpectExtractMethodToFailAsync(code);
             }
 
             [WorkItem(545292)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void LocalConst()
+            public async Task LocalConst()
             {
                 var code = @"class Test
 {
@@ -1069,7 +1070,7 @@ class Program
         const int v = [|3|];
     }
 }";
-                ExpectExtractMethodToFail(code);
+                await ExpectExtractMethodToFailAsync(code);
             }
 
             [WorkItem(545315)]
@@ -1105,7 +1106,7 @@ class Program
 
             [WorkItem(545263)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SyntacticErrorInSelection()
+            public async Task SyntacticErrorInSelection()
             {
                 var code = @"class Program
 {
@@ -1122,7 +1123,7 @@ class Program
     }
 }
 ";
-                ExpectExtractMethodToFail(code);
+                await ExpectExtractMethodToFailAsync(code);
             }
 
             [WorkItem(544497)]
@@ -1663,7 +1664,7 @@ class X
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_Normal_AwaitWithReturnParameter_Error()
+            public async Task AwaitExpression_Normal_AwaitWithReturnParameter_Error()
             {
                 var code = @"using System;
 using System.Threading.Tasks;
@@ -1677,7 +1678,7 @@ class X
         Console.WriteLine(i);
     }
 }";
-                ExpectExtractMethodToFail(code);
+                await ExpectExtractMethodToFailAsync(code);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]

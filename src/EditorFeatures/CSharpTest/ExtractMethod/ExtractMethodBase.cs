@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     public class ExtractMethodBase
     {
-        protected void ExpectExtractMethodToFail(string codeWithMarker, bool allowMovingDeclaration = true, bool dontPutOutOrRefOnStruct = true)
+        protected async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool allowMovingDeclaration = true, bool dontPutOutOrRefOnStruct = true)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(codeWithMarker))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithMarker))
             {
                 var testDocument = workspace.Documents.First();
                 var textSpan = testDocument.SelectedSpans.Single();
@@ -24,14 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             }
         }
 
-        protected void ExpectExtractMethodToFail(
+        protected async Task ExpectExtractMethodToFailAsync(
             string codeWithMarker,
             string expected,
             bool allowMovingDeclaration = true,
             bool dontPutOutOrRefOnStruct = true,
             CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new[] { codeWithMarker }, parseOptions: parseOptions))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { codeWithMarker }, parseOptions: parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var subjectBuffer = testDocument.TextBuffer;
@@ -48,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             }
         }
 
-        protected void NotSupported_ExtractMethod(string codeWithMarker)
+        protected async Task NotSupported_ExtractMethodAsync(string codeWithMarker)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(codeWithMarker))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithMarker))
             {
                 Assert.NotNull(Record.Exception(() =>
                 {

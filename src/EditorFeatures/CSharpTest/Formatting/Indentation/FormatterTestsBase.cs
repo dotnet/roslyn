@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             }
         }
 
-        protected Task<int> GetSmartTokenFormatterIndentationAsync(
+        protected async Task<int> GetSmartTokenFormatterIndentationAsync(
             string code,
             int indentationLine,
             char ch,
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             TextSpan span = default(TextSpan))
         {
             // create tree service
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
                 if (baseIndentation.HasValue)
                 {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 }
 
                 var buffer = workspace.Documents.First().GetTextBuffer();
-                return GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
+                return await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
             }
         }
 

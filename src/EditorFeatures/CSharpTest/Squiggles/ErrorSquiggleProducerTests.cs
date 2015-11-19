@@ -156,7 +156,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class"))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class"))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -186,7 +186,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class"))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class"))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
