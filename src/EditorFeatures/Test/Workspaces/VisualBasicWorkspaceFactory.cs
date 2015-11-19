@@ -42,17 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return CreateWorkspaceFromFilesAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
         }
 
-        /// <param name="files">Can pass in multiple file contents: files will be named test1.vb, test2.vb, etc. and additional metadata references</param>
-        public static TestWorkspace CreateWorkspaceFromFiles(
-            string[] files,
-            ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null,
-            ExportProvider exportProvider = null,
-            string[] metadataReferences = null)
-        {
-            return TestWorkspaceFactory.CreateWorkspaceFromFiles(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
-        }
-
         public static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string[] files,
             ParseOptions parseOptions = null,
