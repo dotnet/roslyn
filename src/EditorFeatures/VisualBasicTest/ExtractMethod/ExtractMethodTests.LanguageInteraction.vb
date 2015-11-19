@@ -2255,7 +2255,7 @@ End Class</text>
                 Dim code = <text>Class C1
     Shared Sub Main()
         [|Dim x As MyDelegate = Sub(ByRef y As Integer)
-                              End Function|]
+                                End Sub|]
     End Sub
 
     Delegate Sub MyDelegate(ByRef y As Integer)
@@ -2267,7 +2267,7 @@ End Class</text>
 
     Private Shared Sub NewMethod()
         Dim x As MyDelegate = Sub(ByRef y As Integer)
-                              End Function
+                              End Sub
     End Sub
 
     Delegate Sub MyDelegate(ByRef y As Integer)
@@ -2900,7 +2900,7 @@ Imports System.Threading.Tasks
 Class X
     Public Async Sub Test()
         [|Await Task.Run(Sub()
-                       End Function)|]
+                         End Sub)|]
     End Sub
 End Class
 </text>
@@ -2917,7 +2917,7 @@ Class X
 
     Private Shared Async Function NewMethod() As Task
         Await Task.Run(Sub()
-                       End Function)
+                       End Sub)
     End Function
 End Class
 </text>
@@ -2934,7 +2934,7 @@ Imports System.Threading.Tasks
 Class X
     Public Async Sub Test()
         [|Await Task.Run(Sub()
-                       End Function)
+                         End Sub)
 
         Await Task.Run(Function() 1)
 
@@ -2955,7 +2955,7 @@ Class X
 
     Private Shared Async Function NewMethod() As Task
         Await Task.Run(Sub()
-                       End Function)
+                       End Sub)
 
         Await Task.Run(Function() 1)
 
@@ -2976,7 +2976,7 @@ Imports System.Threading.Tasks
 Class X
     Public Async Sub Test()
         Await Task.Run(Sub()
-                       End Function)
+                       End Sub)
 
         [|Await Task.Run(Function() 1)|]
 
@@ -2993,7 +2993,7 @@ Imports System.Threading.Tasks
 Class X
     Public Async Sub Test()
         Await Task.Run(Sub()
-                       End Function)
+                       End Sub)
 
         Await NewMethod()
 

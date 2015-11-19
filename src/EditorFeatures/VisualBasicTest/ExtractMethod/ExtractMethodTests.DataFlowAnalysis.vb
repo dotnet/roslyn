@@ -5689,7 +5689,7 @@ Class Program
         [|SyncLock Sub()
                      myLock = New Object()
                      Exit Sub
-                 End Function
+                 End Sub
         End SyncLock|]
     End Sub
 End Class</text>
@@ -5707,7 +5707,7 @@ Class Program
         SyncLock Sub()
                      myLock = New Object()
                      Exit Sub
-                 End Function
+                 End Sub
         End SyncLock
     End Sub
 End Class</text>
