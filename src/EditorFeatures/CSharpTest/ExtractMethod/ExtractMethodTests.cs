@@ -7825,7 +7825,7 @@ namespace Ros
 {
     partial class A
     {
-        public async Task F(int s)
+        public void F(int s)
         {
         }
     }
@@ -7853,7 +7853,7 @@ namespace Ros
 {
     partial class A
     {
-        public async Task F(int s)
+        public void F(int s)
         {
         }
     }
