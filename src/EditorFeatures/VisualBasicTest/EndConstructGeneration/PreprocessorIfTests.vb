@@ -12,15 +12,15 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class PreprocessorIfTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub ApplyAfterHashIf()
-            VerifyStatementEndConstructApplied(
+        Public Async Function ApplyAfterHashIf() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"#If True Then"},
                 beforeCaret:={0, -1},
                 after:={"#If True Then",
                         "",
                         "#End If"},
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyAfterHashIfWhenEndIfExists() As Threading.Tasks.Task

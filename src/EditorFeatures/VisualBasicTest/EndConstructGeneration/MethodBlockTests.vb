@@ -1,10 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class MethodBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterSimpleSubDeclarationWithTrailingComment()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterSimpleSubDeclarationWithTrailingComment() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "  Sub foo() 'Extra Comment",
                          "End Class"},
@@ -15,11 +17,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "  End Sub",
                         "End Class"},
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterConstructorDeclaration()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterConstructorDeclaration() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "  Sub New()",
                          "End Class"},
@@ -30,11 +32,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "  End Sub",
                         "End Class"},
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterConstructorDeclarationForDesignerGeneratedClass()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterConstructorDeclarationForDesignerGeneratedClass() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"<Microsoft.VisualBasic.CompilerServices.DesignerGenerated>",
                          "Class c1",
                          "    Sub New()",
@@ -58,11 +60,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Sub",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterConstructorDeclarationWithTrailingComment()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterConstructorDeclarationWithTrailingComment() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "  Sub New() 'Extra Comment",
                          "End Class"},
@@ -73,11 +75,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "  End Sub",
                         "End Class"},
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterSimpleFunctionDeclarationWithTrailingComment()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterSimpleFunctionDeclarationWithTrailingComment() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "  Function foo() As Integer 'Extra Comment",
                          "End Class"},
@@ -88,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "  End Function",
                         "End Class"},
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DoNotApplyForInterfaceFunction() As Threading.Tasks.Task
@@ -100,8 +102,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifySubInAModule()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifySubInAModule() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Module C",
                          "Public Sub s",
                          "End Module"},
@@ -112,12 +114,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "End Sub",
                          "End Module"},
                 afterCaret:={2, -1})
-        End Sub
-
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifySubWithParameters()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifySubWithParameters() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Module C",
                          "    Private Sub s1(byval x as Integer, Optional y as Integer = 5)",
                          "End Module"},
@@ -128,12 +129,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End Sub",
                          "End Module"},
                 afterCaret:={2, -1})
-        End Sub
-
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyFuncWithParameters()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyFuncWithParameters() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Module C",
                          "    Public function f(byval x as Integer,",
                          "                      byref y as string) as string",
@@ -146,12 +146,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End function",
                          "End Module"},
                 afterCaret:={3, -1})
-        End Sub
-
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyFuncNamedWithKeyWord()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyFuncNamedWithKeyWord() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    private funCtion f1(Optional x as integer = 5) as [if]",
                          "End Class"},
@@ -162,11 +161,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End funCtion",
                          "End Class"},
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifySharedOperator()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifySharedOperator() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    Public Shared Operator +(ByVal a As bar, ByVal b As bar) As bar",
                          "End Class"},
@@ -177,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End Operator",
                          "End Class"},
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyRecommit() As Threading.Tasks.Task
@@ -202,15 +201,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WorkItem(528961)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidLocation02()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyInvalidLocation02() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Sub S"},
                 beforeCaret:={0, -1},
                 after:={"Sub S",
                         "",
                         "End Sub"},
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
 
     End Class

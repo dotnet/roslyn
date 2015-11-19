@@ -40,8 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyForPropertyWithParameters()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyForPropertyWithParameters() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Property foo(i As Integer) As Integer",
                          "End Class"},
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Property",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForReadOnlyProperty() As Task
@@ -106,8 +106,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyOnGetForRegularProperty()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyOnGetForRegularProperty() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Property foo As Integer",
                          "        Get",
@@ -124,11 +124,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Property",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyOnSetForRegularProperty()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyOnSetForRegularProperty() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Property foo As Integer",
                          "        Set",
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Property",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForReadOnlyPropertyIfEndPropertyMissingWhenInvokedAfterProperty() As Task
@@ -158,8 +158,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyOnGetForRegularPropertyWithSetPresent()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyOnGetForRegularPropertyWithSetPresent() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Property foo As Integer",
                          "        Get",
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Property",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function DontApplyForWriteOnlyPropertyWithTypeCharacter() As Task
@@ -195,8 +195,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536376)>
-        Public Sub TestApplyForPropertyWithIndexer()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyForPropertyWithIndexer() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Property foo(arg as Integer) As Integer",
                          "End Class"},
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Property",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536391)>
@@ -289,8 +289,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
-        Public Sub DontGenerateSetForReadonlyProperty()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestDontGenerateSetForReadonlyProperty() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Readonly Property foo(arg as Integer) As Integer",
                          "End Class"},
@@ -303,12 +303,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Property",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
-        Public Sub DontGenerateGetForWriteonlyProperty()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestDontGenerateGetForWriteonlyProperty() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class c1",
                          "    Writeonly Property foo(arg as Integer) As Integer",
                          "End Class"},
@@ -321,6 +321,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "    End Property",
                         "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
     End Class
 End Namespace

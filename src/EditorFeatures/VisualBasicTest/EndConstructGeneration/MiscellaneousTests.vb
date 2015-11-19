@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic
@@ -53,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNestedDo()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyNestedDo() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "        function f() as string",
                          "            for i = 1 to 10"},
@@ -65,11 +66,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "",
                          "            Next"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyMultilinesChar()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyMultilinesChar() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    sub s",
                          "        do :do",
@@ -86,11 +87,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End sub",
                          "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInlineComments()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestVerifyInlineComments() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Class C",
                          "    sub s",
                          "        If true then 'here",
@@ -105,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                          "    End sub",
                          "End Class"},
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Async Function VerifyNotAppliedWithJunkAtEndOfLine() As Tasks.Task

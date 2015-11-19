@@ -23,14 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return CreateWorkspaceFromLinesAsync(lines, exportProvider: null);
         }
 
-        public static TestWorkspace CreateWorkspaceFromLines(
-            string[] lines,
-            ExportProvider exportProvider,
-            string[] metadataReferences = null)
-        {
-            return CreateWorkspaceFromLinesAsync(lines, exportProvider, metadataReferences).WaitAndGetResult(CancellationToken.None);
-        }
-
         public static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
             string[] lines,
             ExportProvider exportProvider,

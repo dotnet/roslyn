@@ -12,19 +12,19 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class NamespaceBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterNamespace()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterNamespace() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Namespace foo"},
                 beforeCaret:={0, -1},
                 after:={"Namespace foo",
                         "",
                         "End Namespace"},
                 afterCaret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub TestApplyAfterNestedNamespace()
-            VerifyStatementEndConstructApplied(
+        Public Async Function TestApplyAfterNestedNamespace() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:={"Namespace foo",
                          "Namespace bar",
                          "End Namespace"},
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                         "End Namespace",
                         "End Namespace"},
                 afterCaret:={2, -1})
-        End Sub
+        End Function
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
