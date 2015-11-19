@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 { LanguageNames.CSharp, new DiagnosticAnalyzer[] { analyzer } }
             };
 
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFilesAsync(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace, analyzerMap))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [WpfFact(Skip = "xunit"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task MultipleTaggersAndDispose()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class A {" }, CSharpParseOptions.Default))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFilesAsync(new string[] { "class A {" }, CSharpParseOptions.Default))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace))
             {
                 // Make two taggers.
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported()
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class C {" }, CSharpParseOptions.Default))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFilesAsync(new string[] { "class C {" }, CSharpParseOptions.Default))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace, analyzerMap: null, createTaggerProvider: false))
             {
                 // First, make sure all diagnostics have been reported.

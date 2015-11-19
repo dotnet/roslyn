@@ -40,17 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return CreateWorkspaceFromFilesAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
         }
 
-        /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
-        public static TestWorkspace CreateWorkspaceFromFiles(
-            string[] files,
-            CSharpParseOptions parseOptions = null,
-            CSharpCompilationOptions compilationOptions = null,
-            ExportProvider exportProvider = null,
-            string[] metadataReferences = null)
-        {
-            return CreateWorkspaceFromFiles(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
-        }
-
         public static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string[] files,
             CSharpParseOptions parseOptions = null,
