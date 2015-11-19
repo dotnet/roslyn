@@ -840,9 +840,9 @@ class D
 
         [WorkItem(1174255)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void NoNavigationToGeneratedFiles()
+        public async Task NoNavigationToGeneratedFiles()
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(@"
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
         <Document FilePath=""File1.cs"">

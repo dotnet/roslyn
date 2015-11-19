@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         [WpfFact]
         public async Task TestCodeActionPreviewAndApply()
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(WorkspaceXml))
             {
                 var codeIssueOrRefactoring = GetCodeRefactoring(workspace);
 
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         }
 
         [WpfFact]
-        public void TestWorkspaceTryApplyChangesDirectCall()
+        public async Task TestWorkspaceTryApplyChangesDirectCall()
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(WorkspaceXml))
             {
                 var solution = workspace.CurrentSolution;
 

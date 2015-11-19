@@ -49,13 +49,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         private readonly CodeFixProvider _codeFixProvider;
         private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();
 
-        public RenameTrackingTestState(
+        public static async Task<RenameTrackingTestState> CreateAsync(
             string markup,
             string languageName,
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            this.Workspace = CreateTestWorkspace(markup, languageName, TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic());
+            var workspace = await CreateTestWorkspaceAsync(markup, languageName, TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic());
+            return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
+        }
+
+        public RenameTrackingTestState(
+            TestWorkspace workspace,
+            string languageName,
+            bool onBeforeGlobalSymbolRenamedReturnValue = true,
+            bool onAfterGlobalSymbolRenamedReturnValue = true)
+        {
+            this.Workspace = workspace;
 
             _hostDocument = Workspace.Documents.First();
             _view = _hostDocument.GetTextView();
@@ -105,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             }
         }
 
-        private static TestWorkspace CreateTestWorkspace(string code, string languageName, ExportProvider exportProvider = null)
+        private static Task<TestWorkspace> CreateTestWorkspaceAsync(string code, string languageName, ExportProvider exportProvider = null)
         {
             var xml = string.Format(@"
 <Workspace>
@@ -114,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
     </Project>
 </Workspace>", languageName, code);
 
-            return TestWorkspaceFactory.CreateWorkspace(xml, exportProvider: exportProvider);
+            return TestWorkspaceFactory.CreateWorkspaceAsync(xml, exportProvider: exportProvider);
         }
 
         public void SendEscape()

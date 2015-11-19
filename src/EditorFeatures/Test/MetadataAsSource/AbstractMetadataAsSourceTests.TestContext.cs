@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             private readonly IMetadataAsSourceFileService _metadataAsSourceService;
             private readonly ITextBufferFactoryService _textBufferFactoryService;
 
-            public TestContext(string projectLanguage = null, IEnumerable<string> metadataSources = null, bool includeXmlDocComments = false, string sourceWithSymbolReference = null)
+            public static async Task<TestContext> CreateAsync(string projectLanguage = null, IEnumerable<string> metadataSources = null, bool includeXmlDocComments = false, string sourceWithSymbolReference = null)
             {
                 projectLanguage = projectLanguage ?? LanguageNames.CSharp;
                 metadataSources = metadataSources ?? SpecializedCollections.EmptyEnumerable<string>();
@@ -34,7 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     ? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource }
                     : metadataSources;
 
-                _workspace = CreateWorkspace(projectLanguage, metadataSources, includeXmlDocComments, sourceWithSymbolReference);
+                var workspace = await CreateWorkspaceAsync(projectLanguage, metadataSources, includeXmlDocComments, sourceWithSymbolReference);
+                return new TestContext(workspace);
+            }
+
+            public TestContext(TestWorkspace workspace)
+            {
+                _workspace = workspace;
                 _metadataAsSourceService = _workspace.GetService<IMetadataAsSourceFileService>();
                 _textBufferFactoryService = _workspace.GetService<ITextBufferFactoryService>();
             }
@@ -210,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     ? LanguageNames.VisualBasic : LanguageNames.CSharp;
             }
 
-            private static TestWorkspace CreateWorkspace(string projectLanguage, IEnumerable<string> metadataSources, bool includeXmlDocComments, string sourceWithSymbolReference)
+            private static Task<TestWorkspace> CreateWorkspaceAsync(string projectLanguage, IEnumerable<string> metadataSources, bool includeXmlDocComments, string sourceWithSymbolReference)
             {
                 var xmlString = string.Concat(@"
 <Workspace>
@@ -246,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     </Project>
 </Workspace>");
 
-                return TestWorkspaceFactory.CreateWorkspace(xmlString);
+                return TestWorkspaceFactory.CreateWorkspaceAsync(xmlString);
             }
 
             internal Document GetDocument(MetadataAsSourceFile file)
