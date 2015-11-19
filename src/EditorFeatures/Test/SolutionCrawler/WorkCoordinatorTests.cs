@@ -771,7 +771,7 @@ End Class";
 
         private async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromLines(
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(
                 SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: new string[] { code }))
             {
                 var analyzer = new Analyzer();

@@ -67,16 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, total);
         }
 
-        internal static TestWorkspace CreateWorkspaceFromLines(
-            string workspaceKind,
-            string language,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
-            params string[] content)
-        {
-            return CreateWorkspaceFromLinesAsync(workspaceKind, language, compilationOptions, parseOptions, content).WaitAndGetResult(CancellationToken.None);
-        }
-
         /// <summary>
         /// Creates a single buffer in a workspace.
         /// </summary>
