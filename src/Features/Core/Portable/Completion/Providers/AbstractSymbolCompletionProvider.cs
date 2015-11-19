@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols,
                 context,
                 supportedPlatforms: supportedPlatformData,
-                preselectionPriority: preselectionPriority ? PreselectionPriority.Optional : PreselectionPriority.Default,
+                preselectionPriority: preselectionPriority ? MatchPriority.Prefer : MatchPriority.Default,
                 rules: GetCompletionItemRules());
         }
 

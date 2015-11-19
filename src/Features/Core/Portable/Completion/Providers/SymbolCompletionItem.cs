@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             List<ISymbol> symbols,
             AbstractSyntaxContext context,
-            PreselectionPriority preselectionPriority = PreselectionPriority.Default,
+            MatchPriority preselectionPriority = MatchPriority.Default,
             SupportedPlatformData supportedPlatforms = null,
             CompletionItemRules rules = null)
             : this(completionProvider,
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             List<ISymbol> symbols,
             AbstractSyntaxContext context,
-            PreselectionPriority preselectionPriority = PreselectionPriority.Default,
+            MatchPriority preselectionPriority = MatchPriority.Default,
             SupportedPlatformData supportedPlatforms = null,
             CompletionItemRules rules = null)
         : base(completionProvider, displayText, filterSpan,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string sortText,
             AbstractSyntaxContext context,
             Glyph glyph,
-            PreselectionPriority preselectionPriority = PreselectionPriority.Default,
+            MatchPriority preselectionPriority = MatchPriority.Default,
             SupportedPlatformData supportedPlatforms = null,
             CompletionItemRules rules = null)
         : base(completionProvider, displayText, filterSpan,

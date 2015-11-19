@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// preferred over another item if the ICompletionRules currently in effect deem them
         /// otherwise identical.
         /// </summary>
-        public PreselectionPriority PreselectionPriority { get; }
+        public MatchPriority PreselectionPriority { get; }
 
         /// <summary>
         /// The span(respective to the original document text when this completion item was created)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Glyph? glyph = null,
             string sortText = null,
             string filterText = null,
-            PreselectionPriority preselectionPriority = PreselectionPriority.Default,
+            MatchPriority preselectionPriority = MatchPriority.Default,
             bool isBuilder = false,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Glyph? glyph,
             string sortText = null,
             string filterText = null,
-            PreselectionPriority preselectionPriority = PreselectionPriority.Default,
+            MatchPriority preselectionPriority = MatchPriority.Default,
             bool isBuilder = false,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Completion
             bool hasAsyncDescription,
             string sortText,
             string filterText,
-            PreselectionPriority preselectionPriority,
+            MatchPriority preselectionPriority,
             bool isBuilder,
             bool showsWarningIcon,
             bool shouldFormatOnCommit,

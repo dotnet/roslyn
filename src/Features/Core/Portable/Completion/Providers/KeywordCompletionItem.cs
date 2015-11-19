@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal class KeywordCompletionItem : CompletionItem
     {
-        public KeywordCompletionItem(CompletionListProvider completionProvider, string displayText, TextSpan filterSpan, Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory, Glyph? glyph, bool isIntrinsic, PreselectionPriority preselectionPriority, bool shouldFormatOnCommit = false)
+        public KeywordCompletionItem(CompletionListProvider completionProvider, string displayText, TextSpan filterSpan, Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory, Glyph? glyph, bool isIntrinsic, MatchPriority preselectionPriority, bool shouldFormatOnCommit = false)
             : base(completionProvider, displayText, filterSpan, descriptionFactory, glyph, shouldFormatOnCommit: shouldFormatOnCommit, rules: KeywordCompletionItemRules.Instance, preselectionPriority: preselectionPriority)
         {
             this.IsIntrinsic = isIntrinsic;
