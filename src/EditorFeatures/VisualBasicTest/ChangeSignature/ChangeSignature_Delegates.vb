@@ -110,10 +110,10 @@ Class C
         Dim s As MySub = Nothing
 
         s = Sub()
-            End Function
+            End Sub
 
         s = Sub(a As Integer, b As String, c As Boolean)
-            End Function
+            End Sub
 
         s = Sub(a As Integer, b As String, c As Boolean) System.Console.WriteLine("Test")
     End Sub
@@ -128,10 +128,10 @@ Class C
         Dim s As MySub = Nothing
 
         s = Sub()
-            End Function
+            End Sub
 
         s = Sub(c As Boolean, b As String)
-            End Function
+            End Sub
 
         s = Sub(c As Boolean, b As String) System.Console.WriteLine("Test")
     End Sub
