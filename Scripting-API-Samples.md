@@ -4,7 +4,7 @@ The scripting APIs enable .NET applications to instatiate a C# engine and execut
 > ```using Microsoft.CodeAnalysis.Scripting;``` <br/>
 > ```using Microsoft.CodeAnalysis.CSharp.Scripting;``` <br/>
 
-You can also view the [source code](https://github.com/dotnet/roslyn/tree/a7319e2bc8cac34c34527031e6204d383d29d4ab/src/Scripting). There may be some changes to the API after it was finalized early October 2015.
+You can also view the [source code](https://github.com/dotnet/roslyn/tree/a7319e2bc8cac34c34527031e6204d383d29d4ab/src/Scripting).
 
 ## Scenarios
 * [Evaluate a C# expression](#expr)
@@ -37,7 +37,7 @@ int result = await CSharpScript.EvaluateAsync<int>("1 + 2");
 ```csharp
 try
 {
-    Console.WriteLine(await CSharpScript.EvaluateAsync(Console.ReadLine()));
+    Console.WriteLine(await CSharpScript.EvaluateAsync("2+2"));
 }
 catch (CompilationErrorException e)
 {
@@ -47,8 +47,8 @@ catch (CompilationErrorException e)
 
 ### <a name="addref"></a>Add references
 ```csharp
-var result = await CSharpScript.EvaluateAsync("MyLib.DoStuff()", 
-     ScriptOptions.Default.WithReferences(typeof(Lib).Assembly));
+var result = await CSharpScript.EvaluateAsync("System.Net.Dns.GetHostName()", 
+     ScriptOptions.Default.WithReferences(typeof(System.Net.Dns).Assembly));
 ```
 
 ### <a name="addimports"></a>Add imports
@@ -58,7 +58,7 @@ var result = await CSharpScript.EvaluateAsync("Sqrt(2)",
 ```
 
 ### <a name="parameter"></a>Parameterize a script
-> **Note**: this currently doesn't work inside the REPL due to a [known bug](https://github.com/dotnet/roslyn/issues/6101). A workaround would be to define Globals in a .dll and #r the .dll. 
+> **Note**: there is a [known bug](https://github.com/dotnet/roslyn/issues/6101) here. A workaround would be to define Globals in a .dll and #r the .dll. 
 ```csharp
 public class Globals
 {
@@ -93,7 +93,7 @@ for (int i = 0; i < 10; i++)
 
 ### <a name="inspect"></a> Run a C# snippet and inspect defined script variables
 ```csharp
-var state = await CSharpScript.RunAsync<int>(Console.ReadLine());
+var state = await CSharpScript.RunAsync<int>("int answer = 42");
 foreach (var variable in state.Variables)
      Console.WriteLine($"{variable.Name} = {variable.Value} of type {variable.Type}");
 ```
@@ -105,7 +105,7 @@ var script = CSharpScript.
     ContinueWith("int y = 2;").
     ContinueWith("x + y");
 
-Console.WriteLine(await script.RunAsync());
+Console.WriteLine((await script.RunAsync()).ReturnValue);
 ```
 
 ### <a name="previoustate"></a> Continue script execution from a previous state
@@ -120,7 +120,7 @@ Console.WriteLine(state.ReturnValue);
 ```csharp
 using Microsoft.CodeAnalysis;
 
-var script = CSharpScript.Create<int>(Console.ReadLine());
+var script = CSharpScript.Create<int>("3");
 Compilation compilation = script.GetCompilation();
 //do stuff
 ```
