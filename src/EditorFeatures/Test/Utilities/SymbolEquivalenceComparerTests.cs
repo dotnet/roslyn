@@ -1332,7 +1332,7 @@ End Class
         }
 
         [WpfFact]
-        public void TestDifferentModules()
+        public async Task TestDifferentModules()
         {
             var csharpCode =
 @"namespace N
@@ -1342,8 +1342,8 @@ End Class
     }
 }";
 
-            using (var workspace1 = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new[] { csharpCode }, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "FooModule")))
-            using (var workspace2 = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new[] { csharpCode }, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "BarModule")))
+            using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { csharpCode }, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "FooModule")))
+            using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { csharpCode }, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "BarModule")))
             {
                 var namespace1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");
                 var namespace2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");

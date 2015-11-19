@@ -392,7 +392,7 @@ class C
         }
 
         [WpfFact]
-        public void AnalyzeDocumentAsync_Features_NoChange()
+        public async Task AnalyzeDocumentAsync_Features_NoChange()
         {
             string source = @"
 class C
@@ -407,7 +407,7 @@ class C
             var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
 
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(
                 new[] { source }, parseOptions: experimental, compilationOptions: null, exportProvider: null))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -422,7 +422,7 @@ class C
         }
 
         [WpfFact]
-        public void AnalyzeDocumentAsync_Features_Change()
+        public async Task AnalyzeDocumentAsync_Features_Change()
         {
             // these are all the experimental features currently implemented
             string[] experimentalFeatures = Array.Empty<string>();
@@ -452,7 +452,7 @@ class C
                 var featuresToEnable = new Dictionary<string, string>() { { feature, "enabled" } };
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
 
-                using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(
+                using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(
                     new[] { source1 }, parseOptions: experimental, compilationOptions: null, exportProvider: null))
                 {
                     var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;

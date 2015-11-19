@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
     public class OutliningTaggerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void CSharpOutliningTagger()
+        public async Task CSharpOutliningTagger()
         {
             var code = new string[]
             {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
                 "}"
             };
 
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
                 var tags = GetTagsFromWorkspace(workspace);
 

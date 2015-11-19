@@ -20,15 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return CreateWorkspaceFromLinesAsync(lines, parseOptions: null, compilationOptions: null, exportProvider: null);
         }
 
-        public static TestWorkspace CreateWorkspaceFromLines(
-            string[] lines,
-            CSharpParseOptions parseOptions = null,
-            CSharpCompilationOptions compilationOptions = null,
-            ExportProvider exportProvider = null)
-        {
-            return CreateWorkspaceFromLinesAsync(lines, parseOptions, compilationOptions, exportProvider).WaitAndGetResult(CancellationToken.None);
-        }
-
         public static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
             string[] lines,
             CSharpParseOptions parseOptions = null,

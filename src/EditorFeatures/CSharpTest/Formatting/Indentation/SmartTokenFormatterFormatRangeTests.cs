@@ -2675,19 +2675,19 @@ class Program{
         [WpfFact]
         [WorkItem(620568)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void SkippedTokens1()
+        public async Task SkippedTokens1()
         {
             var code = @";$$*";
 
             var expected = @";*";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(530830)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor()
+        public async Task AutoPropertyAccessor()
         {
             var code = @"class C
 {
@@ -2699,13 +2699,13 @@ class Program{
     int Prop {          get;
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(530830)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor2()
+        public async Task AutoPropertyAccessor2()
         {
             var code = @"class C
 {
@@ -2717,13 +2717,13 @@ class Program{
     int Prop {          get;                set;
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(530830)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor3()
+        public async Task AutoPropertyAccessor3()
         {
             var code = @"class C
 {
@@ -2735,13 +2735,13 @@ class Program{
     int Prop { get; set; }
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(784674)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor4()
+        public async Task AutoPropertyAccessor4()
         {
             var code = @"class C
 {
@@ -2753,13 +2753,13 @@ class Program{
     int Prop { get; }
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(924469)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor5()
+        public async Task AutoPropertyAccessor5()
         {
             var code = @"class C
 {
@@ -2770,13 +2770,13 @@ class Program{
 {
     int Prop { get; set; }
 }";
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(924469)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor6()
+        public async Task AutoPropertyAccessor6()
         {
             var code = @"class C
 {
@@ -2788,13 +2788,13 @@ class Program{
     int Prop { get; set; }
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(924469)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor7()
+        public async Task AutoPropertyAccessor7()
         {
             var code = @"class C
 {
@@ -2806,13 +2806,13 @@ class Program{
     int Prop     { get; set; }    
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(912965)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void NestedUsingStatement()
+        public async Task NestedUsingStatement()
         {
             var code = @"class C
 {
@@ -2832,13 +2832,13 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(912965)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void NestedNotUsingStatement()
+        public async Task NestedNotUsingStatement()
         {
             var code = @"class C
 {
@@ -2858,13 +2858,13 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(954386)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForFirstStatementOfBlock()
+        public async Task FormattingRangeForFirstStatementOfBlock()
         {
             var code = @"class C
 {
@@ -2881,13 +2881,13 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(954386)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForFirstMemberofType()
+        public async Task FormattingRangeForFirstMemberofType()
         {
             var code = @"class C
 {int s;$$
@@ -2904,13 +2904,13 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(954386)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForFirstMethodMemberofType()
+        public async Task FormattingRangeForFirstMethodMemberofType()
         {
             var code = @"interface C
 {void s();$$
@@ -2921,13 +2921,13 @@ class Program{
     void s();
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WpfFact]
         [WorkItem(954386)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForFirstMemberOfNamespace()
+        public async Task FormattingRangeForFirstMemberOfNamespace()
         {
             var code = @"namespace C
 {delegate void s();$$
@@ -2938,13 +2938,13 @@ class Program{
     delegate void s();
 }";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WorkItem(981821)]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDirectiveTriviaAlwaysToColumnZero()
+        public async Task FormatDirectiveTriviaAlwaysToColumnZero()
         {
             var code = @"class Program
 {
@@ -2966,13 +2966,13 @@ class Program{
 }
 ";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WorkItem(981821)]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDirectiveTriviaAlwaysToColumnZeroWithCode()
+        public async Task FormatDirectiveTriviaAlwaysToColumnZeroWithCode()
         {
             var code = @"class Program
 {
@@ -2996,13 +2996,13 @@ class Program{
 }
 ";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
         [WorkItem(981821)]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective()
+        public async Task FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective()
         {
             var code = @"class Program
 {
@@ -3024,12 +3024,12 @@ class Program{
 }
 ";
 
-            AutoFormatToken(code, expected);
+            await AutoFormatTokenAsync(code, expected);
         }
 
-        internal static void AutoFormatToken(string markup, string expected)
+        internal static async Task AutoFormatTokenAsync(string markup, string expected)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new string[] { markup }))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new string[] { markup }))
             {
                 var subjectDocument = workspace.Documents.Single();
 

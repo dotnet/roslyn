@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             #region Generics
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectTypeParameterWithConstraints()
+            public async Task SelectTypeParameterWithConstraints()
             {
                 var code = @"using System;
 
@@ -42,11 +42,11 @@ class Program
     }
 }";
 
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectTypeParameter()
+            public async Task SelectTypeParameter()
             {
                 var code = @"using System;
 
@@ -83,11 +83,11 @@ class Program
     }
 }";
 
-                TestExtractMethod(code, expected, allowMovingDeclaration: false);
+                await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectTypeOfTypeParameter()
+            public async Task SelectTypeOfTypeParameter()
             {
                 var code = @"using System;
 
@@ -113,11 +113,11 @@ class Program
     }
 }";
 
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectTypeParameterDataFlowOut()
+            public async Task SelectTypeParameterDataFlowOut()
             {
                 var code = @"using System;
 using System.Collections.Generic;
@@ -166,12 +166,12 @@ class Program
     }
 }";
 
-                TestExtractMethod(code, expected, allowMovingDeclaration: false);
+                await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
             }
 
             [WorkItem(528198)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void BugFix6794()
+            public async Task BugFix6794()
             {
                 var code = @"using System;
 class Program
@@ -215,12 +215,12 @@ class Program
     }
 }";
 
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528198)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void BugFix6794_1()
+            public async Task BugFix6794_1()
             {
                 var code = @"using System;
 class Program
@@ -262,11 +262,11 @@ class Program
     }
 }";
 
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectDefaultOfT()
+            public async Task SelectDefaultOfT()
             {
                 var code = @"using System;
 using System.Collections.Generic;
@@ -298,7 +298,7 @@ class Test11<T>
     }
 }";
 
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             #endregion
@@ -306,7 +306,7 @@ class Test11<T>
             #region Operators
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectPostIncrementOperatorExtractWithRef()
+            public async Task SelectPostIncrementOperatorExtractWithRef()
             {
                 var code = @"class A
 {
@@ -327,11 +327,11 @@ class Test11<T>
         return i++;
     }
 }";
-                TestExtractMethod(code, expected, allowMovingDeclaration: false);
+                await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectPostIncrementOperator()
+            public async Task SelectPostIncrementOperator()
             {
                 var code = @"class A
 {
@@ -352,11 +352,11 @@ class Test11<T>
         return i++;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectPreIncrementOperator()
+            public async Task SelectPreIncrementOperator()
             {
                 var code = @"class A
 {
@@ -377,11 +377,11 @@ class Test11<T>
         return ++i;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectPostDecrementOperator()
+            public async Task SelectPostDecrementOperator()
             {
                 var code = @"class A
 {
@@ -402,11 +402,11 @@ class Test11<T>
         return i--;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void SelectPreDecrementOperator()
+            public async Task SelectPreDecrementOperator()
             {
                 var code = @"class A
 {
@@ -427,7 +427,7 @@ class Test11<T>
         return --i;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             #endregion
@@ -436,7 +436,7 @@ class Test11<T>
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedMethod()
+            public async Task ExpressionBodiedMethod()
             {
                 var code = @"using System;
 class T
@@ -455,12 +455,12 @@ class T
         return 1;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedOperator()
+            public async Task ExpressionBodiedOperator()
             {
                 var code = @"using System;
 class Complex
@@ -489,12 +489,12 @@ class Complex
         throw new NotImplementedException();
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedConversionOperator()
+            public async Task ExpressionBodiedConversionOperator()
             {
                 var code = @"using System;
 public struct DBBool
@@ -527,12 +527,12 @@ public struct DBBool
         return 1;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedProperty()
+            public async Task ExpressionBodiedProperty()
             {
                 var code = @"using System;
 class T
@@ -549,12 +549,12 @@ class T
         return 1;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedIndexer()
+            public async Task ExpressionBodiedIndexer()
             {
                 var code = @"using System;
 class SampleCollection<T>
@@ -573,12 +573,12 @@ class SampleCollection<T>
         return i + 1;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedIndexer2()
+            public async Task ExpressionBodiedIndexer2()
             {
                 var code = @"using System;
 class SampleCollection<T>
@@ -597,12 +597,12 @@ class SampleCollection<T>
         return i > 0 ? arr[i + 1] : arr[i + 2];
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
+            public async Task ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
             {
                 var code = @"using System;
 class TestClass
@@ -625,12 +625,12 @@ class TestClass
         return 9;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
+            public async Task ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
             {
                 var code = @"using System;
 class TestClass
@@ -647,12 +647,12 @@ class TestClass
         return 9;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
+            public async Task ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
             {
                 var code = @"using System;
 class TestClass
@@ -675,12 +675,12 @@ class TestClass
         return 9;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
+            public async Task ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
             {
                 var code = @"using System;
 class TestClass
@@ -697,12 +697,12 @@ class TestClass
         return 9;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
+            public async Task ExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
             {
                 var code = @"using System;
 class TestClass
@@ -725,12 +725,12 @@ class TestClass
         return 9;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedMethodWithExpressionBodiedParenthesizedLambdaExpression()
+            public async Task ExpressionBodiedMethodWithExpressionBodiedParenthesizedLambdaExpression()
             {
                 var code = @"using System;
 class TestClass
@@ -747,12 +747,12 @@ class TestClass
         return 9;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
+            public async Task ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
             {
                 var code = @"using System;
 class TestClass
@@ -785,12 +785,12 @@ class TestClass
         throw new NotImplementedException();
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(528, "https://github.com/dotnet/roslyn/issues/528")]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void LeadingAndTrailingTriviaOnExpressionBodiedMethod()
+            public async Task LeadingAndTrailingTriviaOnExpressionBodiedMethod()
             {
                 var code = @"using System;
 class TestClass
@@ -811,7 +811,7 @@ class TestClass
 
     void Cat() { }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             #endregion
@@ -836,7 +836,7 @@ class Program
 
             [WorkItem(544259)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExtractMethod_ConstructorInitializer()
+            public async Task ExtractMethod_ConstructorInitializer()
             {
                 var code = @"class Program
 {
@@ -858,7 +858,7 @@ class Program
     }
 }";
 
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(543984)]
@@ -892,7 +892,7 @@ class Program
 
             [WorkItem(544387)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExtractMethod_PointerType()
+            public async Task ExtractMethod_PointerType()
             {
                 var code = @"class Test
 {
@@ -922,7 +922,7 @@ class Program
     }
 }";
 
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(544514)]
@@ -960,7 +960,7 @@ class Program
 
             [WorkItem(544920)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExtractMethod_StackAllocExpression()
+            public async Task ExtractMethod_StackAllocExpression()
             {
                 var code = @"
 unsafe class C
@@ -986,7 +986,7 @@ unsafe class C
 }
 ";
 
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(539310)]
@@ -1007,7 +1007,7 @@ unsafe class C
 
             [WorkItem(539310)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void Readonly_Field()
+            public async Task Readonly_Field()
             {
                 var code = @"class C
 {
@@ -1034,7 +1034,7 @@ unsafe class C
         var x = i;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(545180)]
@@ -1075,7 +1075,7 @@ class Program
 
             [WorkItem(545315)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void Nullable()
+            public async Task Nullable()
             {
                 var code = @"using System;
 class Program
@@ -1101,7 +1101,7 @@ class Program
     }
 }";
 
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(545263)]
@@ -1128,7 +1128,7 @@ class Program
 
             [WorkItem(544497)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void StackAllocExpression()
+            public async Task StackAllocExpression()
             {
                 var code = @"using System;
 class Test
@@ -1151,12 +1151,12 @@ class Test
         void* buffer = stackalloc char[16];
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(545503)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void MethodBodyInScript()
+            public async Task MethodBodyInScript()
             {
                 var code = @"#r ""System.Management""
 using System;
@@ -1207,12 +1207,12 @@ void NewMethod(string query, string[,] labelKeys)
     }
     output.AppendLine();
 }";
-                TestExtractMethod(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script));
+                await TestExtractMethodAsync(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script));
             }
 
             [WorkItem(544920)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void NoSimplificationForStackAlloc()
+            public async Task NoSimplificationForStackAlloc()
             {
                 var code = @"using System;
  
@@ -1240,12 +1240,12 @@ unsafe class C
         return p;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(545553)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void CheckStatementContext1()
+            public async Task CheckStatementContext1()
             {
                 var code = @"using System;
 
@@ -1289,12 +1289,12 @@ class X
         }
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(545553)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void CheckStatementContext2()
+            public async Task CheckStatementContext2()
             {
                 var code = @"using System;
 
@@ -1335,12 +1335,12 @@ class X
         }
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(545553)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void CheckStatementContext3()
+            public async Task CheckStatementContext3()
             {
                 var code = @"using System;
 
@@ -1386,12 +1386,12 @@ class X
         }
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(545553)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void CheckExpressionContext1()
+            public async Task CheckExpressionContext1()
             {
                 var code = @"using System;
 
@@ -1426,11 +1426,11 @@ class X
         return unchecked(Foo(X => (byte)X.Value, null));
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_Normal_SingleStatement()
+            public async Task AwaitExpression_Normal_SingleStatement()
             {
                 var code = @"using System;
 using System.Threading.Tasks;
@@ -1457,11 +1457,11 @@ class X
         await Task.Run(() => { });
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_Normal_Expression()
+            public async Task AwaitExpression_Normal_Expression()
             {
                 var code = @"using System;
 using System.Threading.Tasks;
@@ -1488,11 +1488,11 @@ class X
         await Task.Run(() => { });
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_Normal_MultipleStatements()
+            public async Task AwaitExpression_Normal_MultipleStatements()
             {
                 var code = @"using System;
 using System.Threading.Tasks;
@@ -1527,11 +1527,11 @@ class X
         return;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_Normal_ExpressionWithReturn()
+            public async Task AwaitExpression_Normal_ExpressionWithReturn()
             {
                 var code = @"using System;
 using System.Threading.Tasks;
@@ -1562,11 +1562,11 @@ class X
         return await Task.Run(() => 1);
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_Normal_ExpressionInAwaitExpression()
+            public async Task AwaitExpression_Normal_ExpressionInAwaitExpression()
             {
                 var code = @"using System;
 using System.Threading.Tasks;
@@ -1593,11 +1593,11 @@ class X
         return Task.Run(() => 1);
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_Normal_StatementWithAwaitExpressionWithReturn()
+            public async Task AwaitExpression_Normal_StatementWithAwaitExpressionWithReturn()
             {
                 var code = @"using System;
 using System.Threading.Tasks;
@@ -1624,11 +1624,11 @@ class X
         await Task.Run(() => 1);
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_Normal_AwaitWithReturnParameter()
+            public async Task AwaitExpression_Normal_AwaitWithReturnParameter()
             {
                 var code = @"using System;
 using System.Threading.Tasks;
@@ -1660,7 +1660,7 @@ class X
         return i;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
@@ -1682,7 +1682,7 @@ class X
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_AsyncLambda()
+            public async Task AwaitExpression_AsyncLambda()
             {
                 // this is an error case. but currently, I didn't blocked this. but we could if we want to.
                 var code = @"using System;
@@ -1710,11 +1710,11 @@ class X
         return async () => await Task.Run(() => 1);
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_AsyncLambda_Body()
+            public async Task AwaitExpression_AsyncLambda_Body()
             {
                 // this is an error case. but currently, I didn't blocked this. but we could if we want to.
                 var code = @"using System;
@@ -1742,11 +1742,11 @@ class X
         return await Task.Run(() => 1);
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void AwaitExpression_AsyncLambda_WholeExpression()
+            public async Task AwaitExpression_AsyncLambda_WholeExpression()
             {
                 // this is an error case. but currently, I didn't blocked this. but we could if we want to.
                 var code = @"using System;
@@ -1774,12 +1774,12 @@ class X
         Test(async () => await Task.Run(() => 1));
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(1064798)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionInStringInterpolation()
+            public async Task ExpressionInStringInterpolation()
             {
                 var code = @"using System;
 
@@ -1804,12 +1804,12 @@ class X
         return int.Parse(""12345"");
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
 
             [WorkItem(859493)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void ExpressionInYieldReturnStatement()
+            public async Task ExpressionInYieldReturnStatement()
             {
                 var code = @"using System;
 using System.Collections.Generic;
@@ -1860,13 +1860,13 @@ public class Test<T>
         return _localCurrent._item;
     }
 }";
-                TestExtractMethod(code, expected);
+                await TestExtractMethodAsync(code, expected);
             }
         }
 
         [WorkItem(3147, "https://github.com/dotnet/roslyn/issues/3147")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public void HandleFormattableStringTargetTyping1()
+        public async Task HandleFormattableStringTargetTyping1()
         {
             const string code = CodeSnippets.FormattableStringType + @"
 namespace N
@@ -1901,7 +1901,7 @@ namespace N
     }
 }";
 
-            TestExtractMethod(code, expected);
+            await TestExtractMethodAsync(code, expected);
         }
     }
 }

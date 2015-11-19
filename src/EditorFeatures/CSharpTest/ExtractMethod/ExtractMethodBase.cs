@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             }
         }
 
-        protected void TestExtractMethod(
+        protected async Task TestExtractMethodAsync(
             string codeWithMarker,
             string expected,
             bool temporaryFailing = false,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             bool dontPutOutOrRefOnStruct = true,
             CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new[] { codeWithMarker }, parseOptions: parseOptions))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { codeWithMarker }, parseOptions: parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var subjectBuffer = testDocument.TextBuffer;
@@ -127,9 +127,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             return result.Document.GetSyntaxRootAsync().Result;
         }
 
-        protected void TestSelection(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null)
+        protected async Task TestSelectionAsync(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new[] { codeWithMarker }, parseOptions: parseOptions))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { codeWithMarker }, parseOptions: parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var namedSpans = testDocument.AnnotatedSpans;
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             }
         }
 
-        protected void IterateAll(string code)
+        protected async Task IterateAllAsync(string code)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new string[] { code }, CodeAnalysis.CSharp.Test.Utilities.TestOptions.Regular))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new string[] { code }, CodeAnalysis.CSharp.Test.Utilities.TestOptions.Regular))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 Assert.NotNull(document);

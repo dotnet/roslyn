@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
@@ -13,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
     public class LocationInfoGetterTests
     {
-        private void Test(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
+        private async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new[] { markup }, parseOptions))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { markup }, parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var position = testDocument.CursorPosition.Value;
@@ -30,16 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestClass()
+        public async Task TestClass()
         {
-            Test("class F$$oo { }", "Foo", 0);
+            await TestAsync("class F$$oo { }", "Foo", 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668), WorkItem(538415)]
-        public void TestMethod()
+        public async Task TestMethod()
         {
-            Test(
+            await TestAsync(
 @"class Class
 {
     public static void Meth$$od()
@@ -51,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
-        public void TestNamespace()
+        public async Task TestNamespace()
         {
-            Test(
+            await TestAsync(
 @"namespace Namespace
 {
     class Class
@@ -67,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
-        public void TestDottedNamespace()
+        public async Task TestDottedNamespace()
         {
-            Test(
+            await TestAsync(
 @"namespace Namespace.Another
 {
     class Class
@@ -82,9 +83,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestNestedNamespace()
+        public async Task TestNestedNamespace()
         {
-            Test(
+            await TestAsync(
 @"namespace Namespace
 {
     namespace Another
@@ -101,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
-        public void TestNestedType()
+        public async Task TestNestedType()
         {
-            Test(
+            await TestAsync(
 @"class Outer
 {
     class Inner
@@ -117,9 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
-        public void TestPropertyGetter()
+        public async Task TestPropertyGetter()
         {
-            Test(
+            await TestAsync(
 @"class Class
 {
     string Property
@@ -134,9 +135,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
-        public void TestPropertySetter()
+        public async Task TestPropertySetter()
         {
-            Test(
+            await TestAsync(
 @"class Class
 {
     string Property
@@ -156,9 +157,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(538415)]
-        public void TestField()
+        public async Task TestField()
         {
-            Test(
+            await TestAsync(
 @"class Class
 {
     int fi$$eld;
@@ -167,9 +168,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(543494)]
-        public void TestLambdaInFieldInitializer()
+        public async Task TestLambdaInFieldInitializer()
         {
-            Test(
+            await TestAsync(
 @"class Class
 {
     Action<int> a = b => { in$$t c; };
@@ -178,9 +179,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(543494)]
-        public void TestMultipleFields()
+        public async Task TestMultipleFields()
         {
-            Test(
+            await TestAsync(
 @"class Class
 {
     int a1, a$$2;
@@ -188,9 +189,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestConstructor()
+        public async Task TestConstructor()
         {
-            Test(
+            await TestAsync(
 @"class C1
 {
     C1()
@@ -202,9 +203,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestDestructor()
+        public async Task TestDestructor()
         {
-            Test(
+            await TestAsync(
 @"class C1
 {
     ~C1()
@@ -215,9 +216,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestOperator()
+        public async Task TestOperator()
         {
-            Test(
+            await TestAsync(
 @"namespace N1
 {
     class C1
@@ -232,9 +233,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestConversionOperator()
+        public async Task TestConversionOperator()
         {
-            Test(
+            await TestAsync(
 @"namespace N1
 {
     class C1
@@ -252,9 +253,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestEvent()
+        public async Task TestEvent()
         {
-            Test(
+            await TestAsync(
 @"class C1
 {
     delegate void D1();
@@ -264,9 +265,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TextExplicitInterfaceImplementation()
+        public async Task TextExplicitInterfaceImplementation()
         {
-            Test(
+            await TestAsync(
 @"interface I1
 {
     void M1();
@@ -281,9 +282,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TextIndexer()
+        public async Task TextIndexer()
         {
-            Test(
+            await TestAsync(
 @"class C1
 {
     C1 this[int x]
@@ -298,9 +299,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestParamsParameter()
+        public async Task TestParamsParameter()
         {
-            Test(
+            await TestAsync(
 @"class C1
 {
     void M1(params int[] x) { $$ }
@@ -309,9 +310,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestArglistParameter()
+        public async Task TestArglistParameter()
         {
-            Test(
+            await TestAsync(
 @"class C1
 {
     void M1(__arglist) { $$ }
@@ -320,9 +321,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestRefAndOutParameters()
+        public async Task TestRefAndOutParameters()
         {
-            Test(
+            await TestAsync(
 @"class C1
 {
     void M1( ref int x, out int y )
@@ -334,9 +335,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestOptionalParameters()
+        public async Task TestOptionalParameters()
         {
-            Test(
+            await TestAsync(
 @"class C1
 {
     void M1(int x =1)
@@ -348,9 +349,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestExtensionMethod()
+        public async Task TestExtensionMethod()
         {
-            Test(
+            await TestAsync(
 @"static class C1
 {
     static void M1(this int x)
@@ -361,9 +362,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestGenericType()
+        public async Task TestGenericType()
         {
-            Test(
+            await TestAsync(
 @"class C1<T, U>
 {
     static void M1() { $$ }
@@ -372,9 +373,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestGenericMethod()
+        public async Task TestGenericMethod()
         {
-            Test(
+            await TestAsync(
 @"class C1<T, U>
 {
     static void M1<V>() { $$ }
@@ -383,9 +384,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestGenericParameters()
+        public async Task TestGenericParameters()
         {
-            Test(
+            await TestAsync(
 @"class C1<T, U>
 {
     static void M1<V>(C1<int, V> x, V y) { $$ }
@@ -394,9 +395,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestMissingNamespace()
+        public async Task TestMissingNamespace()
         {
-            Test(
+            await TestAsync(
 @"{
     class Class
     {
@@ -406,9 +407,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestMissingNamespaceName()
+        public async Task TestMissingNamespaceName()
         {
-            Test(
+            await TestAsync(
 @"namespace
 {
     class C1
@@ -421,9 +422,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestMissingClassName()
+        public async Task TestMissingClassName()
         {
-            Test(
+            await TestAsync(
 @"namespace N1
     class 
     {
@@ -435,9 +436,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestMissingMethodName()
+        public async Task TestMissingMethodName()
         {
-            Test(
+            await TestAsync(
 @"namespace N1
 {
     class C1
@@ -450,9 +451,9 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestMissingParameterList()
+        public async Task TestMissingParameterList()
         {
-            Test(
+            await TestAsync(
 @"namespace N1
 {
     class C1
@@ -465,17 +466,17 @@ class C1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TopLevelField()
+        public async Task TopLevelField()
         {
-            Test(
+            await TestAsync(
 @"$$int f1;
 ", "f1", 0, new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TopLevelMethod()
+        public async Task TopLevelMethod()
         {
-            Test(
+            await TestAsync(
 @"int M1(int x)
 {
 $$}
@@ -483,9 +484,9 @@ $$}
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TopLevelStatement()
+        public async Task TopLevelStatement()
         {
-            Test(
+            await TestAsync(
 @"
 
 $$System.Console.WriteLine(""Hello"")

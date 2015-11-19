@@ -291,7 +291,7 @@ class Program
 
         private static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(params string[] content)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(content))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(content))
             {
                 return await GetErrorSpans(workspace);
             }
