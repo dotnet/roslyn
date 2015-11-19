@@ -82,15 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return CreateWorkspaceFromFilesAsync(workspaceKind, language, compilationOptions, parseOptions, total);
         }
 
-        internal static TestWorkspace CreateWorkspaceFromFiles(
-            string language,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
-            params string[] files)
-        {
-            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files).WaitAndGetResult(CancellationToken.None);
-        }
-
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
         internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string language,
