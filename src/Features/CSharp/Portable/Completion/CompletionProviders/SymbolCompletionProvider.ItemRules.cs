@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -47,6 +49,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
+            }
+
+            public override bool? IsBetterPreselectedMatch(CompletionItem item, CompletionItem other, string textTypedSoFar)
+            {
+                var symbolItem = item as SymbolCompletionItem;
+                var otherSymbolItem = other as SymbolCompletionItem;
+
+                // Don't prefer types
+                if (otherSymbolItem.Symbols.First() is ITypeSymbol)
+                {
+                    return symbolItem.Symbols.First().MatchesKind(SymbolKind.Event, SymbolKind.Field, SymbolKind.Local, SymbolKind.Method,
+                                                                  SymbolKind.Parameter, SymbolKind.Property, SymbolKind.RangeVariable);
+                }
+
+                return null;
             }
         }
     }

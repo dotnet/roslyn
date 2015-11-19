@@ -51,5 +51,14 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             return null;
         }
+
+        /// <summary>
+        /// Returns true if <paramref name="item"/> is a better match than <paramref name="other"/>.
+        /// Both items have the same <see cref="MatchPriority"/>
+        /// </summary>
+        public virtual bool? IsBetterPreselectedMatch(CompletionItem item, CompletionItem other, string textTypedSoFar)
+        {
+            return null;
+        }
     }
 }

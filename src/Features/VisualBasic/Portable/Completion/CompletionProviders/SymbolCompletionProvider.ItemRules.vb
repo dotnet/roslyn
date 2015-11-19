@@ -23,6 +23,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return MyBase.IsCommitCharacter(completionItem, ch, textTypedSoFar)
             End Function
 
+            Public Overrides Function IsBetterPreselectedMatch(item As CompletionItem, other As CompletionItem, textTypedSoFar As String) As Boolean?
+                Dim symbolItem = DirectCast(item, SymbolCompletionItem)
+                Dim otherSymbolItem = DirectCast(other, SymbolCompletionItem)
+                If TypeOf otherSymbolItem.Symbols.First() Is ITypeSymbol Then
+                    Return symbolItem.Symbols.First().MatchesKind(SymbolKind.Event, SymbolKind.Field, SymbolKind.Local, SymbolKind.Method,
+                                                                  SymbolKind.Parameter, SymbolKind.Property, SymbolKind.RangeVariable)
+                End If
+
+                Return Nothing
+            End Function
+
             Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
                 Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
             End Function
