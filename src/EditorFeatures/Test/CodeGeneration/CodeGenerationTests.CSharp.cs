@@ -1206,7 +1206,7 @@ namespace N
 {
     public class [|C|]<T, U> where T : struct where U : class
     {
-        public async Task Foo<Q, R>() where Q : new() where R : IComparable { }
+        public void Foo<Q, R>() where Q : new() where R : IComparable { }
         public delegate void D<T, U>(T t, U u) where T : struct where U : class;
     }
 }
@@ -1217,7 +1217,7 @@ namespace N
 {
     public class C<T, U> where T : struct where U : class
     {
-        public async Task Foo<Q, R>() where Q : new() where R : IComparable;
+        public void Foo<Q, R>() where Q : new() where R : IComparable;
         public delegate void D<T, U>(T t, U u) where T : struct where U : class;
     }
 }
