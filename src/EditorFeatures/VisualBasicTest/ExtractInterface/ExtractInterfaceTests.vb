@@ -71,7 +71,7 @@ Class TestClass
     End Sub
 
     $$Class AnotherClass
-        Public Async Function TestBar() As Task
+        Public Sub Bar()
         End Sub
     End Class
 End Class
@@ -1222,7 +1222,7 @@ End Interface
             Dim markup = <text>Imports System
 Namespace NS1
     Class TestClass
-        Public Async Function TestFoo() As Task$$
+        Public Sub Foo()$$
         End Sub
     End Class
 End Namespace
@@ -1232,7 +1232,7 @@ End Namespace
 Namespace NS1
     Class TestClass
         Implements ITestClass
-        Public Async Function TestFoo() As Task Implements ITestClass.Foo
+        Public Sub Foo() Implements ITestClass.Foo
         End Sub
     End Class
 End Namespace
