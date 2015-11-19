@@ -2198,7 +2198,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return false;
             }
 
-            internal bool IsEmptyBoxSelection()
+            private bool IsEmptyBoxSelection()
             {
                 return !TextView.Selection.IsEmpty &&
                         TextView.Selection.VirtualSelectedSpans.All(s => s.IsEmpty);
@@ -2689,16 +2689,28 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         {
                             return;
                         }
+                        MoveCaretToClosestEditableBuffer();
                     }
                     else
                     {
+                        var selection = TextView.Selection;
                         CopySelection();
                         if (!DeleteSelection())
                         {
                             return;
                         }
+
+                        if (selection.Mode == TextSelectionMode.Box)
+                        {
+                            ReduceBoxSelectionToEditableBox(isDelete: true);
+                        }
+                        else
+                        {
+                            selection.Clear();
+                            MoveCaretToClosestEditableBuffer();
+                        }
+                        TextView.Caret.EnsureVisible();
                     }
-                    MoveCaretToClosestEditableBuffer();
                     transaction.Complete();
                 }
             }

@@ -840,21 +840,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [WpfFact]
         public async Task ReturnWithSelectionInReadonlyArea()
         {
+            var caret = Window.TextView.Caret;
+            var selection = Window.TextView.Selection;
+
             await Submit(
 @"1",
 @"1
 ").ConfigureAwait(true);
             Window.InsertCode("23");
 
-            var caret = Window.TextView.Caret;
-            var selection = Window.TextView.Selection;
-
-            // Return() with selection in readonly area, no-op       
-            caret.MoveToPreviousCaretPosition();
-            caret.MoveToPreviousCaretPosition();
-            caret.MoveToPreviousCaretPosition();
-            caret.MoveToPreviousCaretPosition();
-            caret.MoveToPreviousCaretPosition();
+            // Return() with selection in readonly area, no-op
+            // > 1
+            // |1 |
+            // > 23
+            MoveCaretToPreviousPosition(5);
             AssertCaretVirtualPosition(1, 1);
 
             Window.Operations.SelectAll();
@@ -862,33 +861,39 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Window.Operations.Return();
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
-            // Return() with selection in active prompt, no-op
+            // Return() with selection in active prompt
+            // > 1
+            // 1
+            // |> |23
             selection.Clear();
-            var start = caret.MoveToNextCaretPosition().VirtualBufferPosition;
-            caret.MoveToNextCaretPosition();
-            var end = caret.MoveToNextCaretPosition().VirtualBufferPosition;
+            MoveCaretToNextPosition(1);
+            var start = caret.Position.VirtualBufferPosition;
+            MoveCaretToNextPosition(2);
+            var end = caret.Position.VirtualBufferPosition;
             AssertCaretVirtualPosition(2, 2);
 
             selection.Select(start, end);
 
             Window.Operations.Return();
-            Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
+            Assert.Equal("> 1\r\n1\r\n> \r\n> 23", GetTextFromCurrentSnapshot());
 
-            // Delete() with selection overlaps with editable buffer, 
-            // delete editable content and move caret to closest editable location and insert a return
+            // Return() with selection overlaps with editable buffer, 
+            // > 1
+            // 1
+            // > 
+            // |> 2|3
             selection.Clear();
-            caret.MoveToPreviousCaretPosition();
-            start = caret.MoveToPreviousCaretPosition().VirtualBufferPosition;
-            caret.MoveToNextCaretPosition();
-            caret.MoveToNextCaretPosition();
-            end = caret.MoveToNextCaretPosition().VirtualBufferPosition;
-            AssertCaretVirtualPosition(2, 3);
+            MoveCaretToPreviousPosition(2);
+            start = caret.Position.VirtualBufferPosition;
+            MoveCaretToNextPosition(3);
+            end = caret.Position.VirtualBufferPosition;
+            AssertCaretVirtualPosition(3, 3);
 
             selection.Select(start, end);
 
             Window.Operations.Return();
-            Assert.Equal("> 1\r\n1\r\n> \r\n> 3", GetTextFromCurrentSnapshot());
-            AssertCaretVirtualPosition(3, 2);
+            Assert.Equal("> 1\r\n1\r\n> \r\n> \r\n> 3", GetTextFromCurrentSnapshot());
+            AssertCaretVirtualPosition(4, 2);
         }
 
         [WpfFact]
@@ -938,58 +943,66 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [WpfFact]
         public async Task DeleteLineWithSelection()
         {
+            var caret = Window.TextView.Caret;
+            var selection = Window.TextView.Selection;
+
             await Submit(
 @"1",
 @"1
 ").ConfigureAwait(true);
-            var caret = Window.TextView.Caret;
-            var selection = Window.TextView.Selection;
 
             // DeleteLine with selection in readonly area  
-            caret.MoveToPreviousCaretPosition();
-            caret.MoveToPreviousCaretPosition();
-            caret.MoveToPreviousCaretPosition();
+            // > 1
+            // |1 |
+            // > 
+            MoveCaretToPreviousPosition(3);
             Window.Operations.SelectAll();
             Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
 
             // DeleteLine with selection in active prompt
+            // > 1
+            // 1
+            // |>| int x
+            // > ; 
             selection.Clear();
-            caret.MoveToNextCaretPosition();
-            caret.MoveToNextCaretPosition();
-            caret.MoveToNextCaretPosition();
+            MoveCaretToNextPosition(3);
             Window.InsertCode("int x");
             Window.Operations.BreakLine();
             Window.InsertCode(";");
-            for (int i = 0; i < 11; ++i)
-            {
-                caret.MoveToPreviousCaretPosition();
-            }
-
-            selection.Select(caret.MoveToNextCaretPosition().VirtualBufferPosition, caret.MoveToNextCaretPosition().VirtualBufferPosition);
+            MoveCaretToPreviousPosition(11);
+            var start = caret.Position.VirtualBufferPosition;
+            MoveCaretToNextPosition(1);
+            var end = caret.Position.VirtualBufferPosition;
+            selection.Select(start, end);
             Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ;", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
 
-            // DeleteLine with selection in editable area   
+            // DeleteLine with selection in editable area  
+            // > 1
+            // 1
+            // > int |x|; 
             Window.InsertCode("int x");
-            selection.Select(caret.MoveToPreviousCaretPosition().VirtualBufferPosition, caret.MoveToPreviousCaretPosition().VirtualBufferPosition);
+            MoveCaretToPreviousPosition(1);
+            start = caret.Position.VirtualBufferPosition;
+            MoveCaretToNextPosition(1);
+            end = caret.Position.VirtualBufferPosition;
+            selection.Select(start, end);
             Window.Operations.DeleteLine();
             Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
 
-            // DeleteLine with selection spans all areas     
+            // DeleteLine with selection spans all areas, no-op     
             Window.InsertCode("int x");
             Window.Operations.BreakLine();
             Window.InsertCode(";");
             Window.Operations.SelectAll();
             Window.Operations.SelectAll();
             Window.Operations.DeleteLine();
-            Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
-            AssertCaretVirtualPosition(2, 2);
-            Assert.True(selection.IsEmpty);
+            Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
         }
 
         [WpfFact]
