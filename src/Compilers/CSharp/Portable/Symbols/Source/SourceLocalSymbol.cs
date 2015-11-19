@@ -134,6 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((_isSpecificallyNotPinned & 1) == 1, "Regardless of which thread won, the flag bit should be set.");
         }
 
+        internal virtual void SetReturnable()
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override Symbol ContainingSymbol
         {
             get { return _containingSymbol; }
@@ -343,6 +348,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private EvaluatedConstant _constantTuple;
 
+            /// <summary>
+            /// Unfortunately we can only know a ref local is returnable after binding the initializer.
+            /// </summary>
+            private bool _returnable;
+
             public LocalWithInitializer(
                 Symbol containingSymbol,
                 Binder binder,
@@ -357,6 +367,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(initializer != null);
 
                 _initializer = initializer;
+
+                // byval locals are always returnable
+                // byref locals with initializers are assumed not returnable unless proven otherwise
+                // NOTE: if we assumed returnable, then self-referring initializer could result in 
+                //       a randomly changing returnability when initializer is bound concurrently.
+                _returnable = refKind == RefKind.None;
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
@@ -418,6 +434,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(boundInitValue != null);
                 MakeConstantTuple(inProgress: null, boundInitValue: boundInitValue);
                 return _constantTuple == null ? ImmutableArray<Diagnostic>.Empty : _constantTuple.Diagnostics;
+            }
+
+            internal override void SetReturnable()
+            {
+                _returnable = true;
+            }
+
+            internal override bool IsReturnable
+            {
+                get
+                {
+                    return _returnable;
+                }
             }
         }
 

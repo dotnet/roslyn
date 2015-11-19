@@ -707,7 +707,7 @@ class C
                 DkmEvaluationFlags.TreatAsExpression,
                 aliases,
                 out error);
-            Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
 
             // Object at address
             context.CompileExpression(
@@ -721,7 +721,7 @@ class C
                 DkmEvaluationFlags.TreatAsExpression,
                 aliases,
                 out error);
-            Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
 
             // $ReturnValue
             context.CompileExpression(
@@ -735,7 +735,7 @@ class C
                 DkmEvaluationFlags.TreatAsExpression,
                 aliases,
                 out error);
-            Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
 
             // Object id
             context.CompileExpression(
@@ -749,7 +749,7 @@ class C
                 DkmEvaluationFlags.TreatAsExpression,
                 aliases,
                 out error);
-            Assert.Equal(error, "error CS1510: A ref or out argument must be an assignable variable");
+            Assert.Equal(error, "error CS1510: A ref or out value must be an assignable variable");
 
             // Declared variable
             var testData = new CompilationTestData();

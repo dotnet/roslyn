@@ -645,14 +645,14 @@ class C
         }
         ",
         // (Note that in these three cases overload resolution succeeds. See above.)
-        "'123' error CS1510: A ref or out argument must be an assignable variable",
-        "'x' error CS1510: A ref or out argument must be an assignable variable",
-        "'y + y' error CS1510: A ref or out argument must be an assignable variable",
+        "'123' error CS1510: A ref or out value must be an assignable variable",
+        "'x' error CS1510: A ref or out value must be an assignable variable",
+        "'y + y' error CS1510: A ref or out value must be an assignable variable",
 
-        "'null' error CS1510: A ref or out argument must be an assignable variable",
+        "'null' error CS1510: A ref or out value must be an assignable variable",
         //"'N3' error CS1502: The best overloaded method match for 'C.N3(ref int)' has some invalid arguments",
 
-        "'M' error CS1657: Cannot pass 'M' as a ref or out argument because it is a 'method group'",
+        "'M' error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'",
         //"'N4' error CS1502: The best overloaded method match for 'C.N4(ref int)' has some invalid arguments",
 
         "'C' error CS0118: 'C' is a type but is used like a variable"
