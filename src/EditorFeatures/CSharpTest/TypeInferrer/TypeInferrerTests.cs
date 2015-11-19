@@ -1761,5 +1761,35 @@ public class C
 }";
             Test(text, "System.Int32");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
+        public void TestDefaultStatement1()
+        {
+            var text =
+    @"class C
+{
+    static void Main(string[] args)
+    {
+        System.ConsoleModifiers c = default([||])
+    }
+}";
+            Test(text, "global::System.ConsoleModifiers", testNode:false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
+        public void TestDefaultStatement2()
+        {
+            var text =
+    @"class C
+{
+    static void Foo(System.ConsoleModifiers arg)
+    {
+        Foo(default([||])
+    }
+}";
+            Test(text, "global::System.ConsoleModifiers", testNode: false);
+        }
     }
 }
