@@ -149,6 +149,42 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(vbResult.Count() > 0);
         }
 
+        [Fact, WorkItem(6616, "https://github.com/dotnet/roslyn/issues/6616")]
+        public static void FindDeclarationsAsync_PreviousSubmission()
+        {
+            var solution = CreateSolution();
+
+            var submission0Id = ProjectId.CreateNewId();
+            var submission0DocId = DocumentId.CreateNewId(submission0Id);
+            const string submission0Name = "Submission#0";
+            solution = solution
+                .AddProject(submission0Id, submission0Name, submission0Name, LanguageNames.CSharp)
+                .AddMetadataReference(submission0Id, MscorlibRef)
+                .AddDocument(submission0DocId, submission0Name, @"
+public class Outer
+{
+    public class Inner
+    {
+    }
+}
+");
+
+            var submission1Id = ProjectId.CreateNewId();
+            var submission1DocId = DocumentId.CreateNewId(submission1Id);
+            const string submission1Name = "Submission#1";
+            solution = solution
+                .AddProject(submission1Id, submission1Name, submission1Name, LanguageNames.CSharp)
+                .AddMetadataReference(submission1Id, MscorlibRef)
+                .AddProjectReference(submission1Id, new ProjectReference(submission0Id))
+                .AddDocument(submission1DocId, submission1Name, @"
+Inner i;
+");
+
+            var actualSymbol = SymbolFinder.FindDeclarationsAsync(solution.GetProject(submission1Id), "Inner", ignoreCase: false).Result.SingleOrDefault();
+            var expectedSymbol = solution.GetProject(submission0Id).GetCompilationAsync().Result.GlobalNamespace.GetMembers("Outer").SingleOrDefault().GetMembers("Inner").SingleOrDefault();
+            Assert.Equal(expectedSymbol, actualSymbol);
+        }
+
         #endregion
 
         #region FindSourceDeclarationsAsync_Project

@@ -1,11 +1,49 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class ICompilationExtensions
     {
+        public static ImmutableArray<Compilation> GetReferencedCompilations(this Compilation compilation)
+        {
+            var builder = ArrayBuilder<Compilation>.GetInstance();
+
+            foreach (var reference in compilation.References.OfType<CompilationReference>())
+            {
+                builder.Add(reference.Compilation);
+            }
+
+            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            while (previous != null)
+            {
+                builder.Add(previous);
+                previous = previous.ScriptCompilationInfo?.PreviousScriptCompilation;
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<IAssemblySymbol> GetReferencedAssemblySymbols(this Compilation compilation)
+        {
+            var builder = ArrayBuilder<IAssemblySymbol>.GetInstance();
+
+            // The first module of every assembly is its source module and the source
+            // module always has the list of all referenced assemblies.
+            builder.AddRange(compilation.Assembly.Modules.First().ReferencedAssemblySymbols);
+
+            var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            while (previous != null)
+            {
+                builder.Add(previous.Assembly);
+                previous = previous.ScriptCompilationInfo?.PreviousScriptCompilation;
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static INamedTypeSymbol AttributeType(this Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Attribute");
