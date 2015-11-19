@@ -141,16 +141,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return await CreateWorkspaceAsync(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
         }
 
-        internal static TestWorkspace CreateWorkspaceFromFiles(
-            string language,
-            CompilationOptions compilationOptions,
-            ParseOptions[] parseOptions,
-            string[] files,
-            ExportProvider exportProvider)
-        {
-            return CreateWorkspaceFromFilesAsync(language, compilationOptions, parseOptions, files, exportProvider).WaitAndGetResult(CancellationToken.None);
-        }
-
         internal static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string language,
             CompilationOptions compilationOptions,
