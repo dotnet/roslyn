@@ -108,7 +108,7 @@ namespace N
 
     class C : I
     {
-        public async Task F$$oo()
+        public void F$$oo()
         {
         }
     }
