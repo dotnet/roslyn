@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
     Public Class VisualBasicSuppressionAllCodeTests
         Inherits AbstractSuppressionAllCodeTests
 
-        Protected Overrides Function CreateWorkspaceFromFile(definition As String, parseOptions As ParseOptions) As TestWorkspace
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(definition, DirectCast(parseOptions, VisualBasicParseOptions))
+        Protected Overrides Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions) As Threading.Tasks.Task(Of TestWorkspace)
+            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(definition, DirectCast(parseOptions, VisualBasicParseOptions))
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of Analyzer, ISuppressionFixProvider)

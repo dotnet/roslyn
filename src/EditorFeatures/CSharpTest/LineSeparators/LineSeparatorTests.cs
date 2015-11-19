@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -18,22 +19,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
     public class LineSeparatorTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestEmptyFile()
+        public async Task TestEmptyFile()
         {
-            AssertTagsOnBracesOrSemicolons(contents: string.Empty);
+            await AssertTagsOnBracesOrSemicolonsAsync(contents: string.Empty);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestEmptyClass()
+        public async Task TestEmptyClass()
         {
             var file = @"class C
 {
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestClassWithOneMethod()
+        public async Task TestClassWithOneMethod()
         {
             var file = @"class C
 {
@@ -41,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
     {
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 1);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestClassWithTwoMethods()
+        public async Task TestClassWithTwoMethods()
         {
             var file = @"class C
 {
@@ -57,11 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
     {
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestClassWithTwoNonEmptyMethods()
+        public async Task TestClassWithTwoNonEmptyMethods()
         {
             var file = @"class C
 {
@@ -75,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
         M();
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 1, 4);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 1, 4);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestClassWithMethodAndField()
+        public async Task TestClassWithMethodAndField()
         {
             var file = @"class C
 {
@@ -89,20 +90,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
 
     int field;
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestEmptyNamespace()
+        public async Task TestEmptyNamespace()
         {
             var file = @"namespace N
 {
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestNamespaceAndClass()
+        public async Task TestNamespaceAndClass()
         {
             var file = @"namespace N
 {
@@ -110,11 +111,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
     {
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 1);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestNamespaceAndTwoClasses()
+        public async Task TestNamespaceAndTwoClasses()
         {
             var file = @"namespace N
 {
@@ -126,11 +127,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
     {
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestNamespaceAndTwoClassesAndDelegate()
+        public async Task TestNamespaceAndTwoClassesAndDelegate()
         {
             var file = @"namespace N
 {
@@ -144,11 +145,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
 
     delegate void Del();
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 1, 3);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 1, 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestNestedClass()
+        public async Task TestNestedClass()
         {
             var file = @"class C
 {
@@ -156,11 +157,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
     {
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 1);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestTwoNestedClasses()
+        public async Task TestTwoNestedClasses()
         {
             var file = @"class C
 {
@@ -172,38 +173,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
     {
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestStruct()
+        public async Task TestStruct()
         {
             var file = @"struct S
 {
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestInterface()
+        public async Task TestInterface()
         {
             var file = @"interface I
 {
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestEnum()
+        public async Task TestEnum()
         {
             var file = @"enum E
 {
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestProperty()
+        public async Task TestProperty()
         {
             var file = @"class C
 {
@@ -218,11 +219,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
         }
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 4);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 4);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestPropertyAndField()
+        public async Task TestPropertyAndField()
         {
             var file = @"class C
 {
@@ -239,11 +240,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
 
     int field;
 }";
-            AssertTagsOnBracesOrSemicolons(file, 3, 5);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 3, 5);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestClassWithFieldAndMethod()
+        public async Task TestClassWithFieldAndMethod()
         {
             var file = @"class C
 {
@@ -253,22 +254,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
     {
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void UsingDirective()
+        public async Task UsingDirective()
         {
             var file = @"using System;
 
 class C
 {
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 1);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 1);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void UsingDirectiveInNamespace()
+        public async Task UsingDirectiveInNamespace()
         {
             var file = @"namespace N
 {
@@ -278,11 +279,11 @@ class C
     {
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void PropertyStyleEventDeclaration()
+        public async Task PropertyStyleEventDeclaration()
         {
             var file = @"class C
 {
@@ -294,11 +295,11 @@ class C
 
     int i;
 }";
-            AssertTagsOnBracesOrSemicolons(file, 2, 4);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 2, 4);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IndexerDeclaration()
+        public async Task IndexerDeclaration()
         {
             var file = @"class C
 {
@@ -310,11 +311,11 @@ class C
 
     int i;
 }";
-            AssertTagsOnBracesOrSemicolons(file, 3, 5);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 3, 5);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void Constructor()
+        public async Task Constructor()
         {
             var file = @"class C
 {
@@ -324,11 +325,11 @@ class C
 
     int i;
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void Destructor()
+        public async Task Destructor()
         {
             var file = @"class C
 {
@@ -338,11 +339,11 @@ class C
 
     int i;
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void Operator()
+        public async Task Operator()
         {
             var file = @"class C
 {
@@ -352,11 +353,11 @@ class C
 
     int i;
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void ConversionOperator()
+        public async Task ConversionOperator()
         {
             var file = @"class C
 {
@@ -366,11 +367,11 @@ class C
 
     int i;
 }";
-            AssertTagsOnBracesOrSemicolons(file, 0, 2);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 0, 2);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void Bug930292()
+        public async Task Bug930292()
         {
             var file = @"class Program
 {
@@ -380,11 +381,11 @@ void C() { }
 void D() { }
 }
 ";
-            AssertTagsOnBracesOrSemicolons(file, 4);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 4);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void Bug930289()
+        public async Task Bug930289()
         {
             var file = @"namespace Roslyn.Compilers.CSharp
 {
@@ -396,11 +397,11 @@ public static implicit operator ArrayElement<T>(T value) { return new ArrayEleme
 }
 }
 ";
-            AssertTagsOnBracesOrSemicolons(file, 6);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 6);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void TestConsoleApp()
+        public async Task TestConsoleApp()
         {
             var file = @"using System;
 using System.Collections.Generic;
@@ -412,14 +413,14 @@ class Program
     {
     }
 }";
-            AssertTagsOnBracesOrSemicolons(file, 2, 4);
+            await AssertTagsOnBracesOrSemicolonsAsync(file, 2, 4);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         [WorkItem(1297, "https://github.com/dotnet/roslyn/issues/1297")]
-        public void ExpressionBodiedProperty()
+        public async Task ExpressionBodiedProperty()
         {
-            AssertTagsOnBracesOrSemicolons(@"class C
+            await AssertTagsOnBracesOrSemicolonsAsync(@"class C
 {
     int Prop => 3;
 
@@ -431,9 +432,9 @@ class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         [WorkItem(1297, "https://github.com/dotnet/roslyn/issues/1297")]
-        public void ExpressionBodiedIndexer()
+        public async Task ExpressionBodiedIndexer()
         {
-            AssertTagsOnBracesOrSemicolons(@"class C
+            await AssertTagsOnBracesOrSemicolonsAsync(@"class C
 {
     int this[int i] => 3;
 
@@ -445,11 +446,11 @@ class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         [WorkItem(1297, "https://github.com/dotnet/roslyn/issues/1297")]
-        public void ExpressionBodiedEvent()
+        public async Task ExpressionBodiedEvent()
         {
             // This is not valid code, and parses all wrong, but just in case a user writes it.  Note
             // the 3 is because there is a skipped } in the event declaration.
-            AssertTagsOnBracesOrSemicolons(@"class C
+            await AssertTagsOnBracesOrSemicolonsAsync(@"class C
 {
     event EventHandler MyEvent => 3;
 
@@ -462,75 +463,75 @@ class Program
         #region Negative (incomplete) tests
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IncompleteClass()
+        public async Task IncompleteClass()
         {
-            AssertTagsOnBracesOrSemicolons(@"class C");
-            AssertTagsOnBracesOrSemicolons(@"class C {");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"class C");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"class C {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IncompleteEnum()
+        public async Task IncompleteEnum()
         {
-            AssertTagsOnBracesOrSemicolons(@"enum E");
-            AssertTagsOnBracesOrSemicolons(@"enum E {");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"enum E");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"enum E {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IncompleteMethod()
+        public async Task IncompleteMethod()
         {
-            AssertTagsOnBracesOrSemicolons(@"void foo() {");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"void foo() {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IncompleteProperty()
+        public async Task IncompleteProperty()
         {
-            AssertTagsOnBracesOrSemicolons(@"class C { int P { get; set; void");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"class C { int P { get; set; void");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IncompleteEvent()
+        public async Task IncompleteEvent()
         {
-            AssertTagsOnBracesOrSemicolons(@"public event EventHandler");
-            AssertTagsOnBracesOrSemicolons(@"public event EventHandler {");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"public event EventHandler");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"public event EventHandler {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IncompleteIndexer()
+        public async Task IncompleteIndexer()
         {
-            AssertTagsOnBracesOrSemicolons(@"int this[int i]");
-            AssertTagsOnBracesOrSemicolons(@"int this[int i] {");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"int this[int i]");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"int this[int i] {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IncompleteOperator()
+        public async Task IncompleteOperator()
         {
             // top level operators not supported in script code
-            AssertTagsOnBracesOrSemicolonsTokens(@"C operator +(C lhs, C rhs) {", Array.Empty<int>(), Options.Regular);
+            await AssertTagsOnBracesOrSemicolonsTokensAsync(@"C operator +(C lhs, C rhs) {", Array.Empty<int>(), Options.Regular);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IncompleteConversionOperator()
+        public async Task IncompleteConversionOperator()
         {
-            AssertTagsOnBracesOrSemicolons(@"implicit operator C(int i) {");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"implicit operator C(int i) {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
-        public void IncompleteMember()
+        public async Task IncompleteMember()
         {
-            AssertTagsOnBracesOrSemicolons(@"class C { private !C(");
+            await AssertTagsOnBracesOrSemicolonsAsync(@"class C { private !C(");
         }
 
         #endregion
 
-        private void AssertTagsOnBracesOrSemicolons(string contents, params int[] tokenIndices)
+        private async Task AssertTagsOnBracesOrSemicolonsAsync(string contents, params int[] tokenIndices)
         {
-            AssertTagsOnBracesOrSemicolonsTokens(contents, tokenIndices);
-            AssertTagsOnBracesOrSemicolonsTokens(contents, tokenIndices, Options.Script);
+            await AssertTagsOnBracesOrSemicolonsTokensAsync(contents, tokenIndices);
+            await AssertTagsOnBracesOrSemicolonsTokensAsync(contents, tokenIndices, Options.Script);
         }
 
-        private void AssertTagsOnBracesOrSemicolonsTokens(string contents, int[] tokenIndices, CSharpParseOptions options = null)
+        private async Task AssertTagsOnBracesOrSemicolonsTokensAsync(string contents, int[] tokenIndices, CSharpParseOptions options = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(contents, options))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(contents, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 var spans = new CSharpLineSeparatorService().GetLineSeparatorsAsync(document, document.GetSyntaxTreeAsync().Result.GetRoot().FullSpan, CancellationToken.None).Result;

@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void RemoveParameters1()
+        public async Task RemoveParameters1()
         {
             var markup = @"
 static class Ext
@@ -103,11 +104,11 @@ static class Ext
     }
 }";
 
-            TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public void RemoveParameters_GenericParameterType()
+        public async Task RemoveParameters_GenericParameterType()
         {
             var markup = @"
 class DA
@@ -173,13 +174,13 @@ public class DP20<T>
     }
 }";
 
-            TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(1102830)]
         [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
-        public void RemoveParameters_ExtensionMethodInAnotherFile()
+        public async Task RemoveParameters_ExtensionMethodInAnotherFile()
         {
             var workspaceXml = @"
 <Workspace>
@@ -239,7 +240,7 @@ class C{i}
 
             var updatedSignature = new[] { 0, 2 };
 
-            using (var testState = new ChangeSignatureTestState(XElement.Parse(workspaceXml)))
+            using (var testState = await ChangeSignatureTestState.CreateAsync(XElement.Parse(workspaceXml)))
             {
                 testState.TestChangeSignatureOptionsService.IsCancelled = false;
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;

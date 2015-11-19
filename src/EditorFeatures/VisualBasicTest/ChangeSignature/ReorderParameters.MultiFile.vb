@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Operations
@@ -9,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
         Inherits AbstractChangeSignatureTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderParameters_AcrossLanguages_InvokeFromDeclaration()
+        Public Async Function TestReorderParameters_AcrossLanguages_InvokeFromDeclaration() As Task
             Dim workspace = <Workspace>
                                 <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
                                     <Document FilePath="VBDocument">
@@ -48,7 +49,7 @@ class C
     }
 }]]></Text>.NormalizedValue()
 
-            Using testState = New ChangeSignatureTestState(workspace)
+            Using testState = Await ChangeSignatureTestState.CreateAsync(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
@@ -60,10 +61,10 @@ class C
                 Assert.Equal(expectedCSharpCode, csdoc.GetTextAsync().Result.ToString())
                 Assert.Equal(expectedVBCode, vbdoc.GetTextAsync().Result.ToString())
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderParameters_AcrossLanguages_InvokeFromReference()
+        Public Async Function TestReorderParameters_AcrossLanguages_InvokeFromReference() As Task
             Dim workspace = <Workspace>
                                 <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
                                     <Document FilePath="VBDocument">
@@ -102,7 +103,7 @@ class C
     }
 }]]></Text>.NormalizedValue()
 
-            Using testState = New ChangeSignatureTestState(workspace)
+            Using testState = Await ChangeSignatureTestState.CreateAsync(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
@@ -114,6 +115,6 @@ class C
                 Assert.Equal(expectedCSharpCode, csdoc.GetTextAsync().Result.ToString())
                 Assert.Equal(expectedVBCode, vbdoc.GetTextAsync().Result.ToString())
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

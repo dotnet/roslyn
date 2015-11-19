@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        public void TestChangeSignatureViaCommand(
+        public async Task TestChangeSignatureViaCommandAsync(
             string languageName,
             string markup,
             bool expectedSuccess = true,
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null)
         {
-            using (var testState = new ChangeSignatureTestState(markup, languageName, parseOptions))
+            using (var testState = await ChangeSignatureTestState.CreateAsync(markup, languageName, parseOptions))
             {
                 testState.TestChangeSignatureOptionsService.IsCancelled = false;
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         /// </summary>
         /// <param name="signaturePartCounts">A four element array containing [s, m, n, p] as 
         /// described above.</param>
-        public void TestAllSignatureChanges(string languageName, string markup, int[] signaturePartCounts, ParseOptions parseOptions = null)
+        public async Task TestAllSignatureChangesAsync(string languageName, string markup, int[] signaturePartCounts, ParseOptions parseOptions = null)
         {
             Assert.Equal(signaturePartCounts.Length, 4);
             Assert.True(signaturePartCounts[0] == 0 || signaturePartCounts[0] == 1);
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
             foreach (var signature in GetAllSignatureSpecifications(signaturePartCounts))
             {
-                TestChangeSignatureViaCommand(
+                await TestChangeSignatureViaCommandAsync(
                     languageName,
                     markup,
                     expectedSuccess: true,

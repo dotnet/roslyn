@@ -2,7 +2,9 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,8 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     public class FileCodeNamespaceTests : AbstractFileCodeElementTests
     {
-        public FileCodeNamespaceTests()
-            : base(@"using System;
+        public static async Task<FileCodeNamespaceTests> CreateAsync()
+        {
+            var pair = await CreateWorkspaceAndFileCodeModelAsync(@"using System;
 
 namespace Foo
 {
@@ -37,7 +40,13 @@ namespace A.B
     public class Beta
     {
     }
-}")
+}");
+
+            return new FileCodeNamespaceTests(pair);
+        }
+
+        public FileCodeNamespaceTests(Tuple<TestWorkspace, EnvDTE.FileCodeModel> pair)
+            : base(pair)
         {
         }
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
@@ -26,25 +27,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void IsCommitCharacterTest()
+        public async Task IsCommitCharacterTest()
         {
-            VerifyCommonCommitCharacters("class C { void M() { System.Console.$$", textTypedSoFar: "");
+            await VerifyCommonCommitCharactersAsync("class C { void M() { System.Console.$$", textTypedSoFar: "");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void IsTextualTriggerCharacterTest()
+        public async Task IsTextualTriggerCharacterTest()
         {
-            TestCommonIsTextualTriggerCharacter();
+            await TestCommonIsTextualTriggerCharacterAsync();
 
-            VerifyTextualTriggerCharacter("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
-            VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            await VerifyTextualTriggerCharacterAsync("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
+            await VerifyTextualTriggerCharacterAsync("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SendEnterThroughToEditorTest()
+        public async Task SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: true, expected: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

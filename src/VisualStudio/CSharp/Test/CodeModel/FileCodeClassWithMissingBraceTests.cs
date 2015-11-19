@@ -2,7 +2,9 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,8 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     public class FileCodeClassWithMissingBraceTests : AbstractFileCodeElementTests
     {
-        public FileCodeClassWithMissingBraceTests()
-            : base(@"using System;
+        public static async Task<FileCodeClassWithMissingBraceTests> CreateAsync()
+        {
+            var pair = await CreateWorkspaceAndFileCodeModelAsync(@"using System;
 
 
 public abstract class Foo : IDisposable, ICloneable
@@ -38,7 +41,13 @@ namespace N
 class Baz
 {
 
-")
+");
+
+            return new FileCodeClassWithMissingBraceTests(pair);
+        }
+
+        public FileCodeClassWithMissingBraceTests(Tuple<TestWorkspace, EnvDTE.FileCodeModel> pair)
+            : base(pair)
         {
         }
 

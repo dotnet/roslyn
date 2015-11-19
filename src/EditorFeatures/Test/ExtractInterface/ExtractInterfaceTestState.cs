@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -28,11 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         public string ErrorMessage { get; private set; }
         public NotificationSeverity ErrorSeverity { get; private set; }
 
-        public ExtractInterfaceTestState(string markup, string languageName, CompilationOptions compilationOptions)
-            : this(languageName == LanguageNames.CSharp
-                       ? CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
-                       : VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions))
+        public static async Task<ExtractInterfaceTestState> CreateAsync(string markup, string languageName, CompilationOptions compilationOptions)
         {
+            var workspace = languageName == LanguageNames.CSharp
+                       ? await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
+                       : VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(markup, exportProvider: ExportProvider, compilationOptions: compilationOptions);
+            return new ExtractInterfaceTestState(workspace);
         }
 
         public ExtractInterfaceTestState(TestWorkspace workspace)

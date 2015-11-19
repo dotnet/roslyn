@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
     public partial class CodeGenerationTests
     {
-        internal static void TestAddNamespace(
+        internal static async Task TestAddNamespaceAsync(
             string initial,
             string expected,
             string name = "N",
@@ -34,14 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
             bool compareTokens = true)
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var @namespace = CodeGenerationSymbolFactory.CreateNamespaceSymbol(name, imports, members);
                 context.Result = context.Service.AddNamespaceAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), @namespace, codeGenerationOptions).Result;
             }
         }
 
-        internal static void TestAddField(
+        internal static async Task TestAddFieldAsync(
             string initial,
             string expected,
             Func<SemanticModel, ITypeSymbol> type = null,
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             object constantValue = null,
             bool addToCompilationUnit = false)
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var typeSymbol = type != null ? type(context.SemanticModel) : null;
                 var field = CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddConstructor(
+        internal static async Task TestAddConstructorAsync(
             string initial,
             string expected,
             string name = "C",
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
             bool compareTokens = true)
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var ctor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddMethod(
+        internal static async Task TestAddMethodAsync(
             string initial,
             string expected,
             string name = "M",
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 expected = expected.Replace("$$", statements);
             }
 
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var parsedStatements = context.ParseStatements(statements);
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddOperators(
+        internal static async Task TestAddOperatorsAsync(
             string initial,
             string expected,
             CodeGenerationOperatorKind[] operatorKinds,
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 }
             }
 
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var parsedStatements = context.ParseStatements(statements);
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddUnsupportedOperator(
+        internal static async Task TestAddUnsupportedOperatorAsync(
             string initial,
             CodeGenerationOperatorKind operatorKind,
             Accessibility accessibility = Accessibility.Public,
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
             bool compareTokens = true)
         {
-            using (var context = new TestContext(initial, initial, ignoreResult: true))
+            using (var context = await TestContext.CreateAsync(initial, initial, ignoreResult: true))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var parsedStatements = context.ParseStatements(statements);
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddConversion(
+        internal static async Task TestAddConversionAsync(
             string initial,
             string expected,
             Type toType,
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 expected = expected.Replace("$$", statements);
             }
 
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var parsedStatements = context.ParseStatements(statements);
                 var method = CodeGenerationSymbolFactory.CreateConversionSymbol(
@@ -258,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddStatements(
+        internal static async Task TestAddStatementsAsync(
             string initial,
             string expected,
             string statements,
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 expected = expected.Replace("$$", statements);
             }
 
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var parsedStatements = context.ParseStatements(statements);
                 var oldSyntax = context.GetSelectedSyntax<SyntaxNode>(true);
@@ -279,14 +280,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddParameters(
+        internal static async Task TestAddParametersAsync(
             string initial,
             string expected,
             IList<Func<SemanticModel, IParameterSymbol>> parameters,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
             bool compareTokens = true)
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var oldMemberSyntax = context.GetSelectedSyntax<SyntaxNode>(true);
@@ -295,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddDelegateType(
+        internal static async Task TestAddDelegateTypeAsync(
             string initial,
             string expected,
             string name = "D",
@@ -307,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
             bool compareTokens = true)
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var type = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddEvent(
+        internal static async Task TestAddEventAsync(
             string initial,
             string expected,
             string name = "E",
@@ -338,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
             bool compareTokens = true)
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 type = type ?? typeof(Action);
 
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddProperty(
+        internal static async Task TestAddPropertyAsync(
             string initial,
             string expected,
             string name = "P",
@@ -385,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 expected = expected.Replace("$$", setStatements);
             }
 
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var typeSymbol = GetTypeSymbol(type)(context.SemanticModel);
                 var getParameterSymbols = GetParameterSymbols(parameters, context);
@@ -438,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddNamedType(
+        internal static async Task TestAddNamedTypeAsync(
             string initial,
             string expected,
             string name = "C",
@@ -453,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
             bool compareTokens = true)
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var memberSymbols = GetSymbols(members, context);
                 var type = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(null, accessibility, modifiers, typeKind, name, typeParameters, baseType, interfaces, specialType, memberSymbols);
@@ -461,14 +462,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestAddAttribute(
+        internal static async Task TestAddAttributeAsync(
             string initial,
             string expected,
             Type attributeClass,
             SyntaxToken? target = null,
             bool compareTokens = true)
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var attr = CodeGenerationSymbolFactory.CreateAttributeData((INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel));
                 var oldNode = context.GetDestinationNode();
@@ -478,14 +479,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestRemoveAttribute<T>(
+        internal static async Task TestRemoveAttributeAsync<T>(
             string initial,
             string expected,
             Type attributeClass,
             SyntaxToken? target = null,
             bool compareTokens = false) where T : SyntaxNode
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var attributeType = (INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel);
                 var taggedNode = context.GetDestinationNode();
@@ -498,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestUpdateDeclaration<T>(
+        internal static async Task TestUpdateDeclarationAsync<T>(
             string initial,
             string expected,
             Accessibility? accessibility = null,
@@ -509,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string retainedMembersKey = "RetainedMember",
             bool compareTokens = false) where T : SyntaxNode
         {
-            using (var context = new TestContext(initial, expected, compareTokens))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens))
             {
                 var declarationNode = context.GetDestinationNode().FirstAncestorOrSelf<T>();
                 var updatedDeclarationNode = declarationNode;
@@ -551,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
         }
 
-        internal static void TestGenerateFromSourceSymbol(
+        internal static async Task TestGenerateFromSourceSymbolAsync(
             string symbolSource,
             string initial,
             string expected,
@@ -560,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             bool compareTokens = true,
             string forceLanguage = null)
         {
-            using (var context = new TestContext(initial, expected, compareTokens, forceLanguage))
+            using (var context = await TestContext.CreateAsync(initial, expected, compareTokens, forceLanguage))
             {
                 TextSpan destSpan = new TextSpan();
                 MarkupTestFile.GetSpan(symbolSource.NormalizeLineEndings(), out symbolSource, out destSpan);
@@ -792,18 +793,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             private readonly bool _compareTokens;
             private readonly bool _ignoreResult;
 
-            public TestContext(string initial, string expected, bool compareTokens = true, string forceLanguage = null, bool ignoreResult = false)
+            public TestContext(
+                string initial,
+                string expected,
+                bool compareTokens,
+                bool ignoreResult,
+                string language, 
+                TestWorkspace workspace)
             {
                 _expected = expected.NormalizeLineEndings();
-                _language = forceLanguage != null ? forceLanguage : GetLanguage(initial);
-                this.IsVisualBasic = _language == LanguageNames.VisualBasic;
+                _language = language;
+                this.IsVisualBasic =  _language == LanguageNames.VisualBasic;
                 _compareTokens = compareTokens;
                 _ignoreResult = ignoreResult;
-                _workspace = CreateWorkspaceFromFile(initial.NormalizeLineEndings(), this.IsVisualBasic, null, null);
+                _workspace = workspace;
                 this.Document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
                 this.SemanticModel = Document.GetSemanticModelAsync().Result;
                 this.SyntaxTree = SemanticModel.SyntaxTree;
                 this.Service = Document.Project.LanguageServices.GetService<ICodeGenerationService>();
+            }
+
+            public static async Task<TestContext> CreateAsync(string initial, string expected, bool compareTokens = true, string forceLanguage = null, bool ignoreResult = false)
+            {
+                var language = forceLanguage != null ? forceLanguage : GetLanguage(initial);
+                var isVisualBasic = language == LanguageNames.VisualBasic;
+                var workspace = await CreateWorkspaceFromFileAsync(initial.NormalizeLineEndings(), isVisualBasic, null, null);
+
+                return new TestContext(initial, expected, compareTokens, ignoreResult, language, workspace);
             }
 
             public Solution Solution { get { return _workspace.CurrentSolution; } }
@@ -918,11 +934,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     input.Contains("Enum");
             }
 
-            private static TestWorkspace CreateWorkspaceFromFile(string file, bool isVisualBasic, ParseOptions parseOptions, CompilationOptions compilationOptions)
+            private static async Task<TestWorkspace> CreateWorkspaceFromFileAsync(string file, bool isVisualBasic, ParseOptions parseOptions, CompilationOptions compilationOptions)
             {
                 return isVisualBasic ?
                     VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(file, (VB.VisualBasicParseOptions)parseOptions, (VB.VisualBasicCompilationOptions)compilationOptions) :
-                    CSharpWorkspaceFactory.CreateWorkspaceFromFile(file, (CS.CSharpParseOptions)parseOptions, (CS.CSharpCompilationOptions)compilationOptions);
+                    await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(file, (CS.CSharpParseOptions)parseOptions, (CS.CSharpCompilationOptions)compilationOptions);
             }
         }
     }

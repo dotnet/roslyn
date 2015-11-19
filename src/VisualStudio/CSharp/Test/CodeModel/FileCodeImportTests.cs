@@ -2,8 +2,10 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -11,9 +13,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     public class FileCodeImportTests : AbstractFileCodeElementTests
     {
-        public FileCodeImportTests()
-            : base(@"using System;
-using Foo = System.Data;")
+        public static async Task<FileCodeImportTests> CreateAsync()
+        {
+            var pair = await CreateWorkspaceAndFileCodeModelAsync(@"using System;
+using Foo = System.Data;");
+            return new FileCodeImportTests(pair);
+        }
+
+        public FileCodeImportTests(Tuple<TestWorkspace, EnvDTE.FileCodeModel> pair)
+            : base(pair)
         {
         }
 

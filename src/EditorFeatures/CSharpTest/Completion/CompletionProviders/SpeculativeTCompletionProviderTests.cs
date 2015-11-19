@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void IsCommitCharacterTest()
+        public async Task IsCommitCharacterTest()
         {
             const string markup = @"
 class C
@@ -28,17 +29,17 @@ class C
     $$
 }";
 
-            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
+            await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void IsTextualTriggerCharacterTest()
+        public async Task IsTextualTriggerCharacterTest()
         {
-            TestCommonIsTextualTriggerCharacter();
+            await TestCommonIsTextualTriggerCharacterAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SendEnterThroughToEditorTest()
+        public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
 class C
@@ -46,8 +47,8 @@ class C
     $$
 }";
 
-            VerifySendEnterThroughToEnter(markup, "T", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter(markup, "T", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "T", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync(markup, "T", sendThroughEnterEnabled: true, expected: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

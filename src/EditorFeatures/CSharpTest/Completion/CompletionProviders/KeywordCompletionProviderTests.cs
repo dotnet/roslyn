@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
@@ -21,22 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void IsCommitCharacterTest()
+        public async Task IsCommitCharacterTest()
         {
-            VerifyCommonCommitCharacters("$$", textTypedSoFar: "");
+            await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar: "");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void IsTextualTriggerCharacterTest()
+        public async Task IsTextualTriggerCharacterTest()
         {
-            TestCommonIsTextualTriggerCharacter();
+            await TestCommonIsTextualTriggerCharacterAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void SendEnterThroughToEditorTest()
+        public async Task SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync("$$", "class", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync("$$", "class", sendThroughEnterEnabled: true, expected: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

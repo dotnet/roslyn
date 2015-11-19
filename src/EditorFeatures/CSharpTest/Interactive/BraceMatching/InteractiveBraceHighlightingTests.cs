@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public void TestSwitch()
+        public async Task TestSwitch()
         {
             var code = @"
 class C
@@ -171,7 +171,7 @@ class C
         }
     }
 } ";
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions: Options.Script))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(code, parseOptions: Options.Script))
             {
                 var buffer = workspace.Documents.First().GetTextBuffer();
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SendEnterThroughToEditorTest()
+        public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
 class Foo
@@ -35,12 +36,12 @@ class Foo
     }
 }";
 
-            VerifySendEnterThroughToEnter(markup, "a:", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter(markup, "a:", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterEnabled: true, expected: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitCharacterTest()
+        public async Task CommitCharacterTest()
         {
             const string markup = @"
 class Foo
@@ -54,7 +55,7 @@ class Foo
     }
 }";
 
-            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
+            await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

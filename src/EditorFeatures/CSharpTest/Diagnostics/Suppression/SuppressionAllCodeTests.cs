@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 {
     public class CSharpSuppressionAllCodeTests : AbstractSuppressionAllCodeTests
     {
-        protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions)
+        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromFile(definition, (CSharpParseOptions)parseOptions);
+            return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(definition, (CSharpParseOptions)parseOptions);
         }
 
         internal override Tuple<Analyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

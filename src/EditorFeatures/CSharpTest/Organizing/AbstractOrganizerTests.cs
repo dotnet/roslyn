@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Organizing;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -15,21 +16,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public abstract class AbstractOrganizerTests
     {
-        protected void Check(string initial, string final)
+        protected async Task CheckAsync(string initial, string final)
         {
-            CheckResult(initial, final);
-            CheckResult(initial, final, Options.Script);
+            await CheckResultAsync(initial, final);
+            await CheckResultAsync(initial, final, Options.Script);
         }
 
-        protected void Check(string initial, string final, bool specialCaseSystem)
+        protected async Task CheckAsync(string initial, string final, bool specialCaseSystem)
         {
-            CheckResult(initial, final, specialCaseSystem);
-            CheckResult(initial, final, specialCaseSystem, Options.Script);
+            await CheckResultAsync(initial, final, specialCaseSystem);
+            await CheckResultAsync(initial, final, specialCaseSystem, Options.Script);
         }
 
-        protected void CheckResult(string initial, string final, bool specialCaseSystem, CSharpParseOptions options = null)
+        protected async Task CheckResultAsync(string initial, string final, bool specialCaseSystem, CSharpParseOptions options = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(initial))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(initial))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 var newRoot = OrganizingService.OrganizeAsync(document).Result.GetSyntaxRootAsync().Result;
@@ -37,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             }
         }
 
-        protected void CheckResult(string initial, string final, CSharpParseOptions options = null)
+        protected Task CheckResultAsync(string initial, string final, CSharpParseOptions options = null)
         {
-            CheckResult(initial, final, false, options);
+            return CheckResultAsync(initial, final, false, options);
         }
     }
 }

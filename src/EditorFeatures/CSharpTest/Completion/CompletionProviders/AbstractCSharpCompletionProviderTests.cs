@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion;
@@ -128,9 +129,9 @@ usingDirectives +
 text;
         }
 
-        protected void VerifySendEnterThroughToEnter(string initialMarkup, string textTypedSoFar, bool sendThroughEnterEnabled, bool expected)
+        protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, bool sendThroughEnterEnabled, bool expected)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(initialMarkup))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(initialMarkup))
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var documentId = workspace.GetDocumentId(hostDocument);
@@ -151,15 +152,15 @@ text;
             }
         }
 
-        protected void VerifyTextualTriggerCharacter(string markup, bool shouldTriggerWithTriggerOnLettersEnabled, bool shouldTriggerWithTriggerOnLettersDisabled)
+        protected async Task VerifyTextualTriggerCharacterAsync(string markup, bool shouldTriggerWithTriggerOnLettersEnabled, bool shouldTriggerWithTriggerOnLettersDisabled)
         {
-            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersEnabled, triggerOnLetter: true);
-            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersDisabled, triggerOnLetter: false);
+            await VerifyTextualTriggerCharacterWorkerAsync(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersEnabled, triggerOnLetter: true);
+            await VerifyTextualTriggerCharacterWorkerAsync(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersDisabled, triggerOnLetter: false);
         }
 
-        private void VerifyTextualTriggerCharacterWorker(string markup, bool expectedTriggerCharacter, bool triggerOnLetter)
+        private async Task VerifyTextualTriggerCharacterWorkerAsync(string markup, bool expectedTriggerCharacter, bool triggerOnLetter)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup))
             {
                 var document = workspace.Documents.Single();
                 var position = document.CursorPosition.Value;
@@ -181,7 +182,7 @@ text;
             }
         }
 
-        protected void VerifyCommonCommitCharacters(string initialMarkup, string textTypedSoFar)
+        protected async Task VerifyCommonCommitCharactersAsync(string initialMarkup, string textTypedSoFar)
         {
             var commitCharacters = new[]
             {
@@ -190,15 +191,15 @@ text;
                 '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\'
             };
 
-            VerifyCommitCharacters(initialMarkup, textTypedSoFar, commitCharacters);
+            await VerifyCommitCharactersAsync(initialMarkup, textTypedSoFar, commitCharacters);
         }
 
-        protected void VerifyCommitCharacters(string initialMarkup, string textTypedSoFar, char[] validChars, char[] invalidChars = null)
+        protected async Task VerifyCommitCharactersAsync(string initialMarkup, string textTypedSoFar, char[] validChars, char[] invalidChars = null)
         {
             Assert.NotNull(validChars);
             invalidChars = invalidChars ?? new [] { 'x' };
 
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(initialMarkup))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(initialMarkup))
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var documentId = workspace.GetDocumentId(hostDocument);
@@ -223,7 +224,7 @@ text;
             }
         }
 
-        protected void TestCommonIsTextualTriggerCharacter()
+        protected async Task TestCommonIsTextualTriggerCharacterAsync ()
         {
             var alwaysTriggerList = new[]
             {
@@ -232,7 +233,7 @@ text;
 
             foreach (var markup in alwaysTriggerList)
             {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
+                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
             }
 
             var triggerOnlyWithLettersList = new[]
@@ -243,7 +244,7 @@ text;
 
             foreach (var markup in triggerOnlyWithLettersList)
             {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
+                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
             }
 
             var neverTriggerList = new[]
@@ -254,7 +255,7 @@ text;
 
             foreach (var markup in neverTriggerList)
             {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
             }
         }
 

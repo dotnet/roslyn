@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -102,7 +103,7 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void IsCommitCharacterTest()
+        public async Task IsCommitCharacterTest()
         {
             const string markup = @"
 using D = System.Globalization.DigitShapes; 
@@ -114,23 +115,23 @@ class Program
     }
 }";
 
-            VerifyCommitCharacters(markup, textTypedSoFar: "",
+            await VerifyCommitCharactersAsync(markup, textTypedSoFar: "",
                 validChars: new[] { ' ', '(', '{', '[' },
                 invalidChars: new[] { 'x', ',', '#' });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void IsTextualTriggerCharacterTest()
+        public async Task IsTextualTriggerCharacterTest()
         {
-            VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
-            VerifyTextualTriggerCharacter("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
-            VerifyTextualTriggerCharacter("Abc $$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
-            VerifyTextualTriggerCharacter("Abc$$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
-            VerifyTextualTriggerCharacter("Abc$$.", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            await VerifyTextualTriggerCharacterAsync("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
+            await VerifyTextualTriggerCharacterAsync("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
+            await VerifyTextualTriggerCharacterAsync("Abc $$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            await VerifyTextualTriggerCharacterAsync("Abc$$@", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+            await VerifyTextualTriggerCharacterAsync("Abc$$.", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SendEnterThroughToEditorTest()
+        public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
 using D = System.Globalization.DigitShapes; 
@@ -142,8 +143,8 @@ class Program
     }
 }";
 
-            VerifySendEnterThroughToEnter(markup, "D", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter(markup, "D", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterEnabled: true, expected: true);
         }
 
         [WorkItem(828196)]

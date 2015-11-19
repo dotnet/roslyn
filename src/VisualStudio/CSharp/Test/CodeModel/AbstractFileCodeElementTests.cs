@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 
@@ -20,15 +21,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         protected Microsoft.CodeAnalysis.Project CurrentProject { get; }
         protected Microsoft.CodeAnalysis.Document CurrentDocument { get; }
 
-        public AbstractFileCodeElementTests(string file)
+        public AbstractFileCodeElementTests(Tuple<TestWorkspace, EnvDTE.FileCodeModel> pair)
         {
-            var pair = FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
             Workspace = pair.Item1;
             CodeModel = pair.Item2;
 
             CurrentSolution = Workspace.CurrentSolution;
             CurrentProject = CurrentSolution.Projects.Single();
             CurrentDocument = CurrentProject.Documents.Single();
+        }
+
+        protected static Task<Tuple<TestWorkspace, EnvDTE.FileCodeModel>> CreateWorkspaceAndFileCodeModelAsync(string file)
+        {
+            return FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModelAsync(file);
         }
 
         protected CodeElement GetCodeElement(params object[] path)

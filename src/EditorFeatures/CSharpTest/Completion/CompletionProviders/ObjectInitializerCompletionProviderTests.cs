@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NothingToInitialize()
+        public async Task NothingToInitialize()
         {
             var markup = @"
 class c { }
@@ -36,11 +37,11 @@ class d
 }";
 
             VerifyNoItemsExist(markup);
-            VerifyExclusive(markup, true);
+            await VerifyExclusiveAsync(markup, true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void OneItem1()
+        public async Task OneItem1()
         {
             var markup = @"
 class c { public int value {set; get; }}
@@ -55,11 +56,11 @@ class d
 
             VerifyItemExists(markup, "value");
             VerifyItemIsAbsent(markup, "<value>k__BackingField");
-            VerifyExclusive(markup, true);
+            await VerifyExclusiveAsync(markup, true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void ShowWithEqualsSign()
+        public async Task ShowWithEqualsSign()
         {
             var markup = @"
 class c { public int value {set; get; }}
@@ -74,11 +75,11 @@ class d
 
             VerifyItemExists(markup, "value");
             VerifyItemIsAbsent(markup, "<value>k__BackingField");
-            VerifyExclusive(markup, true);
+            await VerifyExclusiveAsync(markup, true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void OneItem2()
+        public async Task OneItem2()
         {
             var markup = @"
 class c
@@ -93,11 +94,11 @@ class c
 
             VerifyItemExists(markup, "value");
             VerifyItemIsAbsent(markup, "<value>k__BackingField");
-            VerifyExclusive(markup, true);
+            await VerifyExclusiveAsync(markup, true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void FieldAndProperty()
+        public async Task FieldAndProperty()
         {
             var markup = @"
 class c 
@@ -116,11 +117,11 @@ class d
 
             VerifyItemExists(markup, "value");
             VerifyItemExists(markup, "otherValue");
-            VerifyExclusive(markup, true);
+            await VerifyExclusiveAsync(markup, true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void HidePreviouslyTyped()
+        public async Task HidePreviouslyTyped()
         {
             var markup = @"
 class c 
@@ -138,7 +139,7 @@ class d
 }";
 
             VerifyItemIsAbsent(markup, "value");
-            VerifyExclusive(markup, true);
+            await VerifyExclusiveAsync(markup, true);
             VerifyItemExists(markup, "otherValue");
         }
 
@@ -164,7 +165,7 @@ class d
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NothingLeftToShow()
+        public async Task NothingLeftToShow()
         {
             var markup = @"
 class c 
@@ -182,11 +183,11 @@ class d
 }";
 
             VerifyNoItemsExist(markup);
-            VerifyExclusive(markup, true);
+            await VerifyExclusiveAsync(markup, true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NestedObjectInitializers()
+        public async Task NestedObjectInitializers()
         {
             var markup = @"
 class c 
@@ -210,11 +211,11 @@ class e
             VerifyItemIsAbsent(markup, "myValue");
             VerifyItemExists(markup, "value");
             VerifyItemExists(markup, "otherValue");
-            VerifyExclusive(markup, true);
+            await VerifyExclusiveAsync(markup, true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotExclusive1()
+        public async Task NotExclusive1()
         {
             var markup = @"using System.Collections.Generic;
 class c : IEnumerable<int>
@@ -231,11 +232,11 @@ class d
        c bar = new c { v$$
     }
 }";
-            VerifyExclusive(markup, false);
+            await VerifyExclusiveAsync(markup, false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotExclusive2()
+        public async Task NotExclusive2()
         {
             var markup = @"using System.Collections;
 class c : IEnumerable
@@ -252,7 +253,7 @@ class d
        c bar = new c { v$$
     }
 }";
-            VerifyExclusive(markup, false);
+            await VerifyExclusiveAsync(markup, false);
         }
 
         [WorkItem(544242)]
@@ -538,7 +539,7 @@ public class Foo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void TestCommitCharacter()
+        public async Task TestCommitCharacter()
         {
             const string markup = @"
 class c { public int value {set; get; }}
@@ -551,11 +552,11 @@ class d
     }
 }";
 
-            VerifyCommonCommitCharacters(markup, textTypedSoFar: "v");
+            await VerifyCommonCommitCharactersAsync(markup, textTypedSoFar: "v");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void TestEnter()
+        public async Task TestEnter()
         {
             const string markup = @"
 class c { public int value {set; get; }}
@@ -568,7 +569,7 @@ class d
     }
 }";
 
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
@@ -586,9 +587,9 @@ class d
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void TestTrigger()
+        public async Task TestTrigger()
         {
-            TestCommonIsTextualTriggerCharacter();
+            await TestCommonIsTextualTriggerCharacterAsync();
         }
 
         [WorkItem(530828)]
@@ -742,9 +743,9 @@ class Container
             VerifyItemExists(markup, "D");
         }
 
-        private void VerifyExclusive(string markup, bool exclusive)
+        private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup))
             {
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;

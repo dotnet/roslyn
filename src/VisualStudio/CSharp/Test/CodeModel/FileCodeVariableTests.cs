@@ -2,7 +2,9 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,8 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     public class FileCodeVariableTests : AbstractFileCodeElementTests
     {
-        public FileCodeVariableTests()
-            : base(@"using System;
+        public static async Task<FileCodeVariableTests> CreateAsync()
+        {
+            var pair = await CreateWorkspaceAndFileCodeModelAsync(@"using System;
 
 public class A
 {
@@ -33,7 +36,13 @@ public class A
 unsafe public struct DevDivBugs70194
 {
     fixed char buffer[100];
-}")
+}");
+
+            return new FileCodeVariableTests(pair);
+        }
+
+        public FileCodeVariableTests(Tuple<TestWorkspace, EnvDTE.FileCodeModel> pair)
+            : base(pair)
         {
         }
 

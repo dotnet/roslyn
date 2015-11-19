@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
@@ -122,13 +123,13 @@ class C
 
         [WorkItem(1140893)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitWithEnterObeysOption()
+        public async Task CommitWithEnterObeysOption()
         {
-            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: true, expected: false);
-            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcu", sendThroughEnterEnabled: true, expected: false);
+            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcut", sendThroughEnterEnabled: true, expected: true);
 
-            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcu", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

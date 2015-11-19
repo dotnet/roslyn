@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
@@ -49,14 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void IsCommitCharacterTest()
+        public async Task IsCommitCharacterTest()
         {
             var commitCharacters = new[] { '"', '\\', ',' };
-            VerifyCommitCharacters("#r \"$$", textTypedSoFar: "", validChars: commitCharacters);
+            await VerifyCommitCharactersAsync("#r \"$$", textTypedSoFar: "", validChars: commitCharacters);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void IsTextualTriggerCharacterTest()
+        public async Task IsTextualTriggerCharacterTest()
         {
             var validMarkupList = new[]
             {
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 
             foreach (var markup in validMarkupList)
             {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
+                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
             }
 
             var invalidMarkupList = new[]
@@ -79,15 +80,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 
             foreach (var markup in invalidMarkupList)
             {
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+                await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SendEnterThroughToEditorTest()
+        public async Task SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("#r \"System$$", "System", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("#r \"System$$", "System", sendThroughEnterEnabled: true, expected: false);
+            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", sendThroughEnterEnabled: true, expected: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
