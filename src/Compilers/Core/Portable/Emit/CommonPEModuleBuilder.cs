@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract EmitOptions EmitOptions { get; }
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
-        internal abstract Cci.IMethodReference EntryPoint { get; }
+        internal abstract Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
         internal abstract bool SupportsPrivateImplClass { get; }
         internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
         internal abstract Compilation CommonCompilation { get; }
@@ -49,23 +49,16 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly TCompilation _compilation;
         private readonly OutputKind _outputKind;
         private readonly EmitOptions _emitOptions;
-        private readonly ModulePropertiesForSerialization _serializationProperties;
+        private readonly Cci.ModulePropertiesForSerialization _serializationProperties;
         private readonly ConcurrentCache<ValueTuple<string, string>, string> _normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
-
-        /// <summary>
-        /// Used to translate assembly symbols to assembly references in scenarios when the physical assemblies 
-        /// being emitted don't correspond to the assembly symbols 1:1. This happens, for example, in interactive sessions where
-        /// multiple code submissions might be compiled into a single dynamic assembly or into multiple assemblies 
-        /// depending on properties of the code being emitted. If null we map assembly symbol exactly to its assembly name.
-        /// </summary>
-        protected readonly Func<TAssemblySymbol, AssemblyIdentity> assemblySymbolMapper;
 
         private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>();
         private readonly StringTokenMap _stringsInILMap = new StringTokenMap();
         private readonly ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody> _methodBodyMap =
             new ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
 
-        private TMethodSymbol _entryPoint;
+        private Cci.IMethodReference _peEntryPoint;
+        private Cci.IMethodReference _debugEntryPoint;
         private PrivateImplementationDetails _privateImplementationDetails;
         private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
@@ -95,10 +88,9 @@ namespace Microsoft.CodeAnalysis.Emit
         protected PEModuleBuilder(
             TCompilation compilation,
             TSourceModuleSymbol sourceModule,
-            ModulePropertiesForSerialization serializationProperties,
+            Cci.ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             OutputKind outputKind,
-            Func<TAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             EmitOptions emitOptions,
             TModuleCompilationState compilationState)
         {
@@ -110,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Emit
             _serializationProperties = serializationProperties;
             this.ManifestResources = manifestResources;
             _outputKind = outputKind;
-            this.assemblySymbolMapper = assemblySymbolMapper;
             _emitOptions = emitOptions;
             this.CompilationState = compilationState;
 
@@ -129,17 +120,10 @@ namespace Microsoft.CodeAnalysis.Emit
             this.CompilationState.Freeze();
         }
 
-        internal override EmitOptions EmitOptions
-        {
-            get { return _emitOptions; }
-        }
-
+        internal override EmitOptions EmitOptions => _emitOptions;
         internal abstract string ModuleName { get; }
         internal abstract string Name { get; }
         internal abstract TAssemblySymbol CorLibrary { get; }
-
-        internal abstract byte LinkerMajorVersion { get; }
-        internal abstract byte LinkerMinorVersion { get; }
 
         internal abstract IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes();
         internal abstract IEnumerable<Cci.SecurityAttribute> GetSourceAssemblySecurityAttributes();
@@ -239,6 +223,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+        internal abstract Cci.IMethodReference Translate(TMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
 
         internal sealed override Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics)
         {
@@ -250,6 +235,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate((TTypeSymbol)symbol, (TSyntaxNode)syntaxNodeOpt, diagnostics);
         }
 
+        internal sealed override Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        {
+            return Translate((TMethodSymbol)symbol, diagnostics, needDeclaration);
+        }
+
         internal OutputKind OutputKind => _outputKind;
         internal TSourceModuleSymbol SourceModule => _sourceModule;
         internal TCompilation Compilation => _compilation;
@@ -258,14 +248,27 @@ namespace Microsoft.CodeAnalysis.Emit
         internal sealed override CommonModuleCompilationState CommonModuleCompilationState => CompilationState;
         internal sealed override CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt => EmbeddedTypesManagerOpt;
 
-        // General entry point method. May be a PE entry point or a submission entry point.
-        internal sealed override Cci.IMethodReference EntryPoint => _entryPoint;
+        Cci.IMethodReference Cci.IModule.PEEntryPoint => _peEntryPoint;
+        Cci.IMethodReference Cci.IModule.DebugEntryPoint => _debugEntryPoint;
 
-        internal void SetEntryPoint(TMethodSymbol value)
+        internal void SetPEEntryPoint(TMethodSymbol method, DiagnosticBag diagnostics)
         {
-            Debug.Assert(value == null ||
-                ((object)((IMethodSymbol)value).ContainingModule == (object)_sourceModule && ReferenceEquals(value, ((IMethodSymbol)value).OriginalDefinition)));
-            _entryPoint = value;
+            Debug.Assert(method == null || IsSourceDefinition((IMethodSymbol)method));
+            Debug.Assert(_outputKind.IsApplication());
+
+            _peEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+        }
+
+        internal void SetDebugEntryPoint(TMethodSymbol method, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(method == null || IsSourceDefinition((IMethodSymbol)method));
+
+            _debugEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+        }
+
+        private bool IsSourceDefinition(IMethodSymbol method)
+        {
+            return (object)method.ContainingModule == _sourceModule && method.IsDefinition;
         }
 
         internal MetadataConstant CreateConstant(
@@ -289,28 +292,21 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> CalculateAssemblyReferenceAliases(EmitContext context)
         {
-            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance(_compilation.ExternalReferences.Length);
+            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance();
 
-            var referenceManager = _compilation.GetBoundReferenceManager();
-
-            // Enumerate external references (#r's don't define aliases) to preserve the order.
-            foreach (MetadataReference reference in _compilation.ExternalReferences)
+            foreach (var assemblyAndAliases in _compilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                // duplicate references might have been skipped by the assembly binder:
+                var assembly = assemblyAndAliases.Item1;
+                var aliases = assemblyAndAliases.Item2;
 
-                IAssemblySymbol symbol;
-                ImmutableArray<string> aliases;
-                if (referenceManager.TryGetReferencedAssemblySymbol(reference, out symbol, out aliases))
+                for (int i = 0; i < aliases.Length; i++)
                 {
-                    for (int i = 0; i < aliases.Length; i++)
-                    {
-                        string alias = aliases[i];
+                    string alias = aliases[i];
 
-                        // filter out duplicates and global aliases:
-                        if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
-                        {
-                            result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(symbol, context.Diagnostics)));
-                        }
+                    // filter out duplicates and global aliases:
+                    if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
+                    {
+                        result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(assembly, context.Diagnostics)));
                     }
                 }
             }
@@ -661,39 +657,13 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             visitor.Visit((Cci.IModule)this);
         }
-
-        ushort Cci.IModule.MajorSubsystemVersion
-        {
-            get { return (ushort)_serializationProperties.SubsystemVersion.Major; }
-        }
-
-        ushort Cci.IModule.MinorSubsystemVersion
-        {
-            get { return (ushort)_serializationProperties.SubsystemVersion.Minor; }
-        }
-
-        byte Cci.IModule.LinkerMajorVersion
-        {
-            get
-            {
-                return LinkerMajorVersion;
-            }
-        }
-
-        byte Cci.IModule.LinkerMinorVersion
-        {
-            get
-            {
-                return LinkerMinorVersion;
-            }
-        }
-
+        
         IEnumerable<Cci.INamespaceTypeDefinition> Cci.IModule.GetTopLevelTypes(EmitContext context)
         {
             return GetTopLevelTypes(context);
         }
 
-        public abstract IEnumerable<Cci.ITypeExport> GetExportedTypes(EmitContext context);
+        public abstract IEnumerable<Cci.ITypeReference> GetExportedTypes(EmitContext context);
 
         Cci.ITypeReference Cci.IModule.GetPlatformType(Cci.PlatformType platformType, EmitContext context)
         {
@@ -759,15 +729,6 @@ namespace Microsoft.CodeAnalysis.Emit
         string Cci.IModule.DefaultNamespace => DefaultNamespace;
         protected abstract string DefaultNamespace { get; }
 
-        // PE entry point, only available for console and windows apps:
-        Cci.IMethodReference Cci.IModule.EntryPoint
-        {
-            get
-            {
-                return _outputKind.IsApplication() ? _entryPoint : null;
-            }
-        }
-
         protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(EmitContext context);
 
         /// <summary>
@@ -792,7 +753,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 yield return corLibrary;
             }
 
-            if (OutputKind != CodeAnalysis.OutputKind.NetModule)
+            if (OutputKind != OutputKind.NetModule)
             {
                 // Explicitly add references from added modules
                 foreach (var aRef in GetAssemblyReferencesFromAddedModules(context.Diagnostics))
@@ -841,11 +802,6 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate(CorLibrary, context.Diagnostics);
         }
 
-        ulong Cci.IModule.BaseAddress
-        {
-            get { return _serializationProperties.BaseAddress; }
-        }
-
         Cci.IAssembly Cci.IModule.GetContainingAssembly(EmitContext context)
         {
             return this.OutputKind.IsNetModule() ? null : (Cci.IAssembly)this;
@@ -856,61 +812,12 @@ namespace Microsoft.CodeAnalysis.Emit
             return this.OutputKind.IsNetModule() ? null : (Cci.IAssemblyReference)this;
         }
 
-        ushort Cci.IModule.DllCharacteristics
-        {
-            get { return _serializationProperties.DllCharacteristics; }
-        }
-
-        uint Cci.IModule.FileAlignment
-        {
-            get { return _serializationProperties.FileAlignment; }
-        }
-
         IEnumerable<string> Cci.IModule.GetStrings()
         {
             return _stringsInILMap.GetAllItems();
         }
 
-        bool Cci.IModule.ILOnly
-        {
-            get { return _serializationProperties.ILOnly; }
-        }
-
-        Cci.ModuleKind Cci.IModule.Kind
-        {
-            get
-            {
-                switch (_outputKind)
-                {
-                    case OutputKind.ConsoleApplication:
-                        return Cci.ModuleKind.ConsoleApplication;
-
-                    case OutputKind.WindowsRuntimeApplication: // TODO: separate ModuleKind?
-                    case OutputKind.WindowsApplication:
-                        return Cci.ModuleKind.WindowsApplication;
-
-                    case OutputKind.WindowsRuntimeMetadata:
-                        return Cci.ModuleKind.WindowsRuntimeMetadata;
-
-                    case OutputKind.DynamicallyLinkedLibrary:
-                    case OutputKind.NetModule:
-                        return Cci.ModuleKind.DynamicallyLinkedLibrary;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(_outputKind);
-                }
-            }
-        }
-
-        byte Cci.IModule.MetadataFormatMajorVersion
-        {
-            get { return _serializationProperties.MetadataFormatMajorVersion; }
-        }
-
-        byte Cci.IModule.MetadataFormatMinorVersion
-        {
-            get { return _serializationProperties.MetadataFormatMinorVersion; }
-        }
+        OutputKind Cci.IModule.Kind => _outputKind;
 
         string Cci.IModule.ModuleName
         {
@@ -927,75 +834,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        Guid Cci.IModule.PersistentIdentifier
-        {
-            get { return _serializationProperties.PersistentIdentifier; }
-        }
-
-        bool Cci.IModule.StrongNameSigned
-        {
-            get { return _serializationProperties.StrongNameSigned; }
-        }
-
-        Cci.Machine Cci.IModule.Machine
-        {
-            get { return _serializationProperties.Machine; }
-        }
-
-        bool Cci.IModule.RequiresStartupStub
-        {
-            get { return _serializationProperties.RequiresStartupStub; }
-        }
-
-        bool Cci.IModule.Prefers32bits
-        {
-            get { return _serializationProperties.Platform == Platform.AnyCpu32BitPreferred; }
-        }
-
-        bool Cci.IModule.RequiresAmdInstructionSet
-        {
-            get { return _serializationProperties.Platform.RequiresAmdInstructionSet(); }
-        }
-
-        bool Cci.IModule.Requires32bits
-        {
-            get { return _serializationProperties.Platform.Requires32Bit(); }
-        }
-
-        bool Cci.IModule.Requires64bits
-        {
-            get { return _serializationProperties.Platform.Requires64Bit(); }
-        }
-
-        ulong Cci.IModule.SizeOfHeapCommit
-        {
-            get { return _serializationProperties.SizeOfHeapCommit; }
-        }
-
-        ulong Cci.IModule.SizeOfHeapReserve
-        {
-            get { return _serializationProperties.SizeOfHeapReserve; }
-        }
-
-        ulong Cci.IModule.SizeOfStackCommit
-        {
-            get { return _serializationProperties.SizeOfStackCommit; }
-        }
-
-        ulong Cci.IModule.SizeOfStackReserve
-        {
-            get { return _serializationProperties.SizeOfStackReserve; }
-        }
-
-        string Cci.IModule.TargetRuntimeVersion
-        {
-            get { return _serializationProperties.TargetRuntimeVersion; }
-        }
-
-        bool Cci.IModule.TrackDebugData
-        {
-            get { return _serializationProperties.TrackDebugData; }
-        }
+        Cci.ModulePropertiesForSerialization Cci.IModule.Properties => _serializationProperties;
 
         Cci.ResourceSection Cci.IModule.Win32ResourceSection
         {

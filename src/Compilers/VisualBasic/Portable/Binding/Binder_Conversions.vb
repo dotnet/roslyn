@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' The array will get the type from the input type of the user defined conversion.
                 sourceType = convKind.Value.Parameters(0).Type
 
-                ' If the conversion from the inferred elrment type to the source type of the user defined conversion is a narrowing conversion then
+                ' If the conversion from the inferred element type to the source type of the user defined conversion is a narrowing conversion then
                 ' skip to the user defined conversion. Conversion errors on the individual elements will be reported when the array literal is reclassified.
                 If Not isExplicit AndAlso
                     Conversions.IsNarrowingConversion(convKind.Key) AndAlso
@@ -1617,7 +1617,13 @@ DoneWithDiagnostics:
                 Dim sourceElement = sourceArray.ElementType
                 Dim targetElement = targetArray.ElementType
 
-                If Not (sourceElement.IsErrorType() OrElse targetElement.IsErrorType()) Then
+                If sourceArray.Rank <> targetArray.Rank Then
+                    ReportDiagnostic(diagnostics, location, ERRID.ERR_ConvertArrayRankMismatch2, sourceType, targetType)
+
+                ElseIf sourceArray.IsSZArray <> targetArray.IsSZArray
+                    ReportDiagnostic(diagnostics, location, ERRID.ERR_TypeMismatch2, sourceType, targetType)
+
+                ElseIf Not (sourceElement.IsErrorType() OrElse targetElement.IsErrorType()) Then
                     Dim elemConv = Conversions.ClassifyDirectCastConversion(sourceElement, targetElement, Nothing)
 
                     If Not Conversions.IsIdentityConversion(elemConv) AndAlso
@@ -1631,13 +1637,9 @@ DoneWithDiagnostics:
                              (elemConv And (ConversionKind.Reference Or ConversionKind.Value Or ConversionKind.TypeParameter)) <> 0) Then
                         ReportDiagnostic(diagnostics, location, ERRID.ERR_ConvertArrayMismatch4, sourceType, targetType, sourceElement, targetElement)
 
-                    ElseIf sourceArray.Rank <> targetArray.Rank Then
-                        ReportDiagnostic(diagnostics, location, ERRID.ERR_ConvertArrayRankMismatch2, sourceType, targetType)
-
                     Else
                         ReportDiagnostic(diagnostics, location, ERRID.ERR_TypeMismatch2, sourceType, targetType)
                     End If
-
                 End If
 
             ElseIf sourceType.IsDateTimeType() AndAlso targetType.IsDoubleType() Then

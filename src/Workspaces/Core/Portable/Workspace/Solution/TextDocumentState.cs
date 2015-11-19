@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
                     // if load text is failed due to a cancellation, make sure we propagate it out to the caller
                     throw;
                 }
-                catch (IOException e) 
+                catch (IOException e)
                 {
                     if (++retries > MaxRetries)
                     {
@@ -179,6 +179,12 @@ namespace Microsoft.CodeAnalysis
         public async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
             var textAndVersion = await this.textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return textAndVersion.Text;
+        }
+
+        public SourceText GetText(CancellationToken cancellationToken)
+        {
+            var textAndVersion = this.textSource.GetValue(cancellationToken);
             return textAndVersion.Text;
         }
 

@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ' delegate creation expression used to hook/unhook handlers
-        ' note that it may contain relaxation lambdas and will need to be ingected 
+        ' note that it may contain relaxation lambdas and will need to be injected 
         ' into the host method before lowering.
         ' Used in rewriter.
         Friend ReadOnly delegateCreation As BoundExpression

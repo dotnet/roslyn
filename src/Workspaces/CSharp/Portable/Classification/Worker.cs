@@ -24,14 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     /// </summary>
     internal partial class Worker
     {
-#if DEBUG
-        /// <summary>
-        /// nonOverlappingSpans spans used for Debug validation that spans that worker produces
-        /// are not mutually overlapping.
-        /// </summary>
-        private SimpleIntervalTree<TextSpan> _nonOverlappingSpans;
-#endif
-
         private readonly TextSpan _textSpan;
         private readonly List<ClassifiedSpan> _result;
         private readonly CancellationToken _cancellationToken;
@@ -60,25 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             worker.ClassifyNode(node);
         }
 
-        [System.Diagnostics.Conditional("DEBUG")]
-        private void Validate(TextSpan textSpan)
-        {
-#if DEBUG
-            if (_nonOverlappingSpans == null)
-            {
-                _nonOverlappingSpans = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance);
-            }
-
-            // new span should not overlap with any span that we already have.
-            Contract.Requires(!_nonOverlappingSpans.GetOverlappingIntervals(textSpan.Start, textSpan.Length).Any());
-
-            _nonOverlappingSpans = _nonOverlappingSpans.AddInterval(textSpan);
-#endif
-        }
-
         private void AddClassification(TextSpan span, string type)
         {
-            Validate(span);
             _result.Add(new ClassifiedSpan(type, span));
         }
 
@@ -146,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyTrivia(SyntaxTrivia trivia)
         {
-            if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+            if (trivia.IsRegularComment())
             {
                 AddClassification(trivia, ClassificationTypeNames.Comment);
             }

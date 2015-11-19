@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
         }
 
-        public static bool IsUnexpressableTypeParameterConstraint(this ITypeSymbol typeSymbol)
+        public static bool IsUnexpressibleTypeParameterConstraint(this ITypeSymbol typeSymbol)
         {
             if (typeSymbol.IsSealed || typeSymbol.IsValueType)
             {
@@ -607,11 +607,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool CanSupportCollectionInitializer(this ITypeSymbol typeSymbol)
+        public static bool CanSupportCollectionInitializer(this ITypeSymbol typeSymbol, ISymbol within)
         {
             return
                 typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
-                typeSymbol.GetMembers(WellKnownMemberNames.CollectionInitializerAddMethodName)
+                typeSymbol.GetAccessibleMembersInThisAndBaseTypes<IMethodSymbol>(within ?? typeSymbol).Where(s => s.Name == WellKnownMemberNames.CollectionInitializerAddMethodName)
                     .OfType<IMethodSymbol>()
                     .Any(m => m.Parameters.Any());
         }
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (type != null)
             {
-                switch(type.Kind)
+                switch (type.Kind)
                 {
                     case SymbolKind.NamedType:
                         foreach (var baseType in type.GetBaseTypesAndThis())

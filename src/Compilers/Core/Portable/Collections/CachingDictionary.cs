@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>A new, empty dictionary, suitable for use as the fully populated map.</returns>
         private IDictionary<TKey, ImmutableArray<TElement>> CreateDictionaryForFullyPopulatedMap(int capacity)
         {
-            // CONSIDER: If capacity is small, consider using a more frugal datastructure.
+            // CONSIDER: If capacity is small, consider using a more frugal data structure.
             return new Dictionary<TKey, ImmutableArray<TElement>>(capacity, _comparer);
         }
 

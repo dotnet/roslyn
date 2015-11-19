@@ -5,6 +5,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -56,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return DirectCast(reference, Microsoft.Cci.IAssemblyReference)
             End If
 
-            Dim asmRef = New AssemblyReference(assembly, assemblySymbolMapper)
+            Dim asmRef = New AssemblyReference(assembly)
 
             Dim cachedAsmRef = DirectCast(m_AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(assembly, asmRef), AssemblyReference)
 
@@ -90,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim container As AssemblySymbol = [module].ContainingAssembly
 
             If container IsNot Nothing AndAlso container.Modules(0) Is [module] Then
-                Dim moduleRef As Microsoft.Cci.IModuleReference = New AssemblyReference(container, assemblySymbolMapper)
+                Dim moduleRef As Microsoft.Cci.IModuleReference = New AssemblyReference(container)
                 Dim cachedModuleRef As Microsoft.Cci.IModuleReference = m_AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(container, moduleRef)
 
                 If cachedModuleRef Is moduleRef Then
@@ -316,6 +317,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility)
             End Select
+        End Function
+
+        Friend Overloads Overrides Function Translate(symbol As MethodSymbol, diagnostics As DiagnosticBag, needDeclaration As Boolean) As IMethodReference
+            Return Translate(symbol, Nothing, diagnostics, needDeclaration)
         End Function
 
         Friend Overloads Function Translate(

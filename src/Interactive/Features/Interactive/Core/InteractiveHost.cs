@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : MarshalByRefObject
     {
-        private readonly Type _replType;
+        private readonly Type _replServiceProviderType;
         private readonly string _hostPath;
         private readonly string _initialWorkingDirectory;
 
@@ -40,10 +41,10 @@ namespace Microsoft.CodeAnalysis.Interactive
         private TextWriter _output;
         private TextWriter _errorOutput;
 
-        internal event Action<InteractiveHostOptions> ProcessStarting;
+        internal event Action<bool> ProcessStarting;
 
         public InteractiveHost(
-            Type replType,
+            Type replServiceProviderType,
             string hostPath,
             string workingDirectory,
             int millisecondsTimeout = 5000)
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             _millisecondsTimeout = millisecondsTimeout;
             _output = TextWriter.Null;
             _errorOutput = TextWriter.Null;
-            _replType = replType;
+            _replServiceProviderType = replServiceProviderType;
             _hostPath = hostPath;
             _initialWorkingDirectory = workingDirectory;
 
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             return null;
         }
 
-        private RemoteService TryStartProcess(CancellationToken cancellationToken)
+        private RemoteService TryStartProcess(CultureInfo culture, CancellationToken cancellationToken)
         {
             Process newProcess = null;
             int newProcessId = -1;
@@ -150,13 +151,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 newProcess.EnableRaisingEvents = true;
 
                 newProcess.Start();
-
-                // test hook:
-                var processCreated = InteractiveHostProcessCreated;
-                if (processCreated != null)
-                {
-                    processCreated(newProcess);
-                }
+                InteractiveHostProcessCreated?.Invoke(newProcess);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -191,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    newService.Initialize(_replType);
+                    newService.Initialize(_replServiceProviderType, culture.Name);
                 }
                 catch (RemotingException) when (!CheckAlive(newProcess))
                 {
@@ -303,11 +298,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal void OnOutputReceived(bool error, char[] buffer, int count)
         {
-            var notification = error ? ErrorOutputReceived : OutputReceived;
-            if (notification != null)
-            {
-                notification(buffer, count);
-            }
+            (error ? ErrorOutputReceived : OutputReceived)?.Invoke(buffer, count);
 
             var writer = error ? ErrorOutput : Output;
             writer.Write(buffer, 0, count);
@@ -432,8 +423,10 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             try
             {
+                var options = optionsOpt ?? _lazyRemoteService?.Options ?? new InteractiveHostOptions(null, CultureInfo.CurrentUICulture);
+
                 // replace the existing service with a new one:
-                var newService = CreateRemoteService(optionsOpt ?? _lazyRemoteService?.Options ?? InteractiveHostOptions.Default, skipInitialization: false);
+                var newService = CreateRemoteService(options, skipInitialization: false);
 
                 LazyRemoteService oldService = Interlocked.Exchange(ref _lazyRemoteService, newService);
                 if (oldService != null)
@@ -460,8 +453,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         /// <param name="code">The code to execute.</param>
         /// <remarks>
-        /// This method is thread safe. References can be added and source code executed in parallel. 
-        /// The operations are serialized to UI thread in the remote process in first come first served order.
+        /// This method is thread safe but operations are sent to the remote process
+        /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
@@ -475,7 +468,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <param name="path">The file to execute.</param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         /// <remarks>
-        /// This method is thread safe. All session operations are serialized to UI thread in the remote process in first come first served order.
+        /// This method is thread safe but operations are sent to the remote process
+        /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
@@ -492,7 +486,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         /// <param name="reference">The reference to add.</param>
         /// <remarks>
-        /// This method is thread safe. All session operations are serialized to UI thread in the remote process in first come first served order.
+        /// This method is thread safe but operations are sent to the remote process
+        /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
         public Task<bool> AddReferenceAsync(string reference)
         {
@@ -503,13 +498,13 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public Task SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
         {
             Debug.Assert(referenceSearchPaths != null);
             Debug.Assert(sourceSearchPaths != null);
             Debug.Assert(baseDirectory != null);
 
-            return Async<object>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
+            return Async<RemoteExecutionResult>((service, operation) => service.SetPathsAsync(operation, referenceSearchPaths, sourceSearchPaths, baseDirectory));
         }
 
         #endregion

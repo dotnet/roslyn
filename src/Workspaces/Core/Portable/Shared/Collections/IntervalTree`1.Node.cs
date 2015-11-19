@@ -18,9 +18,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             internal int Height { get; private set; }
             internal Node MaxEndNode { get; private set; }
 
-            internal Node(IIntervalIntrospector<T> introspector, T interval)
-                : this(introspector, interval, left: null, right: null)
+            internal Node(T value)
             {
+                this.Value = value;
+                this.Height = 1;
+                this.MaxEndNode = this;
             }
 
             internal Node(IIntervalIntrospector<T> introspector, T value, Node left, Node right)
@@ -61,11 +63,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 }
             }
 
-            internal Node With(Node left, Node right, IIntervalIntrospector<T> introspector)
-            {
-                return new Node(introspector, this.Value, left, right);
-            }
-
             // Sample:
             //       1              2
             //      / \          /     \
@@ -74,25 +71,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             //   3   c        a   b   c   d
             //  / \
             // a   b
-            internal Node RightRotation(bool inPlace, IIntervalIntrospector<T> introspector)
+            internal Node RightRotation(IIntervalIntrospector<T> introspector)
             {
-                if (inPlace)
-                {
-                    var oldLeft = this.Left;
-                    this.SetLeftRight(this.Left.Right, this.Right, introspector);
-                    oldLeft.SetLeftRight(oldLeft.Left, this, introspector);
+                var oldLeft = this.Left;
+                this.SetLeftRight(this.Left.Right, this.Right, introspector);
+                oldLeft.SetLeftRight(oldLeft.Left, this, introspector);
 
-                    return oldLeft;
-                }
-                else
-                {
-                    var newLeft = this.Left.Left;
-                    var newRight = this.With(
-                                    this.Left.Right,
-                                    this.Right,
-                                    introspector);
-                    return this.Left.With(newLeft, newRight, introspector);
-                }
+                return oldLeft;
             }
 
             // Sample:
@@ -103,24 +88,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             //   b   3        a   b   c   d
             //      / \
             //     c   d
-            internal Node LeftRotation(bool inPlace, IIntervalIntrospector<T> introspector)
+            internal Node LeftRotation(IIntervalIntrospector<T> introspector)
             {
-                if (inPlace)
-                {
-                    var oldRight = this.Right;
-                    this.SetLeftRight(this.Left, this.Right.Left, introspector);
-                    oldRight.SetLeftRight(this, oldRight.Right, introspector);
-                    return oldRight;
-                }
-                else
-                {
-                    var newLeft = this.With(
-                       this.Left,
-                       this.Right.Left,
-                       introspector);
-                    var newRight = this.Right.Right;
-                    return this.Right.With(newLeft, newRight, introspector);
-                }
+                var oldRight = this.Right;
+                this.SetLeftRight(this.Left, this.Right.Left, introspector);
+                oldRight.SetLeftRight(this, oldRight.Right, introspector);
+                return oldRight;
             }
 
             // Sample:
@@ -131,27 +104,16 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             //   3   d        b   2        a   b   c   d
             //  / \              / \
             // b   c            c   d
-            internal Node InnerRightOuterLeftRotation(bool inPlace, IIntervalIntrospector<T> introspector)
+            internal Node InnerRightOuterLeftRotation(IIntervalIntrospector<T> introspector)
             {
-                if (inPlace)
-                {
-                    var newTop = this.Right.Left;
-                    var oldRight = this.Right;
+                var newTop = this.Right.Left;
+                var oldRight = this.Right;
 
-                    this.SetLeftRight(this.Left, this.Right.Left.Left, introspector);
-                    oldRight.SetLeftRight(oldRight.Left.Right, oldRight.Right, introspector);
-                    newTop.SetLeftRight(this, oldRight, introspector);
+                this.SetLeftRight(this.Left, this.Right.Left.Left, introspector);
+                oldRight.SetLeftRight(oldRight.Left.Right, oldRight.Right, introspector);
+                newTop.SetLeftRight(this, oldRight, introspector);
 
-                    return newTop;
-                }
-                else
-                {
-                    var temp = this.With(
-                                    this.Left,
-                                    this.Right.RightRotation(inPlace, introspector),
-                                    introspector);
-                    return temp.LeftRotation(inPlace, introspector);
-                }
+                return newTop;
             }
 
             // Sample:
@@ -162,27 +124,16 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             // a   3          2   c        a   b   c   d
             //    / \        / \
             //   b   c      a   b
-            internal Node InnerLeftOuterRightRotation(bool inPlace, IIntervalIntrospector<T> introspector)
+            internal Node InnerLeftOuterRightRotation(IIntervalIntrospector<T> introspector)
             {
-                if (inPlace)
-                {
-                    var newTop = this.Left.Right;
-                    var oldLeft = this.Left;
+                var newTop = this.Left.Right;
+                var oldLeft = this.Left;
 
-                    this.SetLeftRight(this.Left.Right.Right, this.Right, introspector);
-                    oldLeft.SetLeftRight(oldLeft.Left, oldLeft.Right.Left, introspector);
-                    newTop.SetLeftRight(oldLeft, this, introspector);
+                this.SetLeftRight(this.Left.Right.Right, this.Right, introspector);
+                oldLeft.SetLeftRight(oldLeft.Left, oldLeft.Right.Left, introspector);
+                newTop.SetLeftRight(oldLeft, this, introspector);
 
-                    return newTop;
-                }
-                else
-                {
-                    var temp = this.With(
-                                    this.Left.LeftRotation(inPlace, introspector),
-                                    this.Right,
-                                    introspector);
-                    return temp.RightRotation(inPlace, introspector);
-                }
+                return newTop;
             }
         }
     }

@@ -162,7 +162,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
 
             If contextualKind = SyntaxKind.XmlNameToken Then
-                contextualKind = TokenOfStringCached(text, SyntaxKind.XmlNameToken)
+                contextualKind = TokenOfStringCached(text)
+                If contextualKind = SyntaxKind.IdentifierToken Then
+                    contextualKind = SyntaxKind.XmlNameToken
+                End If
             End If
 
             Dim followingTrivia = ScanXmlWhitespace()
@@ -413,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "CData"
         Private Function XmlMakeBeginCDataToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Debug.Assert(NextAre("<![CDATA["))
- 
+
             AdvanceChar(9)
             Dim followingTrivia = scanTrailingTrivia()
             Return MakePunctuationToken(SyntaxKind.BeginCDataToken, "<![CDATA[", precedingTrivia, followingTrivia)

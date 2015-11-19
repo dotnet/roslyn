@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -293,8 +296,11 @@ public class @struct
             var value = CreateDkmClrValue(assembly.GetType("struct").Instantiate());
 
             var root = FormatResult("o", value);
-            Verify(GetChildren(root),
+            var children = GetChildren(root);
+            Verify(children,
                 EvalResult("Static members", null, "", "@struct", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            Verify(GetChildren(children.Single()),
+                EvalResult("@true", "0", "int", "@struct.@true", DkmEvaluationResultFlags.None, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Public));
         }
 
         [Fact]
@@ -320,6 +326,516 @@ namespace @namespace
             var root = FormatResult("instance", value);
             Verify(GetChildren(root),
                 EvalResult("@namespace.@interface<@namespace.@class>.@return", "0", "int", "((@namespace.@interface<@namespace.@class>)instance).@return"));
+        }
+
+        [Fact]
+        public void MangledNames_CastRequired()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit '<>Mangled' extends [mscorlib]System.Object
+{
+  .field public int32 x
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit 'NotMangled' extends '<>Mangled'
+{
+  .field public int32 x
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void '<>Mangled'::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var value = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate());
+
+            var root = FormatResult("o", value);
+            Verify(GetChildren(root),
+                EvalResult("x (<>Mangled)", "0", "int", null),
+                EvalResult("x", "0", "int", "o.x"));
+        }
+
+        [Fact]
+        public void MangledNames_StaticMembers()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit '<>Mangled' extends [mscorlib]System.Object
+{
+  .field public static int32 x
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit 'NotMangled' extends '<>Mangled'
+{
+  .field public static int32 y
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void '<>Mangled'::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var baseValue = CreateDkmClrValue(assembly.GetType("<>Mangled").Instantiate());
+
+            var root = FormatResult("o", baseValue);
+            var children = GetChildren(root);
+            Verify(children,
+                EvalResult("Static members", null, "", null, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "int", null));
+
+
+            var derivedValue = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate());
+
+            root = FormatResult("o", derivedValue);
+            children = GetChildren(root);
+            Verify(children,
+                EvalResult("Static members", null, "", "NotMangled", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "int", null, DkmEvaluationResultFlags.None, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Public),
+                EvalResult("y", "0", "int", "NotMangled.y", DkmEvaluationResultFlags.None, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Public));
+        }
+
+        [Fact]
+        public void MangledNames_ExplicitInterfaceImplementation()
+        {
+            var il = @"
+.class interface public abstract auto ansi 'I<>Mangled'
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance int32  get_P() cil managed
+  {
+  }
+
+  .property instance int32 P()
+  {
+    .get instance int32 'I<>Mangled'::get_P()
+  }
+} // end of class 'I<>Mangled'
+
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+       implements 'I<>Mangled'
+{
+  .method private hidebysig newslot specialname virtual final 
+          instance int32  'I<>Mangled.get_P'() cil managed
+  {
+    .override 'I<>Mangled'::get_P
+    ldc.i4.1
+    ret
+  }
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+
+  .property instance int32 'I<>Mangled.P'()
+  {
+    .get instance int32 C::'I<>Mangled.get_P'()
+  }
+
+  .property instance int32 P()
+  {
+    .get instance int32 C::'I<>Mangled.get_P'()
+  }
+} // end of class C
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var value = CreateDkmClrValue(assembly.GetType("C").Instantiate());
+
+            var root = FormatResult("instance", value);
+            Verify(GetChildren(root),
+                EvalResult("I<>Mangled.P", "1", "int", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("P", "1", "int", "instance.P", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private));
+        }
+
+        [Fact]
+        public void MangledNames_ArrayElement()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit '<>Mangled'
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit NotMangled
+       extends [mscorlib]System.Object
+{
+  .field public class [mscorlib]System.Collections.Generic.IEnumerable`1<class '<>Mangled'> 'array'
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    ldc.i4.1
+    newarr     '<>Mangled'
+    stfld      class [mscorlib]System.Collections.Generic.IEnumerable`1<class '<>Mangled'> NotMangled::'array'
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var value = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate());
+
+            var root = FormatResult("o", value);
+            var children = GetChildren(root);
+            Verify(children,
+                EvalResult("array", "{<>Mangled[1]}", "System.Collections.Generic.IEnumerable<<>Mangled> {<>Mangled[]}", "o.array", DkmEvaluationResultFlags.Expandable));
+            Verify(GetChildren(children.Single()),
+                EvalResult("[0]", "null", "<>Mangled", null));
+        }
+
+        [Fact]
+        public void MangledNames_Namespace()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit '<>Mangled.C' extends [mscorlib]System.Object
+{
+  .field public static int32 x
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var baseValue = CreateDkmClrValue(assembly.GetType("<>Mangled.C").Instantiate());
+
+            var root = FormatResult("o", baseValue);
+            var children = GetChildren(root);
+            Verify(children,
+                EvalResult("Static members", null, "", null, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "int", null));
+        }
+
+        [Fact]
+        public void MangledNames_PointerDereference()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit '<>Mangled'
+       extends [mscorlib]System.Object
+{
+  .field private static int32* p
+
+  .method assembly hidebysig specialname rtspecialname 
+          instance void  .ctor(int64 arg) cil managed
+  {
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0008:  ldarg.1
+    IL_0009:  conv.u
+    IL_000a:  stsfld     int32* '<>Mangled'::p
+    IL_0010:  ret
+  }
+} // end of class '<>Mangled'
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            unsafe
+            {
+                int i = 4;
+                long p = (long)&i;
+                var type = assembly.GetType("<>Mangled");
+                var rootExpr = "m";
+                var value = CreateDkmClrValue(type.Instantiate(p));
+                var evalResult = FormatResult(rootExpr, value);
+                Verify(evalResult,
+                    EvalResult(rootExpr, "{<>Mangled}", "<>Mangled", rootExpr, DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("Static members", null, "", null, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+                children = GetChildren(children.Single());
+                Verify(children,
+                    EvalResult("p", PointerToString(new IntPtr(p)), "int*", null, DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(children.Single());
+                Verify(children,
+                    EvalResult("*p", "4", "int", null));
+            }
+        }
+
+        [Fact]
+        public void MangledNames_DebuggerTypeProxy()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit Type
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerTypeProxyAttribute::.ctor(class [mscorlib]System.Type)
+           = {type('<>Mangled')}
+  .field public bool x
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    ldc.i4.0
+    stfld      bool Type::x
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  } // end of method Type::.ctor
+
+} // end of class Type
+
+.class public auto ansi beforefieldinit '<>Mangled'
+       extends [mscorlib]System.Object
+{
+  .field public bool y
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(class Type s) cil managed
+  {
+    ldarg.0
+    ldc.i4.1
+    stfld      bool '<>Mangled'::y
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  } // end of method '<>Mangled'::.ctor
+
+} // end of class '<>Mangled'
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var value = CreateDkmClrValue(assembly.GetType("Type").Instantiate());
+
+            var root = FormatResult("o", value);
+            var children = GetChildren(root);
+            Verify(children,
+                EvalResult("y", "true", "bool", null, DkmEvaluationResultFlags.Boolean | DkmEvaluationResultFlags.BooleanTrue),
+                EvalResult("Raw View", null, "", "o, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
+
+            var grandChildren = GetChildren(children.Last());
+            Verify(grandChildren,
+                EvalResult("x", "false", "bool", "o.x", DkmEvaluationResultFlags.Boolean));
+        }
+
+        [Fact]
+        public void GenericTypeWithoutBacktick()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C<T> extends [mscorlib]System.Object
+{
+  .field public static int32 'x'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var value = CreateDkmClrValue(assembly.GetType("C").MakeGenericType(typeof(int)).Instantiate());
+
+            var root = FormatResult("o", value);
+            var children = GetChildren(root);
+            Verify(children,
+                EvalResult("Static members", null, "", "C<int>", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "int", "C<int>.x"));
+        }
+
+        [Fact]
+        public void BackTick_NonGenericType()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit 'C`1' extends [mscorlib]System.Object
+{
+  .field public static int32 'x'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var value = CreateDkmClrValue(assembly.GetType("C`1").Instantiate());
+
+            var root = FormatResult("o", value);
+            var children = GetChildren(root);
+            Verify(children,
+                EvalResult("Static members", null, "", null, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "int", null));
+        }
+
+        [Fact]
+        public void BackTick_GenericType()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit 'C`1'<T> extends [mscorlib]System.Object
+{
+  .field public static int32 'x'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var value = CreateDkmClrValue(assembly.GetType("C`1").MakeGenericType(typeof(int)).Instantiate());
+
+            var root = FormatResult("o", value);
+            var children = GetChildren(root);
+            Verify(children,
+                EvalResult("Static members", null, "", "C<int>", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "int", "C<int>.x"));
+        }
+
+        [Fact]
+        public void BackTick_Member()
+        {
+            // IL doesn't support using generic methods as property accessors so
+            // there's no way to test a "legitimate" backtick in a member name.
+            var il = @"
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+  .field public static int32 'x`1'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var value = CreateDkmClrValue(assembly.GetType("C").Instantiate());
+
+            var root = FormatResult("o", value);
+            var children = GetChildren(root);
+            Verify(children,
+                EvalResult("Static members", null, "", "C", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            Verify(GetChildren(children.Single()),
+                EvalResult("x`1", "0", "int", fullName: null));
+        }
+
+        [Fact]
+        public void BackTick_FirstCharacter()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit '`1'<T> extends [mscorlib]System.Object
+{
+  .field public static int32 'x'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var value = CreateDkmClrValue(assembly.GetType("`1").MakeGenericType(typeof(int)).Instantiate());
+
+            var root = FormatResult("o", value);
+            var children = GetChildren(root);
+            Verify(children,
+                EvalResult("Static members", null, "", null, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "int", fullName: null));
         }
     }
 }

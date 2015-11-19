@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(VersionHelper.TryParseAssemblyVersion("3.2.*", allowWildcard: true, version: out version));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
-            //number of days since jan 1, 2000
+            //number of days since Jan 1, 2000
             Assert.Equal((int)(DateTime.Now - new DateTime(2000, 1, 1)).TotalDays, version.Build);
             //number of seconds since midnight divided by two
             int s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2;

@@ -33,17 +33,17 @@ namespace Microsoft.CodeAnalysis.Rename
         internal static IEnumerable<ISymbol> GetSymbolsTouchingPosition(int position, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
         {
             var bindableToken = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-            var symbols = semanticModel.GetSymbols(bindableToken, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken);
+            var symbols = semanticModel.GetSymbols(bindableToken, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken).ToArray();
 
             // if there are more than one symbol, then remove the alias symbols.
             // When using (not declaring) an alias, the alias symbol and the target symbol are returned
             // by GetSymbols
-            if (symbols.Count() > 1)
+            if (symbols.Length > 1)
             {
-                symbols = symbols.Where(s => s.Kind != SymbolKind.Alias);
+                symbols = symbols.Where(s => s.Kind != SymbolKind.Alias).ToArray();
             }
 
-            if (!symbols.Any())
+            if (symbols.Length == 0)
             {
                 var info = semanticModel.GetSymbolInfo(bindableToken, cancellationToken);
                 if (info.CandidateReason == CandidateReason.MemberGroup)
@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         internal static TokenRenameInfo GetTokenRenameInfo(
-            ISemanticFactsService semanticFacts, 
-            SemanticModel semanticModel, 
-            SyntaxToken token, 
+            ISemanticFactsService semanticFacts,
+            SemanticModel semanticModel,
+            SyntaxToken token,
             CancellationToken cancellationToken)
         {
             var symbol = semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);

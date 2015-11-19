@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis
                     result |= Cci.PInvokeAttributes.CharSetAuto;
                     break;
 
-                // Dev10: use default without reporting an error
+                    // Dev10: use default without reporting an error
             }
 
             if (setLastError)

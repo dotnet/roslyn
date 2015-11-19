@@ -129,7 +129,7 @@ TryAgain:
                     Dim memberAccess = DirectCast(input, MemberAccessExpressionSyntax)
 
                     If input.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                        ' See if this is an identifier qualifed with XmlElementAccessExpression or XmlDescendantAccessExpression
+                        ' See if this is an identifier qualified with XmlElementAccessExpression or XmlDescendantAccessExpression
                         Dim receiver As ExpressionSyntax = If(memberAccess.Expression, GetCorrespondingConditionalAccessReceiver(memberAccess))
 
                         If receiver IsNot Nothing Then

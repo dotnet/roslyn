@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // We have multiple spellings already.
-                var spellings = (HashSet<string>) value;
+                var spellings = (HashSet<string>)value;
 
                 // Note: the set will prevent duplicates.
                 spellings.Add(identifier);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
                     return string.Equals(identifier, spelling, StringComparison.Ordinal);
                 }
 
-                var set = (HashSet<string>) spellings;
+                var set = (HashSet<string>)spellings;
                 return set.Contains(identifier);
             }
 

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public CompletionItem CompletionItem { get; }
 
         public DescriptionModifyingCompletionItem(CompletionItem completionItem, ICompletionService completionService, Workspace workspace)
-            : base(default(ICompletionProvider),
+            : base(default(CompletionListProvider),
                    completionItem.DisplayText,
                    completionItem.FilterSpan,
                    descriptionFactory: null,
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             _workspace = workspace;
         }
 
-        public override ICompletionProvider CompletionProvider
+        public override CompletionListProvider CompletionProvider
         {
             get
             {

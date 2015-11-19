@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     public class AutomaticBraceCompletionTests : AbstractAutomaticBraceCompletionTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
             using (var session = CreateSession("$$"))
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_String()
         {
             var code = @"class C
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_String2()
         {
             var code = @"class C
@@ -51,7 +51,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ValidLocation_InterpolatedString1()
         {
             var code = @"class C
@@ -65,7 +65,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ValidLocation_InterpolatedString2()
         {
             var code = @"class C
@@ -79,7 +79,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ValidLocation_InterpolatedString3()
         {
             var code = @"class C
@@ -94,7 +94,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ValidLocation_InterpolatedString4()
         {
             var code = @"class C
@@ -109,7 +109,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ValidLocation_InterpolatedString5()
         {
             var code = @"class C
@@ -123,7 +123,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ValidLocation_InterpolatedString6()
         {
             var code = @"class C
@@ -137,7 +137,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_InterpolatedString1()
         {
             var code = @"class C
@@ -150,7 +150,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_InterpolatedString2()
         {
             var code = @"class C
@@ -163,7 +163,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_Comment()
         {
             var code = @"class C
@@ -176,7 +176,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_Comment2()
         {
             var code = @"class C
@@ -189,7 +189,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_Comment3()
         {
             var code = @"class C
@@ -202,7 +202,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_Comment4()
         {
             var code = @"class C
@@ -215,7 +215,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void MultiLine_Comment()
         {
             var code = @"class C
@@ -232,7 +232,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void MultiLine_DocComment()
         {
             var code = @"class C
@@ -250,7 +250,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void String1()
         {
             var code = @"class C
@@ -268,7 +268,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void String2()
         {
             var code = @"class C
@@ -286,7 +286,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_OpenBrace()
         {
             var code = @"class C $$";
@@ -299,7 +299,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_Delete()
         {
             var code = @"class C $$";
@@ -313,7 +313,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_Tab()
         {
             var code = @"class C $$";
@@ -327,7 +327,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_CloseBrace()
         {
             var code = @"class C $$";
@@ -341,7 +341,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method_OpenBrace_Multiple()
         {
             var code = @"class C
@@ -356,7 +356,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_OpenBrace_Enter()
         {
             var code = @"class C $$";
@@ -370,7 +370,7 @@ $$
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_ObjectInitializer_OpenBrace_Enter()
         {
             var code = @"using System.Collections.Generic;
@@ -405,7 +405,7 @@ class C
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Collection_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"using System.Collections.Generic;
@@ -443,7 +443,7 @@ class C
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Collection_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"using System.Collections.Generic;
@@ -478,7 +478,7 @@ class C
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Object_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -522,7 +522,7 @@ class Foo
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Object_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -563,7 +563,7 @@ class Foo
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ArrayImplicit_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -597,7 +597,7 @@ class Foo
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ArrayImplicit_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -628,7 +628,7 @@ class Foo
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ArrayExplicit1_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -662,7 +662,7 @@ class Foo
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ArrayExplicit1_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -693,7 +693,7 @@ class Foo
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ArrayExplicit2_Initializer_OpenBraceOnSameLine_Enter()
         {
             var code = @"class C
@@ -727,7 +727,7 @@ class Foo
         }
 
         [WorkItem(1070773)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ArrayExplicit2_Initializer_OpenBraceOnDifferentLine_Enter()
         {
             var code = @"class C
@@ -757,8 +757,9 @@ class Foo
             }
         }
 
+        [WorkItem(3447, "https://github.com/dotnet/roslyn/issues/3447")]
         [WorkItem(850540)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void BlockIndentationWithAutomaticBraceFormattingDisabled()
         {
             var code = @"class C
@@ -773,6 +774,14 @@ class Foo
     {}
 }";
 
+            var expectedAfterReturn = @"class C
+{
+    public void X()
+    {
+
+    }
+}";
+
             var optionSet = new Dictionary<OptionKey, object>
                             {
                                 { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false },
@@ -785,12 +794,12 @@ class Foo
                 CheckStart(session.Session);
                 Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
 
-                CheckReturnOnNonEmptyLine(session.Session, 3);
+                CheckReturn(session.Session, 4, expectedAfterReturn);
             }
         }
 
         [WorkItem(2224, "https://github.com/dotnet/roslyn/issues/2224")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NoSmartOrBlockIndentationWithAutomaticBraceFormattingDisabled()
         {
             var code = @"namespace NS1
@@ -819,7 +828,7 @@ $$
         }
 
         [WorkItem(2330, "https://github.com/dotnet/roslyn/issues/2330")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void BlockIndentationWithAutomaticBraceFormatting()
         {
             var code = @"namespace NS1
@@ -858,7 +867,7 @@ $$
         }
 
         [WorkItem(2330, "https://github.com/dotnet/roslyn/issues/2330")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void BlockIndentationWithAutomaticBraceFormattingSecondSet()
         {
             var code = @"namespace NS1

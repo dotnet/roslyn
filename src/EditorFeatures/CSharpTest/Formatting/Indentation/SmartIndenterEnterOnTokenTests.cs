@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
     public class SmartIndenterEnterOnTokenTests : FormatterTestsBase
     {
         [WorkItem(537808)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void MethodBody1()
         {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Preprocessor1()
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Preprocessor2()
         {
@@ -62,6 +62,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void Preprocessor3()
+        {
+            var code = @"#region stuff
+#endregion
+";
+            AssertIndentNotUsingSmartTokenFormatterButUsingIndenter(
+                code,
+                indentationLine: 2,
+                expectedIndentation: 0);
         }
 
         [Fact]
@@ -81,7 +94,7 @@ class Class
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void UsingDirective()
         {
@@ -95,7 +108,7 @@ using System.Linq;
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void AfterTopOfFileComment()
         {
@@ -109,7 +122,7 @@ class
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void DottedName()
         {
@@ -122,7 +135,7 @@ Collection;
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Namespace()
         {
@@ -138,7 +151,7 @@ namespace NS
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void NamespaceDottedName()
         {
@@ -153,7 +166,7 @@ NS2
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void NamespaceBody()
         {
@@ -170,7 +183,7 @@ class
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void NamespaceCloseBrace()
         {
@@ -187,7 +200,7 @@ namespace NS
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Class()
         {
@@ -205,7 +218,7 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void ClassBody()
         {
@@ -224,7 +237,7 @@ int
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void ClassCloseBrace()
         {
@@ -243,7 +256,7 @@ namespace NS
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Method()
         {
@@ -264,7 +277,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void MethodBody()
         {
@@ -286,7 +299,7 @@ int
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void MethodCloseBrace()
         {
@@ -308,7 +321,7 @@ namespace NS
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Statement()
         {
@@ -331,7 +344,7 @@ int
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void MethodCall()
         {
@@ -351,7 +364,7 @@ a: 1,
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Switch()
         {
@@ -374,7 +387,7 @@ namespace NS
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void SwitchBody()
         {
@@ -398,7 +411,7 @@ case
                 expectedIndentation: 16);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void SwitchCase()
         {
@@ -423,7 +436,7 @@ int
                 expectedIndentation: 20);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void SwitchCaseBlock()
         {
@@ -448,7 +461,7 @@ namespace NS
                 expectedIndentation: 20);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Block()
         {
@@ -474,7 +487,7 @@ int
                 expectedIndentation: 24);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void MultilineStatement1()
         {
@@ -496,7 +509,7 @@ namespace NS
                 expectedIndentation: 16);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void MultilineStatement2()
         {
@@ -520,7 +533,7 @@ namespace NS
         }
 
         // Bug number 902477
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Comments2()
         {
@@ -540,7 +553,7 @@ int
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void AfterCompletedBlock()
         {
@@ -561,7 +574,7 @@ int
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void AfterTopLevelAttribute()
         {
@@ -580,7 +593,7 @@ int
         }
 
         [WorkItem(537802)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void EmbededStatement()
         {
@@ -603,7 +616,7 @@ int
         }
 
         [WorkItem(537808)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void MethodBraces1()
         {
@@ -621,7 +634,7 @@ int
         }
 
         [WorkItem(537808)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void MethodBraces2()
         {
@@ -640,7 +653,7 @@ int
         }
 
         [WorkItem(537795)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Property1()
         {
@@ -661,7 +674,7 @@ int
         }
 
         [WorkItem(537563)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Class1()
         {
@@ -676,7 +689,7 @@ int
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1070773)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void ArrayInitializer1()
@@ -693,7 +706,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void ArrayInitializer2()
         {
@@ -712,7 +725,7 @@ int
                 expectedIndentation: 4);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1070773)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void ArrayInitializer3()
@@ -733,7 +746,7 @@ int
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void QueryExpression2()
         {
@@ -753,7 +766,7 @@ int
                 expectedIndentation: 16);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void QueryExpression3()
         {
@@ -773,7 +786,7 @@ int
                 expectedIndentation: 16);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void QueryExpression4()
         {
@@ -793,7 +806,7 @@ int
                 expectedIndentation: 16);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(853748)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void ArrayInitializer()
@@ -814,7 +827,7 @@ int
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(939305)]
         [WorkItem(1070773)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
@@ -836,7 +849,7 @@ int
                 expectedIndentation: 14);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1070773)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void CollectionExpression()
@@ -858,7 +871,7 @@ int
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1070773)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void ObjectInitializer()
@@ -885,7 +898,7 @@ class What
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Preprocessor()
         {
@@ -898,7 +911,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1070774)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInitializerWithTypeBody_Implicit()
@@ -915,7 +928,7 @@ class What
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1070774)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInitializerWithTypeBody_ImplicitNew()
@@ -932,7 +945,7 @@ class What
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1070774)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInitializerWithTypeBody_Explicit()
@@ -949,7 +962,7 @@ class What
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1070774)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInitializerWithTypeBody_Collection()
@@ -967,7 +980,7 @@ class X {
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1070774)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInitializerWithTypeBody_ObjectInitializers()
@@ -992,7 +1005,7 @@ class What
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationString_1()
@@ -1013,7 +1026,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationString_2()
@@ -1034,7 +1047,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationString_3()
@@ -1055,7 +1068,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationString_4()
@@ -1076,7 +1089,7 @@ class What
                 expectedIndentation: 0);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void OutsideInterpolationString()
@@ -1097,7 +1110,7 @@ class What
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationSyntax_1()
@@ -1118,7 +1131,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationSyntax_2()
@@ -1140,7 +1153,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationSyntax_3()
@@ -1161,7 +1174,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationSyntax_4()
@@ -1182,7 +1195,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationSyntax_5()
@@ -1203,7 +1216,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationSyntax_6()
@@ -1224,7 +1237,7 @@ Program.number}"";
                 expectedIndentation: 12);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void InsideInterpolationSyntax_7()
@@ -1245,7 +1258,7 @@ Program.number}"";
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(872)]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void IndentLambdaBodyOneIndentationToFirstTokenOfTheStatement()
@@ -1266,7 +1279,7 @@ Program.number}"";
                 expectedIndentation: 8);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(1339, "https://github.com/dotnet/roslyn/issues/1339")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void IndentAutoPropertyInitializerAsPartOfTheDeclaration()

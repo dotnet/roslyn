@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ' For switch table based approach we have an option of completely rewriting the switch header
     ' and switch sections into simpler constructs, i.e. we can rewrite the select header
     ' using bound conditional goto statements and the rewrite the case blocks into
-    ' bound labeleled statements.
+    ' bound labeled statements.
     ' However, all the logic for emitting the switch jump tables is language agnostic
     ' and includes IL optimizations. Hence we delay the switch jump table generation
     ' till the emit phase. This way we also get additional benefit of sharing this code

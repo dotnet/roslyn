@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>6FF42825-5464-4151-AC55-ED828168C192</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Roslyn.Test.Utilities</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\ClrOnlyFactAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\EqualityTesting.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\TestExceptionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\AssertEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\AssertXml.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\ConditionalFactAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\WorkItemAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\DiffUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\EqualityUnit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\EqualityUnit`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\EqualityUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Assert\EqualityUtil`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationDifference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationTestDataExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compilation\SpeculativeSemanticModelTestsBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DescriptorFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticDescription.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\OptionsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\TestDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\TrackingDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\ConsoleOutput.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\DirectoryHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\EncodingUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\EnsureEnglishUICulture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\EventWaiter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\ImmutableArrayTestExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\MonoHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\ObjectReference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\PinnedMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\RegexExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata\CustomAttributeRow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata\EncValidation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata\ILBuilderVisualizer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata\MetadataReaderUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata\MetadataValidation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata\TypeAttributesMissing.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata\PEModuleTestHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestDocumentationCommentProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestMissingMetadataReferenceResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestSourceReferenceResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\VirtualizedRelativePathResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Pdb\MockSymWriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Pdb\PdbTestUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Pdb\PdbValidation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TempFiles\DisposableDirectory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TempFiles\DisposableFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TempFiles\TempDirectory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TempFiles\TempFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TempFiles\TempRoot.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MarkedSource\MarkupTestFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MarkedSource\SourceWithMarkedNodes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Syntax\ISyntaxNodeKindProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Syntax\NodeHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Syntax\NodeInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Syntax\NodeInfo.FieldInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Syntax\TokenUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Syntax\XmlHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestMessageProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestMetadataReference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestMetadataReferenceResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestReferences.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestStream.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestBase.cs" />
+  </ItemGroup>
+</Project>

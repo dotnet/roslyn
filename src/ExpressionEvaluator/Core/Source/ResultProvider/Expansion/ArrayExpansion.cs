@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static string GetFullName(EvalResultDataItem parent, string name, Formatter formatter)
         {
             var parentFullName = parent.ChildFullNamePrefix;
+            if (parentFullName == null)
+            {
+                return null;
+            }
+
             if (parent.ChildShouldParenthesize)
             {
                 parentFullName = $"({parentFullName})";
@@ -137,10 +142,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var parentRuntimeType = parent.Value.Type.GetLmrType();
             if (!parent.DeclaredTypeAndInfo.Type.Equals(parentRuntimeType))
             {
-                parentFullName = formatter.GetCastExpression(
-                    parentFullName,
-                    formatter.GetTypeName(new TypeAndCustomInfo(parentRuntimeType), escapeKeywordIdentifiers: true),
-                    parenthesizeEntireExpression: true);
+                bool sawInvalidIdentifier;
+                var parentTypeName = formatter.GetTypeName(new TypeAndCustomInfo(parentRuntimeType), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+                if (sawInvalidIdentifier)
+                {
+                    return null; // Wouldn't be parseable.
+                }
+
+                parentFullName = formatter.GetCastExpression(parentFullName, parentTypeName, parenthesizeEntireExpression: true);
             }
             return parentFullName + name;
         }

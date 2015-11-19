@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else if (value is byte)
             {
-                return GenerateLiteralExpression(type, (byte)value, LiteralSpecialValues.ByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (int)v));
+                return GenerateLiteralExpression(type, (byte)value, LiteralSpecialValues.ByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
             }
             else if (value is ushort)
             {

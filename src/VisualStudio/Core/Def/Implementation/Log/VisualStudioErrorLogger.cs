@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Watson;
 using Microsoft.VisualStudio.Shell;
+using static Microsoft.CodeAnalysis.RoslynAssemblyHelper;
+
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
 {
@@ -51,36 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
             return watsonReportResult && activityLogResult;
         }
 
-        private bool ShouldReportCrashDumps(object source)
-        {
-            var refactoringAttributes = source.GetType()
-                .GetCustomAttributes(typeof(ExportCodeRefactoringProviderAttribute), true)
-                .Cast<ExportCodeRefactoringProviderAttribute>();
-            if (PredefinedCodeRefactoringProviderNames.Any(name => refactoringAttributes.Select(x => x.Name).Any(n => n == name)))
-            {
-                return true;
-            }
-            var codeFixAttributes = source.GetType()
-                .GetCustomAttributes(typeof(ExportCodeFixProviderAttribute), true)
-                .Cast<ExportCodeFixProviderAttribute>();
-            if (PredefinedCodeFixProviderNames.Any(name => refactoringAttributes.Select(x => x.Name).Any(n => n == name)))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static IEnumerable<string> PredefinedCodeRefactoringProviderNames => LazyPredefinedCodeRefactoringProviderNames.Value;
-
-        private static Lazy<IEnumerable<string>> LazyPredefinedCodeRefactoringProviderNames =
-            new Lazy<IEnumerable<string>>(() => typeof(PredefinedCodeRefactoringProviderNames).GetFields().Select(f => f.GetRawConstantValue().ToString()));
-
-
-        private static IEnumerable<string> PredefinedCodeFixProviderNames => LazyPredefinedCodeFixProviderNames.Value;
-
-        private static Lazy<IEnumerable<string>> LazyPredefinedCodeFixProviderNames =
-            new Lazy<IEnumerable<string>>(() => typeof(PredefinedCodeFixProviderNames).GetFields().Select(f => f.GetRawConstantValue().ToString()));
+        private bool ShouldReportCrashDumps(object source) => HasRoslynPublicKey(source);
 
         private static string ToLogFormat(Exception exception)
         {

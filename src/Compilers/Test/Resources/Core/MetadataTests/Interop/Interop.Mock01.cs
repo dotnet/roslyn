@@ -54,7 +54,7 @@ namespace MockInterop01
     public struct ComplexStruct
     {
         [StructLayout(LayoutKind.Sequential)]
-        public struct InnterStruct
+        public struct InnerStruct
         {
             public Int16 x;
             public Int64 y;

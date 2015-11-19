@@ -50,19 +50,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var expansion = wasExceptionThrown ?
                 null :
                 resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None);
-            var fullName = string.Format("*{0}", parent.ChildFullNamePrefix);
+            var parentFullName = parent.ChildFullNamePrefix;
+            var fullName = parentFullName == null ? null : $"*{parentFullName}";
             var editableValue = resultProvider.Formatter.GetEditableValue(value, inspectionContext);
 
             // NB: Full name is based on the real (i.e. not DebuggerDisplay) name.  This is a change from dev12, 
             // which used the DebuggerDisplay name, causing surprising results in "Add Watch" scenarios.
             return new EvalResultDataItem(
                 ExpansionKind.PointerDereference,
-                name: fullName,
+                name: fullName ?? $"*{parent.Name}",
                 typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
                 declaredTypeAndInfo: elementTypeAndInfo,
                 parent: null,
                 value: value,
-                displayValue: wasExceptionThrown ? string.Format(Resources.InvalidPointerDereference, fullName) : null,
+                displayValue: wasExceptionThrown ? string.Format(Resources.InvalidPointerDereference, fullName ?? parent.Name) : null,
                 expansion: expansion,
                 childShouldParenthesize: true,
                 fullName: fullName,

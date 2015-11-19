@@ -4,6 +4,8 @@
   <Extern href="stdidcmd.h"/>
   <Extern href="vsshlids.h"/>
 
+  <Include href="KnownImageIds.vsct"/>
+
   <Commands package="guidVisualBasicReplPackageId">
     <Groups>
       <Group guid="guidVisualBasicInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT" priority="0x0400">
@@ -14,12 +16,15 @@
     <Buttons>
       <Button guid="guidVisualBasicInteractiveCommandSet" id="cmdidVisualBasicInteractiveToolWindow" priority="0x8001" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
-        <Icon guid="guidVisualBasicInteractiveImages" id="bmpVisualBasicInteractiveWindow" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): RoslynImageCatalogGuid -> ImageCatalogGuid -->
+        <Icon guid="RoslynImageCatalogGuid" id="VBInteractiveWindow" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Visual Basic Interactive</ButtonText>
         </Strings>
       </Button>
 
+      <!-- https://github.com/dotnet/roslyn/issues/4688
       <Button guid="guidVisualBasicInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
         <Parent guid="guidVisualBasicInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -30,14 +35,15 @@
           <LocCanonicalName>ResetVisualBasicInteractiveFromProject</LocCanonicalName>
         </Strings>
       </Button>
+      -->
     </Buttons>
-
-    <Bitmaps>
-      <Bitmap guid="guidVisualBasicInteractiveImages" href="Resources\VisualBasicInteractive.png" usedList="bmpVisualBasicInteractiveWindow"/>
-    </Bitmaps>
   </Commands>
 
-  <!-- We need to pick a different keyboard shortcut for VB Interactive
+  <VisibilityConstraints>
+    <VisibilityItem context="guidVBProjectContext" guid="guidVisualBasicInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
+  </VisibilityConstraints>
+  
+  <!-- https://github.com/dotnet/roslyn/issues/3941
   <KeyBindings>
     <KeyBinding guid="guidVisualBasicInteractiveCommandSet" id="cmdidVisualBasicInteractiveToolWindow" editor="guidVSStd97" mod1="Control" key1="W" mod2="Control" key2="I" />
     <KeyBinding guid="guidVisualBasicInteractiveCommandSet" id="cmdidVisualBasicInteractiveToolWindow" editor="guidVSStd97" mod1="Control" key1="W" key2="I" />
@@ -54,8 +60,11 @@
       <IDSymbol name="cmdidResetInteractiveFromProject" value="0x0002"/>
     </GuidSymbol>
 
-    <GuidSymbol name="guidVisualBasicInteractiveImages" value="{4B45CA50-2FB8-4BAC-AAB5-3B5BBAF0C093}" >
-      <IDSymbol name="bmpVisualBasicInteractiveWindow" value="0x01" />
+    <GuidSymbol name="guidVBProjectContext" value="{164B10B9-B200-11D0-8C61-00A0C91E29D5}" />
+  
+    <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): delete this -->
+    <GuidSymbol name="RoslynImageCatalogGuid" value="{ae27a6b0-e345-4288-96df-5eaf394ee369}">
+      <IDSymbol name="VBInteractiveWindow" value="3686" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

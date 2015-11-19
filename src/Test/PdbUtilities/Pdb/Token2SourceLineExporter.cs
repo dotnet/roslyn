@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -306,7 +304,7 @@ namespace Roslyn.Test.PdbUtilities
                 ReadUInt8(out j);
                 ReadUInt8(out k);
 
-                guid = new Guid(a, b, c, d, e, f, g, h, i, j, k);
+                guid = unchecked(new Guid((int)a, (short)b, (short)c, d, e, f, g, h, i, j, k));
             }
 
             internal string ReadString()
@@ -381,7 +379,7 @@ namespace Roslyn.Test.PdbUtilities
             // Deleted entries have their key set to buckets
 
             // The hash table data.
-            // This cannot be serialised
+            // This cannot be serialized
             private struct bucket
             {
                 internal int key;
@@ -1145,63 +1143,54 @@ namespace Roslyn.Test.PdbUtilities
         {
         }
 
-        public static int Main2(string[] args)
+        private static XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
         {
-            if (args.Length != 1)
-            {
-                Console.WriteLine("A single command line argument is expected: PDB-file name");
-                return 1;
-            }
-
-            using (Stream stream = File.OpenRead(args[0]))
-            {
-                Console.WriteLine(TokenToSourceMap2Xml(stream));
-            }
-            return 0;
-        }
+            Encoding = Encoding.UTF8,
+            Indent = true,
+            IndentChars = "  ",
+            NewLineChars = "\r\n",
+        };
 
         public static string TokenToSourceMap2Xml(Stream read, bool maskToken = false)
         {
-            // Get a Text Writer to spew the PDB to.
-            XmlDocument doc = new XmlDocument();
+            var builder = new StringBuilder();
 
-            XmlWriter writer = doc.CreateNavigator().AppendChild();
-            writer.WriteStartElement("token-map");
-
-            List<PdbTokenLine> list = new List<PdbTokenLine>(LoadTokenToSourceMapping(read).Values);
-            list.Sort(
-                (x, y) =>
-                {
-                    int result = x.line.CompareTo(y.line);
-                    if (result != 0) return result;
-                    result = x.column.CompareTo(y.column);
-                    if (result != 0) return result;
-                    result = x.endLine.CompareTo(y.endLine);
-                    if (result != 0) return result;
-                    result = x.endColumn.CompareTo(y.endColumn);
-                    if (result != 0) return result;
-                    return x.token.CompareTo(y.token);
-                });
-
-            foreach (var rec in list)
+            using (var writer = XmlWriter.Create(builder, s_xmlWriterSettings))
             {
-                writer.WriteStartElement("token-location");
+                writer.WriteStartElement("token-map");
 
-                writer.WriteAttributeString("token", Token2String(rec.token, maskToken));
-                writer.WriteAttributeString("file", rec.sourceFile.name);
-                writer.WriteAttributeString("start-line", rec.line.ToString());
-                writer.WriteAttributeString("start-column", rec.column.ToString());
-                writer.WriteAttributeString("end-line", rec.endLine.ToString());
-                writer.WriteAttributeString("end-column", rec.endColumn.ToString());
+                List<PdbTokenLine> list = new List<PdbTokenLine>(LoadTokenToSourceMapping(read).Values);
+                list.Sort(
+                    (x, y) =>
+                    {
+                        int result = x.line.CompareTo(y.line);
+                        if (result != 0) return result;
+                        result = x.column.CompareTo(y.column);
+                        if (result != 0) return result;
+                        result = x.endLine.CompareTo(y.endLine);
+                        if (result != 0) return result;
+                        result = x.endColumn.CompareTo(y.endColumn);
+                        if (result != 0) return result;
+                        return x.token.CompareTo(y.token);
+                    });
 
-                writer.WriteEndElement(); // "token-location";
+                foreach (var rec in list)
+                {
+                    writer.WriteStartElement("token-location");
+
+                    writer.WriteAttributeString("token", Token2String(rec.token, maskToken));
+                    writer.WriteAttributeString("file", rec.sourceFile.name);
+                    writer.WriteAttributeString("start-line", rec.line.ToString());
+                    writer.WriteAttributeString("start-column", rec.column.ToString());
+                    writer.WriteAttributeString("end-line", rec.endLine.ToString());
+                    writer.WriteAttributeString("end-column", rec.endColumn.ToString());
+
+                    writer.WriteEndElement(); // "token-location";
+                }
+
+                writer.WriteEndElement(); // "token-map";
             }
 
-            writer.WriteEndElement(); // "token-map";
-            writer.Close();
-
-            StringBuilder builder = new StringBuilder();
-            doc.Save(new StringWriter(builder, System.Globalization.CultureInfo.InvariantCulture));
             return builder.ToString();
         }
 
@@ -1235,8 +1224,6 @@ namespace Roslyn.Test.PdbUtilities
 
             dir.streams[3].Read(reader, bits);
             LoadDbiStream(bits, out modules, out header, true);
-
-            ArrayList funcList = new ArrayList();
 
             if (modules != null)
             {
@@ -1320,7 +1307,7 @@ namespace Roslyn.Test.PdbUtilities
         }
 
         private static readonly Guid s_msilMetaData =
-            new Guid(0xc6ea3fc9, 0x59b3, 0x49d6, 0xbc, 0x25, 0x09, 0x02, 0xbb, 0xab, 0xb4, 0x60);
+            new Guid(unchecked((int)0xc6ea3fc9), 0x59b3, 0x49d6, 0xbc, 0x25, 0x09, 0x02, 0xbb, 0xab, 0xb4, 0x60);
 
         private static void LoadTokenToSourceInfo(
             BitAccess bits, DbiModuleInfo module, IntHashTable names, MsfDirectory dir,
@@ -1409,6 +1396,8 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
+        private static readonly Guid s_symDocumentTypeGuid = new Guid("{5a869d0b-6611-11d3-bd2a-0000f80849bd}");
+
         private static IntHashTable ReadSourceFileInfo(
             BitAccess bits, uint limit, IntHashTable names, MsfDirectory dir,
             Dictionary<string, int> nameIndex, PdbReader reader)
@@ -1436,8 +1425,7 @@ namespace Roslyn.Test.PdbUtilities
                             bits.ReadUInt32(out chk.name);
                             bits.ReadUInt8(out chk.len);
                             bits.ReadUInt8(out chk.type);
-
-                            PdbSource src = new PdbSource(/*(uint)ni,*/ (string)names[(int)chk.name], SymDocumentType.Text, Guid.Empty, Guid.Empty);
+                            PdbSource src = new PdbSource(/*(uint)ni,*/ (string)names[(int)chk.name], s_symDocumentTypeGuid, Guid.Empty, Guid.Empty);
                             checks.Add(ni, src);
                             bits.Position += chk.len;
                             bits.Align(4);
@@ -1507,7 +1495,7 @@ namespace Roslyn.Test.PdbUtilities
             header = new DbiDbgHdr();
 
             // Read gpmod section.
-            ArrayList modList = new ArrayList();
+            var modList = new List<DbiModuleInfo>();
             int end = bits.Position + dh.gpmodiSize;
             while (bits.Position < end)
             {
@@ -1521,7 +1509,7 @@ namespace Roslyn.Test.PdbUtilities
 
             if (modList.Count > 0)
             {
-                modules = (DbiModuleInfo[])modList.ToArray(typeof(DbiModuleInfo));
+                modules = modList.ToArray();
             }
             else
             {

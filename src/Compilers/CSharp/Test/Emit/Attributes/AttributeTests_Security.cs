@@ -52,7 +52,7 @@ public struct EventDescriptor
 
                     // Verify [System.Security.Permissions.HostProtection(MayLeakOnAbort = true)]
                     var securityAttribute = typeSecurityAttributes.First();
-                    Assert.Equal(Cci.SecurityAction.LinkDemand, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.LinkDemand, securityAttribute.Action);
                     var typeAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(hostProtectionAttr, typeAttribute.AttributeClass);
                     Assert.Equal(0, typeAttribute.CommonConstructorArguments.Length);
@@ -60,7 +60,7 @@ public struct EventDescriptor
                 }
             };
 
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
+            CompileAndVerify(source, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
         [Fact, WorkItem(544956, "DevDiv")]
@@ -73,7 +73,7 @@ class Foo
     [System.Security.SuppressUnmanagedCodeSecurityAttribute]
     public static void Main() {}
 }";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source);
         }
 
         [WorkItem(544929, "DevDiv")]
@@ -272,7 +272,7 @@ class MyCodeAccessSecurityAttribute : CodeAccessSecurityAttribute
     public static void Main() {}
 }
 ";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source);
         }
 
         [WorkItem(544918, "DevDiv")]
@@ -417,7 +417,7 @@ class Test
     public static void Main() {}
 }
 ";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source);
         }
 
         [WorkItem(544918, "DevDiv")]
@@ -1316,21 +1316,21 @@ namespace N
 
                     // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
                     securityAttribute = typeSecurityAttributes.First();
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action);
                     var typeAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(principalPermAttr, typeAttribute.AttributeClass);
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length);
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)Cci.SecurityAction.Demand);
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Demand);
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length);
                     typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User1");
 
                     // Verify [PrincipalPermission(SecurityAction.Assert, Role=@""User2"")]
                     securityAttribute = typeSecurityAttributes.Last();
-                    Assert.Equal(Cci.SecurityAction.Assert, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.Assert, securityAttribute.Action);
                     typeAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(principalPermAttr, typeAttribute.AttributeClass);
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length);
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)Cci.SecurityAction.Assert);
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Assert);
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length);
                     typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User2");
 
@@ -1341,27 +1341,27 @@ namespace N
 
                     // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
                     securityAttribute = methodSecurityAttributes.First();
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action);
                     var methodAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(principalPermAttr, methodAttribute.AttributeClass);
                     Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length);
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)Cci.SecurityAction.Demand);
+                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Demand);
                     Assert.Equal(1, methodAttribute.CommonNamedArguments.Length);
                     methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User1");
 
                     // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User2"")]
                     securityAttribute = methodSecurityAttributes.Last();
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action);
                     methodAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(principalPermAttr, methodAttribute.AttributeClass);
                     Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length);
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)Cci.SecurityAction.Demand);
+                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Demand);
                     Assert.Equal(1, methodAttribute.CommonNamedArguments.Length);
                     methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User2");
                 }
             };
 
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, emitters: TestEmitters.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
         [WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")]

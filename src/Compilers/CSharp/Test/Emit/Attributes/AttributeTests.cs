@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -89,7 +90,7 @@ public unsafe partial class A : C, I
             var source = CreateCompilationWithMscorlibAndSystemCore(code);
 
             // the following should not crash
-            source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], null, true);
+            source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
         }
 
 
@@ -127,7 +128,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// These are not pseduo attributes, but encoded as bits in metadata
+// These are not pseudo attributes, but encoded as bits in metadata
 [assembly: AssemblyAlgorithmId(System.Configuration.Assemblies.AssemblyHashAlgorithm.MD5)]
 [assembly: AssemblyCultureAttribute("""")]
 [assembly: AssemblyDelaySign(true)]
@@ -288,7 +289,7 @@ class C
     public static void Main() {}
 }
 ");
-            var verifier = CompileAndVerify(compilation, emitters: TestEmitters.RefEmitUnsupported_640494);
+            var verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("XAttribute..ctor(int)", @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1423,7 +1424,6 @@ namespace AttributeTest
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             var compVerifier = CompileAndVerify(
                 source,
-                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: attributeValidator,
                 symbolValidator: attributeValidator,
                 expectedOutput: "True\r\n",
@@ -1556,12 +1556,12 @@ namespace AttributeTest
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(compilation, emitters: TestEmitters.RefEmitUnsupported_640494, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+            CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
         [WorkItem(541058, "DevDiv")]
         [Fact]
-        public void TestAttributesWithtypeof()
+        public void TestAttributesWithTypeof()
         {
             string source = @"
 using System;
@@ -1827,7 +1827,7 @@ namespace AttributeTest
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(compilation, emitters: TestEmitters.RefEmitUnsupported_640494, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+            CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
         [WorkItem(541709, "DevDiv")]
@@ -1977,7 +1977,7 @@ namespace AttributeTest
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitUnsupported_640494, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+            CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
         [Fact]
@@ -2348,7 +2348,7 @@ public class A : Attribute
     }
 }
 ";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitUnsupported_646007, expectedOutput: "int");
+            CompileAndVerify(source, expectedOutput: "int");
         }
 
         [WorkItem(541876, "DevDiv")]
@@ -2531,8 +2531,8 @@ class Program
             // by the specification but they are by the native compiler; we maintain compatibility
             // with this bug.
             // 
-            // Additionaly, it also treats "new X()", where X is an enum type, as a
-            // constant expression with default value 0, we maintaing compatibility with it.
+            // Additionally, it also treats "new X()", where X is an enum type, as a
+            // constant expression with default value 0, we maintaining compatibility with it.
 
             var source =
 @"using System;
@@ -2727,7 +2727,7 @@ partial class Program
 
         [WorkItem(542533, "DevDiv")]
         [Fact]
-        public void AttributesInMultipleParialDeclarations_Type()
+        public void AttributesInMultiplePartialDeclarations_Type()
         {
             var source1 = @"
 using System;
@@ -2768,7 +2768,7 @@ class C
 
         [WorkItem(542533, "DevDiv")]
         [Fact]
-        public void AttributesInMultipleParialDeclarations_TypeParam()
+        public void AttributesInMultiplePartialDeclarations_TypeParam()
         {
             var source1 = @"
 using System;
@@ -3110,41 +3110,41 @@ public class C6 {}
 
                 var attrs = classC1.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                var typeArg = new ArrayTypeSymbol(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
+                var typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC2.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC3.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC4.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create<TypeSymbol>(classW));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, classYOfW, default(ImmutableArray<CustomModifier>), rank: 2);
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
+                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classYOfW, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC5.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create<TypeSymbol>(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)));
+                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))));
                 NamedTypeSymbol substNestedF = classYOfInt.GetTypeMember("F");
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, substNestedF, default(ImmutableArray<CustomModifier>), rank: 3);
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, substNestedF, default(ImmutableArray<CustomModifier>), rank: 3);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC6.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create<TypeSymbol>(classW));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, substNestedZ, default(ImmutableArray<CustomModifier>));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, substNestedZ, default(ImmutableArray<CustomModifier>));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
             };
 
@@ -3172,7 +3172,7 @@ class C
         Console.WriteLine(message == UnicodeReplacementCharacter + UnicodeReplacementCharacter);
     }
 }";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: "True");
+            CompileAndVerify(source, expectedOutput: "True");
         }
 
         [WorkItem(546621, "DevDiv")]
@@ -3294,7 +3294,7 @@ public class C
                                         UnicodeReplacementCharacter + UnicodeReplacementCharacter + UnicodeReplacementCharacter + UnicodeReplacementCharacter);
             };
 
-            CompileAndVerify(source, emitters: TestEmitters.CCI, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -3509,21 +3509,22 @@ class A
             // It does not go on to produce the other errors.
 
             compilation.VerifyDiagnostics(
-                // (33,2): error CS0246: The type or namespace name 'XDoesNotExist' could not be found (are you missing a using directive or an assembly reference?)
-                // [XDoesNotExist()]
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "XDoesNotExist").WithArguments("XDoesNotExist").WithLocation(33, 2),
-                // (34,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
-                // [X(1m)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(34, 2),
-                // (35,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
-                // [X(1)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(35, 2),
-                // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(decimal)' and 'XAttribute.XAttribute(ref int)'
-                // [X(A.dyn)]
-                Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(decimal)", "XAttribute.XAttribute(ref int)").WithLocation(37, 2),
-                // (38,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
-                // [X(m.NotAConstant() + 2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(38, 2));
+    // (33,2): error CS0246: The type or namespace name 'XDoesNotExist' could not be found (are you missing a using directive or an assembly reference?)
+    // [XDoesNotExist()]
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "XDoesNotExist").WithArguments("XDoesNotExist").WithLocation(33, 2),
+    // (34,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
+    // [X(1m)]
+    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(34, 2),
+    // (35,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
+    // [X(1)]
+    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(35, 2),
+    // (37,2): error CS0121: The call is ambiguous between the following methods or properties: 'XAttribute.XAttribute(ref int)' and 'XAttribute.XAttribute(e1)'
+    // [X(A.dyn)]
+    Diagnostic(ErrorCode.ERR_AmbigCall, "X(A.dyn)").WithArguments("XAttribute.XAttribute(ref int)", "XAttribute.XAttribute(e1)").WithLocation(37, 2),
+    // (38,2): error CS0181: Attribute constructor parameter 'd' has type 'decimal', which is not a valid attribute parameter type
+    // [X(m.NotAConstant() + 2)]
+    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "X").WithArguments("d", "decimal").WithLocation(38, 2)
+                );
         }
 
         [Fact]
@@ -5717,7 +5718,7 @@ public class C<T>
     public enum E { V }
 }";
 
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitUnsupported_646014, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(544512, "DevDiv")]
@@ -5998,7 +5999,7 @@ class X: Attribute
 {
 }
 ";
-            CompileAndVerify(source5, emitters: TestEmitters.CCI, additionalRefs: new[] { comp1, comp2 });
+            CompileAndVerify(source5, additionalRefs: new[] { comp1, comp2 });
 
             // Multiple from PE, multiple from Source
             var source6 = @"
@@ -6136,7 +6137,7 @@ public class IA
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
-            compilation.VerifyDiagnostics(); // we now regognize the extension method even without the assembly-level attribute
+            compilation.VerifyDiagnostics(); // we now recognize the extension method even without the assembly-level attribute
 
             var assembly = compilation.Assembly;
             Assert.Equal(assembly.GetAttributes().Length, 0);
@@ -6605,8 +6606,7 @@ namespace Microsoft.Yeti
 } // namespace
 ";
 
-            // TODO: refemit prints numeric values for the enum elements.
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
  - 5 -
  - 100 -
  - 100000 -
@@ -7218,11 +7218,11 @@ class Test
 
             var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) });
 
-            CompileAndVerify(compilation2, emitters: TestEmitters.RefEmitBug, symbolValidator: (m) =>
-                                                                   {
-                                                                       Assert.Equal(2, m.ReferencedAssemblies.Length);
-                                                                       Assert.Equal("Bug1020038", m.ReferencedAssemblies[1].Name);
-                                                                   });
+            CompileAndVerify(compilation2, symbolValidator: (m) =>
+            {
+                Assert.Equal(2, m.ReferencedAssemblies.Length);
+                Assert.Equal("Bug1020038", m.ReferencedAssemblies[1].Name);
+            });
 
             var source3 = @"
 class CAttr : System.Attribute
@@ -7237,7 +7237,7 @@ class Test
 
             var compilation3 = CreateCompilationWithMscorlib(source3, new[] { new CSharpCompilationReference(compilation1) });
 
-            CompileAndVerify(compilation3, emitters: TestEmitters.RefEmitBug, symbolValidator: (m) =>
+            CompileAndVerify(compilation3, symbolValidator: (m) =>
             {
                 Assert.Equal(2, m.ReferencedAssemblies.Length);
                 Assert.Equal("Bug1020038", m.ReferencedAssemblies[1].Name);
@@ -7259,14 +7259,13 @@ class C<T>
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             CompileAndVerify(compilation, symbolValidator: (m) =>
-                                                            {
-                                                                var cc = m.GlobalNamespace.GetTypeMember("C");
-                                                                var mm = cc.GetMember<MethodSymbol>("M");
+            {
+                var cc = m.GlobalNamespace.GetTypeMember("C");
+                var mm = cc.GetMember<MethodSymbol>("M");
 
-                                                                Assert.True(cc.TypeParameters.Single().GetAttributes().IsEmpty);
-                                                                Assert.Equal("XAttribute", mm.TypeParameters.Single().GetAttributes().Single().ToString());
-                                                            },
-                             emitters: TestEmitters.RefEmitBug);
+                Assert.True(cc.TypeParameters.Single().GetAttributes().IsEmpty);
+                Assert.Equal("XAttribute", mm.TypeParameters.Single().GetAttributes().Single().ToString());
+            });
         }
 
         [WorkItem(1144603, "DevDiv")]
@@ -7300,7 +7299,7 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
 {}
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll" );
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll");
             Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols[1]);
             compilation2.VerifyDiagnostics();
 

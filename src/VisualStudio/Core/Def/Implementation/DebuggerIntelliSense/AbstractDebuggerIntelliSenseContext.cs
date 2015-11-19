@@ -189,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
 
             // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
-            _workspace.CurrentSolution.GetCompilationAsync(document.Project, System.Threading.CancellationToken.None);
+            document.Project.GetCompilationAsync(System.Threading.CancellationToken.None);
 
             _textView.TextBuffer.ChangeContentType(_contentType, null);
 
@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 new object[] { debuggerMappedSpan }, ProjectionBufferOptions.PermissiveEdgeInclusiveSourceSpans, _contentType);
 
             // There's currently a bug in the editor (515925) where an elision buffer can't be projected into
-            // another projection buffer.  So workaround by using a second projectiong buffer that only 
+            // another projection buffer.  So workaround by using a second projection buffer that only 
             // projects the text we care about
             var elisionProjectionBuffer = this.ProjectionBufferFactoryService.CreateProjectionBuffer(null,
                 new object[] { projectionBuffer.CurrentSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive) },

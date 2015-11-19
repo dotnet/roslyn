@@ -2,7 +2,6 @@
 
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             // use a fixed seed so the test is reproducible
             var random = new System.Random(12345);
             const int n = 40 * 1000 * 1000; // 40 million "character"s
-            var builder = new StringBuilder(n+10);
+            var builder = new StringBuilder(n + 10);
             for (int i = 0; i < n; i++)
             {
                 builder.Append((char)random.Next(0xffff));

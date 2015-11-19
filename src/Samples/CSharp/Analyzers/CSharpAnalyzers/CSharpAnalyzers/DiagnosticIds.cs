@@ -1,4 +1,6 @@
-﻿namespace CSharpAnalyzers
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+namespace CSharpAnalyzers
 {
     public static class DiagnosticIds
     {
@@ -14,5 +16,9 @@
         public const string CodeBlockStartedAnalyzerRuleId = "CSS0101";
         public const string CompilationStartedAnalyzerRuleId = "CSS0102";
         public const string CompilationStartedAnalyzerWithCompilationWideAnalysisRuleId = "CSS0103";
+
+        // Additional File analyzer IDs.
+        public const string SimpleAdditionalFileAnalyzerRuleId = "CSS0201";
+        public const string XmlAdditionalFileAnalyzerRuleId = "CSS0202";
     }
 }

@@ -662,7 +662,7 @@ End Class
         Public Sub TestDataFlowForValueTypes()
 
             ' WARNING: test matches the same test in C# (TestDataFlowForValueTypes)
-            '          Keep the two tests in synch!
+            '          Keep the two tests in sync!
 
             Dim analysis = CompileAndAnalyzeDataFlow(
       <compilation name="TestDataFlowForValueTypes">
@@ -2738,9 +2738,9 @@ end class
         End Sub
 
         <Fact()>
-        Public Sub TestAssinmentExpressionAsBranchOfTernaryOperator()
+        Public Sub TestAssignmentExpressionAsBranchOfTernaryOperator()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestAssinmentExpressionAsBranchOfTernaryOperator">
+      <compilation>
           <file name="a.b">
 class C
     shared sub Main()
@@ -3149,9 +3149,9 @@ end class
         End Sub
 
         <Fact()>
-        Public Sub TestCompoundAsseignmentTargetSelection01()
+        Public Sub TestCompoundAssignmentTargetSelection01()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestCompoundAsseignmentTargetSelection01">
+      <compilation name="TestCompoundAssignmentTargetSelection01">
           <file name="a.b">
 class C
      Sub Main()
@@ -3173,9 +3173,9 @@ end class
         End Sub
 
         <Fact()>
-        Public Sub TestCompoundAsseignmentTargetSelection02()
+        Public Sub TestCompoundAssignmentTargetSelection02()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestCompoundAsseignmentTargetSelection02">
+      <compilation name="TestCompoundAssignmentTargetSelection02">
           <file name="a.b">
 class C
      Sub Main()
@@ -3197,9 +3197,9 @@ end class
         End Sub
 
         <Fact()>
-        Public Sub TestCompoundAsseignmentTargetSelection03()
+        Public Sub TestCompoundAssignmentTargetSelection03()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestCompoundAsseignmentTargetSelection03">
+      <compilation name="TestCompoundAssignmentTargetSelection03">
           <file name="a.b">
 Imports System
 Module M1
@@ -3463,10 +3463,10 @@ End Class
 
         <WorkItem(539286, "DevDiv")>
         <Fact()>
-        Public Sub RegionAnalysisInPtopertyInitializers_Simple()
+        Public Sub RegionAnalysisInPropertyInitializers_Simple()
 
             Dim dataResults1 = CompileAndAnalyzeDataFlow(
-<compilation name="RegionAnalysisInPtopertyInitializers_Simple">
+<compilation>
     <file name="a.b">
 Class Class1
     Public Shared A As Integer = 10
@@ -3818,9 +3818,9 @@ End Class
 ]]>
 
         <Fact()>
-        Public Sub TestOutParameterAlwaysAsigned()
+        Public Sub TestOutParameterAlwaysAssigned()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestOutParameterAlwaysAsigned">
+      <compilation>
           <file name="a.b">
 class C
     shared sub Main()
@@ -7129,9 +7129,9 @@ End Module
     <file name="a.vb">
 Module Program
     Sub Main(ByVal args As String())
-        [|GoTo Lable1
+        [|GoTo Label1
         For i = 1 To 5
-Lable1:
+Label1:
             Dim q = i
         Next|]
     End Sub

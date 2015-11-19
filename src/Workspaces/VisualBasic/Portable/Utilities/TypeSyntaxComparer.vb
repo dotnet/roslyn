@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Return nameComparer.Compare(DirectCast(x, NameSyntax), DirectCast(y, NameSyntax))
             End If
 
-            ' we have two predefined types, or a predefind type and a normal VB name.  We only need
+            ' we have two predefined types, or a predefined type and a normal VB name.  We only need
             ' to compare the first tokens here.
             Return _tokenComparer.Compare(x.GetFirstToken(), y.GetFirstToken())
         End Function

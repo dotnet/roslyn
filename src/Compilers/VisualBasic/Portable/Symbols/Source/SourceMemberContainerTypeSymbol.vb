@@ -664,7 +664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' confusing error to the user like "J is invalid because T1 is an Out parameter". So we want
             ' to do a better job of reporting errors. In particular,
             '   * If we are checking a GenericTypeBinding (e.g. x as J(Of T1)) for contravariant validity, look up
-            '     to find the outermost ancester binding (e.g. parentargs=I[T1]) which is of a variant interface.
+            '     to find the outermost ancestor binding (e.g. parentargs=I[T1]) which is of a variant interface.
             '     If this is also the outermost variant container of the current context, then it's an error.
 
             Select Case type.Kind
@@ -900,7 +900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                     ' The general code below will catch the case of nullables "T?" or "Nullable(Of T)", which require T to
-                    ' be inviarant. But we want more specific error reporting for this case, so we check for it first.
+                    ' be invariant. But we want more specific error reporting for this case, so we check for it first.
                     If namedType.IsNullableType() Then
                         Debug.Assert(namedType.TypeParameters(0).Variance = VarianceKind.None, "unexpected: a nullable type should have one generic parameter with no variance")
                         If namedType.TypeArgumentsNoUseSiteDiagnostics(0).IsValueType Then
@@ -973,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not HaveDiagnostics(infosBuffer))
             GenerateVarianceDiagnosticsForType(method.ReturnType, VarianceKind.Out, VarianceContext.Return, infosBuffer)
             If HaveDiagnostics(infosBuffer) Then
-                Dim location As location
+                Dim location As Location
                 Dim syntax As MethodBaseSyntax = method.GetDeclaringSyntaxNode(Of MethodBaseSyntax)()
 
                 If syntax Is Nothing AndAlso method.MethodKind = MethodKind.DelegateInvoke Then
@@ -1016,7 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 GenerateVarianceDiagnosticsForType(param.Type, requiredVariance, context, infosBuffer)
                 If HaveDiagnostics(infosBuffer) Then
-                    Dim location As location
+                    Dim location As Location
                     Dim syntax As ParameterSyntax = param.GetDeclaringSyntaxNode(Of ParameterSyntax)()
 
                     If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
@@ -1047,7 +1047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each constraint As TypeSymbol In param.ConstraintTypesNoUseSiteDiagnostics
                     GenerateVarianceDiagnosticsForType(constraint, VarianceKind.In, VarianceContext.Constraint, infosBuffer)
                     If HaveDiagnostics(infosBuffer) Then
-                        Dim location As location = param.Locations(0)
+                        Dim location As Location = param.Locations(0)
 
                         For Each constraintInfo As TypeParameterConstraint In param.GetConstraints()
                             If constraintInfo.TypeConstraint IsNot Nothing AndAlso
@@ -1087,7 +1087,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             GenerateVarianceDiagnosticsForType([property].Type, requiredVariance, context, infosBuffer)
             If HaveDiagnostics(infosBuffer) Then
-                Dim location As location
+                Dim location As Location
                 Dim syntax As PropertyStatementSyntax = [property].GetDeclaringSyntaxNode(Of PropertyStatementSyntax)()
 
                 If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
@@ -1123,7 +1123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             GenerateVarianceDiagnosticsForType(type, VarianceKind.In, VarianceContext.Complex, infosBuffer)
 
             If HaveDiagnostics(infosBuffer) Then
-                Dim location As location
+                Dim location As Location
                 Dim syntax As EventStatementSyntax = [event].GetDeclaringSyntaxNode(Of EventStatementSyntax)()
 
                 If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
@@ -1302,13 +1302,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public NotOverridable Overrides ReadOnly Property IsSubmissionClass As Boolean
-            Get
-                Dim kind = _declaration.Declarations(0).Kind
-                Return kind = DeclarationKind.Submission
-            End Get
-        End Property
-
         Public NotOverridable Overrides ReadOnly Property IsImplicitClass As Boolean
             Get
                 Return _declaration.Declarations(0).Kind = DeclarationKind.ImplicitClass
@@ -1404,9 +1397,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(SyntaxReferences)
+                ' PERF: Declaring references are cached for compilations with event queue.
+                Return If(Me.DeclaringCompilation?.EventQueue IsNot Nothing, GetCachedDeclaringReferences(), ComputeDeclaringReferencesCore())
             End Get
         End Property
+
+        Private Function GetCachedDeclaringReferences() As ImmutableArray(Of SyntaxReference)
+            Dim declaringReferences As ImmutableArray(Of SyntaxReference) = Nothing
+            If Not Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(Me, DeclaringCompilation, declaringReferences) Then
+                declaringReferences = ComputeDeclaringReferencesCore()
+                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(Me, DeclaringCompilation, declaringReferences)
+            End If
+
+            Return declaringReferences
+        End Function
+
+        Private Function ComputeDeclaringReferencesCore() As ImmutableArray(Of SyntaxReference)
+            Return GetDeclaringSyntaxReferenceHelper(SyntaxReferences)
+        End Function
 #End Region
 
 #Region "Member from Syntax"
@@ -2348,7 +2356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If initializerSet IsNot Nothing Then
                 For Each initializers In initializerSet
                     For Each initializer In initializers
-                        Dim fieldOrPropertyArray As ImmutableArray(Of Symbol) = initializer.FieldsOrProperty
+                        Dim fieldOrPropertyArray As ImmutableArray(Of Symbol) = initializer.FieldsOrProperties
 
                         If Not fieldOrPropertyArray.IsDefault Then
                             Debug.Assert(fieldOrPropertyArray.Length > 0)
@@ -2758,6 +2766,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 EnsureCtor(members, isShared, isDebuggable, diagnostics)
             End If
+
+            If Not isShared AndAlso IsScriptClass Then
+                ' a submission can only have a single declaration:
+                Dim syntaxRef = SyntaxReferences.Single()
+                Dim scriptInitializer = New SynthesizedInteractiveInitializerMethod(syntaxRef, Me, diagnostics)
+                AddSymbolToMembers(scriptInitializer, members.Members)
+                Dim scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptInitializer, diagnostics)
+                AddSymbolToMembers(scriptEntryPoint, members.Members)
+            End If
         End Sub
 
         Private Sub EnsureCtor(members As MembersAndInitializersBuilder, isShared As Boolean, isDebuggable As Boolean, diagBag As DiagnosticBag)
@@ -3060,7 +3077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Else
                     ' If both symbols are implicitly defined (say an overloaded property P where each
                     ' overload implicitly defines get_P), no error is reported. 
-                    ' If there are any errors in cases if definitng members have same names.
+                    ' If there are any errors in cases if defining members have same names.
                     ' In such cases, the errors should be reported on the defining symbols.
 
                     If Not CaseInsensitiveComparison.Equals(firstAssociatedSymbol.Name,
@@ -3256,8 +3273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 ' This point should not be reachable.
-                Debug.Assert(False)
-                Return -1
+                Throw ExceptionUtilities.Unreachable
             End If
 
             Dim syntaxOffset As Integer
@@ -3267,8 +3283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' This point should not be reachable. An implicit constructor has no body and no initializer,
             ' so the variable has to be declared in a member initializer.
-            Debug.Assert(False)
-            Return -1
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         ' Calculates a syntax offset of a syntax position that is contained in a property or field initializer (if it is in fact contained in one).
@@ -3333,7 +3348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Only Modules can declare extension methods.
 
                 If _lazyContainsExtensionMethods = ThreeState.Unknown Then
-                    If Not (_containingSymbol.Kind = SymbolKind.Namespace AndAlso Me.TypeKind = TypeKind.Module AndAlso Me.AnyMemberHasAttributes) Then
+                    If Not (_containingSymbol.Kind = SymbolKind.Namespace AndAlso Me.AllowsExtensionMethods() AndAlso Me.AnyMemberHasAttributes) Then
                         _lazyContainsExtensionMethods = ThreeState.False
                     End If
                 End If
@@ -3606,7 +3621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim opInfo As OverloadResolution.OperatorInfo = OverloadResolution.GetOperatorInfo(method.Name)
 
             If Not OverloadResolution.ValidateOverloadedOperator(method, opInfo, diagnostics) Then
-                ' Mulformed operator, but still an operator.
+                ' Malformed operator, but still an operator.
                 Return True
             End If
 

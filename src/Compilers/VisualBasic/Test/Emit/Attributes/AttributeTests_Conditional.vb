@@ -274,7 +274,7 @@ End Class
             Dim parseOpts = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbols)
             Dim testSource As String = condDefs & s_commonTestSource_ConditionalAttrDefs & s_commonTestSource_ConditionalAttributesApplied
             Dim compilation = CreateCompilationWithMscorlib({Parse(testSource, parseOpts)}, options:=TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, emitters:=TestEmitters.CCI, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
+            CompileAndVerify(compilation, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub
 
         Private Sub TestConditionAttributeType_SameSource(condDefs As String)
@@ -302,12 +302,12 @@ Imports System.Diagnostics
 
             ' Different source files, same compilation
             Dim comp = CreateCompilationWithMscorlib({Parse(source1, parseOpts1), Parse(source2, parseOpts2)})
-            CompileAndVerify(comp, emitters:=TestEmitters.CCI, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
+            CompileAndVerify(comp, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
 
             ' Different source files, different compilation
             Dim comp1 = CreateCompilationWithMscorlib({Parse(source1, parseOpts1)}, options:=TestOptions.ReleaseDll)
             Dim comp2 = VisualBasicCompilation.Create("comp2", {Parse(source2, parseOpts2)}, {MscorlibRef, New VisualBasicCompilationReference(comp1)})
-            CompileAndVerify(comp2, emitters:=TestEmitters.CCI, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
+            CompileAndVerify(comp2, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub
 #End Region
 
@@ -469,13 +469,13 @@ End Class
             System.Console.WriteLine("Z.OmittedCalls_AppliedConditional_Method")
         End Sub
 
-        ' Conditional symbols are not inherited by overridding methods in VB
+        ' Conditional symbols are not inherited by overriding methods in VB
         <Conditional("cond3")> _
         Public Overrides Sub PreservedCalls_InheritedConditional_Method()
             System.Console.WriteLine("Z.PreservedCalls_InheritedConditional_Method")
         End Sub
 
-    #Const cond4_base = "Conditional symbols are not inherited by overridding methods in VB"
+    #Const cond4_base = "Conditional symbols are not inherited by overriding methods in VB"
         <Conditional("cond4")> _
         Public Overrides Sub OmittedCalls_InheritedConditional_Method()
             System.Console.WriteLine("Z.OmittedCalls_InheritedConditional_Method")
@@ -565,7 +565,7 @@ End Class
             Dim parseOpts = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbols)
             Dim testSource As String = condDefs & s_commonTestSource_ConditionalMethodDefs & s_commonTestSource_ConditionalMethodCalls
             Dim comp = VisualBasicCompilation.Create(GetUniqueName(), {Parse(testSource, parseOpts)}, {MscorlibRef, SystemCoreRef, MsvbRef})
-            CompileAndVerify(comp, emitters:=TestEmitters.CCI, expectedOutput:=s_commonExpectedOutput_ConditionalMethodsTest)
+            CompileAndVerify(comp, expectedOutput:=s_commonExpectedOutput_ConditionalMethodsTest)
         End Sub
 
         Private Sub TestConditionalMethod_DifferentSource(condDefsSrcFile1 As String, condDefsSrcFile2 As String)
@@ -589,12 +589,12 @@ Imports System.Diagnostics
 
             ' Different source files, same compilation
             Dim comp = VisualBasicCompilation.Create(GetUniqueName(), {Parse(source1, parseOpts1), Parse(source2, parseOpts2)}, {MscorlibRef, MsvbRef}, TestOptions.ReleaseExe)
-            CompileAndVerify(comp, emitters:=TestEmitters.CCI, expectedOutput:=s_commonExpectedOutput_ConditionalMethodsTest)
+            CompileAndVerify(comp, expectedOutput:=s_commonExpectedOutput_ConditionalMethodsTest)
 
             ' Different source files, different compilation
             Dim comp1 = VisualBasicCompilation.Create(GetUniqueName(), {Parse(source1, parseOpts1)}, {MscorlibRef, MsvbRef}, TestOptions.ReleaseDll)
             Dim comp2 = VisualBasicCompilation.Create(GetUniqueName(), {Parse(source2, parseOpts2)}, {MscorlibRef, MsvbRef, comp1.ToMetadataReference()}, TestOptions.ReleaseExe)
-            CompileAndVerify(comp2, emitters:=TestEmitters.CCI, expectedOutput:=s_commonExpectedOutput_ConditionalMethodsTest)
+            CompileAndVerify(comp2, expectedOutput:=s_commonExpectedOutput_ConditionalMethodsTest)
         End Sub
 #End Region
 

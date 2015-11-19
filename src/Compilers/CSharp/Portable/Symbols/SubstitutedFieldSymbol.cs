@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if ((object)_lazyType == null)
             {
-                Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.GetFieldType(fieldsBeingBound)), null);
+                Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.GetFieldType(fieldsBeingBound)).Type, null);
             }
 
             return _lazyType;
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _originalDefinition.CustomModifiers;
+                return _containingType.TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.Type,_originalDefinition.CustomModifiers);
             }
         }
 
@@ -229,9 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // This occurs rarely, if ever.  The scenario would be a generic struct
             // containing a fixed-size buffer.  Given the rarity there would be little
-            // benefit to "optimizing" the performance of this by cacheing the
+            // benefit to "optimizing" the performance of this by caching the
             // translated implementation type.
-            return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(_originalDefinition.FixedImplementationType(emitModule));
+            return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(_originalDefinition.FixedImplementationType(emitModule)).Type;
         }
 
         public override bool Equals(object obj)

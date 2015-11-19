@@ -15,7 +15,7 @@ Imports Microsoft.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicTriviaFormatter
-        Inherits AbstractTriviaFormatter(Of SyntaxTrivia)
+        Inherits AbstractTriviaFormatter
 
         Private _lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
         Private _newLine As SyntaxTrivia
@@ -50,10 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overrides Function IsNewLine(ch As Char) As Boolean
             Return SyntaxFacts.IsNewLine(ch)
-        End Function
-
-        Protected Overrides Function Convert(trivia As SyntaxTrivia) As SyntaxTrivia
-            Return trivia
         End Function
 
         Protected Overrides Function CreateWhitespace(text As String) As SyntaxTrivia
@@ -122,11 +118,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation:=0)
             End If
 
+            ' comment before a Case Statement case
+            If trivia2.Kind = SyntaxKind.CommentTrivia AndAlso
+               Token2.Kind = SyntaxKind.CaseKeyword AndAlso Token2.Parent.IsKind(SyntaxKind.CaseStatement) Then
+                Return LineColumnRule.Preserve()
+            End If
+
             ' comment case
             If trivia2.Kind = SyntaxKind.CommentTrivia OrElse
                trivia2.Kind = SyntaxKind.DocumentationCommentTrivia Then
 
-                ' [token] [whitepsace] [trivia] case
+                ' [token] [whitespace] [trivia] case
                 If Me.Token1.IsLastTokenOfStatementWithEndOfLine() AndAlso trivia1.Kind = SyntaxKind.None Then
                     Return LineColumnRule.PreserveSpacesOrUseDefaultIndentation(spaces:=1)
                 End If

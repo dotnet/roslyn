@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-            ' Shoudl not be requesting generated members by name other than constructors.
+            ' Should not be requesting generated members by name other than constructors.
             Debug.Assert(name = WellKnownMemberNames.InstanceConstructorName OrElse name = WellKnownMemberNames.StaticConstructorName)
             Return GetMembers().WhereAsArray(Function(m) m.Name = name)
         End Function
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
             Throw ExceptionUtilities.Unreachable
         End Function
 

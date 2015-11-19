@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_Cascade_ToImplementedMethod()
             Dim markup = <Text><![CDATA[
 Interface I
@@ -33,7 +33,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_Cascade_ToImplementingMethod()
             Dim markup = <Text><![CDATA[
 Interface I
@@ -62,7 +62,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_Cascade_ToOverriddenMethod()
             Dim markup = <Text><![CDATA[
 Class B
@@ -95,7 +95,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_Cascade_ToOverridingMethod()
             Dim markup = <Text><![CDATA[
 Class B
@@ -128,7 +128,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_Cascade_ToOverriddenMethod_Transitive()
 
             Dim markup = <Text><![CDATA[
@@ -174,7 +174,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_Cascade_ToOverridingMethod_Transitive()
 
             Dim markup = <Text><![CDATA[
@@ -221,7 +221,7 @@ End Class]]></Text>.NormalizedValue()
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_Cascade_ToMethods_Complex()
 
             '     B   I   I2

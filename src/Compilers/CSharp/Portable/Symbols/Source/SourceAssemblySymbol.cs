@@ -471,7 +471,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
+            // If we're public signing, we don't need a strong name provider, just 
+            // the file containing the public key
+            if (DeclaringCompilation.Options.PublicSign && keyFile != null)
+            {
+                return StrongNameKeys.Create(keyFile, MessageProvider.Instance);
+            }
+            else
+            {
+                return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
+            }
         }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name
@@ -545,16 +554,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_DelaySignButNoKey, NoLocation.Singleton);
             }
 
+            if (DeclaringCompilation.Options.PublicSign && !Identity.HasPublicKey)
+            {
+                diagnostics.Add(ErrorCode.ERR_PublicSignButNoKey, NoLocation.Singleton);
+            }
+
             // If the options and attributes applied on the compilation imply real signing,
             // but we have no private key to sign it with report an error.
             // Note that if public key is set and delay sign is off we do OSS signing, which doesn't require private key.
             // Consider: should we allow to OSS sign if the key file only contains public key?
 
             if (DeclaringCompilation.Options.OutputKind != OutputKind.NetModule &&
-                DeclaringCompilation.Options.CryptoPublicKey.IsEmpty &&                
-                Identity.HasPublicKey&&
+                DeclaringCompilation.Options.CryptoPublicKey.IsEmpty &&
+                Identity.HasPublicKey &&
                 !IsDelaySigned &&
-                !StrongNameKeys.CanSign&&
+                !DeclaringCompilation.Options.PublicSign &&
+                !StrongNameKeys.CanSign &&
                 StrongNameKeys.DiagnosticOpt == null)
             {
                 // Since the container always contains both keys, the problem is that the key file didn't contain private key.
@@ -709,6 +724,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_CmdOptionConflictsSource, NoLocation.Singleton, "DelaySign", AttributeDescription.AssemblyDelaySignAttribute.FullName);
             }
 
+            if (_compilation.Options.PublicSign && assemblyDelaySignAttributeSetting == ThreeState.True)
+            {
+                diagnostics.Add(ErrorCode.WRN_CmdOptionConflictsSource, NoLocation.Singleton,
+                    nameof(_compilation.Options.PublicSign),
+                    AttributeDescription.AssemblyDelaySignAttribute.FullName);
+            }
+
             if (!String.IsNullOrEmpty(_compilation.Options.CryptoKeyContainer))
             {
                 string assemblyKeyContainerAttributeSetting = this.AssemblyKeyContainerAttributeSetting;
@@ -735,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // native compiler emits both of them, synthetic attribute is emitted after the one from source. Incidentally, ALink picks the last attribute
                     // for signing and things seem to work out. However, relying on the order of attributes feels fragile, especially given that Roslyn emits
                     // synthetic attributes before attributes from source. The behavior we settled on for .NET modules is that, if the attribute in source has the
-                    // same value as the one in compilation options, we won't emit the senthetic attribute. If the value doesn't match, we report an error, which 
+                    // same value as the one in compilation options, we won't emit the synthetic attribute. If the value doesn't match, we report an error, which 
                     // is a breaking change. Bottom line, we will never produce a module or an assembly with two attributes, regardless whether values are the same
                     // or not.
                     if (_compilation.Options.OutputKind == OutputKind.NetModule)
@@ -1545,7 +1567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (attribute != null)
                         {
-                            yield return new Cci.SecurityAttribute((Cci.SecurityAction)constantValue, attribute);
+                            yield return new Cci.SecurityAttribute((DeclarativeSecurityAction)(int)constantValue, attribute);
                         }
                     }
                 }
@@ -1773,8 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     default:
-                        Debug.Assert(false, "Unexpected member kind: " + member.Kind);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
                 }
             }
             return false;
@@ -1970,7 +1991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Allow public key token due to compatibility reasons, but we are not going to use its value.
-            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name | AssemblyIdentityParts.PublicKey | AssemblyIdentityParts.PublicKeyToken; 
+            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name | AssemblyIdentityParts.PublicKey | AssemblyIdentityParts.PublicKeyToken;
 
             if ((parts & ~allowedParts) != 0)
             {
@@ -2074,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
                 Version version;
-                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: true, version: out version))
+                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: !_compilation.IsEmitDeterministic, version: out version))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
@@ -2342,7 +2363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     bool isInternalAccessibility;
                     bool success = _unassignedFieldsMap.TryGetValue(field, out isInternalAccessibility);
-                    Debug.Assert(success, "Once CompletionPart.Module is set, no one should be modifying the map.");
+                    Debug.Assert(success, "Once CompletionPart.Module is set, no-one should be modifying the map.");
 
                     if (isInternalAccessibility && internalsAreVisible)
                     {

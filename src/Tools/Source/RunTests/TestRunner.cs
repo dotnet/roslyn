@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -30,18 +30,16 @@ namespace RunTests
             }
         }
 
-        private readonly string _xunitConsolePath;
-        private readonly bool _useHtml;
+        private readonly Options _options;
 
-        internal TestRunner(string xunitConsolePath, bool useHtml)
+        internal TestRunner(Options options)
         {
-            _xunitConsolePath = xunitConsolePath;
-            _useHtml = useHtml;
+            this._options = options;
         }
 
         internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
         {
-            var max = Environment.ProcessorCount;
+            var max = (int)Environment.ProcessorCount * 1.5;
             var allPassed = true;
             var waiting = new Stack<string>(assemblyList);
             var running = new List<Task<TestResult>>();
@@ -57,13 +55,22 @@ namespace RunTests
                     var task = running[i];
                     if (task.IsCompleted)
                     {
-                        var testResult = await task.ConfigureAwait(false);
-                        if (!testResult.Succeeded)
+                        try
                         {
+                            var testResult = await task.ConfigureAwait(false);
+                            if (!testResult.Succeeded)
+                            {
+                                allPassed = false;
+                            }
+
+                            completed.Add(testResult);
+                        }
+                        catch (Exception ex) 
+                        {
+                            Console.WriteLine($"Error: {ex.Message}");
                             allPassed = false;
                         }
 
-                        completed.Add(testResult);
                         running.RemoveAt(i);
                     }
                     else
@@ -108,70 +115,109 @@ namespace RunTests
 
         private async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
-            var assemblyName = Path.GetFileName(assemblyPath);
-            var extension = _useHtml ? ".TestResults.html" : ".TestResults.xml";
-            var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), Path.ChangeExtension(assemblyName, extension));
-            DeleteFile(resultsPath);
+            try
+            { 
+                var assemblyName = Path.GetFileName(assemblyPath);
+                var resultsFile = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{(_options.UseHtml ? "html" : "xml")}");
+                var resultsDir = Path.GetDirectoryName(resultsFile);
+                var outputLogPath = Path.Combine(resultsDir, $"{assemblyName}.out.log");
 
-            var builder = new StringBuilder();
-            builder.AppendFormat(@"""{0}""", assemblyPath);
-            builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsPath);
-            builder.Append(" -noshadow");
+                // NOTE: xUnit doesn't always create the log directory
+                Directory.CreateDirectory(resultsDir);
 
-            var errorOutput = string.Empty;
-            var start = DateTime.UtcNow;
-            var processOutput = await ProcessRunner.RunProcessAsync(
-                _xunitConsolePath,
-                builder.ToString(),
-                lowPriority: false,
-                displayWindow: false,
-                captureOutput: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            var span = DateTime.UtcNow - start;
+                // NOTE: xUnit seems to have an occasional issue creating logs create
+                // an empty log just in case, so our runner will still fail.
+                File.Create(resultsFile).Close();
 
-            if (processOutput.ExitCode != 0)
-            {
-                // On occasion we get a non-0 output but no actual data in the result file.  The could happen
-                // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
-                // To avoid losing information, write the process output to the console.  In addition, delete the results
-                // file to avoid issues with any tool attempting to interpret the (potentially malformed) text.
-                var all = string.Empty;
-                try
+                var builder = new StringBuilder();
+                builder.AppendFormat(@"""{0}""", assemblyPath);
+                builder.AppendFormat(@" -{0} ""{1}""", _options.UseHtml ? "html" : "xml", resultsFile);
+                builder.Append(" -noshadow -verbose");
+
+                if (!string.IsNullOrWhiteSpace(_options.Trait))
                 {
-                    all = File.ReadAllText(resultsPath).Trim();
-                }
-                catch
-                {
-                    // Happens if xunit didn't produce a log file
+                    var traits = _options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var trait in traits)
+                    {
+                        builder.AppendFormat(" -trait {0}", trait);
+                    }
                 }
 
-                bool noResultsData = (all.Length == 0);
-                if (noResultsData)
+                if (!string.IsNullOrWhiteSpace(_options.NoTrait))
                 {
-                    var output = processOutput.OutputLines.Concat(processOutput.ErrorLines);
-                    Console.Write(string.Join(Environment.NewLine, output));
-
-                    // Delete the output file.
-                    File.Delete(resultsPath);
+                    var traits = _options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var trait in traits)
+                    {
+                        builder.AppendFormat(" -notrait {0}", trait);
+                    }
                 }
 
-                errorOutput = processOutput.ErrorLines.Any()
-                    ? processOutput.ErrorLines.Aggregate((x, y) => x + Environment.NewLine + y)
-                    : string.Format("xunit produced no error output but had exit code {0}", processOutput.ExitCode);
+                var errorOutput = new StringBuilder();
+                var start = DateTime.UtcNow;
 
-                errorOutput = string.Format("Command: {0} {1}", _xunitConsolePath, builder.ToString())
-                    + Environment.NewLine
-                    + errorOutput;
-                    
-                // If the results are html, use Process.Start to open in the browser.
-                
-                if (_useHtml && !noResultsData)
+                var xunitPath = _options.XunitPath;
+                var processOutput = await ProcessRunner.RunProcessAsync(
+                    xunitPath,
+                    builder.ToString(),
+                    lowPriority: false,
+                    displayWindow: false,
+                    captureOutput: true,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                var span = DateTime.UtcNow - start;
+
+                if (processOutput.ExitCode != 0)
                 {
-                    Process.Start(resultsPath);
+                    File.WriteAllLines(outputLogPath, processOutput.OutputLines);
+
+                    // On occasion we get a non-0 output but no actual data in the result file.  The could happen
+                    // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
+                    // To avoid losing information, write the process output to the console.  In addition, delete the results
+                    // file to avoid issues with any tool attempting to interpret the (potentially malformed) text.
+                    var resultData = string.Empty;
+                    try
+                    {
+                        resultData = File.ReadAllText(resultsFile).Trim();
+                    }
+                    catch
+                    {
+                        // Happens if xunit didn't produce a log file
+                    }
+
+                    if (resultData.Length == 0)
+                    {
+                        // Delete the output file.
+                        File.Delete(resultsFile);
+                    }
+
+                    errorOutput.AppendLine($"Command: {_options.XunitPath} {builder}");
+                    errorOutput.AppendLine($"xUnit output: {outputLogPath}");
+
+                    if (processOutput.ErrorLines.Any())
+                    {
+                        foreach (var line in processOutput.ErrorLines)
+                        {
+                            errorOutput.AppendLine(line);
+                        }
+                    }
+                    else
+                    {
+                        errorOutput.AppendLine($"xunit produced no error output but had exit code {processOutput.ExitCode}");
+                    }
+
+                    // If the results are html, use Process.Start to open in the browser.
+
+                    if (_options.UseHtml && resultData.Length > 0)
+                    {
+                        Process.Start(resultsFile);
+                    }
                 }
+
+                return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput.ToString());
             }
-
-            return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput);
+            catch (Exception ex)
+            {
+                throw new Exception($"Unable to run {assemblyPath} with {_options.XunitPath}. {ex}");
+            }
         }
 
         private static void DeleteFile(string filePath)

@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParameterSymbol parameter = parameters[i];
                 TypedConstant reorderedArgument;
 
-                if (parameter.IsParams && parameter.Type.IsArray() && i + 1 == parameterCount)
+                if (parameter.IsParams && parameter.Type.IsSZArray() && i + 1 == parameterCount)
                 {
                     reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, argumentsCount, argsConsumedCount, this.Conversions);
                     sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (index < argumentsCount)
             {
-                // found a matching named argumed
+                // found a matching named argument
                 Debug.Assert(index >= startIndex);
 
                 // increment argsConsumedCount
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (typedConstantKind != TypedConstantKind.Error && type.ContainsTypeParameter())
                 {
-                    // Devdig Bug #12636: Constant values of open types should not be allowed in attributes
+                    // Devdiv Bug #12636: Constant values of open types should not be allowed in attributes
 
                     // SPEC ERROR:  C# language specification does not explicitly disallow constant values of open types. For e.g.
 

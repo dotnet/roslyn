@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         private async Task<SyntaxToken> FindTokenInLinkedDocument(SyntaxToken token, Document linkedDocument, CancellationToken cancellationToken)
         {
+            if (!linkedDocument.SupportsSyntaxTree)
+            {
+                return default(SyntaxToken);
+            }
+
             var root = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Don't search trivia because we want to ignore inactive regions
@@ -188,7 +193,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 usageTextBuilder.AddRange(supportedPlatforms.ToDisplayParts());
             }
 
-            // TODO: exceptions
+            var exceptionsTextBuilder = new List<SymbolDisplayPart>();
+            if (sections.ContainsKey(SymbolDescriptionGroups.Exceptions))
+            {
+                var parts = sections[SymbolDescriptionGroups.Exceptions];
+                if (!parts.IsDefaultOrEmpty)
+                {
+                    exceptionsTextBuilder.AddRange(parts);
+                }
+            }
 
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
             var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
@@ -211,7 +224,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 documentation: documentationContent,
                 typeParameterMap: typeParameterMapBuilder,
                 anonymousTypes: anonymousTypesBuilder,
-                usageText: usageTextBuilder);
+                usageText: usageTextBuilder,
+                exceptionText: exceptionsTextBuilder);
         }
 
         private IDeferredQuickInfoContent GetDocumentationContent(

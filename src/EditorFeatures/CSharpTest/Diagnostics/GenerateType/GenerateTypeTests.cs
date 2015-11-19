@@ -2,9 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
@@ -18,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 null, new GenerateTypeCodeFixProvider());
+        }
+
+        protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
+        {
+            return FlattenActions(codeActions);
         }
 
         #region Generate Class
@@ -88,7 +96,7 @@ parseOptions: Options.Regular);
         #region Lambdas
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromParanthesizedLambdaExpressionsParameter()
+        public void TestGenerateClassFromParenthesizedLambdaExpressionsParameter()
         {
             Test(
 @"class Class { Func<Employee, int, bool> l = ([|Employee|] e, int age) => e.Age > age; }",
@@ -97,7 +105,7 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromParanthesizedLambdaExpressionsBody()
+        public void TestGenerateClassFromParenthesizedLambdaExpressionsBody()
         {
             Test(
 @"class Class { System.Action<Class, int> l = (Class e, int age) => { [|Wage|] w; }; }",
@@ -116,24 +124,24 @@ index: 2);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class Program { void Main ( ) { [|Foo|] f ; } } ",
 @"internal class Foo { } ",
 expectedContainers: Array.Empty<string>(),
-expectedDocumentName: "Foo.cs");
+expectedDocumentName: "Foo.cs").ConfigureAwait(true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromFieldDeclarationIntoCustomNamespace()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassFromFieldDeclarationIntoCustomNamespace()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class Class { [|TestNamespace|].Foo f; }",
 @"namespace TestNamespace { internal class Foo { } }",
 expectedContainers: new List<string> { "TestNamespace" },
-expectedDocumentName: "Foo.cs");
+expectedDocumentName: "Foo.cs").ConfigureAwait(true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -397,14 +405,14 @@ index: 1);
         }
 
         [WorkItem(538516)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromIntoNewNamespace()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassFromIntoNewNamespace()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class Class { static void Main(string[] args) { [|N|].C c; } }",
 @"namespace N { internal class C { } }",
 expectedContainers: new List<string> { "N" },
-expectedDocumentName: "C.cs");
+expectedDocumentName: "C.cs").ConfigureAwait(true);
         }
 
         [WorkItem(538558)]
@@ -1010,14 +1018,14 @@ index: 1);
         }
 
         [WorkItem(539535)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateIntoNewFile()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateIntoNewFile()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class Class { void F() { new [|Foo|].Bar(); } }",
 @"namespace Foo { internal class Bar { public Bar() { } } }",
 expectedContainers: new List<string> { "Foo" },
-expectedDocumentName: "Bar.cs");
+expectedDocumentName: "Bar.cs").ConfigureAwait(true);
         }
 
         [WorkItem(539620)]
@@ -1501,18 +1509,18 @@ index: 1);
         {
             TestSmartTagText(
 @"class C : [|Foo|]",
-string.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace));
+string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace));
         }
 
         [WorkItem(543853)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestAddDocumentForGlobalNamespace()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestAddDocumentForGlobalNamespace()
         {
-            TestAddDocument(
+            await TestAddDocument(
 @"class C : [|Foo|]",
 "internal class Foo { }",
 Array.Empty<string>(),
-"Foo.cs");
+"Foo.cs").ConfigureAwait(true);
         }
 
         [WorkItem(543886)]
@@ -1571,8 +1579,8 @@ class Program
             TestExactActionSetOffered(code,
                 new[]
                 {
-                    string.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace),
-                    string.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"),
+                    string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace),
+                    string.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo", "Program"),
                     FeaturesResources.GenerateNewType
                 });
 
@@ -1642,12 +1650,12 @@ namespace A
 }
 ";
 
-            Test(code, expected, compareTokens: false, isLine: false);
+            Test(code, expected, compareTokens: false);
         }
 
         [WorkItem(932602)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateTypeInFolderNotDefaultNamespace_0()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateTypeInFolderNotDefaultNamespace_0()
         {
             var code = @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DefaultNamespace = ""Namespace1.Namespace2"">
@@ -1669,17 +1677,17 @@ namespace Namespace1.Namespace2
     }
 }";
 
-            TestAddDocument(code,
+            await TestAddDocument(code,
                 expected,
                 expectedContainers: Array.Empty<string>(),
                 expectedDocumentName: "ClassB.cs",
                 compareTokens: false,
-                isLine: false);
+                isLine: false).ConfigureAwait(true);
         }
 
         [WorkItem(932602)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateTypeInFolderNotDefaultNamespace_1()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateTypeInFolderNotDefaultNamespace_1()
         {
             var code = @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DefaultNamespace = ""Namespace1.Namespace2"" >
@@ -1701,12 +1709,12 @@ namespace Namespace1.Namespace2.Namespace3
     }
 }";
 
-            TestAddDocument(code,
+            await TestAddDocument(code,
                 expected,
                 expectedContainers: new List<string> { "Namespace1", "Namespace2" },
                 expectedDocumentName: "ClassB.cs",
                 compareTokens: false,
-                isLine: false);
+                isLine: false).ConfigureAwait(true);
         }
 
         [WorkItem(612700)]
@@ -1959,8 +1967,7 @@ index: 1);
             Test(
 @"class A { public B b = new [|B|](); }",
 @"public class B { public B() { } }",
-index: 0,
-isAddedDocument:true);
+index: 0);
         }
 
         [WorkItem(1107929)]
@@ -1990,8 +1997,7 @@ index: 2);
             Test(
 @"class A { public B<int> b = new [|B|]<int>(); }",
 @"public class B<T> { public B() {}}",
-index: 0,
-isAddedDocument: true);
+index: 0);
         }
 
         [WorkItem(1107929)]

@@ -917,7 +917,7 @@ class Derived : Base
 }
 ";
 
-            CompileAndVerify(csharp, new[] { CompileIL(il) }, emitters: TestEmitters.CCI, expectedOutput: @"
+            CompileAndVerify(csharp, new[] { CompileIL(il) }, expectedOutput: @"
 1
 1
 1

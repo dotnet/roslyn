@@ -179,9 +179,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend NotOverridable Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return _underlyingParameter.HasByRefBeforeCustomModifiers
+                Return _underlyingParameter.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 

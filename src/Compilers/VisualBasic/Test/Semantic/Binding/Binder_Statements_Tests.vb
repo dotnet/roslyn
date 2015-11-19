@@ -2548,7 +2548,7 @@ BC30524: Property 'Boo' is 'WriteOnly'.
         End Sub
 
         <Fact()>
-        Public Sub SustomDatatypeForLoop()
+        Public Sub CustomDatatypeForLoop()
             Dim source =
 <compilation>
     <file name="foo.vb"><![CDATA[

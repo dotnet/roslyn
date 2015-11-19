@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -47,13 +48,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 try
                 {
-                    var notification = Host.ProcessStarting;
-                    if (notification != null)
-                    {
-                        notification(this.Options);
-                    }
+                    Host.ProcessStarting?.Invoke(this.Options.InitializationFile != null);
 
-                    var remoteService = await TryStartProcessAsync(cancellationToken).ConfigureAwait(false);
+                    var remoteService = await TryStartProcessAsync(Options.Culture, cancellationToken).ConfigureAwait(false);
                     if (remoteService == null)
                     {
                         return default(InitializedRemoteService);
@@ -103,9 +100,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private Task<RemoteService> TryStartProcessAsync(CancellationToken cancellationToken)
+            private Task<RemoteService> TryStartProcessAsync(CultureInfo culture, CancellationToken cancellationToken)
             {
-                return Task.Run(() => Host.TryStartProcess(cancellationToken));
+                return Task.Run(() => Host.TryStartProcess(culture, cancellationToken));
             }
         }
     }

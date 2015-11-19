@@ -32,30 +32,6 @@ namespace Microsoft.Cci
 
         protected abstract void RecordAssemblyReference(IAssemblyReference assemblyReference);
 
-        public override void Visit(ITypeExport aliasForType)
-        {
-            this.Visit(aliasForType.GetAttributes(Context));
-
-            // do not visit the reference to aliased type, it does not get into the type ref table based only on its membership of the exported types collection.
-            // but DO visit the reference to assembly (if any) that defines the aliased type. That assembly might not already be in the assembly reference list.
-            var definingUnit = MetadataWriter.GetDefiningUnitReference(aliasForType.ExportedType, Context);
-            var definingAssembly = definingUnit as IAssemblyReference;
-            if (definingAssembly != null)
-            {
-                this.Visit(definingAssembly);
-            }
-
-            var definingModule = definingUnit as IModuleReference;
-            if (definingModule != null)
-            {
-                definingAssembly = definingModule.GetContainingAssembly(Context);
-                if (definingAssembly != null && !ReferenceEquals(definingAssembly, this.module.GetContainingAssembly(Context)))
-                {
-                    this.Visit(definingAssembly);
-                }
-            }
-        }
-
         public override void Visit(ICustomModifier customModifier)
         {
             this.typeReferenceNeedsToken = true;
@@ -419,7 +395,7 @@ namespace Microsoft.Cci
         // Returns true if we need to look at the children, false otherwise.
         private bool VisitTypeReference(ITypeReference typeReference)
         {
-            if (!this._alreadySeen.Add(typeReference))
+            if (!_alreadySeen.Add(typeReference))
             {
                 if (!this.typeReferenceNeedsToken)
                 {
@@ -427,7 +403,7 @@ namespace Microsoft.Cci
                 }
 
                 this.typeReferenceNeedsToken = false;
-                if (!this._alreadyHasToken.Add(typeReference))
+                if (!_alreadyHasToken.Add(typeReference))
                 {
                     return false;
                 }
@@ -445,13 +421,13 @@ namespace Microsoft.Cci
                 if (specializedNestedTypeReference != null)
                 {
                     INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.UnspecializedVersion;
-                    if (this._alreadyHasToken.Add(unspecializedNestedTypeReference))
+                    if (_alreadyHasToken.Add(unspecializedNestedTypeReference))
                     {
                         RecordTypeReference(unspecializedNestedTypeReference);
                     }
                 }
 
-                if (this.typeReferenceNeedsToken && this._alreadyHasToken.Add(typeReference))
+                if (this.typeReferenceNeedsToken && _alreadyHasToken.Add(typeReference))
                 {
                     RecordTypeReference(typeReference);
                 }

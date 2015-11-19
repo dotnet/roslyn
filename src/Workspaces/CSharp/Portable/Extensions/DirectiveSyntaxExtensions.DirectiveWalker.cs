@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private class DirectiveWalker : CSharpSyntaxWalker
         {
             private readonly IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> _directiveMap;
-            private readonly IDictionary<DirectiveTriviaSyntax, IEnumerable<DirectiveTriviaSyntax>> _conditionalMap;
+            private readonly IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> _conditionalMap;
             private readonly CancellationToken _cancellationToken;
 
             private readonly Stack<DirectiveTriviaSyntax> _regionStack = new Stack<DirectiveTriviaSyntax>();
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public DirectiveWalker(
                 IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> directiveMap,
-                IDictionary<DirectiveTriviaSyntax, IEnumerable<DirectiveTriviaSyntax>> conditionalMap,
+                IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> conditionalMap,
                 CancellationToken cancellationToken) :
                 base(SyntaxWalkerDepth.Token)
             {
@@ -105,8 +105,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return;
                 }
 
+                FinishIf(directive);
+            }
+
+            private void FinishIf(DirectiveTriviaSyntax directiveOpt)
+            {
                 var condDirectives = new List<DirectiveTriviaSyntax>();
-                condDirectives.Add(directive);
+                if (directiveOpt != null)
+                {
+                    condDirectives.Add(directiveOpt);
+                }
 
                 while (!_ifStack.IsEmpty())
                 {
@@ -132,8 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     ifDirective.Kind() == SyntaxKind.ElifDirectiveTrivia ||
                     ifDirective.Kind() == SyntaxKind.ElseDirectiveTrivia);
 
-                _directiveMap.Add(directive, ifDirective);
-                _directiveMap.Add(ifDirective, directive);
+                if (directiveOpt != null)
+                {
+                    _directiveMap.Add(directiveOpt, ifDirective);
+                    _directiveMap.Add(ifDirective, directiveOpt);
+                }
             }
 
             private void HandleEndRegionDirective(DirectiveTriviaSyntax directive)
@@ -147,6 +158,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 _directiveMap.Add(directive, previousDirective);
                 _directiveMap.Add(previousDirective, directive);
+            }
+
+            internal void Finish() {
+                while (_regionStack.Count > 0) {
+                    _directiveMap.Add(_regionStack.Pop(), null);
+                }
+
+                while (_ifStack.Count > 0) {
+                    FinishIf(directiveOpt: null);
+                }
             }
         }
     }

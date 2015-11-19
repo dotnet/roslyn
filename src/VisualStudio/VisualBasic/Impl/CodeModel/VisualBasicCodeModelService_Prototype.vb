@@ -238,7 +238,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Private Shared Function AreValidPrototypeFlags(ByRef flags As PrototypeFlags) As Boolean
-            ' Signature cannot be compined with anything else
+            ' Signature cannot be combined with anything else
             If (flags And PrototypeFlags.Signature) <> 0 AndAlso flags <> PrototypeFlags.Signature Then
                 Return False
             End If

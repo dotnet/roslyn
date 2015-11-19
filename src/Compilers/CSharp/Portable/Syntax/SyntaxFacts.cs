@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -164,6 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case EventDeclaration:
                         return ((EventDeclarationSyntax)parent).Type == node;
 
+                    case LocalFunctionStatement:
+                        return ((LocalFunctionStatementSyntax)parent).ReturnType == node;
+
                     case SimpleBaseType:
                         return true;
 
@@ -301,8 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Accessibility.Public:
                     return SyntaxFacts.GetText(PublicKeyword);
                 default:
-                    System.Diagnostics.Debug.Assert(false, $"Unknown accessibility '{accessibility}'");
-                    return null;
+                    throw ExceptionUtilities.UnexpectedValue(accessibility);
             }
         }
 

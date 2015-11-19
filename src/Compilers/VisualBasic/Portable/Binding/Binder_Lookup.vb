@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Since raw generics cannot be imported, the import aliases would always refer to
                         ' constructed types when referring to generics. So any other generic arity besides
                         ' -1 or 0 are invalid.
-                        If arity <> 0 Then ' aliases are always arity 0, but error refers to the taget
+                        If arity <> 0 Then ' aliases are always arity 0, but error refers to the target
                             ' Note, Dev11 doesn't stop lookup in case of arity mismatch for an alias.
                             Return SingleLookupResult.WrongArity(unwrappedSym, WrongArityErrid(0, arity))
                         End If

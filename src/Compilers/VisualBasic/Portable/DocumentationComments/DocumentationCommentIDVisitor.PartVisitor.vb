@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Visit(symbol.ElementType, builder)
 
                 ' Rank-one arrays are displayed different than rectangular arrays
-                If symbol.Rank = 1 Then
+                If symbol.IsSZArray Then
                     builder.Append("[]")
                 Else
                     builder.Append("[0:")

@@ -336,7 +336,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         If nextStatementLine IsNot Nothing AndAlso nextStatementLine.Value.LineNumber = statementLine.LineNumber Then
                             startPosition = statement.Span.End
                         Else
-                            ' Otherwise, use the beginninng of the next line.
+                            ' Otherwise, use the beginning of the next line.
                             startPosition = text.Lines(statementLine.LineNumber + 1).Start
                         End If
 
@@ -407,7 +407,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         If nextStatementLine IsNot Nothing AndAlso nextStatementLine.Value.LineNumber = statementLine.LineNumber Then
                             startPosition = statement.Span.End
                         Else
-                            ' Otherwise, use the beginninng of the next line.
+                            ' Otherwise, use the beginning of the next line.
                             startPosition = text.Lines(statementLine.LineNumber + 1).Start
                         End If
 

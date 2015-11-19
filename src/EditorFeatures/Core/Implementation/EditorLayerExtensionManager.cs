@@ -5,15 +5,19 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using static Microsoft.CodeAnalysis.Internal.Log.FunctionId;
+using static Microsoft.CodeAnalysis.Internal.Log.Logger;
+using static Microsoft.CodeAnalysis.RoslynAssemblyHelper;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor
             var optionService = workspaceServices.GetService<IOptionService>();
             var errorReportingService = workspaceServices.GetService<IErrorReportingService>();
             var errorLoggerService = workspaceServices.GetService<IErrorLoggerService>();
-            return new ExtensionManager(optionService, errorReportingService, errorLoggerService,  _errorHandlers);
+            return new ExtensionManager(optionService, errorReportingService, errorLoggerService, _errorHandlers);
         }
 
         internal class ExtensionManager : AbstractExtensionManager
@@ -60,15 +64,20 @@ namespace Microsoft.CodeAnalysis.Editor
             {
                 if (provider is CodeFixProvider || provider is FixAllProvider || provider is CodeRefactoringProvider)
                 {
-                    if (!IsIgnored(provider) && 
+                    if (!IsIgnored(provider) &&
                         _optionsService.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
                     {
                         base.HandleException(provider, exception);
 
                         _errorReportingService?.ShowErrorInfoForCodeFix(
-                            provider.GetType().Name,
-                            () => EnableProvider(provider),
-                            () => { EnableProvider(provider); IgnoreProvider(provider); });
+                            codefixName: provider.GetType().Name,
+                            OnEnableClicked: () => { EnableProvider(provider); LogEnableProvider(provider); },
+                            OnEnableAndIgnoreClicked: () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); },
+                            OnClose: () => LogLeaveDisabled(provider));
+                    }
+                    else
+                    {
+                        LogAction(CodefixInfobar_ErrorIgnored, provider);
                     }
                 }
                 else
@@ -83,6 +92,35 @@ namespace Microsoft.CodeAnalysis.Editor
 
                 _errorLoggerService?.LogException(provider, exception);
             }
+
+            private static void LogLeaveDisabled(object provider)
+            {
+                LogAction(CodefixInfobar_LeaveDisabled, provider);
+            }
+
+            private static void LogEnableAndIgnoreProvider(object provider)
+            {
+                LogAction(CodefixInfobar_EnableAndIgnoreFutureErrors, provider);
+            }
+
+            private static void LogEnableProvider(object provider)
+            {
+                LogAction(CodefixInfobar_Enable, provider);
+            }
+
+            private static void LogAction(FunctionId functionId, object provider)
+            {
+                if (IsRoslynCodefix(provider))
+                {
+                    Log(functionId, $"Name: {provider.GetType().FullName} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
+                }
+                else
+                {
+                    Log(functionId);
+                }
+            }
+
+            private static bool IsRoslynCodefix(object source) => HasRoslynPublicKey(source);
         }
     }
 }

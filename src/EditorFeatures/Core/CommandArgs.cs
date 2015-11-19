@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             if (textView == null)
             {
-                throw new ArgumentNullException("textView");
+                throw new ArgumentNullException(nameof(textView));
             }
 
             if (subjectBuffer == null)
             {
-                throw new ArgumentNullException("subjectBuffer");
+                throw new ArgumentNullException(nameof(subjectBuffer));
             }
 
             this.TextView = textView;

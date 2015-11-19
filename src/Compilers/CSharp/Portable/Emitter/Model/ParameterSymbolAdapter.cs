@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
         {
             get
             {
-                return this.HasByRefBeforeCustomModifiers;
+                return this.CountOfCustomModifiersPrecedingByRef;
             }
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
                 // For a decimal value, DefaultValue won't be used directly, instead, DecimalConstantAttribute will be generated.
-                // Similarly for DateTime. (C# does not directly support optional parameters with datetime constants, but honors
+                // Similarly for DateTime. (C# does not directly support optional parameters with DateTime constants, but honors
                 // the attributes if [Optional][DateTimeConstant(whatever)] are on the parameter.)
                 return this.ExplicitDefaultConstantValue != null &&
                        this.ExplicitDefaultConstantValue.SpecialType != SpecialType.System_Decimal &&

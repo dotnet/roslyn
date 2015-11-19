@@ -546,7 +546,7 @@ class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
-            
+
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
                 "C: {<F>b__1_2, <F>b__1_4, <>c__DisplayClass1_0, <>c__DisplayClass1_1, <>c}",
@@ -1289,14 +1289,13 @@ class C
             // lambda body unchanged:
             diff1.VerifyIL("C.<>c.<F>b__2_0", @"
 {
-  // Code size       11 (0xb)
+  // Code size        9 (0x9)
   .maxstack  1
   IL_0000:  nop
   IL_0001:  ldc.i4.1
   IL_0002:  call       ""void System.Console.WriteLine(int)""
   IL_0007:  nop
-  IL_0008:  br.s       IL_000a
-  IL_000a:  ret
+  IL_0008:  ret
 }");
 
             var diff2 = compilation2.EmitDifference(
@@ -1311,7 +1310,7 @@ class C
             // lambda body updated:
             diff2.VerifyIL("C.<>c.<F>b__2_0", @"
 {
-  // Code size       18 (0x12)
+  // Code size       16 (0x10)
   .maxstack  1
   IL_0000:  nop
   IL_0001:  ldc.i4.1
@@ -1320,8 +1319,7 @@ class C
   IL_0008:  ldc.i4.2
   IL_0009:  call       ""void System.Console.WriteLine(int)""
   IL_000e:  nop
-  IL_000f:  br.s       IL_0011
-  IL_0011:  ret
+  IL_000f:  ret
 }");
         }
 
@@ -1798,7 +1796,7 @@ class C
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-            
+
             var ctor00 = compilation0.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
             var ctor10 = compilation0.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
             var ctor01 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");

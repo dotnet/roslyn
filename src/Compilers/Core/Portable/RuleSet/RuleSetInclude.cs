@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a RuleSetInclude given the includepath and the effective action.
+        /// Create a RuleSetInclude given the include path and the effective action.
         /// </summary>
         public RuleSetInclude(string includePath, ReportDiagnostic action)
         {

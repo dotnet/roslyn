@@ -25,17 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
             OutputKind outputKind,
-            ModulePropertiesForSerialization serializationProperties,
+            Cci.ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             EmitBaseline previousGeneration,
             IEnumerable<SemanticEdit> edits,
             Func<ISymbol, bool> isAddedSymbol)
-            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper: null, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
+            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
             var initialBaseline = previousGeneration.InitialBaseline;
             var context = new EmitContext(this, null, new DiagnosticBag());
 
-            // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols accross all generations,
+            // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
             var metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation);
             var metadataDecoder = (MetadataDecoder)metadataSymbols.MetadataDecoder;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // both need to be completely lowered (translated). Standard translation only goes one level deep. 
             // Generic arguments are not translated until they are needed by metadata writer. 
             //
-            // In order to get the fully lowered form we run the type symbols of stashed variables thru a deep translator
+            // In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
             // that translates the symbol recursively.
             _deepTranslator = new CSharpSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object));
         }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var metadataDecoder = new MetadataDecoder(metadataAssembly.PrimaryModule);
             var metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder);
             var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder);
-                
+
             return InterlockedOperations.Initialize(ref initialBaseline.LazyMetadataSymbols, metadataSymbols);
         }
 

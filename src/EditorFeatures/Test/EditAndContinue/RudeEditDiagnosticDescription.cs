@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public override int GetHashCode()
         {
-            return 
+            return
                 Hash.Combine(_squiggle,
                 Hash.CombineValues(_arguments, (int)_rudeEditKind));
         }

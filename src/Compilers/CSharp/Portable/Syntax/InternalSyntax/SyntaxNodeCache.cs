@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static bool ChildInCache(GreenNode child)
         {
             // for the purpose of this function consider that 
-            // null nodes, tokens and trivias are cached somwhere else.
+            // null nodes, tokens and trivias are cached somewhere else.
             // TODO: should use slotCount
             if (child == null || child.SlotCount == 0) return true;
 

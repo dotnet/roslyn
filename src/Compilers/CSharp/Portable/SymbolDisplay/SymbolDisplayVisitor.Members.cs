@@ -245,7 +245,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ITypeSymbol containingType;
                     bool includeType;
 
-                    if (symbol.MethodKind == MethodKind.ReducedExtension)
+                    if (symbol.MethodKind == MethodKind.LocalFunction)
+                    {
+                        includeType = false;
+                        containingType = null;
+                    }
+                    else if (symbol.MethodKind == MethodKind.ReducedExtension)
                     {
                         containingType = symbol.ReceiverType;
                         includeType = true;
@@ -280,6 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.Ordinary:
                 case MethodKind.DelegateInvoke:
                 case MethodKind.ReducedExtension:
+                case MethodKind.LocalFunction:
                     //containing type will be the delegate type, name will be Invoke
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
                     break;
@@ -397,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isAccessor)
             {
-                AddTypeArguments(symbol.TypeArguments);
+                AddTypeArguments(symbol.TypeArguments, default(ImmutableArray<ImmutableArray<CustomModifier>>));
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
             }
@@ -464,9 +470,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                ushort countOfCustomModifiersPrecedingByRef = 0;
+                var parameter = symbol as ParameterSymbol;
+                if ((object)parameter != null)
+                {
+                    countOfCustomModifiersPrecedingByRef = parameter.CountOfCustomModifiersPrecedingByRef; 
+                }
+
+                if (countOfCustomModifiersPrecedingByRef > 0)
+                {
+                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
+                }
+
                 symbol.Type.Accept(this.NotFirstVisitor);
 
-                AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
+                if (countOfCustomModifiersPrecedingByRef == 0)
+                {
+                    AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
+                }
+                else if (countOfCustomModifiersPrecedingByRef < symbol.CustomModifiers.Length)
+                {
+                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, countOfCustomModifiersPrecedingByRef, 
+                                                                       symbol.CustomModifiers.Length - countOfCustomModifiersPrecedingByRef), 
+                                                 leadingSpace: true, trailingSpace: false);
+                }
             }
 
             if (includeName && includeType)

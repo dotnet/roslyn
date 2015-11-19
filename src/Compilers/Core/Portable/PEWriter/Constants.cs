@@ -36,37 +36,37 @@ namespace Microsoft.Cci
 
     internal static class TokenTypeIds
     {
-        internal const uint Module = 0x00000000;
-        internal const uint TypeRef = 0x01000000;
-        internal const uint TypeDef = 0x02000000;
-        internal const uint FieldDef = 0x04000000;
-        internal const uint MethodDef = 0x06000000;
-        internal const uint ParamDef = 0x08000000;
-        internal const uint InterfaceImpl = 0x09000000;
-        internal const uint MemberRef = 0x0a000000;
-        internal const uint Constant = 0x0b000000;
-        internal const uint CustomAttribute = 0x0c000000;
-        internal const uint Permission = 0x0e000000;
-        internal const uint Signature = 0x11000000;
-        internal const uint EventMap = 0x12000000;
-        internal const uint Event = 0x14000000;
-        internal const uint PropertyMap = 0x15000000;
-        internal const uint Property = 0x17000000;
-        internal const uint MethodSemantics = 0x18000000;
-        internal const uint MethodImpl = 0x19000000;
-        internal const uint ModuleRef = 0x1a000000;
-        internal const uint TypeSpec = 0x1b000000;
-        internal const uint Assembly = 0x20000000;
-        internal const uint AssemblyRef = 0x23000000;
-        internal const uint File = 0x26000000;
-        internal const uint ExportedType = 0x27000000;
-        internal const uint ManifestResource = 0x28000000;
-        internal const uint NestedClass = 0x29000000;
-        internal const uint GenericParam = 0x2a000000;
-        internal const uint MethodSpec = 0x2b000000;
-        internal const uint GenericParamConstraint = 0x2c000000;
-        internal const uint UserString = 0x70000000;
-        internal const uint String = 0x71000000;
+        internal const int Module = 0x00000000;
+        internal const int TypeRef = 0x01000000;
+        internal const int TypeDef = 0x02000000;
+        internal const int FieldDef = 0x04000000;
+        internal const int MethodDef = 0x06000000;
+        internal const int ParamDef = 0x08000000;
+        internal const int InterfaceImpl = 0x09000000;
+        internal const int MemberRef = 0x0a000000;
+        internal const int Constant = 0x0b000000;
+        internal const int CustomAttribute = 0x0c000000;
+        internal const int Permission = 0x0e000000;
+        internal const int Signature = 0x11000000;
+        internal const int EventMap = 0x12000000;
+        internal const int Event = 0x14000000;
+        internal const int PropertyMap = 0x15000000;
+        internal const int Property = 0x17000000;
+        internal const int MethodSemantics = 0x18000000;
+        internal const int MethodImpl = 0x19000000;
+        internal const int ModuleRef = 0x1a000000;
+        internal const int TypeSpec = 0x1b000000;
+        internal const int Assembly = 0x20000000;
+        internal const int AssemblyRef = 0x23000000;
+        internal const int File = 0x26000000;
+        internal const int ExportedType = 0x27000000;
+        internal const int ManifestResource = 0x28000000;
+        internal const int NestedClass = 0x29000000;
+        internal const int GenericParam = 0x2a000000;
+        internal const int MethodSpec = 0x2b000000;
+        internal const int GenericParamConstraint = 0x2c000000;
+        internal const int UserString = 0x70000000;
+        internal const int String = 0x71000000;
     }
 
     internal enum TypeFlags : uint

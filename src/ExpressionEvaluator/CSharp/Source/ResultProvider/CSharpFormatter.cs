@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
         }
 
+        internal override bool IsValidIdentifier(string name)
+        {
+            return SyntaxFacts.IsValidIdentifier(name);
+        }
+
         internal override bool IsIdentifierPartCharacter(char c)
         {
             return SyntaxFacts.IsIdentifierPartCharacter(c);

@@ -314,7 +314,7 @@ End Class
 
             Dim declaringNodes As ImmutableArray(Of SyntaxReference) = localA1Type.DeclaringSyntaxReferences
 
-            'Object Not Anonymous Type - when multipel modifier issues is resolved
+            'Object Not Anonymous Type - when multiple modifier issues is resolved
             Assert.False(localA1Type.IsAnonymousType)
             CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, localA1Type, 0, SyntaxKind.AnonymousObjectCreationExpression)
 

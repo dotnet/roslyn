@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '
                     ' NOTE: Following C# implementation we avoid parsing/printing of the xml
                     '       in this case, which might differ in terms of printed whitespaces 
-                    '       if we compare to the result of parse/print scenaro
+                    '       if we compare to the result of parse/print scenario
                     If sourceIncludeElementNodes Is Nothing Then
                         Return unprocessed
                     End If

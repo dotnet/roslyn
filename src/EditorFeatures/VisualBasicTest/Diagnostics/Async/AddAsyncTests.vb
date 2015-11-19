@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AddAsync
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
     Public Class AddAsyncTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -269,6 +269,24 @@ Class Program
 End Class
 </File>
             Test(initial, expected)
+        End Sub
+
+        <WorkItem(6477, "https://github.com/dotnet/roslyn/issues/6477")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
+        Public Sub NullNodeCrash()
+            Dim initial =
+<File>
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Async Sub Main(args As String())
+        [|Await|]
+        Await Task.Delay(7)
+    End Sub
+End Module
+</File>
+            TestMissing(initial)
         End Sub
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)

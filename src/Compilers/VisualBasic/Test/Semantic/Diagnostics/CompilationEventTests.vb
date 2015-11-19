@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End If
             Next
             If expected.Count <> 0 Then
-                Console.WriteLine("MISING EVENTS:")
+                Console.WriteLine("MISSING EVENTS:")
             End If
             For Each e In expected
                 Console.WriteLine(e)

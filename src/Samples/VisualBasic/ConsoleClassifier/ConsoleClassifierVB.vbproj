@@ -4,8 +4,7 @@
     <UseRoslynAnalyzers>false</UseRoslynAnalyzers>
   </PropertyGroup>
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -50,10 +49,6 @@
     <Reference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces">
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll</HintPath>
       <Private>false</Private>
-    </Reference>
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -109,7 +104,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -119,7 +114,6 @@
   </Target>
   -->
   <ImportGroup Label="Targets">
-    <Import Project="$(SolutionDir)..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>

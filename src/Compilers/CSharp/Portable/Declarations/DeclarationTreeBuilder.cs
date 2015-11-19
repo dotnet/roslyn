@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntaxTree _syntaxTree;
         private readonly string _scriptClassName;
         private readonly bool _isSubmission;
-        private List<Diagnostic> _referenceDirectiveDiagnostics;
 
         private DeclarationTreeBuilder(SyntaxTree syntaxTree, string scriptClassName, bool isSubmission)
         {
@@ -138,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 treeNode: _syntaxTree.GetReference(compilationUnit),
                 children: rootChildren.ToImmutableAndFree(),
                 referenceDirectives: GetReferenceDirectives(compilationUnit),
-                referenceDirectiveDiagnostics: _referenceDirectiveDiagnostics.AsImmutableOrEmpty(),
                 hasAssemblyAttributes: compilationUnit.AttributeLists.Any());
         }
 
@@ -207,46 +205,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var children = VisitNamespaceChildren(compilationUnit, compilationUnit.Members, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members);
 
-            // no diagnostics should be reported from a non-script tree:
-            Debug.Assert(_referenceDirectiveDiagnostics == null);
-
             return new RootSingleNamespaceDeclaration(
                 hasUsings: compilationUnit.Usings.Any(),
                 hasExternAliases: compilationUnit.Externs.Any(),
                 treeNode: _syntaxTree.GetReference(compilationUnit),
                 children: children,
                 referenceDirectives: ImmutableArray<ReferenceDirective>.Empty,
-                referenceDirectiveDiagnostics: GetMisplacedReferenceDirectivesDiagnostics(compilationUnit),
                 hasAssemblyAttributes: compilationUnit.AttributeLists.Any());
-        }
-
-        private static ImmutableArray<Diagnostic> GetMisplacedReferenceDirectivesDiagnostics(CompilationUnitSyntax compilation)
-        {
-            // report errors for the first #r directive - they are not allowed in regular code:
-            var directives = compilation.GetReferenceDirectives();
-            if (directives.Count == 0)
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
-
-            return ImmutableArray.Create<Diagnostic>(
-                new CSDiagnostic(
-                    new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_ReferenceDirectiveOnlyAllowedInScripts),
-                    new SourceLocation(directives[0])));
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
         {
             var children = VisitNamespaceChildren(node, node.Members, node.Green.Members);
-
-            if (_syntaxTree.Options.Kind == SourceCodeKind.Interactive || _syntaxTree.Options.Kind == SourceCodeKind.Script)
-            {
-                _referenceDirectiveDiagnostics = _referenceDirectiveDiagnostics ?? new List<Diagnostic>();
-
-                _referenceDirectiveDiagnostics.Add(new CSDiagnostic(
-                    new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_NamespaceNotAllowedInScript),
-                    new SourceLocation(node.NamespaceKeyword)));
-            }
 
             bool hasUsings = node.Usings.Any();
             bool hasExterns = node.Externs.Any();

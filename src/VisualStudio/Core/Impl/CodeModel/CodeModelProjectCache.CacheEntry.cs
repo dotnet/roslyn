@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // if we still have a client alive.
             //
             // NOTE: This is _NOT_ AddRef'd.  We use it just to store the integer value of the
-            // IUnkown for comparison purposes.
+            // IUnknown for comparison purposes.
             private readonly WeakComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> _fileCodeModelWeakComHandle;
 
             public CacheEntry(ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> handle)

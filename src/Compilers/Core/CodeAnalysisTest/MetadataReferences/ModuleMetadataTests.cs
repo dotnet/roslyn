@@ -7,7 +7,6 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
 using System.Reflection.PortableExecutable;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public unsafe void CreateFromMetadata_Assembly()
         {
-            var assembly = TestResources.MetadataTests.Basic.Members;
+            var assembly = TestResources.Basic.Members;
             PEHeaders h = new PEHeaders(new MemoryStream(assembly));
 
             fixed (byte* ptr = &assembly[h.MetadataStartOffset])
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Disposal()
         {
-            var md = ModuleMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib);
+            var md = ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
             md.Dispose();
             Assert.Throws<ObjectDisposedException>(() => md.Module);
             md.Dispose();
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ImageOwnership()
         {
-            var m = ModuleMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib);
+            var m = ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
             var copy1 = m.Copy();
             var copy2 = copy1.Copy();
 

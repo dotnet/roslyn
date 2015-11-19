@@ -216,11 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
 
                 case TypeKind.Submission:
-                // script class is synthetized, never used as a constraint
+                // script class is synthesized, never used as a constraint
 
                 default:
-                    Debug.Assert(false, "Unexpected type kind: " + type.TypeKind);
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
             }
 
             if (type.ContainsDynamic())

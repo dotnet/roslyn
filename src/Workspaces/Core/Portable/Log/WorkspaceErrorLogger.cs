@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 namespace Microsoft.CodeAnalysis.ErrorLogger
 {
     [ExportWorkspaceService(typeof(IErrorLoggerService)), Export(typeof(IErrorLoggerService)), Shared]
-    class WorkspaceErrorLogger : IErrorLoggerService
+    internal class WorkspaceErrorLogger : IErrorLoggerService
     {
         public void LogException(object source, Exception exception)
         {

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            // If we've finished computing the completions then use the nagivation commands to
+            // If we've finished computing the completions then use the navigation commands to
             // change the selected item.  Otherwise, the user was just typing and is now moving
             // through the file.  In this case stop everything we're doing.
             var model = sessionOpt.Computation.InitialUnfilteredModel != null ? sessionOpt.Computation.WaitForController() : null;

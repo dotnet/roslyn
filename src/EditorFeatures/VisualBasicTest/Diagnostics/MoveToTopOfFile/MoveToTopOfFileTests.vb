@@ -317,20 +317,20 @@ End Module
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub AttributePrserveTrivia()
+        Public Sub AttributePreserveTrivia()
             Dim text = <File>
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Comment
 Module Program
     Sub Main(args As String())
 
     End Sub
-    &lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt; 'Bomment
+    &lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt; 'Another Comment
 End Module 
 </File>
 
             Dim expected = <File>
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Comment
-&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Bomment
+&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Another Comment
 Module Program
     Sub Main(args As String())
     End Sub
@@ -399,7 +399,7 @@ Imports System
 #End Region
 
         <WorkItem(632305)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestHiddenRegion()
             Dim code =
 <File>

@@ -569,7 +569,7 @@ System.Nullable`1[ELong]: one
 System.Nullable`1[ELong]: <null>
 System.Nullable`1[ELong]: <null>";
 
-            CompileAndVerify(source, expectedOutput: expected, emitters: TestEmitters.RefEmitBug_646048);
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -1986,7 +1986,7 @@ public class C
                 Assert.False(parameters[4].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
                 Assert.True(parameters[4].HasMetadataConstantValue);
-                Assert.Equal(ConstantValue.Create(0), parameters[4].ExplicitDefaultConstantValue); 
+                Assert.Equal(ConstantValue.Create(0), parameters[4].ExplicitDefaultConstantValue);
                 Assert.Equal(isFromSource ? 1 : 0, parameters[4].GetAttributes().Length);
 
                 Assert.False(parameters[5].IsOptional);
@@ -2060,7 +2060,7 @@ public struct S
             };
 
             // TODO: RefEmit doesn't emit the default value of M1's parameter.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2119,20 +2119,20 @@ public class C
                 Assert.False(parameters[4].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
                 Assert.True(parameters[4].HasMetadataConstantValue);
-                Assert.Equal(ConstantValue.Null, parameters[4].ExplicitDefaultConstantValue); 
+                Assert.Equal(ConstantValue.Null, parameters[4].ExplicitDefaultConstantValue);
                 Assert.Equal(isFromSource ? 1 : 0, parameters[4].GetAttributes().Length);
 
                 Assert.True(parameters[5].IsOptional);
                 Assert.True(parameters[5].HasExplicitDefaultValue);
                 Assert.Null(parameters[5].ExplicitDefaultValue);
-                Assert.Equal(ConstantValue.Null, parameters[5].ExplicitDefaultConstantValue); 
+                Assert.Equal(ConstantValue.Null, parameters[5].ExplicitDefaultConstantValue);
                 Assert.Equal(isFromSource ? 2 : 0, parameters[5].GetAttributes().Length);
 
                 Assert.False(parameters[6].IsOptional);
                 Assert.False(parameters[6].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[6].ExplicitDefaultValue);
                 Assert.True(parameters[6].HasMetadataConstantValue);
-                Assert.Equal(ConstantValue.Create("A"), parameters[6].ExplicitDefaultConstantValue); 
+                Assert.Equal(ConstantValue.Create("A"), parameters[6].ExplicitDefaultConstantValue);
                 Assert.Equal(isFromSource ? 1 : 0, parameters[6].GetAttributes().Length);
 
                 Assert.True(parameters[7].IsOptional);
@@ -2302,7 +2302,7 @@ public class C
             };
 
             // TODO: Guess - RefEmit doesn't like DateTime constants.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
     }
 }

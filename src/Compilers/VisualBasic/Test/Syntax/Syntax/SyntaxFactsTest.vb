@@ -121,7 +121,7 @@ Public Class SyntaxFactsTests
     End Sub
 
     <Fact>
-    Public Sub GetInstanceExpresssion()
+    Public Sub GetInstanceExpression()
         Assert.Equal(SyntaxKind.None, SyntaxFacts.GetInstanceExpression(SyntaxKind.DeclareKeyword))
         Assert.Equal(SyntaxKind.MeExpression, SyntaxFacts.GetInstanceExpression(SyntaxKind.MeKeyword))
         Assert.Equal(SyntaxKind.MyBaseExpression, SyntaxFacts.GetInstanceExpression(SyntaxKind.MyBaseKeyword))

@@ -213,7 +213,7 @@ public interface I
                     "x.F()",
                     DkmEvaluationFlags.TreatAsExpression,
                     NoAliases,
-                    DiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
                     out missingAssemblyIdentities,

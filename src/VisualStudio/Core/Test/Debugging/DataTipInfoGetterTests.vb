@@ -11,6 +11,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
+
     Public Class DataTipInfoGetterTests
 
         Private Sub TestNoDataTip(input As XElement)
@@ -47,12 +48,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestVisualBasicLanguageDebugInfoGetDataTipSpanAndText()
             Test(<text>Module [|$$M|] : End Module</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub Test1()
             Test(<text>
 class C
@@ -62,7 +63,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub Test2()
             Test(<text>
 class C
@@ -72,7 +73,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub Test3()
             Test(<text>
 class C
@@ -82,7 +83,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub Test4()
             Test(<text>
 class C
@@ -92,27 +93,27 @@ class C
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub Test5()
             Test(<text>
 class C
   sub Foo()
-    [|System.Console.Wri$$teLine|](args)
+    [|System.Console.Wri$$teLine(args)|]
   end sub
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub Test6()
             TestNoDataTip(<text>
 class C
   sub Foo()
-    [|System.Console.WriteLine|]$$(args)
+    System.Console.WriteLine$$(args)
   end sub
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub Test7()
             Test(<text>
 class C
@@ -122,17 +123,17 @@ class C
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub Test8()
             TestNoDataTip(<text>
 class C
   sub Foo()
-    [|System.Console.WriteLine|](args$$)
+    System.Console.WriteLine(args$$)
   end sub
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub Test9()
             Test(<text>
 class C
@@ -142,7 +143,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestLiterals()
             TestNoDataTip(<text>
 class C
@@ -152,7 +153,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestNonExpressions()
             TestNoDataTip(<text>
 class C
@@ -163,7 +164,7 @@ end class</text>)
         End Sub
 
         <WorkItem(538152)>
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestOnComma()
             TestNoDataTip(<text>
 class C
@@ -175,7 +176,7 @@ end class</text>)
         End Sub
 
         <WorkItem(546280)>
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestOnParameter()
             Test(<text>
 Module Module1
@@ -191,7 +192,7 @@ End Module
         End Sub
 
         <WorkItem(942699)>
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestOnCatchVariable()
             Test(<text>
 Module Module1
@@ -206,7 +207,7 @@ End Module
 </text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestOnTypeDeclaration()
             Test(<text>
 Module [|$$M|]
@@ -234,7 +235,7 @@ Delegate Sub [|$$M|] ()
 </text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestOnEnumMember()
             Test(<text>
 Enum E
@@ -243,7 +244,7 @@ End Enum
 </text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestOnTypeParameter()
             Test(<text>
 Class C(Of [|$$T|])
@@ -257,7 +258,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestOnProperty()
             Test(<text>
 Class C
@@ -266,7 +267,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestOnEvent()
             Test(<text>
 Class C
@@ -275,7 +276,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestOnMethod()
             Test(<text>
 Class C
@@ -285,7 +286,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips)>
         Public Sub TestInQuery()
             Test(<text>
 Class C
@@ -304,7 +305,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
         Public Sub TestConditionalAccessExpression()
             Const sourceTemplate = "
 Class A
@@ -370,7 +371,7 @@ End Class
             Test(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]") %></text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(1077843)>
         Public Sub TestConditionalAccessExpression_Dictionary()
             Const sourceTemplate = "
 Class A
@@ -400,5 +401,40 @@ End Class
             Test(<text><%= String.Format(sourceTemplate, "[|Me?!B?!$$C|]") %></text>)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(2602)>
+        Public Sub TestParameterizedProperty()
+            Const sourceTemplate = "
+Class Class1
+    Public row = New DataRow()
+
+    Function F()
+        Return {0}
+    End Function
+
+    Public ReadOnly Property Item(ByVal i As Integer) As String
+        Get
+            Return str
+        End Get
+    End Property
+
+    Class DataRow
+        Public ReadOnly Property Item(ByVal str As String) As String
+            Get
+                Return str
+            End Get
+        End Property
     End Class
+End Class
+"
+
+            Test(<text><%= String.Format(sourceTemplate, "[|$$Item(42)|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|row.It$$em(""Test Row"")|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|row?.Ite$$m(""Test Row"")|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.row.$$Item(""Test Row"")|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.row?.It$$em(""Test Row"")|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.row?.It$$em(""Test Row"")|].Length") %></text>)
+        End Sub
+
+    End Class
+
 End Namespace

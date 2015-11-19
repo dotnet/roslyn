@@ -2305,12 +2305,8 @@ return 1;
     // (7,13): error CS1043: { or ; expected
     //         get return 1;
     Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "return"),
-    // (9,15): error CS1014: A get or set accessor expected
-    // public static int Main()
-    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "int"),
-    // (9,15): error CS1513: } expected
-    // public static int Main()
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "int"));
+    // (8,2): error CS1513: } expected
+    Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
         [Fact]
@@ -4367,6 +4363,45 @@ partial class X
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "partial").WithArguments("partial method", "3"));
         }
 
+        [Fact]
+        public void InterpolatedStringBeforeCSharp6()
+        {
+            var text = @"
+class C
+{
+    string M()
+    {
+        return $""hello"";
+    }
+}";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+                // (6,16): error CS8026: Feature 'interpolated strings' is not available in C# 5.  Please use language version 6 or greater.
+                //         return $"hello";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello""").WithArguments("interpolated strings", "6").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void InterpolatedStringWithReplacementBeforeCSharp6()
+        {
+            var text = @"
+class C
+{
+    string M()
+    {
+        string other = ""world"";
+        return $""hello + {other}"";
+    }
+}";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
+            // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5.  Please use language version 6 or greater.
+            //         return $"hello + {other}";
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
+        }
+
         [WorkItem(529870, "DevDiv")]
         [Fact]
         public void AsyncBeforeCSharp5()
@@ -4681,6 +4716,7 @@ class C
         }
 
         var s = o?.ToString(); // null propagating operator
+        var x = $""hello world"";
     }
 }";
             SyntaxFactory.ParseSyntaxTree(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)).GetDiagnostics().Verify();
@@ -4709,7 +4745,10 @@ class C
     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "when").WithArguments("exception filter", "6").WithLocation(18, 32),
     // (21,17): error CS8026: Feature 'null propagating operator' is not available in C# 5.  Please use language version 6 or greater.
     //         var s = o?.ToString(); // null propagating operator
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "o?.ToString()").WithArguments("null propagating operator", "6").WithLocation(21, 17)
+    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "o?.ToString()").WithArguments("null propagating operator", "6").WithLocation(21, 17),
+    // (22,17): error CS8026: Feature 'interpolated strings' is not available in C# 5.  Please use language version 6 or greater.
+    //         var x = $"hello world";
+    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello world""").WithArguments("interpolated strings", "6").WithLocation(22, 17)
                 );
         }
 

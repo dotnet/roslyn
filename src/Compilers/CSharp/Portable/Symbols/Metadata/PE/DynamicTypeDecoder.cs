@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// Comments from the C# design document for Dynamic:
     /// SPEC:   To represent the dynamic type in metadata, any indexer, field or return value typed as dynamic or known to be a constructed type
     /// SPEC:   containing dynamic will have each occurrence of dynamic erased to object and will be annotated with a [DynamicAttribute].
-    /// SPEC:   If the relevant type is a constructed type, the attribute’s constructor is passed a bool array.
-    /// SPEC:   This array represents a preorder traversal of each “node” in the constructed type’s “tree of types”,
-    /// SPEC:   with true set for each “node” that is dynamic, and false set for all other types.
+    /// SPEC:   If the relevant type is a constructed type, the attribute's constructor is passed a bool array.
+    /// SPEC:   This array represents a preorder traversal of each "node" in the constructed type's "tree of types",
+    /// SPEC:   with true set for each "node" that is dynamic, and false set for all other types.
     /// SPEC:   When dynamic occurs as part of the base type of a type, the applicable [DynamicAttribute] is applied to the type itself.
     /// </remarks>
     internal struct DynamicTypeDecoder
@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             Debug.Assert(containingAssembly is SourceAssemblySymbol); // Doesn't happen during decoding.
             return TransformTypeInternal(
-                type, 
-                containingAssembly, 
-                0, 
-                targetSymbolRefKind, 
-                dynamicTransformFlags, 
-                haveCustomModifierFlags: false, 
+                type,
+                containingAssembly,
+                0,
+                targetSymbolRefKind,
+                dynamicTransformFlags,
+                haveCustomModifierFlags: false,
                 checkLength: checkLength);
         }
 
@@ -232,7 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Native compiler encodes bools for each type argument, starting from type arguments for the outermost containing type to those for the given namedType.
             ImmutableArray<TypeSymbol> typeArguments = namedType.TypeArgumentsNoUseSiteDiagnostics;
-            ImmutableArray<TypeSymbol> transformedTypeArguments = TransformTypeArguments(typeArguments);
+            var customModifiers = namedType.HasTypeArgumentsCustomModifiers ? namedType.TypeArgumentsCustomModifiers : default(ImmutableArray<ImmutableArray<CustomModifier>>);
+
+            ImmutableArray<TypeSymbol> transformedTypeArguments = TransformTypeArguments(typeArguments); // Note, modifiers are not involved, this is behavior of the native compiler.
 
             if (transformedTypeArguments.IsDefault)
             {
@@ -240,14 +242,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // Construct a new namedType, if required.
-            if (newContainingType != containingType)
+            bool containerIsChanged = (newContainingType != containingType);
+
+            if (containerIsChanged || transformedTypeArguments != typeArguments)
             {
-                namedType = namedType.OriginalDefinition.AsMember(newContainingType);
-                return namedType.ConstructIfGeneric(transformedTypeArguments);
-            }
-            else if (transformedTypeArguments != typeArguments)
-            {
-                return namedType.ConstructedFrom.Construct(transformedTypeArguments);
+                var newTypeArguments = customModifiers.IsDefault ?
+                                       transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers) :
+                                       transformedTypeArguments.Zip(customModifiers, (t, m) => new TypeWithModifiers(t, m)).AsImmutable();
+
+                if (containerIsChanged)
+                {
+                    namedType = namedType.OriginalDefinition.AsMember(newContainingType);
+                    return namedType.ConstructIfGeneric(newTypeArguments);
+                }
+
+                return namedType.ConstructedFrom.Construct(newTypeArguments, unbound: false);
             }
             else
             {
@@ -304,7 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return transformedElementType == arrayType.ElementType ?
                 arrayType :
-                new ArrayTypeSymbol(_containingAssembly, transformedElementType, arrayType.CustomModifiers, arrayType.Rank);
+                arrayType.IsSZArray ?
+                    ArrayTypeSymbol.CreateSZArray(_containingAssembly, transformedElementType, arrayType.CustomModifiers) :
+                    ArrayTypeSymbol.CreateMDArray(_containingAssembly, transformedElementType, arrayType.Rank, arrayType.Sizes, arrayType.LowerBounds, arrayType.CustomModifiers);
         }
 
         private PointerTypeSymbol TransformPointerType(PointerTypeSymbol pointerType)

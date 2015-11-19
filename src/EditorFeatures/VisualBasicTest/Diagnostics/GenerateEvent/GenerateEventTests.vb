@@ -21,7 +21,7 @@ NewLines("Interface MyInterface \n Event E() \n End Interface \n Class C \n Impl
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
-        Public Sub TestNotIfIndentifierMissing()
+        Public Sub TestNotIfIdentifierMissing()
             TestMissing(
 NewLines("Interface MyInterface \n End Interface \n Class C \n Implements MyInterface \n Event foo() Implements [|MyInterface.|] \n End Class"))
         End Sub
@@ -246,7 +246,7 @@ public class EventClass
 
 public delegate void XEventHandler(string argument);
 </Text>.NormalizedValue
-            Test(initialMarkup, expected, compareTokens:=False, isLine:=False)
+            Test(initialMarkup, expected, compareTokens:=False)
         End Sub
 
         <WorkItem(774321)>
@@ -284,7 +284,7 @@ public class EventClass
 
 public delegate void XEventHandler(string argument);
 </Text>.NormalizedValue
-            Test(initialMarkup, expected, compareTokens:=False, isLine:=False)
+            Test(initialMarkup, expected, compareTokens:=False)
         End Sub
 
         <WorkItem(774321)>
@@ -326,7 +326,7 @@ public class EventClass
 
 public delegate void XEventHandler(object sender, EventArgs e);
 </Text>.NormalizedValue
-            Test(initialMarkup, expected, compareTokens:=False, isLine:=False)
+            Test(initialMarkup, expected, compareTokens:=False)
         End Sub
 
         <WorkItem(774321)>
@@ -368,7 +368,7 @@ public class EventClass
 
 public delegate void XEventHandler(object sender, EventArgs e);
 </Text>.NormalizedValue
-            Test(initialMarkup, expected, compareTokens:=False, isLine:=False)
+            Test(initialMarkup, expected, compareTokens:=False)
         End Sub
 
         <WorkItem(774321)>
@@ -409,7 +409,7 @@ public class EventClass
 
 public delegate void XEventHandler(object a, EventArgs b);
 </Text>.NormalizedValue
-            Test(initialMarkup, expected, compareTokens:=False, isLine:=False)
+            Test(initialMarkup, expected, compareTokens:=False)
         End Sub
 
         <WorkItem(774321)>
@@ -450,7 +450,7 @@ public class EventClass
 
 public delegate void XEventHandler(object a, EventArgs b);
 </Text>.NormalizedValue
-            Test(initialMarkup, expected, compareTokens:=False, isLine:=False)
+            Test(initialMarkup, expected, compareTokens:=False)
         End Sub
 
         <WorkItem(774321)>

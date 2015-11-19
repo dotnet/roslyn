@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Enum CharFlags As UShort
             White = 1 << 0   ' simple whitespace (space/tab)
             Letter = 1 << 1    ' letter, except for "R" (because of REM) and "_"
-            IdentOnly = 1 << 2  ' alowed only in identifiers (cannot start one) - letter "R" (because of REM), "_"
+            IdentOnly = 1 << 2  ' allowed only in identifiers (cannot start one) - letter "R" (because of REM), "_"
             TypeChar = 1 << 3  ' legal type character (except !, which is contextually dictionary lookup
             Punct = 1 << 4     ' some simple punctuation (parens, braces, dot, comma, equals, question)
             CompoundPunctStart = 1 << 5 ' may be a part of compound punctuation. will be used only if followed by (not white) && (not punct)

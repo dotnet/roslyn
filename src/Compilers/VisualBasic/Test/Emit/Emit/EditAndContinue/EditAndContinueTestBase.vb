@@ -135,6 +135,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                        ElseIf s.IsKind(SyntaxKind.PropertyStatement) Then
                            Assert.True(sourceMethod0.BlockSyntax.IsKind(SyntaxKind.GetAccessorBlock))
                            Return DirectCast(sourceMethod0.BlockSyntax.Parent, PropertyBlockSyntax).PropertyStatement
+                       ElseIf s.IsKind(SyntaxKind.EventStatement) Then
+                           Assert.True(sourceMethod0.BlockSyntax.IsKind(SyntaxKind.AddHandlerAccessorBlock))
+                           Return DirectCast(sourceMethod0.BlockSyntax.Parent, PropertyBlockSyntax).PropertyStatement
                        End If
 
                        For Each s0 In locals0

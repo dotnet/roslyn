@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{D1B051A4-F2A1-4E97-9747-C41D13E475FD}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CSharpInteractive</RootNamespace>
+    <AssemblyName>csi</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <OutDir>$(OutDir)csicore\</OutDir>
+    <RestorePackages>true</RestorePackages>
+    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
+      <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
+      <Name>Scripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
+      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
+      <Name>CSharpScripting</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="csi.rsp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Csi.cs" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

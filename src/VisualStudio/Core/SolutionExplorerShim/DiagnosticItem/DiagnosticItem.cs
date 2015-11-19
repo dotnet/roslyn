@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 // we use message format here since we don't have actual instance of diagnostic here. 
                 // (which means we do not have a message)
-                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.MessageFormat.ToString(DiagnosticData.USCultureInfo), language, projectType);
+                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.GetBingHelpMessage(), language, projectType);
             }
 
             return null;
@@ -132,11 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void NotifyPropertyChanged(string propertyName)
         {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         internal void SetSeverity(ReportDiagnostic value, string pathToRuleSet)

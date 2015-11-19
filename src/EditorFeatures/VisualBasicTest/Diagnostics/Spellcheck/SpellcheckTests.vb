@@ -31,7 +31,7 @@ End Class</File>
         Dim a = new [|Fooa|].ToString()
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Fooa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Fooa", "Boolean"), String.Format(VBFeaturesResources.ChangeTo, "Fooa", "Global")})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Fooa", "Foo")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -41,7 +41,8 @@ End Class</File>
         Dim a as [|Foa|]
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
+            TestExactActionSetOffered(text.NormalizedValue,
+                {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -51,7 +52,8 @@ End Class</File>
         Dim a as [|Foa|]
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
+            TestExactActionSetOffered(text.NormalizedValue,
+                {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -60,7 +62,8 @@ End Class</File>
     Sub Bar(a as Func(Of [|Foa|]))
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
+            TestExactActionSetOffered(text.NormalizedValue,
+                {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -71,7 +74,7 @@ End Class</File>
         Dim y = 2 + [|zza|]
     End Sub
 End Module</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "zza", "zzz"), String.Format(VBFeaturesResources.ChangeTo, "zza", "Char"), String.Format(VBFeaturesResources.ChangeTo, "zza", "Await")})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "zza", "zzz")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -80,11 +83,11 @@ End Module</File>
             Dim text = <File>Imports System
 Public Class Class1
     Sub F()
-        If TypeOf x Is [|blah|] Then
+        If TypeOf x Is [|Boolea|] Then
         End If
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "blah", "Boolean"), String.Format(VBFeaturesResources.ChangeTo, "blah", "Lazy"), String.Format(VBFeaturesResources.ChangeTo, "blah", "Math")})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -93,11 +96,11 @@ End Class</File>
             Dim text = <File>Imports System
 Public Class Class1
     Sub F()
-        If TypeOf x IsNot [|blah|] Then
+        If TypeOf x IsNot [|Boolea|] Then
         End If
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "blah", "Boolean"), String.Format(VBFeaturesResources.ChangeTo, "blah", "Lazy"), String.Format(VBFeaturesResources.ChangeTo, "blah", "Math")})
+            TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -313,7 +316,7 @@ End Module</File>
         End Sub
 
         <WorkItem(547166)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub KeepEscapedIdentifiersEscaped()
             Dim text = <File>
 Module Program
@@ -341,7 +344,7 @@ End Module</File>
         End Sub
 
         <WorkItem(547166)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub NoDuplicateCorrections()
             Dim text = <File>
 Module Program
@@ -365,17 +368,19 @@ Module Program
     End Sub
 End Module</File>
 
-            TestActionCount(text.ConvertTestSourceTag(), 3)
+            TestActionCount(text.ConvertTestSourceTag(), 1)
             Test(text, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <ConditionalFact(GetType(x86))>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WorkItem(5391, "https://github.com/dotnet/roslyn/issues/5391")>
         Public Sub SuggestEscapedPredefinedTypes()
             Dim text = <File>
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-                           
+
 Module Program
     Class [Integer]
     End Class
@@ -385,25 +390,11 @@ Module Program
     End Sub
 End Module</File>
 
-            Dim expected = <File>
+            Dim expected0 = <File>
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-                           
-Module Program
-    Class [Integer]
-    End Class
 
-    Sub Main(args As String())
-        Dim x as Integer
-    End Sub
-End Module</File>
-
-            Dim expected2 = <File>
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-                           
 Module Program
     Class [Integer]
     End Class
@@ -413,9 +404,23 @@ Module Program
     End Sub
 End Module</File>
 
+            Dim expected1 = <File>
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Class [Integer]
+    End Class
+
+    Sub Main(args As String())
+        Dim x as Integer
+    End Sub
+End Module</File>
+
             TestActionCount(text.ConvertTestSourceTag(), 3)
-            Test(text, expected, index:=0)
-            Test(text, expected2, index:=1)
+            Test(text, expected0, index:=0)
+            Test(text, expected1, index:=1)
         End Sub
 
         <WorkItem(775448)>
@@ -462,13 +467,20 @@ NewLines("Class AwesomeClass \n Sub M() \n Dim foo = New AwesomeClass() \n End S
 index:=0)
         End Sub
 
+        <WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestMissingName()
+            TestMissing(
+NewLines("<Assembly: Microsoft.CodeAnalysis.[||]>"))
+        End Sub
+
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
                     New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
-                    New SpellcheckCodeFixProvider())
+                    New SpellCheckCodeFixProvider())
             End Function
 
             <WorkItem(829970)>

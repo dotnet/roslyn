@@ -57,6 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return this.Projects;
         }
 
+        void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)
+        {
+            var abstractProject = (AbstractProject)project;
+            StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(abstractProject));
+        }
+
         private uint? _solutionEventsCookie;
 
         public VisualStudioProjectTracker(IServiceProvider serviceProvider)
@@ -209,9 +215,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments(IEnumerable<AbstractProject> projects)
         {
-            foreach (var hostState in _workspaceHosts)
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
-                hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
+                foreach (var hostState in _workspaceHosts)
+                {
+                    hostState.StartPushingToWorkspaceAndNotifyOfOpenDocuments(projects);
+                }
             }
         }
 

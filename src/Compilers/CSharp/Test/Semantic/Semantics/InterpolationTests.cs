@@ -577,11 +577,6 @@ class Program
         // Since the platform type System.FormattableString is not yet in our platforms (at the
         // time of writing), we explicitly include the required platform types into the sources under test.
         private const string formattableString = @"
-// ==++==
-// 
-//   Copyright (c) Microsoft Corporation.  All rights reserved.
-// 
-// ==--==
 /*============================================================
 **
 ** Class:  FormattableString
@@ -661,11 +656,6 @@ namespace System
 }
 
 
-// ==++==
-// 
-//   Copyright (c) Microsoft Corporation.  All rights reserved.
-// 
-// ==--==
 /*============================================================
 **
 ** Class:  FormattableStringFactory
@@ -1006,7 +996,7 @@ class Program {
     }
 }";
             var comp = CreateCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            var compilation = CompileAndVerify(comp, emitters: CodeAnalysis.Test.Utilities.TestEmitters.RefEmitUnsupported, verify: false);
+            var compilation = CompileAndVerify(comp, verify: false);
             compilation.VerifyIL("System.Program.Main",
 @"{
   // Code size       35 (0x23)

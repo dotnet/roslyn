@@ -228,9 +228,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For scenario (b), at present, we do not expose the diagnostics for speculative binding, hence we can return NoLocation.
                 // In future, if we decide to support this, we will need some mechanism to distinguish between scenarios (a) and (b) here.
 
-                SyntaxTree tree = SyntaxTree;
+                var tree = (CSharpSyntaxTree)SyntaxTree;
                 Debug.Assert(tree != null);
-                return (!tree.HasCompilationUnitRoot) ? NoLocation.Singleton : new SourceLocation(this);
+                return !tree.SupportsLocations ? NoLocation.Singleton : new SourceLocation(this);
             }
         }
 

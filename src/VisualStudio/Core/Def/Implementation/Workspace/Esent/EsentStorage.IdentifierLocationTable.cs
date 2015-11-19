@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
             public override AbstractTableAccessor GetTableAccessor(OpenSession openSession)
             {
                 return new IdentifierLocationTableAccessor(
-                    openSession, TableName, PrimaryIndexName, 
+                    openSession, TableName, PrimaryIndexName,
                     _projectColumnId, _projectNameColumnId, _documentColumnId, _identifierColumnId, _locationsColumnId);
             }
         }

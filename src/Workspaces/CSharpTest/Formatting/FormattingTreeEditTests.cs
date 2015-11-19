@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             var project = ws.AddProject("project", LanguageNames.CSharp);
             return project.AddDocument("code", SourceText.From(code));
         }
-        
+
         [Fact]
         public void SpaceAfterAttribute()
         {
@@ -43,7 +43,7 @@ public class C
 {
     void M([MyAttr] int? p) { }
 }
-", Formatter.Format(root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr"))), 
+", Formatter.Format(root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr"))),
     document.Project.Solution.Workspace).ToFullString());
 
             // verify change doesn't affect how attributes appear before other kinds of declarations

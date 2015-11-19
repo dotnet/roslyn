@@ -36,42 +36,42 @@ expectedOutput:="TryCatchDivideByZeroExceptionFinally").
   // Code size       70 (0x46)
   .maxstack  2
   .locals init (Integer V_0, //x
-  System.Exception V_1) //ex
+                System.Exception V_1) //ex
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
-{
-  .try
-{
-  IL_0002:  ldstr      "Try"
-  IL_0007:  call       "Sub System.Console.Write(String)"
-  IL_000c:  ldloc.0
-  IL_000d:  dup
-  IL_000e:  div
-  IL_000f:  stloc.0
-  IL_0010:  leave.s    IL_0045
-}
-  catch System.Exception
-{
-  IL_0012:  dup
-  IL_0013:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0018:  stloc.1
-  IL_0019:  ldstr      "Catch"
-  IL_001e:  ldloc.1
-  IL_001f:  callvirt   "Function System.Exception.GetType() As System.Type"
-  IL_0024:  callvirt   "Function System.Reflection.MemberInfo.get_Name() As String"
-  IL_0029:  call       "Function String.Concat(String, String) As String"
-  IL_002e:  call       "Sub System.Console.Write(String)"
-  IL_0033:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0038:  leave.s    IL_0045
-}
-}
+  {
+    .try
+    {
+      IL_0002:  ldstr      "Try"
+      IL_0007:  call       "Sub System.Console.Write(String)"
+      IL_000c:  ldloc.0
+      IL_000d:  ldloc.0
+      IL_000e:  div
+      IL_000f:  stloc.0
+      IL_0010:  leave.s    IL_0045
+    }
+    catch System.Exception
+    {
+      IL_0012:  dup
+      IL_0013:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+      IL_0018:  stloc.1
+      IL_0019:  ldstr      "Catch"
+      IL_001e:  ldloc.1
+      IL_001f:  callvirt   "Function System.Exception.GetType() As System.Type"
+      IL_0024:  callvirt   "Function System.Reflection.MemberInfo.get_Name() As String"
+      IL_0029:  call       "Function String.Concat(String, String) As String"
+      IL_002e:  call       "Sub System.Console.Write(String)"
+      IL_0033:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_0038:  leave.s    IL_0045
+    }
+  }
   finally
-{
-  IL_003a:  ldstr      "Finally"
-  IL_003f:  call       "Sub System.Console.Write(String)"
-  IL_0044:  endfinally
-}
+  {
+    IL_003a:  ldstr      "Finally"
+    IL_003f:  call       "Sub System.Console.Write(String)"
+    IL_0044:  endfinally
+  }
   IL_0045:  ret
 }
 ]]>)
@@ -205,50 +205,50 @@ expectedOutput:="True").
   // Code size       57 (0x39)
   .maxstack  2
   .locals init (Integer V_0, //x
-  System.Exception V_1, //ex
-  System.Exception V_2) //exOrig
+                System.Exception V_1, //ex
+                System.Exception V_2) //exOrig
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
-{
-  IL_0002:  ldloc.0
-  IL_0003:  dup
-  IL_0004:  div
-  IL_0005:  stloc.0
-  IL_0006:  leave.s    IL_0038
-}
+  {
+    IL_0002:  ldloc.0
+    IL_0003:  ldloc.0
+    IL_0004:  div
+    IL_0005:  stloc.0
+    IL_0006:  leave.s    IL_0038
+  }
   catch System.Exception
-{
-  IL_0008:  dup
-  IL_0009:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  stloc.2
-  .try
-{
-  IL_0011:  ldloc.0
-  IL_0012:  dup
-  IL_0013:  div
-  IL_0014:  stloc.0
-  IL_0015:  leave.s    IL_0025
-}
-  catch System.Exception
-{
-  IL_0017:  dup
-  IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_001d:  stloc.1
-  IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0023:  leave.s    IL_0025
-}
-  IL_0025:  ldloc.1
-  IL_0026:  ldloc.2
-  IL_0027:  ceq
-  IL_0029:  ldc.i4.0
-  IL_002a:  ceq
-  IL_002c:  call       "Sub System.Console.Write(Boolean)"
-  IL_0031:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0036:  leave.s    IL_0038
-}
+  {
+    IL_0008:  dup
+    IL_0009:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_000e:  stloc.1
+    IL_000f:  ldloc.1
+    IL_0010:  stloc.2
+    .try
+    {
+      IL_0011:  ldloc.0
+      IL_0012:  ldloc.0
+      IL_0013:  div
+      IL_0014:  stloc.0
+      IL_0015:  leave.s    IL_0025
+    }
+    catch System.Exception
+    {
+      IL_0017:  dup
+      IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+      IL_001d:  stloc.1
+      IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_0023:  leave.s    IL_0025
+    }
+    IL_0025:  ldloc.1
+    IL_0026:  ldloc.2
+    IL_0027:  ceq
+    IL_0029:  ldc.i4.0
+    IL_002a:  ceq
+    IL_002c:  call       "Sub System.Console.Write(Boolean)"
+    IL_0031:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0036:  leave.s    IL_0038
+  }
   IL_0038:  ret
 }
 ]]>)
@@ -291,28 +291,28 @@ expectedOutput:="Attempted to divide by zero.").
   // Code size       26 (0x1a)
   .maxstack  2
   .locals init (Integer V_0, //x
-  System.Exception V_1)
+                System.Exception V_1)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
-{
-  IL_0002:  ldloc.0
-  IL_0003:  dup
-  IL_0004:  div
-  IL_0005:  stloc.0
-  IL_0006:  leave.s    IL_0019
-}
+  {
+    IL_0002:  ldloc.0
+    IL_0003:  ldloc.0
+    IL_0004:  div
+    IL_0005:  stloc.0
+    IL_0006:  leave.s    IL_0019
+  }
   catch System.Exception
-{
-  IL_0008:  dup
-  IL_0009:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_000e:  stloc.1
-  IL_000f:  ldarg.0
-  IL_0010:  ldloc.1
-  IL_0011:  stind.ref
-  IL_0012:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0017:  leave.s    IL_0019
-}
+  {
+    IL_0008:  dup
+    IL_0009:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_000e:  stloc.1
+    IL_000f:  ldarg.0
+    IL_0010:  ldloc.1
+    IL_0011:  stind.ref
+    IL_0012:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0017:  leave.s    IL_0019
+  }
   IL_0019:  ret
 }
 ]]>)
@@ -357,45 +357,45 @@ expectedOutput:="TryFilterCatchFinally").
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
-{
-  .try
-{
-  IL_0002:  ldstr      "Try"
-  IL_0007:  call       "Sub System.Console.Write(String)"
-  IL_000c:  ldloc.0
-  IL_000d:  dup
-  IL_000e:  div
-  IL_000f:  stloc.0
-  IL_0010:  leave.s    IL_004a
-}
-  filter
-{
-  IL_0012:  isinst     "System.Exception"
-  IL_0017:  dup
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  pop
-  IL_001b:  ldc.i4.0
-  IL_001c:  br.s       IL_002b
-  IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0023:  call       "Function EmitTest.Filter() As Boolean"
-  IL_0028:  ldc.i4.0
-  IL_0029:  cgt.un
-  IL_002b:  endfilter
-}  // end filter
-{  // handler
-  IL_002d:  pop
-  IL_002e:  ldstr      "Catch"
-  IL_0033:  call       "Sub System.Console.Write(String)"
-  IL_0038:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_003d:  leave.s    IL_004a
-}
-}
+  {
+    .try
+    {
+      IL_0002:  ldstr      "Try"
+      IL_0007:  call       "Sub System.Console.Write(String)"
+      IL_000c:  ldloc.0
+      IL_000d:  ldloc.0
+      IL_000e:  div
+      IL_000f:  stloc.0
+      IL_0010:  leave.s    IL_004a
+    }
+    filter
+    {
+      IL_0012:  isinst     "System.Exception"
+      IL_0017:  dup
+      IL_0018:  brtrue.s   IL_001e
+      IL_001a:  pop
+      IL_001b:  ldc.i4.0
+      IL_001c:  br.s       IL_002b
+      IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+      IL_0023:  call       "Function EmitTest.Filter() As Boolean"
+      IL_0028:  ldc.i4.0
+      IL_0029:  cgt.un
+      IL_002b:  endfilter
+    }  // end filter
+    {  // handler
+      IL_002d:  pop
+      IL_002e:  ldstr      "Catch"
+      IL_0033:  call       "Sub System.Console.Write(String)"
+      IL_0038:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_003d:  leave.s    IL_004a
+    }
+  }
   finally
-{
-  IL_003f:  ldstr      "Finally"
-  IL_0044:  call       "Sub System.Console.Write(String)"
-  IL_0049:  endfinally
-}
+  {
+    IL_003f:  ldstr      "Finally"
+    IL_0044:  call       "Sub System.Console.Write(String)"
+    IL_0049:  endfinally
+  }
   IL_004a:  ret
 }
 ]]>)
@@ -443,86 +443,86 @@ expectedOutput:="TryCatch228Finally").
   // Code size      156 (0x9c)
   .maxstack  2
   .locals init (Integer V_0, //x
-  System.DivideByZeroException V_1, //ex
-  System.DivideByZeroException V_2) //ex
+                System.DivideByZeroException V_1, //ex
+                System.DivideByZeroException V_2) //ex
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
-{
-  .try
-{
-  IL_0002:  ldstr      "Try"
-  IL_0007:  call       "Sub System.Console.Write(String)"
-  IL_000c:  ldloc.0
-  IL_000d:  dup
-  IL_000e:  div
-  IL_000f:  stloc.0
-  IL_0010:  leave      IL_009b
-}
-  filter
-{
-  IL_0015:  isinst     "System.DivideByZeroException"
-  IL_001a:  dup
-  IL_001b:  brtrue.s   IL_0021
-  IL_001d:  pop
-  IL_001e:  ldc.i4.0
-  IL_001f:  br.s       IL_0034
-  IL_0021:  dup
-  IL_0022:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0027:  stloc.1
-  IL_0028:  ldloc.1
-  IL_0029:  callvirt   "Function System.Exception.get_Message() As String"
-  IL_002e:  ldnull
-  IL_002f:  ceq
-  IL_0031:  ldc.i4.0
-  IL_0032:  cgt.un
-  IL_0034:  endfilter
-}  // end filter
-{  // handler
-  IL_0036:  pop
-  IL_0037:  ldstr      "Catch1"
-  IL_003c:  call       "Sub System.Console.Write(String)"
-  IL_0041:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0046:  leave.s    IL_009b
-}
-  filter
-{
-  IL_0048:  isinst     "System.DivideByZeroException"
-  IL_004d:  dup
-  IL_004e:  brtrue.s   IL_0054
-  IL_0050:  pop
-  IL_0051:  ldc.i4.0
-  IL_0052:  br.s       IL_0067
-  IL_0054:  dup
-  IL_0055:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_005a:  stloc.2
-  IL_005b:  ldloc.2
-  IL_005c:  callvirt   "Function System.Exception.get_Message() As String"
-  IL_0061:  ldnull
-  IL_0062:  cgt.un
-  IL_0064:  ldc.i4.0
-  IL_0065:  cgt.un
-  IL_0067:  endfilter
-}  // end filter
-{  // handler
-  IL_0069:  pop
-  IL_006a:  ldstr      "Catch2"
-  IL_006f:  ldloc.2
-  IL_0070:  callvirt   "Function System.Exception.get_Message() As String"
-  IL_0075:  callvirt   "Function String.get_Length() As Integer"
-  IL_007a:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Integer) As String"
-  IL_007f:  call       "Function String.Concat(String, String) As String"
-  IL_0084:  call       "Sub System.Console.Write(String)"
-  IL_0089:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_008e:  leave.s    IL_009b
-}
-}
+  {
+    .try
+    {
+      IL_0002:  ldstr      "Try"
+      IL_0007:  call       "Sub System.Console.Write(String)"
+      IL_000c:  ldloc.0
+      IL_000d:  ldloc.0
+      IL_000e:  div
+      IL_000f:  stloc.0
+      IL_0010:  leave      IL_009b
+    }
+    filter
+    {
+      IL_0015:  isinst     "System.DivideByZeroException"
+      IL_001a:  dup
+      IL_001b:  brtrue.s   IL_0021
+      IL_001d:  pop
+      IL_001e:  ldc.i4.0
+      IL_001f:  br.s       IL_0034
+      IL_0021:  dup
+      IL_0022:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+      IL_0027:  stloc.1
+      IL_0028:  ldloc.1
+      IL_0029:  callvirt   "Function System.Exception.get_Message() As String"
+      IL_002e:  ldnull
+      IL_002f:  ceq
+      IL_0031:  ldc.i4.0
+      IL_0032:  cgt.un
+      IL_0034:  endfilter
+    }  // end filter
+    {  // handler
+      IL_0036:  pop
+      IL_0037:  ldstr      "Catch1"
+      IL_003c:  call       "Sub System.Console.Write(String)"
+      IL_0041:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_0046:  leave.s    IL_009b
+    }
+    filter
+    {
+      IL_0048:  isinst     "System.DivideByZeroException"
+      IL_004d:  dup
+      IL_004e:  brtrue.s   IL_0054
+      IL_0050:  pop
+      IL_0051:  ldc.i4.0
+      IL_0052:  br.s       IL_0067
+      IL_0054:  dup
+      IL_0055:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+      IL_005a:  stloc.2
+      IL_005b:  ldloc.2
+      IL_005c:  callvirt   "Function System.Exception.get_Message() As String"
+      IL_0061:  ldnull
+      IL_0062:  cgt.un
+      IL_0064:  ldc.i4.0
+      IL_0065:  cgt.un
+      IL_0067:  endfilter
+    }  // end filter
+    {  // handler
+      IL_0069:  pop
+      IL_006a:  ldstr      "Catch2"
+      IL_006f:  ldloc.2
+      IL_0070:  callvirt   "Function System.Exception.get_Message() As String"
+      IL_0075:  callvirt   "Function String.get_Length() As Integer"
+      IL_007a:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Integer) As String"
+      IL_007f:  call       "Function String.Concat(String, String) As String"
+      IL_0084:  call       "Sub System.Console.Write(String)"
+      IL_0089:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_008e:  leave.s    IL_009b
+    }
+  }
   finally
-{
-  IL_0090:  ldstr      "Finally"
-  IL_0095:  call       "Sub System.Console.Write(String)"
-  IL_009a:  endfinally
-}
+  {
+    IL_0090:  ldstr      "Finally"
+    IL_0095:  call       "Sub System.Console.Write(String)"
+    IL_009a:  endfinally
+  }
   IL_009b:  ret
 }
 ]]>)
@@ -564,48 +564,48 @@ expectedOutput:="TryCatchFinally").
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
-{
-  .try
-{
-  IL_0002:  ldstr      "Try"
-  IL_0007:  call       "Sub System.Console.Write(String)"
-  IL_000c:  ldloc.0
-  IL_000d:  dup
-  IL_000e:  div
-  IL_000f:  stloc.0
-  IL_0010:  leave.s    IL_0052
-}
-  filter
-{
-  IL_0012:  isinst     "System.Exception"
-  IL_0017:  dup
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  pop
-  IL_001b:  ldc.i4.0
-  IL_001c:  br.s       IL_0033
-  IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0023:  ldsfld     "EmitTest.str As String"
-  IL_0028:  callvirt   "Function String.get_Length() As Integer"
-  IL_002d:  ldc.i4.2
-  IL_002e:  ceq
-  IL_0030:  ldc.i4.0
-  IL_0031:  cgt.un
-  IL_0033:  endfilter
-}  // end filter
-{  // handler
-  IL_0035:  pop
-  IL_0036:  ldstr      "Catch"
-  IL_003b:  call       "Sub System.Console.Write(String)"
-  IL_0040:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0045:  leave.s    IL_0052
-}
-}
+  {
+    .try
+    {
+      IL_0002:  ldstr      "Try"
+      IL_0007:  call       "Sub System.Console.Write(String)"
+      IL_000c:  ldloc.0
+      IL_000d:  ldloc.0
+      IL_000e:  div
+      IL_000f:  stloc.0
+      IL_0010:  leave.s    IL_0052
+    }
+    filter
+    {
+      IL_0012:  isinst     "System.Exception"
+      IL_0017:  dup
+      IL_0018:  brtrue.s   IL_001e
+      IL_001a:  pop
+      IL_001b:  ldc.i4.0
+      IL_001c:  br.s       IL_0033
+      IL_001e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+      IL_0023:  ldsfld     "EmitTest.str As String"
+      IL_0028:  callvirt   "Function String.get_Length() As Integer"
+      IL_002d:  ldc.i4.2
+      IL_002e:  ceq
+      IL_0030:  ldc.i4.0
+      IL_0031:  cgt.un
+      IL_0033:  endfilter
+    }  // end filter
+    {  // handler
+      IL_0035:  pop
+      IL_0036:  ldstr      "Catch"
+      IL_003b:  call       "Sub System.Console.Write(String)"
+      IL_0040:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_0045:  leave.s    IL_0052
+    }
+  }
   finally
-{
-  IL_0047:  ldstr      "Finally"
-  IL_004c:  call       "Sub System.Console.Write(String)"
-  IL_0051:  endfinally
-}
+  {
+    IL_0047:  ldstr      "Finally"
+    IL_004c:  call       "Sub System.Console.Write(String)"
+    IL_0051:  endfinally
+  }
   IL_0052:  ret
 }
 ]]>)
@@ -878,6 +878,81 @@ Module Program
 End Module
     </file>
             </compilation>)
+        End Sub
+
+        <Fact()>
+        Public Sub EmptyTryOrEmptyFinally()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System        
+Module EmitTest
+    Sub Main()
+        Try
+        Catch
+            Console.Write("Catch 0 ")
+        Finally
+        End Try
+
+        Try
+        Catch
+            Console.Write("Catch 1 ")
+        Finally
+            Console.Write("Finally 1 ")
+        End Try
+
+        Try
+            Console.Write("Try 2 ")
+        Catch
+            Console.Write("Catch 2 ")
+        Finally
+        End Try
+
+        Try
+            Console.Write("Try 3")
+        Finally
+        End Try
+    End Sub
+
+End Module
+    </file>
+</compilation>,
+expectedOutput:="Finally 1 Try 2 Try 3").
+            VerifyIL("EmitTest.Main",
+            <![CDATA[
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  leave.s    IL_000d
+  }
+  finally
+  {
+    IL_0002:  ldstr      "Finally 1 "
+    IL_0007:  call       "Sub System.Console.Write(String)"
+    IL_000c:  endfinally
+  }
+  IL_000d:  nop
+  .try
+  {
+    IL_000e:  ldstr      "Try 2 "
+    IL_0013:  call       "Sub System.Console.Write(String)"
+    IL_0018:  leave.s    IL_0030
+  }
+  catch System.Exception
+  {
+    IL_001a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_001f:  ldstr      "Catch 2 "
+    IL_0024:  call       "Sub System.Console.Write(String)"
+    IL_0029:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_002e:  leave.s    IL_0030
+  }
+  IL_0030:  ldstr      "Try 3"
+  IL_0035:  call       "Sub System.Console.Write(String)"
+  IL_003a:  ret
+}
+]]>)
         End Sub
 
     End Class

@@ -215,8 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // associate "Invoke and .ctor" with whole delegate declaration for the sorting purposes
                 // other methods will be associated with delegate's identifier
                 // we want this just to keep the order of synthesized methods the same as in Dev12
-                // Dev12 order is not strictly aphabetical - .ctor and Invoke go before other members.
-                // there are no real reasons for emitting the members inone order or another, 
+                // Dev12 order is not strictly alphabetical - .ctor and Invoke go before other members.
+                // there are no real reasons for emitting the members in one order or another, 
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(delegateType, returnType, syntax, MethodKind.DelegateInvoke, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
                 SyntaxToken arglistToken;
-                var parameters = ParameterHelpers.MakeParameters(binder, this, syntax.ParameterList, true, out arglistToken, diagnostics);
+                var parameters = ParameterHelpers.MakeParameters(binder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
                 if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
                 {
                     // This is a parse-time error in the native compiler; it is a semantic analysis error in Roslyn.
@@ -255,8 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // associate "Invoke and .ctor" with whole delegate declaration for the sorting purposes
                 // other methods will be associated with delegate's identifier
                 // we want this just to keep the order of synthesized methods the same as in Dev12
-                // Dev12 order is not strictly aphabetical - .ctor and Invoke go before other members.
-                // there are no real reasons for emitting the members inone order or another, 
+                // Dev12 order is not strictly alphabetical - .ctor and Invoke go before other members.
+                // there are no real reasons for emitting the members in one order or another, 
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }

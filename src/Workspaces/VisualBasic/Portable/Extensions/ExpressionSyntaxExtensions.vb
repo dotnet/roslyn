@@ -52,15 +52,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function Parenthesize(expression As ExpressionSyntax) As ParenthesizedExpressionSyntax
-            Dim leadingTrivia = expression.GetLeadingTrivia()
-            Dim trailingTrivia = expression.GetTrailingTrivia()
-
-            Dim strippedExpression = expression.WithoutLeadingTrivia().WithoutTrailingTrivia()
-
-            Return SyntaxFactory.ParenthesizedExpression(strippedExpression) _
-                         .WithLeadingTrivia(leadingTrivia) _
-                         .WithTrailingTrivia(trailingTrivia) _
-                         .WithAdditionalAnnotations(Simplifier.Annotation)
+            Return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia()) _
+                                .WithTriviaFrom(expression) _
+                                .WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
 
 
@@ -220,15 +214,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             targetType As ITypeSymbol,
             <Out> ByRef isResultPredefinedCast As Boolean) As ExpressionSyntax
 
-            ' Parenthesize the expression, except for collection initializer where parenthesizing changes the semantics.
-            Dim parenthesized = If(expression.Kind = SyntaxKind.CollectionInitializer,
-                expression,
-                expression.Parenthesize())
+            ' Parenthesize the expression, except for collection initializers and interpolated strings,
+            ' where parenthesizing changes semantics.
+            Dim newExpression = expression
 
-            Dim leadingTrivia = parenthesized.GetLeadingTrivia()
-            Dim trailingTrivia = parenthesized.GetTrailingTrivia()
+            If Not expression.IsKind(SyntaxKind.CollectionInitializer, SyntaxKind.InterpolatedStringExpression) Then
+                newExpression = expression.Parenthesize()
+            End If
 
-            Dim stripped = parenthesized.WithoutLeadingTrivia().WithoutTrailingTrivia()
+            Dim leadingTrivia = newExpression.GetLeadingTrivia()
+            Dim trailingTrivia = newExpression.GetTrailingTrivia()
+
+            Dim stripped = newExpression.WithoutLeadingTrivia().WithoutTrailingTrivia()
 
             Dim castKeyword = targetType.SpecialType.GetPredefinedCastKeyword()
             If castKeyword = SyntaxKind.None Then
@@ -536,10 +533,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' Technically, you could introduce an LValue for "Foo" in "Foo()" even if "Foo" binds
             ' to a method.  (i.e. by assigning to a Func<...> type).  However, this is so contrived
-            ' and none of the features that use this extension consider this replacable.
+            ' and none of the features that use this extension consider this replaceable.
             If TypeOf expression.Parent Is InvocationExpressionSyntax Then
 
-                ' If someting is being invoked, then it's either something like Foo(), Foo.Bar(), or
+                ' If something is being invoked, then it's either something like Foo(), Foo.Bar(), or
                 ' SomeExpr() (i.e. Blah[1]()).  In the first and second case, we only allow
                 ' replacement if Foo and Foo.Bar didn't bind to a method.  If we can't bind it, we'll
                 ' assume it's a method and we don't allow it to be replaced either.  However, if it's
@@ -658,7 +655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' We don't want to allow a variable to be introduced if the expression contains an
             ' implicit member access.  i.e. ".Blah.ToString()" as that .Blah refers to the containing
             ' object creation or anonymous type and we can't make a local for it.  So we get all the
-            ' descendents and we suppress ourselves. 
+            ' descendants and we suppress ourselves. 
 
             ' Note: if we hit a with block or an anonymous type, then we do not look deeper.  Any
             ' implicit member accesses will refer to that thing and we *can* introduce a variable
@@ -1072,7 +1069,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private Function PreferPredefinedTypeKeywordInMemberAccess(memberAccess As ExpressionSyntax, optionSet As OptionSet) As Boolean
             Return (((memberAccess.Parent IsNot Nothing) AndAlso (TypeOf memberAccess.Parent Is MemberAccessExpressionSyntax)) OrElse
-                    (InsideCrefReference(memberAccess) AndAlso Not memberAccess.IsLeftSideOfQualifiedName)) AndAlso ' Bug 1012713: Compiler has a bug due to which it doesn't support <PredefinedType>.Member inside crefs (i.e. Sytem.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't support simplifying types names like System.Int32.MaxValue to Integer.MaxValue.
+                    (InsideCrefReference(memberAccess) AndAlso Not memberAccess.IsLeftSideOfQualifiedName)) AndAlso ' Bug 1012713: Compiler has a bug due to which it doesn't support <PredefinedType>.Member inside crefs (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't support simplifying types names like System.Int32.MaxValue to Integer.MaxValue.
                    (Not InsideNameOfExpression(memberAccess)) AndAlso
                    optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic)
         End Function
@@ -1185,7 +1182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim genericName = DirectCast(name, GenericNameSyntax)
                     replacementNode = SyntaxFactory.IdentifierName(genericName.Identifier).WithLeadingTrivia(genericName.GetLeadingTrivia()).WithTrailingTrivia(genericName.GetTrailingTrivia())
 
-                    issueSpan = name.Span
+                    issueSpan = genericName.TypeArgumentList.Span
                     Return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken)
                 End If
 
@@ -1255,7 +1252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                         If name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken) Then
 
-                            ' check if the alias name ends with an Attribute suffic that can be omitted.
+                            ' check if the alias name ends with an Attribute suffix that can be omitted.
                             Dim replacementNodeWithoutAttributeSuffix As ExpressionSyntax = Nothing
                             Dim issueSpanWithoutAttributeSuffix As TextSpan = Nothing
                             If TryReduceAttributeSuffix(name, identifierToken, semanticModel, aliasReplacement IsNot Nothing, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), replacementNodeWithoutAttributeSuffix, issueSpanWithoutAttributeSuffix, cancellationToken) Then
@@ -1385,6 +1382,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             If type.IsUnboundGenericType Then
                 ' Don't simplify unbound generic type "Nullable(Of )".
+                Return False
+            End If
+
+            If InsideNameOfExpression(name) Then
+                ' Nullable(Of T) can't be simplified to T? in nameof expressions.
                 Return False
             End If
 

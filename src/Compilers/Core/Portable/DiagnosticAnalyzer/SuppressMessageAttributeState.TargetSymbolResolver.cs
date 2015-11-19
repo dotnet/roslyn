@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     return TypeInfo.Create(typeSymbol);
                 }
-                
+
                 // Skip pointer and array specifiers for unbound types
                 IgnorePointerAndArraySpecifiers();
                 return result;
@@ -498,15 +498,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             return TypeInfo.Create(methodContext.TypeParameters[methodTypeParameterIndex]);
                         }
-                        
+
                         // No such parameter
                         return null;
                     }
-                    
+
                     // If there is no method context, then the type is unbound and must be bound later
                     return TypeInfo.CreateUnbound(startIndex);
                 }
-                
+
                 // ! means this is a regular type parameter
                 var typeParameterIndex = ReadNextInteger();
 
@@ -517,11 +517,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         return TypeInfo.Create(typeParameter);
                     }
-                    
+
                     // no such parameter
                     return null;
                 }
-                
+
                 // If there is no binding context, then the type is unbound and must be bound later
                 return TypeInfo.CreateUnbound(startIndex);
             }
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var symbol in candidateMembers)
                 {
                     var methodSymbol = symbol as IMethodSymbol;
-                    if (methodSymbol == null || 
+                    if (methodSymbol == null ||
                         (arity != null && methodSymbol.Arity != arity))
                     {
                         continue;

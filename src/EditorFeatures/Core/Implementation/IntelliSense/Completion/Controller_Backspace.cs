@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 var triggerInfo = CompletionTriggerInfo.CreateBackspaceTriggerInfo(deletedChar);
-                var completionService = this.CreateCompletionService();
+                var completionService = this.GetCompletionService();
 
                 this.StartNewModelComputation(completionService, triggerInfo, filterItems: false);
 
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 if ((model == null && CaretHasLeftDefaultTrackingSpan(subjectBufferCaretPoint, documentBeforeDeletion)) ||
                     (model != null && this.IsCaretOutsideAllItemBounds(model, this.GetCaretPointInViewBuffer())) ||
-                    (model != null && CreateCompletionService().DismissIfLastFilterCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
+                    (model != null && GetCompletionService().DismissIfLastFilterCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
                 {
                     // If the caret moved out of bounds of our items, then we want to dismiss the list. 
                     this.StopModelComputation();
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             // We haven't finished computing the model, but we may need to dismiss.
             // Get the default tracking span and see if we're outside it.
-            var defaultTrackingSpan = CreateCompletionService().GetDefaultTrackingSpanAsync(document, caretPoint, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var defaultTrackingSpan = GetCompletionService().GetDefaultTrackingSpanAsync(document, caretPoint, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             var newCaretPoint = GetCaretPointInViewBuffer();
             return !defaultTrackingSpan.IntersectsWith(new TextSpan(newCaretPoint, 0));
         }

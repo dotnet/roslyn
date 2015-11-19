@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                         Return
                     End If
 
-                    AddIndentBlockOperation(operations, pair.Item1, pair.Item2, dontIncludeNextTokenTrailingTrivia:=True)
+                    AddIndentBlockOperation(operations, pair.Item1, pair.Item2)
                     Return
                 End If
             End If
@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return
             End If
 
-            ' if base token is first token of the conent of the parent element, don't do anything
+            ' if base token is first token of the content of the parent element, don't do anything
             If element.Content.First().GetFirstToken(includeZeroWidth:=True) = baseToken Then
                 Return
             End If
@@ -499,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return node.GetLastToken(includeZeroWidth:=True)
             End If
 
-            ' get all enclosing forblock statements
+            ' get all enclosing for block statements
             Dim forBlocks = nextStatement.GetAncestors(Of ForOrForEachBlockSyntax)()
 
             ' get count of the for blocks

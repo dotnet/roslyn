@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Text
 Imports System.Xml.Linq
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -950,7 +949,7 @@ P.Q.R.S
             ' We need to be careful about metadata references we use here.
             ' The test checks that fields of namespace symbols are initialized in certain order.
             ' If we used a shared Mscorlib reference then other tests might have already initialized it's shared AssemblySymbol.
-            Dim nonSharedMscorlibReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).GetReference(display:="mscorlib.v4_0_30319.dll")
+            Dim nonSharedMscorlibReference = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display:="mscorlib.v4_0_30319.dll")
 
             Dim c = VisualBasicCompilation.Create("DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace",
                                                      syntaxTrees:={Parse(<text>

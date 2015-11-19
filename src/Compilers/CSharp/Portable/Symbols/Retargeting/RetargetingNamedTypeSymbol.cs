@@ -120,6 +120,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override bool HasTypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return CreateEmptyTypeArgumentsCustomModifiers();
+            }
+        }
+
         public override NamedTypeSymbol ConstructedFrom
         {
             get

@@ -28,9 +28,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 
         Protected Overrides Sub NextAction(editorOperation As IEditorOperations, nextAction As Action)
             ' let the next action run
-
             nextAction()
         End Sub
+
+        Protected Overrides Function TreatAsReturn(document As Document, position As Integer, cancellationToken As CancellationToken) As Boolean
+            ' No special handling in VB.
+            Return False
+        End Function
 
         Protected Overrides Sub FormatAndApply(document As Document, position As Integer, cancellationToken As CancellationToken)
             ' vb does automatic line commit

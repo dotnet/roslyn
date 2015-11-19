@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
@@ -20,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             ISymbol symbol,
             Project project,
             IEnumerable<Lazy<INavigableItemsPresenter>> presenters,
-            ITypeSymbol containingTypeSymbol,
-            bool throwOnHiddenDefinition,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true,
+            bool throwOnHiddenDefinition = false)
         {
             var alias = symbol as IAliasSymbol;
             if (alias != null)
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
             symbol = definition ?? symbol;
 
-            if (TryThirdPartyNavigation(symbol, solution, containingTypeSymbol))
+            if (thirdPartyNavigationAllowed && TryThirdPartyNavigation(symbol, solution))
             {
                 return true;
             }
@@ -61,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 symbol = ((IMethodSymbol)symbol).PartialImplementationPart ?? symbol;
             }
 
+            var options = project.Solution.Workspace.Options;
+
             var preferredSourceLocations = NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).ToArray();
             if (!preferredSourceLocations.Any())
             {
@@ -70,7 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 // to a metadata-as-source view.
 
                 var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-                return symbolNavigationService.TryNavigateToSymbol(symbol, project, usePreviewTab: true);
+                return symbolNavigationService.TryNavigateToSymbol(
+                    symbol, project,
+                    options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true),
+                    cancellationToken: cancellationToken);
             }
 
             // If we have a single location, then just navigate to it.
@@ -82,7 +86,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
                 if (navigationService.CanNavigateToSpan(workspace, solution.GetDocument(firstItem.SourceTree).Id, firstItem.SourceSpan))
                 {
-                    return navigationService.TryNavigateToSpan(workspace, solution.GetDocument(firstItem.SourceTree).Id, firstItem.SourceSpan, usePreviewTab: true);
+                    return navigationService.TryNavigateToSpan(
+                        workspace,
+                        documentId: solution.GetDocument(firstItem.SourceTree).Id,
+                        textSpan: firstItem.SourceSpan,
+                        options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
                 }
                 else
                 {
@@ -105,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
                 if (presenters.Any())
                 {
-                    presenters.First().Value.DisplayResult(
+                    presenters.First().Value.DisplayResult(NavigableItemFactory.GetSymbolDisplayString(project, symbol),
                         preferredSourceLocations.Select(location => NavigableItemFactory.GetItemFromSymbolLocation(solution, symbol, location)).ToList());
 
                     return true;
@@ -115,27 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             }
         }
 
-        private static bool TryThirdPartyNavigation(ISymbol symbol, Solution solution, ITypeSymbol containingTypeSymbol)
+        private static bool TryThirdPartyNavigation(ISymbol symbol, Solution solution)
         {
-            // Allow third parties to navigate to all symbols except types/constructors
-            // if we are navigating from the corresponding type.
-
-            if (containingTypeSymbol != null &&
-                (symbol is ITypeSymbol || symbol.IsConstructor()))
-            {
-                var candidateTypeSymbol = symbol is ITypeSymbol
-                    ? symbol
-                    : symbol.ContainingType;
-
-                if (containingTypeSymbol == candidateTypeSymbol)
-                {
-                    // We are navigating from the same type, so don't allow third parties to perform the navigation.
-                    // This ensures that if we navigate to a class from within that class, we'll stay in the same file
-                    // rather than navigate to, say, XAML.
-                    return false;
-                }
-            }
-
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
             // Notify of navigation so third parties can intercept the navigation

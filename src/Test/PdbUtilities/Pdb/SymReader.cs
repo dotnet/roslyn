@@ -7,12 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Roslyn.Test.PdbUtilities
 {
+    // TODO: remove, use SymReaderFactory instead
     public sealed class SymReader : ISymUnmanagedReader, ISymUnmanagedReader2, ISymUnmanagedReader3, IDisposable
     {
         /// <summary>
@@ -66,11 +68,20 @@ namespace Roslyn.Test.PdbUtilities
             }
 
             _readerVersions = pdbStreamsByVersion.Select(
-                pdbStream =>
-                    SymUnmanagedReaderTestExtensions.CreateReader(pdbStream, _metadataImport)).ToArray();
+                pdbStream => CreateReader(pdbStream, _metadataImport)).ToArray();
 
             // If ISymUnmanagedReader3 is available, then we shouldn't be passing in multiple byte streams - one should suffice.
             Debug.Assert(!(UnversionedReader is ISymUnmanagedReader3) || _readerVersions.Length == 1);
+        }
+
+        private static ISymUnmanagedReader CreateReader(Stream pdbStream, object metadataImporter)
+        {
+            // NOTE: The product uses a different GUID (Microsoft.CodeAnalysis.ExpressionEvaluator.DkmUtilities.s_symUnmanagedReaderClassId).
+            Guid corSymReaderSxS = new Guid("0A3976C5-4529-4ef8-B0B0-42EED37082CD");
+            var reader = (ISymUnmanagedReader)Activator.CreateInstance(Marshal.GetTypeFromCLSID(corSymReaderSxS));
+            int hr = reader.Initialize(metadataImporter, null, null, new ComStreamWrapper(pdbStream));
+            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
+            return reader;
         }
 
         private ISymUnmanagedReader UnversionedReader => _readerVersions[0];

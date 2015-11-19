@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 return false;
             }
 
-            // now check whether parser think whether there is already counterpart closing parenthese
+            // now check whether parser think whether there is already counterpart closing parenthesis
             var pair = token.Parent.GetParentheses();
 
-            // if pair is on the same line, then the closing parenthese must belong to other tracker.
+            // if pair is on the same line, then the closing parenthesis must belong to other tracker.
             // let it through
             if (snapshot.GetLineNumberFromPosition(pair.Item1.SpanStart) == snapshot.GetLineNumberFromPosition(pair.Item2.Span.End))
             {

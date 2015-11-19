@@ -369,6 +369,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     binder.BindImportClause(globalImport.Clause, data, diagBagForThisImport)
 
                     ' Map diagnostics to new ones.
+                    ' Note, it is safe to resolve diagnostics here because we suppress obsolete diagnostics
+                    ' in ProjectImportsBinder.
                     For Each d As Diagnostic In diagBagForThisImport.AsEnumerable()
                         ' NOTE: Dev10 doesn't report 'ERR_DuplicateImport1' for project level imports. 
                         If d.Code <> ERRID.ERR_DuplicateImport1 Then
@@ -658,7 +660,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             builder.AddRange(Me._diagnosticBagDeclare)
             builder.AddRange(Me._lazyBoundImports.Diagnostics)
             builder.AddRange(Me._lazyLinkedAssemblyDiagnostics)
-            builder.AddRange(Me._declarationTable.ReferenceDirectiveDiagnostics)
 
             For Each tree In SyntaxTrees
                 builder.AddRange(GetSourceFile(tree).DeclarationErrors)

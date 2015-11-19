@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         [Fact]
-        public void MultipleRange_Adjuscent()
+        public void MultipleRange_Adjacent()
         {
             VerifyRange("namespace N {|r:{ {|b:class C { |}{|b:void Method() { } }|} }|}");
         }

@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // with tab, more expensive way. get column of token1 and then calculate right space amount
-            var initialColumn = baseToken.RawKind == 0 ? 0 /* the very begining of the file */ : treeInfo.GetOriginalColumn(tabSize, baseToken);
+            var initialColumn = baseToken.RawKind == 0 ? 0 /* the very beginning of the file */ : treeInfo.GetOriginalColumn(tabSize, baseToken);
             spaceOrIndentation = text.ConvertTabToSpace(tabSize, baseToken.ToString().GetTextColumn(tabSize, initialColumn), text.Length);
         }
 

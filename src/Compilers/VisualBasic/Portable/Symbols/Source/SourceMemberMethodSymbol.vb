@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Check attributes quickly.
             _quickAttributes = binder.QuickAttributeChecker.CheckAttributes(syntax.AttributeLists)
-            If containingType.TypeKind <> TypeKind.Module Then
+            If Not containingType.AllowsExtensionMethods() Then
                 ' Extension methods in source can only be inside modules.
                 _quickAttributes = _quickAttributes And Not QuickAttributes.Extension
             End If
@@ -607,7 +607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim eventContainingType As TypeSymbol = Nothing
             Dim withEventsSourceProperty As PropertySymbol = Nothing
 
-            ' This is the WithEvents property that looks as avent container to the user. (it could be in a base class)
+            ' This is the WithEvents property that looks as event container to the user. (it could be in a base class)
             Dim witheventsProperty As PropertySymbol = Nothing
 
             ' This is the WithEvents property that will actually used to hookup handlers. (it could be a proxy override)
@@ -752,7 +752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Valid context
 
                 Case Else
-                    Debug.Assert(False)
+                    Throw ExceptionUtilities.UnexpectedValue(ContainingType.TypeKind)
             End Select
 
             Dim receiverOpt As BoundExpression = Nothing
@@ -770,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Else
                     ' if either method, or event are not shared, host method is instance ctor
                     Dim instanceCtors = Me.ContainingType.InstanceConstructors
-                    Debug.Assert(Not instanceCtors.IsEmpty, "bind nontype members should have ensured at least one ctor for us")
+                    Debug.Assert(Not instanceCtors.IsEmpty, "bind non-type members should have ensured at least one ctor for us")
 
                     ' any instance ctor will do for our purposes here. 
                     ' We will only use "Me" and that does not need to be from a particular ctor.
@@ -778,7 +778,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Debug.Assert(hookupMethod IsNot Nothing, "bind nontype members should have ensured appropriate host method for handles injection")
+            Debug.Assert(hookupMethod IsNot Nothing, "bind non-type members should have ensured appropriate host method for handles injection")
             ' No use site errors, since method is from source (or synthesized)
 
             If Not hookupMethod.IsShared Then

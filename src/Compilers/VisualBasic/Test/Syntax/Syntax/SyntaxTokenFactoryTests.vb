@@ -143,9 +143,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestReplaceTriviaDeep()
             ' The parser for VB will stop when it sees the #end if directive which is a different 
-            ' behaviour from the C# compiler.  That said the whitespace trivia was only turned to double for the
+            ' behavior from the C# compiler.  That said the whitespace trivia was only turned to double for the
             ' DirectiveTrivia and not the whitespace between the identifier and operators.
-            ' Added for parity of scenario with Directives but capturing difference in behaviour
+            ' Added for parity of scenario with Directives but capturing difference in behavior
             Dim SourceText = "#if true then" & Environment.NewLine & "a + " & Environment.NewLine & "#end if" & Environment.NewLine & " + b"
             Dim expr As ExpressionSyntax = SyntaxFactory.ParseExpression(SourceText, consumeFullText:=False)
 

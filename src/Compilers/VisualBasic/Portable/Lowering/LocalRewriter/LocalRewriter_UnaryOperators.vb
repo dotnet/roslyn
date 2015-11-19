@@ -196,10 +196,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '                    |                   |
             '                OPERAND
             '
-            ' Implicit unwraping conversion if present is always O? -> O 
+            ' Implicit unwrapping conversion if present is always O? -> O 
             ' It is encoded as a disparity between CALL argument type and parameter type of the call symbol.
             '
-            ' Implicit wrapping conversion of the resilt, if present, is always T -> T?
+            ' Implicit wrapping conversion of the result, if present, is always T -> T?
             '
             ' The rewrite is:
             '   If (OPERAND.HasValue, CALL(OPERAND), Null)

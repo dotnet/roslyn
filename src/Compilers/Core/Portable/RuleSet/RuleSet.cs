@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
         /// <summary>
-        /// Individual ruleids and their associated actions.
+        /// Individual rule ids and their associated actions.
         /// </summary>
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions
         {

@@ -2,21 +2,24 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Test.Utilities;
 
 namespace Roslyn.Hosting.Diagnostics.Waiters
 {
-    [Export]
+    [Export, Shared]
     public class TestingOnly_WaitingService
     {
-        [ImportMany]
-        private IEnumerable<Lazy<IAsynchronousOperationWaiter, FeatureMetadata>> _waiters = null;
+        private readonly IEnumerable<Lazy<IAsynchronousOperationWaiter, FeatureMetadata>> _waiters;
+
+        [ImportingConstructor]
+        private TestingOnly_WaitingService([ImportMany] IEnumerable<Lazy<IAsynchronousOperationWaiter, FeatureMetadata>> waiters)
+        {
+            this._waiters = waiters;
+        }
 
         private void WaitForAsyncOperations(
             Func<FeatureMetadata, bool> predicate,
@@ -105,8 +108,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
 
         public IEnumerable<string> GetActiveFeatures()
         {
-            var activeFeatures = from w in _waiters where w.Value.HasPendingWork select w.Metadata.FeatureName;
-            return activeFeatures;
+            return from w in _waiters where w.Value.HasPendingWork select w.Metadata.FeatureName;
         }
 
         public void EnableActiveTokenTracking(bool enable)
@@ -115,11 +117,6 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             {
                 waiter.Value.TrackActiveTokens = enable;
             }
-        }
-
-        public void PumpingWait(Task task)
-        {
-            task.PumpingWait();
         }
     }
 }

@@ -118,10 +118,10 @@ namespace Microsoft.CodeAnalysis.Emit
             def = (Cci.IMethodDefinition)this.mapToPrevious.MapDefinition(def);
             if (def != null)
             {
-                uint methodIndex;
+                int methodIndex;
                 if (baseline.MethodsAdded.TryGetValue(def, out methodIndex))
                 {
-                    handle = MetadataTokens.MethodDefinitionHandle((int)methodIndex);
+                    handle = MetadataTokens.MethodDefinitionHandle(methodIndex);
                     return true;
                 }
             }
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Emit
             string stateMachineTypeNameOpt = null;
             TSymbolMatcher symbolMap;
 
-            uint methodIndex = (uint)MetadataTokens.GetRowNumber(previousHandle);
+            int methodIndex = MetadataTokens.GetRowNumber(previousHandle);
             DebugId methodId;
 
             // Check if method has changed previously. If so, we already have a map.
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     awaiterSlotCount = addedOrChangedMethod.StateMachineAwaiterSlotsOpt.Length;
 
                     // Kickoff method has no interesting locals on its own. 
-                    // We use the EnC method debug infromation for hoisted locals.
+                    // We use the EnC method debug information for hoisted locals.
                     previousLocals = ImmutableArray<EncLocalInfo>.Empty;
 
                     stateMachineTypeNameOpt = addedOrChangedMethod.StateMachineTypeNameOpt;
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     hoistedLocalSlotCount = localSlotDebugInfo.Length;
 
                     // Kickoff method has no interesting locals on its own. 
-                    // We use the EnC method debug infromation for hoisted locals.
+                    // We use the EnC method debug information for hoisted locals.
                     previousLocals = ImmutableArray<EncLocalInfo>.Empty;
 
                     stateMachineTypeNameOpt = stateMachineType.Name;

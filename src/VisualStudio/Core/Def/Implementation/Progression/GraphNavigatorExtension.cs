@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     if (IsForeground())
                     {
                         // If we are already on the UI thread, invoke NavigateOnForegroundThread
-                        // directly to preserve any exsting NewDocumentStateScope.
+                        // directly to preserve any existing NewDocumentStateScope.
                         NavigateOnForegroundThread(sourceLocation, symbolId, project, document);
                     }
                     else

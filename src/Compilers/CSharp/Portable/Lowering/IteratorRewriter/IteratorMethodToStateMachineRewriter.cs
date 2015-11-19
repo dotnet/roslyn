@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void GenerateMoveNextAndDispose(BoundStatement body, SynthesizedImplementationMethod moveNextMethod, SynthesizedImplementationMethod disposeMethod)
         {
-            // scan body for yielding Trys
+            // scan body for yielding try blocks
             _yieldsInTryAnalysis = new YieldsInTryAnalysis(body);
             if (_yieldsInTryAnalysis.ContainsYieldsInTrys())
             {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // state_0:
             // state = -1;
             // [[rewritten body]]
-            newBody = F.Block(ImmutableArray.Create(cachedState),
+            newBody = F.Block(ImmutableArray.Create(cachedState), ImmutableArray<LocalFunctionSymbol>.Empty,
                     F.Block(
                         F.HiddenSequencePoint(),
                         F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField))
@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var disposeBody = F.Block(
                                     ImmutableArray.Create<LocalSymbol>(stateLocal),
+                                    ImmutableArray<LocalFunctionSymbol>.Empty,
                                     F.Assignment(F.Local(stateLocal), F.Field(F.This(), stateField)),
                                     EmitFinallyFrame(rootFrame, state),
                                     F.Return());
@@ -179,6 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   return methodValue;
                 newBody = F.Block(
                         ImmutableArray.Create<LocalSymbol>(_methodValue),
+                        ImmutableArray<LocalFunctionSymbol>.Empty,
                         newBody,
                         F.Assignment(this.F.Local(_methodValue), this.F.Literal(true)),
                         F.Label(_exitLabel),
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///             break;
         ///             
         ///         case state5:
-        ///             ... another dispatch of nested states to their finallies ...
+        ///             ... another dispatch of nested states to their finally blocks ...
         ///             break;
         ///     }
         /// }
@@ -285,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (finished)
                 {
-                    // since we are finised, we need to treat this as a potential Leave
+                    // since we are finished, we need to treat this as a potential Leave
                     gotoExit = (BoundGotoStatement)VisitGotoStatement(gotoExit);
                 }
 

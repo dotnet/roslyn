@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// to System.Uri
         /// </summary>
         [Fact]
-        public void TypeFowardingRenaming()
+        public void TypeForwardingRenaming()
         {
             var text = "public class A{};";
             var comp = CreateWinRtCompilation(text);
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                              };";
 
-            CompileAndVerify(text, WinRtRefs, emitters: TestEmitters.RefEmitBug, expectedOutput: "#FF000000");
+            CompileAndVerify(text, WinRtRefs, expectedOutput: "#FF000000");
         }
 
         /// <summary>
@@ -202,7 +202,6 @@ public class C
     }
 }";
             var verifier = CompileAndVerifyOnWin8Only(source,
-                emitOptions: TestEmitters.RefEmitBug,
                 expectedOutput: "10\r\n0");
             verifier.VerifyDiagnostics();
         }
@@ -228,20 +227,19 @@ public class MyAttribute : System.Attribute
     }
 }
 ";
-            CompileAndVerify(source, 
-                             WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }), 
-                             symbolValidator: m =>
-                                            {
-                                                var module = (PEModuleSymbol)m;
-                                                var c = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("C");
-                                                var attributeHandle = module.Module.MetadataReader.GetCustomAttributes(c.Handle).Single();
-                                                string value;
-                                                module.Module.TryExtractStringValueFromAttribute(attributeHandle, out value);
+            CompileAndVerify(
+                source,
+                WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }),
+                symbolValidator: m =>
+            {
+                var module = (PEModuleSymbol)m;
+                var c = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("C");
+                var attributeHandle = module.Module.MetadataReader.GetCustomAttributes(c.Handle).Single();
+                string value;
+                module.Module.TryExtractStringValueFromAttribute(attributeHandle, out value);
 
-                                                Assert.Equal("C1, W, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime", value);
-                                            },
-                             emitters: TestEmitters.RefEmitBug);
+                Assert.Equal("C1, W, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime", value);
+            });
         }
-
     }
 }

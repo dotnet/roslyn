@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // storage of various information about a given try/finally frame
         private sealed class IteratorFinallyFrame
         {
-            // finalize state of this frame. This is the state we shoudl be in when we are "between real states"
+            // finalize state of this frame. This is the state we should be in when we are "between real states"
             public readonly int finalizeState;
 
             // Enclosing frame. Root frame does not have parent.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // proxy labels for branches leaving the frame. 
             // we build this on demand once we encounter leaving branches.
             // subsequent leaves to an already proxied label redirected to the proxy.
-            // At the proxy lable we will execute finally and forward the control flow 
+            // At the proxy label we will execute finally and forward the control flow 
             // to the actual destination. (which could be proxied again in the parent)
             public Dictionary<LabelSymbol, LabelSymbol> proxyLabels;
 

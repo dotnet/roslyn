@@ -5322,7 +5322,7 @@ FooAttributes3
         End Sub
 
         <Fact()>
-        Public Sub AutoImplmentedPropertiesWithGenericTypeParameters()
+        Public Sub AutoImplementedPropertiesWithGenericTypeParameters()
             Dim TEMP = CompileAndVerify(
 <compilation>
     <file name="a.vb">

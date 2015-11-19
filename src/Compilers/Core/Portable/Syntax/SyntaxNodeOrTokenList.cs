@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public override string ToString()
         {
-            return _node != null 
-                ? _node.ToString() 
+            return _node != null
+                ? _node.ToString()
                 : string.Empty;
         }
 
@@ -130,8 +130,8 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public string ToFullString()
         {
-            return _node != null 
-                ? _node.ToFullString() 
+            return _node != null
+                ? _node.ToFullString()
                 : string.Empty;
         }
 
@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxNodeOrToken FirstOrDefault()
         {
-            return this.Any() 
-                ? this[0] 
+            return this.Any()
+                ? this[0]
                 : default(SyntaxNodeOrToken);
         }
 
@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxNodeOrToken LastOrDefault()
         {
-            return this.Any() 
-                ? this[this.Count - 1] 
+            return this.Any()
+                ? this[this.Count - 1]
                 : default(SyntaxNodeOrToken);
         }
 
@@ -380,8 +380,8 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         IEnumerator<SyntaxNodeOrToken> IEnumerable<SyntaxNodeOrToken>.GetEnumerator()
         {
-            return _node == null 
-                ? SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>() 
+            return _node == null
+                ? SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>()
                 : this.GetEnumerator();
         }
 
@@ -393,8 +393,8 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _node == null 
-                ? SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>() 
+            return _node == null
+                ? SpecializedCollections.EmptyEnumerator<SyntaxNodeOrToken>()
                 : this.GetEnumerator();
         }
 

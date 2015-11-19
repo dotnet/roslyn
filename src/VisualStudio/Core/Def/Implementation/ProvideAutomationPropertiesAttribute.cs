@@ -23,12 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             if (category == null)
             {
-                throw new ArgumentNullException("category");
+                throw new ArgumentNullException(nameof(category));
             }
 
             if (page == null)
             {
-                throw new ArgumentNullException("page");
+                throw new ArgumentNullException(nameof(page));
             }
 
             this.PackageGuid = Guid.Parse(packageGuid);

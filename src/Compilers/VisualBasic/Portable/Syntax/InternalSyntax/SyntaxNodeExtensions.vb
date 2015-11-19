@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
 #Region "AddLeading"
-        ' Add "trivia" as a leading trivia of node. If node is not a token, traverses down to the tree to add it it to the first token.
+        ' Add "trivia" as a leading trivia of node. If node is not a token, traverses down to the tree to add it to the first token.
         <Extension()>
         Private Function AddLeadingTrivia(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, trivia As SyntaxList(Of VisualBasicSyntaxNode)) As TSyntax
             If node Is Nothing Then
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End Region
 
 #Region "AddTrailing"
-        ' Add "trivia" as a trailing trivia of node. If node is not a token, traverses down to the tree to add it it to the last token.
+        ' Add "trivia" as a trailing trivia of node. If node is not a token, traverses down to the tree to add it to the last token.
         <Extension()>
         Friend Function AddTrailingTrivia(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, trivia As SyntaxList(Of VisualBasicSyntaxNode)) As TSyntax
             If node Is Nothing Then
@@ -616,6 +616,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 #End Region
 
+        <Extension()>
+        Friend Function ContainsCommentTrivia(this As VisualBasicSyntaxNode) As Boolean
+            If this Is Nothing Then
+                Return False
+            End If
+
+            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(this)
+
+            For i = 0 To trivia.Count - 1
+                Dim kind = trivia.ItemUntyped(i).RawKind
+                If kind = SyntaxKind.CommentTrivia Then
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
         ' This was Semantics::ExtractAnonTypeMemberName in Dev 10
         <Extension()>
         Friend Function ExtractAnonymousTypeMemberName(input As ExpressionSyntax,
@@ -665,7 +683,7 @@ TryAgain:
                     Dim receiver As ExpressionSyntax = If(memberAccess.Expression, PopAndGetConditionalAccessReceiver(conditionalAccessStack))
 
                     If input.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                        ' See if this is an identifier qualifed with XmlElementAccessExpression or XmlDescendantAccessExpression
+                        ' See if this is an identifier qualified with XmlElementAccessExpression or XmlDescendantAccessExpression
                         If receiver IsNot Nothing Then
                             Select Case receiver.Kind
                                 Case SyntaxKind.XmlElementAccessExpression,

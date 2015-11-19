@@ -25,7 +25,7 @@ End Class
     </file>
 </compilation>
 
-            Dim v = CompileAndVerify(source, LatestReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerify(source, LatestVbReferences, options:=TestOptions.DebugDll)
 
             v.VerifyIL("C.VB$StateMachine_1_M.MoveNext", "
 {
@@ -137,16 +137,16 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xe" startLine="5" startColumn="5" endLine="5" endColumn="50" document="0"/>
-                <entry offset="0xf" startLine="6" startColumn="9" endLine="6" endColumn="28" document="0"/>
-                <entry offset="0x1b" hidden="true" document="0"/>
-                <entry offset="0x77" startLine="7" startColumn="9" endLine="7" endColumn="17" document="0"/>
-                <entry offset="0x7b" hidden="true" document="0"/>
-                <entry offset="0x83" hidden="true" document="0"/>
-                <entry offset="0xa0" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-                <entry offset="0xaa" hidden="true" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" hidden="true"/>
+                <entry offset="0xe" startLine="5" startColumn="5" endLine="5" endColumn="50"/>
+                <entry offset="0xf" startLine="6" startColumn="9" endLine="6" endColumn="28"/>
+                <entry offset="0x1b" hidden="true"/>
+                <entry offset="0x77" startLine="7" startColumn="9" endLine="7" endColumn="17"/>
+                <entry offset="0x7b" hidden="true"/>
+                <entry offset="0x83" hidden="true"/>
+                <entry offset="0xa0" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0xaa" hidden="true"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb8">
                 <namespace name="System" importlevel="file"/>
@@ -199,7 +199,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             compilation.VerifyPdb("Module1.F",
 <symbols>
@@ -228,16 +228,16 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xe" startLine="11" startColumn="5" endLine="11" endColumn="68" document="0"/>
-                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="25" document="0"/>
-                <entry offset="0x1e" hidden="true" document="0"/>
-                <entry offset="0x7a" startLine="13" startColumn="9" endLine="13" endColumn="17" document="0"/>
-                <entry offset="0x7e" hidden="true" document="0"/>
-                <entry offset="0x86" hidden="true" document="0"/>
-                <entry offset="0xa3" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0xad" hidden="true" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" hidden="true"/>
+                <entry offset="0xe" startLine="11" startColumn="5" endLine="11" endColumn="68"/>
+                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="25"/>
+                <entry offset="0x1e" hidden="true"/>
+                <entry offset="0x7a" startLine="13" startColumn="9" endLine="13" endColumn="17"/>
+                <entry offset="0x7e" hidden="true"/>
+                <entry offset="0x86" hidden="true"/>
+                <entry offset="0xa3" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
+                <entry offset="0xad" hidden="true"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xbb">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
@@ -283,24 +283,24 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0x5d" startLine="16" startColumn="5" endLine="16" endColumn="34" document="0"/>
-                <entry offset="0x5e" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x70" hidden="true" document="0"/>
-                <entry offset="0xf1" hidden="true" document="0"/>
-                <entry offset="0x176" hidden="true" document="0"/>
-                <entry offset="0x1f0" hidden="true" document="0"/>
-                <entry offset="0x269" hidden="true" document="0"/>
-                <entry offset="0x2e2" hidden="true" document="0"/>
-                <entry offset="0x363" hidden="true" document="0"/>
-                <entry offset="0x3e4" hidden="true" document="0"/>
-                <entry offset="0x463" hidden="true" document="0"/>
-                <entry offset="0x4bf" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
-                <entry offset="0x4c1" hidden="true" document="0"/>
-                <entry offset="0x4c9" hidden="true" document="0"/>
-                <entry offset="0x4e6" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
-                <entry offset="0x4f0" hidden="true" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" hidden="true"/>
+                <entry offset="0x5d" startLine="16" startColumn="5" endLine="16" endColumn="34"/>
+                <entry offset="0x5e" startLine="17" startColumn="9" endLine="23" endColumn="34"/>
+                <entry offset="0x70" hidden="true"/>
+                <entry offset="0xf1" hidden="true"/>
+                <entry offset="0x176" hidden="true"/>
+                <entry offset="0x1f0" hidden="true"/>
+                <entry offset="0x269" hidden="true"/>
+                <entry offset="0x2e2" hidden="true"/>
+                <entry offset="0x363" hidden="true"/>
+                <entry offset="0x3e4" hidden="true"/>
+                <entry offset="0x463" hidden="true"/>
+                <entry offset="0x4bf" startLine="24" startColumn="5" endLine="24" endColumn="17"/>
+                <entry offset="0x4c1" hidden="true"/>
+                <entry offset="0x4c9" hidden="true"/>
+                <entry offset="0x4e6" startLine="24" startColumn="5" endLine="24" endColumn="17"/>
+                <entry offset="0x4f0" hidden="true"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4fd">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
@@ -346,16 +346,16 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xe" startLine="26" startColumn="5" endLine="26" endColumn="18" document="0"/>
-                <entry offset="0xf" startLine="27" startColumn="9" endLine="27" endColumn="25" document="0"/>
-                <entry offset="0x1d" hidden="true" document="0"/>
-                <entry offset="0x78" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
-                <entry offset="0x7a" hidden="true" document="0"/>
-                <entry offset="0x82" hidden="true" document="0"/>
-                <entry offset="0x9f" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
-                <entry offset="0xa9" hidden="true" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" hidden="true"/>
+                <entry offset="0xe" startLine="26" startColumn="5" endLine="26" endColumn="18"/>
+                <entry offset="0xf" startLine="27" startColumn="9" endLine="27" endColumn="25"/>
+                <entry offset="0x1d" hidden="true"/>
+                <entry offset="0x78" startLine="28" startColumn="5" endLine="28" endColumn="12"/>
+                <entry offset="0x7a" hidden="true"/>
+                <entry offset="0x82" hidden="true"/>
+                <entry offset="0x9f" startLine="28" startColumn="5" endLine="28" endColumn="12"/>
+                <entry offset="0xa9" hidden="true"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xb6">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
@@ -413,22 +413,22 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0x11" startLine="5" startColumn="5" endLine="5" endColumn="50" document="0"/>
-                <entry offset="0x12" hidden="true" document="0"/>
-                <entry offset="0x1d" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x29" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x35" startLine="9" startColumn="13" endLine="9" endColumn="53" document="0"/>
-                <entry offset="0x4c" startLine="11" startColumn="9" endLine="11" endColumn="55" document="0"/>
-                <entry offset="0x7b" hidden="true" document="0"/>
-                <entry offset="0xd9" startLine="12" startColumn="9" endLine="12" endColumn="21" document="0"/>
-                <entry offset="0xea" startLine="13" startColumn="9" endLine="13" endColumn="21" document="0"/>
-                <entry offset="0xfb" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0xfd" hidden="true" document="0"/>
-                <entry offset="0x105" hidden="true" document="0"/>
-                <entry offset="0x122" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0x12c" hidden="true" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" hidden="true"/>
+                <entry offset="0x11" startLine="5" startColumn="5" endLine="5" endColumn="50"/>
+                <entry offset="0x12" hidden="true"/>
+                <entry offset="0x1d" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x29" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
+                <entry offset="0x35" startLine="9" startColumn="13" endLine="9" endColumn="53"/>
+                <entry offset="0x4c" startLine="11" startColumn="9" endLine="11" endColumn="55"/>
+                <entry offset="0x7b" hidden="true"/>
+                <entry offset="0xd9" startLine="12" startColumn="9" endLine="12" endColumn="21"/>
+                <entry offset="0xea" startLine="13" startColumn="9" endLine="13" endColumn="21"/>
+                <entry offset="0xfb" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
+                <entry offset="0xfd" hidden="true"/>
+                <entry offset="0x105" hidden="true"/>
+                <entry offset="0x122" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
+                <entry offset="0x12c" hidden="true"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x139">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
@@ -478,20 +478,20 @@ End Class
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xa" hidden="true" document="0"/>
-                <entry offset="0x15" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x21" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="55" document="0"/>
-                <entry offset="0x5c" hidden="true" document="0"/>
-                <entry offset="0xb3" startLine="12" startColumn="9" endLine="12" endColumn="21" document="0"/>
-                <entry offset="0xc4" startLine="13" startColumn="9" endLine="13" endColumn="21" document="0"/>
-                <entry offset="0xd5" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0xd7" hidden="true" document="0"/>
-                <entry offset="0xde" hidden="true" document="0"/>
-                <entry offset="0xf9" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0x103" hidden="true" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" hidden="true"/>
+                <entry offset="0xa" hidden="true"/>
+                <entry offset="0x15" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x21" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
+                <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="55"/>
+                <entry offset="0x5c" hidden="true"/>
+                <entry offset="0xb3" startLine="12" startColumn="9" endLine="12" endColumn="21"/>
+                <entry offset="0xc4" startLine="13" startColumn="9" endLine="13" endColumn="21"/>
+                <entry offset="0xd5" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
+                <entry offset="0xd7" hidden="true"/>
+                <entry offset="0xde" hidden="true"/>
+                <entry offset="0xf9" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
+                <entry offset="0x103" hidden="true"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10f">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
@@ -547,20 +547,20 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xe" startLine="5" startColumn="5" endLine="5" endColumn="52" document="0"/>
-                <entry offset="0xf" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x16" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x1d" startLine="9" startColumn="9" endLine="9" endColumn="55" document="0"/>
-                <entry offset="0x42" hidden="true" document="0"/>
-                <entry offset="0xa0" startLine="10" startColumn="9" endLine="10" endColumn="21" document="0"/>
-                <entry offset="0xac" startLine="11" startColumn="9" endLine="11" endColumn="21" document="0"/>
-                <entry offset="0xb8" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xba" hidden="true" document="0"/>
-                <entry offset="0xc2" hidden="true" document="0"/>
-                <entry offset="0xdf" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xe9" hidden="true" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" hidden="true"/>
+                <entry offset="0xe" startLine="5" startColumn="5" endLine="5" endColumn="52"/>
+                <entry offset="0xf" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x16" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
+                <entry offset="0x1d" startLine="9" startColumn="9" endLine="9" endColumn="55"/>
+                <entry offset="0x42" hidden="true"/>
+                <entry offset="0xa0" startLine="10" startColumn="9" endLine="10" endColumn="21"/>
+                <entry offset="0xac" startLine="11" startColumn="9" endLine="11" endColumn="21"/>
+                <entry offset="0xb8" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
+                <entry offset="0xba" hidden="true"/>
+                <entry offset="0xc2" hidden="true"/>
+                <entry offset="0xdf" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
+                <entry offset="0xe9" hidden="true"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xf6">
                 <namespace name="System" importlevel="file"/>
@@ -610,19 +610,19 @@ End Class
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x11" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x18" startLine="9" startColumn="9" endLine="9" endColumn="55" document="0"/>
-                <entry offset="0x3d" hidden="true" document="0"/>
-                <entry offset="0x91" startLine="10" startColumn="9" endLine="10" endColumn="21" document="0"/>
-                <entry offset="0x9d" startLine="11" startColumn="9" endLine="11" endColumn="21" document="0"/>
-                <entry offset="0xa9" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xab" hidden="true" document="0"/>
-                <entry offset="0xb2" hidden="true" document="0"/>
-                <entry offset="0xcd" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xd7" hidden="true" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" hidden="true"/>
+                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x11" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
+                <entry offset="0x18" startLine="9" startColumn="9" endLine="9" endColumn="55"/>
+                <entry offset="0x3d" hidden="true"/>
+                <entry offset="0x91" startLine="10" startColumn="9" endLine="10" endColumn="21"/>
+                <entry offset="0x9d" startLine="11" startColumn="9" endLine="11" endColumn="21"/>
+                <entry offset="0xa9" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
+                <entry offset="0xab" hidden="true"/>
+                <entry offset="0xb2" hidden="true"/>
+                <entry offset="0xcd" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
+                <entry offset="0xd7" hidden="true"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xe3">
                 <namespace name="System" importlevel="file"/>
@@ -640,14 +640,68 @@ End Class
 </symbols>)
         End Sub
 
+        <WorkItem(1085911)>
         <Fact>
-        Sub AsyncAndClosure()
+        Public Sub AsyncReturnVariable()
             Dim source =
 <compilation>
     <file>
 Imports System
 Imports System.Threading.Tasks
 
+Class C
+    Shared Async Function M() As Task(Of Integer)
+        Return 1
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim c = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            c.AssertNoErrors()
+
+            ' NOTE: No <local> for the return variable "M".
+            c.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
+<symbols>
+    <methods>
+        <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="20" offset="-1"/>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="0" offset="-1"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="50"/>
+                <entry offset="0x8" startLine="6" startColumn="9" endLine="6" endColumn="17"/>
+                <entry offset="0xc" hidden="true"/>
+                <entry offset="0x13" hidden="true"/>
+                <entry offset="0x2f" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
+                <entry offset="0x39" hidden="true"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x47">
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+            <asyncInfo>
+                <kickoffMethod declaringType="C" methodName="M"/>
+            </asyncInfo>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub AsyncAndClosure()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
 Module M
     Async Function F() As Task(Of Boolean)
         Dim z = Await Task.FromResult(1)
@@ -661,7 +715,7 @@ End Module
     </file>
 </compilation>
 
-            Dim v = CompileAndVerify(source, LatestReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerify(source, LatestVbReferences, options:=TestOptions.DebugDll)
 
             v.VerifyIL("M.VB$StateMachine_0_F.MoveNext", "
 {
@@ -783,7 +837,5 @@ End Module
 }
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
-
-
     End Class
 End Namespace

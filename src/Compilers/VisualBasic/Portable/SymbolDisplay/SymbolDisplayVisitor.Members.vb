@@ -468,8 +468,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddKeyword(SyntaxKind.ByRefKeyword)
                     AddSpace()
 
-                    If vbParameter IsNot Nothing AndAlso vbParameter.HasByRefBeforeCustomModifiers Then
-                        AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace:=False, trailingSpace:=True)
+                    If vbParameter IsNot Nothing AndAlso vbParameter.CountOfCustomModifiersPrecedingByRef > 0 Then
+                        AddCustomModifiersIfRequired(symbol.CustomModifiers.Take(vbParameter.CountOfCustomModifiersPrecedingByRef).AsImmutable(), leadingSpace:=False, trailingSpace:=True)
                     End If
                 End If
 
@@ -492,9 +492,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 symbol.Type.Accept(Me.NotFirstVisitor())
 
-                If vbParameter IsNot Nothing AndAlso
-                   Not (vbParameter.HasByRefBeforeCustomModifiers AndAlso vbParameter.IsByRef AndAlso IsExplicitByRefParameter(symbol)) Then
-                    AddCustomModifiersIfRequired(symbol.CustomModifiers)
+                If vbParameter IsNot Nothing Then
+                    If vbParameter.IsByRef AndAlso IsExplicitByRefParameter(symbol) AndAlso vbParameter.CountOfCustomModifiersPrecedingByRef > 0 Then
+                        AddCustomModifiersIfRequired(symbol.CustomModifiers.Skip(vbParameter.CountOfCustomModifiersPrecedingByRef).AsImmutable())
+                    Else
+                        AddCustomModifiersIfRequired(symbol.CustomModifiers)
+                    End If
                 End If
             End If
 

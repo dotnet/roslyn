@@ -691,7 +691,7 @@ p1 as vb$anonymous1
     End Sub
 
     <Fact>
-    Public Sub BC30363ERR_NewInInterface_InteraceWithSubNew()
+    Public Sub BC30363ERR_NewInInterface_InterfaceWithSubNew()
         ParseAndVerify(<![CDATA[
         Interface i
             Sub new ()
@@ -731,7 +731,7 @@ p1 as vb$anonymous1
 
     <WorkItem(887508, "DevDiv/Personal")>
     <Fact>
-    Public Sub BC30603ERR_InvInsideInterface_ParseInteraceWithSubWithEndSub()
+    Public Sub BC30603ERR_InvInsideInterface_ParseInterfaceWithSubWithEndSub()
         ParseAndVerify(<![CDATA[
             Interface i1
               Sub foo()
@@ -1000,6 +1000,20 @@ p1 as vb$anonymous1
         Assert.Equal("(Of T)" + vbLf, DirectCast(c.Members(1), PropertyStatementSyntax).Identifier.TrailingTrivia.Node.ToFullString)
         Assert.Equal("(Of T)" + vbLf, DirectCast(c.Members(2), EventStatementSyntax).Identifier.TrailingTrivia.Node.ToFullString)
         Assert.Equal("(Of T)", DirectCast(c.Members(3), OperatorBlockSyntax).OperatorStatement.OperatorToken.TrailingTrivia.Node.ToFullString)
+    End Sub
+
+    <Fact>
+    Public Sub ERR_NamespaceNotAllowedInScript()
+        Const source = "
+Namespace N
+End Namespace
+"
+
+        Parse(source, TestOptions.Script).AssertTheseDiagnostics(<errors><![CDATA[
+BC36965: You cannot declare Namespace in script code
+Namespace N
+~~~~~~~~~
+]]></errors>)
     End Sub
 
 #End Region

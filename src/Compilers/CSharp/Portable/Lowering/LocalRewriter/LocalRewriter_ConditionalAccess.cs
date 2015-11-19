@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (CanChangeValueBetweenReads(loweredReceiver))
             {
                 // NOTE: dynamic operations historically do not propagate mutations
-                // to the receiver if that hapens to be a value type
+                // to the receiver if that happens to be a value type
                 // so we can capture receiver by value in dynamic case regardless of 
                 // the type of receiver
                 // Nullable receivers are immutable so should be captured by value as well.
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
             var previousConditionalAccessTarget = _currentConditionalAccessTarget;
-            var currentConditionalAccessID = ++this._currentConditionalAccessID;
+            var currentConditionalAccessID = ++_currentConditionalAccessID;
 
             LocalSymbol temp = null;
             BoundExpression unconditionalAccess = null;
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ConditionalAccessLoweringKind.LoweredConditionalAccess:
                     _currentConditionalAccessTarget = new BoundConditionalReceiver(
-                        loweredReceiver.Syntax, 
-                        currentConditionalAccessID, 
+                        loweredReceiver.Syntax,
+                        currentConditionalAccessID,
                         receiverType);
 
                     break;
@@ -97,10 +97,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(loweringKind);
             }
 
-            BoundExpression loweredAccessExpression = used ?
-                        this.VisitExpression(node.AccessExpression) :
-                        this.VisitUnusedExpression(node.AccessExpression);
+            BoundExpression loweredAccessExpression;
+            
+            if (used)
+            {
+                loweredAccessExpression = this.VisitExpression(node.AccessExpression);
+            }
+            else
+            {
+                loweredAccessExpression = this.VisitUnusedExpression(node.AccessExpression);
+                if (loweredAccessExpression == null)
+                {
+                    return null;
+                }
+            }
 
+            Debug.Assert(loweredAccessExpression != null);
             _currentConditionalAccessTarget = previousConditionalAccessTarget;
 
             TypeSymbol type = this.VisitType(node.Type);
@@ -136,12 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ConditionalAccessLoweringKind.LoweredConditionalAccess:
                     result = new BoundLoweredConditionalAccess(
-                        node.Syntax, 
+                        node.Syntax,
                         loweredReceiver,
                         receiverType.IsNullableType() ?
-                                 GetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue):
+                                 GetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :
                                  null,
-                        loweredAccessExpression, 
+                        loweredAccessExpression,
                         rewrittenWhenNull,
                         currentConditionalAccessID,
                         type);
@@ -180,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(loweringKind);
             }
 
             return result;

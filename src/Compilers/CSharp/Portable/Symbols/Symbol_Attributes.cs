@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// has executed <see cref="DecodeWellKnownAttribute"/> for attributes applied on the symbol and has stored the decoded data in the
         /// lazyCustomAttributesBag on the symbol. Bound attributes haven't been stored on the bag yet.
         /// 
-        /// Post-validation for attributes that is dependant on other attributes can be done here.
+        /// Post-validation for attributes that is dependent on other attributes can be done here.
         /// 
         /// This method should not have any side effects on the symbol, i.e. it SHOULD NOT change the symbol state.
         /// </remarks>
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     (a) Store the bound attributes in lazyCustomAttributes in a thread safe manner.
         ///     (b) Perform some additional post attribute validations, such as
         ///         1) Duplicate attributes, attribute usage target validation, etc.
-        ///         2) Post validation for attributes dependant on other attributes
+        ///         2) Post validation for attributes dependent on other attributes
         ///         These validations cannot be performed prior to step 6(a) as we might need to
         ///         perform a GetAttributes() call on a symbol which can introduce a cycle in attribute binding.
         ///         We avoid this cycle by performing such validations in PostDecodeWellKnownAttributes after lazyCustomAttributes have been set.
@@ -260,18 +260,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="lazyCustomAttributesBag"></param>
         /// <param name="symbolPart">Specific part of the symbol to which the attributes apply, or <see cref="AttributeLocation.None"/> if the attributes apply to the symbol itself.</param>
         /// <param name="earlyDecodingOnly">Indicates that only early decoding should be performed.  WARNING: the resulting bag will not be sealed.</param>
+        /// <param name="addToDiagnostics">Diagnostic bag to report into. If null, diagnostics will be reported into <see cref="AddDeclarationDiagnostics"/></param>
+        /// <param name="binderOpt">Binder to use. If null, <see cref="DeclaringCompilation"/> GetBinderFactory will be used.</param>
         /// <returns>Flag indicating whether lazyCustomAttributes were stored on this thread. Caller should check for this flag and perform NotePartComplete if true.</returns>
         internal bool LoadAndValidateAttributes(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributesSyntaxLists,
             ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag,
             AttributeLocation symbolPart = AttributeLocation.None,
-            bool earlyDecodingOnly = false)
+            bool earlyDecodingOnly = false,
+            DiagnosticBag addToDiagnostics = null,
+            Binder binderOpt = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var compilation = this.DeclaringCompilation;
 
             ImmutableArray<Binder> binders;
-            ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, out binders);
+            ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, binderOpt, out binders);
             Debug.Assert(!attributesToBind.IsDefault);
 
             ImmutableArray<CSharpAttributeData> boundAttributes;
@@ -349,7 +353,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
                 this.RecordPresenceOfBadAttributes(boundAttributes);
-                this.AddDeclarationDiagnostics(diagnostics);
+                if (addToDiagnostics == null)
+                {
+                    this.AddDeclarationDiagnostics(diagnostics);
+                }
+                else
+                {
+                    addToDiagnostics.AddRange(diagnostics);
+                }
                 lazyAttributesStoredOnThisThread = true;
                 if (lazyCustomAttributesBag.IsEmpty) lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
             }
@@ -372,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-        
+
         /// <summary>
         /// Method to merge attributes from the given attributesSyntaxLists and filter out attributes by attribute target.
         /// This is the first step in attribute binding.
@@ -386,6 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart,
             DiagnosticBag diagnostics,
             CSharpCompilation compilation,
+            Binder rootBinderOpt,
             out ImmutableArray<Binder> binders)
         {
             var attributeTarget = (IAttributeTargetSymbol)this;
@@ -423,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(bindersBuilder != null);
 
                         var syntaxTree = attributeDeclarationSyntaxList.Node.SyntaxTree;
-                        var binder = compilation.GetBinderFactory(syntaxTree).GetBinder((CSharpSyntaxNode)attributeDeclarationSyntaxList.Node);
+                        var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder((CSharpSyntaxNode)attributeDeclarationSyntaxList.Node);
 
                         binder = new ContextualAttributeBinder(binder, this);
                         Debug.Assert(!binder.InAttributeArgument, "Possible cycle in attribute binding");

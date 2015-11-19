@@ -79,7 +79,7 @@ public class X
 
 
 
-            // Verify use of cyrillic namespace results in same behavior
+            // Verify use of Cyrillic namespace results in same behavior
             source = @"
 namespace решения
 {
@@ -169,7 +169,7 @@ namespace N.Foo;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "ro").WithArguments("N.X.ro"));
         }
 
-        // Check that EmitMetadaOnly works
+        // Check that EmitMetadataOnly works
         [Fact]
         public void EmitMetadataOnly()
         {
@@ -1765,7 +1765,7 @@ public sealed class ContentType
 {       
 	public void M(System.Collections.Generic.Dictionary<object, object> p)
 	{   
-		foreach (object paramterKey in p.Keys)
+		foreach (object parameterKey in p.Keys)
 		{
 		}
 	}
@@ -2167,7 +2167,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitters: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: false);
         }
 
         [Fact]
@@ -2581,7 +2581,7 @@ public interface IUsePlatform
         {
             var comp = CreateCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(comp, verify: false);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }
@@ -2784,7 +2784,7 @@ public class Program
                 ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
                 ////Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("<PrivateImplementationDetails>", "<global namespace>").WithLocation(1, 1)
                 );
-            CompileAndVerify(comp3, emitters: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+            CompileAndVerify(comp3, expectedOutput: "Hello, world!");
         }
 
         [Fact]
@@ -2827,7 +2827,7 @@ public class Program
 
             var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
             comp3.VerifyDiagnostics();
-            CompileAndVerify(comp3, emitters: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+            CompileAndVerify(comp3, expectedOutput: "Hello, world!");
         }
 
         /// <summary>
@@ -2862,7 +2862,7 @@ class C6
 {
     object F = new { Ab = 5 };
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {

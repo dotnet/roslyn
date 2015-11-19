@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             var runtimeType = type.GetLmrType();
-            // Primitives, enums and null values with a declared type that is an interface have no visible members.
+            // Primitives, enums, function pointers, and null values with a declared type that is an interface have no visible members.
             Debug.Assert(!runtimeType.IsInterface || value.IsNull);
-            if (formatter.IsPredefinedType(runtimeType) || runtimeType.IsEnum || runtimeType.IsInterface)
+            if (formatter.IsPredefinedType(runtimeType) || runtimeType.IsEnum || runtimeType.IsInterface || runtimeType.IsFunctionPointer())
             {
                 return null;
             }
@@ -382,7 +382,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Expansion expansion)
             {
                 var formatter = resultProvider.Formatter;
-                var fullName = formatter.GetTypeName(declaredTypeAndInfo, escapeKeywordIdentifiers: true);
+                bool sawInvalidIdentifier;
+                var fullName = formatter.GetTypeName(declaredTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+                if (sawInvalidIdentifier)
+                {
+                    fullName = null;
+                }
                 return new EvalResultDataItem(
                     ExpansionKind.StaticMembers,
                     name: formatter.StaticMembersString,
@@ -421,14 +426,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ? dynamicFlagsMap.SubstituteDynamicFlags(typeDeclaringMember.GetInterfaceListEntry(member.DeclaringType), originalDynamicFlags: default(DynamicFlagsCustomTypeInfo)).GetCustomTypeInfo()
                 : null;
             var formatter = resultProvider.Formatter;
-            memberName = formatter.GetIdentifierEscapingPotentialKeywords(memberName);
-            var fullName = MakeFullName(
-                formatter,
-                memberName,
-                new TypeAndCustomInfo(typeDeclaringMember, typeDeclaringMemberInfo), // Note: Won't include DynamicAttribute.
-                member.RequiresExplicitCast,
-                member.IsStatic,
-                parent);
+            bool sawInvalidIdentifier;
+            memberName = formatter.GetIdentifierEscapingPotentialKeywords(memberName, out sawInvalidIdentifier);
+            var fullName = sawInvalidIdentifier
+                ? null
+                : MakeFullName(
+                    formatter,
+                    memberName,
+                    new TypeAndCustomInfo(typeDeclaringMember, typeDeclaringMemberInfo), // Note: Won't include DynamicAttribute.
+                    member.RequiresExplicitCast,
+                    member.IsStatic,
+                    parent);
             return resultProvider.CreateDataItem(
                 inspectionContext,
                 memberName,
@@ -471,16 +479,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 parentFullName = $"({parentFullName})";
             }
 
-            if (!typeDeclaringMemberAndInfo.Type.IsInterface)
+            bool sawInvalidIdentifier;
+            var typeDeclaringMember = typeDeclaringMemberAndInfo.Type;
+            if (!typeDeclaringMember.IsInterface)
             {
                 string qualifier;
                 if (memberIsStatic)
                 {
-                    qualifier = formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: false);
+                    qualifier = formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+                    if (sawInvalidIdentifier)
+                    {
+                        return null; // FullName wouldn't be parseable.
+                    }
                 }
                 else if (memberAccessRequiresExplicitCast)
                 {
-                    var typeName = formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true);
+                    var typeName = formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+                    if (sawInvalidIdentifier)
+                    {
+                        return null; // FullName wouldn't be parseable.
+                    }
                     qualifier = formatter.GetCastExpression(
                         parentFullName,
                         typeName,
@@ -497,20 +515,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // NOTE: This should never interact with debugger proxy types:
                 //   1) Interfaces cannot have debugger proxy types.
                 //   2) Debugger proxy types cannot be interfaces.
-                if (typeDeclaringMemberAndInfo.Type.Equals(parent.DeclaredTypeAndInfo.Type))
+                if (typeDeclaringMember.Equals(parent.DeclaredTypeAndInfo.Type))
                 {
-                    var memberAccessTemplate = parent.ChildShouldParenthesize
-                        ? "({0}).{1}"
-                        : "{0}.{1}";
-                    return string.Format(memberAccessTemplate, parent.ChildFullNamePrefix, name);
+                    return $"{parentFullName}.{name}";
                 }
                 else
                 {
-                    var interfaceName = formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true);
-                    var memberAccessTemplate = parent.ChildShouldParenthesize
-                        ? "(({0})({1})).{2}"
-                        : "(({0}){1}).{2}";
-                    return string.Format(memberAccessTemplate, interfaceName, parent.ChildFullNamePrefix, name);
+                    var interfaceName = formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+                    if (sawInvalidIdentifier)
+                    {
+                        return null; // FullName wouldn't be parseable.
+                    }
+                    return $"(({interfaceName}){parentFullName}).{name}";
                 }
             }
         }

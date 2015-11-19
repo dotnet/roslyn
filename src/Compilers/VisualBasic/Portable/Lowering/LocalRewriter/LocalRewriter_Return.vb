@@ -88,8 +88,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' to be rewritten so it does not return any value. Reasoning: all Return statements will be 
                 ' rewritten into GoTo to the value return label of the MoveNext() method rather than exit label 
                 ' of THIS method, so this return is only reachable for the code that falls through the block; 
-                ' in which case the function is supposed to return the default value of the return type, wich is 
-                ' exaclty what will happen in this case;
+                ' in which case the function is supposed to return the default value of the return type, which is 
+                ' exactly what will happen in this case;
                 '
                 ' Also note that Async methods are lowered twice and this handling is only to be done as the 
                 ' first pass; which is guarded by RewritingFlags.AllowEndOfMethodReturnWithExpression flag

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // Next create the session that represents that we now have a potential completion list.
             // Then tell it to start computing.
-            var completionService = this.CreateCompletionService();
+            var completionService = this.GetCompletionService();
             if (completionService == null)
             {
                 return;

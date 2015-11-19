@@ -49,6 +49,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(info.Symbol.Kind = SymbolKind.Method)
 
             Dim walker As New IteratorAndAsyncCaptureWalker(info)
+
+            walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = True
+
             walker.Analyze()
             Debug.Assert(Not walker.InvalidRegionDetected)
 
@@ -73,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(variablesToHoist.Count = 0)
 
                 ' In debug build we hoist all locals and parameters, except ByRef locals in iterator methods.
-                ' Lifetime of ByRef locals in iterator methods never crosses stament boundaries, thus 
+                ' Lifetime of ByRef locals in iterator methods never crosses statement boundaries, thus 
                 ' there is no reason to hoist them and the pipeline doesn't handle this.
                 Dim skipByRefLocals As Boolean = DirectCast(info.Symbol, MethodSymbol).IsIterator
                 For Each v In allVariables
@@ -145,11 +148,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub EnterParameter(parameter As ParameterSymbol)
-            ' parameters are NOT intitially assigned here - if that is a problem, then
+            ' parameters are NOT initially assigned here - if that is a problem, then
             ' the parameters must be captured.
             MakeSlot(parameter)
 
-            ' Instead of analysing of which parameters are actually being referenced
+            ' Instead of analyzing which parameters are actually being referenced
             ' we add all of them; this might need to be revised later
             CaptureVariable(parameter, Nothing)
         End Sub
@@ -250,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function TreatTheLocalAsAssignedWithinTheLambda(local As LocalSymbol, right As BoundExpression) As Boolean
             ' By the time this analysis is invoked, Lambda conversion 
-            ' is already rewritten into an objectc creation
+            ' is already rewritten into an object creation
             If right.Kind = BoundKind.ObjectCreationExpression Then
                 Dim objCreation = DirectCast(right, BoundObjectCreationExpression)
                 If TypeOf objCreation.Type Is LambdaFrame AndAlso objCreation.Arguments.Length = 1 Then

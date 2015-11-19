@@ -797,7 +797,7 @@ End Class";
         [Fact]
         [WorkItem(544167, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void InvocationExpression_NoParentheseForPredefinedCastExpression()
+        public void InvocationExpression_NoParenthesesForPredefinedCastExpression()
         {
             var code = @"[|Class Program
     Sub Main(args As String())
@@ -1053,7 +1053,7 @@ End Module";
         [Fact]
         [WorkItem(545256, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void HandlesClauseItem_DontAddParenthese()
+        public void HandlesClauseItem_DontAddParentheses()
         {
             var code = @"[|Structure s1
     Sub Foo() Handles Me.Foo
@@ -1072,7 +1072,7 @@ End Structure";
         [Fact]
         [WorkItem(545380, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DontAddParentheseInForEachControlVariable()
+        public void DontAddParenthesesInForEachControlVariable()
         {
             var code = @"[|Module Module1
     Sub Main()
@@ -1097,7 +1097,7 @@ End Module";
         [Fact]
         [WorkItem(545380, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DontAddParentheseInForControlVariable()
+        public void DontAddParenthesesInForControlVariable()
         {
             var code = @"[|Module Module1
     Sub Main()
@@ -1122,7 +1122,7 @@ End Module";
         [Fact]
         [WorkItem(545483, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void DontAddParentheseForMissingName()
+        public void DontAddParenthesesForMissingName()
         {
             var code = @"[|Class C
     Public Overrides Function|]";
@@ -2731,11 +2731,11 @@ End Class";
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-        public void TestNoParentheseForArgument()
+        public void TestNoParenthesesForArgument()
         {
             // making roslyn behavior same as dev12
             // also, this is one of most expensive one to check whether
-            // parenthese needs to be inserted or not.
+            // parentheses needs to be inserted or not.
 
             var code = @"[|
 Imports System

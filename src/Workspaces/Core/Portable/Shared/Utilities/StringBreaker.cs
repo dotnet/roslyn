@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private static bool TryEncodeSpans(string text, Func<string, int, TextSpan> spanGenerator, out EncodedSpans encodedSpans)
         {
             encodedSpans = default(EncodedSpans);
-            for (int start = 0, b = 0; start < text.Length; )
+            for (int start = 0, b = 0; start < text.Length;)
             {
                 var span = spanGenerator(text, start);
                 if (span.IsEmpty)
@@ -117,14 +117,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private StringBreaks(EncodedSpans encodedSpans)
         {
-            this._encodedSpans = encodedSpans;
-            this._spans = null;
+            _encodedSpans = encodedSpans;
+            _spans = null;
         }
 
         private StringBreaks(List<TextSpan> spans)
         {
-            this._encodedSpans = default(EncodedSpans);
-            this._spans = spans;
+            _encodedSpans = default(EncodedSpans);
+            _spans = spans;
         }
 
         public int Count

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,28 +15,13 @@ namespace RunTests
     {
         internal static int Main(string[] args)
         {
-            if (args.Length < 2)
+
+            var options = Options.Parse(args);
+            if (options == null)
             {
-                PrintUsage();
+                Options.PrintUsage();
                 return 1;
             }
-
-            var xunitPath = args[0];
-            var index = 1;
-            var test64 = false;
-            var useHtml = true;
-            ParseArgs(args, ref index, ref test64, ref useHtml);
-
-            var list = new List<string>(args.Skip(index));
-            if (list.Count == 0)
-            {
-                PrintUsage();
-                return 1;
-            }
-
-            var xunit = test64
-                ? Path.Combine(xunitPath, "xunit.console.exe")
-                : Path.Combine(xunitPath, "xunit.console.x86.exe");
 
             // Setup cancellation for ctrl-c key presses
             var cts = new CancellationTokenSource();
@@ -44,11 +30,20 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            var testRunner = new TestRunner(xunit, useHtml);
+            var testRunner = new TestRunner(options);
             var start = DateTime.Now;
-            Console.WriteLine("Running {0} tests", list.Count);
-            var result = testRunner.RunAllAsync(list, cts.Token).Result;
+
+            Console.WriteLine("Running {0} test assemblies", options.Assemblies.Count());
+
+            var orderedList = OrderAssemblyList(options.Assemblies);
+            var result = testRunner.RunAllAsync(orderedList, cts.Token).Result;
             var span = DateTime.Now - start;
+
+            foreach (var assemblyPath in options.MissingAssemblies)
+            {
+                ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
+            }
+
             if (!result)
             {
                 ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failures encountered: {0}", span);
@@ -56,35 +51,15 @@ namespace RunTests
             }
 
             Console.WriteLine("All tests passed: {0}", span);
-            return 0;
+            return options.MissingAssemblies.Any() ? 1 : 0;
         }
 
-        private static void PrintUsage()
-        {
-            Console.WriteLine("runtests [xunit-console-runner] [assembly1] [assembly2] [...]");
-        }
-
-        private static void ParseArgs(string[] args, ref int index, ref bool test64, ref bool useHtml)
-        {
-            var comp = StringComparer.OrdinalIgnoreCase;
-            while (index < args.Length)
-            {
-                var current = args[index];
-                if (comp.Equals(current, "-test64"))
-                {
-                    test64 = true;
-                    index++;
-                }
-                else if (comp.Equals(current, "-xml"))
-                {
-                    useHtml = false;
-                    index++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
+        /// <summary>
+        /// Order the assembly list so that the largest assemblies come first.  This
+        /// is not ideal as the largest assembly does not necessarily take the most time.
+        /// </summary>
+        /// <param name="list"></param>
+        private static IOrderedEnumerable<string> OrderAssemblyList(IEnumerable<string> list) =>
+            list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
     }
 }

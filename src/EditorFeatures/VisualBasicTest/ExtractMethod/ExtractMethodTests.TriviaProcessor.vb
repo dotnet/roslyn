@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         Public Class TriviaProcessor
 
             <WorkItem(539281)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestCommentBeforeCode()
                 Dim code = <text>Class C
     Sub M()
@@ -32,7 +32,7 @@ End Class</text>
             End Sub
 
             <WorkItem(545173)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub LineContinuation()
                 Dim code = <text>Module Program
     Sub Main
@@ -56,7 +56,7 @@ End Module</text>
             End Sub
 
             <WorkItem(544568)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub LineContinuation2()
                 Dim code = <text>Imports System
 Imports System.Collections.Generic
@@ -100,7 +100,7 @@ End Module</text>
             End Sub
 
             <WorkItem(529797)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ImplicitLineContinuation()
                 Dim code = <text>Imports System.Linq
 Module A
@@ -126,7 +126,7 @@ End Module</text>
             End Sub
 
             <WorkItem(529797)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub ImplicitLineContinuation2()
                 Dim code = <text>Imports System.Linq
 Module A

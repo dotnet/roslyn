@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Shell.Interop
         public const uint DATAID_SQM_ROSLYN_SOURCES = 1360u;                // No of source code files this compile
         public const uint DATAID_SQM_ROSLYN_REFERENCES = 1359u;             // No of referenced assemblies this compile
         public const uint DATAID_SQM_ROSLYN_ERRORNUMBERS = 1356u;           // List of errors [and warnings as errors]
-        public const uint DATAID_SQM_ROSLYN_WARNINGNUMBERS = 1366u;         // List of warnings [excluding wanings as errors]
+        public const uint DATAID_SQM_ROSLYN_WARNINGNUMBERS = 1366u;         // List of warnings [excluding warnings as errors]
         public const uint DATAID_SQM_ROSLYN_WARNINGLEVEL = 1365u;           // -warn:n 0 - 4
         public const uint DATAID_SQM_ROSLYN_WARNINGASERRORS = 1364u;        // -warnaserror[+/-]
         public const uint DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS = 1361u; // -nowarn:blah;blah;blah
@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.Shell.Interop
         {
             try
             {
+                // These DLLs are only distributed with VS, they are installed to "Program Files (x86)\MSBuild\14.0\Bin".
                 IntPtr vssqmdll = IntPtr.Zero;
                 string vssqmpath;
                 if (IntPtr.Size == 8)

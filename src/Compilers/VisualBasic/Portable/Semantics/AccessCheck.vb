@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        ' Is a member with declared accessibily "declaredAccessibility" accessible from within "within", which must
+        ' Is a member with declared accessibility "declaredAccessibility" accessible from within "within", which must
         ' be a named type or an assembly.
         Private Shared Function CheckMemberAccessibility(containingType As NamedTypeSymbol,
                                                          declaredAccessibility As Accessibility,
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '    3) If there is a qualifier, for any member, shared or not, the construction of "originalContainingType" that
             '       the qualifier type inherits from is the same as the construction of "originalContainingType" that the 
             '       class through which access occurred.
-            ' This rule (either the speced or Dev10 version) is intentionally not implemented here. See bug 4107.
+            ' This rule (either the spec'd or Dev10 version) is intentionally not implemented here. See bug 4107.
 
             withinType = withinType.OriginalDefinition
 
@@ -428,8 +428,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(withinType IsNot Nothing)
             Debug.Assert(originalContainingType IsNot Nothing)
 
-            ' Walk up my parent chain and see if I eventually hit the owner.  If so then i'm a
-            ' nested type of that owner and i'm allowed access to everything inside of it.
+            ' Walk up my parent chain and see if I eventually hit the owner.  If so then I'm a
+            ' nested type of that owner and I'm allowed access to everything inside of it.
             Dim current = withinType.OriginalDefinition
 
             While current IsNot Nothing
@@ -480,7 +480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '   2. toAssembly has an InternalsVisibleTo attribute that names fromAssembly
         '   3. They are both interactive assemblies.
         Public Shared Function HasFriendAccessTo(fromAssembly As AssemblySymbol, toAssembly As AssemblySymbol) As Boolean
-            ' TODO: Implement by checking attributes, and also that interactive assemblys have access to each other.
+            ' TODO: Implement by checking attributes, and also that interactive assemblies have access to each other.
             Return _
                 IsSameAssembly(fromAssembly, toAssembly) OrElse
                 InternalsAccessibleTo(toAssembly, fromAssembly)
@@ -509,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function GetAccessibilityForErrorMessage(sym As Symbol, fromAssembly As AssemblySymbol) As String
             Dim access = sym.DeclaredAccessibility
             If access = Accessibility.ProtectedAndFriend Then
-                ' No exact VB equivalent for this. If its in an accessible accessible, treat as protected,
+                ' No exact VB equivalent for this. If its in an accessible assembly, treat as protected,
                 ' otherwise treat as friend.
                 If AccessCheck.IsSymbolAccessible(sym.ContainingAssembly, fromAssembly, useSiteDiagnostics:=Nothing) Then
                     access = Accessibility.Protected

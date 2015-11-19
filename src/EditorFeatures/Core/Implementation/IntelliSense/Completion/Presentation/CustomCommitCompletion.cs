@@ -2,7 +2,7 @@
 
 using System;
 using System.Threading;
-using System.Windows.Media;
+using System.Windows.Media.TextFormatting;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
-    internal sealed class CustomCommitCompletion : Microsoft.VisualStudio.Language.Intellisense.Completion3, ICustomCommit
+    internal sealed class CustomCommitCompletion : Microsoft.VisualStudio.Language.Intellisense.Completion3, ICustomCommit, ITextFormattable
     {
         private static readonly string s_glyphCompletionWarning = "GlyphCompletionWarning";
         private readonly CompletionPresenterSession _completionPresenterSession;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             // PERF: Note that the base class contains a constructor taking the displayText string
             // but we're intentionally NOT using that here because it allocates a private CompletionState
-            // object. By overriding the public property getters (DisplayText, InsersionText, etc.) the
+            // object. By overriding the public property getters (DisplayText, InsertionText, etc.) the
             // extra allocation is avoided.
             _completionPresenterSession = completionPresenterSession;
             this.CompletionItem = completionItem;
@@ -79,6 +79,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public string GetDescription_TestingOnly()
         {
             return this.CompletionItem.GetDescriptionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).GetFullText();
+        }
+
+        public TextRunProperties GetTextRunProperties(TextRunProperties defaultTextRunProperties)
+        {
+            var item = (CompletionItem as DescriptionModifyingCompletionItem)?.CompletionItem ?? CompletionItem;
+
+            return (item.CompletionProvider as ICustomCompletionItemFormatter)?.GetTextRunProperties(item, defaultTextRunProperties) 
+                ?? defaultTextRunProperties;
+        }
+
+        public TextRunProperties GetHighlightedTextRunProperties(TextRunProperties defaultHighlightedTextRunProperties)
+        {
+            var item = (CompletionItem as DescriptionModifyingCompletionItem)?.CompletionItem ?? CompletionItem;
+
+            return (item.CompletionProvider as ICustomCompletionItemFormatter)?.GetHighlightedTextRunProperties(item, defaultHighlightedTextRunProperties) 
+                ?? defaultHighlightedTextRunProperties;
         }
 
         public override ImageMoniker IconMoniker

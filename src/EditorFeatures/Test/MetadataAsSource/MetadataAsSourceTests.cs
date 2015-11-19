@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public partial class MetadataAsSourceTests : AbstractMetadataAsSourceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestClass()
         {
             var metadataSource = "public class C {}";
@@ -38,7 +38,7 @@ End Class");
         }
 
         [WorkItem(546241)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestInterface()
         {
             var metadataSource = "public interface I {}";
@@ -61,7 +61,7 @@ Public Interface [|I|]
 End Interface");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestConstructor()
         {
             var metadataSource = "public class C {}";
@@ -86,7 +86,7 @@ Public Class C
 End Class");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestMethod()
         {
             var metadataSource = "public class C { public void Foo() {} }";
@@ -115,7 +115,7 @@ Public Class C
 End Class");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestField()
         {
             var metadataSource = "public class C { public string S; }";
@@ -145,7 +145,7 @@ End Class");
         }
 
         [WorkItem(546240)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestProperty()
         {
             var metadataSource = "public class C { public string S { get; protected set; } }";
@@ -176,7 +176,7 @@ End Class");
 
         [WorkItem(546194)]
         [WorkItem(546291)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestEvent()
         {
             var metadataSource = "using System; public class C { public event Action E; }";
@@ -209,7 +209,7 @@ Public Class C
 End Class");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestNestedType()
         {
             var metadataSource = "public class C { protected class D { } }";
@@ -244,8 +244,38 @@ End Class");
         }
 
         [WorkItem(546195), WorkItem(546269)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestEnum()
+        {
+            var metadataSource = "public enum E { A, B, C }";
+            var symbolName = "E";
+
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public enum [|E|]
+{{
+    A = 0,
+    B = 1,
+    C = 2
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Enum [|E|]
+    A = 0
+    B = 1
+    C = 2
+End Enum");
+        }
+
+        [WorkItem(546195), WorkItem(546269)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public void TestEnumFromField()
         {
             var metadataSource = "public enum E { A, B, C }";
             var symbolName = "E.C";
@@ -257,9 +287,9 @@ End Class");
 
 public enum E
 {{
-    A,
-    B,
-    [|C|]
+    A = 0,
+    B = 1,
+    [|C|] = 2
 }}");
             GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
 #Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
@@ -267,14 +297,14 @@ public enum E
 #End Region
 
 Public Enum E
-    A
-    B
-    [|C|]
+    A = 0
+    B = 1
+    [|C|] = 2
 End Enum");
         }
 
         [WorkItem(546273)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestEnumWithUnderlyingType()
         {
             var metadataSource = "public enum E : short { A = 0, B = 1, C = 2 }";
@@ -287,9 +317,9 @@ End Enum");
 
 public enum E : short
 {{
-    A,
-    B,
-    [|C|]
+    A = 0,
+    B = 1,
+    [|C|] = 2
 }}");
             GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
 #Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
@@ -297,14 +327,14 @@ public enum E : short
 #End Region
 
 Public Enum E As Short
-    A
-    B
-    [|C|]
+    A = 0
+    B = 1
+    [|C|] = 2 
 End Enum");
         }
 
         [WorkItem(650741)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestEnumWithOverflowingUnderlyingType()
         {
             var metadataSource = "public enum E : ulong { A = 9223372036854775808 }";
@@ -329,7 +359,7 @@ Public Enum E As ULong
 End Enum");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestEnumWithDifferentValues()
         {
             var metadataSource = "public enum E : short { A = 1, B = 2, C = 3 }";
@@ -359,7 +389,7 @@ End Enum");
         }
 
         [WorkItem(546198)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestTypeInNamespace()
         {
             var metadataSource = "namespace N { public class C {} }";
@@ -390,7 +420,7 @@ End Namespace");
         }
 
         [WorkItem(546223)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestInlineConstant()
         {
             var metadataSource = @"public class C { public const string S = ""Hello mas""; }";
@@ -420,7 +450,7 @@ End Class");
         }
 
         [WorkItem(546221)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestInlineTypeOf()
         {
             var metadataSource = @"
@@ -458,7 +488,7 @@ End Class");
         }
 
         [WorkItem(546231)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestNoDefaultConstructorInStructs()
         {
             var metadataSource = "public struct S {}";
@@ -481,7 +511,7 @@ Public Structure [|S|]
 End Structure");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestReferenceDefinedType()
         {
             var metadataSource = "public class C { public static C Create() { return new C(); } }";
@@ -511,7 +541,7 @@ End Class");
         }
 
         [WorkItem(546227)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestGenericType()
         {
             var metadataSource = "public class G<SomeType> { public SomeType S; }";
@@ -541,7 +571,7 @@ End Class");
         }
 
         [WorkItem(546227)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestGenericDelegate()
         {
             var metadataSource = "public class C { public delegate void D<SomeType>(SomeType s); }";
@@ -571,7 +601,7 @@ End Class");
         }
 
         [WorkItem(546200)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestAttribute()
         {
             var metadataSource = @"
@@ -615,21 +645,21 @@ Public Class [|C|]
 End Class");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestSymbolIdMatchesMetadata()
         {
             TestSymbolIdMatchesMetadata(LanguageNames.CSharp);
             TestSymbolIdMatchesMetadata(LanguageNames.VisualBasic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestNotReusedOnAssemblyDiffers()
         {
             TestNotReusedOnAssemblyDiffers(LanguageNames.CSharp);
             TestNotReusedOnAssemblyDiffers(LanguageNames.VisualBasic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestThrowsOnGenerateNamespace()
         {
             var namespaceSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol("Outerspace");
@@ -650,7 +680,7 @@ End Class");
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestReuseGenerateMemberOfGeneratedType()
         {
             var metadataSource = "public class C { public bool Is; }";
@@ -663,7 +693,7 @@ End Class");
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestReuseRepeatGeneration()
         {
             using (var context = new TestContext())
@@ -674,7 +704,7 @@ End Class");
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestReuseGenerateFromDifferentProject()
         {
             using (var context = new TestContext())
@@ -690,7 +720,7 @@ End Class");
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestNotReusedGeneratingForDifferentLanguage()
         {
             using (var context = new TestContext(LanguageNames.CSharp))
@@ -707,7 +737,7 @@ End Class");
         }
 
         [WorkItem(546311)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void FormatMetadataAsSource()
         {
             using (var context = new TestContext(LanguageNames.CSharp))
@@ -719,7 +749,7 @@ End Class");
         }
 
         [WorkItem(530829)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void IndexedProperty()
         {
             var metadataSource = @"
@@ -750,7 +780,7 @@ public class C
         }
 
         [WorkItem(566688)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void AttributeReferencingInternalNestedType()
         {
             var metadataSource = @"using System;
@@ -781,7 +811,7 @@ public class [|C|]
         }
 
         [WorkItem(530978)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestAttributesOnMembers()
         {
             var metadataSource = @"using System;
@@ -909,7 +939,7 @@ End Class
         }
 
         [WorkItem(530923)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestEmptyLineBetweenMembers()
         {
             var metadataSource = @"using System;
@@ -1000,7 +1030,7 @@ End Class";
         }
 
         [WorkItem(728644)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestEmptyLineBetweenMembers2()
         {
             var source = @"
@@ -1065,7 +1095,7 @@ End Interface
         }
 
         [WorkItem(679114), WorkItem(715013)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestDefaultValueEnum()
         {
             var source = @"
@@ -1104,7 +1134,7 @@ End Class";
         }
 
         [WorkItem(651261)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestNullAttribute()
         {
             var source = @"
@@ -1147,7 +1177,7 @@ End Class";
         }
 
         [WorkItem(897006)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestNavigationViaReducedExtensionMethodCS()
         {
             var metadata = @"using System;
@@ -1186,7 +1216,7 @@ public static class ObjectExtensions
         }
 
         [WorkItem(897006)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void TestNavigationViaReducedExtensionMethodVB()
         {
             var metadata = @"Imports System.Runtime.CompilerServices
@@ -1227,6 +1257,63 @@ End Namespace";
                 var metadataAsSourceFile = context.GenerateSource(navigationSymbol);
                 context.VerifyResult(metadataAsSourceFile, expected);
             }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public void TestIndexersAndOperators()
+        {
+            var metadataSource = @"public class Program
+{
+    public int this[int x]
+    {
+        get
+        {
+            return 0;
+        }
+        set
+        {
+
+        }
+    }
+
+    public static  Program operator + (Program p1, Program p2)
+    {
+        return new Program();
+    }
+}";
+            var symbolName = "Program";
+
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Reflection;
+
+[DefaultMember(""Item"")]
+public class [|Program|]
+        {{
+            public Program();
+
+            public int this[int x] {{ get; set; }}
+
+            public static Program operator +(Program p1, Program p2);
+        }}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Reflection
+
+<DefaultMember(""Item"")>
+Public Class [|Program|]
+    Public Sub New()
+
+    Default Public Property Item(x As Integer) As Integer
+
+    Public Shared Operator +(p1 As Program, p2 As Program) As Program
+End Class");
         }
     }
 }

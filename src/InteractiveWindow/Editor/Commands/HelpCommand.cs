@@ -12,14 +12,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     {
         internal const string CommandName = "help";
 
-        private static readonly string[] s_details = new[]
-        {
-            "  command-name    Name of the REPL command to display help on.",
-        };
-
         public override string Description
         {
-            get { return "Display help on specified REPL command, or all available REPL commands and key bindings if none specified."; }
+            get { return InteractiveWindowResources.HelpCommandDescription; }
         }
 
         public override IEnumerable<string> Names
@@ -29,12 +24,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public override string CommandLine
         {
-            get { return "[command-name]"; }
-        }
-
-        public override IEnumerable<string> DetailedDescription
-        {
-            get { return base.DetailedDescription; }
+            get { return InteractiveWindowResources.CommandNamePlaceholder; }
         }
 
         public override Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
@@ -43,7 +33,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             IInteractiveWindowCommand command;
             if (!ParseArguments(window, arguments, out commandName, out command))
             {
-                window.ErrorOutputWriter.WriteLine(string.Format("Unknown REPL command '{0}'", commandName));
+                window.ErrorOutputWriter.WriteLine(string.Format(InteractiveWindowResources.UnknownCommand, commandName));
                 ReportInvalidArguments(window);
                 return ExecutionResult.Failed;
             }

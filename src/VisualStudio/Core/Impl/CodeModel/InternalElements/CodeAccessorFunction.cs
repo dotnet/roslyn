@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeFunction))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeFunction2))]
     public sealed partial class CodeAccessorFunction : AbstractCodeElement, EnvDTE.CodeFunction, EnvDTE80.CodeFunction2
     {
         internal static EnvDTE.CodeFunction Create(CodeModelState state, AbstractCodeMember parent, MethodKind kind)

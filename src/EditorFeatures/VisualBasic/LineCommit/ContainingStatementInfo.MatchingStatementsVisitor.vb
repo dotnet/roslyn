@@ -41,12 +41,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Function
 
             Public Overrides Function VisitForBlock(node As ForBlockSyntax) As IList(Of StatementSyntax)
-                ' TODO: evilness around ending multiple stateents at once with a single "next"
+                ' TODO: evilness around ending multiple statements at once with a single "next"
                 Return New StatementSyntax() {node.ForStatement, node.NextStatement}
             End Function
 
             Public Overrides Function VisitForEachBlock(node As ForEachBlockSyntax) As IList(Of StatementSyntax)
-                ' TODO: evilness around ending multiple stateents at once with a single "next"
+                ' TODO: evilness around ending multiple statements at once with a single "next"
                 Return New StatementSyntax() {node.ForEachStatement, node.NextStatement}
             End Function
 

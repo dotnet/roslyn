@@ -57,10 +57,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private EvalResultDataItem GetRow(
-            ResultProvider resultProvider, 
-            DkmInspectionContext inspectionContext, 
-            DkmClrValue value, 
-            int index, 
+            ResultProvider resultProvider,
+            DkmInspectionContext inspectionContext,
+            DkmClrValue value,
+            int index,
             EvalResultDataItem parent)
         {
             var typeParameter = _typeParameters[index];

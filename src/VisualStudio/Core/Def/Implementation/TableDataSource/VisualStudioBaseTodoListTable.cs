@@ -6,8 +6,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class VisualStudioBaseTodoListTable : AbstractTable<TaskListEventArgs, TodoTaskItem>
+    internal class VisualStudioBaseTodoListTable : AbstractTable
     {
         private static readonly string[] s_columns = new string[]
         {
@@ -66,27 +66,107 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _source.Shutdown();
         }
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TaskListEventArgs, TodoTaskItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TodoItem>
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
             private readonly ITodoListProvider _todoListProvider;
 
-            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier)
+            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier) :
+                base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;
+
                 _todoListProvider = todoListProvider;
                 _todoListProvider.TodoListUpdated += OnTodoListUpdated;
 
-                ConnectToSolutionCrawlerService(_workspace);
+                PopulateInitialData(workspace, _todoListProvider);
             }
 
             public override string DisplayName => ServicesVSResources.TodoTableSourceName;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
+            public override object GetItemKey(object data) => ((UpdatedEventArgs)data).DocumentId;
 
-            private void OnTodoListUpdated(object sender, TaskListEventArgs e)
+            protected override object GetOrUpdateAggregationKey(object data)
+            {
+                var key = TryGetAggregateKey(data);
+                if (key == null)
+                {
+                    key = CreateAggregationKey(data);
+                    AddAggregateKey(data, key);
+                    return key;
+                }
+
+                if (!(key is ImmutableArray<DocumentId>))
+                {
+                    return key;
+                }
+
+                if (!CheckAggregateKey((ImmutableArray<DocumentId>)key, data as TodoItemsUpdatedArgs))
+                {
+                    RemoveStaledData(data);
+
+                    key = CreateAggregationKey(data);
+                    AddAggregateKey(data, key);
+                }
+
+                return key;
+            }
+
+            private bool CheckAggregateKey(ImmutableArray<DocumentId> key, TodoItemsUpdatedArgs args)
+            {
+                if (args?.DocumentId == null || args?.Solution == null)
+                {
+                    return true;
+                }
+
+                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                return key == documents;
+            }
+
+            private object CreateAggregationKey(object data)
+            {
+                var args = data as TodoItemsUpdatedArgs;
+                if (args?.Solution == null)
+                {
+                    return GetItemKey(data);
+                }
+
+                return args.Solution.GetRelatedDocumentIds(args.DocumentId);
+            }
+
+            public override ImmutableArray<TableItem<TodoItem>> Deduplicate(IEnumerable<IList<TableItem<TodoItem>>> groupedItems)
+            {
+                return groupedItems.MergeDuplicatesOrderedBy(Order);
+            }
+
+            public override ITrackingPoint CreateTrackingPoint(TodoItem data, ITextSnapshot snapshot)
+            {
+                return snapshot.CreateTrackingPoint(data.OriginalLine, data.OriginalColumn);
+            }
+
+            public override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(AbstractTableEntriesSource<TodoItem> source, int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints)
+            {
+                return new TableEntriesSnapshot(source, version, items, trackingPoints);
+            }
+
+            private static IEnumerable<TableItem<TodoItem>> Order(IEnumerable<TableItem<TodoItem>> groupedItems)
+            {
+                return groupedItems.OrderBy(d => d.Primary.OriginalLine)
+                                   .ThenBy(d => d.Primary.OriginalColumn);
+            }
+
+            private void PopulateInitialData(Workspace workspace, ITodoListProvider todoListService)
+            {
+                foreach (var args in todoListService.GetTodoItemsUpdatedEventArgs(workspace, cancellationToken: CancellationToken.None))
+                {
+                    OnDataAddedOrChanged(args);
+                }
+            }
+
+            private void OnTodoListUpdated(object sender, TodoItemsUpdatedArgs e)
             {
                 if (_workspace != e.Workspace)
                 {
@@ -95,143 +175,150 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 Contract.Requires(e.DocumentId != null);
 
-                if (e.TaskItems.Length == 0)
+                if (e.TodoItems.Length == 0)
                 {
-                    OnDataRemoved(e.DocumentId);
+                    OnDataRemoved(e);
                     return;
                 }
 
-                OnDataAddedOrChanged(e.DocumentId, e, e.TaskItems.Length);
+                OnDataAddedOrChanged(e);
             }
 
-            protected override AbstractTableEntriesFactory<TodoTaskItem> CreateTableEntryFactory(object key, TaskListEventArgs data)
+            public override AbstractTableEntriesSource<TodoItem> CreateTableEntriesSource(object data)
             {
-                var documentId = (DocumentId)key;
-                Contract.Requires(documentId == data.DocumentId);
-
-                return new TableEntriesFactory(this, data.Workspace, data.DocumentId);
+                var item = (UpdatedEventArgs)data;
+                return new TableEntriesSource(this, item.Workspace, item.DocumentId);
             }
 
-            private class TableEntriesFactory : AbstractTableEntriesFactory<TodoTaskItem>
+            private class TableEntriesSource : AbstractTableEntriesSource<TodoItem>
             {
                 private readonly TableDataSource _source;
                 private readonly Workspace _workspace;
                 private readonly DocumentId _documentId;
 
-                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId) :
-                    base(source)
+                public TableEntriesSource(TableDataSource source, Workspace workspace, DocumentId documentId)
                 {
                     _source = source;
                     _workspace = workspace;
                     _documentId = documentId;
                 }
 
-                protected override ImmutableArray<TodoTaskItem> GetItems()
+                public override object Key => _documentId;
+
+                public override ImmutableArray<TableItem<TodoItem>> GetItems()
                 {
                     var provider = _source._todoListProvider;
 
-                    // TODO: remove this wierd cast once we completely move off legacy task list. we, for now, need this since we share data
-                    //       between old and new API.
-                    return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None).Cast<TodoTaskItem>().ToImmutableArray();
+                    return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
+                                   .Select(i => new TableItem<TodoItem>(i, GenerateDeduplicationKey))
+                                   .ToImmutableArray();
                 }
 
-                protected override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoTaskItem> items)
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<TodoItem>> items)
                 {
-                    return CreateTrackingPoints(_workspace, _documentId, items, (d, s) => CreateTrackingPoint(s, d.OriginalLine, d.OriginalColumn));
+                    return _workspace.CreateTrackingPoints(_documentId, items, _source.CreateTrackingPoint);
                 }
 
-                protected override AbstractTableEntriesSnapshot<TodoTaskItem> CreateSnapshot(int version, ImmutableArray<TodoTaskItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                private int GenerateDeduplicationKey(TodoItem item)
                 {
-                    return new TableEntriesSnapshot(this, version, items, trackingPoints);
+                    return Hash.Combine(item.OriginalColumn, item.OriginalLine);
+                }
+            }
+
+            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoItem>
+            {
+                private readonly AbstractTableEntriesSource<TodoItem> _source;
+
+                public TableEntriesSnapshot(
+                    AbstractTableEntriesSource<TodoItem> source, int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
+                    base(version, items, trackingPoints)
+                {
+                    _source = source;
                 }
 
-                private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoTaskItem>
+                public override bool TryGetValue(int index, string columnName, out object content)
                 {
-                    private readonly TableEntriesFactory _factory;
+                    // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
+                    //         also, what is cancellation mechanism?
+                    var item = GetItem(index);
 
-                    public TableEntriesSnapshot(
-                        TableEntriesFactory factory, int version, ImmutableArray<TodoTaskItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                        base(version, GetProjectGuid(factory._workspace, factory._documentId.ProjectId), items, trackingPoints)
+                    var data = item?.Primary;
+                    if (data == null)
                     {
-                        _factory = factory;
+                        content = null;
+                        return false;
                     }
 
-                    public override bool TryGetValue(int index, string columnName, out object content)
+                    switch (columnName)
                     {
-                        // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
-                        //         also, what is cancellation mechanism?
-                        var item = GetItem(index);
-                        if (item == null)
-                        {
+                        case StandardTableKeyNames.Priority:
+                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Priority);
+                            return content != null;
+                        case StandardTableKeyNames.Text:
+                            content = data.Message;
+                            return content != null;
+                        case StandardTableKeyNames.DocumentName:
+                            content = GetFileName(data.OriginalFilePath, data.MappedFilePath);
+                            return content != null;
+                        case StandardTableKeyNames.Line:
+                            content = GetLineColumn(data).Line;
+                            return true;
+                        case StandardTableKeyNames.Column:
+                            content = GetLineColumn(data).Character;
+                            return true;
+                        case StandardTableKeyNames.TaskCategory:
+                            content = ValueTypeCache.GetOrCreate(VSTASKCATEGORY.CAT_COMMENTS);
+                            return content != null;
+                        case StandardTableKeyNames.ProjectName:
+                            content = item.ProjectName;
+                            return content != null;
+                        case ProjectNames:
+                            content = item.ProjectNames;
+                            return ((string[])content).Length > 0;
+                        case StandardTableKeyNames.ProjectGuid:
+                            content = ValueTypeCache.GetOrCreate(item.ProjectGuid);
+                            return (Guid)content != Guid.Empty;
+                        case ProjectGuids:
+                            content = item.ProjectGuids;
+                            return ((Guid[])content).Length > 0;
+                        default:
                             content = null;
                             return false;
-                        }
-
-                        switch (columnName)
-                        {
-                            case StandardTableKeyNames.Priority:
-                                content = (VSTASKPRIORITY)item.Priority;
-                                return true;
-                            case StandardTableKeyNames.Text:
-                                content = item.Message;
-                                return true;
-                            case StandardTableKeyNames.DocumentName:
-                                content = GetFileName(item.OriginalFilePath, item.MappedFilePath);
-                                return true;
-                            case StandardTableKeyNames.Line:
-                                content = GetLineColumn(item).Line;
-                                return true;
-                            case StandardTableKeyNames.Column:
-                                content = GetLineColumn(item).Character;
-                                return true;
-                            case StandardTableKeyNames.ProjectName:
-                                content = GetProjectName(_factory._workspace, _factory._documentId.ProjectId);
-                                return content != null;
-                            case StandardTableKeyNames.ProjectGuid:
-                                content = ProjectGuid;
-                                return ProjectGuid != Guid.Empty;
-                            case StandardTableKeyNames.TaskCategory:
-                                content = VSTASKCATEGORY.CAT_COMMENTS;
-                                return true;
-                            default:
-                                content = null;
-                                return false;
-                        }
                     }
+                }
 
-                    private LinePosition GetLineColumn(TodoTaskItem item)
+                private LinePosition GetLineColumn(TodoItem item)
+                {
+                    return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
+                        item.Workspace,
+                        item.DocumentId,
+                        item.OriginalLine,
+                        item.OriginalColumn,
+                        item.MappedLine,
+                        item.MappedColumn);
+                }
+
+                public override bool TryNavigateTo(int index, bool previewTab)
+                {
+                    var item = GetItem(index)?.Primary;
+                    if (item == null)
                     {
-                        return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
-                            _factory._workspace,
-                            _factory._documentId,
-                            item.OriginalLine,
-                            item.OriginalColumn,
-                            item.MappedLine,
-                            item.MappedColumn);
+                        return false;
                     }
 
-                    public override bool TryNavigateTo(int index, bool previewTab)
+                    var trackingLinePosition = GetTrackingLineColumn(item.Workspace, item.DocumentId, index);
+                    if (trackingLinePosition != LinePosition.Zero)
                     {
-                        var item = GetItem(index);
-                        if (item == null)
-                        {
-                            return false;
-                        }
-
-                        var trackingLinePosition = GetTrackingLineColumn(_factory._workspace, _factory._documentId, index);
-                        if (trackingLinePosition != LinePosition.Zero)
-                        {
-                            return TryNavigateTo(_factory._workspace, _factory._documentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
-                        }
-
-                        return TryNavigateTo(_factory._workspace, _factory._documentId, item.OriginalLine, item.OriginalColumn, previewTab);
+                        return TryNavigateTo(item.Workspace, item.DocumentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
                     }
 
-                    protected override bool IsEquivalent(TodoTaskItem item1, TodoTaskItem item2)
-                    {
-                        // everything same except location
-                        return item1.DocumentId == item2.DocumentId && item1.Message == item2.Message;
-                    }
+                    return TryNavigateTo(item.Workspace, item.DocumentId, item.OriginalLine, item.OriginalColumn, previewTab);
+                }
+
+                protected override bool IsEquivalent(TodoItem item1, TodoItem item2)
+                {
+                    // everything same except location
+                    return item1.DocumentId == item2.DocumentId && item1.Message == item2.Message;
                 }
             }
         }

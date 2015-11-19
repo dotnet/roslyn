@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return new CSharpProjectFileLoader(languageServices.WorkspaceServices);
+            return new CSharpProjectFileLoader();
         }
     }
 }

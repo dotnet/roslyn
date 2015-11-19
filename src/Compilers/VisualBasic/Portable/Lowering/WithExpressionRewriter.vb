@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' outer expression, because otherwise it will get to initializers of the nested 
                     ' With statement and will take part in flow analysis
                     '
-                    ' Try and get the sunstitute from the binder, or leave placeholder 'as-is' to 
+                    ' Try and get the substitute from the binder, or leave placeholder 'as-is' to 
                     ' be replaced with proper substitute by flow analysis code when needed
                     Dim substitute As BoundExpression =
                         state.Binder.GetWithStatementPlaceholderSubstitute(DirectCast(value, BoundValuePlaceholderBase))

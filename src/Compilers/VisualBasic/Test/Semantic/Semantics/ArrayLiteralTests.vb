@@ -227,7 +227,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub TestArrayLiteralDimensionMistach()
+        Public Sub TestArrayLiteralDimensionMismatch()
             Dim source =
 <compilation name="TestArrayLiteralWithTargetType">
     <file name="a.vb">
@@ -246,20 +246,45 @@ End Module
 ]]></file>
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=_strictOff)
-            comp.VerifyDiagnostics(
-                    Diagnostic(ERRID.ERR_TypeInferenceArrayRankMismatch1, "a1()").WithArguments("a1"),
-                    Diagnostic(ERRID.ERR_ConvertObjectArrayMismatch3, "{{1}}").WithArguments("Integer(*,*)", "Object()", "Integer"),
-                    Diagnostic(ERRID.ERR_ArrayInitializerTooManyDimensions, "{2}"),
-                    Diagnostic(ERRID.ERR_ArrayInitializerTooFewDimensions, "2"),
-                    Diagnostic(ERRID.ERR_TypeMismatch2, "{{1}}").WithArguments("Integer(*,*)", "System.Collections.Generic.IEnumerable(Of Double)"))
-
+            comp.AssertTheseDiagnostics(
+<expected>
+BC36909: Cannot infer a data type for 'a1' because the array dimensions do not match.
+        dim a1() = {{1}}
+            ~~~~
+BC30414: Value of type 'Integer(*,*)' cannot be converted to 'Object()' because the array types have different numbers of dimensions.
+        dim a1() = {{1}}
+                   ~~~~~
+BC30566: Array initializer has too many dimensions.
+        dim a2 = {1, {2}}
+                     ~~~
+BC30565: Array initializer has too few dimensions.
+        dim a3(,) = {{{1}}, 2}
+                            ~
+BC30311: Value of type 'Integer(*,*)' cannot be converted to 'IEnumerable(Of Double)'.
+        dim i2 as IEnumerable(of Double) = {{1}}
+                                           ~~~~~
+</expected>
+            )
             comp = comp.WithOptions(_strictOn)
-            comp.VerifyDiagnostics(
-                     Diagnostic(ERRID.ERR_TypeInferenceArrayRankMismatch1, "a1()").WithArguments("a1"),
-                     Diagnostic(ERRID.ERR_ConvertObjectArrayMismatch3, "{{1}}").WithArguments("Integer(*,*)", "Object()", "Integer"),
-                     Diagnostic(ERRID.ERR_ArrayInitializerTooManyDimensions, "{2}"),
-                     Diagnostic(ERRID.ERR_ArrayInitializerTooFewDimensions, "2"),
-                     Diagnostic(ERRID.ERR_TypeMismatch2, "{{1}}").WithArguments("Integer(*,*)", "System.Collections.Generic.IEnumerable(Of Double)"))
+            comp.AssertTheseDiagnostics(
+<expected>
+BC36909: Cannot infer a data type for 'a1' because the array dimensions do not match.
+        dim a1() = {{1}}
+            ~~~~
+BC30414: Value of type 'Integer(*,*)' cannot be converted to 'Object()' because the array types have different numbers of dimensions.
+        dim a1() = {{1}}
+                   ~~~~~
+BC30566: Array initializer has too many dimensions.
+        dim a2 = {1, {2}}
+                     ~~~
+BC30565: Array initializer has too few dimensions.
+        dim a3(,) = {{{1}}, 2}
+                            ~
+BC30311: Value of type 'Integer(*,*)' cannot be converted to 'IEnumerable(Of Double)'.
+        dim i2 as IEnumerable(of Double) = {{1}}
+                                           ~~~~~
+</expected>
+            )
 
         End Sub
 
@@ -282,8 +307,8 @@ Module Module1
 
     Sub Main()
         Dim c1 as C = {1}
-        Dim c2 = DirectCast({1}, C) 'Should fail, user defined conversion should not be appled.
-        Dim c3 = TryCast({1}, C)    'Should fail, user defined conversion should not be appled.
+        Dim c2 = DirectCast({1}, C) 'Should fail, user defined conversion should not be applied.
+        Dim c3 = TryCast({1}, C)    'Should fail, user defined conversion should not be applied.
     End Sub
 
 End Module
@@ -1247,9 +1272,9 @@ Function Foo2Params(of m+C)(x as m+C, y as m+C)
 
         ' Tests dominant type when array is converted to c via user defined function
         <Fact()>
-        Public Sub TestArrayLiteralDominantTyperAndUserDefinedConversion()
+        Public Sub TestArrayLiteralDominantTypeAndUserDefinedConversion()
             Dim source =
-<compilation name="TestArrayLiteralDominantTyperAndUserDefinedConversion">
+<compilation>
     <file name="a.vb">
         <![CDATA[
 Imports System

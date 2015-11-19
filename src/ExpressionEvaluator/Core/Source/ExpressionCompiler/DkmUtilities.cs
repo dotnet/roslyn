@@ -21,12 +21,26 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal unsafe delegate IntPtr GetMetadataBytesPtrFunction(AssemblyIdentity assemblyIdentity, out uint uSize);
 
+        // Return the set of managed module instances from the AppDomain.
         private static IEnumerable<DkmClrModuleInstance> GetModulesInAppDomain(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
         {
+            if (appDomain.IsUnloaded)
+            {
+                return SpecializedCollections.EmptyEnumerable<DkmClrModuleInstance>();
+            }
+
             var appDomainId = appDomain.Id;
+            // GetModuleInstances() may include instances of DkmClrNcContainerModuleInstance
+            // which are containers of managed module instances (see GetEmbeddedModules())
+            // but not managed modules themselves. Since GetModuleInstances() will include the
+            // embedded modules, we can simply ignore DkmClrNcContainerModuleInstances.
             return runtime.GetModuleInstances().
-                Cast<DkmClrModuleInstance>().
-                Where(module => module.AppDomain.Id == appDomainId);
+                OfType<DkmClrModuleInstance>().
+                Where(module =>
+                {
+                    var moduleAppDomain = module.AppDomain;
+                    return !moduleAppDomain.IsUnloaded && (moduleAppDomain.Id == appDomainId);
+                });
         }
 
         internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)

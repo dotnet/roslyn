@@ -1,13 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -19,9 +15,9 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
-    internal abstract class AbstractMemberInsertingCompletionProvider : AbstractCompletionProvider, ICustomCommitCompletionProvider
+    internal abstract class AbstractMemberInsertingCompletionProvider : CompletionListProvider, ICustomCommitCompletionProvider
     {
         private IWaitIndicator _waitIndicator;
         private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
@@ -37,27 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
             IWaitIndicator waitIndicator)
         {
             _waitIndicator = waitIndicator;
-        }
-
-        protected override Task<bool> IsExclusiveAsync(Document documentOpt, int caretPosition, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.True;
-        }
-
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string text)
-        {
-            // Commit on tab, enter and (
-            return ch == '(';
-        }
-
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            return default(TextChange);
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return false;
         }
 
         public void Commit(CompletionItem completionItem, ITextView textView, ITextBuffer subjectBuffer, ITextSnapshot triggerSnapshot, char? commitChar)
@@ -177,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
                 // character enter the buffer. That means we can get ambiguity.
                 // partial class C { partial void foo() }
                 // partial class C { partial foo($$
-                // Commiting with the open paren will create a second, ambiguous foo.
+                // Committing with the open paren will create a second, ambiguous foo.
                 // We'll try to prefer the symbol whose declaration doesn't intersect our position
                 var nonIntersectingMember = resolution.CandidateSymbols.First(s => s.DeclaringSyntaxReferences.Any(d => !d.Span.IntersectsWith(span)));
                 if (nonIntersectingMember != null)
@@ -236,11 +211,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
 
             root = root.RemoveNodes(members, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
-            var disMemberedDocument = document.WithSyntaxRoot(root);
+            var dismemberedDocument = document.WithSyntaxRoot(root);
 
-            disMemberedDocument = Simplifier.ReduceAsync(disMemberedDocument, Simplifier.Annotation, null, cancellationToken).WaitAndGetResult(cancellationToken);
-            disMemberedDocument = Formatter.FormatAsync(disMemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-            return disMemberedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            dismemberedDocument = Simplifier.ReduceAsync(dismemberedDocument, Simplifier.Annotation, null, cancellationToken).WaitAndGetResult(cancellationToken);
+            dismemberedDocument = Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            return dismemberedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
         }
     }
 }

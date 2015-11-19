@@ -219,9 +219,7 @@ Class C
 End Class
 ]]>.Value
 
-            Dim treet = SyntaxFactory.ParseSyntaxTree(source)
-
-            Dim compilationA = CreateCompilationWithMscorlib(treet)
+            Dim compilationA = CreateCompilationWithMscorlib(SyntaxFactory.ParseSyntaxTree(source))
 
             Dim blockStatement = SyntaxFactory.ParseSyntaxTree(<![CDATA[
                                                                

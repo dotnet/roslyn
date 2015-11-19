@@ -842,7 +842,7 @@ End Module
                     Results.Append(")")
 
                     If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
-                        ' Trivia for xml documentation comments have addditional 'structure'
+                        ' Trivia for xml documentation comments have additional 'structure'
                         ' available under a child DocumentationCommentSyntax.
                         Assert.IsTrue(trivia.HasStructure)
                         Dim documentationComment = CType(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
@@ -1727,9 +1727,9 @@ End Module
 
             Dim model = compilation.GetSemanticModel(tree)
 
-            Dim getMethod As Func(Of String, IMethodSymbol) = Function(name) Aggregate declration In tree.GetRoot().DescendantNodes().OfType(Of MethodStatementSyntax)
-                                                                             Where 0 = String.Compare(name, declration.Identifier.Text, True)
-                                                                             Select model.GetDeclaredSymbol(declration)
+            Dim getMethod As Func(Of String, IMethodSymbol) = Function(name) Aggregate declaration In tree.GetRoot().DescendantNodes().OfType(Of MethodStatementSyntax)
+                                                                             Where 0 = String.Compare(name, declaration.Identifier.Text, True)
+                                                                             Select model.GetDeclaredSymbol(declaration)
                                                                              Into [Single]
 
             Dim methodSymbol As IMethodSymbol

@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
 {
     internal class BlankLineInGeneratedMethodFormattingRule : IFormattingRule
     {
-        public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
         }

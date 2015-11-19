@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (this.IsOverride)
             {
                 // This will cause another call to SourceMethodSymbol.LazyMethodChecks, 
-                // but that method already handles re-entrancy for exactly this case.
+                // but that method already handles reentrancy for exactly this case.
                 MethodSymbol overriddenMethod = this.OverriddenMethod;
                 if ((object)overriddenMethod != null)
                 {
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Check accessibility against the accessibility declared on the accessor not the property.
             var localAccessibility = this.LocalAccessibility;
 
-            if (IsAbstract && !ContainingType.IsAbstract && ContainingType.TypeKind == TypeKind.Class)
+            if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
                 // '{0}' is abstract but it is contained in non-abstract class '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If we are outputing a .winmdobj then the setter name is put_, not set_.
+        /// If we are outputting a .winmdobj then the setter name is put_, not set_.
         /// </summary>
         internal static string GetAccessorName(string propertyName, bool getNotSet, bool isWinMdOutput)
         {

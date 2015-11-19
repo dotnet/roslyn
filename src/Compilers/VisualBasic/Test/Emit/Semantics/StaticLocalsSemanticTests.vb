@@ -811,7 +811,7 @@ Public Module Module1
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_StaticLocalInTryCatchFinallyBlock()
-            'The Use of Sttaic Locals within Try/Catch/Finally Blocks
+            'The Use of Static Locals within Try/Catch/Finally Blocks
             Dim compilationDef =
     <compilation>
         <file name="a.vb">
@@ -949,7 +949,7 @@ End Module
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub Semantic_SameNameInDifferentOvertloads()
+        Public Sub Semantic_SameNameInDifferentOverloads()
             'The Use of Static Locals within shared methods with same name as static local in each method
 
             Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1032,7 +1032,7 @@ End Class
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_OverriddenMethod()
-            'The Use of Static Locals in both a base and derived class with ovverriden method
+            'The Use of Static Locals in both a base and derived class with overridden method
 
             Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>

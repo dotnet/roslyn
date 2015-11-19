@@ -44,6 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
             Assert.Equal(expectedText, normalized);
         }
 
+        private void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        {
+            Assert.IsAssignableFrom(typeof(TSyntax), node);
+            var normalized = node.ToFullString();
+            Assert.Equal(expectedText, normalized);
+        }
+
         #region Expressions and Statements
         [Fact]
         public void TestLiteralExpressions()
@@ -167,7 +174,6 @@ public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
 public class MyAttribute : Attribute { public int Value {get; set;} }",
 @"[MyAttribute(Value = 123)]")),
 @"[global::MyAttribute(Value = 123)]");
-
         }
 
         private AttributeData GetAttributeData(string decl, string use)
@@ -305,6 +311,18 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<MemberAccessExpressionSyntax>(_g.MemberAccessExpression(_g.ElementAccessExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), _g.IdentifierName("z")), "x[y].z");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.MemberAccessExpression(_g.AddExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), _g.IdentifierName("z")), "((x) + (y)).z");
             VerifySyntax<MemberAccessExpressionSyntax>(_g.MemberAccessExpression(_g.NegateExpression(_g.IdentifierName("x")), _g.IdentifierName("y")), "(-(x)).y");
+        }
+
+        [Fact]
+        public void TestArrayCreationExpressions()
+        {
+            VerifySyntax<ArrayCreationExpressionSyntax>(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), _g.LiteralExpression(10)),
+                "new x[10]");
+
+            VerifySyntax<ArrayCreationExpressionSyntax>(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), new SyntaxNode[] { _g.IdentifierName("y"), _g.IdentifierName("z") }),
+                "new x[]{y, z}");
         }
 
         [Fact]
@@ -638,9 +656,9 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 _g.VoidReturningLambdaExpression(new[] { _g.LambdaParameter("x", _g.IdentifierName("y")), _g.LambdaParameter("a", _g.IdentifierName("b")) }, _g.IdentifierName("z")),
                 "(y x, b a) => z");
         }
-#endregion
+        #endregion
 
-#region Declarations
+        #region Declarations
         [Fact]
         public void TestFieldDeclarations()
         {
@@ -925,6 +943,27 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.AsPrivateInterfaceImplementation(pim, _g.IdentifierName("i2"), "m2"),
                 "t i2.m2()\r\n{\r\n}");
+        }
+
+        [WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
+        [Fact]
+        public void TestAsPrivateInterfaceImplementationRemovesConstraints()
+        {
+            var code = @"
+public interface IFace
+{
+    void Method<T>() where T : class;
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var iface = cu.Members[0];
+            var method = _g.GetMembers(iface)[0];
+
+            var privateMethod = _g.AsPrivateInterfaceImplementation(method, _g.IdentifierName("IFace"));
+
+            VerifySyntax<MethodDeclarationSyntax>(
+                privateMethod,
+                "void IFace.Method<T>()\r\n{\r\n}");
         }
 
         [Fact]
@@ -1309,6 +1348,32 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        [WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
+        public void TestAddAttributesToAccessors()
+        {
+            var prop = _g.PropertyDeclaration("P", _g.IdentifierName("T"));
+            var evnt = _g.CustomEventDeclaration("E", _g.IdentifierName("T"));
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.GetAccessor));
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.SetAccessor));
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.AddAccessor));
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.RemoveAccessor));
+        }
+
+        private void CheckAddRemoveAttribute(SyntaxNode declaration)
+        {
+            var initialAttributes = _g.GetAttributes(declaration);
+            Assert.Equal(0, initialAttributes.Count);
+
+            var withAttribute = _g.AddAttributes(declaration, _g.Attribute("a"));
+            var attrsAdded = _g.GetAttributes(withAttribute);
+            Assert.Equal(1, attrsAdded.Count);
+
+            var withoutAttribute = _g.RemoveNode(withAttribute, attrsAdded[0]);
+            var attrsRemoved = _g.GetAttributes(withoutAttribute);
+            Assert.Equal(0, attrsRemoved.Count);
+        }
+
+        [Fact]
         public void TestAddRemoveAttributesPerservesTrivia()
         {
             var cls = SyntaxFactory.ParseCompilationUnit(@"// comment
@@ -1494,9 +1559,9 @@ public class C { } // end").Members[0];
     }
 }");
         }
-#endregion
+        #endregion
 
-#region Add/Insert/Remove/Get declarations & members/elements
+        #region Add/Insert/Remove/Get declarations & members/elements
 
         private void AssertNamesEqual(string[] expectedNames, IEnumerable<SyntaxNode> actualNodes)
         {
@@ -1550,6 +1615,101 @@ public class C { } // end").Members[0];
         {
             var newDecl = _g.RemoveNode(declaration, _g.GetNamespaceImports(declaration).First(m => _g.GetName(m) == name));
             AssertNamesEqual(remainingNames, _g.GetNamespaceImports(newDecl));
+        }
+
+        [Fact]
+        public void TestRemoveNodeInTrivia()
+        {
+            var code = @"
+///<summary> ... </summary>
+public class C
+{
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var cls = cu.Members[0];
+            var summary = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlElementSyntax>().First();
+
+            var newCu = _g.RemoveNode(cu, summary);
+
+            VerifySyntaxRaw<CompilationUnitSyntax>(
+                newCu,
+                @"
+
+public class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestReplaceNodeInTrivia()
+        {
+            var code = @"
+///<summary> ... </summary>
+public class C
+{
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var cls = cu.Members[0];
+            var summary = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlElementSyntax>().First();
+
+            var summary2 = summary.WithContent(default(SyntaxList<XmlNodeSyntax>));
+
+            var newCu = _g.ReplaceNode(cu, summary, summary2);
+
+            VerifySyntaxRaw<CompilationUnitSyntax>(
+                newCu, @"
+///<summary></summary>
+public class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestInsertAfterNodeInTrivia()
+        {
+            var code = @"
+///<summary> ... </summary>
+public class C
+{
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var cls = cu.Members[0];
+            var text = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlTextSyntax>().First();
+
+            var newCu = _g.InsertNodesAfter(cu, text, new SyntaxNode[] { text });
+
+            VerifySyntaxRaw<CompilationUnitSyntax>(
+                newCu, @"
+///<summary> ...  ... </summary>
+public class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestInsertBeforeNodeInTrivia()
+        {
+            var code = @"
+///<summary> ... </summary>
+public class C
+{
+}";
+
+            var cu = SyntaxFactory.ParseCompilationUnit(code);
+            var cls = cu.Members[0];
+            var text = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlTextSyntax>().First();
+
+            var newCu = _g.InsertNodesBefore(cu, text, new SyntaxNode[] { text });
+
+            VerifySyntaxRaw<CompilationUnitSyntax>(
+                newCu, @"
+///<summary> ...  ... </summary>
+public class C
+{
+}");
         }
 
         [Fact]
@@ -1655,7 +1815,7 @@ public class C { } // end").Members[0];
         }
 
         [Fact]
-        public void TestWithtName()
+        public void TestWithName()
         {
             Assert.Equal("c", _g.GetName(_g.WithName(_g.ClassDeclaration("x"), "c")));
             Assert.Equal("s", _g.GetName(_g.WithName(_g.StructDeclaration("x"), "s")));

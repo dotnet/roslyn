@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
@@ -12,16 +11,11 @@
     <ProjectGuid>{91F6F646-4F6E-449A-9AB4-2986348F329D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Syntax.UnitTests</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <VBSyntaxGeneratorToolPath>$(OutDir)\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
-  </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
@@ -29,9 +23,9 @@
       <Name>VisualBasicSyntaxGenerator</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\TestUtilities.csproj">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities</Name>
+      <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -41,13 +35,13 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.vbproj">
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>CompilerTestUtilities2</Name>
+      <Name>TestUtilities.FX45</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
@@ -91,13 +85,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.0.0-rc3-20150528-03\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit">
-      <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -158,7 +145,8 @@
     <Compile Include="Syntax\SyntaxTriviaListTests.vb" />
     <Compile Include="TestSyntaxNodes.vb" />
     <Content Include="Syntax\VBAllInOne.txt" />
-    <None Include="packages.config" />
+    <None Include="app.config" />
+    <None Include="project.json" />
     <None Include="Resources\VBAllInOne.vb" />
   </ItemGroup>
   <ItemGroup>
@@ -180,9 +168,7 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\..\..\build\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
 </Project>

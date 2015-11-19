@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         /// <summary>
         /// unique VS session id
         /// </summary>
-        private static readonly string RequestId = Guid.NewGuid().ToString();
+        private static readonly string s_requestId = Guid.NewGuid().ToString();
 
-        private const string BingSearchString = "http://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText={0}&mainLanguage={1}&projectType={2}&requestId={3}&clientId={4}&errorCode={5}";
+        private const string BingSearchString = "https://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText={0}&mainLanguage={1}&projectType={2}&requestId={3}&clientId={4}&errorCode={5}";
 
         public static bool TryGetUri(string link, out Uri uri)
         {
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             language = language ?? string.Empty;
             projectType = projectType ?? string.Empty;
 
-            var url = string.Format(BingSearchString, Uri.EscapeDataString(title), Uri.EscapeDataString(language), Uri.EscapeDataString(projectType), Uri.EscapeDataString(RequestId), Uri.EscapeDataString(string.Empty), Uri.EscapeDataString(errorCode));
+            var url = string.Format(BingSearchString, Uri.EscapeDataString(title), Uri.EscapeDataString(language), Uri.EscapeDataString(projectType), Uri.EscapeDataString(s_requestId), Uri.EscapeDataString(string.Empty), Uri.EscapeDataString(errorCode));
             return new Uri(url);
         }
 

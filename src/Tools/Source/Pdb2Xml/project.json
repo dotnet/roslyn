@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Microsoft.DiaSymReader": "1.0.6"
+  },
+  "frameworks": {
+    "net45": {}
+  },
+  "runtimes": {
+    "win7": { },
+    "win7-anycpu": {}
+  }
+}

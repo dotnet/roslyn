@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
-using System.Collections;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -23,11 +22,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal readonly DkmInspectionContext DefaultInspectionContext;
 
-        internal ResultProviderTestBase(ResultProvider resultProvider, DkmInspectionContext defaultInspectionContext)
+        protected static readonly string DynamicDebugViewEmptyMessage;
+
+        static ResultProviderTestBase()
+        {
+            var exceptionType = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly.GetType(
+                "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView+DynamicDebugViewEmptyException");
+            var emptyProperty = exceptionType.GetProperty("Empty");
+            DynamicDebugViewEmptyMessage = (string)emptyProperty.GetValue(exceptionType.Instantiate());
+        }
+
+        protected ResultProviderTestBase(ResultProvider resultProvider, DkmInspectionContext defaultInspectionContext)
         {
             _formatter = resultProvider.Formatter;
             _resultProvider = resultProvider;
             this.DefaultInspectionContext = defaultInspectionContext;
+
+            // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
+            ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
         }
 
         internal DkmClrValue CreateDkmClrValue(
@@ -331,7 +343,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static string ToString(DkmEvaluationResult result)
         {
             var success = result as DkmSuccessEvaluationResult;
-            return (success != null) ? ToString(success) : ToString((DkmFailedEvaluationResult)result);
+            if (success != null) return ToString(success);
+
+            var intermediate = result as DkmIntermediateEvaluationResult;
+            if (intermediate != null) return ToString(intermediate);
+
+            return ToString((DkmFailedEvaluationResult)result);
         }
 
         private static string ToString(DkmSuccessEvaluationResult result)
@@ -365,6 +382,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 builder.Append(", ");
                 builder.Append(Quote(result.EditableValue));
+            }
+            builder.Append(")");
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private static string ToString(DkmIntermediateEvaluationResult result)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            builder.Append("IntermediateEvalResult(");
+            builder.Append(Quote(result.Name));
+            builder.Append(", ");
+            builder.Append(Quote(result.Expression));
+            if (result.Type != null)
+            {
+                builder.Append(", ");
+                builder.Append(Quote(result.Type));
+            }
+            if (result.FullName != null)
+            {
+                builder.Append(", ");
+                builder.Append(Quote(Escape(result.FullName)));
+            }
+            if (result.Flags != DkmEvaluationResultFlags.None)
+            {
+                builder.Append(", ");
+                builder.Append(FormatEnumValue(result.Flags));
             }
             builder.Append(")");
             return pooledBuilder.ToStringAndFree();

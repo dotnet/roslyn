@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal static readonly AssemblyIdentity SystemIdentity = new AssemblyIdentity("System");
         internal static readonly AssemblyIdentity SystemCoreIdentity = new AssemblyIdentity("System.Core");
+        internal static readonly AssemblyIdentity SystemLinqIdentity = new AssemblyIdentity("System.Linq");
         internal static readonly AssemblyIdentity SystemXmlIdentity = new AssemblyIdentity("System.Xml");
         internal static readonly AssemblyIdentity SystemXmlLinqIdentity = new AssemblyIdentity("System.Xml.Linq");
         internal static readonly AssemblyIdentity MicrosoftVisualBasicIdentity = new AssemblyIdentity("Microsoft.VisualBasic");
@@ -45,12 +46,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out string typeName,
             CompilationTestData testData);
 
-        internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
+        internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, AssemblyIdentity linqLibrary, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
             var errors = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error);
             foreach (var error in errors)
             {
-                missingAssemblyIdentities = this.GetMissingAssemblyIdentities(error);
+                missingAssemblyIdentities = this.GetMissingAssemblyIdentities(error, linqLibrary);
                 if (!missingAssemblyIdentities.IsDefault)
                 {
                     break;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract bool HasDuplicateTypesOrAssemblies(Diagnostic diagnostic);
 
-        internal abstract ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic);
+        internal abstract ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic, AssemblyIdentity linqLibrary);
 
         // ILOffset == 0xffffffff indicates an instruction outside of IL.
         // Treat such values as the beginning of the IL.
@@ -118,6 +119,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 get { return DiagnosticSeverity.Error; }
             }
 
+            public override bool IsSuppressed
+            {
+                get { return false; }
+            }
+
             public override int WarningLevel
             {
                 get { throw new NotImplementedException(); }
@@ -149,6 +155,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal override Diagnostic WithIsSuppressed(bool isSuppressed)
             {
                 throw new NotImplementedException();
             }

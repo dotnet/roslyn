@@ -1,18 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -816,8 +814,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return SyntaxReferences;
+                // PERF: Declaring references are cached for compilations with event queue.
+                return this.DeclaringCompilation?.EventQueue != null ? GetCachedDeclaringReferences() : this.SyntaxReferences;
             }
+        }
+
+        private ImmutableArray<SyntaxReference> GetCachedDeclaringReferences()
+        {
+            ImmutableArray<SyntaxReference> declaringReferences;
+            if (!Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(this, this.DeclaringCompilation, out declaringReferences))
+            {
+                declaringReferences = this.SyntaxReferences;
+                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(this, this.DeclaringCompilation, declaringReferences);
+            }
+
+            return declaringReferences;
         }
 
         #endregion
@@ -1896,13 +1907,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int p = 0; p < op1.ParameterCount; ++p)
             {
-                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], ignoreCustomModifiers: true, ignoreDynamic: true))
+                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                 {
                     return false;
                 }
             }
 
-            if (!op1.ReturnType.Equals(op2.ReturnType, ignoreCustomModifiers: true, ignoreDynamic: true))
+            if (!op1.ReturnType.Equals(op2.ReturnType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
             {
                 return false;
             }
@@ -2565,7 +2576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var propertyParamType = ((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type;
-                if (!propertyParamType.Equals(methodParam.Type, ignoreCustomModifiers: true, ignoreDynamic: true))
+                if (!propertyParamType.Equals(methodParam.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                 {
                     return false;
                 }
@@ -2583,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return
                 methodParams.Length == 1 &&
                 methodParams[0].RefKind == RefKind.None &&
-                eventSymbol.Type.Equals(methodParams[0].Type, ignoreCustomModifiers: true, ignoreDynamic: true);
+                eventSymbol.Type.Equals(methodParams[0].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true);
         }
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)
@@ -2696,6 +2707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case MethodKind.ExplicitInterfaceImplementation:
                         //CS0541 is handled in SourcePropertySymbol
                         case MethodKind.Ordinary:
+                        case MethodKind.LocalFunction:
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:
                         case MethodKind.EventAdd:
@@ -2791,52 +2803,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // constants don't count, since they do not exist as fields at runtime
-            // NOTE: even for decimal constants (which require field initializers), 
-            // we do not create .cctor here since a static constructor implicitly created for a decimal 
-            // should not appear in the list returned by public API like GetMembers().
-            var hasStaticInitializer = HasNonConstantInitializer(staticInitializers);
-
             // NOTE: Per section 11.3.8 of the spec, "every struct implicitly has a parameterless instance constructor".
             // We won't insert a parameterless constructor for a struct if there already is one.
             // We don't expect anything to be emitted, but it should be in the symbol table.
             if ((!hasParameterlessInstanceConstructor && this.IsStructType()) || (!hasInstanceConstructor && !this.IsStatic))
             {
-                if (this.TypeKind == TypeKind.Submission)
-                {
-                    members.Add(new SynthesizedSubmissionConstructor(this, diagnostics));
-                }
-                else
-                {
-                    members.Add(new SynthesizedInstanceConstructor(this));
-                }
+                members.Add((this.TypeKind == TypeKind.Submission) ?
+                    new SynthesizedSubmissionConstructor(this, diagnostics) :
+                    new SynthesizedInstanceConstructor(this));
             }
 
-            if (!hasStaticConstructor && hasStaticInitializer)
+            // constants don't count, since they do not exist as fields at runtime
+            // NOTE: even for decimal constants (which require field initializers), 
+            // we do not create .cctor here since a static constructor implicitly created for a decimal 
+            // should not appear in the list returned by public API like GetMembers().
+            if (!hasStaticConstructor && HasNonConstantInitializer(staticInitializers))
             {
                 // Note: we don't have to put anything in the method - the binder will
                 // do that when processing field initializers.
                 members.Add(new SynthesizedStaticConstructor(this));
             }
+
+            if (this.IsScriptClass)
+            {
+                var scriptInitializer = new SynthesizedInteractiveInitializerMethod(this, diagnostics);
+                members.Add(scriptInitializer);
+                var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptInitializer, diagnostics);
+                members.Add(scriptEntryPoint);
+            }
         }
 
         private static bool HasNonConstantInitializer(ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> initializers)
         {
-            if (initializers != null)
-            {
-                foreach (var siblings in initializers)
-                {
-                    foreach (var initializer in siblings)
-                    {
-                        if (!initializer.FieldOpt.IsConst)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
+            return initializers.Any(siblings => siblings.Any(initializer => !initializer.FieldOpt.IsConst));
         }
 
         private void AddNonTypeMembers(

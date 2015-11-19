@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // and perhaps multiple application winmds. At runtime, Windows.winmd
             // is replaced by multiple Windows.*.winmd version >= 1.3. In the EE, we
             // need to map compile-time assembly references to the runtime assemblies
-            // supplied by the debugger. To do so, we “merge” all winmds named
+            // supplied by the debugger. To do so, we "merge" all winmds named
             // Windows.*.winmd into a single fake Windows.winmd at runtime.
             // All other (application) winmds are left as is.
             var runtimeWinMdBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
             var identitiesBuilder = (identityComparer == null) ? null : ArrayBuilder<AssemblyIdentity>.GetInstance();
             AssemblyIdentity corLibrary = null;
+            AssemblyIdentity intrinsicsAssembly = null;
 
             foreach (var metadata in metadataBuilder)
             {
@@ -106,6 +107,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         reader.DeclaresTheObjectClass())
                     {
                         corLibrary = identity;
+                    }
+                    else if ((intrinsicsAssembly == null) &&
+                        reader.DeclaresType((r, t) => r.IsPublicNonInterfaceType(t, ExpressionCompilerConstants.IntrinsicAssemblyNamespace, ExpressionCompilerConstants.IntrinsicAssemblyTypeName)))
+                    {
+                        intrinsicsAssembly = identity;
                     }
                 }
                 var reference = MakeAssemblyMetadata(metadata, modulesByName);
@@ -130,6 +136,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     if (corLibrary != null)
                     {
                         referencedModules.Add(corLibrary);
+                    }
+                    // Ensure Debugger intrinsic methods assembly is included.
+                    if (intrinsicsAssembly != null)
+                    {
+                        referencedModules.Add(intrinsicsAssembly);
                     }
                     RemoveUnreferencedModules(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
                     referencedModules.Free();
@@ -345,7 +356,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static bool IsWindowsAssemblyIdentity(this AssemblyIdentity assemblyIdentity)
         {
-            return IsWindowsAssemblyName(assemblyIdentity.Name) && 
+            return IsWindowsAssemblyName(assemblyIdentity.Name) &&
                 assemblyIdentity.ContentType == System.Reflection.AssemblyContentType.WindowsRuntime;
         }
 
@@ -396,10 +407,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// IL offset from outermost scope to innermost.
         /// </summary>
         internal static void GetScopes(
-            this ISymUnmanagedReader symReader, 
-            int methodToken, 
-            int methodVersion, 
-            int ilOffset, 
+            this ISymUnmanagedReader symReader,
+            int methodToken,
+            int methodVersion,
+            int ilOffset,
             bool isScopeEndInclusive,
             ArrayBuilder<ISymUnmanagedScope> allScopes,
             ArrayBuilder<ISymUnmanagedScope> containingScopes)

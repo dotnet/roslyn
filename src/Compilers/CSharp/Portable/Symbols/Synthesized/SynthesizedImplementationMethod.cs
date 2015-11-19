@@ -3,12 +3,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SynthesizedImplementationMethod : SynthesizedInstanceMethodSymbol
+    internal abstract class SynthesizedImplementationMethod : SynthesizedInstanceMethodSymbol
     {
         //inputs
         private readonly MethodSymbol _interfaceMethod;
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
-        
+
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }

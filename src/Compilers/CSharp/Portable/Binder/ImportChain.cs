@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -80,14 +80,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Dictionary<string, AliasAndUsingDirective> aliasSymbols = Imports.UsingAliases;
-            if (aliasSymbols != null)
+            ImmutableDictionary<string, AliasAndUsingDirective> aliasSymbols = Imports.UsingAliases;
+            if (!aliasSymbols.IsEmpty)
             {
-                foreach (var pair in aliasSymbols)
+                var aliases = ArrayBuilder<string>.GetInstance(aliasSymbols.Count);
+                aliases.AddRange(aliasSymbols.Keys);
+                aliases.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic.
+
+                foreach (var alias in aliases)
                 {
-                    var alias = pair.Key;
-                    var symbol = pair.Value.Alias;
-                    var syntax = pair.Value.UsingDirective;
+                    var aliasAndUsingDirective = aliasSymbols[alias];
+                    var symbol = aliasAndUsingDirective.Alias;
+                    var syntax = aliasAndUsingDirective.UsingDirective;
                     Debug.Assert(!symbol.IsExtern);
 
                     NamespaceOrTypeSymbol target = symbol.Target;
@@ -105,6 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateType(typeRef, alias));
                     }
                 }
+
+                aliases.Free();
             }
 
             return usedNamespaces.ToImmutableAndFree();
@@ -122,11 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var referenceManager = ((CSharpCompilation)moduleBuilder.CommonCompilation).GetBoundReferenceManager();
 
-                foreach (var referencedAssembly in referenceManager.ReferencedAssembliesMap.Values)
+                for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
                 {
-                    if ((object)referencedAssembly.Symbol == containingAssembly)
+                    if ((object)referenceManager.ReferencedAssemblies[i] == containingAssembly)
                     {
-                        if (!referencedAssembly.DeclarationsAccessibleWithoutAlias())
+                        if (!referenceManager.DeclarationsAccessibleWithoutAlias(i))
                         {
                             return moduleBuilder.Translate(containingAssembly, diagnostics);
                         }

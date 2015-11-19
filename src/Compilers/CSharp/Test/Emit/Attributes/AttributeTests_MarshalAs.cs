@@ -701,7 +701,7 @@ public class X
             };
 
             // RefEmit has slightly different encoding of the type name
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs, emitters: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -734,35 +734,7 @@ public class X
                 { "SafeArray7", new byte[] { 0x1d, 0x24, 0x01, 0x58 } },
             };
 
-            // RefEmit emits assembly-qualified type names even for types contained in the assembly (X)
-            CompileAndVerifyFieldMarshal(source, (fieldName, assembly, emitOptions) =>
-            {
-                if (emitOptions != TestEmitters.RefEmit)
-                {
-                    return cciBlobs[fieldName];
-                }
-
-                string displayName = assembly.Identity.GetDisplayName();
-                byte[] typeName;
-
-                switch (fieldName)
-                {
-                    case "SafeArray5":
-                        typeName = e.GetBytes("System.Collections.Generic.List`1[[X, " + displayName + "]][][], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-                        return new byte[] { 0x1d, 0x09, 0x80 }.Append((byte)typeName.Length).Append(typeName);
-
-                    case "SafeArray6":
-                        typeName = e.GetBytes("X, " + displayName);
-                        return new byte[] { 0x1d, 0x0d }.Append((byte)typeName.Length).Append(typeName);
-
-                    case "SafeArray7":
-                        typeName = e.GetBytes("X, " + displayName);
-                        return new byte[] { 0x1d, 0x24 }.Append((byte)typeName.Length).Append(typeName);
-
-                    default:
-                        throw TestExceptionUtilities.UnexpectedValue(fieldName);
-                }
-            });
+            CompileAndVerifyFieldMarshal(source, cciBlobs);
         }
 
         [Fact]
@@ -1027,7 +999,7 @@ enum E
 
 ";
 
-            CompileAndVerifyFieldMarshal(source, (name, _omitted1, _omitted2) => (name == "e" || name == "X") ? new byte[] { 0x02 } : null);
+            CompileAndVerifyFieldMarshal(source, (name, _omitted1) => (name == "e" || name == "X") ? new byte[] { 0x02 } : null);
         }
 
         #endregion
@@ -1368,7 +1340,7 @@ class C
                 references: new[] { comp1.EmitToImageReference() },  // it has to be real assembly, Comp2comp reference OK
                 assemblyName: "APP");
 
-            CompileAndVerify(comp2, emitters: TestEmitters.RefEmitBug, expectedOutput: @"0").VerifyIL("C.Main", @"
+            CompileAndVerify(comp2, expectedOutput: @"0").VerifyIL("C.Main", @"
 {
   // Code size       17 (0x11)
   .maxstack  2

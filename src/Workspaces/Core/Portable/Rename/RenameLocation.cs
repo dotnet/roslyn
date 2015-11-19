@@ -14,10 +14,11 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly bool IsRenamableAliasUsage;
         public readonly bool IsRenamableAccessor;
         public readonly TextSpan ContainingLocationForStringOrComment;
+        public readonly bool IsWrittenTo;
 
         public bool IsRenameInStringOrComment { get { return ContainingLocationForStringOrComment != default(TextSpan); } }
 
-        public bool IsMethodGroupReference { get; private set; }
+        public bool IsMethodGroupReference { get; }
 
         public RenameLocation(
             Location location,
@@ -26,26 +27,25 @@ namespace Microsoft.CodeAnalysis.Rename
             bool isMethodGroupReference = false,
             bool isRenamableAliasUsage = false,
             bool isRenamableAccessor = false,
+            bool isWrittenTo = false,
             TextSpan containingLocationForStringOrComment = default(TextSpan))
         {
-            this.Location = location;
-            this.DocumentId = documentId;
-            this.IsCandidateLocation = isCandidateLocation;
-            this.IsMethodGroupReference = isMethodGroupReference;
-            this.IsRenamableAliasUsage = isRenamableAliasUsage;
-            this.IsRenamableAccessor = isRenamableAccessor;
-            this.ContainingLocationForStringOrComment = containingLocationForStringOrComment;
+            Location = location;
+            DocumentId = documentId;
+            IsCandidateLocation = isCandidateLocation;
+            IsMethodGroupReference = isMethodGroupReference;
+            IsRenamableAliasUsage = isRenamableAliasUsage;
+            IsRenamableAccessor = isRenamableAccessor;
+            IsWrittenTo = isWrittenTo;
+            ContainingLocationForStringOrComment = containingLocationForStringOrComment;
         }
 
         public RenameLocation(ReferenceLocation referenceLocation, DocumentId documentId)
+            : this(referenceLocation.Location, documentId,
+                   isCandidateLocation: referenceLocation.IsCandidateLocation && referenceLocation.CandidateReason != CandidateReason.LateBound,
+                   isMethodGroupReference: referenceLocation.IsCandidateLocation && referenceLocation.CandidateReason == CandidateReason.MemberGroup,
+                   isWrittenTo: referenceLocation.IsWrittenTo)
         {
-            this.Location = referenceLocation.Location;
-            this.DocumentId = documentId;
-            this.IsCandidateLocation = referenceLocation.IsCandidateLocation && referenceLocation.CandidateReason != CandidateReason.LateBound;
-            this.IsMethodGroupReference = referenceLocation.IsCandidateLocation && referenceLocation.CandidateReason == CandidateReason.MemberGroup;
-            this.IsRenamableAliasUsage = false;
-            this.IsRenamableAccessor = false;
-            this.ContainingLocationForStringOrComment = default(TextSpan);
         }
 
         public bool Equals(RenameLocation other)

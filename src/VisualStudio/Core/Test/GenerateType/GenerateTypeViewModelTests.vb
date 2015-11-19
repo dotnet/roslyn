@@ -20,10 +20,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GenerateType
     Public Class GenerateTypeViewModelTests
         Private Shared s_assembly1_Name As String = "Assembly1"
         Private Shared s_test1_Name As String = "Test1"
-        Private Shared s_submit_failed_unexceptedly As String = "Submit failed unexceptedly."
-        Private Shared s_submit_passed_unexceptedly As String = "Submit passed unexceptedly. Submit should fail here"
+        Private Shared s_submit_failed_unexpectedly As String = "Submit failed unexpectedly."
+        Private Shared s_submit_passed_unexpectedly As String = "Submit passed unexpectedly. Submit should fail here"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeExistingFileCSharp()
             Dim documentContentMarkup = <Text><![CDATA[
 class Program
@@ -61,7 +61,7 @@ namespace A
             Assert.Equal(False, viewModel.IsExistingFile)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeExistingFileVisualBasic()
             Dim documentContentMarkup = <Text><![CDATA[
 Module Program
@@ -94,7 +94,7 @@ End Namespace"]]></Text>
             Assert.Equal(False, viewModel.IsExistingFile)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeNewFileBothLanguage()
             Dim documentContentMarkup = <Text><![CDATA[
 class Program
@@ -120,13 +120,13 @@ namespace A
             viewModel.FileName = "Wow"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.Equal("Wow.cs", viewModel.FileName)
 
             viewModel.FileName = "Foo\Bar\Woow"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.Equal("Woow.cs", viewModel.FileName)
             Assert.Equal(2, viewModel.Folders.Count)
             Assert.Equal("Foo", viewModel.Folders(0))
@@ -135,7 +135,7 @@ namespace A
             viewModel.FileName = "\    name has space \  Foo      \Bar\      Woow"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.Equal("Woow.cs", viewModel.FileName)
             Assert.Equal(3, viewModel.Folders.Count)
             Assert.Equal("name has space", viewModel.Folders(0))
@@ -145,18 +145,18 @@ namespace A
             ' Set it to invalid identifier
             viewModel.FileName = "w?d"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             viewModel.FileName = "wow\w?d"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             viewModel.FileName = "w?d\wdd"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeProjectChangeAndDependencyBothLanguage()
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -214,7 +214,7 @@ namespace A
             monitor.Detach()
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeDisableExistingFileForEmptyProject()
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -261,7 +261,7 @@ namespace A
         End Sub
 
         <WorkItem(858815)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeAllowPublicAccessOnlyForGenerationIntoOtherProject()
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -311,7 +311,7 @@ namespace A
         End Sub
 
         <WorkItem(858815)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeAllowClassTypeKindForAttribute_CSharp()
             Dim documentContentMarkup = <Text><![CDATA[
 [Foo$$]
@@ -331,7 +331,7 @@ class Program
         End Sub
 
         <WorkItem(858815)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeAllowClassTypeKindForAttribute_VisualBasic()
             Dim documentContentMarkup = <Text><![CDATA[
 <Blah$$>
@@ -347,7 +347,7 @@ End Class]]></Text>
         End Sub
 
         <WorkItem(861544)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithCapsAttribute_VisualBasic()
             Dim documentContentMarkup = <Text><![CDATA[
 <FooAttribute$$>
@@ -359,7 +359,7 @@ End class]]></Text>
         End Sub
 
         <WorkItem(861544)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithoutCapsAttribute_VisualBasic()
             Dim documentContentMarkup = <Text><![CDATA[
 <Fooattribute$$>
@@ -371,7 +371,7 @@ End class]]></Text>
         End Sub
 
         <WorkItem(861544)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithCapsAttribute_CSharp()
             Dim documentContentMarkup = <Text><![CDATA[
 [FooAttribute$$]
@@ -384,7 +384,7 @@ public class CCC
         End Sub
 
         <WorkItem(861544)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithoutCapsAttribute_CSharp()
             Dim documentContentMarkup = <Text><![CDATA[
 [Fooattribute$$]
@@ -398,7 +398,7 @@ public class CCC
 
 
         <WorkItem(861462)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeCheckOnlyPublic_CSharp_1()
             Dim documentContentMarkup = <Text><![CDATA[
 public class C : $$D
@@ -416,7 +416,7 @@ public class C : $$D
         End Sub
 
         <WorkItem(861462)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeCheckOnlyPublic_CSharp_2()
             Dim documentContentMarkup = <Text><![CDATA[
 public interface CCC : $$DDD
@@ -433,7 +433,7 @@ public interface CCC : $$DDD
         End Sub
 
         <WorkItem(861462)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeCheckOnlyPublic_VisualBasic_1()
             Dim documentContentMarkup = <Text><![CDATA[
 Public Class C
@@ -449,7 +449,7 @@ End Class]]></Text>
         End Sub
 
         <WorkItem(861462)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeCheckOnlyPublic_VisualBasic_2()
             Dim documentContentMarkup = <Text><![CDATA[
 Public Class CC
@@ -467,7 +467,7 @@ End Class]]></Text>
         End Sub
 
         <WorkItem(861462)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeCheckOnlyPublic_VisualBasic_3()
             Dim documentContentMarkup = <Text><![CDATA[
 Public Interface CCC
@@ -485,7 +485,7 @@ End Interface]]></Text>
         End Sub
 
         <WorkItem(861362)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithModuleOption()
             Dim workspaceXml = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="VB1" CommonReferences="true">
@@ -522,7 +522,7 @@ End Namespace                                       </Document>
         End Sub
 
         <WorkItem(858826)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeFileExtensionUpdate()
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -571,7 +571,7 @@ class Program
             Assert.Equal(viewModel.FileName, "Foo.cs")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeExcludeGeneratedDocumentsFromList()
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -585,11 +585,11 @@ class Program
 
             Dim viewModel = GetViewModel(workspaceXml, LanguageNames.CSharp)
 
-            Dim expectedDocuments = {"Test1.cs", "Test2.cs", "Test3.cs"}
+            Dim expectedDocuments = {"Test1.cs", "Test2.cs", "AssemblyInfo.cs", "Test3.cs"}
             Assert.Equal(expectedDocuments, viewModel.DocumentList.Select(Function(d) d.Document.Name).ToArray())
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoGeneratedDocument()
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
@@ -616,7 +616,7 @@ class Program
             Assert.Equal("Test.generated.cs", viewModel.SelectedDocument.Name)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeNewFileNameOptions()
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true" FilePath="C:\A\B\CS1.csproj">
@@ -647,44 +647,44 @@ class Program
 
             ' Set the folder to \outer\
             viewModel.FileName = viewModel.ProjectFolders(0)
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename to \\something.cs
             viewModel.FileName = "\\ExistingFile.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename to an existing file
             viewModel.FileName = "..\..\ExistingFile.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename to empty
             viewModel.FileName = "  "
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename with more than permissible characters
             viewModel.FileName = "sjkygjksdfygujysdkgkufsdfrgujdfyhgjksuydfujkgysdjkfuygjkusydfjusyfkjsdfygjusydfgjkuysdkfjugyksdfjkusydfgjkusdfyjgukysdjfyjkusydfgjuysdfgjuysdfjgsdjfugjusdfygjuysdfjugyjdufgsgdfvsgdvgtsdvfgsvdfgsdgfgdsvfgsdvfgsvdfgsdfsjkygjksdfygujysdkgkufsdfrgujdfyhgjksuydfujkgysdjkfuygjkusydfjusyfkjsdfygjusydfgjkuysdkfjugyksdfjkusydfgjkusdfyjgukysdjfyjkusydfgjuysdfgjuysdfjgsdjfugjusdfygjuysdfjugyjdufgsgdfvsgdvgtsdvfgsvdfgsdgfgdsvfgsdvfgsvdfgsdf.cs"
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename with keywords
             viewModel.FileName = "com1\foo.cs"
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename with ".."
             viewModel.FileName = "..\..\foo.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
 
             ' Set the Filename with ".."
             viewModel.FileName = "..\.\..\.\foo.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
         End Sub
 
         <WorkItem(898452)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeIntoNewFileWithInvalidIdentifierFolderName()
             Dim documentContentMarkupCSharp = <Text><![CDATA[
 class Program
@@ -709,19 +709,19 @@ namespace A
             viewModel.FileName = "123\456\Wow.cs"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "@@@@\######\Woow.cs"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "....a\.....b\Wow.cs"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             Dim documentContentMarkupVB = <Text><![CDATA[
@@ -746,24 +746,24 @@ namespace A
             viewModel.FileName = "123\456\Wow.vb"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "@@@@\######\Woow.vb"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "....a\.....b\Wow.vb"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
         End Sub
 
         <WorkItem(898563)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateType_DontGenerateIntoExistingFile()
             ' Get a Temp Folder Path
             Dim projectRootFolder = Path.GetTempPath()
@@ -801,7 +801,7 @@ namespace A
             viewModel.IsNewFile = True
             viewModel.FileName = randomFileName
 
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Cleanup
             File.Delete(pathString)

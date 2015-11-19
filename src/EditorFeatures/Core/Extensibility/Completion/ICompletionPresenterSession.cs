@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor
     internal interface ICompletionPresenterSession : IIntelliSensePresenterSession
     {
         void PresentItems(ITrackingSpan triggerSpan, IList<CompletionItem> items, CompletionItem selectedItem,
-            CompletionItem presetBuilder, bool sugestionMode, bool isSoftSelected);
+            CompletionItem presetBuilder, bool suggestionMode, bool isSoftSelected);
 
         void SelectPreviousItem();
         void SelectNextItem();

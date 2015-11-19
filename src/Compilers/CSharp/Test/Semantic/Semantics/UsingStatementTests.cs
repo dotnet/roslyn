@@ -362,7 +362,7 @@ class Program
 
         // The object created inside the "using" statement but declared no variable
         [Fact]
-        public void ResourceCreatedInsideUsingWithNoVarDecalred()
+        public void ResourceCreatedInsideUsingWithNoVarDeclared()
         {
             var source = @"
 using System;

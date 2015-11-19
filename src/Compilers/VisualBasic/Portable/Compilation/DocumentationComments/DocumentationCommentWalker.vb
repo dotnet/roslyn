@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' From the rest of the symbols we take the symbol with 'smallest' documentation 
                             ' comment id: we want to ensure that when we compile the same compilation several 
                             ' times we deterministically use/write the same documentation id each time, and it 
-                            ' does not matter much which one it is. So instead of doing sofisticated location 
+                            ' does not matter much which one it is. So instead of doing sophisticated location 
                             ' based sorting we just choose the lexically smallest documentation id.
 
                             Dim smallestSymbolCommentId As String = Nothing
@@ -251,10 +251,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' We are done with this node
                                 Return
                             End If
-                            ' Otherview go to default visitor
+                            ' Otherwise go to default visitor
 
                         End If
-                        ' Otherview go to default visitor
+                        ' Otherwise go to default visitor
                     End If
 
                     MyBase.DefaultVisit(node)

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var declaration = GenerateMemberDeclaration(property, CodeGenerationDestination.CompilationUnit, options);
+            var declaration = GeneratePropertyOrIndexer(property, CodeGenerationDestination.CompilationUnit, options);
 
             var members = Insert(destination.Members, declaration, options,
                 availableIndices, after: LastPropertyOrField, before: FirstMember);
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var declaration = GenerateMemberDeclaration(property, GetDestination(destination), options);
+            var declaration = GeneratePropertyOrIndexer(property, GetDestination(destination), options);
 
             // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, declaration, options,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddMembersTo(destination, members);
         }
 
-        private static MemberDeclarationSyntax GenerateMemberDeclaration(
+        public static MemberDeclarationSyntax GeneratePropertyOrIndexer(
             IPropertySymbol property,
             CodeGenerationDestination destination,
             CodeGenerationOptions options)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     accessorList: GenerateAccessorList(property, destination, options))));
         }
 
-        public static MemberDeclarationSyntax GeneratePropertyDeclaration(
+        private static MemberDeclarationSyntax GeneratePropertyDeclaration(
            IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
             var initializerNode = CodeGenerationPropertyInfo.GetInitializer(property) as ExpressionSyntax;

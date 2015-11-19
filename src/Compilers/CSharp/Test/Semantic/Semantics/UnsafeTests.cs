@@ -2280,7 +2280,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
             builder.Free();
         }
 
-        private class NonMoveableVariableVisitor : BoundTreeWalker
+        private class NonMoveableVariableVisitor : BoundTreeWalkerWithStackGuard
         {
             private readonly Binder _binder;
             private readonly ArrayBuilder<string> _builder;
@@ -2324,6 +2324,11 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
                 }
 
                 return base.Visit(node);
+            }
+
+            protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+            {
+                return false;
             }
         }
 
@@ -7587,7 +7592,7 @@ unsafe class C
             var text = @"
 unsafe int* p = stackalloc int[1];
 ";
-            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (4,14): error CS1525: Invalid expression term 'stackalloc'
                 //     int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"));
@@ -8031,12 +8036,12 @@ class C
 
 
         [Fact]
-        public void FixedBuffersNoDefinateAssignmentCheck()
+        public void FixedBuffersNoDefiniteAssignmentCheck()
         {
             var text = @"
-    unsafe struct struct_ForTestingDefinateAssignmentChecking        
+    unsafe struct struct_ForTestingDefiniteAssignmentChecking        
     {
-        //Definate Assignment Checking
+        //Definite Assignment Checking
         public fixed int FixedbuffInt[1024];
     }
 ";
@@ -8047,7 +8052,7 @@ class C
         public void FixedBuffersNoErorsOnValidTypes()
         {
             var text = @"
-    unsafe struct struct_ForTestingDefinateAssignmentChecking        
+    unsafe struct struct_ForTestingDefiniteAssignmentChecking        
     {
     public fixed bool _Type1[10]; 
     public fixed byte _Type12[10]; 
@@ -8116,7 +8121,7 @@ class Program
 
 }
 ";
-            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitters: TestEmitters.RefEmitBug); //expectedOutput: @"TrueFalseTrue"
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
 
             compilation.VerifyIL("Program.Store", @"{
   // Code size       36 (0x24)
@@ -8234,9 +8239,9 @@ class Program
 }
 ";
             //IL Baseline rather than execute because I'm intentionally writing outside of bounds of buffer
-            // This will compile without warning but runtime behaviour is unpredictable.
+            // This will compile without warning but runtime behavior is unpredictable.
 
-            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitters: TestEmitters.RefEmitBug);
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyIL("Program.Load", @"
 {
   // Code size       49 (0x31)
@@ -8308,7 +8313,7 @@ using System;
 unsafe struct s
     {
         private fixed ushort _e_res[4]; 
-        void Error_UsingFixedBuffersWiththis()
+        void Error_UsingFixedBuffersWithThis()
         {
             fixed (ushort* abc = this._e_res)
             {
@@ -8399,11 +8404,10 @@ namespace ConsoleApplication30
 
     }
 }";
-            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, emitters: TestEmitters.RefEmitBug).Compilation;
+            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll).Compilation;
 
             var comp2 = CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
-                emitters: TestEmitters.RefEmitBug,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 
@@ -8453,10 +8457,9 @@ namespace ConsoleApplication30
 }";
 
             // Only compile this as its intentionally writing outside of fixed buffer boundaries and 
-            // this doesnt warn but causes flakiness when executed.
+            // this doesn't warn but causes flakiness when executed.
             var comp3 = CompileAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll,
-                emitters: TestEmitters.RefEmitBug,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
         }
 
@@ -8483,7 +8486,7 @@ unsafe struct FixedBufferExampleForSizes3
 
 class Program
 {
-    // Reference to struct containing a fixed bugg
+    // Reference to struct containing a fixed buffer
     static FixedBufferExampleForSizes1 _fixedBufferExample1 = new FixedBufferExampleForSizes1();
     static FixedBufferExampleForSizes2 _fixedBufferExample2 = new FixedBufferExampleForSizes2();
     static FixedBufferExampleForSizes3 _fixedBufferExample3 = new FixedBufferExampleForSizes3();  
@@ -8527,7 +8530,7 @@ unsafe struct FixedBufferExampleForSizes3
 
 class Program
 {
-    // Reference to struct containing a fixed bugg
+    // Reference to struct containing a fixed buffer
     static FixedBufferExampleForSizes1 _fixedBufferExample1 = new FixedBufferExampleForSizes1();
     static FixedBufferExampleForSizes2 _fixedBufferExample2 = new FixedBufferExampleForSizes2();
     static FixedBufferExampleForSizes3 _fixedBufferExample3 = new FixedBufferExampleForSizes3();  

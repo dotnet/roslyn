@@ -361,7 +361,7 @@ class Test
             Assert.True(method.IsDefaultValueTypeConstructor());
 
             //TODO (tomat)
-            CompileAndVerify(c2, emitters: TestEmitters.RefEmitBug).VerifyIL("C.M", @"
+            CompileAndVerify(c2).VerifyIL("C.M", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -441,7 +441,7 @@ public class C
             // Calls constructor (vs initobj), then initobj
             var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
             // TODO (tomat)
-            CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug).VerifyIL("C.M", @"
+            CompileAndVerify(compilation).VerifyIL("C.M", @"
 {
   // Code size       35 (0x23)
   .maxstack  1
@@ -495,7 +495,7 @@ public class C
             // Shouldn't there be an error for trying to call an inaccessible ctor?
             var comp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
 
-            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug).VerifyIL("C.M", @"
+            CompileAndVerify(comp).VerifyIL("C.M", @"
 {
   // Code size       39 (0x27)
   .maxstack  1
@@ -584,7 +584,7 @@ public struct X
         }
 
         [Fact]
-        public void StructParameterlssCtorNotPublic()
+        public void StructParameterlessCtorNotPublic()
         {
             string source = @"
 public struct X

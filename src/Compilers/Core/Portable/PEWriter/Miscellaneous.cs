@@ -4,6 +4,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
@@ -89,23 +91,13 @@ namespace Microsoft.Cci
     /// </summary>
     internal struct SecurityAttribute
     {
-        private readonly SecurityAction _action;
-        private readonly ICustomAttribute _attribute;
+        public DeclarativeSecurityAction Action { get; }
+        public ICustomAttribute Attribute { get; }
 
-        public SecurityAttribute(SecurityAction action, ICustomAttribute attribute)
+        public SecurityAttribute(DeclarativeSecurityAction action, ICustomAttribute attribute)
         {
-            _attribute = attribute;
-            _action = action;
-        }
-
-        public SecurityAction Action
-        {
-            get { return _action; }
-        }
-
-        public ICustomAttribute Attribute
-        {
-            get { return _attribute; }
+            Action = action;
+            Attribute = attribute;
         }
     }
 
@@ -146,7 +138,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// The unmanaged type to which the managed type will be marshalled. This can be be UnmanagedType.CustomMarshaler, in which case the unmanaged type
+        /// The unmanaged type to which the managed type will be marshalled. This can be UnmanagedType.CustomMarshaler, in which case the unmanaged type
         /// is decided at runtime.
         /// </summary>
         System.Runtime.InteropServices.UnmanagedType UnmanagedType { get; }
@@ -284,6 +276,9 @@ namespace Microsoft.Cci
     {
         internal ResourceSection(byte[] sectionBytes, uint[] relocations)
         {
+            Debug.Assert(sectionBytes != null);
+            Debug.Assert(relocations != null);
+
             SectionBytes = sectionBytes;
             Relocations = relocations;
         }

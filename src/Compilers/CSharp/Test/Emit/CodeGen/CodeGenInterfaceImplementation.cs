@@ -367,8 +367,7 @@ class Test
                 options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_ExpImpImplVBNested003");
 
-            // TODO(tomat): seems like RefEmit test infrastructure issue
-            CompileAndVerify(comp3, emitters: TestEmitters.RefEmitBug, expectedOutput: @"ImpSubDerived ImpFuncDerived ImpSubDerived ImpFunc ExpSubDerived ExpFuncDerived");
+            CompileAndVerify(comp3, expectedOutput: @"ImpSubDerived ImpFuncDerived ImpSubDerived ImpFunc ExpSubDerived ExpFuncDerived");
         }
 
         [Fact]
@@ -2538,7 +2537,7 @@ class Test
         j.Property = 0;
     }
 }";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitUnsupported_646042, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 C.Method
 Base.Method
 C.IY.set_Property
@@ -2635,7 +2634,7 @@ public class D : B, I
 
             var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, expectedSignatures: new[]
+            var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 // NOTE: dev11 has the return type as void, which doesn't peverify.
                 Signature("D", "I.M", ".method private hidebysig newslot virtual final instance System.Int32& I.M() cil managed")
@@ -2742,7 +2741,7 @@ public class D : B<char>, I<char>
 
             AssertEx.Equal(baseMethods, interfaceMethods.Select(interfaceMethod => derivedType.FindImplementationForInterfaceMember(interfaceMethod)));
 
-            var verifier = CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, expectedSignatures: new[]
+            var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 // NOTE: dev11 has the return type as void, which doesn't peverify.
                 Signature("D", "I<System.Char>.M1", ".method private hidebysig newslot virtual final instance System.Char& I<System.Char>.M1() cil managed"),

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (sessionOpt == null)
             {
                 // The user may be trying to invoke snippets
-                var completionService = CreateCompletionService();
+                var completionService = GetCompletionService();
                 if (completionService != null &&
                     completionService.SupportSnippetCompletionListOnTab &&
                     TryInvokeSnippetCompletion(args, completionService))
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem);
+            var textChange = GetCompletionRules().GetTextChange(selectedItem);
 
             Commit(selectedItem, textChange, model, null);
             committed = true;

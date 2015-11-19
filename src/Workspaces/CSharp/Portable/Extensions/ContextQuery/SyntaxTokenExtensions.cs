@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   Foo : base( |
             //   Foo : base(bar: |
             //   Foo : this( |
-            //   Foo : ths(bar: |
+            //   Foo : this(bar: |
 
             // Foo(bar: |
             if (targetToken.Kind() == SyntaxKind.ColonToken &&
@@ -508,10 +508,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsAnyAccessorDeclarationContext(this SyntaxToken targetToken, int position, SyntaxKind kind = SyntaxKind.None)
+        {
+            return targetToken.IsAccessorDeclarationContext<EventDeclarationSyntax>(position, kind) ||
+                targetToken.IsAccessorDeclarationContext<PropertyDeclarationSyntax>(position, kind) ||
+                targetToken.IsAccessorDeclarationContext<IndexerDeclarationSyntax>(position, kind);
+        }
+
         public static bool IsAccessorDeclarationContext<TMemberNode>(this SyntaxToken targetToken, int position, SyntaxKind kind = SyntaxKind.None)
             where TMemberNode : SyntaxNode
         {
-            if (!IsAccessorDeclarationContextWorker(targetToken))
+            if (!IsAccessorDeclarationContextWorker(ref targetToken))
             {
                 return false;
             }
@@ -541,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return decl != null;
         }
 
-        private static bool IsAccessorDeclarationContextWorker(SyntaxToken targetToken)
+        private static bool IsAccessorDeclarationContextWorker(ref SyntaxToken targetToken)
         {
             // cases:
             //   int Foo { |
@@ -620,9 +627,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // interface IFoo<A,|
             // interface IFoo<[Bar]|
 
-            // deletate X D<|
-            // deletate X D<A,|
-            // deletate X D<[Bar]|
+            // delegate X D<|
+            // delegate X D<A,|
+            // delegate X D<[Bar]|
             if (targetToken.Kind() == SyntaxKind.LessThanToken &&
                 IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent))
             {

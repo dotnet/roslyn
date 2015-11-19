@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
                     Dim lineNumberOfContinuation = snapshot.GetLineNumberFromPosition(trivia.SpanStart)
 
-                    ' We can be either on the line, or the line immediately follownig it
+                    ' We can be either on the line, or the line immediately following it
                     If pointLineNumber = lineNumberOfContinuation OrElse pointLineNumber = lineNumberOfContinuation + 1 AndAlso
                        trivia.Token.GetAncestor(Of StatementSyntax)() IsNot Nothing Then
                         Return New ContainingStatementInfo(trivia.Token.GetAncestor(Of StatementSyntax)())

@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestChangedTextWithMultipleConsequitiveInsertsSamePosition()
+        public void TestChangedTextWithMultipleConsecutiveInsertsSamePosition()
         {
             var text = SourceText.From("Hello World");
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestOptimizedSourceTextLinesSimpleSubstition()
+        public void TestOptimizedSourceTextLinesSimpleSubstitution()
         {
             AssertChangedTextLinesHelper("Line1\r\nLine2\r\nLine3",
                 new TextChange(new TextSpan(8, 2), "IN"),
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestOptimizedSourceTextLinesSubstitionWithLongerText()
+        public void TestOptimizedSourceTextLinesSubstitutionWithLongerText()
         {
             AssertChangedTextLinesHelper("Line1\r\nLine2\r\nLine3",
                 new TextChange(new TextSpan(8, 2), new string('a', 10)),
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestOptimizedSourceTextLinesBrakeCrLfWithLfPrefixedAndCrSufixed()
+        public void TestOptimizedSourceTextLinesBrakeCrLfWithLfPrefixedAndCrSuffixed()
         {
             AssertChangedTextLinesHelper("Test\r\nMessage",
                 new TextChange(new TextSpan(5, 0), "\naaaaaa\r"));

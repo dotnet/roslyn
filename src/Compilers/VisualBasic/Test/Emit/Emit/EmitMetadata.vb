@@ -425,8 +425,10 @@ End Class
                         Dim method3Ret = DirectCast(m3.ReturnType, ArrayTypeSymbol)
 
                         Assert.Equal(1, method1Ret.Rank)
+                        Assert.True(method1Ret.IsSZArray)
                         Assert.Same(classA, method1Ret.ElementType)
                         Assert.Equal(2, method2Ret.Rank)
+                        Assert.False(method2Ret.IsSZArray)
                         Assert.Same(classA, method2Ret.ElementType)
                         Assert.Equal(3, method3Ret.Rank)
                         Assert.Same(classA, method3Ret.ElementType)
@@ -538,7 +540,7 @@ End Class
 </compilation>, validator:=AddressOf EmittedModuleRecordValidator)
         End Sub
 
-        Private Sub EmittedModuleRecordValidator(assembly As PEAssembly, _omitted As TestEmitters)
+        Private Sub EmittedModuleRecordValidator(assembly As PEAssembly)
             Dim reader = assembly.GetMetadataReader()
 
             Dim typeDefs As TypeDefinitionHandle() = reader.TypeDefinitions.AsEnumerable().ToArray()
@@ -594,7 +596,7 @@ End Class
 </compilation>, validator:=AddressOf EmitBeforeFieldInitValidator)
         End Sub
 
-        Private Sub EmitBeforeFieldInitValidator(assembly As PEAssembly, _omitted As TestEmitters)
+        Private Sub EmitBeforeFieldInitValidator(assembly As PEAssembly)
             Dim reader = assembly.GetMetadataReader()
             Dim typeDefs = reader.TypeDefinitions.AsEnumerable().ToArray()
 
@@ -902,7 +904,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(90)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190"), WorkItem(90)>
         Public Sub EmitWithNoResourcesAllPlatforms()
             Dim comp = CreateCompilationWithMscorlib(
                 <compilation>

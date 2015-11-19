@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (hasChanged)
             {
-                node = new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, builder.ToImmutable()) { WasCompilerGenerated = true };
+                node = BoundBlock.SynthesizedNoLocals(node.Syntax, builder.ToImmutable());
             }
 
             builder.Free();
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static BoundExpression GetCustomTypeInfoPayload(LocalSymbol local, CSharpSyntaxNode syntax, CSharpCompilation compilation, out bool hasCustomTypeInfoPayload)
         {
-            var byteArrayType = new ArrayTypeSymbol(
+            var byteArrayType = ArrayTypeSymbol.CreateSZArray(
                 compilation.Assembly,
                 compilation.GetSpecialType(SpecialType.System_Byte));
 

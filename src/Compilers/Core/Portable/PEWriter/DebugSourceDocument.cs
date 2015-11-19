@@ -3,10 +3,9 @@
 using System.Collections.Immutable;
 using System;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Reflection;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 
 namespace Microsoft.Cci
 {
@@ -25,6 +24,8 @@ namespace Microsoft.Cci
 
         public DebugSourceDocument(string location, Guid language)
         {
+            Debug.Assert(location != null);
+
             _location = location; // If it's a path, it should be normalized.
             _language = language;
         }

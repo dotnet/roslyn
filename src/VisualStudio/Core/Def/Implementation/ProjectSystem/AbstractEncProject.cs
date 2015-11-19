@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IServiceProvider serviceProvider,
             MiscellaneousFilesWorkspace miscellaneousFilesWorkspaceOpt,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt) 
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
             : base(projectTracker, reportExternalErrorCreatorOpt, projectSystemName, hierarchy, language, serviceProvider, miscellaneousFilesWorkspaceOpt, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
         {
             if (visualStudioWorkspaceOpt != null)

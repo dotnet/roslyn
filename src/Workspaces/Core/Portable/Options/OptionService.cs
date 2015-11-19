@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Options
                     foreach (var serializer in optionSerializers)
                     {
                         // There can be options (ex, formatting) that only exist in only one specific language. In those cases,
-                        // feature's serialzier should exist in only that language.
+                        // feature's serializer should exist in only that language.
                         if (!SupportedSerializer(optionKey, serializer.Metadata))
                         {
                             continue;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Options
                         foreach (var serializer in optionSerializers)
                         {
                             // There can be options (ex, formatting) that only exist in only one specific language. In those cases,
-                            // feature's serialzier should exist in only that language.
+                            // feature's serializer should exist in only that language.
                             if (!SupportedSerializer(optionKey, serializer.Metadata))
                             {
                                 continue;

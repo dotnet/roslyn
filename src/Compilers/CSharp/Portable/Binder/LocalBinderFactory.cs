@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -25,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SmallDictionary<CSharpSyntaxNode, Binder> _map;
         private bool _sawYield;
-        private readonly MethodSymbol _method;
+        private readonly ArrayBuilder<CSharpSyntaxNode> _methodsWithYields;
+        private MethodSymbol _method;
         private Binder _enclosing;
 
         private void Visit(CSharpSyntaxNode syntax, Binder enclosing)
@@ -43,11 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static SmallDictionary<CSharpSyntaxNode, Binder> BuildMap(MethodSymbol method, CSharpSyntaxNode syntax, Binder enclosing, out bool sawYield)
+        // methodsWithYields will contain all function-declaration-like CSharpSyntaxNodes with yield statements contained within them.
+        // Currently the types of these are restricted to only be whatever the syntax parameter is, plus any LocalFunctionStatementSyntax contained within it.
+        // This may change if the language is extended to allow iterator lambdas, in which case the lambda would also be returned.
+        // (lambdas currently throw a diagnostic in WithLambdaParametersBinder.GetIteratorElementType when a yield is used within them)
+        public static SmallDictionary<CSharpSyntaxNode, Binder> BuildMap(MethodSymbol method, CSharpSyntaxNode syntax, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
         {
-            var builder = new LocalBinderFactory(method, enclosing);
+            var builder = new LocalBinderFactory(method, enclosing, methodsWithYields);
             builder.Visit(syntax);
-            sawYield = builder._sawYield;
+            // the other place this is possible is in a local function
+            if (builder._sawYield)
+                methodsWithYields.Add(syntax);
             return builder._map;
         }
 
@@ -62,12 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private LocalBinderFactory(MethodSymbol method, Binder enclosing)
+        private LocalBinderFactory(MethodSymbol method, Binder enclosing, ArrayBuilder<CSharpSyntaxNode> methodsWithYields)
         {
             Debug.Assert((object)method != null);
             _map = new SmallDictionary<CSharpSyntaxNode, Binder>(ReferenceEqualityComparer.Instance);
             _method = method;
             _enclosing = enclosing;
+            _methodsWithYields = methodsWithYields;
         }
 
         #region Starting points - these nodes contain statements
@@ -118,6 +125,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitBlock((BlockSyntax)body);
             }
+        }
+
+        public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+        {
+            var body = (CSharpSyntaxNode)node.Body ?? node.ExpressionBody;
+            LocalFunctionSymbol match = null;
+            // Don't use LookupLocalFunction because it recurses up the tree, as it
+            // should be defined in the directly enclosing block (see note below)
+            foreach (var candidate in _enclosing.LocalFunctions)
+            {
+                if (candidate.Locations[0] == node.Identifier.GetLocation())
+                {
+                    match = candidate;
+                }
+            }
+
+            bool oldSawYield = _sawYield;
+            _sawYield = false;
+
+            if (match != null)
+            {
+                var oldMethod = _method;
+                _method = match;
+                Binder addToMap;
+                if (match.IsGenericMethod)
+                {
+                    addToMap = new WithMethodTypeParametersBinder(match, _enclosing);
+                }
+                else
+                {
+                    addToMap = _enclosing;
+                }
+                addToMap = new InMethodBinder(match, addToMap);
+                AddToMap(node, addToMap);
+                if (body != null)
+                {
+                    Visit(body, addToMap);
+                }
+                _method = oldMethod;
+            }
+            else
+            {
+                // The enclosing block should have found this node and created a LocalFunctionMethodSymbol
+                // The code that does so is in LocalScopeBinder.BuildLocalFunctions
+
+                if (body != null)
+                {
+                    // do our best to attempt to bind
+                    Visit(body);
+                }
+            }
+
+            if (_sawYield)
+            {
+                _methodsWithYields.Add(node);
+            }
+            _sawYield = oldSawYield;
         }
 
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)

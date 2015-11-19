@@ -1581,7 +1581,7 @@ class Program
         }
 
         [Fact]
-        public void MultilevelGoto()
+        public void MultiLevelGoto()
         {
             var source =
 @"
@@ -1673,7 +1673,7 @@ class Program
         }
 
         [Fact]
-        public void MultilevelGoto001()
+        public void MultiLevelGoto001()
         {
             var source =
 @"

@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         Private Function IDkmClrFormatter_GetTypeName(inspectionContext As DkmInspectionContext, clrType As DkmClrType, clrTypeInfo As DkmClrCustomTypeInfo, formatSpecifiers As ReadOnlyCollection(Of String)) As String Implements IDkmClrFormatter.GetTypeName
-            Return GetTypeName(New TypeAndCustomInfo(clrType.GetLmrType(), clrTypeInfo))
+            Return GetTypeName(New TypeAndCustomInfo(clrType.GetLmrType(), clrTypeInfo), escapeKeywordIdentifiers:=False, sawInvalidIdentifier:=Nothing)
         End Function
 
         Private Function IDkmClrFormatter_GetUnderlyingString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext) As String Implements IDkmClrFormatter.GetUnderlyingString
@@ -43,6 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Function IDkmClrFormatter_HasUnderlyingString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext) As Boolean Implements IDkmClrFormatter.HasUnderlyingString
             Return HasUnderlyingString(clrValue, inspectionContext)
+        End Function
+
+        Friend Overrides Function IsValidIdentifier(name As String) As Boolean
+            Return SyntaxFacts.IsValidIdentifier(name)
         End Function
 
         Friend Overrides Function IsIdentifierPartCharacter(c As Char) As Boolean

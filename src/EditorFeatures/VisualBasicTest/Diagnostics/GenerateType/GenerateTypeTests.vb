@@ -1,6 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
+Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -15,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateTypeCodeFixProvider())
+        End Function
+
+        Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+            Return FlattenActions(actions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -47,6 +53,12 @@ index:=2)
 NewLines("Class C \n dim f as [|Foo|] \n End Class"),
 NewLines("Class C \n dim f as Foo \n End Class \n Friend Class Foo \n End Class"),
 index:=1)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Sub TestMissingOnLowercaseName()
+            TestMissing(
+NewLines("Class C \n dim f as [|foo|] \n End Class"))
         End Sub
 
         <WorkItem(539716)>
@@ -148,23 +160,23 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestGenerateIntoNewNamespace()
-            TestAddDocument(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestGenerateIntoNewNamespace() As Task
+            Await TestAddDocument(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Sub Main() \n Call New Foo.[|Bar|]() \n End Sub \n End Class"),
 NewLines("Namespace Foo \n Friend Class Bar \n Public Sub New() \n End Sub \n End Class \n End Namespace"),
 expectedContainers:={"Foo"},
-expectedDocumentName:="Bar.vb")
-        End Sub
+expectedDocumentName:="Bar.vb").ConfigureAwait(True)
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestGenerateIntoGlobalNamespaceNewFile()
-            TestAddDocument(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestGenerateIntoGlobalNamespaceNewFile() As Task
+            Await TestAddDocument(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim x As New [|Foo|] \n End Sub \n End Module"),
 NewLines("Friend Class Foo \n End Class"),
 expectedContainers:=Array.Empty(Of String)(),
-expectedDocumentName:="Foo.vb")
-        End Sub
+expectedDocumentName:="Foo.vb").ConfigureAwait(True)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeThatImplementsInterface1()
@@ -264,14 +276,14 @@ parseOptions:=TestOptions.Regular)
 NewLines("Imports [|System|]"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestNoContainersInNewType()
-            TestAddDocument(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestNoContainersInNewType() As Task
+            Await TestAddDocument(
 NewLines("Class Base \n Sub Main \n Dim p = New [|Derived|]() \n End Sub \n End Class"),
 NewLines("Friend Class Derived \n Public Sub New() \n End Sub \n End Class"),
 expectedContainers:=Array.Empty(Of String)(),
-expectedDocumentName:="Derived.vb")
-        End Sub
+expectedDocumentName:="Derived.vb").ConfigureAwait(True)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNotOfferedInsideBinaryExpressions()
@@ -461,7 +473,7 @@ Class Program
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
         End Sub
 
         <WorkItem(545363)>
@@ -480,7 +492,9 @@ Class Bar
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.GenerateForInNewFile, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.GenerateForIn, "class", "Foo", "Program"), FeaturesResources.GenerateNewType})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.GlobalNamespace),
+String.Format(FeaturesResources.Generate_0_1, "class", "Foo", FeaturesResources.GlobalNamespace),
+String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo"), FeaturesResources.GenerateNewType})
         End Sub
 
         <WorkItem(545363)>
@@ -672,15 +686,15 @@ Namespace A
     End Class
 End Namespace</Text>.NormalizedValue
 
-            Test(initial, expected, compareTokens:=False, isLine:=False)
+            Test(initial, expected, compareTokens:=False)
         End Sub
 
         <WorkItem(940003)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithProperties1()
             Test(
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Private x As Integer \n Private y As String \n Public Sub New(x As Integer, y As String) \n Me.x = x \n Me.y = y \n End Sub \n Public Property Age As Date \n Public Property Name As String \n End Class"),
+NewLines("Imports System \n Module Program \n Sub Main() \n Â DimÂ cÂ AsÂ NewÂ [|Customer|](x:=1,Â y:=""Hello"")Â WithÂ {.NameÂ =Â ""John"",Â .AgeÂ =Â Date.Today} \n End Sub \n End Module"),
+NewLines("Imports System \n Module Program \n Sub Main() \n Â DimÂ cÂ AsÂ NewÂ [|Customer|](x:=1,Â y:=""Hello"")Â WithÂ {.NameÂ =Â ""John"",Â .AgeÂ =Â Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Private x As Integer \n Private y As String \n Public Sub New(x As Integer, y As String) \n Me.x = x \n Me.y = y \n End Sub \n Public Property Age As Date \n Public Property Name As String \n End Class"),
 index:=1)
         End Sub
 
@@ -688,8 +702,8 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithProperties2()
             Test(
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Nothing, .Age = Date.Today} \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Nothing, .Age = Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Private x As Integer \n Private y As String \n Public Sub New(x As Integer, y As String) \n Me.x = x \n Me.y = y \n End Sub \n Public Property Age As Date \n Public Property Name As Object \n End Class"),
+NewLines("Imports System \n Module Program \n Sub Main() \n Â DimÂ cÂ AsÂ NewÂ [|Customer|](x:=1,Â y:=""Hello"")Â WithÂ {.NameÂ =Â Nothing,Â .AgeÂ =Â Date.Today} \n End Sub \n End Module"),
+NewLines("Imports System \n Module Program \n Sub Main() \n Â DimÂ cÂ AsÂ NewÂ [|Customer|](x:=1,Â y:=""Hello"")Â WithÂ {.NameÂ =Â Nothing,Â .AgeÂ =Â Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Private x As Integer \n Private y As String \n Public Sub New(x As Integer, y As String) \n Me.x = x \n Me.y = y \n End Sub \n Public Property Age As Date \n Public Property Name As Object \n End Class"),
 index:=1)
         End Sub
 
@@ -697,8 +711,8 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithProperties3()
             Test(
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Foo, .Age = Date.Today} \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Foo, .Age = Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Private x As Integer \n Private y As String \n Public Sub New(x As Integer, y As String) \n Me.x = x \n Me.y = y \n End Sub \n Public Property Age As Date \n Public Property Name As Object \n End Class"),
+NewLines("Imports System \n Module Program \n Sub Main() \n Â DimÂ cÂ AsÂ NewÂ [|Customer|](x:=1,Â y:=""Hello"")Â WithÂ {.NameÂ =Â Foo,Â .AgeÂ =Â Date.Today} \n End Sub \n End Module"),
+NewLines("Imports System \n Module Program \n Sub Main() \n Â DimÂ cÂ AsÂ NewÂ [|Customer|](x:=1,Â y:=""Hello"")Â WithÂ {.NameÂ =Â Foo,Â .AgeÂ =Â Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Private x As Integer \n Private y As String \n Public Sub New(x As Integer, y As String) \n Me.x = x \n Me.y = y \n End Sub \n Public Property Age As Date \n Public Property Name As Object \n End Class"),
 index:=1)
         End Sub
 
@@ -706,8 +720,8 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithProperties4()
             Test(
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|] With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module"),
-NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|] With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Public Property Age As Date \n Public Property Name As String \n End Class"),
+NewLines("Imports System \n Module Program \n Sub Main() \n Â DimÂ cÂ AsÂ NewÂ [|Customer|]Â WithÂ {.NameÂ =Â ""John"",Â .AgeÂ =Â Date.Today} \n End Sub \n End Module"),
+NewLines("Imports System \n Module Program \n Sub Main() \n Â DimÂ cÂ AsÂ NewÂ [|Customer|]Â WithÂ {.NameÂ =Â ""John"",Â .AgeÂ =Â Date.Today} \n End Sub \n End Module \n Friend Class Customer \n Public Property Age As Date \n Public Property Name As String \n End Class"),
 index:=1)
         End Sub
 
@@ -752,7 +766,7 @@ index:=0)
         Public Sub TestGenerateTypeInImports()
             Test(
 NewLines("Imports [|Fizz|]"),
-NewLines("Friend Class Fizz\nEnd Class\n"), isAddedDocument:=True)
+NewLines("Friend Class Fizz\nEnd Class\n"))
         End Sub
 
         <WorkItem(1130905)>
@@ -770,8 +784,7 @@ index:=1)
             Test(
 NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
 NewLines("Public Class B \n Public Sub New() \n End Sub \n End Class"),
-index:=0,
-isAddedDocument:=True)
+index:=0)
         End Sub
 
         <WorkItem(1107929)>
@@ -798,8 +811,7 @@ index:=2)
             Test(
 NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
 NewLines("Public Class B \n End Class"),
-index:=0,
-isAddedDocument:=True)
+index:=0)
         End Sub
 
         <WorkItem(1107929)>
@@ -826,8 +838,7 @@ index:=2)
             Test(
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
 NewLines("Public Class B(Of T) \n End Class"),
-index:=0,
-isAddedDocument:=True)
+index:=0)
         End Sub
 
         <WorkItem(1107929)>
@@ -855,6 +866,10 @@ index:=2)
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
                     New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
                     New GenerateTypeCodeFixProvider())
+            End Function
+
+            Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+                Return FlattenActions(actions)
             End Function
 
             <WorkItem(829970)>

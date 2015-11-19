@@ -170,7 +170,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
                 references: new[] { SystemRef, new CSharpCompilationReference(comp1) },
                 options: TestOptions.DebugExe);
             comp2a.VerifyDiagnostics();
-            CompileAndVerify(comp2a, emitters: TestEmitters.CCI, expectedOutput:
+            CompileAndVerify(comp2a, expectedOutput:
 @"1
 2
 3");
@@ -179,7 +179,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
                 references: new[] { SystemRef, MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 options: TestOptions.DebugExe);
             comp2b.VerifyDiagnostics();
-            CompileAndVerify(comp2b, emitters: TestEmitters.CCI, expectedOutput:
+            CompileAndVerify(comp2b, expectedOutput:
 @"1
 2
 3");

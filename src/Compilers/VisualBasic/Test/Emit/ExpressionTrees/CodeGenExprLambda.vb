@@ -754,7 +754,7 @@ Lambda(
         End Sub
 
         <Fact()>
-        Public Sub TypeConversions_Unchecked_Std_DeirectTrySpecialized()
+        Public Sub TypeConversions_Unchecked_Std_DirectTrySpecialized()
             TestConversion_TypeMatrix_Standard_DirectTrySpecialized(False, ExpTreeTestResources.UncheckedDirectTrySpecificConversions)
         End Sub
 
@@ -1807,7 +1807,7 @@ End Structure
                         <%= _exprTesting %>
                         <%= _queryTesting %>
                     </compilation>,
-                    references:=If(addXmlReferences, DefaultReferences.Concat(XmlReferences), DefaultReferences),
+                    references:=If(addXmlReferences, DefaultVbReferences.Concat(XmlReferences), DefaultVbReferences),
                     options:=If(optimize, TestOptions.ReleaseDll, TestOptions.DebugDll).WithOverflowChecks(checked))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, diagnostics)
@@ -5557,7 +5557,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub ExprTreeWithCollectionIntitializer()
+        Public Sub ExprTreeWithCollectionIntializer()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -6805,6 +6805,46 @@ end class
                  expectedOutput:="m => m").VerifyDiagnostics()
         End Sub
 
+
+        <WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")>
+        <Fact()>
+        Public Sub GenericField01()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+
+Public Class Module1
+    Public Class S(Of T)
+        Public x As T
+    End Class
+
+    Public Shared Function SomeFunc(Of A)(selector As System.Linq.Expressions.Expression(Of Func(Of Object, A))) As Object
+        Return Nothing
+    End Function
+
+    Public Shared Sub CallIt(Of T)(p As T)
+        Dim goodF As Func(Of Object, Object) = Function(xs) SomeFunc(Of S(Of T))(Function(e) New S(Of T)())
+        Dim z1 = goodF(3)
+
+        Dim badF As Func(Of Object, Object) = Function(xs)
+                                                  Return SomeFunc(Of S(Of T))(Function(e) New S(Of T) With {.x = p})
+                                              End Function
+        Dim z2 = badF(3)
+    End Sub
+
+    Public Shared Sub Main()
+        CallIt(Of Integer)(3)
+    End Sub
+End Class
+
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 additionalRefs:={SystemCoreRef},
+                 expectedOutput:="").VerifyDiagnostics()
+        End Sub
+
         <Fact()>
         Public Sub ExpressionTrees_MyBaseMyClass()
             Dim file = <file name="expr.vb"><![CDATA[
@@ -7950,6 +7990,212 @@ In catch
 e2 => () => new MyStack`1() {Void Add(Int32)(42)}
 42
 ]]>).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        Public Sub PropertyAssignment()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Public Interface IAddress
+        Property City As String
+    End Interface
+
+    Public Class Address
+        Implements IAddress
+
+        Public Property City As String Implements IAddress.City
+
+        Public Field As String
+
+        Public Sub Verify(expression As Expression(Of Action(Of Address)))
+            Console.WriteLine(expression.ToString())
+            expression.Compile()(Me)
+        End Sub
+
+    End Class
+
+    Public Class Customer
+        Public Property Address As IAddress
+
+        Public Sub DoWork(newValue As String)
+            Address.City = newValue
+        End Sub
+    End Class
+
+    Public Function ItIs(Of TValue)(match As Expression(Of Func(Of TValue, Boolean))) As TValue
+    End Function
+
+    Sub Main()
+        Dim a As New Address
+
+        a.Verify(Sub(x) x.City = ItIs(Of String)(Function(s) String.IsNullOrEmpty(s)))
+
+        a.Verify(Sub(x) x.City = "aa")
+
+        System.Console.WriteLine(a.City)
+    End Sub
+
+End Module
+
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 additionalRefs:={SystemCoreRef},
+                 options:=TestOptions.ReleaseExe,
+                 expectedOutput:=<![CDATA[
+x => x.set_City(ItIs(s => IsNullOrEmpty(s)))
+x => x.set_City("aa")
+aa
+]]>).VerifyDiagnostics()
+
+
+        End Sub
+
+        <Fact, WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        Public Sub PropertyAssignmentParameterized()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Public Interface IAddress
+        Property City(i As Integer) As String
+    End Interface
+
+    Public Class Address
+        Implements IAddress
+
+        Private c As String
+
+        Public Property City(i As Integer) As String Implements IAddress.City
+            Get
+                Return c & i
+            End Get
+            Set(value As String)
+                c = value & i
+            End Set
+        End Property
+
+        Public Field As String
+
+        Public Sub Verify(expression As Expression(Of Action(Of Address)))
+            Console.WriteLine(expression.ToString())
+            expression.Compile()(Me)
+        End Sub
+
+    End Class
+
+    Public Class Customer
+        Public Property Address As IAddress
+
+        Public Sub DoWork(newValue As String)
+            Address.City(0) = newValue
+        End Sub
+    End Class
+
+    Public Function ItIs(Of TValue)(match As Expression(Of Func(Of TValue, Boolean))) As TValue
+    End Function
+
+    Sub Main()
+        Dim a As New Address
+
+        a.Verify(Sub(x) x.City(1) = ItIs(Of String)(Function(s) String.IsNullOrEmpty(s)))
+
+        Dim i As Integer = 2
+        a.Verify(Sub(x) x.City(i) = "aa")
+
+        System.Console.WriteLine(a.City(3))
+    End Sub
+
+End Module
+
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 additionalRefs:={SystemCoreRef},
+                 options:=TestOptions.ReleaseExe,
+                 expectedOutput:=<![CDATA[
+x => x.set_City(1, ItIs(s => IsNullOrEmpty(s)))
+x => x.set_City(value(Module1+_Closure$__4-0).$VB$Local_i, "aa")
+aa23
+]]>).VerifyDiagnostics()
+
+
+        End Sub
+
+        <Fact, WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        Public Sub PropertyAssignmentCompound()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Public Interface IAddress
+        Property City As String
+    End Interface
+
+    Public Class Address
+        Implements IAddress
+
+        Public Property City As String Implements IAddress.City
+
+        Public Field As String
+
+        Public Sub Verify(expression As Expression(Of Action(Of Address)))
+            expression.Compile()(Me)
+        End Sub
+
+    End Class
+
+    Public Class Customer
+        Public Property Address As IAddress
+
+        Public Sub DoWork(newValue As String)
+            Address.City = newValue
+        End Sub
+    End Class
+
+    Public Function ItIs(Of TValue)(match As Expression(Of Func(Of TValue, Boolean))) As TValue
+    End Function
+
+    Sub Main()
+        Dim a As New Address
+
+        a.Verify(Sub(x) x.City = ItIs(Of String)(Function(s) String.IsNullOrEmpty(s)))
+
+        a.Verify(Sub(x) x.City += "qq")
+
+        System.Console.WriteLine(a.City)
+    End Sub
+
+End Module
+
+                            ]]></file>
+                         </compilation>
+
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source,
+                 additionalRefs:={SystemCoreRef},
+                 options:=TestOptions.ReleaseExe)
+
+            compilation.VerifyDiagnostics(
+                    Diagnostic(ERRID.ERR_ExpressionTreeNotSupported, "x.City += ""qq""").WithLocation(39, 25)
+            )
+
         End Sub
 
     End Class

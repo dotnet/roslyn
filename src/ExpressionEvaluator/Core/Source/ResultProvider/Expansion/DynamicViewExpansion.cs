@@ -89,11 +89,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
             var isRootExpression = parent == null;
             Debug.Assert(isRootExpression != (name == Resources.DynamicView));
-            var fullName = (!isRootExpression) ? parent.ChildFullNamePrefix : name;
+            var fullName = isRootExpression ? name : parent.ChildFullNamePrefix;
+            var sawInvalidIdentifier = false;
             var childFullNamePrefix = (fullName == null) ?
                 null :
-                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true), fullName);
-            var formatSpecifiers = (!isRootExpression) ? parent.FormatSpecifiers : Formatter.NoFormatSpecifiers;
+                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier), fullName);
+            Debug.Assert(!sawInvalidIdentifier); // Expected type name is "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView".
+            var formatSpecifiers = isRootExpression ? Formatter.NoFormatSpecifiers : parent.FormatSpecifiers;
             return new EvalResultDataItem(
                 ExpansionKind.DynamicView,
                 name,

@@ -11,11 +11,11 @@ using TypeCode = Microsoft.VisualStudio.Debugger.Metadata.TypeCode;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class TypeImpl : Type
+    internal class TypeImpl : Type
     {
         internal readonly System.Type Type;
 
-        private TypeImpl(System.Type type)
+        internal TypeImpl(System.Type type)
         {
             Debug.Assert(type != null);
             this.Type = type;

@@ -5,13 +5,15 @@ namespace Microsoft.CodeAnalysis.Emit
     public enum DebugInformationFormat
     {
         Pdb = 1,
+        PortablePdb = 2,
+        Embedded = 3,
     }
 
     internal static partial class DebugInformationFormatExtensions
     {
         internal static bool IsValid(this DebugInformationFormat value)
         {
-            return value == DebugInformationFormat.Pdb;
+            return value >= DebugInformationFormat.Pdb && value <= DebugInformationFormat.Embedded;
         }
     }
 }

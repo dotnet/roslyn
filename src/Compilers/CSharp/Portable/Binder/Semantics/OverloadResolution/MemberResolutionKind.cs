@@ -103,5 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 7.5.3.2 of the language specification).
         /// </summary>
         Worse,
+
+        /// <summary>
+        /// Same as <see cref="Worse"/>, but the candidate shouldn't be mentioned in an ambiguity diagnostics.
+        /// </summary>
+        Worst,
     }
 }

@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLabel1()
             Dim input =
 <Workspace>
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLabel2()
             Dim input =
 <Workspace>
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(529060)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNumericLabel1()
             Dim input =
 <Workspace>
@@ -53,8 +53,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
 Module M
     Sub Main()
-lable1: GoTo $$[|200|]
-{|Definition:200|}:    GoTo lable1
+label1: GoTo $$[|200|]
+{|Definition:200|}:    GoTo label1
     End Sub
 End Module
         </Document>
@@ -64,7 +64,7 @@ End Module
         End Sub
 
         <WorkItem(529060)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNumericLabel2()
             Dim input =
 <Workspace>
@@ -72,8 +72,8 @@ End Module
         <Document>
 Module M
     Sub Main()
-lable1: GoTo [|200|]
-{|Definition:$$200|}:    GoTo lable1
+label1: GoTo [|200|]
+{|Definition:$$200|}:    GoTo label1
     End Sub
 End Module
         </Document>

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         private readonly MetadataDecoder _decoder;
         private readonly CustomAttributeHandle _handle;
-        private NamedTypeSymbol _lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates unitialized.
+        private NamedTypeSymbol _lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates uninitialized.
         private MethodSymbol _lazyAttributeConstructor;
         private ImmutableArray<TypedConstant> _lazyConstructorArguments;
         private ImmutableArray<KeyValuePair<string, TypedConstant>> _lazyNamedArguments;

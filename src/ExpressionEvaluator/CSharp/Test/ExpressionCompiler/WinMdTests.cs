@@ -318,14 +318,14 @@ class C
                 "f.RenderSize",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             var expectedAssemblyIdentity = WinRtRefs.Single(r => r.Display == "System.Runtime.WindowsRuntime.dll").GetAssemblyIdentity();
-            Assert.Equal(expectedAssemblyIdentity,  missingAssemblyIdentities.Single());
+            Assert.Equal(expectedAssemblyIdentity, missingAssemblyIdentities.Single());
         }
 
         [WorkItem(1154988)]
@@ -341,12 +341,13 @@ class C
 }";
             var runtime = CreateRuntime(source,
                 ImmutableArray.Create(WinRtRefs),
-                ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI", "Windows.UI.Xaml")));  
+                ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI", "Windows.UI.Xaml")));
             string errorMessage;
             var testData = new CompilationTestData();
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                 runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                 "c.Dispatcher",
+                ImmutableArray<Alias>.Empty,
                 (metadataBlocks, _) =>
                 {
                     return CreateMethodContext(runtime, "C.M");

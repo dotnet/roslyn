@@ -12,20 +12,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class AssemblyReference : Cci.IAssemblyReference
     {
-        // Assembly identity used in metadata to refer to the target assembly.
-        // NOTE: this could be different from assemblySymbol.AssemblyName due to mapping.
-        // For example, multiple assembly symbols might be emitted into a single dynamic assembly whose identity is stored here.
-        public readonly AssemblyIdentity MetadataIdentity;
-
         // assembly symbol that represents the target assembly:
         private readonly AssemblySymbol _targetAssembly;
 
-        internal AssemblyReference(AssemblySymbol assemblySymbol, Func<AssemblySymbol, AssemblyIdentity> symbolMapper)
+        internal AssemblyReference(AssemblySymbol assemblySymbol)
         {
             Debug.Assert((object)assemblySymbol != null);
-            this.MetadataIdentity = (symbolMapper != null) ? symbolMapper(assemblySymbol) : assemblySymbol.Identity;
             _targetAssembly = assemblySymbol;
         }
+
+        public AssemblyIdentity MetadataIdentity => _targetAssembly.Identity;
 
         public override string ToString()
         {

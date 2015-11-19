@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// A predicate for determining if one interface derives from another. Static to avoid unnecessary allocations.
         /// </summary>
         private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> s_findDerivedInterfacesPredicate =
-            (t1, t2) => t1.TypeKind == TypeKind.Interface && t1.OriginalDefinition.AllInterfaces.Distinct(SymbolEquivalenceComparer.Instance).Contains(t2);
+            (t1, t2) => t1.TypeKind == TypeKind.Interface && t1.OriginalDefinition.AllInterfaces.Contains(t2);
 
         /// <summary>
         /// For a given <see cref="Compilation"/>, maps from an interface (from the compilation or one of its dependencies)

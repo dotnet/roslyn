@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
                 return new ReversedEnumeratorImpl(ref _list);
             }
 
-            IEnumerator 
+            IEnumerator
                 IEnumerable.GetEnumerator()
             {
                 if (_list.Count == 0)

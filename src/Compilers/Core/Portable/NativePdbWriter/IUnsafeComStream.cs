@@ -29,5 +29,4 @@ namespace Roslyn.Utilities
         void Stat(out STATSTG pstatstg, int grfStatFlag);
         void Clone(out IStream ppstm);
     }
-
 }

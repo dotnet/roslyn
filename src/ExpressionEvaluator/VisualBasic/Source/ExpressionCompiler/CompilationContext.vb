@@ -466,9 +466,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If Not IsAssignableExpression(binder, expression) Then
                 flags = flags Or DkmClrCompilationResultFlags.ReadOnlyResult
             End If
-            If MayHaveSideEffectsVisitor.MayHaveSideEffects(expression) Then
-                flags = flags Or DkmClrCompilationResultFlags.PotentialSideEffect
-            End If
+
+            Try
+                If MayHaveSideEffectsVisitor.MayHaveSideEffects(expression) Then
+                    flags = flags Or DkmClrCompilationResultFlags.PotentialSideEffect
+                End If
+            Catch ex As BoundTreeVisitor.CancelledByStackGuardException
+                ex.AddAnError(diagnostics)
+            End Try
 
             If IsStatement(expression) Then
                 expression = binder.ReclassifyInvocationExpressionAsStatement(expression, diagnostics)
@@ -547,7 +552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End While
 
             ' PERF: we used to call compilation.GetCompilationNamespace on every iteration,
-            ' but that involved walking up to the global namesapce, which we have to do
+            ' but that involved walking up to the global namespace, which we have to do
             ' anyway.  Instead, we'll inline the functionality into our own walk of the
             ' namespace chain.
             [namespace] = compilation.GlobalNamespace

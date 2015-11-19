@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            // reeturn new factory per workspace
+            // return new factory per workspace
             return new Factory();
         }
 

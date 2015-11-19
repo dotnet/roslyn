@@ -13,12 +13,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     /// </summary>
     public abstract class AbstractFileCodeElementTests : IDisposable
     {
-        protected TestWorkspace Workspace { get; private set; }
-        protected FileCodeModel CodeModel { get; private set; }
+        protected TestWorkspace Workspace { get; }
+        protected FileCodeModel CodeModel { get; }
 
-        protected Microsoft.CodeAnalysis.Solution CurrentSolution { get; private set; }
-        protected Microsoft.CodeAnalysis.Project CurrentProject { get; private set; }
-        protected Microsoft.CodeAnalysis.Document CurrentDocument { get; private set; }
+        protected Microsoft.CodeAnalysis.Solution CurrentSolution { get; }
+        protected Microsoft.CodeAnalysis.Project CurrentProject { get; }
+        protected Microsoft.CodeAnalysis.Document CurrentDocument { get; }
 
         public AbstractFileCodeElementTests(string file)
         {

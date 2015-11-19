@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 // If the new severity is 'Default' we just delete the entry for the rule from the ruleset file.
                 // In the absence of an explicit entry in the ruleset file, the rule reverts back to its 'Default'
-                // severity (so far as the 'current' ruleset file is concerened - the rule's effective severity
+                // severity (so far as the 'current' ruleset file is concerned - the rule's effective severity
                 // could still be decided by other factors such as project settings or a base ruleset file).
                 rule.Remove();
             }
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     // If the new severity is 'Default' we just delete the entry for the rule from the ruleset file.
                     // In the absence of an explicit entry in the ruleset file, the rule reverts back to its 'Default'
-                    // severity (so far as the 'current' ruleset file is concerened - the rule's effective severity
+                    // severity (so far as the 'current' ruleset file is concerned - the rule's effective severity
                     // could still be decided by other factors such as project settings or a base ruleset file).
                     matchingRule.Remove();
                 }

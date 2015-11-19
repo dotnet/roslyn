@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
@@ -13,14 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public WorkspaceRegistrationChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
                 : base(subjectBuffer, delay)
             {
-            }
-
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.WorkspaceRegistrationChanged;
-                }
             }
 
             protected override void ConnectToWorkspace(Workspace workspace)

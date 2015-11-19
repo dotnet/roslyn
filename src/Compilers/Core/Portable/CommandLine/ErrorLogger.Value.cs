@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Represents a value for a key-value pair to be emitted into the error log file.
-        /// This could be a simple string or an integer OR could be a list of identical values OR a group of heterogenous key-value pairs.
+        /// This could be a simple string or an integer OR could be a list of identical values OR a group of heterogeneous key-value pairs.
         /// </summary>
         private abstract class Value
         {

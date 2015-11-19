@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
             typeof(CSharpEncapsulateFieldService),
             typeof(EditorNotificationServiceFactory),
-            typeof(DefaultDocumentSupportsSuggestionService)));
+            typeof(DefaultDocumentSupportsFeatureService)));
 
         public EncapsulateFieldTestState(string markup)
         {

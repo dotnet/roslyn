@@ -30,13 +30,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        edits As IEnumerable(Of SemanticEdit),
                        isAddedSymbol As Func(Of ISymbol, Boolean))
 
-            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim initialBaseline = previousGeneration.InitialBaseline
 
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
 
-            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols accross all generations,
+            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
             Dim metadataSymbols = GetMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
 
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' both need to be completely lowered (translated). Standard translation only goes one level deep. 
             ' Generic arguments are not translated until they are needed by metadata writer. 
             '
-            ' In order to get the fully lowered form we run the type symbols of stashed variables thru a deep translator
+            ' In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
             ' that translates the symbol recursively.
             _deepTranslator = New VisualBasicSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object))
         End Sub
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim members = type.GetMembers(WellKnownMemberNames.DelegateInvokeName)
             Debug.Assert(members.Length = 1 AndAlso members(0).Kind = SymbolKind.Method)
             Dim method = DirectCast(members(0), MethodSymbol)
-            Debug.Assert(method.Parameters.Count + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
+            Debug.Assert(method.Parameters.Length + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
             Dim parameters = ArrayBuilder(Of AnonymousTypeKeyField).GetInstance()
             parameters.AddRange(method.Parameters.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name, isKey:=False, ignoreCase:=True)))
             parameters.Add(New AnonymousTypeKeyField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub), isKey:=False, ignoreCase:=True))

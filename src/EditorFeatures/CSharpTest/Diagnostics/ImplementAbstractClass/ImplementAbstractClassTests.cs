@@ -372,5 +372,14 @@ abstract class A<T>
 }
 ", compareTokens: false);
         }
+
+        [WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public void ImplementClassWithInaccessibleMembers()
+        {
+            Test(
+@"using System ; using System . Globalization ; public class [|x|] : EastAsianLunisolarCalendar { } ",
+@"using System ; using System . Globalization ; public class x : EastAsianLunisolarCalendar { public override int [ ] Eras { get { throw new NotImplementedException ( ) ; } } internal override EraInfo [ ] CalEraInfo { get { throw new NotImplementedException ( ) ; } } internal override int MaxCalendarYear { get { throw new NotImplementedException ( ) ; } } internal override DateTime MaxDate { get { throw new NotImplementedException ( ) ; } } internal override int MinCalendarYear { get { throw new NotImplementedException ( ) ; } } internal override DateTime MinDate { get { throw new NotImplementedException ( ) ; } } public override int GetEra ( DateTime time ) { throw new NotImplementedException ( ) ; } internal override int GetGregorianYear ( int year , int era ) { throw new NotImplementedException ( ) ; } internal override int GetYear ( int year , DateTime time ) { throw new NotImplementedException ( ) ; } internal override int GetYearInfo ( int LunarYear , int Index ) { throw new NotImplementedException ( ) ; } } ");
+        }
     }
 }

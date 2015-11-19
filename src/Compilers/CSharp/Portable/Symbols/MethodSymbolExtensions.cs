@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Check constraints.
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var typeParams = method.TypeParameters;
-            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
+            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
             diagnosticsBuilder.Free();
@@ -235,8 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event: // Events are not covered by CSemanticChecker::FindSymHiddenByMethPropAgg.
                     return true;
                 default:
-                    Debug.Assert(false, "Expected a member kind, found " + hidingMemberKind);
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(hidingMemberKind);
             }
         }
 

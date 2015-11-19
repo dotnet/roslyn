@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
     {
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return new VisualBasicProjectFileLoader(languageServices.WorkspaceServices);
+            return new VisualBasicProjectFileLoader();
         }
     }
 }

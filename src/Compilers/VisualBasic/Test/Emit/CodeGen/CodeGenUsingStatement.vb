@@ -714,9 +714,9 @@ Imports System
 Class Program
     Shared Sub Main(args As String())
         Using x = New MyManagedClass()
-            GoTo lable1
+            GoTo label1
         End Using
-lable1:
+label1:
     End Sub
 End Class
 Class MyManagedClass

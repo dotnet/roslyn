@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
             // This is invoked on the solution idle background task.
             foreach (var lazyCommandHandler in _commandHandlers)
             {
-                // here, we just use string comparision. it is cheap and enough since we control these.
+                // here, we just use string comparison. it is cheap and enough since we control these.
                 if (!lazyCommandHandler.Metadata.ContentTypes.Any(c => string.Equals(c, contentTypeName)))
                 {
                     continue;

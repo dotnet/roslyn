@@ -5,19 +5,16 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ITypeInferenceService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicTypeInferenceService
-        Implements ITypeInferenceService
+        Inherits AbstractTypeInferenceService(Of ExpressionSyntax)
 
-        Public Function InferTypes(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As IEnumerable(Of ITypeSymbol) Implements ITypeInferenceService.InferTypes
-            Return New TypeInferrer(semanticModel, cancellationToken).InferTypes(position)
-        End Function
-
-        Public Function InferTypes(semanticModel As SemanticModel, expression As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of ITypeSymbol) Implements ITypeInferenceService.InferTypes
-            Return New TypeInferrer(semanticModel, cancellationToken).InferTypes(TryCast(expression, ExpressionSyntax))
+        Protected Overrides Function CreateTypeInferrer(semanticModel As SemanticModel, cancellationToken As CancellationToken) As AbstractTypeInferrer
+            Return New TypeInferrer(semanticModel, cancellationToken)
         End Function
     End Class
 End Namespace

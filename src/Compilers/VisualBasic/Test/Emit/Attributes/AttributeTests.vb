@@ -192,7 +192,7 @@ Imports System.Runtime.CompilerServices
                     Imports System.Runtime.CompilerServices
                     Imports System.Runtime.InteropServices
 
-                    ' These are not pseduo attributes, but encoded as bits in metadata
+                    ' These are not pseudo attributes, but encoded as bits in metadata
                     <assembly: AssemblyAlgorithmId(System.Configuration.Assemblies.AssemblyHashAlgorithm.MD5)>
                     <assembly: AssemblyCultureAttribute("")>
                     <assembly: AssemblyDelaySign(true)>
@@ -1327,11 +1327,11 @@ End Class
 
         <WorkItem(541687, "DevDiv")>
         <Fact>
-        Public Sub Bug_8524_NullAttributeArrayArument()
+        Public Sub Bug_8524_NullAttributeArrayArgument()
 
             Dim source =
     <compilation>
-        <file name="Bug_8524_NullAttributeArrayArument.vb"><![CDATA[
+        <file><![CDATA[
 Imports System
 
 Class A
@@ -2124,41 +2124,41 @@ End Class
 
                                          Dim attrs = classC1.GetAttributes()
                                          Assert.Equal(1, attrs.Length)
-                                         Dim typeArg = New ArrayTypeSymbol(classW, Nothing, 1, m.ContainingAssembly)
+                                         Dim typeArg = ArrayTypeSymbol.CreateVBArray(classW, Nothing, 1, m.ContainingAssembly)
                                          attrs.First().VerifyValue(Of Object)(0, TypedConstantKind.Type, typeArg)
 
                                          attrs = classC2.GetAttributes()
                                          Assert.Equal(1, attrs.Length)
-                                         typeArg = New ArrayTypeSymbol(classW, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(classW, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
                                          attrs.First().VerifyValue(Of Object)(0, TypedConstantKind.Type, typeArg)
 
                                          attrs = classC3.GetAttributes()
                                          Assert.Equal(1, attrs.Length)
-                                         typeArg = New ArrayTypeSymbol(classW, Nothing, 1, m.ContainingAssembly)
-                                         typeArg = New ArrayTypeSymbol(typeArg, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(classW, Nothing, 1, m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(typeArg, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
                                          attrs.First().VerifyValue(Of Object)(0, TypedConstantKind.Type, typeArg)
 
                                          attrs = classC4.GetAttributes()
                                          Assert.Equal(1, attrs.Length)
                                          Dim classYOfW As NamedTypeSymbol = classY.Construct(ImmutableArray.Create(Of TypeSymbol)(classW))
-                                         typeArg = New ArrayTypeSymbol(classYOfW, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
-                                         typeArg = New ArrayTypeSymbol(typeArg, Nothing, 1, m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(classYOfW, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(typeArg, Nothing, 1, m.ContainingAssembly)
                                          attrs.First().VerifyValue(Of Object)(0, TypedConstantKind.Type, typeArg)
 
                                          attrs = classC5.GetAttributes()
                                          Assert.Equal(1, attrs.Length)
                                          Dim classYOfInt As NamedTypeSymbol = classY.Construct(ImmutableArray.Create(Of TypeSymbol)(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)))
                                          Dim substNestedF As NamedTypeSymbol = classYOfInt.GetTypeMember("F")
-                                         typeArg = New ArrayTypeSymbol(substNestedF, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=3, declaringAssembly:=m.ContainingAssembly)
-                                         typeArg = New ArrayTypeSymbol(typeArg, Nothing, 1, m.ContainingAssembly)
-                                         typeArg = New ArrayTypeSymbol(typeArg, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(substNestedF, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=3, declaringAssembly:=m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(typeArg, Nothing, 1, m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(typeArg, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
                                          attrs.First().VerifyValue(Of Object)(0, TypedConstantKind.Type, typeArg)
 
                                          attrs = classC6.GetAttributes()
                                          Assert.Equal(1, attrs.Length)
                                          Dim substNestedZ As NamedTypeSymbol = classYOfInt.GetTypeMember("Z").Construct(ImmutableArray.Create(Of TypeSymbol)(classW))
-                                         typeArg = New ArrayTypeSymbol(substNestedZ, Nothing, 1, m.ContainingAssembly)
-                                         typeArg = New ArrayTypeSymbol(typeArg, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(substNestedZ, Nothing, 1, m.ContainingAssembly)
+                                         typeArg = ArrayTypeSymbol.CreateVBArray(typeArg, CType(Nothing, ImmutableArray(Of CustomModifier)), rank:=2, declaringAssembly:=m.ContainingAssembly)
                                          attrs.First().VerifyValue(Of Object)(0, TypedConstantKind.Type, typeArg)
                                      End Sub
 
@@ -3222,7 +3222,7 @@ Class A
 End Class
 
 Class MyAttr
-    ' Does not intherit attribute
+    ' Does not inherit attribute
 End Class    
 ]]>
     </file>
@@ -3800,7 +3800,7 @@ End Class
     ]]></file>
 </compilation>
 
-            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, symbolValidator:=
+            CompileAndVerify(source, symbolValidator:=
                 Sub(m)
                     Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                     Dim attr = c.GetAttributes().Single()
@@ -3902,7 +3902,7 @@ End Class
     ]]></file>
 </compilation>
 
-            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, symbolValidator:=
+            CompileAndVerify(source, symbolValidator:=
                 Sub(m)
                     Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                     Dim attr = c.GetAttributes().Single()
@@ -3990,7 +3990,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, expectedOutput:=<![CDATA[
+            CompileAndVerify(source, expectedOutput:=<![CDATA[
  - 5 -
  - 100 -
  - 100000 -

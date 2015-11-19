@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -37,10 +38,10 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x3"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
+        <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <constant name=""x"" value=""1"" type=""Int32"" />
@@ -89,9 +90,9 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""15"" endColumn=""12"" document=""0"" />
-        <entry offset=""0x27"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""15"" endColumn=""12"" />
+        <entry offset=""0x27"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x28"">
         <namespace name=""System"" />
@@ -103,12 +104,12 @@ class C
         <forward declaringType=""C"" methodName=""M"" parameterNames=""a"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x1"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x2"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x5"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x0"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
+        <entry offset=""0x1"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""14"" />
+        <entry offset=""0x2"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""14"" />
+        <entry offset=""0x3"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x6"">
+      <scope startOffset=""0x0"" endOffset=""0x4"">
         <constant name=""y"" value=""2"" type=""Int32"" />
         <scope startOffset=""0x1"" endOffset=""0x3"">
           <constant name=""z"" value=""3"" type=""Int32"" />
@@ -173,18 +174,18 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x20"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x27"" hidden=""true"" document=""0"" />
-        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2a"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""36"" document=""0"" />
-        <entry offset=""0x41"" hidden=""true"" document=""0"" />
-        <entry offset=""0x48"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x49"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""0"" />
-        <entry offset=""0x59"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""31"" document=""0"" />
-        <entry offset=""0x64"" hidden=""true"" document=""0"" />
-        <entry offset=""0x67"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x20"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" />
+        <entry offset=""0x27"" hidden=""true"" />
+        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
+        <entry offset=""0x2a"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""36"" />
+        <entry offset=""0x41"" hidden=""true"" />
+        <entry offset=""0x48"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
+        <entry offset=""0x49"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" />
+        <entry offset=""0x59"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""31"" />
+        <entry offset=""0x64"" hidden=""true"" />
+        <entry offset=""0x67"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x69"">
         <namespace name=""System.Collections.Generic"" />
@@ -227,8 +228,8 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <constant name=""o"" value=""null"" type=""Object"" />
@@ -290,7 +291,9 @@ this is a string constant that is too long to fit into the PDB"";
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
+            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            
+            c.VerifyPdb("C.M", @"
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -300,12 +303,27 @@ this is a string constant that is too long to fit into the PDB"";
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""43"" startColumn=""5"" endLine=""43"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""43"" startColumn=""5"" endLine=""43"" endColumn=""6"" />
       </sequencePoints>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
+
+            c.VerifyPdb("C.M", @"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""43"" startColumn=""5"" endLine=""43"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <constant name=""text"" value=""\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB\u000D\u000Athis is a string constant that is too long to fit into the PDB"" type=""String"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact]
@@ -332,8 +350,8 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <constant name=""d"" value=""1.5"" type=""Decimal"" />

@@ -9,6 +9,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class TestSyntaxNodes
+        Inherits BasicTestBase
+
         Private _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
         Private _newlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
 
@@ -30,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             'operands.AddSeparator(Syntax.Token(SyntaxKind.CommaToken,spaceTrivia))
             'operands.Add(Syntax.SimpleArgument(CreateIntegerLiteral(9)))
 
-            ' Use Syntax.Separatlist factory method instead of builder
+            ' Use Syntax.SeparatedList factory method instead of builder
             Dim operands = SyntaxFactory.SeparatedList(Of ArgumentSyntax)({SyntaxFactory.SimpleArgument(CreateIntegerLiteral(3)),
                                                                      SyntaxFactory.SimpleArgument(SyntaxFactory.AddExpression(CreateIntegerLiteral(4), SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=_spaceTrivia), CreateIntegerLiteral(8))),
                                                                      SyntaxFactory.SimpleArgument(CreateIntegerLiteral(9))},
@@ -1241,7 +1243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expC = SyntaxFactory.ParseExpression("c")
             Dim expD = SyntaxFactory.ParseExpression("d")
 
-            ' cannot replace a node that is not in a list with mulitple nodes
+            ' cannot replace a node that is not in a list with multiple nodes
             Assert.Throws(Of InvalidOperationException)(Function() invocation.ReplaceNode(expA, {expC, expD}))
 
             ' cannot replace a node that is not in a list with and empty list of nodes
@@ -1278,7 +1280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expC = SyntaxFactory.ParseExpression("c")
             Dim expD = SyntaxFactory.ParseExpression("d")
 
-            ' cannot replace a node that is not in a list with mulitple nodes
+            ' cannot replace a node that is not in a list with multiple nodes
             Assert.Throws(Of InvalidOperationException)(Function() invocation.InsertNodesBefore(expA, {expC, expD}))
 
             ' cannot replace a node that is not in a list with and empty list of nodes
@@ -3050,10 +3052,13 @@ End Interface
 </compilation>
 
             'Verify Compile Errors when try to use
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 compilationDef,
-                New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).VerifyDiagnostics(BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
-                                                                                                                              BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantImplement, "Implements Ifoo"))
+                New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
+                Diagnostic(ERRID.ERR_ModuleCantImplement, "Implements Ifoo"))
         End Sub
 
         <Fact>
@@ -3448,7 +3453,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMethod_VerifyOmmittedArgument()
+        Public Sub SyntaxWalkerMethod_VerifyOmittedArgument()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
@@ -3633,7 +3638,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMehhod_VerifyXMLBracketName()
+        Public Sub SyntaxWalkerMethod_VerifyXMLBracketName()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
@@ -3658,7 +3663,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMethod_VerifyImcompleteSyntaxClause()
+        Public Sub SyntaxWalkerMethod_VerifyIncompleteSyntaxClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">

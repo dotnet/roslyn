@@ -1352,7 +1352,7 @@ End Structure
         ' Using foreach on a multi-dimensional array
         <WorkItem(528752, "DevDiv")>
         <Fact>
-        Public Sub TravallingMultiDemensionalArray()
+        Public Sub ForEachMultiDimensionalArray()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">

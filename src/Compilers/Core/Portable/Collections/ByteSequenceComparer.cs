@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -40,21 +41,44 @@ namespace Microsoft.CodeAnalysis.Collections
             return true;
         }
 
-        internal static bool Equals(byte[] x, byte[] y)
+        internal static bool Equals(byte[] left, int leftStart, byte[] right, int rightStart, int length)
         {
-            if (ReferenceEquals(x, y))
+            if (left == null || right == null)
+            {
+                return ReferenceEquals(left, right);
+            }
+
+            if (ReferenceEquals(left, right) && leftStart == rightStart)
             {
                 return true;
             }
 
-            if (x == null || y == null || x.Length != y.Length)
+            for (var i = 0; i < length; i++)
+            {
+                if (left[leftStart + i] != right[rightStart + i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        internal static bool Equals(byte[] left, byte[] right)
+        {
+            if (ReferenceEquals(left, right))
+            {
+                return true;
+            }
+
+            if (left == null || right == null || left.Length != right.Length)
             {
                 return false;
             }
 
-            for (var i = 0; i < x.Length; i++)
+            for (var i = 0; i < left.Length; i++)
             {
-                if (x[i] != y[i])
+                if (left[i] != right[i])
                 {
                     return false;
                 }

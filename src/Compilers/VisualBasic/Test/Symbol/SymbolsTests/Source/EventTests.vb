@@ -905,7 +905,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
     VerifyIL("C.M",
             <![CDATA[
 

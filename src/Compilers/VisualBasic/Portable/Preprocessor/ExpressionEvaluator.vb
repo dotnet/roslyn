@@ -1469,7 +1469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             ' // result = L - (Fix(L / R) * R)
 
                             ' // CONSIDER (9/12/2003):  Doing this by hand generates Overflow
-                            ' //                        for "Deciaml.MaxValue Mod 2" when it should
+                            ' //                        for "Decimal.MaxValue Mod 2" when it should
                             ' //                        generate a result of 1.  How to fix?
 
                             Overflow = VarDecDiv(LeftValue, RightValue, ResultValue)

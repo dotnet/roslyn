@@ -3,6 +3,7 @@
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
@@ -174,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function IsSecurityAttribute(comp As VisualBasicCompilation) As Boolean
             ' CLI spec (Partition II Metadata), section 21.11 "DeclSecurity : 0x0E" states:
-            ' SPEC:    If the attribute’s type is derived (directly or indirectly) from System.Security.Permissions.SecurityAttribute then
+            ' SPEC:    If the attribute's type is derived (directly or indirectly) from System.Security.Permissions.SecurityAttribute then
             ' SPEC:    it is a security custom attribute and requires special treatment.
 
             If _lazyIsSecurityAttribute = ThreeState.Unknown Then
@@ -186,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim hasErrors As Boolean = False
-            Dim action As Cci.SecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, arguments.Diagnostics)
+            Dim action As DeclarativeSecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, arguments.Diagnostics)
             If Not hasErrors Then
                 Dim data As T = arguments.GetOrCreateData(Of T)()
                 Dim securityData As SecurityWellKnownAttributeData = data.GetOrCreateData()
@@ -207,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             nodeOpt As AttributeSyntax,
             ByRef hasErrors As Boolean,
             diagnostics As DiagnosticBag
-        ) As Cci.SecurityAction
+        ) As DeclarativeSecurityAction
             Debug.Assert(Not hasErrors)
             Debug.Assert(Me.IsSecurityAttribute(compilation))
             Debug.Assert(targetSymbol.Kind = SymbolKind.Assembly OrElse targetSymbol.Kind = SymbolKind.NamedType OrElse targetSymbol.Kind = SymbolKind.Method)
@@ -226,17 +227,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' We currently allow this case only for the HostProtectionAttribute. In future if need arises, we can exactly match native compiler's behavior.
 
                 If Me.IsTargetAttribute(targetSymbol, AttributeDescription.HostProtectionAttribute) Then
-                    Return Cci.SecurityAction.LinkDemand
+                    Return DeclarativeSecurityAction.LinkDemand
                 End If
             Else
                 Dim firstArg As TypedConstant = Me.CommonConstructorArguments.FirstOrDefault()
                 Dim firstArgType = DirectCast(firstArg.Type, TypeSymbol)
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 If firstArgType IsNot Nothing AndAlso firstArgType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAction, compilation, useSiteDiagnostics) Then
-                    Dim securityAction = DirectCast(firstArg.Value, Cci.SecurityAction)
-                    hasErrors = Not ValidateSecurityAction(targetSymbol, securityAction, nodeOpt, diagnostics)
-
-                    Return securityAction
+                    Return ValidateSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, hasErrors)
                 End If
 
                 diagnostics.Add(If(nodeOpt IsNot Nothing, nodeOpt.Name.GetLocation, NoLocation.Singleton), useSiteDiagnostics)
@@ -253,18 +251,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function ValidateSecurityAction(
+            typedValue As TypedConstant,
             targetSymbol As Symbol,
-            action As Cci.SecurityAction,
             nodeOpt As AttributeSyntax,
-            diagnostics As DiagnosticBag
-        ) As Boolean
+            diagnostics As DiagnosticBag,
+            <Out> ByRef hasErrors As Boolean
+        ) As DeclarativeSecurityAction
             Debug.Assert(targetSymbol.Kind = SymbolKind.Assembly OrElse targetSymbol.Kind = SymbolKind.NamedType OrElse targetSymbol.Kind = SymbolKind.Method)
 
+            Dim securityAction As Integer = CInt(typedValue.Value)
+            hasErrors = False
             Dim isPermissionRequestAction As Boolean
 
-            Select Case action
-                Case Cci.SecurityAction.InheritanceDemand,
-                     Cci.SecurityAction.LinkDemand
+            Select Case securityAction
+                Case DeclarativeSecurityAction.InheritanceDemand,
+                     DeclarativeSecurityAction.LinkDemand
 
                     If Me.IsTargetAttribute(targetSymbol, AttributeDescription.PrincipalPermissionAttribute) Then
                         ' BC31209: SecurityAction value '{0}' is invalid for PrincipalPermission attribute
@@ -272,26 +273,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton),
                                         If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
 
-                        Return False
+                        hasErrors = True
+                        Return DeclarativeSecurityAction.None
                     End If
 
                     isPermissionRequestAction = False
 
-                Case Cci.SecurityAction.Undocumented
+                Case 1
                     ' Native compiler allows security action value 1 even though there is no corresponding field in 
                     ' System.Security.Permissions.SecurityAction enum.
                     ' We will maintain compatibility.
 
-                Case Cci.SecurityAction.Assert,
-                     Cci.SecurityAction.Demand,
-                     Cci.SecurityAction.PermitOnly,
-                     Cci.SecurityAction.Deny
+                Case DeclarativeSecurityAction.Assert,
+                     DeclarativeSecurityAction.Demand,
+                     DeclarativeSecurityAction.PermitOnly,
+                     DeclarativeSecurityAction.Deny
 
                     isPermissionRequestAction = False
 
-                Case Cci.SecurityAction.RequestMinimum,
-                     Cci.SecurityAction.RequestOptional,
-                     Cci.SecurityAction.RequestRefuse
+                Case DeclarativeSecurityAction.RequestMinimum,
+                     DeclarativeSecurityAction.RequestOptional,
+                     DeclarativeSecurityAction.RequestRefuse
 
                     isPermissionRequestAction = True
 
@@ -302,7 +304,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     If(nodeOpt IsNot Nothing, nodeOpt.Name.ToString, ""),
                                     If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
 
-                    Return False
+                    hasErrors = True
+                    Return DeclarativeSecurityAction.None
             End Select
 
             If isPermissionRequestAction Then
@@ -314,7 +317,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation, NoLocation.Singleton),
                                     If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
 
-                    Return False
+                    hasErrors = True
+                    Return DeclarativeSecurityAction.None
                 End If
 
             ElseIf targetSymbol.Kind = SymbolKind.Assembly Then
@@ -325,10 +329,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation, NoLocation.Singleton),
                                 If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
 
-                Return False
+                hasErrors = True
+                Return DeclarativeSecurityAction.None
             End If
 
-            Return True
+            Return CType(securityAction, DeclarativeSecurityAction)
         End Function
 
         ''' <summary>
@@ -502,9 +507,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             '     // UNDONE:harishk - spec. issue
             '     // how to deal with CLS Compliant attributes present on both Modules and Assemblies ?
-            '     // Also this might be a issue for other weel known attributes too ?
+            '     // Also this might be a issue for other well known attributes too ?
             '     //
-            '     // For CLSCompliance - Ignore Module attributes for Assemblies and viceversa
+            '     // For CLSCompliance - Ignore Module attributes for Assemblies and vice-versa
 
             Select Case target.Kind
                 Case SymbolKind.Assembly

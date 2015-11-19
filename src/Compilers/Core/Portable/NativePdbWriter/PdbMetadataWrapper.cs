@@ -232,7 +232,7 @@ namespace Microsoft.Cci
           IntPtr ppvSigBlob, IntPtr pcbSigBlob, IntPtr pulCodeRVA)
         {
             IMethodDefinition m = _writer.GetMethodDefinition(mb);
-            pointerClass = _writer.GetTypeToken(m.GetContainingType(_writer.Context));
+            pointerClass = (uint)_writer.GetTypeToken(m.GetContainingType(_writer.Context));
             string methName = m.Name;
 
             // if the buffer is too small to fit the name, truncate the name
@@ -259,7 +259,7 @@ namespace Microsoft.Cci
                 return 0;
             }
 
-            return _writer.GetTypeToken(nt.GetContainingType(_writer.Context));
+            return (uint)_writer.GetTypeToken(nt.GetContainingType(_writer.Context));
         }
 
         #region Not Implemented 

@@ -491,7 +491,76 @@ NewLines("Class Foo \n Private Class Bar \n Private v As Integer \n Public Sub N
 NewLines("Imports System.Linq \n Class C \n Sub New() \n Dim s As Action = Sub() \n Dim a = New [|C|](0)"),
 NewLines("Imports System.Linq \n Class C \n Private v As Integer \n Sub New() \n Dim s As Action = Sub() \n Dim a = New C(0)Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"))
             End Sub
+
+            <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
+            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+            Public Sub TestGenerateConstructorInIncompleteLambda2()
+                Test(
+    NewLines("Imports System.Linq \n Class C \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n Sub New() \n Dim s As Action = Sub() \n Dim a = New [|C|](0, 0)"),
+    NewLines("Imports System.Linq \n Class C \n Private v As Integer \n Private v1 As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n Sub New() \n Dim s As Action = Sub() \n Dim a = New C(0, 0) \n Public Sub New(v As Integer, v1 As Integer) \n Me.New(v) \n Me.v1 = v1 \n End Sub \n End Class"))
+            End Sub
         End Class
 
+        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Sub TestGenerateInDerivedType1()
+            Test(
+"
+Public Class Base
+    Public Sub New(a As String)
+
+    End Sub
+End Class
+
+Public Class [||]Derived
+    Inherits Base
+
+End Class",
+"
+Public Class Base
+    Public Sub New(a As String)
+
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub New(a As String)
+        MyBase.New(a)
+    End Sub
+End Class")
+        End Sub
+
+        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Sub TestGenerateInDerivedType2()
+            Test(
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class [||]Derived
+    Inherits Base
+
+End Class",
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+        MyBase.New(a, b)
+    End Sub
+End Class")
+        End Sub
     End Class
 End Namespace

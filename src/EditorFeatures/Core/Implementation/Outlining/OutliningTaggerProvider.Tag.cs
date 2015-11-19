@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 string replacementString,
                 SnapshotSpan hintSpan,
                 bool isImplementation,
+                bool isDefaultCollapsed,
                 ITextEditorFactoryService textEditorFactoryService,
                 IProjectionBufferFactoryService projectionBufferFactoryService,
                 IEditorOptionsFactoryService editorOptionsFactoryService)
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 this.CollapsedForm = replacementString;
                 _hintSpan = hintSpan.Snapshot.CreateTrackingSpan(hintSpan.Span, SpanTrackingMode.EdgeExclusive);
                 this.IsImplementation = isImplementation;
-                this.IsDefaultCollapsed = false;
+                this.IsDefaultCollapsed = isDefaultCollapsed;
                 _textEditorFactoryService = textEditorFactoryService;
                 _projectionBufferFactoryService = projectionBufferFactoryService;
                 _editorOptionsFactoryService = editorOptionsFactoryService;
@@ -58,9 +59,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
             private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
             {
-                var view = _textEditorFactoryService.CreateTextView(
-                    finalBuffer,
-                    _textEditorFactoryService.NoRoles);
+                var roles = _textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
+                var view = _textEditorFactoryService.CreateTextView(finalBuffer, roles);
 
                 view.Background = Brushes.Transparent;
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 // The elision buffer is too long.  We've already trimmed it, but now we want to add
                 // a "..." to it.  We do that by creating a projection of both the elision buffer and
                 // a new text buffer wrapping the ellipsis.
-                var elisionSpan = new SnapshotSpan(elisionBuffer.CurrentSnapshot, 0, elisionBuffer.CurrentSnapshot.Length);
+                var elisionSpan = elisionBuffer.CurrentSnapshot.GetFullSpan();
 
                 var sourceSpans = new List<object>()
                 {

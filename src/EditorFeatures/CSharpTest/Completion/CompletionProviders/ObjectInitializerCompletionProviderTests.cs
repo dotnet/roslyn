@@ -3,7 +3,6 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -13,12 +12,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        public ObjectInitializerCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new ObjectInitializerCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NothingToInitialize()
         {
             var markup = @"
@@ -36,7 +39,7 @@ class d
             VerifyExclusive(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void OneItem1()
         {
             var markup = @"
@@ -55,7 +58,7 @@ class d
             VerifyExclusive(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ShowWithEqualsSign()
         {
             var markup = @"
@@ -74,7 +77,7 @@ class d
             VerifyExclusive(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void OneItem2()
         {
             var markup = @"
@@ -93,7 +96,7 @@ class c
             VerifyExclusive(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FieldAndProperty()
         {
             var markup = @"
@@ -116,7 +119,7 @@ class d
             VerifyExclusive(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void HidePreviouslyTyped()
         {
             var markup = @"
@@ -139,7 +142,7 @@ class d
             VerifyItemExists(markup, "otherValue");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInEqualsValue()
         {
             var markup = @"
@@ -160,7 +163,7 @@ class d
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NothingLeftToShow()
         {
             var markup = @"
@@ -182,7 +185,7 @@ class d
             VerifyExclusive(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NestedObjectInitializers()
         {
             var markup = @"
@@ -210,7 +213,7 @@ class e
             VerifyExclusive(markup, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotExclusive1()
         {
             var markup = @"using System.Collections.Generic;
@@ -231,7 +234,7 @@ class d
             VerifyExclusive(markup, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotExclusive2()
         {
             var markup = @"using System.Collections;
@@ -253,7 +256,7 @@ class d
         }
 
         [WorkItem(544242)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInArgumentList()
         {
             var markup = @"class C
@@ -268,7 +271,7 @@ class d
         }
 
         [WorkItem(530075)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInArgumentList2()
         {
             var markup = @"class C
@@ -284,7 +287,7 @@ class d
         }
 
         [WorkItem(544289)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DerivedMembers()
         {
             var markup = @"using System;
@@ -321,7 +324,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(544242)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInCollectionInitializer()
         {
             var markup = @"using System.Collections.Generic;
@@ -336,7 +339,7 @@ class C
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InitializeDerivedType()
         {
             var markup = @"using System.Collections.Generic;
@@ -359,7 +362,7 @@ class C
         }
 
         [WorkItem(544550)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ReadOnlyPropertiesShouldNotBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -377,7 +380,7 @@ class C
         }
 
         [WorkItem(544550)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IndexersShouldNotBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -394,7 +397,7 @@ class C
             VerifyItemIsAbsent(markup, "this[]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ReadOnlyPropertiesThatFollowTheCollectionPatternShouldBePresent()
         {
             var markup = @"using System.Collections.Generic;
@@ -415,7 +418,7 @@ class C
         }
 
         [WorkItem(544607)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DoNotIncludeStaticMember()
         {
             var markup = @"
@@ -435,7 +438,7 @@ class Bar
             VerifyItemIsAbsent(markup, "Gibberish");
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(545678)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public void EditorBrowsable_PropertyInObjectCreationAlways()
@@ -465,7 +468,7 @@ public class Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(545678)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public void EditorBrowsable_PropertyInObjectCreationNever()
@@ -494,7 +497,7 @@ public class Foo
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(545678)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public void EditorBrowsable_PropertyInObjectCreationAdvanced()
@@ -534,26 +537,62 @@ public class Foo
                 hideAdvancedMembers: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestCommitCharacter()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class c { public int value {set; get; }}
+
+class d
+{
+    void foo()
+    {
+       c foo = new c { v$$
+    }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "v");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestEnter()
         {
-            Assert.False(CompletionProvider.SendEnterThroughToEditor(null, null), "Expected false from SendEnterThroughToEditor()");
+            const string markup = @"
+class c { public int value {set; get; }}
+
+class d
+{
+    void foo()
+    {
+       c foo = new c { v$$
+    }
+}";
+
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
+            {
+                var hostDocument = workspace.Documents.Single();
+                var position = hostDocument.CursorPosition.Value;
+                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+
+                var completionList = GetCompletionList(document, position, triggerInfo);
+                var item = completionList.Items.First();
+
+                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
+                var completionRules = completionService.GetCompletionRules();
+
+                Assert.False(completionRules.SendEnterThroughToEditor(item, string.Empty, workspace.Options), "Expected false from SendEnterThroughToEditor()");
+            }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestTrigger()
         {
             TestCommonIsTextualTriggerCharacter();
         }
 
         [WorkItem(530828)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DoNotIncludeIndexedPropertyWithNonOptionalParameter()
         {
             var markup = @"C c01 = new C() {$$ }";
@@ -577,23 +616,146 @@ End Class";
                 hideAdvancedMembers: false);
         }
 
+        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CollectionInitializerPatternFromBaseType()
+        {
+            var markup = @"
+using System;
+using System.Collections;
+
+public class SupportsAdd : IEnumerable
+{
+    public void Add(int x) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class SupportsAddDerived : SupportsAdd { }
+
+class Container
+{
+    public SupportsAdd S { get; }
+    public SupportsAddDerived D { get; }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var y = new Container { $$ };
+    }
+}";
+
+            VerifyItemExists(markup, "S");
+            VerifyItemExists(markup, "D");
+        }
+
+        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CollectionInitializerPatternFromBaseTypeInaccessible()
+        {
+            var markup = @"
+using System;
+using System.Collections;
+
+public class SupportsAdd : IEnumerable
+{
+    protected void Add(int x) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class SupportsAddDerived : SupportsAdd { }
+
+class Container
+{
+    public SupportsAdd S { get; }
+    public SupportsAddDerived D { get; }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var y = new Container { $$ };
+    }
+}";
+
+            VerifyItemIsAbsent(markup, "S");
+            VerifyItemIsAbsent(markup, "D");
+        }
+
+        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CollectionInitializerPatternFromBaseTypeAccessible()
+        {
+            var markup = @"
+using System;
+using System.Collections;
+
+public class SupportsAdd : IEnumerable
+{
+    protected void Add(int x) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class SupportsAddDerived : SupportsAdd 
+{ 
+class Container
+{
+    public SupportsAdd S { get; }
+    public SupportsAddDerived D { get; }
+}
+    static void Main(string[] args)
+    {
+        var y = new Container { $$ };
+    }
+}";
+
+            VerifyItemExists(markup, "S");
+            VerifyItemExists(markup, "D");
+        }
+
         private void VerifyExclusive(string markup, bool exclusive)
         {
-            var provider = CreateCompletionProvider();
-
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
             {
-                var document = workspace.Documents.Single();
-                var position = document.CursorPosition.Value;
-                var actualDocument = workspace.CurrentSolution.GetDocument(document.Id);
-
+                var hostDocument = workspace.Documents.Single();
+                var position = hostDocument.CursorPosition.Value;
+                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
 
-                var group = provider.GetGroupAsync(actualDocument, position, triggerInfo, CancellationToken.None).Result;
+                var completionList = GetCompletionList(document, position, triggerInfo);
 
-                if (group != null)
+                if (completionList != null)
                 {
-                    Assert.True(exclusive == group.IsExclusive, "group.IsExclusive == " + group.IsExclusive);
+                    Assert.True(exclusive == completionList.IsExclusive, "group.IsExclusive == " + completionList.IsExclusive);
                 }
             }
         }

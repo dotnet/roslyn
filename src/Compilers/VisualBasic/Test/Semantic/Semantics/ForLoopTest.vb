@@ -447,9 +447,9 @@ End Class
 
         ' For statement is split in every possible place
         <Fact>
-        Public Sub SliptForLoop()
+        Public Sub SplitForLoop()
             Dim compilation1 = CreateCompilationWithMscorlib(
-<compilation name="SliptForLoop">
+<compilation>
     <file name="a.vb">
 Option Strict On
 Public Class MyClass1

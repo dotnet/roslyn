@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly object s_guard = new object();
 
         // Hand out the same compilation reference for everyone who asks.  Use 
-        // WeakReference<Compilation> so that if no one is using the MetadataReference,
+        // WeakReference<Compilation> so that if no-one is using the MetadataReference,
         // it can be collected.
         internal static Compilation GetCompilationForMetadataReference(ProjectState projectState, Compilation compilation)
         {

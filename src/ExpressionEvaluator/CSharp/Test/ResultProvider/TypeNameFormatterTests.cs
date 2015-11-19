@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -395,6 +398,36 @@ namespace N
             var typeInfo = DkmClrCustomTypeInfo.Create(Guid.NewGuid(), new ReadOnlyCollection<byte>(new byte[] { 1 }));
             Assert.Equal("object", typeof(object).GetTypeName(typeInfo));
             Assert.Equal("object[]", typeof(object[]).GetTypeName(typeInfo));
+        }
+
+        [Fact]
+        public void MangledTypeParameterName()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit Type`1<'<>Mangled'>
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+";
+
+            ImmutableArray<byte> assemblyBytes;
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            var assembly = ReflectionUtilities.Load(assemblyBytes);
+
+            var type = assembly.GetType("Type`1");
+
+            bool sawInvalidIdentifier;
+            var typeName = CSharpFormatter.Instance.GetTypeName(new TypeAndCustomInfo((TypeImpl)type), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+            Assert.True(sawInvalidIdentifier);
+            Assert.Equal("Type<<>Mangled>", typeName);
         }
     }
 }

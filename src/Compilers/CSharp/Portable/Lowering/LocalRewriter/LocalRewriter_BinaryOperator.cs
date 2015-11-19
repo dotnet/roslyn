@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
 
-            for (BoundBinaryOperator current = node; current != null; current = current.Left as BoundBinaryOperator)
+            for (BoundBinaryOperator current = node; current != null && current.ConstantValue == null; current = current.Left as BoundBinaryOperator)
             {
                 stack.Push(current);
             }
@@ -184,7 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             // try to lower the expression.
             {
-
                 if (operatorKind.IsDynamic())
                 {
                     Debug.Assert(!isPointerElementAccess);
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return LowerUserDefinedBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, type, method);
                 }
-                
+
                 switch (operatorKind.OperatorWithLogical() | operatorKind.OperandTypes())
                 {
                     case BinaryOperatorKind.NullableNullEqual:
@@ -410,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var conditionalLeft = loweredLeft as BoundLoweredConditionalAccess;
 
-            // NOTE: we could in theory handle sideeffecting loweredRight here too
+            // NOTE: we could in theory handle side-effecting loweredRight here too
             //       by including it as a part of whenNull, but there is a concern 
             //       that it can lead to code duplication
             var optimize = conditionalLeft != null &&
@@ -689,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Optimization #3: If one side is null and the other is definitely not, then we generate the side effects
             // of the non-null side and result in true (for not-equals) or false (for everything else.)
-            
+
             BinaryOperatorKind operatorKind = kind.Operator();
 
             if (leftAlwaysNull && rightNonNull != null || rightAlwaysNull && leftNonNull != null)
@@ -1646,7 +1645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If S does not define an overloaded != operator then this is lowered to s.HasValue.  
             //
             // If the type already has a user-defined or built-in operator then comparing to null is 
-            // treated as a lifted equaltiy operator.
+            // treated as a lifted equality operator.
 
             Debug.Assert(loweredLeft != null);
             Debug.Assert(loweredRight != null);
@@ -1681,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // arr?.Length == null   
             var conditionalAccess = nullable as BoundLoweredConditionalAccess;
-            if (conditionalAccess != null && 
+            if (conditionalAccess != null &&
                 (conditionalAccess.WhenNullOpt == null || conditionalAccess.WhenNullOpt.IsDefaultValue()))
             {
                 BoundExpression whenNotNull = RewriteNullableNullEquality(
@@ -1786,8 +1785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.DecimalGreaterThan: member = SpecialMember.System_Decimal__op_GreaterThan; break;
                 case BinaryOperatorKind.DecimalGreaterThanOrEqual: member = SpecialMember.System_Decimal__op_GreaterThanOrEqual; break;
                 default:
-                    Debug.Assert(false); // Cannot reach here
-                    return null;
+                    throw ExceptionUtilities.UnexpectedValue(operatorKind);
             }
 
             // call Operator (left, right)

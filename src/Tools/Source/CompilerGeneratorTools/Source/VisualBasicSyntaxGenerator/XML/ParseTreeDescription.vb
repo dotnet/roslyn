@@ -105,7 +105,7 @@ Public Class ParseTree
 
             IsAbstract(struct) = True
 
-            ' Determine "tokens" and trivia by walking the heirarchy
+            ' Determine "tokens" and trivia by walking the hierarchy
             SetIsTokenAndIsTrivia(struct)
         Next
 
@@ -117,7 +117,7 @@ Public Class ParseTree
 
     ' Set the IsToken and IsTrivia flags on a struct
     Private Sub SetIsTokenAndIsTrivia(struct As ParseNodeStructure)
-        ' Walk the heirarchy.
+        ' Walk the hierarchy.
         Dim parent = struct
 
         While parent IsNot Nothing

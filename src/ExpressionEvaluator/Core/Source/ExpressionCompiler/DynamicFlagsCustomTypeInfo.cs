@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            ALL_FLAGS_READ:
+        ALL_FLAGS_READ:
 
             _bytes = seenTrue ? new ReadOnlyCollection<byte>(bytes) : null;
         }

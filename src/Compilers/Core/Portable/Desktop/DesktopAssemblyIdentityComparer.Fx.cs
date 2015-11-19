@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
                 string name,
                 ImmutableArray<byte> publicKeyToken,
                 AssemblyVersion versionLow,
-                object versionHightNull,
+                object versionHighNull,
                 string newName,
                 ImmutableArray<byte> newPublicKeyToken,
                 AssemblyVersion newVersion)

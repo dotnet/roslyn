@@ -962,7 +962,7 @@ mylabel:
         
         Goto &HA 'BIND1:"&HA"
 10:     'BIND2:"10:"
-        Console.WriteLine("Goodby")
+        Console.WriteLine("Goodbye")
     End Sub
 End Class
     ]]></file>
@@ -1006,7 +1006,7 @@ mylabel:    'BIND:"mylabel:"
         Console.WriteLine("Hello Goto")
 
 MYLABEL:        
-        Console.WriteLine("Goodby")
+        Console.WriteLine("Goodbye")
     End Sub
 End Class
     ]]></file>
@@ -1568,6 +1568,11 @@ Module Program
         Dim v5 = F2(0) 'BIND13:"F2"
 
         x = C1.C()     'BIND14:"C1.C"
+
+        d = CType(addressof C1.B, Func(of byte)) 'BIND15:"C1.B"
+        d = DirectCast(addressof C1.B, Func(of byte)) 'BIND16:"C1.B"
+        d = TryCast(addressof C1.B, Func(of byte)) 'BIND17:"C1.B"
+
     End Sub
 
     Function F() As Func(Of Integer, Integer)
@@ -1588,6 +1593,21 @@ Module Program
 End Module
     </file>
     </compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute..ctor' is not defined.
+Module Program
+       ~~~~~~~
+BC30454: Expression is not a method.
+        C1.A     'BIND:"C1.A"
+        ~~~~
+BC30545: Property access must assign to the property or use its value.
+        C1.C     'BIND2:"C1.C"
+        ~~~~
+BC42104: Variable 'o' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Dim c = o.ToString(0) 'BIND7:"o.ToString"
+                ~
+                                               </expected>)
 
             Dim model = GetSemanticModel(compilation, "a.vb")
             Dim expressionSyntax = CompilationUtils.FindBindingText(Of MemberAccessExpressionSyntax)(compilation, "a.vb", 0)
@@ -1689,6 +1709,27 @@ End Module
             expressionSyntax = CompilationUtils.FindBindingText(Of MemberAccessExpressionSyntax)(compilation, "a.vb", 14)
             symbolInfo = model.GetSymbolInfo(expressionSyntax)
             Assert.Equal("C", symbolInfo.Symbol.Name)
+            typeInfo = model.GetTypeInfo(expressionSyntax)
+            Assert.Null(typeInfo.Type)
+
+            expressionSyntax = CompilationUtils.FindBindingText(Of MemberAccessExpressionSyntax)(compilation, "a.vb", 15)
+            symbolInfo = model.GetSymbolInfo(expressionSyntax)
+            Assert.Equal("Function C1.B() As System.Byte", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+            typeInfo = model.GetTypeInfo(expressionSyntax)
+            Assert.Null(typeInfo.Type)
+
+            expressionSyntax = CompilationUtils.FindBindingText(Of MemberAccessExpressionSyntax)(compilation, "a.vb", 16)
+            symbolInfo = model.GetSymbolInfo(expressionSyntax)
+            Assert.Equal("Function C1.B() As System.Byte", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+            typeInfo = model.GetTypeInfo(expressionSyntax)
+            Assert.Null(typeInfo.Type)
+
+            expressionSyntax = CompilationUtils.FindBindingText(Of MemberAccessExpressionSyntax)(compilation, "a.vb", 17)
+            symbolInfo = model.GetSymbolInfo(expressionSyntax)
+            Assert.Equal("Function C1.B() As System.Byte", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             typeInfo = model.GetTypeInfo(expressionSyntax)
             Assert.Null(typeInfo.Type)
         End Sub
@@ -2161,7 +2202,7 @@ End Class
 Imports System
 Imports System.Collections.Generic
 
-Public Module Moduel1
+Public Module Module1
     Public Sub Main()
         Dim y As New Dictionary(Of Byte, Integer())() From {{1, {23, 42}}, {2, {42, 23}}} 'BIND:"{23, 42}"'BIND:"{23, 42}"
     End Sub
@@ -3596,7 +3637,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub LateBoundAdressOf()
+        Public Sub LateBoundAddressOf()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4582,7 +4623,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub TypeParameterSymbolMethod_IsreferencOrValueType()
+        Public Sub TypeParameterSymbolMethod_IsReferenceOrValueType()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[

@@ -5,6 +5,8 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -23,10 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
+            IWaitIndicator waitIndicator,
             CodeFix fix,
+            CodeAction action,
             object provider,
             SuggestedActionSet fixAllSuggestedActionSet)
-            : base(workspace, subjectBuffer, editHandler, fix.Action, provider)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, action, provider)
         {
             _fix = fix;
             _fixAllSuggestedActionSet = fixAllSuggestedActionSet;
@@ -42,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             FixAllCodeActionContext fixAllCodeActionContext,
             Workspace workspace,
             ITextBuffer subjectBuffer,
-            ICodeActionEditHandlerService editHandler)
+            ICodeActionEditHandlerService editHandler,
+            IWaitIndicator waitIndicator)
         {
             if (fixAllCodeActionContext == null)
             {
@@ -58,8 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             foreach (var scope in fixAllCodeActionContext.SupportedScopes)
             {
                 var fixAllContext = fixAllCodeActionContext.GetContextForScopeAndActionId(scope, action.EquivalenceKey);
-                var fixAllAction = new FixAllCodeAction(fixAllContext, fixAllCodeActionContext.FixAllProvider);
-                var fixAllSuggestedAction = new FixAllSuggestedAction(workspace, subjectBuffer, editHandler,
+                var fixAllAction = new FixAllCodeAction(fixAllContext, fixAllCodeActionContext.FixAllProvider, showPreviewChangesDialog: true);
+                var fixAllSuggestedAction = new FixAllSuggestedAction(workspace, subjectBuffer, editHandler, waitIndicator,
                     fixAllAction, fixAllCodeActionContext.FixAllProvider, fixAllCodeActionContext.OriginalDiagnostics.First());
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
@@ -81,9 +86,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return diagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
         }
 
-        protected override Diagnostic GetDiagnostic()
+        protected override DiagnosticData GetDiagnostic()
         {
-            return _fix.PrimaryDiagnostic;
+            return _fix.GetPrimaryDiagnosticData();
         }
 
         protected override SuggestedActionSet GetFixAllSuggestedActionSet()

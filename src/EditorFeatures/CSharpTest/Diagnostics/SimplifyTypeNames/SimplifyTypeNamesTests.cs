@@ -439,7 +439,7 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void AliasInSibilingNamespace()
+        public void AliasInSiblingNamespace()
         {
             var content =
 @"[|namespace Root 
@@ -1339,7 +1339,7 @@ interface I<T> { }");
 
         [WorkItem(539000)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void SimplifyMissingOnUmentionableTypeParameter1()
+        public void SimplifyMissingOnUnmentionableTypeParameter1()
         {
             var content =
 @"class A<T>
@@ -1413,11 +1413,11 @@ index: 0);
 
         [WorkItem(541748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestOnErrorInInteractive()
+        public void TestOnErrorInScript()
         {
             TestMissing(
 @"[|Console.WrieLine();|]",
-Options.Interactive);
+Options.Script);
         }
 
         [Fact(Skip = "1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -1853,12 +1853,17 @@ class A { }");
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestMissingNullableSimplificationInsideCref4()
+        public void TestNullableInsideCref_AllowedIfReferencingActualTypeParameter()
         {
-            TestMissing(
+            Test(
 @"using System;
 /// <summary>
 /// <see cref=""C{[|Nullable{T}|]}""/>
+/// </summary>
+class C<T> {  }",
+@"using System;
+/// <summary>
+/// <see cref=""C{T?}""/>
 /// </summary>
 class C<T> {  }");
         }
@@ -1879,25 +1884,34 @@ class A
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestMissingNullableSimplificationInsideCref6()
+        public void TestNullableInsideCref_AllowedIfReferencingActualType()
         {
-            TestMissing(
+            Test(
 @"using System;
 /// <summary>
 /// <see cref=""[|Nullable{int}|]""/>
 /// </summary>
+class A { }",
+@"using System;
+/// <summary>
+/// <see cref=""int?""/>
+/// </summary>
 class A { }");
         }
 
-
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestMissingNullableSimplificationInsideCref7()
+        public void TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
         {
-            TestMissing(
+            Test(
 @"using System;
 /// <summary>
 /// <see cref=""C{[|Nullable{int}|]}""/>
+/// </summary>
+class C<T> { }",
+@"using System;
+/// <summary>
+/// <see cref=""C{int?}""/>
 /// </summary>
 class C<T> { }");
         }

@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         return true;
                     }
 
-                    // TODO: improve the comparision mechanism for generic types.
+                    // TODO: improve the comparison mechanism for generic types.
                     if (typeSym.Kind == SymbolKind.NamedType &&
                         ((NamedTypeSymbol)typeSym).IsGenericType)
                     {
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }
 
-// This is deliberately declared in the global namespace so that it will always be discoverable (regarless of usings).
+// This is deliberately declared in the global namespace so that it will always be discoverable (regardless of usings).
 internal static class Extensions
 {
     /// <summary>

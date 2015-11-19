@@ -114,8 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
 
                 case SyntaxKind.FieldDeclaration:
-                    // Inside a field one can only access static members of a type.
-                    return true;
+                case SyntaxKind.EventFieldDeclaration:
+                    // Inside a field one can only access static members of a type (unless it's top-level).
+                    return !memberDeclaration.Parent.IsKind(SyntaxKind.CompilationUnit);
 
                 case SyntaxKind.DestructorDeclaration:
                     return false;
@@ -175,9 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n");
             var singleBlankLine = Matcher.Sequence(whitespace, endOfLine);
 
+            var shebangComment = Match(SyntaxKind.ShebangDirectiveTrivia, "#!");
             var singleLineComment = Match(SyntaxKind.SingleLineCommentTrivia, "//");
             var multiLineComment = Match(SyntaxKind.MultiLineCommentTrivia, "/**/");
-            var anyCommentMatcher = Matcher.Choice(singleLineComment, multiLineComment);
+            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
@@ -248,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
@@ -420,17 +423,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
-            // Check if this node contains a start or end pp construct whose matching construct is
+            // Check if this node contains a start, middle or end pp construct whose matching construct is
             // not contained within this node.  If so, this node must be pinned and cannot move.
-            //
-            // Also, keep track of those spans so that if we see #else/#elif we can tell if they
-            // belong to a pp span that is entirely within the node.
-            var ifEndIfSpans = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance);
 
             var span = syntaxNode.Span;
             foreach (var token in syntaxNode.DescendantTokens())
             {
-                if (ContainsInterleavedDirective(span, token, ref ifEndIfSpans, cancellationToken))
+                if (ContainsInterleavedDirective(span, token, cancellationToken))
                 {
                     return true;
                 }
@@ -442,25 +441,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool ContainsInterleavedDirective(
             TextSpan textSpan,
             SyntaxToken token,
-            ref SimpleIntervalTree<TextSpan> ifEndIfSpans,
             CancellationToken cancellationToken)
         {
             return
-                ContainsInterleavedDirective(textSpan, token.LeadingTrivia, ref ifEndIfSpans, cancellationToken) ||
-                ContainsInterleavedDirective(textSpan, token.TrailingTrivia, ref ifEndIfSpans, cancellationToken);
+                ContainsInterleavedDirective(textSpan, token.LeadingTrivia, cancellationToken) ||
+                ContainsInterleavedDirective(textSpan, token.TrailingTrivia, cancellationToken);
         }
 
         private static bool ContainsInterleavedDirective(
             TextSpan textSpan,
             SyntaxTriviaList list,
-            ref SimpleIntervalTree<TextSpan> ifEndIfSpans,
             CancellationToken cancellationToken)
         {
             foreach (var trivia in list)
             {
                 if (textSpan.Contains(trivia.Span))
                 {
-                    if (ContainsInterleavedDirective(textSpan, trivia, ref ifEndIfSpans, cancellationToken))
+                    if (ContainsInterleavedDirective(textSpan, trivia, cancellationToken))
                     {
                         return true;
                     }
@@ -473,18 +470,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool ContainsInterleavedDirective(
             TextSpan textSpan,
             SyntaxTrivia trivia,
-            ref SimpleIntervalTree<TextSpan> ifEndIfSpans,
             CancellationToken cancellationToken)
         {
             if (trivia.HasStructure)
             {
-                var parentSpan = trivia.GetStructure().Span;
+                var structure = trivia.GetStructure();
+                var parentSpan = structure.Span;
                 if (trivia.GetStructure().IsKind(SyntaxKind.RegionDirectiveTrivia,
                                                  SyntaxKind.EndRegionDirectiveTrivia,
                                                  SyntaxKind.IfDirectiveTrivia,
                                                  SyntaxKind.EndIfDirectiveTrivia))
                 {
-                    var match = ((DirectiveTriviaSyntax)trivia.GetStructure()).GetMatchingDirective(cancellationToken);
+                    var match = ((DirectiveTriviaSyntax)structure).GetMatchingDirective(cancellationToken);
                     if (match != null)
                     {
                         var matchSpan = match.Span;
@@ -494,25 +491,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // this node.
                             return true;
                         }
-
-                        if (trivia.GetStructure().IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia))
-                        {
-                            var ppSpan = TextSpan.FromBounds(
-                                Math.Min(parentSpan.Start, matchSpan.Start),
-                                Math.Max(parentSpan.End, matchSpan.End));
-
-                            ifEndIfSpans = ifEndIfSpans.AddInterval(ppSpan);
-                        }
                     }
                 }
-                else if (
-                    trivia.GetStructure().IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia))
+                else if (trivia.GetStructure().IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia))
                 {
-                    if (!ifEndIfSpans.IntersectsWith(parentSpan.Start))
+                    var directives = ((DirectiveTriviaSyntax)structure).GetMatchingConditionalDirectives(cancellationToken);
+                    if (directives != null && directives.Count > 0)
                     {
-                        // This else/elif belongs to a pp span that isn't 
-                        // entirely within this node.
-                        return true;
+                        if (!textSpan.Contains(directives[0].SpanStart) ||
+                            !textSpan.Contains(directives[directives.Count - 1].SpanStart))
+                        {
+                            // This else/elif belongs to a pp span that isn't 
+                            // entirely within this node.
+                            return true;
+                        }
                     }
                 }
             }
@@ -667,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (ppIndex != -1)
             {
-                // We have a pp directive.  it (and all all previous trivia) must be stripped.
+                // We have a pp directive.  it (and all previous trivia) must be stripped.
                 leadingTriviaToStrip = new List<SyntaxTrivia>(leadingTrivia.Take(ppIndex + 1));
                 leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia.Skip(ppIndex + 1));
             }
@@ -780,8 +772,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// </summary>
         private static IEnumerable<SyntaxToken> GetSkippedTokens(SyntaxTriviaList list)
         {
+            // PERF: Avoid allocations in the most common case of no skipped tokens.
+            if (!HasSkippedTokens(list))
+            {
+                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
+            }
+
             return list.Where(trivia => trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
                        .SelectMany(t => ((SkippedTokensTriviaSyntax)t.GetStructure()).Tokens);
+        }
+
+        private static bool HasSkippedTokens(SyntaxTriviaList list)
+        {
+            foreach (var trivia in list)
+            {
+                if (trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -794,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : null;
 
             return FindTokenHelper.FindTokenOnRightOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -810,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : null;
 
             return FindTokenHelper.FindTokenOnLeftOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -832,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             while (left <= right)
             {
                 int middle = left + ((right - left) / 2);
-                SyntaxNodeOrToken node = childList.ElementAt(middle);
+                SyntaxNodeOrToken node = childList[middle];
 
                 var span = node.FullSpan;
                 if (position < span.Start)
@@ -950,25 +961,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsEmbeddedStatementOwner(this SyntaxNode node)
         {
-            return node is IfStatementSyntax ||
+            return
+                   node is DoStatementSyntax ||
                    node is ElseClauseSyntax ||
-                   node is WhileStatementSyntax ||
-                   node is ForStatementSyntax ||
+                   node is FixedStatementSyntax ||
                    node is ForEachStatementSyntax ||
+                   node is ForStatementSyntax ||
+                   node is IfStatementSyntax ||
+                   node is LabeledStatementSyntax ||
+                   node is LockStatementSyntax ||
                    node is UsingStatementSyntax ||
-                   node is DoStatementSyntax;
+                   node is WhileStatementSyntax;
         }
 
         public static StatementSyntax GetEmbeddedStatement(this SyntaxNode node)
         {
+
             return node.TypeSwitch(
-                (IfStatementSyntax n) => n.Statement,
-                (ElseClauseSyntax n) => n.Statement,
-                (WhileStatementSyntax n) => n.Statement,
-                (ForStatementSyntax n) => n.Statement,
-                (ForEachStatementSyntax n) => n.Statement,
-                (UsingStatementSyntax n) => n.Statement,
                 (DoStatementSyntax n) => n.Statement,
+                (ElseClauseSyntax n) => n.Statement,
+                (FixedStatementSyntax n) => n.Statement,
+                (ForEachStatementSyntax n) => n.Statement,
+                (ForStatementSyntax n) => n.Statement,
+                (IfStatementSyntax n) => n.Statement,
+                (LabeledStatementSyntax n) => n.Statement,
+                (LockStatementSyntax n) => n.Statement,
+                (UsingStatementSyntax n) => n.Statement,
+                (WhileStatementSyntax n) => n.Statement,
                 (SyntaxNode n) => null);
         }
 

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class LocalRewriter
-        Inherits BoundTreeRewriter
+        Inherits BoundTreeRewriterWithStackGuard
 
         Private ReadOnly _topMethod As MethodSymbol
         Private ReadOnly _emitModule As PEModuleBuilder
@@ -118,8 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             previousSubmissionFields As SynthesizedSubmissionFields,
             generateDebugInfo As Boolean,
             diagnostics As DiagnosticBag,
-            flags As RewritingFlags
+            flags As RewritingFlags,
+            recursionDepth As Integer
         )
+            MyBase.New(recursionDepth)
+
             Me._topMethod = topMethod
             Me._currentMethodOrLambda = currentMethod
             Me._globalGenerateDebugInfo = generateDebugInfo
@@ -146,11 +149,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             <[In], Out> ByRef rewrittenNodes As HashSet(Of BoundNode),
                                             <Out> ByRef hasLambdas As Boolean,
                                             <Out> ByRef symbolsCapturedWithoutCtor As ISet(Of Symbol),
-                                            flags As RewritingFlags) As BoundNode
+                                            flags As RewritingFlags,
+                                            recursionDepth As Integer) As BoundNode
 
             Debug.Assert(node Is Nothing OrElse Not node.HasErrors, "node has errors")
 
-            Dim rewriter = New LocalRewriter(topMethod, currentMethod, compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, flags)
+            Dim rewriter = New LocalRewriter(topMethod, currentMethod, compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, flags, recursionDepth)
 
 #If DEBUG Then
             If rewrittenNodes IsNot Nothing Then
@@ -207,7 +211,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' if the node already contains debug info, don't generate more debug info
             Dim generateDebugInfo = (flags And RewritingFlags.AllowSequencePoints) = 0
 
-            Return DirectCast(RewriteNode(node, topMethod, If(currentMethod, topMethod), compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, rewrittenNodes, hasLambdas, symbolsCapturedWithoutCopyCtor, flags), BoundBlock)
+            Return DirectCast(RewriteNode(node,
+                                          topMethod,
+                                          If(currentMethod, topMethod),
+                                          compilationState,
+                                          previousSubmissionFields,
+                                          generateDebugInfo,
+                                          diagnostics,
+                                          rewrittenNodes,
+                                          hasLambdas,
+                                          symbolsCapturedWithoutCopyCtor,
+                                          flags,
+                                          recursionDepth:=0), BoundBlock)
         End Function
 
         Public Shared Function RewriteExpressionTree(node As BoundExpression,
@@ -215,12 +230,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      compilationState As TypeCompilationState,
                                                      previousSubmissionFields As SynthesizedSubmissionFields,
                                                      diagnostics As DiagnosticBag,
-                                                     rewrittenNodes As HashSet(Of BoundNode)) As BoundExpression
+                                                     rewrittenNodes As HashSet(Of BoundNode),
+                                                     recursionDepth As Integer) As BoundExpression
 
             Debug.Assert(rewrittenNodes IsNot Nothing)
             Dim hasLambdas As Boolean = False
             Const generateDebugInfo = False ' don't generate debug information in expression tree lambdas
-            Dim result = DirectCast(RewriteNode(node, method, method, compilationState, previousSubmissionFields, generateDebugInfo, diagnostics, rewrittenNodes, hasLambdas, SpecializedCollections.EmptySet(Of Symbol), RewritingFlags.Default), BoundExpression)
+            Dim result = DirectCast(RewriteNode(node,
+                                                method,
+                                                method,
+                                                compilationState,
+                                                previousSubmissionFields,
+                                                generateDebugInfo,
+                                                diagnostics,
+                                                rewrittenNodes,
+                                                hasLambdas,
+                                                SpecializedCollections.EmptySet(Of Symbol),
+                                                RewritingFlags.Default,
+                                                recursionDepth), BoundExpression)
             Debug.Assert(Not hasLambdas)
             Return result
         End Function
@@ -234,10 +261,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return VisitExpression(expressionNode)
             Else
 #If DEBUG Then
-                Debug.Assert(node Is Nothing OrElse Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
-
+                Debug.Assert(node Is Nothing OrElse Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewriting the same node several times.")
+#End If
                 Dim result = MyBase.Visit(node)
-
+#If DEBUG Then
                 If result IsNot Nothing Then
                     If result Is node Then
                         result = result.MemberwiseClone(Of BoundNode)()
@@ -245,17 +272,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     _rewrittenNodes.Add(result)
                 End If
-
-                Return result
-#Else
-                Return MyBase.Visit(node)
 #End If
+                Return result
             End If
         End Function
 
         Private Function VisitExpression(node As BoundExpression) As BoundExpression
 #If DEBUG Then
-            Debug.Assert(Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
+            Debug.Assert(Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewriting the same node several times.")
             Dim originalNode = node
 #End If
 
@@ -277,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If constantValue IsNot Nothing Then
                 result = RewriteConstant(node, constantValue)
             Else
-                result = DirectCast(MyBase.Visit(node), BoundExpression)
+                result = VisitExpressionWithStackGuard(node)
             End If
 
             If createSequencePoint Then
@@ -754,19 +778,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Helper method to create a bound sequence to represent the idea:
         ''' "compute this value, and then compute this side effects while discarding results"
         '''
-        ''' A Bound sequence is generated for the provided expr and sideeffects, say {se1, se2, se3}, as follows:
+        ''' A Bound sequence is generated for the provided expr and side-effects, say {se1, se2, se3}, as follows:
         '''
         ''' If expr is of void type:
-        '''     BoundSequence { sideeffects: { expr, se1, se2, se3 }, valueOpt: Nothing }
+        '''     BoundSequence { side-effects: { expr, se1, se2, se3 }, valueOpt: Nothing }
         ''' 
         ''' ElseIf expr is a constant:
-        '''     BoundSequence { sideeffects: { se1, se2, se3 }, valueOpt: expr }
+        '''     BoundSequence { side-effects: { se1, se2, se3 }, valueOpt: expr }
         ''' 
         ''' Else
-        '''     BoundSequence { sideeffects: { tmp = expr, se1, se2, se3 }, valueOpt: tmp }
+        '''     BoundSequence { side-effects: { tmp = expr, se1, se2, se3 }, valueOpt: tmp }
         ''' </summary>
         ''' <remarks>
-        ''' NOTE: Supporting cases where sideeffects change the value (or to detects such cases)
+        ''' NOTE: Supporting cases where side-effects change the value (or to detect such cases)
         ''' NOTE: could be complicated. We do not support this currently and instead require
         ''' NOTE: value expr to be not LValue.
         ''' </remarks>
@@ -855,7 +879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewritten As BoundStatement = node
 
             If break IsNot Nothing Then
-                ' Later in the codegen phase (see EmitExpression.vb), we need to insert a nop afther the call to System.Diagnostics.Debugger.Break(),
+                ' Later in the codegen phase (see EmitExpression.vb), we need to insert a nop after the call to System.Diagnostics.Debugger.Break(),
                 ' so the debugger can determine the current instruction pointer properly. In oder to do so, we do not mark this node as compiler generated.
                 Dim boundNode = New BoundCall(nodeFactory.Syntax, break, Nothing, Nothing, ImmutableArray(Of BoundExpression).Empty, Nothing, True, break.ReturnType)
                 rewritten = boundNode.ToStatement()

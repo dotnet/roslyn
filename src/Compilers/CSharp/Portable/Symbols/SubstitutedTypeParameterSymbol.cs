@@ -15,19 +15,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Symbol _container;
         private readonly TypeMap _map;
         private readonly TypeParameterSymbol _substitutedFrom;
+        private readonly int _ordinal;
 
 #if DEBUG_ALPHA
         private static int _nextSequence = 1;
         private readonly int _mySequence;
 #endif
 
-        internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom)
+        internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
         {
             _container = newContainer;
             // it is important that we don't use the map here in the constructor, as the map is still being filled
             // in by TypeMap.WithAlphaRename.  Instead, we can use the map lazily when yielding the constraints.
             _map = map;
             _substitutedFrom = substitutedFrom;
+            _ordinal = ordinal;
 #if DEBUG_ALPHA
             _mySequence = _nextSequence++;
 #endif
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _substitutedFrom.Ordinal;
+                return _ordinal;
             }
         }
 
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            return _map.SubstituteTypes(_substitutedFrom.GetConstraintTypes(inProgress)).WhereAsArray(s_isNotObjectFunc).Distinct();
+            return _map.SubstituteTypesWithoutModifiers(_substitutedFrom.GetConstraintTypes(inProgress)).WhereAsArray(s_isNotObjectFunc).Distinct();
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
-            return _map.SubstituteType(_substitutedFrom.GetDeducedBaseType(inProgress));
+            return _map.SubstituteType(_substitutedFrom.GetDeducedBaseType(inProgress)).AsTypeSymbolOnly();
         }
 
         private static readonly Func<TypeSymbol, bool> s_isNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;

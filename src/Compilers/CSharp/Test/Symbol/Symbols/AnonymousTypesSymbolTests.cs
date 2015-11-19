@@ -1290,8 +1290,7 @@ class Query
 ";
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
-                emitters: TestEmitters.RefEmitUnsupported_646023);
+                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll });
         }
 
         [ClrOnlyFact]
@@ -1445,7 +1444,7 @@ class Query
         {
             //  this test checks whether or not anonymous types which came from speculative 
             //  semantic API have any effect on the anonymous types emitted and
-            //  wherer or not the order is still the same across several emits
+            //  whether or not the order is still the same across several emits
 
             var source1 = @"
 using System;

@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal PENetModuleBuilder(
             SourceModuleSymbol sourceModule,
             EmitOptions emitOptions,
-            ModulePropertiesForSerialization serializationProperties,
+            Cci.ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources)
-            : base(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources, assemblySymbolMapper: null)
+            : base(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources)
         {
         }
 

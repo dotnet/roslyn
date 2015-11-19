@@ -313,7 +313,7 @@ Namespace GenClass7105
     Class Cls1a(Of T1 As {I1, Class}, T2 As T1)
         Public WithEvents x1 As T1
         'This error is actually correct now as the Class Constraint Change which was made. Class can be a Class (OR INTERFACE) on a structure.
-        'This testcase has changed to reflect the new behaviour and this constraint change will also be caught.
+        'This testcase has changed to reflect the new behavior and this constraint change will also be caught.
 
         'COMPILEERROR: BC30413, "T2"
         Public WithEvents x2 As T2

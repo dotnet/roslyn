@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var container = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
 
-                // Don't check ModuleIds for equality because in practice, no one uses them,
+                // Don't check ModuleIds for equality because in practice, no-one uses them,
                 // and there is no way to set netmodule name programmatically using Roslyn
                 var modules = GetAllSymbols<IAssemblySymbol>(container).SelectMany(a => a.Modules);
 

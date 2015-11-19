@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers)
 
-            ' TODO can we reuse some data from the previos matcher?
+            ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
                 anonymousTypeMap,
                 sourceAssembly,

@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitNoOpStatement(statement As BoundNoOpStatement)
             Select Case statement.Flavor
                 Case NoOpStatementFlavor.Default
-                    If _optimizations = OptimizationLevel.Debug Then
+                    If _ilEmitStyle = ILEmitStyle.Debug Then
                         _builder.EmitOpCode(ILOpCode.Nop)
                     End If
 
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     ' here we have our exception on the stack in a form of a reference type (O)
                     ' it means that we have to "unbox" it before storing to the local 
-                    ' if exception's type is a generic type prameter.
+                    ' if exception's type is a generic type parameter.
                     If exceptionSource.Type.IsTypeParameter Then
                         _builder.EmitOpCode(ILOpCode.Unbox_any)
                         EmitSymbolToken(exceptionSource.Type, exceptionSource.Syntax)
@@ -634,6 +634,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' it is ok if lazyDest is Nothing
         ' if lazyDest is needed it will be initialized to a new object
         Private Sub EmitCondBranch(condition As BoundExpression, ByRef lazyDest As Object, sense As Boolean)
+            _recursionDepth += 1
+
+            If _recursionDepth > 1 Then
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
+
+                EmitCondBranchCore(condition, lazyDest, sense)
+            Else
+                EmitCondBranchCoreWithStackGuard(condition, lazyDest, sense)
+            End If
+
+            _recursionDepth -= 1
+        End Sub
+
+        Private Sub EmitCondBranchCoreWithStackGuard(condition As BoundExpression, ByRef lazyDest As Object, sense As Boolean)
+            Debug.Assert(_recursionDepth = 1)
+
+            Try
+                EmitCondBranchCore(condition, lazyDest, sense)
+                Debug.Assert(_recursionDepth = 1)
+
+            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
+                                 BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(condition))
+                Throw New EmitCancelledException()
+            End Try
+        End Sub
+
+        Private Sub EmitCondBranchCore(condition As BoundExpression, ByRef lazyDest As Object, sense As Boolean)
 oneMoreTime:
             Dim ilcode As ILOpCode
             Dim constExprValue = condition.ConstantValueOpt
@@ -832,7 +860,9 @@ OtherExpressions:
         ''' <summary>
         ''' tells if given node contains a label statement that defines given label symbol
         ''' </summary>
-        Private Class LabelFinder : Inherits BoundTreeWalker
+        Private Class LabelFinder
+            Inherits StatementWalker
+
             Private ReadOnly _label As LabelSymbol
             Private _found As Boolean = False
 
@@ -841,7 +871,7 @@ OtherExpressions:
             End Sub
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
-                If Not _found Then
+                If Not _found AndAlso TypeOf node IsNot BoundExpression Then
                     Return MyBase.Visit(node)
                 End If
 
@@ -902,7 +932,7 @@ OtherExpressions:
             Dim caseBlockLabels As ImmutableArray(Of GeneratedLabelSymbol) = CreateCaseBlockLabels(caseBlocks)
 
             ' Create an array of key value pairs (key: case clause constant value, value: case block label)
-            ' for emiting switch table based header.
+            ' for emitting switch table based header.
             ' This function also ensures the correct fallThroughLabel is set, i.e. case else block label if one exists, otherwise exit label.
             Dim caseLabelsForEmit As KeyValuePair(Of ConstantValue, Object)() = GetCaseLabelsForEmitSwitchHeader(caseBlocks, caseBlockLabels, fallThroughLabel)
 
@@ -932,7 +962,7 @@ OtherExpressions:
         End Function
 
         ' Creates an array of key value pairs (key: case clause constant value, value: case block label)
-        ' for emiting switch table based header.
+        ' for emitting switch table based header.
         ' This function also ensures the correct fallThroughLabel is set, i.e. case else block label if one exists, otherwise exit label.
         Private Function GetCaseLabelsForEmitSwitchHeader(
             caseBlocks As ImmutableArray(Of BoundCaseBlock),
@@ -1171,7 +1201,7 @@ OtherExpressions:
                         EmitSequencePoint(caseStatement.Syntax)
                     End If
 
-                    If _optimizations = OptimizationLevel.Debug Then
+                    If _ilEmitStyle = ILEmitStyle.Debug Then
                         ' Emit nop for the case statement otherwise the above sequence point
                         ' will get associated with the first statement in subsequent case block.
                         ' This matches the native compiler codegen.
@@ -1255,7 +1285,7 @@ OtherExpressions:
                 constraints:=constraints,
                 isDynamic:=False,
                 dynamicTransformFlags:=Nothing,
-                isSlotReusable:=synthesizedKind.IsSlotReusable(_optimizations))
+                isSlotReusable:=synthesizedKind.IsSlotReusable(_ilEmitStyle <> ILEmitStyle.Release))
 
             ' If named, add it to the local debug scope.
             If localDef.Name IsNot Nothing Then
@@ -1295,7 +1325,7 @@ OtherExpressions:
                 Return Nothing
             End If
 
-            If _optimizations = OptimizationLevel.Debug Then
+            If _ilEmitStyle = ILEmitStyle.Debug Then
                 Dim syntax = local.GetDeclaratorSyntax()
                 Dim syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree)
 
@@ -1315,7 +1345,7 @@ OtherExpressions:
         End Function
 
         Private Function IsSlotReusable(local As LocalSymbol) As Boolean
-            Return local.SynthesizedKind.IsSlotReusable(_optimizations)
+            Return local.SynthesizedKind.IsSlotReusable(_ilEmitStyle <> ILEmitStyle.Release)
         End Function
 
         Private Sub FreeLocal(local As LocalSymbol)

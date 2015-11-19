@@ -68,10 +68,10 @@ class C : Base
     }
 
 }").VerifyDiagnostics(
-    // (12,25): error CS8080: “Auto-implemented properties must override all accessors of the overridden property.”
+    // (12,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
     //     public override int P { get; }
     Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P").WithArguments("C.P").WithLocation(12, 25),
-    // (13,25): error CS8080: “Auto-implemented properties must override all accessors of the overridden property.”
+    // (13,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
     //     public override int P1 { get; }
     Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithArguments("C.P1").WithLocation(13, 25)
 
@@ -1241,7 +1241,7 @@ class B {
   }
 }
 ";
-            CompileWithCustomILSource(cSharpSource, ilSource, emitOptions: TestEmitters.RefEmitUnsupported);
+            CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -2657,7 +2657,6 @@ public interface IA
                  // We should see the same members from both source and metadata
                  var verifier = CompileAndVerify(
                       libSrc,
-                      emitters: TestEmitters.RefEmitBug,
                       sourceSymbolValidator: validator,
                       symbolValidator: validator,
                       options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);
@@ -2783,6 +2782,40 @@ unsafe class Test
     // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
     // unsafe class Test
     Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test").WithLocation(2, 14)
+                );
+        }
+
+
+        [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
+        public void LangVersioAndReadonlyAutoProperty()
+        {
+            var source = @"
+public class Class1
+{
+    public Class1()
+    {
+        Prop1 = ""Test"";
+    }
+
+    public string Prop1 { get; }
+}
+
+abstract class Class2
+{
+    public abstract string Prop2 { get; }
+}
+
+interface I1
+{
+    string Prop3 { get; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            comp.GetDeclarationDiagnostics().Verify(
+    // (9,19): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5.  Please use language version 6 or greater.
+    //     public string Prop1 { get; }
+    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Prop1").WithArguments("readonly automatically implemented properties", "6").WithLocation(9, 19)
                 );
         }
     }

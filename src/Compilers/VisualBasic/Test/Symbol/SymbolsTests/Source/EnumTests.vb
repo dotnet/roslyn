@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <file name="a.vb">
                 Option Strict Off
                  Public Enum Suits As Byte
-                    ValueA = "3"         	        ' Can’t implicitly convert 
+                    ValueA = "3"         	        ' Can't implicitly convert 
                     ValueB = 2.2         	        ' Can implicitly convert 
                     ValueC = 257         	        ' Out of underlying range 
                  End Enum
@@ -112,8 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <file name="a.vb">
                 Option Strict On
                  Public Enum Suits As Byte
-            ValueA = "3"                    ' Can’t implicitly convert 
-            ValueB = 2.2                    ' Can’t implicitly convert: [Option Strict On] disallows implicit conversion
+            ValueA = "3"                    ' Can't implicitly convert 
+            ValueB = 2.2                    ' Can't implicitly convert: [Option Strict On] disallows implicit conversion
             ValueC = 257                    ' Out of underlying range 
                  End Enum
     </file>
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 <compilation name="C">
     <file name="a.vb">
         Public Enum Suits As Byte
-            ValueA = "3"         	        ' Can’t implicitly convert 
+            ValueA = "3"         	        ' Can't implicitly convert 
             ValueB = 2.2         	        ' Can implicitly convert 
             ValueC = 257         	        ' Out of underlying range 
         End Enum
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC30060: Conversion from 'String' to 'Byte' cannot occur in a constant expression.
-            ValueA = "3"         	        ' Can’t implicitly convert 
+            ValueA = "3"         	        ' Can't implicitly convert 
                      ~~~
 BC30439: Constant expression not representable in type 'Byte'.
             ValueC = 257         	        ' Out of underlying range 
@@ -171,7 +171,7 @@ BC30439: Constant expression not representable in type 'Byte'.
 
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC30512: Option Strict On disallows implicit conversions from 'String' to 'Byte'.
-            ValueA = "3"         	        ' Can’t implicitly convert 
+            ValueA = "3"         	        ' Can't implicitly convert 
                      ~~~
 BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Byte'.
             ValueB = 2.2         	        ' Can implicitly convert 
@@ -788,7 +788,7 @@ End Class
             VerifyEnumsValue(comp, "c1.COLORS", SpecialType.System_UInt32, 0UI, 1UI, 2UI)
         End Sub
 
-        ' No Base type after ‘As’ 
+        ' No Base type after 'As' 
         <WorkItem(528031, "DevDiv")>
         <Fact>
         Public Sub BC30182ERR_UnrecognizedType_NoUnderlyingTypeForEnum()
@@ -853,7 +853,7 @@ Enum Figure As C
             VerifyEnumsValue(comp, "Figure", SpecialType.System_Int32, 0, 1, 2)
         End Sub
 
-        ' ‘partial’ as Enum name
+        ' 'partial' as Enum name
         <Fact>
         Public Sub partialAsEnumName()
             Dim text =

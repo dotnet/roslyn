@@ -293,27 +293,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         // Pseudo-variables: $exception, $ReturnValue, etc.
                         if (aliases.Length > 0)
                         {
-	                        var sourceAssembly = Compilation.SourceAssembly;
-	                        var typeNameDecoder = new EETypeNameDecoder(Compilation, (PEModuleSymbol)_currentFrame.ContainingModule);
-	                        foreach (var alias in aliases)
-	                        {
-	                            var local = PlaceholderLocalSymbol.Create(
-	                                typeNameDecoder,
-	                                _currentFrame,
-	                                sourceAssembly,
-	                                alias);
-	                            var methodName = GetNextMethodName(methodBuilder);
-	                            var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-	                            var aliasMethod = this.CreateMethod(container, methodName, syntax, (method, diags) =>
-	                            {
-	                                var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
-	                                return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
-	                            });
-	                            var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
-	                            localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
-	                            methodBuilder.Add(aliasMethod);
-	                        }
-						}
+                            var sourceAssembly = Compilation.SourceAssembly;
+                            var typeNameDecoder = new EETypeNameDecoder(Compilation, (PEModuleSymbol)_currentFrame.ContainingModule);
+                            foreach (var alias in aliases)
+                            {
+                                var local = PlaceholderLocalSymbol.Create(
+                                    typeNameDecoder,
+                                    _currentFrame,
+                                    sourceAssembly,
+                                    alias);
+                                var methodName = GetNextMethodName(methodBuilder);
+                                var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
+                                var aliasMethod = this.CreateMethod(container, methodName, syntax, (method, diags) =>
+                                {
+                                    var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
+                                    return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                                });
+                                var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
+                                localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
+                                methodBuilder.Add(aliasMethod);
+                            }
+                        }
 
                         // "this" for non-static methods that are not display class methods or
                         // display class methods where the display class contains "<>4__this".
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             localBuilder.Add(new CSharpLocalAndMethod(
                                 ExpressionCompilerConstants.TypeVariablesLocalName,
                                 ExpressionCompilerConstants.TypeVariablesLocalName,
-                                method, 
+                                method,
                                 DkmClrCompilationResultFlags.ReadOnlyResult));
                             methodBuilder.Add(method);
                         }
@@ -548,9 +548,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return null;
             }
 
-            if (MayHaveSideEffectsVisitor.MayHaveSideEffects(expression))
+            try
             {
-                flags |= DkmClrCompilationResultFlags.PotentialSideEffect;
+                if (MayHaveSideEffectsVisitor.MayHaveSideEffects(expression))
+                {
+                    flags |= DkmClrCompilationResultFlags.PotentialSideEffect;
+                }
+            }
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex)
+            {
+                ex.AddAnError(diagnostics);
+                resultProperties = default(ResultProperties);
+                return null;
             }
 
             var expressionType = expression.Type;
@@ -791,8 +800,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Method locals and parameters shadow pseudo-variables.
                 var typeNameDecoder = new EETypeNameDecoder(binder.Compilation, (PEModuleSymbol)substitutedSourceMethod.ContainingModule);
                 binder = new PlaceholderLocalBinder(
-                    syntax, 
-                    aliases, 
+                    syntax,
+                    aliases,
                     method,
                     typeNameDecoder,
                     binder);
@@ -842,10 +851,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 binder = new InContainerBinder(
                     binder.Container,
                     binder,
-                    Imports.FromCustomDebugInfo(binder.Compilation, new Dictionary<string, AliasAndUsingDirective>(), ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externs));
+                    Imports.FromCustomDebugInfo(binder.Compilation, ImmutableDictionary<string, AliasAndUsingDirective>.Empty, ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externs));
             }
 
-            var usingAliases = new Dictionary<string, AliasAndUsingDirective>();
+            var usingAliases = ImmutableDictionary.CreateBuilder<string, AliasAndUsingDirective>();
             var usingsBuilder = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
 
             foreach (var importRecord in importRecords)
@@ -968,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            return Imports.FromCustomDebugInfo(binder.Compilation, usingAliases, usingsBuilder.ToImmutableAndFree(), externs);
+            return Imports.FromCustomDebugInfo(binder.Compilation, usingAliases.ToImmutableDictionary(), usingsBuilder.ToImmutableAndFree(), externs);
         }
 
         private static NamespaceSymbol BindNamespace(string namespaceName, NamespaceSymbol globalNamespace)
@@ -993,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string alias,
             NamespaceOrTypeSymbol targetSymbol,
             ArrayBuilder<NamespaceOrTypeAndUsingDirective> usingsBuilder,
-            Dictionary<string, AliasAndUsingDirective> usingAliases,
+            ImmutableDictionary<string, AliasAndUsingDirective>.Builder usingAliases,
             InContainerBinder binder,
             ImportRecord importRecord)
         {
@@ -1323,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var field = (FieldSymbol)member;
                 var fieldName = field.Name;
 
-                REPARSE:
+            REPARSE:
 
                 DisplayClassVariableKind variableKind;
                 string variableName;
@@ -1466,11 +1475,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             string desiredMethodName;
             if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceType.Name, GeneratedNameKind.StateMachineType, out desiredMethodName) ||
-                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LambdaMethod, out desiredMethodName))
+                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LambdaMethod, out desiredMethodName) ||
+                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LocalFunction, out desiredMethodName))
             {
                 // We could be in the MoveNext method of an async lambda.
                 string tempMethodName;
-                if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LambdaMethod, out tempMethodName))
+                if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LambdaMethod, out tempMethodName) ||
+                    GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LocalFunction, out tempMethodName))
                 {
                     desiredMethodName = tempMethodName;
                     var containing = candidateSubstitutedSourceType.ContainingType;

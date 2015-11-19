@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '//     (+arr) Sort-of, argument Animal() can be supplied to parameter Mammal() only through narrowing
         '// (3) Now try the next candidate, T=Animal. Does it work for each requirement?
         '//     (+vb)  Yes,     argument Mammal can be supplied to parameter Animal through widening
-        '//     (+arr) Yes,     argumetn Animal() can be supplied to parameter Animal() through identity
+        '//     (+arr) Yes,     argument Animal() can be supplied to parameter Animal() through identity
         '// (4) At the end, we pick out the one that worked "best". In this case T=Animal worked best.
         '// The criteria for "best" are documented and implemented in ConversionResolution.cpp/FindDominantType.
 

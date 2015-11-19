@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsTrackableStructType(TypeSymbol type)
         {
+            if ((object)type == null) return false;
             var nts = type.OriginalDefinition as NamedTypeSymbol;
             if ((object)nts == null) return false;
             return nts.IsStructType() && nts.SpecialType == SpecialType.None && !nts.KnownCircularStruct;

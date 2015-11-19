@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     // based on benchmarks the combined cost seems to be closer to 3
                     //
                     // this also allows in the "mostly sparse" scenario to avoid numerous 
-                    // little swithces with only 2 labels in them.
+                    // little switches with only 2 labels in them.
                     return 3;
                 }
             }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return bucketSize;
             }
 
-            // Check if bucketsize exceeds UInt64.MaxValue
+            // Check if bucket size exceeds UInt64.MaxValue
             private static bool BucketOverflowUInt64Limit(ConstantValue startConstant, ConstantValue endConstant)
             {
                 Debug.Assert(IsValidSwitchBucketConstantPair(startConstant, endConstant));
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Virtual switch instruction has a max limit of Int32.MaxValue labels
-            // Check if bucketsize exceeds Int32.MaxValue
+            // Check if bucket size exceeds Int32.MaxValue
             private static bool BucketOverflow(ConstantValue startConstant, ConstantValue endConstant)
             {
                 return BucketOverflowUInt64Limit(startConstant, endConstant)

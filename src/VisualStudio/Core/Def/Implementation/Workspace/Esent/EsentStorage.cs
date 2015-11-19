@@ -244,7 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                 // enable perf monitor if requested
                 Api.JetSetSystemParameter(JET_INSTANCE.Nil, JET_SESID.Nil, (JET_param)JET_paramDisablePerfmon, _enablePerformanceMonitor ? 0 : 1, null);
 
-                // set max IO queue (bigger vaule better IO perf)
+                // set max IO queue (bigger value better IO perf)
                 Api.JetSetSystemParameter(JET_INSTANCE.Nil, JET_SESID.Nil, (JET_param)JET_paramOutstandingIOMax, 1024, null);
 
                 // set max current write to db

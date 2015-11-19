@@ -152,9 +152,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get locals declared immediately in scope represented by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
         {
-            return this.Next.GetDeclaredLocalsForScope(node);
+            return this.Next.GetDeclaredLocalsForScope();
+        }
+
+        /// <summary>
+        /// Get local functions declared immediately in scope represented by the node.
+        /// </summary>
+        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        {
+            return this.Next.GetDeclaredLocalFunctionsForScope();
         }
 
         /// <summary>
@@ -270,6 +278,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        {
+            return _next.GetImports(basesBeingResolved);
+        }
+
         /// <summary>
         /// The type containing the binding context
         /// </summary>
@@ -300,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Method:
                         // global statements
-                        return ((MethodSymbol)containingMember).IsScriptConstructor;
+                        return ((MethodSymbol)containingMember).IsScriptInitializer;
 
                     case SymbolKind.NamedType:
                         // script variable initializers

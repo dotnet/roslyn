@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis.Host
     {
         // Recoverable trees only save significant memory for larger trees
         internal readonly int MinimumLengthForRecoverableTree;
-        private readonly bool hasCachingService;
+        private readonly bool _hasCachingService;
 
-        internal HostLanguageServices LanguageServices { get; private set; }
+        internal HostLanguageServices LanguageServices { get; }
 
         public AbstractSyntaxTreeFactoryService(HostLanguageServices languageServices)
         {
             this.LanguageServices = languageServices;
             this.MinimumLengthForRecoverableTree = languageServices.WorkspaceServices.Workspace.Options.GetOption(CacheOptions.RecoverableTreeLengthThreshold);
-            this.hasCachingService = languageServices.WorkspaceServices.GetService<IProjectCacheHostService>() != null;
+            _hasCachingService = languageServices.WorkspaceServices.GetService<IProjectCacheHostService>() != null;
         }
 
         public abstract ParseOptions GetDefaultParseOptions();
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         public virtual bool CanCreateRecoverableTree(SyntaxNode root)
         {
-            return this.hasCachingService && root.FullSpan.Length >= this.MinimumLengthForRecoverableTree;
+            return _hasCachingService && root.FullSpan.Length >= this.MinimumLengthForRecoverableTree;
         }
 
         protected static SyntaxNode RecoverNode(SyntaxTree tree, TextSpan textSpan, int kind)

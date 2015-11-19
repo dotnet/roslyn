@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 return x.IsOptional == y.IsOptional && AreEquivalent(x.Modifier, y.Modifier, equivalentTypesWithDifferingAssemblies);
             }
-             
+
             internal bool AreEquivalent(ImmutableArray<CustomModifier> x, ImmutableArray<CustomModifier> y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
                 Debug.Assert(!x.IsDefault && !y.IsDefault);
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
                 }
 
-                // Above check makes sure that the containing assemblies are considered the same by the the assembly comparer being used.
+                // Above check makes sure that the containing assemblies are considered the same by the assembly comparer being used.
                 // If they are in fact not the same (have different name) and the caller requested to know about such types add {x, y} 
                 // to equivalentTypesWithDifferingAssemblies map.
                 if (equivalentTypesWithDifferingAssemblies != null &&
@@ -496,13 +496,25 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private bool PointerTypesAreEquivalent(IPointerTypeSymbol x, IPointerTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
-                return 
+                return
                     AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
                     AreEquivalent(x.PointedAtType, y.PointedAtType, equivalentTypesWithDifferingAssemblies);
             }
 
             private bool PropertiesAreEquivalent(IPropertySymbol x, IPropertySymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
+                if (x.ContainingType.IsAnonymousType && y.ContainingType.IsAnonymousType)
+                {
+                    // We can short circuit here and just use the symbols themselves to determine
+                    // equality.  This will properly handle things like the VB case where two
+                    // anonymous types will be considered the same if they have properties that
+                    // differ in casing.
+                    if (x.Equals(y))
+                    {
+                        return true;
+                    }
+                }
+
                 return
                     x.IsIndexer == y.IsIndexer &&
                     x.MetadataName == y.MetadataName &&

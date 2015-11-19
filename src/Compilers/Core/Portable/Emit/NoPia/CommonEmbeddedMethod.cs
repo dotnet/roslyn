@@ -115,19 +115,19 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     visitor.Visit(this);
                 }
 
-                ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions => 
+                ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions =>
                     ImmutableArray<Cci.ExceptionHandlerRegion>.Empty;
 
                 bool Cci.IMethodBody.LocalsAreZeroed => false;
 
-                ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables => 
+                ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables =>
                     ImmutableArray<Cci.ILocalDefinition>.Empty;
 
                 Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition => _method;
 
                 ushort Cci.IMethodBody.MaxStack => 0;
 
-                byte[] Cci.IMethodBody.IL => SpecializedCollections.EmptyArray<byte>();
+                ImmutableArray<byte> Cci.IMethodBody.IL => ImmutableArray<byte>.Empty;
 
                 bool Cci.IMethodBody.HasAnySequencePoints => false;
 
@@ -145,26 +145,26 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo => null;
 
-                ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes => 
+                ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes =>
                     ImmutableArray<Cci.LocalScope>.Empty;
 
                 Cci.IImportScope Cci.IMethodBody.ImportScope => null;
 
-                ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes => 
+                ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes =>
                     default(ImmutableArray<Cci.StateMachineHoistedLocalScope>);
 
                 string Cci.IMethodBody.StateMachineTypeName => null;
 
-                ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots => 
+                ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots =>
                     default(ImmutableArray<EncHoistedLocalInfo>);
 
-                ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots => 
+                ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots =>
                     default(ImmutableArray<Cci.ITypeReference>);
 
-                ImmutableArray<ClosureDebugInfo> Cci.IMethodBody.ClosureDebugInfo => 
+                ImmutableArray<ClosureDebugInfo> Cci.IMethodBody.ClosureDebugInfo =>
                     default(ImmutableArray<ClosureDebugInfo>);
 
-                ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo => 
+                ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo =>
                     default(ImmutableArray<LambdaDebugInfo>);
 
                 public DebugId MethodId => default(DebugId);
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             ImmutableArray<byte> Cci.IMethodDefinition.ReturnValueMarshallingDescriptor => ReturnValueMarshallingDescriptor;
 
-            IEnumerable<Cci.SecurityAttribute> Cci.IMethodDefinition.SecurityAttributes => 
+            IEnumerable<Cci.SecurityAttribute> Cci.IMethodDefinition.SecurityAttributes =>
                 SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
 
             Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition => ContainingType;
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
             }
 
-            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers => 
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers =>
                 UnderlyingMethodSignature.ReturnValueCustomModifiers;
 
             bool Cci.ISignature.ReturnValueIsByRef => UnderlyingMethodSignature.ReturnValueIsByRef;

@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     "(new B()).F",
                     DkmEvaluationFlags.None,
                     NoAliases,
-                    DiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
                     out missingAssemblyIdentities,
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     "(new B()).F",
                     DkmEvaluationFlags.None,
                     NoAliases,
-                    DiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
                     out missingAssemblyIdentities,
@@ -388,30 +388,30 @@ public class B
                 var contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken);
 
                 // Duplicate type in namespace, at type scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
 
                 GetContextState(runtime, "B.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
                 contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
 
                 // Duplicate type in namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C1()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C1()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
 
                 // Duplicate type in global namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.True(errorMessage.StartsWith("error CS0433: The type 'C2' exists in both "));
 
                 // Duplicate extension method, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-                Assert.Equal(errorMessage, "(1,3): error CS0121: The call is ambiguous between the following methods or properties: 'N.E.F(A)' and 'N.E.F(A)'");
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
+                Assert.Equal(errorMessage, "error CS0121: The call is ambiguous between the following methods or properties: 'N.E.F(A)' and 'N.E.F(A)'");
 
                 // Same tests as above but in library that does not directly reference duplicates.
                 GetContextState(runtime, "A", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
                 contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken);
 
                 // Duplicate type in namespace, at type scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.Null(errorMessage);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
@@ -427,7 +427,7 @@ public class B
                 contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
 
                 // Duplicate type in global namespace, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.Null(errorMessage);
                 methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
@@ -442,7 +442,7 @@ public class B
                 Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName());
 
                 // Duplicate extension method, at method scope.
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.Null(errorMessage);
                 methodData = testData.GetMethodData("<>x.<>m0");
                 methodData.VerifyIL(
@@ -544,7 +544,7 @@ class C
 
                 // Compile: [DebuggerDisplay("{new B()}")]
                 const string expr = "new B()";
-                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, expr, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, expr, ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
                 Assert.Null(errorMessage);
                 Assert.Equal(2, attempts);
                 var methodData = testData.GetMethodData("<>x.<>m0");
@@ -607,10 +607,10 @@ class C
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             compilation.VerifyDiagnostics(
-                // (5,31): error CS0433: The type 'Console' exists in both 'System.Console, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                // error CS0433: The type 'Console' exists in both 'System.Console, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 //         var t = typeof(System.Console);
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "Console").WithArguments("System.Console, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Console", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(5, 31),
-                // (6,49): error CS0433: The type 'ReadOnlyDictionary<K, V>' exists in both 'System.ObjectModel, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                // error CS0433: The type 'ReadOnlyDictionary<K, V>' exists in both 'System.ObjectModel, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 //         var o = (System.Collections.ObjectModel.ReadOnlyDictionary<object, object>)null;
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "ReadOnlyDictionary<object, object>").WithArguments("System.ObjectModel, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(6, 49));
 
@@ -653,6 +653,113 @@ class C
   IL_0001:  ret
 }");
                 Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityObjectModel.GetDisplayName());
+            }
+        }
+
+        /// <summary>
+        /// Intrinsic methods assembly should not be dropped.
+        /// </summary>
+        [WorkItem(4140)]
+        [Fact]
+        public void IntrinsicMethods()
+        {
+            var sourceA =
+@"public class A { }";
+            var sourceB =
+@"public class A { }
+public class B
+{
+    static void M(A a)
+    {
+    }
+}";
+            var assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName();
+            var compilationA = CreateCompilationWithMscorlibAndSystemCore(sourceA, options: TestOptions.DebugDll, assemblyName: assemblyNameA);
+            byte[] exeBytesA;
+            byte[] pdbBytesA;
+            ImmutableArray<MetadataReference> referencesA;
+            compilationA.EmitAndGetReferences(out exeBytesA, out pdbBytesA, out referencesA);
+            var referenceA = AssemblyMetadata.CreateFromImage(exeBytesA).GetReference(display: assemblyNameA);
+            var identityA = referenceA.GetAssemblyIdentity();
+            var moduleA = referenceA.ToModuleInstance(exeBytesA, new SymReader(pdbBytesA));
+
+            var assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName();
+            var compilationB = CreateCompilationWithMscorlibAndSystemCore(sourceB, options: TestOptions.DebugDll, assemblyName: assemblyNameB, references: new[] { referenceA });
+            byte[] exeBytesB;
+            byte[] pdbBytesB;
+            ImmutableArray<MetadataReference> referencesB;
+            compilationB.EmitAndGetReferences(out exeBytesB, out pdbBytesB, out referencesB);
+            var referenceB = AssemblyMetadata.CreateFromImage(exeBytesB).GetReference(display: assemblyNameB);
+            var moduleB = referenceB.ToModuleInstance(exeBytesB, new SymReader(pdbBytesB));
+
+            var moduleBuilder = ArrayBuilder<ModuleInstance>.GetInstance();
+            moduleBuilder.AddRange(referencesA.Select(r => r.ToModuleInstance(null, null)));
+            moduleBuilder.Add(moduleA);
+            moduleBuilder.Add(moduleB);
+            moduleBuilder.Add(ExpressionCompilerTestHelpers.IntrinsicAssemblyReference.ToModuleInstance(fullImage: null, symReader: null));
+            var modules = moduleBuilder.ToImmutableAndFree();
+
+            using (var runtime = new RuntimeInstance(modules))
+            {
+                ImmutableArray<MetadataBlock> blocks;
+                Guid moduleVersionId;
+                ISymUnmanagedReader symReader;
+                int methodToken;
+                int localSignatureToken;
+                GetContextState(runtime, "B.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                var aliases = ImmutableArray.Create(
+                    ExceptionAlias(typeof(ArgumentException)),
+                    ReturnValueAlias(2, typeof(string)),
+                    ObjectIdAlias(1, typeof(object)));
+                int attempts = 0;
+                ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+                {
+                    attempts++;
+                    return EvaluationContext.CreateMethodContext(
+                        ToCompilation(b, u, moduleVersionId),
+                        symReader,
+                        moduleVersionId,
+                        methodToken,
+                        methodVersion: 1,
+                        ilOffset: 0,
+                        localSignatureToken: localSignatureToken);
+                };
+                string errorMessage;
+                CompilationTestData testData;
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                    blocks,
+                    "(object)new A() ?? $exception ?? $1 ?? $ReturnValue2",
+                    aliases,
+                    contextFactory,
+                    getMetaDataBytesPtr: null,
+                    errorMessage: out errorMessage,
+                    testData: out testData);
+                Assert.Null(errorMessage);
+                Assert.Equal(2, attempts);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  newobj     ""A..ctor()""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0030
+  IL_0008:  pop
+  IL_0009:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetException()""
+  IL_000e:  castclass  ""System.ArgumentException""
+  IL_0013:  dup
+  IL_0014:  brtrue.s   IL_0030
+  IL_0016:  pop
+  IL_0017:  ldstr      ""$1""
+  IL_001c:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetObjectByAlias(string)""
+  IL_0021:  dup
+  IL_0022:  brtrue.s   IL_0030
+  IL_0024:  pop
+  IL_0025:  ldc.i4.2
+  IL_0026:  call       ""object Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetReturnValue(int)""
+  IL_002b:  castclass  ""string""
+  IL_0030:  ret
+}");
             }
         }
 

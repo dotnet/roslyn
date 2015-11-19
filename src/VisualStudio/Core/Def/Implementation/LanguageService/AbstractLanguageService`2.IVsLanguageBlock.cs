@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             var snapshot = this.EditorAdaptersFactoryService.GetDataBuffer(pTextLines).CurrentSnapshot;
             var position = snapshot?.TryGetPosition(iCurrentLine, iCurrentChar);
-            if  (position == null)
+            if (position == null)
             {
                 pbstrDescription = null;
                 pfBlockAvailable = 0;

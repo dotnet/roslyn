@@ -152,8 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_UInt64:
                     return kind | BinaryOperatorKind.ULong;
                 default:
-                    Debug.Assert(false, "Unexpected binary operator type.");
-                    return kind;
+                    throw ExceptionUtilities.UnexpectedValue(type);
             }
         }
 
@@ -171,8 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_UInt64:
                     return kind | UnaryOperatorKind.ULong;
                 default:
-                    Debug.Assert(false, "Unexpected unary operator type.");
-                    return kind;
+                    throw ExceptionUtilities.UnexpectedValue(type);
             }
         }
 

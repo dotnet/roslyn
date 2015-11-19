@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 {
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
                 }
 
                 // So here's the deal.  We cannot create the editor session and give it the right
-                // signatures (even though we know what they are).  Instead, the sessino with
+                // signatures (even though we know what they are).  Instead, the session with
                 // call back into the ISignatureHelpSourceProvider (which is us) to get those
                 // values. It will pass itself along with the calls back into
                 // ISignatureHelpSourceProvider. So, in order to make that connection work, we
@@ -97,12 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             private void OnEditorSessionDismissed()
             {
                 AssertIsForeground();
-
-                var dismissed = this.Dismissed;
-                if (dismissed != null)
-                {
-                    dismissed(this, new EventArgs());
-                }
+                this.Dismissed?.Invoke(this, new EventArgs());
             }
 
             internal void AugmentQuickInfoSession(IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)

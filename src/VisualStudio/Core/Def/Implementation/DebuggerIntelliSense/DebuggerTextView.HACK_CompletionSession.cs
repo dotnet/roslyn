@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 throw new NotImplementedException();
             }
 
-            // We've got a bunuch of unused events, so disable the unused event warning.
+            // We've got a bunch of unused events, so disable the unused event warning.
 #pragma warning disable 67
             public event EventHandler Committed;
 

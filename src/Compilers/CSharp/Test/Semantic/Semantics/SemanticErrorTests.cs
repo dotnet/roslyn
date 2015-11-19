@@ -1354,12 +1354,8 @@ class C
         this.foo();
     }
 }";
-
-            var comp = CSharpCompilation.Create(
-                "Test",
-                new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script) },
-                new[] { MscorlibRef });
-
+            var comp = CreateCompilationWithMscorlib45(
+                new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script) });
             comp.VerifyDiagnostics(
                 // (4,9): error CS0027: Keyword 'this' is not available in the current context
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
@@ -4211,7 +4207,7 @@ public class B : A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
@@ -4892,7 +4888,7 @@ class Program
                 // (12,17): error CS0159: No such label 'default:' within the scope of the goto statement
                 //                 goto default;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto default;").WithArguments("default:"),
-                // (11,13): error CS14001: Control cannot fall out of switch from final case label ('case 23:')
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case 23:')
                 //             case 23:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 23:").WithArguments("case 23:"));
         }
@@ -6781,7 +6777,7 @@ class MyDerived : MyClass
         }
 
         [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
-        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation01()
+        public void WriteOfReadonlyStaticMemberOfAnotherInstantiation01()
         {
             var text =
 @"public static class Foo<T>
@@ -6812,7 +6808,7 @@ class MyDerived : MyClass
         }
 
         [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
-        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation02()
+        public void WriteOfReadonlyStaticMemberOfAnotherInstantiation02()
         {
             var text =
 @"using System;
@@ -7008,7 +7004,7 @@ public class B : A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
@@ -8054,7 +8050,7 @@ public class MemberInitializerTest
         }
 
         [Fact]
-        public void CS0236ERR_FieldInitRefNonstatic_AnotherInitializerr()
+        public void CS0236ERR_FieldInitRefNonstatic_AnotherInitializer()
         {
             CreateCompilationWithMscorlib(
 @"
@@ -10681,7 +10677,7 @@ class C
         [Fact]
         public void CS0670ERR_FieldCantHaveVoidType_Var()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 var x = default(void); 
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,17): error CS1547: Keyword 'void' cannot be used in this context
@@ -10835,7 +10831,7 @@ public class Test
         [Fact]
         public void CS0723ERR_VarDeclIsStaticClass_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 static class SC {} 
 
 var sc2 = new SC();
@@ -11038,35 +11034,34 @@ class Test
         var v = M(); // CS0815
     }
     static void M() {}
-}", parseOptions: TestOptions.Script).VerifyDiagnostics(
-    // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
-    //         var m = Main; // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
-    // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-    //         var d = s => -1; // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-    // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-    //         var e = (string s) => 0; // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
-    // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
-    //         var p = null;//CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-    // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-    //         var del = delegate(string a) { return -1; };// CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
-    // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
-    //         var v = M(); // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
-    // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
-    //         var p = null;//CS0815
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p")
-                );
+}").VerifyDiagnostics(
+                // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
+                //         var m = Main; // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
+                // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var d = s => -1; // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
+                // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var e = (string s) => 0; // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
+                // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
+                //         var p = null;//CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
+                // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
+                //         var del = delegate(string a) { return -1; };// CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
+                // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
+                //         var v = M(); // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
+                // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
+                //         var p = null;//CS0815
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p"));
         }
 
         [Fact]
         public void CS0815ERR_ImplicitlyTypedVariableAssignedBadValue_Field()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 static void M() {}
 
 var m = M;       
@@ -11116,7 +11111,7 @@ class A
         [Fact]
         public void CS0818ERR_ImplicitlyTypedVariableWithNoInitializer_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 var a; // CS0818
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (1,5): error CS0818: Implicitly-typed variables must be initialized
@@ -11151,7 +11146,7 @@ class A
         [Fact]
         public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 var foo = 4, bar = 4.5;
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,1): error CS0819: Implicitly-typed fields cannot have multiple declarators
@@ -11183,7 +11178,7 @@ class G
         [Fact]
         public void CS0820ERR_ImplicitlyTypedVariableAssignedArrayInitializer_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 var y = { 1, 2, 3 };
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
             // (1,5): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
@@ -11248,7 +11243,7 @@ Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var y = (i
         [Fact]
         public void CS0822ERR_ImplicitlyTypedVariableCannotBeConst_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 const var x = 0; // CS0822.cs
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,7): error CS0822: Implicitly-typed variables cannot be constant
@@ -11258,20 +11253,20 @@ const var x = 0; // CS0822.cs
         [Fact]
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 void foo(var arg) { }
 var foo(int arg) { return 2; }
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (1,10): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
-                // (2,1): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var"),
+                // (2,1): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var"));
         }
 
         [Fact]
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields2()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 T foo<T>() { return default(T); }
 foo<var>();
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
@@ -15122,7 +15117,7 @@ public class Child2 : Parent
 
             compilation.VerifyDiagnostics(expected);
 
-            compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), null, true).Verify(expected);
+            compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), filterSpanWithinTree: null, includeEarlierStages: true).Verify(expected);
         }
 
         [WorkItem(539631, "DevDiv")]
@@ -18843,7 +18838,7 @@ class MyClass
    }
 }
 ";
-            var verifier = CompileAndVerify(source: text, emitters: TestEmitters.RefEmitBug, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
+            var verifier = CompileAndVerify(source: text, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffffff
 ffff");
 
@@ -20957,10 +20952,10 @@ class C
 }
 ";
             CompileAndVerify(source, expectedOutput: "True", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics(
-    // Do not report the following warning:
-    // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
-    //         System.Console.WriteLine(default(string).IsNull());
-    // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
+                // Do not report the following warning:
+                // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
+                //         System.Console.WriteLine(default(string).IsNull());
+                // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
         }
 
@@ -22476,7 +22471,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41));
 
             // Make sure the compiler can handle producing method body diagnostics for this pattern when 
-            // queriied via an API (command line compile would exit after parse errors were reported). 
+            // queried via an API (command line compile would exit after parse errors were reported). 
             compilation.GetMethodBodyDiagnostics().Verify(
                 // (6,41): warning CS0164: This label has not been referenced
                 //         if (((string)obj).Length == 0)  value: new Program();

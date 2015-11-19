@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Host
                     // disposed yet, the accessor each stream has will simply stop working.
                     //
                     // it is caller's responsibility to make sure all streams it got from
-                    // the temporary storage are disposed before calling dispose on the stroage.
+                    // the temporary storage are disposed before calling dispose on the storage.
                     //
                     // otherwise, finalizer will take care of disposing stuff as we used to be.
                     _accessor.Dispose();
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Host
                 ~SharedReadableStream()
                 {
                     // we don't have control on stream we give out to others such as
-                    // compiler (ImageOnlyMetadataReferece), make sure we dispose resource 
+                    // compiler (ImageOnlyMetadataReference), make sure we dispose resource 
                     // at the end if Disposed is not called explicitly.
                     Dispose(false);
                 }
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         lock (_gate)
                         {
-                            // re-check to make sure no one allocated after we released the lock
+                            // re-check to make sure no-one allocated after we released the lock
                             if (_freeSegmentOffsets.Count == _segmentCount)
                             {
                                 _containingList.Remove(this);

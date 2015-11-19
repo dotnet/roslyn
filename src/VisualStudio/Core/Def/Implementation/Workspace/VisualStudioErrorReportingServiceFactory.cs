@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         [ImportingConstructor]
         public VisualStudioErrorReportingServiceFactory(
-            VisualStudioWorkspaceImpl workspace, 
+            VisualStudioWorkspaceImpl workspace,
             IForegroundNotificationService foregroundNotificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {

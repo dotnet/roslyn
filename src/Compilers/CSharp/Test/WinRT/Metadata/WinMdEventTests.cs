@@ -332,8 +332,7 @@ class C
                     CSharpRef,
                     _eventLibRef,
                     dynamicCommonRef
-                },
-                emitOptions: TestEmitters.RefEmitBug);
+                });
             verifier.VerifyIL("C.Main",
 @"
 {
@@ -2358,7 +2357,6 @@ public partial class A : I
                     SystemCoreRef_v4_0_30319_17929,
                     _eventLibRef,
                 },
-                emitOptions: TestEmitters.RefEmitBug,
                 verify: OSVersion.IsWin8);
 
             verifier.VerifyDiagnostics(
@@ -2487,7 +2485,7 @@ public class abcdef{
     }
 } ";
 
-            var cv = CompileAndVerifyOnWin8Only(text, emitOptions: TestEmitters.RefEmitBug);
+            var cv = CompileAndVerifyOnWin8Only(text);
 
             cv.VerifyIL("abcdef.foo()", @"
 {
@@ -2547,7 +2545,7 @@ public class abcdef{
                                 }
                             } ";
 
-            var cv = CompileAndVerifyOnWin8Only(text, emitOptions: TestEmitters.RefEmitBug);
+            var cv = CompileAndVerifyOnWin8Only(text);
 
             var ExpectedIl =
 @"
@@ -2611,7 +2609,7 @@ public class abcdef{
     }
 }";
 
-            var cv = CompileAndVerifyOnWin8Only(text, emitOptions: TestEmitters.RefEmitBug);
+            var cv = CompileAndVerifyOnWin8Only(text);
 
             cv.VerifyIL("abcdef.foo()", @"
 {

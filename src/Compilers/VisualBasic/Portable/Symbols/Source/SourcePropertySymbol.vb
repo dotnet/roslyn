@@ -734,6 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                             isOverrides:=True, isWithEvents:=Me.IsWithEvents))
                 End If
 
+                Debug.Assert(IsDefinition)
                 Dim overridden = overriddenMembers.OverriddenMember
 
                 If overridden IsNot Nothing Then

@@ -1,15 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static TLanguageService GetLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
         {
-            return document.Project.LanguageServices.GetService<TLanguageService>();
+            return document?.Project?.LanguageServices?.GetService<TLanguageService>();
         }
 
         public static bool IsOpen(this Document document)
@@ -39,22 +42,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<SemanticModel> GetSemanticModelForSpanAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
-            if (semanticModelService == null || syntaxFactService == null)
+            try
             {
-                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            }
+                var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
+                if (semanticModelService == null || syntaxFactService == null)
+                {
+                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(span.Start);
-            if (token.Parent == null)
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var token = root.FindToken(span.Start);
+                if (token.Parent == null)
+                {
+                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                var node = token.Parent.AncestorsAndSelf().FirstOrDefault(a => a.FullSpan.Contains(span));
+                return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
-                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                throw ExceptionUtilities.Unreachable;
             }
-
-            var node = token.Parent.AncestorsAndSelf().FirstOrDefault(a => a.FullSpan.Contains(span));
-            return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -124,21 +134,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static async Task<bool> IsForkedDocumentWithSyntaxChangesAsync(this Document document, CancellationToken cancellationToken)
         {
-            if (document.IsFromPrimaryBranch())
+            try
             {
-                return false;
-            }
+                if (document.IsFromPrimaryBranch())
+                {
+                    return false;
+                }
 
-            var currentSolution = document.Project.Solution.Workspace.CurrentSolution;
-            var currentDocument = currentSolution.GetDocument(document.Id);
-            if (currentDocument == null)
+                var currentSolution = document.Project.Solution.Workspace.CurrentSolution;
+                var currentDocument = currentSolution.GetDocument(document.Id);
+                if (currentDocument == null)
+                {
+                    return true;
+                }
+
+                var documentVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+                var currentDocumentVersion = await currentDocument.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+                return !documentVersion.Equals(currentDocumentVersion);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
-                return true;
+                throw ExceptionUtilities.Unreachable;
             }
-
-            var documentVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-            var currentDocumentVersion = await currentDocument.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-            return !documentVersion.Equals(currentDocumentVersion);
         }
 
         public static async Task<IEnumerable<DeclaredSymbolInfo>> GetDeclaredSymbolInfosAsync(this Document document, CancellationToken cancellationToken)

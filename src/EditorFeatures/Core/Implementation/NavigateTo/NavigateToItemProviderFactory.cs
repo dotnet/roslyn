@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         {
             if (glyphService == null)
             {
-                throw new ArgumentNullException("glyphService");
+                throw new ArgumentNullException(nameof(glyphService));
             }
 
             if (asyncListeners == null)
             {
-                throw new ArgumentNullException("asyncListeners");
+                throw new ArgumentNullException(nameof(asyncListeners));
             }
 
             _glyphService = glyphService;

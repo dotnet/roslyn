@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Just try to get the first node directly.  This is faster than getting the list of
                 // child nodes and tokens (which forces all children to be enumerated for the sake
                 // of counting.  It should always be safe to index the 0th element of a node.  But
-                // just to make sure that this is not a problem, we verify that the slotcount of the
+                // just to make sure that this is not a problem, we verify that the slot count of the
                 // node is greater than 0.
                 var node = CurrentNodeOrToken.AsNode();
 

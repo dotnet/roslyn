@@ -49,11 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             //    is called.
             // 2) during the closing of the dialog via Cancel/close when options don't need to be
             //    saved. The intent here is the settings get reloaded so the next time you open the
-            //    page they are properly poulated.
+            //    page they are properly populated.
             //
             // This second one is tricky, because we don't actually want to update our controls
             // right then, because they'd be wrong the next time the page opens -- it's possible
-            // they may have been changed programatically. Therefore, we'll set a flag so we load
+            // they may have been changed programmatically. Therefore, we'll set a flag so we load
             // next time
             _needsLoadOnNextActivate = true;
         }
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _pageControl.SaveSettings();
 
             // Make sure we load the next time the page is activated, in case if options changed
-            // programatically between now and the next time the page is activated
+            // programmatically between now and the next time the page is activated
             _needsLoadOnNextActivate = true;
         }
 

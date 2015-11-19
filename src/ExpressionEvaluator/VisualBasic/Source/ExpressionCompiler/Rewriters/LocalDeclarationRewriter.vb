@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         ' Find all implicitly declared locals.
         Private NotInheritable Class LocalDeclarationWalker
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
             Private ReadOnly _locals As HashSet(Of LocalSymbol)
 
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim typeType = compilation.GetWellKnownType(WellKnownType.System_Type)
             Dim stringType = compilation.GetSpecialType(SpecialType.System_String)
             Dim guidType = compilation.GetWellKnownType(WellKnownType.System_Guid)
-            Dim byteArrayType = New ArrayTypeSymbol(
+            Dim byteArrayType = ArrayTypeSymbol.CreateVBArray(
                 compilation.GetSpecialType(SpecialType.System_Byte),
                 ImmutableArray(Of CustomModifier).Empty,
                 rank:=1,

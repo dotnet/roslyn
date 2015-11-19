@@ -413,7 +413,7 @@
     <FactoryComment>
       <summary>Creates a ConditionalAccessExpressionSyntax node.</summary>
     </FactoryComment>
-  </Node>    
+  </Node>
   <Node Name="MemberBindingExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="MemberBindingExpression"/>
     <Field Name="OperatorToken" Type="SyntaxToken">
@@ -434,7 +434,7 @@
       <summary>Creates an MemberBindingExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-    <Node Name="ElementBindingExpressionSyntax" Base="ExpressionSyntax">
+  <Node Name="ElementBindingExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ElementBindingExpression"/>
     <Field Name="ArgumentList" Type="BracketedArgumentListSyntax">
       <PropertyComment>
@@ -1633,6 +1633,28 @@
       <Kind Name="CloseBraceToken"/>
     </Field>
   </Node>
+  <Node Name="LocalFunctionStatementSyntax" Base="StatementSyntax">
+    <Kind Name="LocalFunctionStatement"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;"/>
+    <Field Name="ReturnType" Type="TypeSyntax"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax"/>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;"/>
+    <Field Name="Body" Type="BlockSyntax" Optional="true"/>
+    <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional semicolon token.</summary>
+      </PropertyComment>
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
   <Node Name="LocalDeclarationStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalDeclarationStatement"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
@@ -2313,10 +2335,11 @@
         <summary>Gets the open bracket token.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Target" Type="AttributeTargetSpecifierSyntax" Optional="true"/>
-    <PropertyComment>
-      <summary>Gets the optional construct targeted by the attribute.</summary>
-    </PropertyComment>
+    <Field Name="Target" Type="AttributeTargetSpecifierSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional construct targeted by the attribute.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="Attributes" Type="SeparatedSyntaxList&lt;AttributeSyntax&gt;">
       <PropertyComment>
         <summary>Gets the attribute declaration list.</summary>
@@ -3972,6 +3995,35 @@
     </Field>
     <Field Name="File" Type="SyntaxToken">
       <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="LoadDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="LoadDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="LoadKeyword" Type="SyntaxToken">
+      <Kind Name="LoadKeyword"/>
+    </Field>
+    <Field Name="File" Type="SyntaxToken">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="ShebangDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="ShebangDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="ExclamationToken" Type="SyntaxToken">
+      <Kind Name="ExclamationToken"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

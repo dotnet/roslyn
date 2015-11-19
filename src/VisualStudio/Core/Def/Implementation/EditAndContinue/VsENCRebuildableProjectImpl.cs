@@ -30,6 +30,7 @@ using Roslyn.Utilities;
 using ShellInterop = Microsoft.VisualStudio.Shell.Interop;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 using VsThreading = Microsoft.VisualStudio.Threading;
+using Document = Microsoft.CodeAnalysis.Document;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
@@ -176,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
             }
 
-            _notifications.SendNotification(message, "Edit and Continue", NotificationSeverity.Error);
+            _notifications.SendNotification(message, title: FeaturesResources.EditAndContinue, severity: NotificationSeverity.Error);
         }
 
         /// <summary>
@@ -227,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 string outputPath = _vsProject.TryGetObjOutputPath();
 
                 // The project doesn't produce a debuggable binary or we can't read it.
-                // Continute on since the debugger ignores HResults and we need to handle subsequent calls.
+                // Continue on since the debugger ignores HResults and we need to handle subsequent calls.
                 if (outputPath != null)
                 {
                     try
@@ -278,9 +279,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -296,7 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // but if the entering break mode fails for some projects we should avoid leaking the solution.
                 Debug.Assert(s_breakStateEntrySolution == null);
                 s_breakStateEntrySolution = null;
-                
+
                 // EnC service is global (per solution), but the debugger calls this for each project.
                 // Avoid ending the debug session if it has already been ended.
                 if (_encService.DebuggingSession != null)
@@ -340,9 +341,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -436,6 +437,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
 
                         s_breakStateEntrySolution = _vsProject.VisualStudioWorkspace.CurrentSolution;
+
+                        // TODO: This is a workaround for a debugger bug in which not all projects exit the break state.
+                        // Reset the project count.
+                        s_breakStateProjectCount = 0;
                     }
 
                     ProjectReadOnlyReason state;
@@ -482,20 +487,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         // Add the handler that notifies the debugger *after* that initial tagger notification,
                         // so that it's not triggered unless an actual change in leaf AS occurs.
                         _trackingService.TrackingSpansChanged += TrackingSpansChanged;
-
-                        // we don't need these anymore:
-                        s_pendingActiveStatements.Clear();
-                        s_breakStateEnteredProjects.Clear();
-                        s_breakStateEntrySolution = null;
                     }
                 }
 
                 // The debugger ignores the result.
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
+            }
+            finally
+            {
+                // TODO: This is a workaround for a debugger bug.
+                // Ensure that the state gets reset even if if `GroupActiveStatements` throws an exception.
+                if (s_breakStateEnteredProjects.Count == s_debugStateProjectCount)
+                {
+                    // we don't need these anymore:
+                    s_pendingActiveStatements.Clear();
+                    s_breakStateEnteredProjects.Clear();
+                    s_breakStateEntrySolution = null;
+                }
             }
         }
 
@@ -720,7 +732,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     // Try to get spans from the tracking service first.
                     // We might get an imprecise result if the document analysis hasn't been finished yet and 
-                    // the active statement has structurealy changed, but that's ok. The user won't see an updated tag
+                    // the active statement has structurally changed, but that's ok. The user won't see an updated tag
                     // for the statement until the analysis finishes anyways.
                     TextSpan span;
                     LinePositionSpan lineSpan;
@@ -748,9 +760,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     return VSConstants.S_OK;
                 }
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -837,9 +849,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     return VSConstants.S_OK;
                 }
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -900,9 +912,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // HResult ignored by the debugger
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -1000,9 +1012,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
@@ -1108,16 +1120,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 
         /// <summary>
         /// Called when changes are being applied.
         /// </summary>
-        public int GetCurrentExceptionSpanPosition(uint id, VsTextSpan[] ptsNewPosition)
+        /// <param name="exceptionRegionId">
+        /// The value of <see cref="ShellInterop.ENC_EXCEPTION_SPAN.id"/>. 
+        /// Set by <see cref="GetExceptionSpans(uint, ShellInterop.ENC_EXCEPTION_SPAN[], ref uint)"/> to the index into <see cref="_exceptionRegions"/>. 
+        /// </param>
+        /// <param name="ptsNewPosition">Output value holder.</param>
+        public int GetCurrentExceptionSpanPosition(uint exceptionRegionId, VsTextSpan[] ptsNewPosition)
         {
             try
             {
@@ -1128,7 +1145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(!_encService.EditSession.StoppedAtException);
                     Debug.Assert(ptsNewPosition.Length == 1);
 
-                    var exceptionRegion = _exceptionRegions[(int)id];
+                    var exceptionRegion = _exceptionRegions[(int)exceptionRegionId];
 
                     var session = _encService.EditSession;
                     var asid = _activeStatementIds[exceptionRegion.ActiveStatementId];
@@ -1141,16 +1158,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(!analysis.HasChangesAndErrors);
                     Debug.Assert(!regions.IsDefault);
 
-                    // Absence of rude edits guarantees that the exception regions around AS hasn't semantically changed.
+                    // Absence of rude edits guarantees that the exception regions around AS haven't semantically changed.
                     // Only their spans might have changed.
                     ptsNewPosition[0] = regions[asid.Ordinal][exceptionRegion.Ordinal].ToVsTextSpan();
                 }
 
                 return VSConstants.S_OK;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                return VSConstants.E_FAIL;
             }
         }
 

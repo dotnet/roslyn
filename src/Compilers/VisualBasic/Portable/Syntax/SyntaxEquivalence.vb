@@ -49,6 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                      SyntaxKind.DecimalLiteralToken,
                      SyntaxKind.FloatingLiteralToken,
                      SyntaxKind.IntegerLiteralToken,
+                     SyntaxKind.InterpolatedStringTextToken,
                      SyntaxKind.StringLiteralToken
                     Return String.Equals(DirectCast(before, Green.SyntaxToken).Text,
                                          DirectCast(after, Green.SyntaxToken).Text,
@@ -77,6 +78,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End If
 
             Dim kind = CType(before.RawKind, SyntaxKind)
+
+            If Not AreModifiersEquivalent(before, after, kind) Then
+                Return False
+            End If
 
             If topLevel Then
                 Select Case kind
@@ -173,5 +178,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return True
             End If
         End Function
+
+        Private Function AreModifiersEquivalent(before As GreenNode, after As GreenNode, kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case SyntaxKind.SubBlock,
+                     SyntaxKind.FunctionBlock
+                    Dim beforeModifiers = DirectCast(before, Green.MethodBlockBaseSyntax).Begin.Modifiers
+                    Dim afterModifiers = DirectCast(after, Green.MethodBlockBaseSyntax).Begin.Modifiers
+
+                    If beforeModifiers.Count <> afterModifiers.Count Then
+                        Return False
+                    End If
+
+                    For i = 0 To beforeModifiers.Count - 1
+                        If Not beforeModifiers.Any(afterModifiers(i).Kind) Then
+                            Return False
+                        End If
+                    Next
+            End Select
+
+            Return True
+        End Function
+
     End Module
 End Namespace

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -812,7 +813,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, format:=DebugInformationFormat.Pdb)
         End Sub
 
         <Fact, WorkItem(846584, "DevDiv")>

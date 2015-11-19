@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// to the node constructor. If any child nodes of a node have
         /// the HasErrors bit set, then it is automatically set to true on the parent bound node.
         /// 
-        /// HasErrors indicates that the tree is not emittable and used to shortcircuit lowering/emit stages.
+        /// HasErrors indicates that the tree is not emittable and used to short-circuit lowering/emit stages.
         /// NOTE: not having HasErrors does not guarantee that we do not have any diagnostic associated
         ///       with corresponding syntax or type.
         /// </summary>

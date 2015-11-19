@@ -226,9 +226,6 @@ Friend Module CompilationUtils
         Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), sourceTrees, references, options)
     End Function
 
-    ''' <summary>
-    ''' 
-    ''' </summary>
     ''' <param name="sources">The sources compile according to the following schema        
     ''' &lt;compilation name="assemblyname[optional]"&gt;
     ''' &lt;file name="file1.vb[optional]"&gt;
@@ -236,9 +233,6 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    ''' <param name="options"></param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
     Public Function CreateCompilationWithoutReferences(sources As XElement,
                                                            Optional options As VisualBasicCompilationOptions = Nothing,
                                                            Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing,
@@ -320,7 +314,7 @@ Friend Module CompilationUtils
     End Function
 
     Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataReference
-        Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource, appendDefaultHeader)
+        Using reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader)
             ilImage = ImmutableArray.Create(File.ReadAllBytes(reference.Path))
         End Using
         Return MetadataReference.CreateFromImage(ilImage)
@@ -871,7 +865,7 @@ Friend Module CompilationUtils
     End Sub
 
     ' There are certain cases where multiple distinct errors are
-    ' reported where the errorcode and text span are the same. When
+    ' reported where the error code and text span are the same. When
     ' sorting such cases, we should preserve the original order.
     Private Structure DiagnosticAndIndex
         Public Sub New(diagnostic As Diagnostic, index As Integer)

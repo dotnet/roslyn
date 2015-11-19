@@ -49,7 +49,6 @@ class D<T> where T : A<int>, new() { }";
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -88,7 +87,6 @@ class B1 : A<int>
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -115,7 +113,6 @@ class C : I<C, object>
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -172,7 +169,6 @@ partial class B<T> : A<T>
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -1045,7 +1041,7 @@ struct S
         }
 
         [WorkItem(528571, "DevDiv")]
-        [Fact(Skip = "528571")]
+        [Fact]
         public void ConstraintsWithinStruct()
         {
             var source =
@@ -1467,45 +1463,45 @@ B.M");
             compilation.VerifyIL("C<T1, T2>.M<U1, U2>(T1, T2, U1, U2)",
 @"
 {
-  // Code size      143 (0x8f)
+  // Code size      145 (0x91)
   .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  dup
-  IL_0003:  constrained. ""T1""
-  IL_0009:  callvirt   ""object I.P.get""
-  IL_000e:  constrained. ""T1""
-  IL_0014:  callvirt   ""void I.P.set""
-  IL_0019:  ldarga.s   V_0
-  IL_001b:  constrained. ""T1""
-  IL_0021:  callvirt   ""void I.M()""
-  IL_0026:  ldarg.1
-  IL_0027:  box        ""T2""
-  IL_002c:  ldarg.1
-  IL_002d:  box        ""T2""
-  IL_0032:  callvirt   ""object A.P.get""
-  IL_0037:  callvirt   ""void A.P.set""
-  IL_003c:  ldarg.1
-  IL_003d:  box        ""T2""
-  IL_0042:  callvirt   ""void A.M()""
-  IL_0047:  ldarga.s   V_2
-  IL_0049:  dup
-  IL_004a:  constrained. ""U1""
-  IL_0050:  callvirt   ""object I.P.get""
-  IL_0055:  constrained. ""U1""
-  IL_005b:  callvirt   ""void I.P.set""
-  IL_0060:  ldarga.s   V_2
-  IL_0062:  constrained. ""U1""
-  IL_0068:  callvirt   ""void I.M()""
-  IL_006d:  ldarg.3
-  IL_006e:  box        ""U2""
-  IL_0073:  ldarg.3
-  IL_0074:  box        ""U2""
-  IL_0079:  callvirt   ""object A.P.get""
-  IL_007e:  callvirt   ""void A.P.set""
-  IL_0083:  ldarg.3
-  IL_0084:  box        ""U2""
-  IL_0089:  callvirt   ""void A.M()""
-  IL_008e:  ret
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  constrained. ""T1""
+  IL_000a:  callvirt   ""object I.P.get""
+  IL_000f:  constrained. ""T1""
+  IL_0015:  callvirt   ""void I.P.set""
+  IL_001a:  ldarga.s   V_0
+  IL_001c:  constrained. ""T1""
+  IL_0022:  callvirt   ""void I.M()""
+  IL_0027:  ldarg.1
+  IL_0028:  box        ""T2""
+  IL_002d:  ldarg.1
+  IL_002e:  box        ""T2""
+  IL_0033:  callvirt   ""object A.P.get""
+  IL_0038:  callvirt   ""void A.P.set""
+  IL_003d:  ldarg.1
+  IL_003e:  box        ""T2""
+  IL_0043:  callvirt   ""void A.M()""
+  IL_0048:  ldarga.s   V_2
+  IL_004a:  ldarga.s   V_2
+  IL_004c:  constrained. ""U1""
+  IL_0052:  callvirt   ""object I.P.get""
+  IL_0057:  constrained. ""U1""
+  IL_005d:  callvirt   ""void I.P.set""
+  IL_0062:  ldarga.s   V_2
+  IL_0064:  constrained. ""U1""
+  IL_006a:  callvirt   ""void I.M()""
+  IL_006f:  ldarg.3
+  IL_0070:  box        ""U2""
+  IL_0075:  ldarg.3
+  IL_0076:  box        ""U2""
+  IL_007b:  callvirt   ""object A.P.get""
+  IL_0080:  callvirt   ""void A.P.set""
+  IL_0085:  ldarg.3
+  IL_0086:  box        ""U2""
+  IL_008b:  callvirt   ""void A.M()""
+  IL_0090:  ret
 }");
         }
 
@@ -3585,7 +3581,7 @@ class C : I
                     Assert.Equal("I2", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
         [ClrOnlyFact]
@@ -3619,7 +3615,7 @@ class C : I
                     Assert.Equal("I2`2", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
         [ClrOnlyFact]
@@ -3653,7 +3649,7 @@ class C : I
                     Assert.Equal("I2`1", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
         [ClrOnlyFact]
@@ -3687,7 +3683,7 @@ class C : I
                     Assert.Equal("I2`01", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
         [ClrOnlyFact]
@@ -4175,7 +4171,7 @@ class C : I
                     Assert.Equal(2, t.Arity);
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
         [WorkItem(542358, "DevDiv")]
@@ -4703,7 +4699,6 @@ abstract class E : D, IB
             };
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -4991,7 +4986,6 @@ interface I6<U> : I3<I<U>, I<U>> { }";
             };
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -5367,7 +5361,6 @@ class A1 : A<C>
             };
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -6605,7 +6598,7 @@ class P
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) },
                 options: TestOptions.ReleaseExe);
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, emitters: TestEmitters.RefEmitBug, expectedOutput:
+            CompileAndVerify(compilation2, expectedOutput:
 @"C0
 C1
 C2
@@ -6634,6 +6627,56 @@ class B : A<ValueType>, I<ValueType>
     void I<ValueType>.M<T>() { }
 }";
             CompileAndVerify(source);
+        }
+
+        [WorkItem(4097, "https://github.com/dotnet/roslyn/issues/4097")]
+        [Fact]
+        public void ObsoleteTypeInConstraints()
+        {
+            var source =
+@"
+[System.Obsolete]
+class Class1<T> where T : Class2
+{
+}
+
+[System.Obsolete]
+class Class2
+{
+}
+
+class Class3<T> where T : Class2
+{
+    [System.Obsolete]
+    void M1<S>() where S : Class2
+    {}   
+
+    void M2<S>() where S : Class2
+    {}   
+}
+
+partial class Class4
+{
+    [System.Obsolete]
+    partial void M3<S>() where S : Class2;
+}
+
+partial class Class4
+{
+    partial void M4<S>() where S : Class2;
+}
+";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+    // (12,27): warning CS0612: 'Class2' is obsolete
+    // class Class3<T> where T : Class2
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Class2").WithArguments("Class2").WithLocation(12, 27),
+    // (18,28): warning CS0612: 'Class2' is obsolete
+    //     void M2<S>() where S : Class2
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Class2").WithArguments("Class2").WithLocation(18, 28),
+    // (30,36): warning CS0612: 'Class2' is obsolete
+    //     partial void M4<S>() where S : Class2;
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Class2").WithArguments("Class2").WithLocation(30, 36)
+                );
         }
     }
 }

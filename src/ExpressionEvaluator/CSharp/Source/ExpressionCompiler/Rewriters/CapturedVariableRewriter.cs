@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class CapturedVariableRewriter : BoundTreeRewriter
+    internal sealed class CapturedVariableRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         internal static BoundNode Rewrite(
             ParameterSymbol targetMethodThisParameter,
@@ -42,8 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override BoundNode VisitBlock(BoundBlock node)
         {
             var rewrittenLocals = node.Locals.WhereAsArray(local => local.IsCompilerGenerated || local.Name == null || this.GetVariable(local.Name) == null);
+            var rewrittenLocalFunctions = node.LocalFunctions;
             var rewrittenStatements = VisitList(node.Statements);
-            return node.Update(rewrittenLocals, rewrittenStatements);
+            return node.Update(rewrittenLocals, rewrittenLocalFunctions, rewrittenStatements);
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var conversion = _conversions.ClassifyImplicitConversionFromExpression(rewrittenParameter, baseType, ref unusedUseSiteDiagnostics);
             Debug.Assert(unusedUseSiteDiagnostics == null || !conversion.IsValid || unusedUseSiteDiagnostics.All(d => d.Severity < DiagnosticSeverity.Error));
 
-            // It would be nice if we could just call BoundConversion.Synthesized, but it doesn't seem worthwile to
+            // It would be nice if we could just call BoundConversion.Synthesized, but it doesn't seem worthwhile to
             // introduce a bunch of new overloads to accommodate isBaseConversion.
             return new BoundConversion(
                 syntax,
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (variable == null)
             {
                 var typeNameKind = GeneratedNames.GetKind(symbol.Type.Name);
-                if (typeNameKind != GeneratedNameKind.None && 
+                if (typeNameKind != GeneratedNameKind.None &&
                     typeNameKind != GeneratedNameKind.AnonymousType)
                 {
                     // The state machine case is for async lambdas.  The state machine

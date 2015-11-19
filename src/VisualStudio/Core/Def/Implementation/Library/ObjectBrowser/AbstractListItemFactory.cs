@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Roslyn.Utilities;
 
@@ -106,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return new TypeListItem(projectId, namedTypeSymbol, displayText, fullNameText, searchText, hidden);
         }
 
-        protected TypeListItem CreateFullyQualifedTypeListItem(INamedTypeSymbol namedTypeSymbol, ProjectId projectId, bool hidden)
+        protected TypeListItem CreateFullyQualifiedTypeListItem(INamedTypeSymbol namedTypeSymbol, ProjectId projectId, bool hidden)
         {
             var displayText = namedTypeSymbol.SpecialType.ToPredefinedType() != PredefinedType.None
                 ? namedTypeSymbol.ToDisplayString(s_predefinedTypeDisplay)
@@ -626,28 +627,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                         assemblyIdentitySet = new HashSet<AssemblyIdentity>();
                     }
 
-                    var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                    foreach (var reference in compilation.References)
+                    foreach (var reference in project.MetadataReferences)
                     {
-                        if (reference is CompilationReference)
+                        var portableExecutableReference = reference as PortableExecutableReference;
+                        if (portableExecutableReference != null)
                         {
-                            continue;
-                        }
+                            var assemblyIdentity = AssemblyIdentityUtils.TryGetAssemblyIdentity(portableExecutableReference.FilePath);
+                            if (assemblyIdentity != null && !assemblyIdentitySet.Contains(assemblyIdentity))
+                            {
+                                assemblyIdentitySet.Add(assemblyIdentity);
 
-                        var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                        if (assemblySymbol == null)
-                        {
-                            continue;
+                                var referenceListItem = new ReferenceListItem(projectId, assemblyIdentity.Name, reference);
+                                referenceListItemBuilder.Add(referenceListItem);
+                            }
                         }
-
-                        if (assemblyIdentitySet.Contains(assemblySymbol.Identity))
-                        {
-                            continue;
-                        }
-
-                        assemblyIdentitySet.Add(assemblySymbol.Identity);
-                        referenceListItemBuilder.Add(new ReferenceListItem(projectId, assemblySymbol.Name, reference));
                     }
                 }
             }
@@ -719,7 +712,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var types = GetAccessibleTypes(namespaceSymbol, compilation);
 
             var listItems = fullyQualified
-                ? CreateListItemsFromSymbols(types, compilation, projectId, CreateFullyQualifedTypeListItem)
+                ? CreateListItemsFromSymbols(types, compilation, projectId, CreateFullyQualifiedTypeListItem)
                 : CreateListItemsFromSymbols(types, compilation, projectId, CreateSimpleTypeListItem);
 
             if (searchString == null)

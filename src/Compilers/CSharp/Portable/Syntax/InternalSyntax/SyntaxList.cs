@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static SyntaxList List(ArrayElement<CSharpSyntaxNode>[] children)
         {
-            // "WithLotsOfChildren" list will alocate a separate array to hold
+            // "WithLotsOfChildren" list will allocate a separate array to hold
             // precomputed node offsets. It may not be worth it for smallish lists.
             if (children.Length < 10)
             {

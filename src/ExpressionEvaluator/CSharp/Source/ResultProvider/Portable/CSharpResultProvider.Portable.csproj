@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -19,6 +18,9 @@
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
+      <Link>Compiler\Parser\UnicodeCharacterUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Parser\CharacterInfo.cs">
       <Link>Compiler\Parser\CharacterInfo.cs</Link>
     </Compile>
@@ -52,8 +54,6 @@
   <Import Project="..\CSharpResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\Tools\Vsdconfig\Vsdconfig.targets" />
-    <Import Project="..\..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend NotOverridable Overrides Function GetReferencedAssemblies() As ImmutableArray(Of AssemblyIdentity)
             AssertReferencesInitialized()
-            Return _moduleReferences.Names
+            Return _moduleReferences.Identities
         End Function
 
         ''' <summary>

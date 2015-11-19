@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 default:
                     {
-                        Debug.Assert(false, "Unexpected cref syntax kind " + _crefSyntax.Kind());
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(_crefSyntax.Kind());
                     }
             }
             return map;
@@ -93,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PredefinedType:
                     break;
                 default:
-                    Debug.Assert(false, "Unexpected type syntax kind " + typeSyntax.Kind());
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(typeSyntax.Kind());
             }
         }
 

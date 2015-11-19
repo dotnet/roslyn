@@ -642,7 +642,7 @@ Public MustInherit Class WriteUtils
 
 
 
-    ' Generate and XML comment with the given description and remarks sections. If emtpy, the sections are ommitted.
+    ' Generate and XML comment with the given description and remarks sections. If empty, the sections are omitted.
     Protected Sub GenerateXmlComment(writer As TextWriter, descriptionText As String, remarksText As String, indent As Integer)
         GenerateXmlCommentPart(writer, descriptionText, "summary", indent)
         GenerateXmlCommentPart(writer, remarksText, "remarks", indent)

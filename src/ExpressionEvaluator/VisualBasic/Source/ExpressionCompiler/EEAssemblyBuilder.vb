@@ -33,7 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 outputKind:=OutputKind.DynamicallyLinkedLibrary,
                 serializationProperties:=serializationProperties,
                 manifestResources:=SpecializedCollections.EmptyEnumerable(Of ResourceDescription)(),
-                assemblySymbolMapper:=Nothing,
                 additionalTypes:=additionalTypes)
 
             _methods = methods

@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -62,6 +64,31 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     Assert.Equal(reader1.GetUserString(us), "");
                 }
             }
+        }
+
+        [Fact]
+        public void Delta_AssemblyDefTable()
+        {
+            var source0 = @"public class C { public static void F() { System.Console.WriteLine(1); } }";
+            var source1 = @"public class C { public static void F() { System.Console.WriteLine(2); } }";
+
+            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+
+            // AssemblyDef record is not emitted to delta since changes in assembly identity are not allowed:
+            Assert.True(md0.MetadataReader.IsAssembly);
+            Assert.False(diff1.GetMetadata().Reader.IsAssembly);
         }
 
         [Fact]
@@ -3241,13 +3268,13 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" document=""0"" />
-        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" document=""0"" />
-        <entry offset=""0xd"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x14"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x1c"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x23"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" />
+        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" />
+        <entry offset=""0xd"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" />
+        <entry offset=""0x14"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" />
+        <entry offset=""0x1c"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""14"" />
+        <entry offset=""0x23"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x24"">
         <local name=""z"" il_index=""3"" il_start=""0x0"" il_end=""0x24"" attributes=""0"" />
@@ -3295,12 +3322,12 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x8"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""19"" document=""0"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x1d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""19"" />
+        <entry offset=""0xe"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""14"" />
+        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" />
+        <entry offset=""0x1d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1e"">
         <local name=""x"" il_index=""5"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
@@ -3349,12 +3376,12 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x7"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""24"" document=""0"" />
-        <entry offset=""0xd"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x14"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x1b"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""24"" />
+        <entry offset=""0x7"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""24"" />
+        <entry offset=""0xd"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""14"" />
+        <entry offset=""0x14"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" />
+        <entry offset=""0x1b"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1c"">
         <local name=""c"" il_index=""2"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
@@ -3435,10 +3462,10 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" document=""0"" />
-        <entry offset=""0x3"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""30"" document=""0"" />
-        <entry offset=""0x9"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" />
+        <entry offset=""0x3"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""30"" />
+        <entry offset=""0x9"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xa"">
         <local name=""a"" il_index=""2"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
@@ -3881,7 +3908,7 @@ class C
 
             diff1.VerifySynthesizedMembers(
                 "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
-                        
+
             diff1.VerifyIL("C.F", @"
 {
   // Code size        9 (0x9)
@@ -3896,7 +3923,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md1 = diff1.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000002] 0x0000028b.0x00000298" }, DumpTypeRefs(md1.Reader));
+            AssertEx.Equal(new[] { "[0x23000002] 0x00000266.0x00000273" }, DumpTypeRefs(md1.Reader));
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -3919,7 +3946,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] 0x000002f9.0x00000306" }, DumpTypeRefs(md2.Reader));
+            AssertEx.Equal(new[] { "[0x23000003] 0x000002af.0x000002bc" }, DumpTypeRefs(md2.Reader));
         }
 
         [Fact]
@@ -4004,7 +4031,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] 0x0000032c.0x00000339" }, DumpTypeRefs(md2.Reader));
+            AssertEx.Equal(new[] { "[0x23000003] 0x000002e2.0x000002ef" }, DumpTypeRefs(md2.Reader));
         }
 
         private static IEnumerable<string> DumpTypeRefs(MetadataReader reader)
@@ -5197,16 +5224,15 @@ class C
                 "<>f__AnonymousType1<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}");
 
             diff1.VerifyLocalSignature("C.F", @"
-.locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
-              System.Collections.Generic.IEnumerable<string> V_1, //newArgs
-              <>f__AnonymousType5<dynamic, dynamic> V_2, //list
-              int V_3, //i
-              <>f__AnonymousType5<string, dynamic> V_4, //linked
-              object V_5, //str
-              <>f__AnonymousType5<string, dynamic> V_6,
-              object V_7,
-              int V_8,
-              bool V_9)
+  .locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
+                System.Collections.Generic.IEnumerable<string> V_1, //newArgs
+                <>f__AnonymousType5<dynamic, dynamic> V_2, //list
+                int V_3, //i
+                <>f__AnonymousType5<string, dynamic> V_4, //linked
+                object V_5, //str
+                <>f__AnonymousType5<string, dynamic> V_6,
+                object V_7,
+                bool V_8)
 ");
         }
 
@@ -5504,34 +5530,30 @@ class C
 
             diff1.VerifyIL("C.M", @"
 {
-  // Code size       40 (0x28)
+  // Code size       32 (0x20)
   .maxstack  3
   .locals init (C V_0, //c
-                [unchanged] V_1,
+                [int] V_1,
                 [int] V_2,
-                [int] V_3,
-                C V_4,
-                int V_5,
-                int V_6)
+                int V_3,
+                int V_4)
   IL_0000:  nop
   IL_0001:  newobj     ""C..ctor()""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  stloc.s    V_4
-  IL_000a:  ldloc.s    V_4
-  IL_000c:  callvirt   ""int C.P.get""
-  IL_0011:  stloc.s    V_5
-  IL_0013:  ldloc.s    V_4
-  IL_0015:  ldloc.s    V_5
-  IL_0017:  ldc.i4.1
-  IL_0018:  add
-  IL_0019:  callvirt   ""void C.P.set""
-  IL_001e:  nop
-  IL_001f:  ldloc.s    V_5
-  IL_0021:  stloc.s    V_6
-  IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.s    V_6
-  IL_0027:  ret
+  IL_0008:  dup
+  IL_0009:  callvirt   ""int C.P.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  ldc.i4.1
+  IL_0011:  add
+  IL_0012:  callvirt   ""void C.P.set""
+  IL_0017:  nop
+  IL_0018:  ldloc.3
+  IL_0019:  stloc.s    V_4
+  IL_001b:  br.s       IL_001d
+  IL_001d:  ldloc.s    V_4
+  IL_001f:  ret
 }");
         }
 

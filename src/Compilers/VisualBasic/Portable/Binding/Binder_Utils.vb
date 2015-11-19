@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, arrayModifier, ERRID.ERR_ArrayRankLimit)
                 End If
 
-                currentType = New ArrayTypeSymbol(currentType, Nothing, arrayModifier.Rank, Compilation)
+                currentType = ArrayTypeSymbol.CreateVBArray(currentType, Nothing, arrayModifier.Rank, Compilation)
             Next
 
             Return currentType
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, arrayBoundsOpt, ERRID.ERR_ArrayRankLimit)
                 End If
 
-                currentType = New ArrayTypeSymbol(currentType, Nothing, rank, Compilation)
+                currentType = ArrayTypeSymbol.CreateVBArray(currentType, Nothing, rank, Compilation)
             End If
 
             Return currentType
@@ -1021,7 +1021,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ElseIf (flags And SourceParameterFlags.Optional) <> SourceParameterFlags.Optional AndAlso
                         Not reportedError Then
 
-                        ' If one of the previous parameters is optional then then report an error if this one isn't optional.
+                        ' If one of the previous parameters is optional then report an error if this one isn't optional.
                         ReportDiagnostic(diagBag, paramSyntax.Identifier.Identifier, ERRID.ERR_ExpectedOptional)
                         reportedError = True
 
@@ -1171,7 +1171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Don't allow Overridable, etc. on NotInheritable.
             If container.IsNotInheritable Then
                 If (flags And SourceMemberFlags.InvalidInNotInheritableClass) <> 0 Then
-                    ' Somewhat strangly, the old VB compiler has different behavior depending on whether the containing type DECLARATION
+                    ' Somewhat strangely, the old VB compiler has different behavior depending on whether the containing type DECLARATION
                     ' has NotInheritable, vs. any partial has NotInheritable (although they are semantically the same). If the containing declaration
                     ' does not have NotInheritable, then only MustOverride has an error reported for it, and the error has a different code.
 
@@ -1395,7 +1395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(operandType IsNot Nothing)
 
             If conversionType.IsObjectType Then
-                ' Nothing constants of reference type can always be cobnverted to System.Object
+                ' Nothing constants of reference type can always be converted to System.Object
                 If operandType.IsReferenceType AndAlso nestedConstValue.IsNothing Then
                     Return nestedConstValue
                 End If
@@ -1457,7 +1457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' It is OK to convert Nothing literal of one reference type to another 
-            ' reference type or (only in default parameter valus context) Nothing 
+            ' reference type or (only in default parameter value context) Nothing 
             ' literal of reference type to a value type,
             ' if the conversion is not correct, errors should have been reported by now
             If operandType.IsReferenceType AndAlso

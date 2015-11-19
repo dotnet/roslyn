@@ -3,9 +3,10 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -13,7 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 {
     public class ReferenceDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        public ReferenceDirectiveCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new ReferenceDirectiveCompletionProvider();
         }
@@ -40,18 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             foreach (var ex in expected)
             {
                 VerifyItemExists(code, ex, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-                VerifyItemExists(code, ex, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive);
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsCommitCharacterTest()
         {
             var commitCharacters = new[] { '"', '\\', ',' };
-            TestCommitCharacters(commitCharacters);
+            VerifyCommitCharacters("#r \"$$", textTypedSoFar: "", validChars: commitCharacters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsTextualTriggerCharacterTest()
         {
             var validMarkupList = new[]
@@ -79,14 +83,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("System", "System", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("System", "System", sendThroughEnterEnabled: true, expected: false);
+            VerifySendEnterThroughToEnter("#r \"System$$", "System", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("#r \"System$$", "System", sendThroughEnterEnabled: true, expected: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void RootDrives()
         {
             // ensure drives are listed without the trailing backslash
@@ -96,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
                 drive);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void RelativeDirectories()
         {
             VerifyItemsExistInScriptAndInteractive(
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
                 "..");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void GACReference()
         {
             VerifyItemsExistInScriptAndInteractive(
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
                 "System.Windows.Forms");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void GACReferenceFullyQualified()
         {
             VerifyItemsExistInScriptAndInteractive(
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
                 "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FileSystemReference()
         {
             string systemDir = Path.GetFullPath(Environment.SystemDirectory);

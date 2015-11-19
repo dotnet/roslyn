@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (syntaxFactsService.IsTypeNamedVarInVariableOrFieldDeclaration(triggerToken, triggerToken.Parent))
             {
-                // To check if va in this context is a real type, or the keyword, we need to 
+                // To check if var in this context is a real type, or the keyword, we need to 
                 // speculatively bind the identifier "var". If it returns a symbol, it's a real type,
                 // if not, it's the keyword.
                 // see bugs 659683 (compiler API) and 659705 (rename/workspace api) for examples
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var symbol = RenameLocationSet.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             if (symbol == null)
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
@@ -140,8 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                   symbol.ContainingType.IsDelegateType() &&
                   symbol.ContainingType.AssociatedSymbol != null))
             {
-                // We enable the parameter in Raisevent, if the Event is declared with a signature. If the Event is declared as a 
-                // delegate type, we do not have a connection beween the delegate type and the event.
+                // We enable the parameter in RaiseEvent, if the Event is declared with a signature. If the Event is declared as a 
+                // delegate type, we do not have a connection between the delegate type and the event.
                 // this prevents a rename in this case :(.
                 return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
             }

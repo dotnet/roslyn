@@ -290,7 +290,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Return Nothing
                 End If
                 Dim otherModifiers = VisitCustomModifiers(symbol.CustomModifiers)
-                Return New ArrayTypeSymbol(otherElementType, otherModifiers, symbol.Rank, Me._otherAssembly)
+
+                If symbol.IsSZArray Then
+                    Return ArrayTypeSymbol.CreateSZArray(otherElementType, otherModifiers, Me._otherAssembly)
+                End If
+
+                Return ArrayTypeSymbol.CreateMDArray(otherElementType, otherModifiers, symbol.Rank, symbol.Sizes, symbol.LowerBounds, Me._otherAssembly)
             End Function
 
             Public Overrides Function VisitEvent(symbol As EventSymbol) As Symbol
@@ -333,7 +338,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Overrides Function VisitNamedType(type As NamedTypeSymbol) As Symbol
                 Dim originalDef As NamedTypeSymbol = type.OriginalDefinition
                 If originalDef IsNot type Then
-                    Dim typeArguments = type.GetAllTypeArguments
                     Dim otherDef As NamedTypeSymbol = DirectCast(Me.Visit(originalDef), NamedTypeSymbol)
 
                     ' For anonymous delegates the rewriter generates a _ClosureCache$_N field
@@ -344,9 +348,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     End If
 
                     Dim otherTypeParameters As ImmutableArray(Of TypeParameterSymbol) = otherDef.GetAllTypeParameters()
-                    Dim otherTypeArguments As ImmutableArray(Of TypeSymbol) = typeArguments.SelectAsArray(Function(t, v) DirectCast(v.Visit(t), TypeSymbol), Me)
-                    If otherTypeArguments.Any(Function(t) t Is Nothing) Then
-                        ' For a newly added type, there is no match in the previous generation, so it could be Nothing.
+                    Dim translationFailed As Boolean = False
+                    Dim otherTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(Function(t, v)
+                                                                                                       Dim newType = DirectCast(v.Visit(t.Type), TypeSymbol)
+                                                                                                       If newType Is Nothing Then
+                                                                                                           ' For a newly added type, there is no match in the previous generation, so it could be Nothing.
+                                                                                                           translationFailed = True
+                                                                                                           newType = t.Type
+                                                                                                       End If
+
+                                                                                                       Return New TypeWithModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers))
+                                                                                                   End Function, Me)
+                    If translationFailed Then
+                        ' There is no match in the previous generation.
                         Return Nothing
                     End If
 
@@ -473,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Private Function AreArrayTypesEqual(type As ArrayTypeSymbol, other As ArrayTypeSymbol) As Boolean
                 Debug.Assert(type.CustomModifiers.IsEmpty)
                 Debug.Assert(other.CustomModifiers.IsEmpty)
-                Return type.Rank = other.Rank AndAlso Me.AreTypesEqual(type.ElementType, other.ElementType)
+                Return type.HasSameShapeAs(other) AndAlso Me.AreTypesEqual(type.ElementType, other.ElementType)
             End Function
 
             Private Function AreEventsEqual([event] As EventSymbol, other As EventSymbol) As Boolean
@@ -512,6 +526,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function AreNamedTypesEqual(type As NamedTypeSymbol, other As NamedTypeSymbol) As Boolean
                 Debug.Assert(s_nameComparer.Equals(type.Name, other.Name))
+                Debug.Assert(Not type.HasTypeArgumentsCustomModifiers)
+                Debug.Assert(Not other.HasTypeArgumentsCustomModifiers)
                 Return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AddressOf Me.AreTypesEqual)
             End Function
 
@@ -620,13 +636,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Public Overrides Function VisitArrayType(symbol As ArrayTypeSymbol) As Symbol
                 Dim translatedElementType As TypeSymbol = DirectCast(Me.Visit(symbol.ElementType), TypeSymbol)
                 Dim translatedModifiers = VisitCustomModifiers(symbol.CustomModifiers)
-                Return New ArrayTypeSymbol(translatedElementType, translatedModifiers, symbol.Rank, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
+
+                If symbol.IsSZArray Then
+                    Return ArrayTypeSymbol.CreateSZArray(translatedElementType, translatedModifiers, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
+                End If
+
+                Return ArrayTypeSymbol.CreateMDArray(translatedElementType, translatedModifiers, symbol.Rank, symbol.Sizes, symbol.LowerBounds, symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly)
             End Function
 
             Public Overrides Function VisitNamedType(type As NamedTypeSymbol) As Symbol
                 Dim originalDef As NamedTypeSymbol = type.OriginalDefinition
                 If originalDef IsNot type Then
-                    Dim translatedTypeArguments = type.GetAllTypeArguments.SelectAsArray(Function(t, v) DirectCast(v.Visit(t), TypeSymbol), Me)
+                    Dim translatedTypeArguments = type.GetAllTypeArgumentsWithModifiers().SelectAsArray(Function(t, v) New TypeWithModifiers(DirectCast(v.Visit(t.Type), TypeSymbol),
+                                                                                                                                             v.VisitCustomModifiers(t.CustomModifiers)), Me)
 
                     Dim translatedOriginalDef = DirectCast(Me.Visit(originalDef), NamedTypeSymbol)
                     Dim typeMap = TypeSubstitution.Create(translatedOriginalDef, translatedOriginalDef.GetAllTypeParameters(), translatedTypeArguments, False)

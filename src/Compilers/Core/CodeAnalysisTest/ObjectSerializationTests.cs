@@ -552,9 +552,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripGraphCore(new Node("a", new Node("b"), new Node("c")));
             TestRoundTripGraphCore(new Node("x", oneNode, oneNode, oneNode, oneNode));
 #if false  // cycles not supported
-            var cylicNode = new Node("cyclic", oneNode);
-            cylicNode.Children[0] = cylicNode;
-            TestRoundTripGraph(cylicNode);
+            var cyclicNode = new Node("cyclic", oneNode);
+            cyclicNode.Children[0] = cyclicNode;
+            TestRoundTripGraph(cyclicNode);
 #endif
         }
 

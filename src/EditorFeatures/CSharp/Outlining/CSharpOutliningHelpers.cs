@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
 
             if (firstToken.HasTrailingTrivia)
             {
-                var lastTrailingCommentTrivia = firstToken.TrailingTrivia.GetLastComment();
-                if (lastTrailingCommentTrivia != null)
+                var lastTrailingCommentOrWhitespaceTrivia = firstToken.TrailingTrivia.GetLastCommentOrWhitespace();
+                if (lastTrailingCommentOrWhitespaceTrivia != null)
                 {
-                    start = lastTrailingCommentTrivia.Value.Span.End;
+                    start = lastTrailingCommentOrWhitespaceTrivia.Value.Span.End;
                 }
             }
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             var triviaList = node.GetLeadingTrivia();

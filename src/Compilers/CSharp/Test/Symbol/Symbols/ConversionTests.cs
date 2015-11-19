@@ -240,41 +240,41 @@ class X {
             string s = f7Type.ToTestDisplayString();
 
             Assert.False(f1Type.Equals(f2Type));
-            Assert.True(f1Type.Equals(f2Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f2Type.Equals(f1Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f1Type.Equals(f1Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f2Type.Equals(f2Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.True(f1Type.Equals(f2Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f2Type.Equals(f1Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f1Type.Equals(f1Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f2Type.Equals(f2Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
 
             Assert.False(f3Type.Equals(f4Type));
-            Assert.True(f3Type.Equals(f4Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f4Type.Equals(f3Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.False(f4Type.Equals(f5Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.False(f5Type.Equals(f4Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.True(f3Type.Equals(f4Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f4Type.Equals(f3Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.False(f4Type.Equals(f5Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.False(f5Type.Equals(f4Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
 
             Assert.False(f6Type.Equals(f7Type));
             Assert.False(f6Type.Equals(f8Type));
             Assert.False(f7Type.Equals(f8Type));
-            Assert.True(f6Type.Equals(f7Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f7Type.Equals(f6Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f6Type.Equals(f6Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f7Type.Equals(f7Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f8Type.Equals(f7Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f7Type.Equals(f8Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f8Type.Equals(f8Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f7Type.Equals(f7Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f8Type.Equals(f6Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f6Type.Equals(f8Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f8Type.Equals(f8Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f6Type.Equals(f6Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.True(f6Type.Equals(f7Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f7Type.Equals(f6Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f6Type.Equals(f6Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f7Type.Equals(f7Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f8Type.Equals(f7Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f7Type.Equals(f8Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f8Type.Equals(f8Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f7Type.Equals(f7Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f8Type.Equals(f6Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f6Type.Equals(f8Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f8Type.Equals(f8Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f6Type.Equals(f6Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
 
-            Assert.False(f9Type.Equals(f10Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.False(f10Type.Equals(f9Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.False(f9Type.Equals(f10Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.False(f10Type.Equals(f9Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
 
             Assert.False(g1Type.Equals(g2Type));
-            Assert.True(g1Type.Equals(g2Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(g2Type.Equals(g1Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(g1Type.Equals(g1Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(g2Type.Equals(g2Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.True(g1Type.Equals(g2Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(g2Type.Equals(g1Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(g1Type.Equals(g1Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(g2Type.Equals(g2Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
         }
 
         /// <summary>
@@ -306,7 +306,7 @@ class C
             var interfaceI3 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I3");
             var typeIntArrayWithCustomModifiers = interfaceI3.GetMember<MethodSymbol>("M1").Parameters.Single().Type;
 
-            Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers());
+            Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:false));
 
             var conv = new BuckStopsHereBinder(compilation).Conversions;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;

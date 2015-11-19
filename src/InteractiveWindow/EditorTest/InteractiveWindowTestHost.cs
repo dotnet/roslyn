@@ -3,43 +3,34 @@
 using System;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Windows.Threading;
-using Microsoft.VisualStudio.Language.Intellisense.Utilities;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
-    public class InteractiveWindowTestHost : IDisposable
+    public sealed class InteractiveWindowTestHost : IDisposable
     {
-        private readonly IInteractiveWindow _window;
-        private readonly CompositionContainer _exportProvider;
+        internal readonly IInteractiveWindow Window;
+        internal readonly CompositionContainer ExportProvider;
+        internal readonly TestInteractiveEngine Evaluator;
 
-        public InteractiveWindowTestHost()
+        private static readonly Lazy<AggregateCatalog> _lazyCatalog = new Lazy<AggregateCatalog>(() =>
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
-
             var types = new[] { typeof(TestInteractiveEngine), typeof(InteractiveWindow) }.Concat(GetVisualStudioTypes());
-            _exportProvider = new CompositionContainer(
-                new AggregateCatalog(types.Select(t => new AssemblyCatalog(t.Assembly))),
+            return new AggregateCatalog(types.Select(t => new AssemblyCatalog(t.Assembly)));
+        });
+
+        internal InteractiveWindowTestHost(Action<InteractiveWindow.State> stateChangedHandler = null)
+        {
+            ExportProvider = new CompositionContainer(
+                _lazyCatalog.Value,
                 CompositionOptions.DisableSilentRejection | CompositionOptions.IsThreadSafe);
 
-            var contentTypeRegistryService = _exportProvider.GetExport<IContentTypeRegistryService>().Value;
-            _window = _exportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(new TestInteractiveEngine(contentTypeRegistryService));
-
-            _window.InitializeAsync().PumpingWait();
-        }
-
-        public CompositionContainer ExportProvider
-        {
-            get
-            {
-                return _exportProvider;
-            }
+            var contentTypeRegistryService = ExportProvider.GetExport<IContentTypeRegistryService>().Value;
+            Evaluator = new TestInteractiveEngine(contentTypeRegistryService);
+            Window = ExportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(Evaluator);
+            ((InteractiveWindow)Window).StateChanged += stateChangedHandler;
+            Window.InitializeAsync().Wait();
         }
 
         public static Type[] GetVisualStudioTypes()
@@ -75,27 +66,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             return types;
         }
 
-        internal IInteractiveWindow Window
-        {
-            get
-            {
-                return _window;
-            }
-        }
-
         public void Dispose()
         {
-            if (_window != null)
+            if (Window != null)
             {
                 // close interactive host process:
-                var engine = _window.Evaluator;
+                var engine = Window.Evaluator;
                 if (engine != null)
                 {
                     engine.Dispose();
                 }
 
                 // dispose buffer:
-                _window.Dispose();
+                Window.Dispose();
             }
         }
     }

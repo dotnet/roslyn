@@ -2662,7 +2662,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void TestGenerateMethodInDictionaryInitilizer()
+        public void TestGenerateMethodInDictionaryInitializer()
         {
             Test(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ [|key|] ( ) ] = 0 } ; } } ",
@@ -2670,7 +2670,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void TestGenerateMethodInDictionaryInitilizer2()
+        public void TestGenerateMethodInDictionaryInitializer2()
         {
             Test(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ [|One|] ( ) ] = 1 , [ ""Two"" ] = 2 } ; } } ",
@@ -2678,7 +2678,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void TestGenerateMethodInDictionaryInitilizer3()
+        public void TestGenerateMethodInDictionaryInitializer3()
         {
             Test(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = [|i|] ( ) } ; } } ",
@@ -2728,6 +2728,57 @@ namespace ConsoleApplication1
             Test(
 @"class C { void M() { var x = new System.Collections.Generic.Dictionary<int, bool> { { 1, [|T|]() } }; } } ",
 @"using System ; class C { void M() { var x = new System.Collections.Generic.Dictionary<int, bool> { { 1, T() } }; } private bool T() { throw new NotImplementedException(); } } ");
+        }
+
+        [WorkItem(774321)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateMethodEquivalenceKey()
+        {
+            TestEquivalenceKey(
+@"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
+string.Format(FeaturesResources.GenerateMethodIn, "M1", "C"));
+        }
+
+        [WorkItem(5338, "https://github.com/dotnet/roslyn/issues/5338")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateMethodLambdaOverload1()
+        {
+            Test(
+@"using System;
+using System.Collections.Concurrent;
+
+class JToken { }
+
+class Class1
+{
+    private static readonly ConcurrentDictionary<Type, Func<JToken, object>> _deserializeHelpers =
+        new ConcurrentDictionary<Type, Func<JToken, object>>();
+
+    private static object DeserializeObject(JToken token, Type type)
+    {
+        _deserializeHelpers.GetOrAdd(type, key => [|CreateDeserializeDelegate|](key));
+    }
+}",
+@"using System;
+using System.Collections.Concurrent;
+
+class JToken { }
+
+class Class1
+{
+    private static readonly ConcurrentDictionary<Type, Func<JToken, object>> _deserializeHelpers =
+        new ConcurrentDictionary<Type, Func<JToken, object>>();
+
+    private static object DeserializeObject(JToken token, Type type)
+    {
+        _deserializeHelpers.GetOrAdd(type, key => CreateDeserializeDelegate(key));
+    }
+
+    private static Func<JToken, object> CreateDeserializeDelegate(JToken key)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
 
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
@@ -2810,7 +2861,7 @@ namespace ConsoleApplication1
             }
 
             [WorkItem(774321)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact(Skip = "xunit2"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
             public void TestEquivalenceKey()
             {
                 TestEquivalenceKey(

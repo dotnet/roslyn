@@ -289,15 +289,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                     If CanGet(2) Then
                                         Select Case (Peek(2))
                                             Case "-"c
-                                                If NextIs(3,"-"c) Then
+                                                If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If NextAre(3,"CDATA[") Then
+                                                If NextAre(3, "CDATA[") Then
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If  NextAre(3,"OCTYPE") Then
+                                                If NextAre(3, "OCTYPE") Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select
@@ -396,7 +396,7 @@ ScanChars:
                         GoTo CleanUp
 
                     Case "?"c
-                        If NextIs(Here + 1,">"c) Then
+                        If NextIs(Here + 1, ">"c) Then
 
                             '// If valid characters found then return them.
                             If Here <> 0 Then
@@ -488,7 +488,7 @@ CleanUp:
                         End If
 
                     Case "/"c
-                        If NextIs(1,">"c) Then
+                        If NextIs(1, ">"c) Then
                             Return XmlMakeEndEmptyElementToken(precedingTrivia)
                         End If
                         Return XmlMakeDivToken(precedingTrivia)
@@ -513,15 +513,15 @@ CleanUp:
                                     If CanGet(2) Then
                                         Select Case (Peek(2))
                                             Case "-"c
-                                                If NextIs(3,"-"c) Then
+                                                If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If NextAre(3,"CDATA[") Then
+                                                If NextAre(3, "CDATA[") Then
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If NextAre(3,"OCTYPE") Then
+                                                If NextAre(3, "OCTYPE") Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select

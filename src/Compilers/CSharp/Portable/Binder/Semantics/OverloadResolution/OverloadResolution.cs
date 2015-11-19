@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // UNDONE: This List<MethodResolutionResult> deal should probably be its own datastructure.
+        // UNDONE: This List<MethodResolutionResult> deal should probably be its own data structure.
         // We need an indexable collection of mappings from method candidates to their up-to-date
         // overload resolution status. It must be fast and memory efficient, but it will very often
         // contain just 1 candidate.      
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we need to confirm the "arrayness" on the original definition because
             // it's possible that the type becomes an array as a result of substitution.
             ParameterSymbol final = member.GetParameters().Last();
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsArray();
+            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
@@ -1034,6 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (better == BetterResult.Right)
                         {
                             worse[c1Idx] = worseThanSomething;
+                            break;
                         }
                     }
                 }
@@ -1044,15 +1045,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // See we have a winner, otherwise we might need to perform additional analysis
+            // in order to improve diagnostics
+            bool haveBestCandidate = false;
+            int countOfNotBestCandidates = 0;
+            int notBestIdx = -1;
             for (int i = 0; i < worse.Count; ++i)
             {
                 Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
-                if (worse[i] == worseThanSomething || worse[i] == notBetterThanEverything)
+                if (worse[i] == betterThanEverything)
                 {
-                    // UNDONE: We can do a better job of error reporting if we make a new analysis result for 
-                    // UNDONE: "NotBetterThanEverything". That way if we have two candidates that are not better
-                    // UNDONE: than everything then we can report them as the ambiguous ones.
-                    results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                    haveBestCandidate = true;
+                    break;
+                }
+                else if (worse[i] == notBetterThanEverything)
+                {
+                    countOfNotBestCandidates++;
+                    notBestIdx = i;
+                }
+            }
+
+            Debug.Assert(countOfNotBestCandidates == 0 || !haveBestCandidate);
+
+            if (haveBestCandidate || countOfNotBestCandidates == 0)
+            {
+                for (int i = 0; i < worse.Count; ++i)
+                {
+                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    if (worse[i] == worseThanSomething || worse[i] == notBetterThanEverything)
+                    {
+                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                    }
+                }
+            }
+            else if (countOfNotBestCandidates == 1)
+            {
+                for (int i = 0; i < worse.Count; ++i)
+                {
+                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    if (worse[i] == worseThanSomething)
+                    {
+                        // Mark those candidates, that are worse than the single notBest candidate, as Worst in order to improve error reporting.
+                        var analysisResult = BetterFunctionMember(results[notBestIdx], results[i], arguments.Arguments, ref useSiteDiagnostics) == BetterResult.Left ?
+                                                MemberAnalysisResult.Worst() :
+                                                MemberAnalysisResult.Worse();
+                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, analysisResult);
+                    }
+                    else
+                    {
+                        Debug.Assert(worse[i] != notBetterThanEverything || i == notBestIdx);
+                    }
+                }
+
+                Debug.Assert(worse[notBestIdx] == notBetterThanEverything);
+                results[notBestIdx] = new MemberResolutionResult<TMember>(results[notBestIdx].Member, results[notBestIdx].LeastOverriddenMember, MemberAnalysisResult.Worse());
+            }
+            else
+            {
+                Debug.Assert(countOfNotBestCandidates > 1);
+
+                for (int i = 0; i < worse.Count; ++i)
+                {
+                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    if (worse[i] == worseThanSomething)
+                    {
+                        // Mark those candidates, that are worse than something, as Worst in order to improve error reporting.
+                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worst());
+                    }
+                    else if (worse[i] == notBetterThanEverything)
+                    {
+                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                    }
                 }
             }
 
@@ -1074,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKind = parameter.RefKind;
 
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && parameter.Type.TypeKind == TypeKind.Array)
+                parameter.IsParams && parameter.Type.IsSZArray())
             {
                 return ((ArrayTypeSymbol)parameter.Type).ElementType;
             }
@@ -1189,6 +1252,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                 {
+                    // If considerRefKinds is false, conversion between parameter types isn't classified by the if condition.
+                    // This assert is here to verify the assumption that the conversion is never an identity in that case and
+                    // we can skip classification as an optimization.
                     Debug.Assert(considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
                     allSame = false;
                 }
@@ -1209,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // is better in one place. We know we can bail out at this point; neither is
                     // going to be better than the other.
 
-                    // But first, let's see we we can ignore the ambiguity due to an undocumented legacy behavior of the compiler.
+                    // But first, let's see if we can ignore the ambiguity due to an undocumented legacy behavior of the compiler.
                     // This is not part of the language spec.
                     if (okToDowngradeResultToNeither)
                     {
@@ -1300,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC VIOLATION: When checking for matching parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN},
-            //                 native compiler includes types of optinal parameters. We partially duplicate this behavior
+            //                 native compiler includes types of optional parameters. We partially duplicate this behavior
             //                 here by comparing the number of parameters used taking params expansion and 
             //                 optional parameters into account.
             if (!allSame || m1ParametersUsedIncludingExpansionAndOptional != m2ParametersUsedIncludingExpansionAndOptional)
@@ -1416,8 +1482,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Otherwise, if MP has more specific parameter types than MQ, then MP is better than
             // MQ. Let {R1, R2, …, RN} and {S1, S2, …, SN} represent the uninstantiated and
-            // unexpanded parameter types of MP and MQ. MP’s parameter types are more specific than
-            // MQ’s if, for each parameter, RX is not less specific than SX, and, for at least one
+            // unexpanded parameter types of MP and MQ. MP's parameter types are more specific than
+            // MQ's if, for each parameter, RX is not less specific than SX, and, for at least one
             // parameter, RX is more specific than SX
 
             // NB: OriginalDefinition, not ConstructedFrom.  Substitutions into containing symbols
@@ -1485,8 +1551,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arguments.Count < declaredParameterCount)
                 {
-                    // params parameter isn't used (see ExpressionBinder::TryGetExpandedParams in the native compiler)
-                    parametersUsedIncludingExpansionAndOptional = declaredParameterCount - 1;
+                    ImmutableArray<int> argsToParamsOpt = m.Result.ArgsToParamsOpt;
+
+                    if (argsToParamsOpt.IsDefaultOrEmpty || !argsToParamsOpt.Contains(declaredParameterCount - 1))
+                    {
+                        // params parameter isn't used (see ExpressionBinder::TryGetExpandedParams in the native compiler)
+                        parametersUsedIncludingExpansionAndOptional = declaredParameterCount - 1;
+                    }
+                    else
+                    {
+                        // params parameter is used by a named argument
+                        parametersUsedIncludingExpansionAndOptional = declaredParameterCount;
+                    }
                 }
                 else
                 {
@@ -1565,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We should not have gotten here unless there were identity conversions
                 // between the two types.
-                Debug.Assert(arr1.Rank == arr2.Rank);
+                Debug.Assert(arr1.HasSameShapeAs(arr2));
 
                 return MoreSpecificType(arr1.ElementType, arr2.ElementType, ref useSiteDiagnostics);
             }
@@ -1847,9 +1923,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _returns = returns;
             }
 
-            public override BoundNode VisitLambda(BoundLambda node)
+            public override BoundNode Visit(BoundNode node)
             {
-                // Do not recurse into nested lambdas; we don't want their returns.
+                if (!(node is BoundExpression))
+                {
+                    return base.Visit(node);
+                }
+
+                return null;
+            }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                // Do not recurse into nested local functions; we don't want their returns.
                 return null;
             }
 
@@ -2450,7 +2541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   is elided, along with the corresponding arguments(s).
 
                     // We don't need to check constraints of types of the non-elided parameters since they 
-                    // have no effect on aplicability of this candidate.
+                    // have no effect on applicability of this candidate.
                     ignoreOpenTypes = true;
                     effectiveParameters = constructedEffectiveParameters;
                 }
@@ -2518,10 +2609,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // using the generic parameters of "method", so we can now substitute these type parameters 
                     // in the constructed effective parameters.
 
-                    var map = new TypeMap(method.TypeParameters, typeArguments, allowAlpha: true);
+                    var map = new TypeMap(method.TypeParameters, typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers), allowAlpha: true);
 
                     effectiveParameters = new EffectiveParameters(
-                        map.SubstituteTypes(constructedEffectiveParameters.ParameterTypes),
+                        map.SubstituteTypesWithoutModifiers(constructedEffectiveParameters.ParameterTypes),
                         constructedEffectiveParameters.ParameterRefKinds);
 
                     ignoreOpenTypes = false;

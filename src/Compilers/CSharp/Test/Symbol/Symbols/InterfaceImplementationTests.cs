@@ -1125,7 +1125,7 @@ class Class : ContainsStatic
             comp.VerifyDiagnostics();
         }
         [Fact]
-        public void MultilevelPropertyImplementation()
+        public void MultiLevelPropertyImplementation()
         {
             var text = @"
 interface I1
@@ -1799,7 +1799,7 @@ class C : object, B.I<string>
 {
 }
 ";
-            CompileWithCustomILSource(csharpSource, ilSource, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource);
         }
 
         [WorkItem(528913, "DevDiv")]

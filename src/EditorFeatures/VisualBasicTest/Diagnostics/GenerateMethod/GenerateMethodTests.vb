@@ -91,7 +91,7 @@ NewLines("Imports System \n Class C \n Sub M(i As Integer) \n Foo(NextMethod) \n
         End Sub
 
         <Fact(Skip:="528229"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestAddresOf1()
+        Public Sub TestAddressOf1()
             Test(
 NewLines("Class C \n Sub M(i As Integer) \n [|Foo|](AddressOf NextMethod) \n End Sub \n Function NextMethod(i As Integer) As String \n End Function \n End Class"),
 NewLines("Imports System \n Class C \n Sub M(i As Integer) \n Foo(AddressOf NextMethod) \n End Sub \n Private Sub Foo(nextMethod As Global.System.Func(Of Integer, String)) \n Throw New NotImplementedException() \n End Sub \n Function NextMethod(i As Integer) As String \n End Function \n End Class"))
@@ -812,7 +812,7 @@ NewLines("Imports System \n Class C \n Friend Shared Sub Bar() \n Throw New NotI
 
         <WorkItem(546037)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestOmmittedArguments1()
+        Public Sub TestOmittedArguments1()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n [|foo|](,,) \n End Sub \n End Module"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(,,) \n End Sub \n Private Sub foo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional p3 As Object = Nothing) \n Throw New NotImplementedException() \n End Sub \n End Module"))
@@ -820,7 +820,7 @@ NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(
 
         <WorkItem(546037)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestOmmittedArguments2()
+        Public Sub TestOmittedArguments2()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n [|foo|](1,,) \n End Sub \n End Module"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(1,,) \n End Sub \n Private Sub foo(v As Integer, Optional p1 As Object = Nothing, Optional p2 As Object = Nothing) \n Throw New NotImplementedException() \n End Sub \n End Module"))
@@ -828,7 +828,7 @@ NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(
 
         <WorkItem(546037)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestOmmittedArguments3()
+        Public Sub TestOmittedArguments3()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n [|foo|](,1,) \n End Sub \n End Module"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(,1,) \n End Sub \n Private Sub foo(Optional p1 As Object = Nothing, Optional v As Integer = Nothing, Optional p2 As Object = Nothing) \n Throw New NotImplementedException() \n End Sub \n End Module"))
@@ -836,7 +836,7 @@ NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(
 
         <WorkItem(546037)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestOmmittedArguments4()
+        Public Sub TestOmittedArguments4()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n [|foo|](,,1) \n End Sub \n End Module"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(,,1) \n End Sub \n Private Sub foo(Optional p1 As Object = Nothing, Optional p2 As Object = Nothing, Optional v As Integer = Nothing) \n Throw New NotImplementedException() \n End Sub \n End Module"))
@@ -844,7 +844,7 @@ NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(
 
         <WorkItem(546037)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestOmmittedArguments5()
+        Public Sub TestOmittedArguments5()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n [|foo|](1,, 1) \n End Sub \n End Module"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(1,, 1) \n End Sub \n Private Sub foo(v1 As Integer, Optional p As Object = Nothing, Optional v2 As Integer = Nothing) \n Throw New NotImplementedException() \n End Sub \n End Module"))
@@ -852,7 +852,7 @@ NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(
 
         <WorkItem(546037)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestOmmittedArguments6()
+        Public Sub TestOmittedArguments6()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n [|foo|](1, 1, ) \n End Sub \n End Module"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n foo(1, 1, ) \n End Sub \n Private Sub foo(v1 As Integer, v2 As Integer, Optional p As Object = Nothing) \n Throw New NotImplementedException() \n End Sub \n End Module"))

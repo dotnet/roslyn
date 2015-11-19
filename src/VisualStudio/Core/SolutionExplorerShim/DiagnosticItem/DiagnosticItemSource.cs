@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     _specificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions;
 
                     _diagnosticItems = new BulkObservableCollection<DiagnosticItem>();
-                    _diagnosticItems.AddRange(GetDiagnosticItems(project.Language));
+                    _diagnosticItems.AddRange(GetDiagnosticItems(project.Language, project.CompilationOptions));
 
                     _workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
                 }
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private IEnumerable<DiagnosticItem> GetDiagnosticItems(string language)
+        private IEnumerable<DiagnosticItem> GetDiagnosticItems(string language, CompilationOptions options)
         {
             // Within an analyzer assembly, an individual analyzer may report multiple different diagnostics
             // with the same ID. Or, multiple analyzers may report diagnostics with the same ID. Or a
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 .Select(g =>
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
-                    var effectiveSeverity = GetEffectiveSeverity(selectedDiagnostic.Id, _specificDiagnosticOptions, _generalDiagnosticOption, selectedDiagnostic.DefaultSeverity, selectedDiagnostic.IsEnabledByDefault);
+                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options);
                     return new DiagnosticItem(_item, selectedDiagnostic, effectiveSeverity, _commandHandler.DiagnosticContextMenuController);
                 });
         }
@@ -132,18 +132,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                         foreach (var item in _diagnosticItems)
                         {
-                            item.UpdateEffectiveSeverity(GetEffectiveSeverity(item.Descriptor.Id, _specificDiagnosticOptions, _generalDiagnosticOption, item.Descriptor.DefaultSeverity, item.Descriptor.IsEnabledByDefault));
+                            var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions);
+                            item.UpdateEffectiveSeverity(effectiveSeverity);
                         }
                     }
                 }
             }
-        }
-
-        // If you update this method, also consider making updates to CSharpDiagnosticFilter.GetDiagnosticReport and
-        // VisualBasicDiagnosticFilter.GetDiagnosticReport.
-        internal static ReportDiagnostic GetEffectiveSeverity(string ruleId, IDictionary<string, ReportDiagnostic> specificOptions, ReportDiagnostic generalOption, DiagnosticSeverity defaultSeverity, bool enabledByDefault)
-        {
-            return AnalyzerHelper.GetEffectiveSeverity(generalOption, specificOptions, ruleId, defaultSeverity, enabledByDefault);
         }
     }
 }

@@ -123,12 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 // Remember the newly activated frame so it can be read from another thread.
                 _activeFrame = varValueNew as IVsWindowFrame;
-
-                var handler = this.ActiveDocumentChanged;
-                if (handler != null)
-                {
-                    handler(this, GetActiveDocument());
-                }
+                this.ActiveDocumentChanged?.Invoke(this, GetActiveDocument());
             }
 
             return VSConstants.S_OK;

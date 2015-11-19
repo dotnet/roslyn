@@ -998,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyVersionAttribute) Then
                 Dim verString = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
                 Dim version As Version = Nothing
-                If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=True, version:=version) Then
+                If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=Not _compilation.IsEmitDeterministic, version:=version) Then
                     arguments.Diagnostics.Add(ERRID.ERR_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
                 End If
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyVersionAttributeSetting = version
@@ -1162,8 +1162,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             emitExtensionAttribute = ThreeState.True
                         End If
                     End If
-
                 End If
+
+                Debug.Assert(_lazyEmitExtensionAttribute = ThreeState.Unknown OrElse
+                             _lazyEmitExtensionAttribute = emitExtensionAttribute)
+
+                _lazyEmitExtensionAttribute = emitExtensionAttribute
 
                 'strong name key settings are not validated when building netmodules.
                 'They are validated when the netmodule is added to an assembly.
@@ -1196,13 +1200,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ReportDiagnosticsForSynthesizedAttributes(DeclaringCompilation, diagnostics)
-
                 ReportDiagnosticsForAddedModules(diagnostics)
 
-                Dim vbDiagnostics = diagnostics.ToReadOnlyAndFree(Of Diagnostic)()
-                If ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationErrors, vbDiagnostics) Then
-                    _lazyEmitExtensionAttribute = emitExtensionAttribute
-                End If
+                ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationErrors, diagnostics.ToReadOnlyAndFree(Of Diagnostic)())
             End If
 
             Return _lazyAssemblyLevelDeclarationErrors
@@ -1210,6 +1210,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub DetectAttributeAndOptionConflicts(diagnostics As DiagnosticBag)
             EnsureAttributesAreBound()
+
+            If _compilation.Options.PublicSign AndAlso DelaySignAttributeSetting Then
+                diagnostics.Add(ERRID.ERR_CmdOptionConflictsSource, NoLocation.Singleton,
+                                AttributeDescription.AssemblyDelaySignAttribute.FullName,
+                                NameOf(_compilation.Options.PublicSign))
+            End If
 
             If _compilation.Options.OutputKind = OutputKind.NetModule Then
                 If Not String.IsNullOrEmpty(_compilation.Options.CryptoKeyContainer) Then
@@ -1230,7 +1236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' native compiler emits both of them, synthetic attribute is emitted after the one from source. Incidentally, ALink picks the last attribute
                         ' for signing and things seem to work out. However, relying on the order of attributes feels fragile, especially given that Roslyn emits
                         ' synthetic attributes before attributes from source. The behavior we settled on for .NET modules is that, if the attribute in source has the
-                        ' same value as the one in compilation options, we won't emit the senthetic attribute. If the value doesn't match, we report an error, which 
+                        ' same value as the one in compilation options, we won't emit the synthetic attribute. If the value doesn't match, we report an error, which 
                         ' is a breaking change. Bottom line, we will never produce a module or an assembly with two attributes, regardless whether values are the same
                         ' or not.
                         diagnostics.Add(ERRID.ERR_CmdOptionConflictsSource, NoLocation.Singleton, AttributeDescription.AssemblyKeyNameAttribute.FullName, "CryptoKeyContainer")

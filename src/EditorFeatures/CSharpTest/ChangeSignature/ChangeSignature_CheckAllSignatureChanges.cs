@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void TestAllSignatureChanges_1This_3Regular_2Default_1Params()
         {
             var markup = @"
@@ -57,7 +57,7 @@ static class Ext
             TestAllSignatureChanges(LanguageNames.CSharp, markup, signaturePartCounts);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void TestAllSignatureChanges_OnDelegate_3Regular()
         {
             var markup = @"

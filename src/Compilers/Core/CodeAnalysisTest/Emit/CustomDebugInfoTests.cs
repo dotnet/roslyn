@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
 
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -195,12 +196,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
 
-            var customMetadata = new Cci.MemoryStream();
-            var cmw = new Cci.BinaryWriter(customMetadata);
+            var cmw = new Cci.BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(123, slots, closures, lambdas).SerializeLocalSlots(cmw);
 
-            var bytes = customMetadata.ToImmutableArray();
+            var bytes = cmw.ToImmutableArray();
             AssertEx.Equal(new byte[] { 0xFF, 0xC0, 0x00, 0x4E, 0x20, 0x81, 0xC0, 0x00, 0x4E, 0x1F, 0x0A, 0x9A, 0x00, 0x0A }, bytes);
 
             var deserialized = EditAndContinueMethodDebugInformation.Create(bytes, default(ImmutableArray<byte>)).LocalSlots;
@@ -223,12 +223,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-50, new DebugId(1, 0), 0),
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
-            var customMetadata = new Cci.MemoryStream();
-            var cmw = new Cci.BinaryWriter(customMetadata);
+            var cmw = new Cci.BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(0x7b, slots, closures, lambdas).SerializeLambdaMap(cmw);
 
-            var bytes = customMetadata.ToImmutableArray();
+            var bytes = cmw.ToImmutableArray();
 
             AssertEx.Equal(new byte[] { 0x7C, 0x80, 0xC8, 0x03, 0x64, 0x80, 0xD2, 0x00, 0x80, 0xDC, 0x03, 0x80, 0x96, 0x02, 0x14, 0x01 }, bytes);
 
@@ -246,12 +245,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, new DebugId(0, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
-            var customMetadata = new Cci.MemoryStream();
-            var cmw = new Cci.BinaryWriter(customMetadata);
+            var cmw = new Cci.BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(-1, slots, closures, lambdas).SerializeLambdaMap(cmw);
 
-            var bytes = customMetadata.ToImmutableArray();
+            var bytes = cmw.ToImmutableArray();
 
             AssertEx.Equal(new byte[] { 0x00, 0x01, 0x00, 0x15, 0x01 }, bytes);
 
@@ -270,12 +268,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
 
-            var customMetadata = new Cci.MemoryStream();
-            var cmw = new Cci.BinaryWriter(customMetadata);
+            var cmw = new Cci.BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(10, slots, closures, lambdas).SerializeLambdaMap(cmw);
 
-            var bytes = customMetadata.ToImmutableArray();
+            var bytes = cmw.ToImmutableArray();
 
             AssertEx.Equal(new byte[] { 0x0B, 0x01, 0x00 }, bytes);
 
@@ -303,7 +300,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
             var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas);
-            var records = new ArrayBuilder<Cci.MemoryStream>();
+            var records = new ArrayBuilder<Cci.BlobBuilder>();
 
             Cci.CustomDebugInfoWriter.SerializeCustomDebugInformation(debugInfo, records);
             var cdi = Cci.CustomDebugInfoWriter.SerializeCustomDebugMetadata(records);

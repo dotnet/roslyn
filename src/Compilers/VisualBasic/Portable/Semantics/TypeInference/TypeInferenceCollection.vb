@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' candidate:D    A <= D   B <= D   D <= C   D <= D
             '
             ' 1. If there is a unique "strict" candidate for which every check is ID/Widening, then return it.
-            ' 2. If there are multiple "strict" candidates for which each each check is ID/Widening, but these
+            ' 2. If there are multiple "strict" candidates for which each check is ID/Widening, but these
             '    candidates have a unique widest ("dominant") type, then pick it.
             ' 3. If there are no "strict" candidates for which each check is ID/Widening, but there is
             '    one "unstrict" candidate for which each check is ID/Widening/Narrowing, then pick it.
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' e.g. T:{Tiger+, Mammal-, Animal-},
             ' candidate "Tiger":  ID, Widening, Widening  <-- a strict candidate
             ' candidate "Mammal": Widening, ID, Widening  <-- a strict candidate; also the unique widest one
-            ' candidate "Animal": Widening, Narowing, ID  <-- an unstrict candidate
+            ' candidate "Animal": Widening, Narrowing, ID  <-- an unstrict candidate
             ' 
             resultList.Clear()
 
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The only possibility remaining is that there were several widening candidates.
             Debug.Assert(numberOfStrictCandidates > 1, "code logic error: we should have >1 widening candidates; all other possibilities have already been covered")
 
-            ' Rule 2. "If there are multiple candidates for which each each check is ID/Widening, but these
+            ' Rule 2. "If there are multiple candidates for which each check is ID/Widening, but these
             ' candidates have a unique dominant type, then pick it."
             '
             ' Note that we're only now looking for a unique dominant type amongst the IsStrictCandidates;
@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            ' // Rule 2. "If there are multiple candidates for which each each check is ID/Widening, but these
+            ' // Rule 2. "If there are multiple candidates for which each check is ID/Widening, but these
             ' // candidates have a unique dominant type, then pick it."
 
             If resultList.Count = 1 Then
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     conversion = Conversions.ClassifyConversion(arrayLiteral, candidate, arrayLiteral.Binder, useSiteDiagnostics).Key
                     If Conversions.IsWideningConversion(conversion) Then
                         If IsSameTypeIgnoringCustomModifiers(arrayLiteralType, candidate) Then
-                            ' ClassifyConversion returns widening for identity.  For hint satisafaction it should be promoted to Identity
+                            ' ClassifyConversion returns widening for identity.  For hint satisfaction it should be promoted to Identity
                             conversion = ConversionKind.Identity
                         ElseIf (conversion And ConversionKind.InvolvesNarrowingFromNumericConstant) <> 0 Then
                             ' ClassifyConversion returns Widening with InvolvesNarrowingFromNumericConstant for {1L, 2L} and {1, 2}.

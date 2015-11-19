@@ -29,10 +29,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static string GetExceptionMessage(this DkmClrValue value, string fullNameWithoutFormatSpecifiers, Formatter formatter)
         {
+            bool unused;
             return string.Format(
                 Resources.ExceptionThrown,
                 fullNameWithoutFormatSpecifiers,
-                formatter.GetTypeName(new TypeAndCustomInfo(value.Type)));
+                formatter.GetTypeName(new TypeAndCustomInfo(value.Type), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused));
         }
 
         internal static DkmClrValue GetMemberValue(this DkmClrValue value, MemberAndDeclarationInfo member, DkmInspectionContext inspectionContext)

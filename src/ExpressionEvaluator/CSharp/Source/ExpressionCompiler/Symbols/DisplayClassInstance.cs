@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal DisplayClassInstanceFromParameter(ParameterSymbol parameter)
         {
             Debug.Assert((object)parameter != null);
-            Debug.Assert(parameter.Name.EndsWith("this", StringComparison.Ordinal) || 
+            Debug.Assert(parameter.Name.EndsWith("this", StringComparison.Ordinal) ||
                 GeneratedNames.GetKind(parameter.Name) == GeneratedNameKind.TransparentIdentifier);
             this.Parameter = parameter;
         }

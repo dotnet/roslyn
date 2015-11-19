@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 using (Logger.LogBlock(FunctionId.Formatting_CollectIndentBlock, cancellationToken))
                 {
-                    return AddOperations<IndentBlockOperation>(task.Result, (l, n) => _formattingRules.AddIndentBlockOperations(l, n), cancellationToken);
+                    return AddOperations<IndentBlockOperation>(task.Result, (l, n) => _formattingRules.AddIndentBlockOperations(l, n, _token2), cancellationToken);
                 }
             },
             cancellationToken);
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 using (Logger.LogBlock(FunctionId.Formatting_CollectSuppressOperation, cancellationToken))
                 {
-                    return AddOperations<SuppressOperation>(task.Result, (l, n) => _formattingRules.AddSuppressOperations(l, n), cancellationToken);
+                    return AddOperations<SuppressOperation>(task.Result, (l, n) => _formattingRules.AddSuppressOperations(l, n, _token2), cancellationToken);
                 }
             },
             cancellationToken);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 using (Logger.LogBlock(FunctionId.Formatting_CollectAlignOperation, cancellationToken))
                 {
-                    var operations = AddOperations<AlignTokensOperation>(task.Result, (l, n) => _formattingRules.AddAlignTokensOperations(l, n), cancellationToken);
+                    var operations = AddOperations<AlignTokensOperation>(task.Result, (l, n) => _formattingRules.AddAlignTokensOperations(l, n, _token2), cancellationToken);
 
                     // make sure we order align operation from left to right
                     operations.Sort((o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 using (Logger.LogBlock(FunctionId.Formatting_CollectAnchorOperation, cancellationToken))
                 {
-                    return AddOperations<AnchorIndentationOperation>(task.Result, (l, n) => _formattingRules.AddAnchorIndentationOperations(l, n), cancellationToken);
+                    return AddOperations<AnchorIndentationOperation>(task.Result, (l, n) => _formattingRules.AddAnchorIndentationOperations(l, n, _token2), cancellationToken);
                 }
             },
             cancellationToken);

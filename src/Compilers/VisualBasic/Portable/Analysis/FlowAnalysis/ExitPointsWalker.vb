@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case BoundKind.ReturnStatement
                             ' These are always included (we don't dive into lambda expressions)
                         Case Else
-                            Debug.Assert(False) ' there are no other branch statements
+                            Throw ExceptionUtilities.UnexpectedValue(pending.Branch.Kind) ' there are no other branch statements
                     End Select
                     _branchesOutOf.Add(DirectCast(pending.Branch.Syntax, StatementSyntax))
                 End If

@@ -316,7 +316,7 @@ End Class
 Class NoVerifyErr
     Public Iterator Function GetIterator() As IEnumerable
         ' i.ToString() is a non-virt call to a base class
-        ' where tht this ptr is not the same as the callee's this
+        ' where the this ptr is not the same as the callee's this
         ' but compiler shouldn't warn about non-verifiability because
         ' value types are sealed
         For i As Integer = 0 To 7

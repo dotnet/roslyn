@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return resultNode
             End If
 
-            ' We don't know how to simplifiy this.
+            ' We don't know how to simplify this.
             Return callStatement
         End Function
 

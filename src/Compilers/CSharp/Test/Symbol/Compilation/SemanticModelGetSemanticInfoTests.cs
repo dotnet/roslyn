@@ -2879,7 +2879,7 @@ class A
         }
 
         [Fact]
-        public void SuceededOverloadResolution2()
+        public void SucceededOverloadResolution2()
         {
             string sourceCode = @"
 using System;

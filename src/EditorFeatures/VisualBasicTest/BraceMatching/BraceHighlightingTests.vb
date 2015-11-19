@@ -5,8 +5,10 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
+Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -24,13 +26,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
         Private Function ProduceTags(workspace As TestWorkspace, buffer As ITextBuffer, position As Integer) As IEnumerable(Of ITagSpan(Of BraceHighlightTag))
             Dim view As New Mock(Of ITextView)
-            Dim producer = New BraceHighlightingTagProducer(workspace.GetService(Of IBraceMatchingService))
+            Dim producer = New BraceHighlightingViewTaggerProvider(
+                workspace.GetService(Of IBraceMatchingService),
+                workspace.GetService(Of IForegroundNotificationService),
+                AggregateAsynchronousOperationListener.EmptyListeners)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
-            Return producer.ProduceTagsAsync(doc, buffer.CurrentSnapshot, position, CancellationToken.None).Result
+            Dim context = New TaggerContext(Of BraceHighlightTag)(
+                doc, buffer.CurrentSnapshot, New SnapshotPoint(buffer.CurrentSnapshot, position))
+            producer.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait()
+            Return context.tagSpans
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Sub TestParens()
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
                              "    Function Foo(x As Integer) As Integer",
@@ -65,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Sub TestNestedTouchingItems()
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(
                 "Module Module1",
@@ -140,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Sub TestUnnestedTouchingItems()
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
                      "    Dim arr()() As Integer",
@@ -179,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Sub TestAngles()
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
                      "    <Attribute()>",

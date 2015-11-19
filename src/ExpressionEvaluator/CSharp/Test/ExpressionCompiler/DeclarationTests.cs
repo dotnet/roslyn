@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // Expression with format specifiers with ';' as statement.
             result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "(1,13): error CS1002: ; expected");
+            Assert.Equal(error, "error CS1073: Unexpected token ','");
             Assert.Null(result);
 
             // Assignment without ';' as statement.
@@ -245,23 +245,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // Statement without ';' as statement.
             result = context.CompileExpression("int o", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "(1,6): error CS1002: ; expected");
+            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
 
             // Neither statement nor expression as statement.
             result = context.CompileExpression("M(;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal(error, "(1,3): error CS1026: ) expected");
+            Assert.Equal(error, "error CS1026: ) expected");
 
             // Statement without ';' as expression.
             result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal(error, "(1,1): error CS1525: Invalid expression term 'int'");
+            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
 
             // Statement with ';' as expression.
             result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal(error, "(1,1): error CS1525: Invalid expression term 'int'");
+            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
 
             // Neither statement nor expression as expression.
             result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal(error, "(1,3): error CS1026: ) expected");
+            Assert.Equal(error, "error CS1026: ) expected");
         }
 
         [Fact]
@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,6): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.");
+            Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
         }
 
         [Fact]
@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
+            Assert.Equal(error, "error CS1056: Unexpected character '$'");
 
             // $exception
             context.CompileExpression(
@@ -997,7 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
+            Assert.Equal(error, "error CS1056: Unexpected character '$'");
 
             // $ReturnValue
             context.CompileExpression(
@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
+            Assert.Equal(error, "error CS1056: Unexpected character '$'");
 
             // $x
             context.CompileExpression(
@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DkmEvaluationFlags.None,
                 NoAliases,
                 out error);
-            Assert.Equal(error, "(1,5): error CS1056: Unexpected character '$'");
+            Assert.Equal(error, "error CS1056: Unexpected character '$'");
         }
 
         /// <summary>
@@ -1103,6 +1103,270 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
         }
 
+        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [Fact]
+        public void GenericType_Identifier()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+    }
+}
+
+class Generic<T>
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+            DkmClrCompilationResultFlags flags;
+            CompilationTestData testData;
+            CompileDeclaration(context, "Generic<C> g = null;", out flags, out testData);
+            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (System.Guid V_0)
+  IL_0000:  ldtoken    ""Generic<C>""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""g""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""g""
+  IL_0023:  call       ""Generic<C> Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<Generic<C>>(string)""
+  IL_0028:  ldnull
+  IL_0029:  stind.ref
+  IL_002a:  ret
+}");
+        }
+
+        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [Fact]
+        public void GenericType_Keyword()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+    }
+}
+
+class Generic<T>
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+            DkmClrCompilationResultFlags flags;
+            CompilationTestData testData;
+            CompileDeclaration(context, "Generic<int> g = null;", out flags, out testData);
+            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (System.Guid V_0)
+  IL_0000:  ldtoken    ""Generic<int>""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""g""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""g""
+  IL_0023:  call       ""Generic<int> Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<Generic<int>>(string)""
+  IL_0028:  ldnull
+  IL_0029:  stind.ref
+  IL_002a:  ret
+}");
+        }
+
+        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [Fact]
+        public void PointerType_Identifier()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+    }
+}
+
+struct S
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+            DkmClrCompilationResultFlags flags;
+            CompilationTestData testData;
+            CompileDeclaration(context, "S* s = null;", out flags, out testData);
+            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       44 (0x2c)
+  .maxstack  4
+  .locals init (System.Guid V_0)
+  IL_0000:  ldtoken    ""S*""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""s""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""s""
+  IL_0023:  call       ""S* Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<S*>(string)""
+  IL_0028:  ldc.i4.0
+  IL_0029:  conv.u
+  IL_002a:  stind.i
+  IL_002b:  ret
+}");
+        }
+
+        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [Fact]
+        public void PointerType_Keyword()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+            DkmClrCompilationResultFlags flags;
+            CompilationTestData testData;
+            CompileDeclaration(context, "int* p = null;", out flags, out testData);
+            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       44 (0x2c)
+  .maxstack  4
+  .locals init (System.Guid V_0)
+  IL_0000:  ldtoken    ""int*""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""p""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""p""
+  IL_0023:  call       ""int* Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int*>(string)""
+  IL_0028:  ldc.i4.0
+  IL_0029:  conv.u
+  IL_002a:  stind.i
+  IL_002b:  ret
+}");
+        }
+
+        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [Fact]
+        public void NullableType_Identifier()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+    }
+}
+
+struct S
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+            DkmClrCompilationResultFlags flags;
+            CompilationTestData testData;
+            CompileDeclaration(context, "S? s = null;", out flags, out testData);
+            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       55 (0x37)
+  .maxstack  4
+  .locals init (System.Guid V_0,
+                S? V_1)
+  IL_0000:  ldtoken    ""S?""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""s""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""s""
+  IL_0023:  call       ""S? Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<S?>(string)""
+  IL_0028:  ldloca.s   V_1
+  IL_002a:  initobj    ""S?""
+  IL_0030:  ldloc.1
+  IL_0031:  stobj      ""S?""
+  IL_0036:  ret
+}");
+        }
+
+        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [Fact]
+        public void NullableType_Keyword()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+            DkmClrCompilationResultFlags flags;
+            CompilationTestData testData;
+            CompileDeclaration(context, "int? n = null;", out flags, out testData);
+            Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       55 (0x37)
+  .maxstack  4
+  .locals init (System.Guid V_0,
+                int? V_1)
+  IL_0000:  ldtoken    ""int?""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""n""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    ""System.Guid""
+  IL_0017:  ldloc.0
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldstr      ""n""
+  IL_0023:  call       ""int? Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int?>(string)""
+  IL_0028:  ldloca.s   V_1
+  IL_002a:  initobj    ""int?""
+  IL_0030:  ldloc.1
+  IL_0031:  stobj      ""int?""
+  IL_0036:  ret
+}");
+        }
+
         private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData)
         {
             testData = new CompilationTestData();
@@ -1114,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 declaration,
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,

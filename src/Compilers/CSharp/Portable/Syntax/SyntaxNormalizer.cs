@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         (currentTriviaList.Count > 0 && NeedsSeparatorBetween(currentTriviaList.Last())) ||
                             (currentTriviaList.Count == 0 && isTrailing);
 
-                    var needsLineBreak = NeedsLineBreakBefore(trivia, isTrailing) 
+                    var needsLineBreak = NeedsLineBreakBefore(trivia, isTrailing)
                         || (currentTriviaList.Count > 0 && NeedsLineBreakBetween(currentTriviaList.Last(), trivia, isTrailing));
 
                     if (needsLineBreak && !_afterLineBreak)
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         currentTriviaList.Add(trivia);
                     }
 
-                    if (NeedsLineBreakAfter(trivia, isTrailing) 
+                    if (NeedsLineBreakAfter(trivia, isTrailing)
                         && (currentTriviaList.Count == 0 || !EndsInLineBreak(currentTriviaList.Last())))
                     {
                         currentTriviaList.Add(GetEndOfLine());
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 if (lineBreaksAfter > 0)
                 {
-                    if (currentTriviaList.Count > 0 
+                    if (currentTriviaList.Count > 0
                         && EndsInLineBreak(currentTriviaList.Last()))
                     {
                         lineBreaksAfter--;

@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DisableKeyword = 8479,
         RestoreKeyword = 8480,
         ReferenceKeyword = 8481,
+        LoadKeyword = 8485,
 
         InterpolatedStringStartToken = 8482,            // $"
         InterpolatedStringEndToken = 8483,              // "
@@ -467,6 +468,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         CatchFilterClause = 8828,
         FinallyClause = 8829,
 
+        // statements that didn't fit above
+        LocalFunctionStatement = 8830,
+
         // declarations
         CompilationUnit = 8840,
         GlobalStatement = 8841,
@@ -528,5 +532,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedStringText = 8919,
         InterpolationAlignmentClause = 8920,
         InterpolationFormatClause = 8921,
+
+        ShebangDirectiveTrivia = 8922,
+        LoadDirectiveTrivia = 8923,
     }
 }

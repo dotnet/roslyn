@@ -34,7 +34,6 @@ class C
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
-
         [WorkItem(865627, "DevDiv")]
         [Fact]
         public void TestUnusedExtensionMarksImportsAsUsed()
@@ -69,7 +68,6 @@ namespace ClassLibrary2
 }";
             var classLib2 = CreateCompilationWithMscorlib(text: class2Source, assemblyName: "ClassLibrary2", references: new[] { SystemRef, SystemCoreRef, classLib1.ToMetadataReference() });
 
-
             string consoleApplicationSource = @"using ClassLibrary2;
 using ClassLibrary1;
 
@@ -92,7 +90,7 @@ namespace ConsoleApplication
 
             //This is the crux of the test.
             //Without this line, with or without the fix, the model never gets pushed to evaluate extension method candidates
-            //and therefor never marked ClassLibrary2 as a used import in consoleApplication.
+            //and therefore never marked ClassLibrary2 as a used import in consoleApplication.
             //Without the fix, this call used to result in ClassLibrary2 getting marked as used, after the fix, this call does not
             //result in changing ClassLibrary2's used status.
             model.GetMemberGroup(syntax);
@@ -119,7 +117,7 @@ class Program
 }";
             var tree = Parse(text);
             var comp = CreateCompilationWithMscorlib(tree);
-            //all unused because system.core was not included and Eunmerable didn't bind
+            //all unused because system.core was not included and Enumerable didn't bind
             comp.VerifyDiagnostics(
                 // (4,14): error CS0234: The type or namespace name 'Linq' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // using System.Linq;
@@ -140,7 +138,6 @@ class Program
                 // using System.Threading.Tasks;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading.Tasks;")
                 );
-
 
             comp = comp.WithReferences(comp.References.Concat(SystemCoreRef));
             comp.VerifyDiagnostics(
@@ -209,7 +206,7 @@ class C
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void AllAssemblyLevelAttributesMustBeBound()
         {
-            var snkPath = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.snKey).Path;
+            var snkPath = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey).Path;
 
             var signing = Parse(@"
 using System.Reflection;
@@ -357,6 +354,27 @@ using System;
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithWarningAsError(false));
+        }
+
+        [Fact]
+        public void UnusedUsingInteractive()
+        {
+            var tree = Parse("using System;", options: TestOptions.Script);
+            var comp = CSharpCompilation.CreateScriptCompilation("sub1", tree, new[] { MscorlibRef_v4_0_30316_17626 });
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnusedUsingScript()
+        {
+            var tree = Parse("using System;", options: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib45(new[] { tree });
+
+            comp.VerifyDiagnostics(
+                // (2,1): info CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
     }
 }

@@ -96,7 +96,7 @@ Public Class ParseExpressionTest
 
 
     <Fact>
-    Public Sub ParseLntegerLiteralTest()
+    Public Sub ParseIntegerLiteralTest()
         ParseExpression("&H1")
         ParseExpression("&O1")
     End Sub
@@ -372,7 +372,7 @@ ToString]]>.Value)
     End Sub
 
     <Fact>
-    Public Sub Invokation()
+    Public Sub Invocation()
         Dim expr = ParseExpression("Blah()")
         Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind)
 
@@ -1251,7 +1251,7 @@ Skip 2
 
     <WorkItem(880474, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseBadRelationalOeprators()
+    Public Sub ParseBadRelationalOperators()
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Main()
@@ -1672,7 +1672,7 @@ class C1
 
     <WorkItem(929945, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseMehodInvokationWithMissingParens()
+    Public Sub ParseMethodInvocationWithMissingParens()
         ParseAndVerify(<![CDATA[
 class C1
 sub foo
@@ -2030,7 +2030,7 @@ End Module
 
     <WorkItem(546378, "DevDiv")>
     <Fact>
-    Public Sub SpuriousLineContinuationAtBeginingOfStatement()
+    Public Sub SpuriousLineContinuationAtBeginningOfStatement()
         Dim tree = ParseAndVerify(<![CDATA[
 Class C
     _

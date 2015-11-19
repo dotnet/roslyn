@@ -1672,7 +1672,7 @@ public class C
             Assert.Equal(128, defineName.ValueText.Length);
             Assert.Equal(2335, defineName.Text.Length);
 
-            // Since support for identifiers inside #pragma warning directivess is new, 
+            // Since support for identifiers inside #pragma warning directives is new, 
             // we don't have any backwards compatibility constraints. So we can preserve the
             // identifier exactly as it appears in source.
             Assert.Equal(2335, errorCodeName.ValueText.Length);
@@ -2040,6 +2040,25 @@ public class Test
 
             Assert.Equal(1, compilation.GetDiagnostics().Length);
             Assert.Equal(1, compilation.GetDiagnostics().Length);
+        }
+
+        [Fact]
+        public void TestArgumentEquality()
+        {
+            var text = @"
+using System;
+
+public class Test
+{
+    public static void Main()
+    {
+        (Console).WriteLine();
+    }
+}";
+            var tree = Parse(text);
+
+            // (8,10): error CS0119: 'Console' is a type, which is not valid in the given context
+            AssertEx.Equal(CreateCompilationWithMscorlib(tree).GetDiagnostics(), CreateCompilationWithMscorlib(tree).GetDiagnostics());
         }
 
         #region Mocks

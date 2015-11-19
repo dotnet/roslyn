@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -18,19 +19,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 {
     public class CodeRefactoringServiceTest
     {
-        [Fact]
+        [WpfFact]
         public void TestExceptionInComputeRefactorings()
         {
-            VerifyRefactoringDiabled(new ErrorCases.ExceptionInCodeActions());
+            VerifyRefactoringDisabled(new ErrorCases.ExceptionInCodeActions());
         }
 
-        [Fact]
+        [WpfFact]
         public void TestExceptionInComputeRefactoringsAsync()
         {
-            VerifyRefactoringDiabled(new ErrorCases.ExceptionInComputeRefactoringsAsync());
+            VerifyRefactoringDisabled(new ErrorCases.ExceptionInComputeRefactoringsAsync());
         }
 
-        public void VerifyRefactoringDiabled(CodeRefactoringProvider codeRefactoring)
+        public void VerifyRefactoringDisabled(CodeRefactoringProvider codeRefactoring)
         {
             var refactoringService = new CodeRefactorings.CodeRefactoringService(GetMetadata(codeRefactoring));
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(@"class Program {}"))
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
         private static IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> GetMetadata(params CodeRefactoringProvider[] providers)
         {
-            foreach(var provider in providers)
+            foreach (var provider in providers)
             {
                 var providerCopy = provider;
                 yield return new Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>(() => providerCopy, new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp));

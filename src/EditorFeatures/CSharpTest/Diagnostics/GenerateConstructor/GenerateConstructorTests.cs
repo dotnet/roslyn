@@ -420,7 +420,7 @@ compareTokens: false);
 @"class C { private readonly int x ; public C ( int x ) { this . x = x ; } void Test ( ) { int x = 10 ; C c = new C ( x ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestNoGenerationIntoEntirelyHiddenType()
         {
             TestMissing(
@@ -441,7 +441,7 @@ class D
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestNestedConstructorCall()
         {
             Test(
@@ -569,7 +569,7 @@ class D
         }
 
         [WorkItem(889349)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestConstructorGenerationForDifferentNamedParameter()
         {
             Test(
@@ -611,7 +611,7 @@ class Program
         }
 
         [WorkItem(528257)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestGenerateInInaccessibleType()
         {
             Test(
@@ -628,13 +628,134 @@ class Program
             }
 
             [WorkItem(1241, @"https://github.com/dotnet/roslyn/issues/1241")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
             public void TestGenerateConstructorInIncompleteLambda()
             {
                 Test(
     @"using System . Threading . Tasks ; class C { C ( ) { Task . Run ( ( ) => { new [|C|] ( 0 ) } ) ; } } ",
     @"using System . Threading . Tasks ; class C { private int v ; public C ( int v ) { this . v = v ; } C ( ) { Task . Run ( ( ) => { new C ( 0 ) } ) ; } } ");
             }
+        }
+
+        [WorkItem(5274, "https://github.com/dotnet/roslyn/issues/5274")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public void TestGenerateIntoDerivedClassWithAbstractBase()
+        {
+            Test(
+@"
+class Class1
+{
+    private void Foo(string value)
+    {
+        var rewriter = new [|Derived|](value);
+    }
+
+    private class Derived : Base
+    {
+    }
+
+    public abstract partial class Base
+    {
+        private readonly bool _val;
+
+        public Base(bool val = false)
+        {
+            _val = val;
+        }
+    }
+}",
+@"
+class Class1
+{
+    private void Foo(string value)
+    {
+        var rewriter = new Derived(value);
+    }
+
+    private class Derived : Base
+    {
+        private string value;
+
+        public Derived(string value)
+        {
+            this.value = value;
+        }
+    }
+
+    public abstract partial class Base
+    {
+        private readonly bool _val;
+
+        public Base(bool val = false)
+        {
+            _val = val;
+        }
+    }
+}");
+        }
+
+        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public void TestGenerateFromDerivedClass() 
+        {
+            Test(
+@"
+class Base
+{
+    public Base(string value)
+    {
+    }
+}
+
+class [||]Derived : Base
+{
+}",
+@"
+class Base
+{
+    public Base(string value)
+    {
+    }
+} 
+
+class Derived : Base
+{
+    public Derived(string value) : base(value)
+    {
+    }
+}");
+        }
+
+        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public void TestGenerateFromDerivedClass2()
+        {
+            Test(
+@"
+class Base
+{
+    public Base(int a, string value = null)
+    {
+    }
+}
+
+class [||]Derived : Base
+{
+}",
+@"
+class Base
+{
+    public Base(int a, string value = null)
+    {
+    }
+} 
+
+class Derived : Base
+{
+    public Derived(int a, string value = null) : base(a, value)
+    {
+    }
+}");
         }
     }
 }

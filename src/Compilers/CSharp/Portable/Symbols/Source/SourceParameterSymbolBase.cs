@@ -83,14 +83,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasByRefBeforeCustomModifiers
+        internal override ushort CountOfCustomModifiersPrecedingByRef
         {
             get
             {
-                return false;
+                return 0;
             }
         }
 
-        internal abstract ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, bool hasByRefBeforeCustomModifiers, bool newIsParams);
+        internal abstract ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ushort countOfCustomModifiersPrecedingByRef, bool newIsParams);
     }
 }

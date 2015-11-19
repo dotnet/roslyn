@@ -15,12 +15,12 @@ namespace Microsoft.Cci
 
         public bool Equals(ITypeReference x, ITypeReference y)
         {
-            return x == y || _metadataWriter.GetTypeSpecSignatureIndex(x) == _metadataWriter.GetTypeSpecSignatureIndex(y);
+            return x == y || _metadataWriter.GetTypeSpecSignatureIndex(x).Equals(_metadataWriter.GetTypeSpecSignatureIndex(y));
         }
 
         public int GetHashCode(ITypeReference typeReference)
         {
-            return (int)_metadataWriter.GetTypeSpecSignatureIndex(typeReference);
+            return _metadataWriter.GetTypeSpecSignatureIndex(typeReference).GetHashCode();
         }
     }
 }

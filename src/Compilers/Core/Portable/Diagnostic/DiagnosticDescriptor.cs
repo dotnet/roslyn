@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
             this.IsEnabledByDefault = isEnabledByDefault;
             this.Description = description ?? string.Empty;
             this.HelpLinkUri = helpLinkUri ?? string.Empty;
-            this.CustomTags = customTags.AsImmutableOrEmpty();
+            this.CustomTags = customTags;
         }
 
         public bool Equals(DiagnosticDescriptor other)
@@ -196,6 +196,40 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine(this.IsEnabledByDefault.GetHashCode(),
                 Hash.Combine(this.MessageFormat.GetHashCode(),
                     this.Title.GetHashCode())))))));
+        }
+
+        /// <summary>
+        /// Gets the effective severity of diagnostics created based on this descriptor and the given <see cref="CompilationOptions"/>.
+        /// </summary>
+        /// <param name="compilationOptions">Compilation options</param>
+        public ReportDiagnostic GetEffectiveSeverity(CompilationOptions compilationOptions)
+        {
+            if (compilationOptions == null)
+            {
+                throw new ArgumentNullException(nameof(compilationOptions));
+            }
+
+            // Create a dummy diagnostic to compute the effective diagnostic severity for given compilation options
+            // TODO: Once https://github.com/dotnet/roslyn/issues/3650 is fixed, we can avoid creating a no-location diagnostic here.
+            var effectiveDiagnostic = compilationOptions.FilterDiagnostic(Diagnostic.Create(this, Location.None));
+            return effectiveDiagnostic != null ? MapSeverityToReport(effectiveDiagnostic.Severity) : ReportDiagnostic.Suppress;
+        }
+
+        private static ReportDiagnostic MapSeverityToReport(DiagnosticSeverity severity)
+        {
+            switch (severity)
+            {
+                case DiagnosticSeverity.Hidden:
+                    return ReportDiagnostic.Hidden;
+                case DiagnosticSeverity.Info:
+                    return ReportDiagnostic.Info;
+                case DiagnosticSeverity.Warning:
+                    return ReportDiagnostic.Warn;
+                case DiagnosticSeverity.Error:
+                    return ReportDiagnostic.Error;
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
         }
 
         /// <summary>

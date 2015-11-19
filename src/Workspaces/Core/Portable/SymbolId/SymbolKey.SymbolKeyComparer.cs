@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(SymbolKey x, SymbolKey y)
             {
-                if ((object)x == (object)y)
+                if (ReferenceEquals(x, y))
                 {
                     return true;
                 }
 
-                if ((object)x == null || (object)y == null)
+                if (x == null || y == null)
                 {
                     return false;
                 }
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
 
             public int GetHashCode(SymbolKey obj)
             {
-                if ((object)obj == null)
+                if (obj == null)
                 {
                     return 0;
                 }

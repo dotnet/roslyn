@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 ' Return an empty map if there aren't any labels.
                 ' LookupLabelByNameToken and other methods assumes a non null map 
-                ' is returnd from the LabelMap property.
+                ' is returned from the LabelMap property.
                 Return s_emptyLabelMap
             End If
         End Function

@@ -2,8 +2,7 @@
 <!-- Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <NonShipping>true</NonShipping>
@@ -13,23 +12,14 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit">
-      <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Source\Concord\Concord.csproj">
@@ -56,6 +46,9 @@
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>Compiler\InternalUtilities\ExceptionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
+      <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\SharedCollections\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
@@ -163,13 +156,12 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="App.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\..\..\build\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
 </Project>

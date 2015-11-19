@@ -252,6 +252,122 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var verifier = CompileAndVerify(compilation2);
         }
 
+        [Fact, WorkItem(3593, "https://github.com/dotnet/roslyn/issues/3593")]
+        public void NoTypedRef()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Decimal { }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"    
+public class C1
+{
+    public static T Read<T>()
+    {
+        T result = default(T);
+        var refresult = __makeref(result);
+
+        // ... method body
+
+        return result;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+    // (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
+    //         var refresult = __makeref(result);
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "__makeref(result)").WithArguments("System.TypedReference").WithLocation(7, 25)
+);
+        }
+
+        [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
+        public void NoTypedRefBox()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Decimal { }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"    
+public class C1
+{
+    public static object rrr;
+
+    public static T Read<T>() where T : new()
+    {
+        T result = new T();
+        var refresult = __makeref(result);
+        rrr = refresult;
+        return result;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+    // (9,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
+    //         var refresult = __makeref(result);
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "__makeref(result)").WithArguments("System.TypedReference").WithLocation(9, 25)
+);
+        }
+
+        [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
+        public void NoTypedRefBox1()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Decimal { }
+    public struct TypedReference { }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"    
+public class C1
+{
+    public static object rrr;
+
+    public static T Read<T>() where T : new()
+    {
+        T result = new T();
+        var refresult = __makeref(result);
+        rrr = refresult;
+        rrr = (object)__makeref(result);
+        return result;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+    // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
+    //         rrr = refresult;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "refresult").WithArguments("System.TypedReference", "object").WithLocation(10, 15),
+    // (11,15): error CS0030: Cannot convert type 'System.TypedReference' to 'object'
+    //         rrr = (object)__makeref(result);
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)__makeref(result)").WithArguments("System.TypedReference", "object").WithLocation(11, 15)
+);
+        }
+
         [WorkItem(530861, "DevDiv")]
         [Fact]
         public void MissingStringLengthForEach()
@@ -426,8 +542,8 @@ namespace System.Collections
                 .VerifyDiagnostics();
 
 
-            //IMPORTANT: we shoud NOT load fields of self-containing structs like - "ldfld int int.m_value"
-            CompileAndVerify(comp, emitters: TestEmitters.RefEmitUnsupported, verify: false).
+            //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
+            CompileAndVerify(comp, verify: false).
                 VerifyIL("int.CompareTo(int)", @"
 {
   // Code size       16 (0x10)
@@ -564,10 +680,10 @@ namespace System
                 .VerifyDiagnostics();
 
 
-            //IMPORTANT: we shoud NOT delegate E1.GetHashCode() to int.GetHashCode()
+            //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
-            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, verify: false).
+            CompileAndVerify(comp, verify: false).
                 VerifyIL("program.Main()",
 @"
 {
@@ -685,7 +801,7 @@ namespace System
 }";
             var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
-            //IMPORTANT: we shoud NOT load fields of clr-confusing structs off the field value.
+            //IMPORTANT: we should NOT load fields of clr-confusing structs off the field value.
             //           the field should be loaded off the reference like in 
             //           the following snippet  (note ldargA, not ldarg) -
             //      IL_0000:  ldarga.s   V_0
@@ -693,9 +809,9 @@ namespace System
             //
             //           it may seem redundant since in general we can load the filed off the value
             //           but see the bug see VSW #396011, JIT needs references when loading
-            //           fields of certain clr-ambiguous structs (only possible when building mscolib)
+            //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
-            CompileAndVerify(comp, emitters: TestEmitters.RefEmitUnsupported, verify: false).
+            CompileAndVerify(comp, verify: false).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
   // Code size       10 (0xa)

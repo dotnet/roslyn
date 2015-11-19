@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Create a BoundBadExpression node for the given childexpression, which is preserved as a sub-expression. 
+        ''' Create a BoundBadExpression node for the given child-expression, which is preserved as a sub-expression. 
         ''' No ResultKind is associated
         ''' </summary>
         Private Shared Function BadExpression(node As VisualBasicSyntaxNode, expr As BoundNode, resultType As TypeSymbol) As BoundBadExpression
@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Create a BoundBadExpression node for the given childexpression, which is preserved as a sub-expression. 
+        ''' Create a BoundBadExpression node for the given child-expression, which is preserved as a sub-expression. 
         ''' A ResultKind explains why the node is bad.
         ''' </summary>
         Private Shared Function BadExpression(node As VisualBasicSyntaxNode, expr As BoundNode, resultKind As LookupResultKind, resultType As TypeSymbol) As BoundBadExpression
@@ -405,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindNameOfExpression(node As NameOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 
-            ' Suppress diagnostocs if argument has syntax errors
+            ' Suppress diagnostics if argument has syntax errors
             If node.Argument.HasErrors Then
                 diagnostics = New DiagnosticBag()
             End If
@@ -856,7 +856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            [call].ConstantValueOpt, [call].SuppressObjectClone, [call].Type, [call].HasErrors)
 
                 Case Else
-                    Debug.Assert(False)
+                    Throw ExceptionUtilities.UnexpectedValue(result.Kind)
             End Select
 
             Return result
@@ -968,7 +968,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case propertyAccess.AccessKind
                     Case PropertyAccessKind.Set
-                        Debug.Assert(False)
                         ReportDiagnostic(diagnostics, syntax, ERRID.ERR_VoidValue)
                         Return BadExpression(syntax, expr, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
 
@@ -1004,7 +1003,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ElseIf expr.IsLateBound() Then
                 If (expr.GetLateBoundAccessKind() And (LateBoundAccessKind.Set Or LateBoundAccessKind.Call)) <> 0 Then
-                    Debug.Assert(False)
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_VoidValue)
                     Return BadExpression(syntax, expr, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
                 End If
@@ -1241,7 +1239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  originalTargetType.SpecialType = SpecialType.System_Collections_Generic_IReadOnlyCollection_T) Then
 
                 targetElementType = targetType.TypeArgumentsNoUseSiteDiagnostics(0)
-                sourceType = New ArrayTypeSymbol(targetElementType, Nothing, 1, Compilation)
+                sourceType = ArrayTypeSymbol.CreateVBArray(targetElementType, Nothing, 1, Compilation)
 
             Else
                 ' Use the inferred type
@@ -1605,7 +1603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case Else
                         ' What else can it be?
-                        Debug.Assert(False)
+                        Throw ExceptionUtilities.UnexpectedValue(containingMember.Kind)
                 End Select
             End If
 
@@ -2073,7 +2071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If parent IsNot Nothing Then
                 Select Case parent.Kind
-                    Case SyntaxKind.SimpleMemberAccessExpression ' intentionally NOT SyntaxKind.DictionaryAcess
+                    Case SyntaxKind.SimpleMemberAccessExpression ' intentionally NOT SyntaxKind.DictionaryAccess
                         If DirectCast(parent, MemberAccessExpressionSyntax).Expression Is nameSyntax Then
                             Return False
                         End If
@@ -3197,7 +3195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CheckMemberTypeAccessibility(diagnostics As DiagnosticBag, node As VisualBasicSyntaxNode, member As Symbol)
             ' We are not doing this check during lookup due to a performance impact it has on IDE scenarios.
-            ' In any case, an accessible member with inaccassible type is beyond language spec, so we have
+            ' In any case, an accessible member with inaccessible type is beyond language spec, so we have
             ' some freedom how to deal with it.
 
             Dim memberType As TypeSymbol
@@ -3817,7 +3815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inferredElementType As TypeSymbol = Nothing
             Dim arrayInitializer = BindArrayInitializerList(node, knownSizes, hasDominantType, numberOfCandidates, inferredElementType, diagnostics)
 
-            Dim inferredArrayType = New ArrayTypeSymbol(inferredElementType, Nothing, knownSizes.Length, Compilation)
+            Dim inferredArrayType = ArrayTypeSymbol.CreateVBArray(inferredElementType, Nothing, knownSizes.Length, Compilation)
 
             Dim sizes As ImmutableArray(Of BoundExpression) = CreateArrayBounds(node, knownSizes, diagnostics)
 

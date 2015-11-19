@@ -1150,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         {
             //// Line 203
 
-            ////             // is invalid initiall;
+            ////             // is invalid initially
             ////             expressionType = ExpressionType.Invalid;
             ////             ^
             var tree = GetTree();

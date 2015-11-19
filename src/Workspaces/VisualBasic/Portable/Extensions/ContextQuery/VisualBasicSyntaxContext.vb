@@ -1,9 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
-Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
     ''' <summary>
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Dim enclosingSymbol = Me.SemanticModel.GetEnclosingSymbol(Me.TargetToken.SpanStart, cancellationToken)
             Dim container = TryCast(enclosingSymbol, INamedTypeSymbol)
             If container Is Nothing Then
-                container = DirectCast(enclosingSymbol.ContainingType, INamedTypeSymbol)
+                container = enclosingSymbol.ContainingType
             End If
 
             Return container

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Host
                 throw new ArgumentNullException(nameof(createReference));
             }
 
-            this._createReference = createReference;
+            _createReference = createReference;
         }
 
         public MetadataReference GetReference(string path, MetadataReferenceProperties properties)

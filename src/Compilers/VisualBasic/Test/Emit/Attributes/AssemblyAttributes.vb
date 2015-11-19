@@ -351,7 +351,7 @@ BC36977: Executables cannot be satellite assemblies; culture should always be em
 
     End Sub
 
-    <Fact>
+    <Fact(Skip:=("https://github.com/dotnet/roslyn/issues/5866"))>
     Public Sub CultureAttributeMismatch()
         Dim neutral As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation name="neutral">
@@ -625,7 +625,7 @@ End Class
         Dim hash_module = TestReferences.SymbolsTests.netModule.hash_module
 
         Dim hash_resources = {New ResourceDescription("hash_resource", "snKey.snk",
-            Function() New MemoryStream(TestResources.SymbolsTests.General.snKey, writable:=False),
+            Function() New MemoryStream(TestResources.General.snKey, writable:=False),
             True)}
 
         Dim compilation As VisualBasicCompilation
@@ -640,9 +640,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitters:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm)
@@ -670,9 +670,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitters:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.None, assembly.HashAlgorithm)
@@ -700,9 +700,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitters:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.MD5, assembly.HashAlgorithm)
@@ -730,9 +730,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitters:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm)
@@ -760,9 +760,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False, emitters:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation, verify:=False,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA256, CType(assembly.HashAlgorithm, System.Configuration.Assemblies.AssemblyHashAlgorithm))
@@ -791,9 +791,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False, emitters:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation, verify:=False,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA384, CType(assembly.HashAlgorithm, System.Configuration.Assemblies.AssemblyHashAlgorithm))
@@ -825,9 +825,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False, emitters:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation, verify:=False,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA512, CType(assembly.HashAlgorithm, System.Configuration.Assemblies.AssemblyHashAlgorithm))
@@ -869,8 +869,8 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module_Comp.EmitToImageReference()})
 
-        CompileAndVerify(compilation, emitters:=TestEmitters.RefEmitBug,
-            validator:=Sub(peAssembly, _omitted)
+        CompileAndVerify(compilation,
+            validator:=Sub(peAssembly)
                            Dim metadataReader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = metadataReader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.MD5, assembly.HashAlgorithm)
@@ -1387,7 +1387,7 @@ Imports System.Runtime.CompilerServices
             </compilation>
 
         Dim comp = CreateCompilationWithMscorlib(source, OutputKind.DynamicallyLinkedLibrary)
-        CompileAndVerify(comp, emitters:=TestEmitters.RefEmitBug)
+        CompileAndVerify(comp)
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
             expectedSrcAttrCount:=2,

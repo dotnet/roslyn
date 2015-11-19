@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// It involves following steps:
     /// 1) Verifying that the specified file name resolves to a valid path: This is done during binding.
     /// 2) Reading the contents of the file into a byte array.
-    /// 3) Convert each byte in the file content into two bytes containing hexa-decimal characters (see method <see cref="ConvertToHex"/>).
+    /// 3) Convert each byte in the file content into two bytes containing hexadecimal characters (see method <see cref="ConvertToHex"/>).
     /// 4) Replacing the 'File = fileName' named argument with 'Hex = hexFileContent' argument, where hexFileContent is the converted output from step 3) above.
     /// </remarks>
     internal class PermissionSetAttributeWithFileReference : Cci.ICustomAttribute
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 #if DEBUG
             // Must have exactly 1 named argument.
             var namedArgs = _sourceAttribute.GetNamedArguments(context);
-            Debug.Assert(namedArgs.Count() == 1);
+            Debug.Assert(namedArgs.Length == 1);
 
             // Named argument must be 'File' property of string type
             var fileArg = namedArgs.First();
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 using (Stream stream = resolver.OpenReadChecked(_resolvedPermissionSetFilePath))
                 {
-                    // Convert the byte array contents into a string in hexa-decimal format.
+                    // Convert the byte array contents into a string in hexadecimal format.
                     hexFileContent = ConvertToHex(stream);
                 }
             }

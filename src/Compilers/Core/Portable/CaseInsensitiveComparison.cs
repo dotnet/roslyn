@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis
                 // we can rely on it being present on all platforms.
                 return CultureInfo.InvariantCulture;
             }
-
         }
 
         /// <summary>

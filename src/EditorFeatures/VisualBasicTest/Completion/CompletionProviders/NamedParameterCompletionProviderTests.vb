@@ -1,17 +1,22 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class NamedParameterCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New NamedParameterCompletionProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InObjectCreation()
             VerifyItemExists(
 <Text>
@@ -26,7 +31,7 @@ End Class
 </Text>.Value, "a:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InBaseConstructor()
             VerifyItemExists(
 <Text>
@@ -44,7 +49,7 @@ End Class
 </Text>.Value, "a:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeConstructor()
             VerifyItemIsAbsent(
 <Text>
@@ -62,7 +67,7 @@ End Class
         End Sub
 
         <WorkItem(546190)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeNamedParameter1()
             VerifyItemExists(
 <Text>
@@ -77,7 +82,7 @@ End Class
 </Text>.Value, "x:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeConstructorAfterComma()
             VerifyItemIsAbsent(
 <Text>
@@ -93,7 +98,7 @@ End Class
 </Text>.Value, "a:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InvocationExpression()
             VerifyItemExists(
 <Text>
@@ -105,7 +110,7 @@ End Class
 </Text>.Value, "a:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InvocationExpressionAfterComma()
             VerifyItemExists(
 <Text>
@@ -117,7 +122,7 @@ End Class
 </Text>.Value, "a:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InIndexers()
             VerifyItemExists(
 <Text>
@@ -140,7 +145,7 @@ End Module
 </Text>.Value, "i:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InDelegates()
             VerifyItemExists(
 <Text>
@@ -158,7 +163,7 @@ End Module
 </Text>.Value, "x:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InDelegateInvokeSyntax()
             VerifyItemExists(
 <Text>
@@ -176,7 +181,7 @@ End Module
 </Text>.Value, "x:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotAfterColonEquals()
             VerifyNoItemsExist(
 <Text>
@@ -188,7 +193,7 @@ End Class
 </Text>.Value)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInCollectionInitializers()
             VerifyNoItemsExist(
 <Text>
@@ -200,7 +205,7 @@ End Class
 </Text>.Value)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DontFilterYet()
             Dim markup =
 <Text>
@@ -221,7 +226,7 @@ End Class
             VerifyItemExists(markup, "character:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MethodOverloads()
             Dim markup =
 <Text>
@@ -245,7 +250,7 @@ End Class
             VerifyItemExists(markup, "b:=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ExistingNamedParamsAreFilteredOut()
             Dim markup =
 <Text>
@@ -273,7 +278,7 @@ End Class
         End Sub
 
         <WorkItem(529370)>
-        <Fact(Skip:="529370"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="529370"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub KeywordAsEscapedIdentifier()
             VerifyItemExists(
 <Text>
@@ -286,54 +291,8 @@ End Class
         End Sub
 
         <WorkItem(546589)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CommitOnEquals()
-            Dim text = <Text>
-Module Program
-    Sub Main(args As String())
-        Main(a$$
-    End Sub
-End Module
-
-</Text>.Value
-
-            Dim expected = <Text>
-Module Program
-    Sub Main(args As String())
-        Main(args:
-    End Sub
-End Module
-
-</Text>.Value
-
-            VerifyProviderCommit(text, "args:=", expected, "="c, Nothing)
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub CommitOnColon()
-            Dim text = <Text>
-Module Program
-    Sub Main(args As String())
-        Main(a$$
-    End Sub
-End Module
-
-</Text>.Value
-
-            Dim expected = <Text>
-Module Program
-    Sub Main(args As String())
-        Main(args
-    End Sub
-End Module
-
-</Text>.Value
-
-            VerifyProviderCommit(text, "args:=", expected, ":"c, Nothing)
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub CommitOnSpace()
             Dim text = <Text>
 Module Program
     Sub Main(args As String())
@@ -352,10 +311,56 @@ End Module
 
 </Text>.Value
 
+            VerifyProviderCommit(text, "args:=", expected, "="c, Nothing)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub CommitOnColon()
+            Dim text = <Text>
+Module Program
+    Sub Main(args As String())
+        Main(a$$
+    End Sub
+End Module
+
+</Text>.Value
+
+            Dim expected = <Text>
+Module Program
+    Sub Main(args As String())
+        Main(args:
+    End Sub
+End Module
+
+</Text>.Value
+
+            VerifyProviderCommit(text, "args:=", expected, ":"c, Nothing)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub CommitOnSpace()
+            Dim text = <Text>
+Module Program
+    Sub Main(args As String())
+        Main(a$$
+    End Sub
+End Module
+
+</Text>.Value
+
+            Dim expected = <Text>
+Module Program
+    Sub Main(args As String())
+        Main(args:= 
+    End Sub
+End Module
+
+</Text>.Value
+
             VerifyProviderCommit(text, "args:=", expected, " "c, Nothing)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInTrivia()
             VerifyNoItemsExist(
 <Text>
@@ -368,7 +373,7 @@ End Class
         End Sub
 
         <WorkItem(1041260)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ConditionalInvocation()
             VerifyItemExists(
 <Text>
@@ -383,7 +388,7 @@ End Class
         End Sub
 
         <WorkItem(1040247)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ExclusivityCheckAfterComma()
             VerifyAnyItemExists(
 <Text>

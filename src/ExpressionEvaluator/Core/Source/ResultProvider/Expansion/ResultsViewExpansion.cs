@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     if (expansion != null)
                     {
                         return expansion.CreateResultsViewRow(
-                            inspectionContext, 
-                            name, 
-                            new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo), 
-                            value, 
-                            includeResultsFormatSpecifier: true, 
+                            inspectionContext,
+                            name,
+                            new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo),
+                            value,
+                            includeResultsFormatSpecifier: true,
                             formatter: formatter);
                     }
                     errorMessage = Resources.ResultsViewNoSystemCore;
@@ -100,11 +100,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return expansion.CreateResultsViewRow(
-                inspectionContext, 
-                name, 
-                new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo), 
-                value, 
-                includeResultsFormatSpecifier: false, 
+                inspectionContext,
+                name,
+                new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo),
+                value,
+                includeResultsFormatSpecifier: false,
                 formatter: formatter);
         }
 
@@ -212,9 +212,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(parent != null);
             var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
             var fullName = parent.ChildFullNamePrefix;
+            bool unused;
             var childFullNamePrefix = (fullName == null) ?
                 null :
-                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true), fullName);
+                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused), fullName);
             return new EvalResultDataItem(
                 ExpansionKind.ResultsView,
                 Resources.ResultsView,
@@ -249,7 +250,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, ResultsFormatSpecifier);
             }
-            var childFullNamePrefix = formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true), fullName);
+            bool unused;
+            var childFullNamePrefix = formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused), fullName);
             return new EvalResultDataItem(
                 ExpansionKind.Default,
                 name,
@@ -292,14 +294,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ref int index)
             {
                 _expansion.GetRows(
-                    resultProvider, 
-                    rows, 
-                    inspectionContext, 
-                    parent, 
-                    _proxyValue, 
-                    startIndex: startIndex, 
-                    count: count, 
-                    visitAll: visitAll, 
+                    resultProvider,
+                    rows,
+                    inspectionContext,
+                    parent,
+                    _proxyValue,
+                    startIndex: startIndex,
+                    count: count,
+                    visitAll: visitAll,
                     index: ref index);
             }
         }

@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis
             ref AssemblyIdentity reference,
             ref AssemblyIdentity definition,
             AssemblyIdentityParts referenceParts,
-            out bool isFxAssembly)
+            out bool isDefinitionFxAssembly)
         {
             if (reference.ContentType == AssemblyContentType.Default &&
                 SimpleNameComparer.Equals(reference.Name, definition.Name) &&
                 SimpleNameComparer.Equals(reference.Name, "mscorlib"))
             {
-                isFxAssembly = true;
+                isDefinitionFxAssembly = true;
                 reference = definition;
                 return true;
             }
@@ -96,13 +96,13 @@ namespace Microsoft.CodeAnalysis
             {
                 // Reference is not retargetable, but definition is retargetable.
                 // Non-equivalent.
-                isFxAssembly = false;
+                isDefinitionFxAssembly = false;
                 return false;
             }
 
             // Notes:
             // an assembly might be both retargetable and portable
-            // in that case retargeatable table acts as an override.
+            // in that case retargetable table acts as an override.
 
             // Apply portability policy transforms first (e.g. rewrites references to SL assemblies to their desktop equivalents)
             // If the reference is partial and is missing version or PKT it is not ported.
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!AssemblyIdentity.IsFullName(referenceParts))
                 {
-                    isFxAssembly = false;
+                    isDefinitionFxAssembly = false;
                     return false;
                 }
 
@@ -139,11 +139,11 @@ namespace Microsoft.CodeAnalysis
 
             if (reference.IsRetargetable && definition.IsRetargetable)
             {
-                isFxAssembly = IsRetargetableAssembly(definition);
+                isDefinitionFxAssembly = IsRetargetableAssembly(definition);
             }
             else
             {
-                isFxAssembly = IsFrameworkAssembly(definition);
+                isDefinitionFxAssembly = IsFrameworkAssembly(definition);
             }
 
             return true;

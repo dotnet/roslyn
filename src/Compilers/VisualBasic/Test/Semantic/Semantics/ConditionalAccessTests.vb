@@ -9241,5 +9241,261 @@ M3
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")>
+        Public Sub ConditionalAccessToEvent_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class TestClass
+
+    Event TestEvent As Action
+
+    Sub Main(receiver As TestClass)
+        Console.WriteLine(receiver?.TestEvent)
+    End Sub
+
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC32022: 'Public Event TestEvent As Action' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.
+        Console.WriteLine(receiver?.TestEvent)
+                                   ~~~~~~~~~~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim access = tree.GetRoot().DescendantNodes().OfType(Of ConditionalAccessExpressionSyntax)().Single()
+            Dim memberBinding = DirectCast(access.WhenNotNull, MemberAccessExpressionSyntax)
+
+            Assert.Equal(".TestEvent", memberBinding.ToString())
+            Assert.Equal("receiver?.TestEvent", access.ToString())
+
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim info = model.GetSymbolInfo(memberBinding)
+            Assert.Equal(CandidateReason.NotAValue, info.CandidateReason)
+            Assert.Equal("Event TestClass.TestEvent As System.Action", info.CandidateSymbols.Single().ToTestDisplayString())
+
+            info = model.GetSymbolInfo(memberBinding.Name)
+            Assert.Equal(CandidateReason.NotAValue, info.CandidateReason)
+            Assert.Equal("Event TestClass.TestEvent As System.Action", info.CandidateSymbols.Single().ToTestDisplayString())
+
+            info = model.GetSymbolInfo(access)
+            Assert.Null(info.Symbol)
+            Assert.False(info.CandidateSymbols.Any())
+        End Sub
+
+        <Fact(), WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")>
+        Public Sub ConditionalAccessToEvent_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class TestClass
+
+    Event TestEvent As Action
+
+    Shared Sub Test(receiver As TestClass)
+        RaiseEvent receiver?.TestEvent
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30451: 'receiver' is not declared. It may be inaccessible due to its protection level.
+        RaiseEvent receiver?.TestEvent
+                   ~~~~~~~~
+BC30205: End of statement expected.
+        RaiseEvent receiver?.TestEvent
+                           ~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Assert.False(tree.GetRoot().DescendantNodes().OfType(Of ConditionalAccessExpressionSyntax)().Any())
+        End Sub
+
+        <Fact(), WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")>
+        Public Sub ConditionalAccessToEvent_03()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class TestClass
+
+    Event TestEvent As Action
+
+    Shared Sub Test(receiver As TestClass)
+        AddHandler receiver?.TestEvent, AddressOf Main
+    End Sub
+
+    Shared Sub Main()
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30677: 'AddHandler' or 'RemoveHandler' statement event operand must be a dot-qualified expression or a simple name.
+        AddHandler receiver?.TestEvent, AddressOf Main
+                   ~~~~~~~~~~~~~~~~~~~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim access = tree.GetRoot().DescendantNodes().OfType(Of ConditionalAccessExpressionSyntax)().Single()
+            Dim memberBinding = DirectCast(access.WhenNotNull, MemberAccessExpressionSyntax)
+
+            Assert.Equal(".TestEvent", memberBinding.ToString())
+            Assert.Equal("receiver?.TestEvent", access.ToString())
+
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim info = model.GetSymbolInfo(memberBinding)
+            Assert.Equal(CandidateReason.NotAValue, info.CandidateReason)
+            Assert.Equal("Event TestClass.TestEvent As System.Action", info.CandidateSymbols.Single().ToTestDisplayString())
+
+            info = model.GetSymbolInfo(memberBinding.Name)
+            Assert.Equal(CandidateReason.NotAValue, info.CandidateReason)
+            Assert.Equal("Event TestClass.TestEvent As System.Action", info.CandidateSymbols.Single().ToTestDisplayString())
+
+            info = model.GetSymbolInfo(access)
+            Assert.Null(info.Symbol)
+            Assert.False(info.CandidateSymbols.Any())
+        End Sub
+
+        <Fact(), WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")>
+        Public Sub ConditionalAccessToEvent_04()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class TestClass
+
+    Event TestEvent As Action
+
+    Shared Sub Test(receiver As TestClass)
+        receiver?.TestEvent()
+    End Sub
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC32022: 'Public Event TestEvent As Action' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.
+        receiver?.TestEvent()
+                 ~~~~~~~~~~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim access = tree.GetRoot().DescendantNodes().OfType(Of ConditionalAccessExpressionSyntax)().Single()
+            Dim invocation = DirectCast(access.WhenNotNull, InvocationExpressionSyntax)
+            Dim memberBinding = DirectCast(invocation.Expression, MemberAccessExpressionSyntax)
+
+            Assert.Equal(".TestEvent", memberBinding.ToString())
+            Assert.Equal(".TestEvent()", invocation.ToString())
+            Assert.Equal("receiver?.TestEvent()", access.ToString())
+
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim info = model.GetSymbolInfo(memberBinding)
+            Assert.Equal(CandidateReason.NotAValue, info.CandidateReason)
+            Assert.Equal("Event TestClass.TestEvent As System.Action", info.CandidateSymbols.Single().ToTestDisplayString())
+
+            info = model.GetSymbolInfo(memberBinding.Name)
+            Assert.Equal(CandidateReason.NotAValue, info.CandidateReason)
+            Assert.Equal("Event TestClass.TestEvent As System.Action", info.CandidateSymbols.Single().ToTestDisplayString())
+
+            info = model.GetSymbolInfo(invocation)
+            Assert.Null(info.Symbol)
+            Assert.False(info.CandidateSymbols.Any())
+
+            info = model.GetSymbolInfo(access)
+            Assert.Null(info.Symbol)
+            Assert.False(info.CandidateSymbols.Any())
+        End Sub
+
+        <Fact(), WorkItem(4615, "https://github.com/dotnet/roslyn/issues/4615")>
+        Public Sub ConditionalAndConditionalMethods()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Program
+    Shared Sub Main()
+        TestClass.Create().Test()
+        TestClass.Create().Self().Test()
+        System.Console.WriteLine("---")
+        TestClass.Create()?.Test()
+        TestClass.Create()?.Self().Test()
+        TestClass.Create()?.Self()?.Test()
+    End Sub
+End Class
+
+Class TestClass
+    <System.Diagnostics.Conditional("DEBUG")>
+    Public Sub Test()
+        System.Console.WriteLine("Test")
+    End Sub
+
+    Shared Function Create() As TestClass
+        System.Console.WriteLine("Create")
+        return new TestClass()
+    End Function
+
+    Function Self() As TestClass
+        System.Console.WriteLine("Self")
+        return Me
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.DebugExe,
+                                                                             parseOptions:=VisualBasicParseOptions.Default.WithPreprocessorSymbols({New KeyValuePair(Of String, Object)("DEBUG", True)}))
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Create
+Test
+Create
+Self
+Test
+---
+Create
+Test
+Create
+Self
+Test
+Create
+Self
+Test
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.ReleaseExe)
+
+            verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+]]>)
+        End Sub
+
     End Class
 End Namespace

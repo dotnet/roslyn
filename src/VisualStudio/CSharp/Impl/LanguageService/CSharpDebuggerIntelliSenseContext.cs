@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         protected override int GetAdjustedContextPoint(int contextPoint, Document document)
         {
             // Determine the position in the buffer at which to end the tracking span representing
-            // the part of the imagininary buffer before the text in the view. 
+            // the part of the imaginary buffer before the text in the view. 
             var tree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             var token = tree.FindTokenOnLeftOfPosition(contextPoint, CancellationToken.None);
 

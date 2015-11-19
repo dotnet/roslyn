@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         protected void AddAssemblyLink(IAssemblySymbol assemblySymbol)
         {
             var name = assemblySymbol.Identity.Name;
-            var navInfo = _libraryManager.GetAssemblyNavInfo(assemblySymbol);
+            var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForAssembly(assemblySymbol);
 
             _description.AddDescriptionText3(name, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
         }
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
 
             var text = namespaceSymbol.ToDisplayString();
-            var navInfo = _libraryManager.GetNamespaceNavInfo(namespaceSymbol, _project, GetCompilation(), useExpandedHierarchy: false);
+            var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForNamespace(namespaceSymbol, _project, GetCompilation(), useExpandedHierarchy: false);
 
             _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
         }
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 miscellaneousOptions: miscellaneousOptions);
 
             var text = typeSymbol.ToDisplayString(typeDisplayFormat);
-            var navInfo = _libraryManager.GetTypeNavInfo(typeSymbol, _project, GetCompilation(), useExpandedHierarchy: false);
+            var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForType(typeSymbol, _project, GetCompilation(), useExpandedHierarchy: false);
 
             _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
         }

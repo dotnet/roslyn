@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ReorderMethodParameters_InvokeOnClassName_ShouldFail()
         {
             var markup = @"
@@ -23,7 +23,7 @@ class MyClass$$
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ReorderMethodParameters_InvokeOnField_ShouldFail()
         {
             var markup = @"
@@ -40,14 +40,14 @@ class MyClass
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ReorderMethodParameters_InsufficientParameters_None()
         {
             var markup = @"class C { void $$M() { } }";
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.ThisSignatureDoesNotContainParametersThatCanBeChanged);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ReorderMethodParameters_InvokeOnOverloadedOperator_ShouldFail()
         {
             var markup = @"

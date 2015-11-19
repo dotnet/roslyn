@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Debug.Assert(!diagnostics.IsDefault);
             var cancellationToken = fixAllContext.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var fixerTasks = new Task[diagnostics.Length];
 
             for (var i = 0; i < diagnostics.Length; i++)
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 });
             }
 
-            Task.WaitAll(fixerTasks, cancellationToken);
+            await Task.WhenAll(fixerTasks).ConfigureAwait(false);
         }
 
         public virtual async Task<CodeAction> GetFixAsync(
@@ -159,9 +158,39 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public virtual Task AddProjectFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
+        public virtual async Task AddProjectFixesAsync(Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
         {
-            throw new NotImplementedException();
+            Debug.Assert(!diagnostics.IsDefault);
+            var cancellationToken = fixAllContext.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var fixes = new List<CodeAction>();
+            var context = new CodeFixContext(project, diagnostics,
+
+                // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
+                (a, d) =>
+                {
+                    // Serialize access for thread safety - we don't know what thread the fix provider will call this delegate from.
+                    lock (fixes)
+                    {
+                        fixes.Add(a);
+                    }
+                },
+                cancellationToken);
+
+            // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
+            // a buggy extension that throws can't bring down the host?
+            var task = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? SpecializedTasks.EmptyTask;
+            await task.ConfigureAwait(false);
+
+            foreach (var fix in fixes)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (fix != null && fix.EquivalenceKey == fixAllContext.CodeActionEquivalenceKey)
+                {
+                    addFix(fix);
+                }
+            }
         }
 
         public virtual async Task<CodeAction> TryGetMergedFixAsync(IEnumerable<CodeAction> batchOfFixes, FixAllContext fixAllContext)
@@ -377,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 // TODO: Parallelize GetChangedSolutionInternalAsync for codeActions
-                var changedSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken).ConfigureAwait(false);
+                var changedSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var solutionChanges = new SolutionChanges(changedSolution, oldSolution);
 

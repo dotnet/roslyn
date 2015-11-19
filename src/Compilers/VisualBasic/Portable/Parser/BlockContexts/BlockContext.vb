@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' Same as Body(), but use a SyntaxListWithManyChildren if the
-        ' body is large enough, so we get red node with with weak children.
+        ' body is large enough, so we get red node with weak children.
         Friend Function BodyWithWeakChildren() As SyntaxList(Of StatementSyntax)
             If IsLargeEnoughNonEmptyStatementList(_statements) Then
                 Dim result = New SyntaxList(Of StatementSyntax)(SyntaxList.List(CType(_statements, SyntaxListBuilder).ToArray))
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ElseIf statements.Count <= 2 Then
                 ' If we have a single statement (Count include separators), it might be small, like "return null", or large,
                 ' like a loop or if or switch with many statements inside. Use the width as a proxy for
-                ' how big it is. If it's small, its better to forgoe a many children list anyway, since the
+                ' how big it is. If it's small, its better to forgo a many children list anyway, since the
                 ' weak reference would consume as much memory as is saved.
                 Return statements(0).Width > 60
             Else
@@ -410,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' get off the current node as we are definitely using it and LinkStatement may need to look at next token
             Parser.GetNextSyntaxNode()
 
-            ' TODO: this will add an error to the statement. Perhaps duplicationg it
+            ' TODO: this will add an error to the statement. Perhaps duplicating it
             ' context-sensitive errors should be filtered out before re-using nodes.
             ' or better we should put contextual errors on the actual block not on the offending node (if possible).
             newContext = LinkSyntax(node)

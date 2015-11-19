@@ -1811,7 +1811,7 @@ public class Program
     }
 }
 ";
-            CompileAndVerify(text, emitters: TestEmitters.RefEmitBug, expectedOutput: @"Writer wrote 0
+            CompileAndVerify(text, expectedOutput: @"Writer wrote 0
 Reader read 0
 Writer wrote 1
 Reader read 1

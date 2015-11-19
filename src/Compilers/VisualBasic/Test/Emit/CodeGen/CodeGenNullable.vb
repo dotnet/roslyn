@@ -3492,7 +3492,7 @@ End Class
                     </file>
                 </compilation>
 
-            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, expectedOutput:="PASS").VerifyDiagnostics(
+            CompileAndVerify(source, expectedOutput:="PASS").VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_EqualToLiteralNothing, "x = Nothing"),
                     Diagnostic(ERRID.WRN_NotEqualToLiteralNothing, "Nothing <> y")
                                                                           )
@@ -3524,7 +3524,7 @@ End Module
                     </file>
                 </compilation>
 
-            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug).VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
+            CompileAndVerify(source).VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
 {
   // Code size      124 (0x7c)
   .maxstack  3
@@ -4717,6 +4717,31 @@ VerifyIL("NullableTest.EqualEqual",
 }
                 ]]>)
 
+        End Sub
+
+        <Fact>
+        Public Sub LiftedToIntPtrConversion()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module M
+    Sub Main()
+        Console.WriteLine(CType(M(Nothing), IntPtr?))
+        Console.WriteLine(CType(M(42), IntPtr?))
+    End Sub
+
+    Function M(p as Integer?) As Integer?
+        Return p
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = "" + vbCrLf + "42"
+            CompileAndVerify(source, expectedOutput)
         End Sub
 
     End Class

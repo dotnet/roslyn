@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New ConstructorDeclarationHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestContructorExample1_1()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Sub TestConstructorExample1_1()
             Test(<Text>
 Class C
 {|Cursor:[|Public Sub New|]|}()
@@ -20,8 +20,8 @@ Class C
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestContructorExample1_2()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Sub TestConstructorExample1_2()
             Test(<Text>
 Class C
 [|Public Sub New|]()
@@ -30,8 +30,8 @@ Class C
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestContructorExample1_3()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        Public Sub TestConstructorExample1_3()
             Test(<Text>
 Class C
 [|Public Sub New|]()

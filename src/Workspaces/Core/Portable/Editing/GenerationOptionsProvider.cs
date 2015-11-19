@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.Options.Providers;
 namespace Microsoft.CodeAnalysis.Editing
 {
     [ExportOptionProvider, Shared]
-    internal class GenerationOptionsProvider : IOptionProvider 
+    internal class GenerationOptionsProvider : IOptionProvider
     {
-        private static readonly IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(
+        private static readonly IEnumerable<IOption> s_options = ImmutableArray.Create<IOption>(
                 GenerationOptions.PlaceSystemNamespaceFirst
                 );
 
         public IEnumerable<IOption> GetOptions()
         {
-            return _options;
+            return s_options;
         }
     }
 }

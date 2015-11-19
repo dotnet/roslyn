@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             private readonly ITaggerEventSource[] _providers;
 
-            public CompositionEventSource(params ITaggerEventSource[] providers)
+            public CompositionEventSource(ITaggerEventSource[] providers)
             {
                 Contract.ThrowIfNull(providers);
 

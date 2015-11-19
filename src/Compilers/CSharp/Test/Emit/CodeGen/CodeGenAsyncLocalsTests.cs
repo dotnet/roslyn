@@ -19,13 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         public CodeGenAsyncLocalsTests()
         {
-            SynchronizationContext.SetSynchronizationContext(null);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, TestEmitters emitOptions = TestEmitters.All, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, emitters: emitOptions);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
         }
 
         private string GetFieldLoadsAndStores(CompilationVerifier c, string qualifiedMethodName)

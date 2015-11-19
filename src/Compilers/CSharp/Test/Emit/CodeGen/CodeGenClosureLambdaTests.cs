@@ -2059,7 +2059,7 @@ static class M1
         (new D<C>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;", emitters: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
         }
 
         [Fact]
@@ -2244,10 +2244,10 @@ static class M1
         var arg0 = arguments[0];
         GenericParameterAttributes attributes = arg0.GenericParameterAttributes;
         Console.WriteLine(attributes.ToString());
-        var arg0constraits = arg0.GetGenericParameterConstraints();
-        Console.WriteLine(arg0constraits.Length);
-        Console.WriteLine(arg0constraits[0]);
-        Console.WriteLine(arg0constraits[1]);
+        var arg0constraints = arg0.GetGenericParameterConstraints();
+        Console.WriteLine(arg0constraints.Length);
+        Console.WriteLine(arg0constraints[0]);
+        Console.WriteLine(arg0constraints[1]);
     }
 }";
             CompileAndVerify(source,
@@ -4173,7 +4173,6 @@ class Program
             // we are not interested in testing that
             CompileAndVerify(source,
                 additionalRefs: new[] { LinqAssemblyRef },
-                emitters: TestEmitters.RefEmitBug,
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()
@@ -4633,7 +4632,7 @@ class D
   IL_0018:  brtrue.s   IL_0030
   IL_001a:  pop
   IL_001b:  ldloc.0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldftn      ""bool C.<>c__DisplayClass0_0<T>.<M>b__0(T)""
   IL_0023:  newobj     ""System.Func<T, bool>..ctor(object, System.IntPtr)""
   IL_0028:  dup
@@ -4731,7 +4730,7 @@ class D
   IL_0025:  brtrue.s   IL_003d
   IL_0027:  pop
   IL_0028:  ldloc.0
-  IL_0029:  dup
+  IL_0029:  ldloc.0
   IL_002a:  ldftn      ""int Program.<>c__DisplayClass3_0.<Test>b__0(int)""
   IL_0030:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_0035:  dup
@@ -4758,7 +4757,7 @@ class D
   IL_005f:  ldc.i4.2
   IL_0060:  bge.s      IL_0084
   IL_0062:  ldloc.3
-  IL_0063:  dup
+  IL_0063:  ldloc.3
   IL_0064:  add
   IL_0065:  call       ""void System.Console.WriteLine(int)""
   IL_006a:  ldarg.0

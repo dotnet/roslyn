@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -120,6 +121,11 @@ namespace Microsoft.CodeAnalysis
         public int IndexOf(T item)
         {
             return _builder.IndexOf(item);
+        }
+
+        public int IndexOf(T item, int startIndex, int count)
+        {
+            return _builder.IndexOf(item, startIndex, count);
         }
 
         public void RemoveAt(int index)
@@ -244,7 +250,7 @@ namespace Microsoft.CodeAnalysis
                 // We do not want to retain (potentially indefinitely) very large builders 
                 // while the chance that we will need their size is diminishingly small.
                 // It makes sense to constrain the size to some "not too small" number. 
-                // Overal perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
+                // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
                 if (this.Count < 128)
                 {
                     if (this.Count != 0)
@@ -294,7 +300,7 @@ namespace Microsoft.CodeAnalysis
 
         public static ObjectPool<ArrayBuilder<T>> CreatePool()
         {
-            return CreatePool(128); // we rarily need more than 10
+            return CreatePool(128); // we rarely need more than 10
         }
 
         public static ObjectPool<ArrayBuilder<T>> CreatePool(int size)
@@ -382,6 +388,14 @@ namespace Microsoft.CodeAnalysis
             _builder.AddRange(items, length);
         }
 
+        public void AddRange(T[] items, int start, int length)
+        {
+            for (int i = start, end = start + length; i < end; i++)
+            {
+                Add(items[i]);
+            }
+        }
+
         public void AddRange(IEnumerable<T> items)
         {
             _builder.AddRange(items);
@@ -415,6 +429,42 @@ namespace Microsoft.CodeAnalysis
             {
                 Add(item);
             }
+        }
+
+        public void RemoveDuplicates()
+        {
+            var set = PooledHashSet<T>.GetInstance();
+
+            int j = 0;
+            for (int i = 0; i < Count; i++)
+            {
+                if (set.Add(this[i]))
+                {
+                    this[j] = this[i];
+                    j++;
+                }
+            }
+
+            Clip(j);
+            set.Free();
+        }
+
+        public ImmutableArray<S> SelectDistinct<S>(Func<T, S> selector)
+        {
+            var result = ArrayBuilder<S>.GetInstance(Count);
+            var set = PooledHashSet<S>.GetInstance();
+
+            foreach (var item in this)
+            {
+                var selected = selector(item);
+                if (set.Add(selected))
+                {
+                    result.Add(selected);
+                }
+            }
+
+            set.Free();
+            return result.ToImmutableAndFree();
         }
     }
 }

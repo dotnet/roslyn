@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         void ExtractInterface(EnvDTE.CodeType codeType);
         void ImplementInterface(EnvDTE.CodeType implementor, object @interface, bool fExplicit);
-        void ImplementAbstractClass(EnvDTE.CodeType imlpementor, object abstractClass);
+        void ImplementAbstractClass(EnvDTE.CodeType implementor, object abstractClass);
         EnvDTE.CodeElement ImplementOverride(EnvDTE.CodeElement member, EnvDTE.CodeType implementor);
     }
 }

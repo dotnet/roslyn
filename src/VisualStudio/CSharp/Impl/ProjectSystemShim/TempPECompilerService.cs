@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -46,8 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // TODO (tomat): Revisit compilation options: App.config, strong name, search paths, etc? (bug #869604)
             // TODO (tomat): move resolver initialization (With* methods below) to CommandLineParser.Parse
 
-            var metadataProvider = _workspace.Services.GetService<IMetadataService>().GetProvider();
-            var metadataResolver = new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, metadataProvider);
+            var metadataResolver = new WorkspaceMetadataFileReferenceResolver(
+                _workspace.Services.GetService<IMetadataService>(),
+                new RelativePathResolver(ImmutableArray<string>.Empty, baseDirectory: null));
 
             var compilation = CSharpCompilation.Create(
                 Path.GetFileName(pszOutputFileName),

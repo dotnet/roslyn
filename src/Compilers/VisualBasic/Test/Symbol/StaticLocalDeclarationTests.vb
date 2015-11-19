@@ -618,7 +618,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Error_StaticLocalInTryCatchBlockScope()
-            'The Use of Sttaic Locals within Try/Catch/Finally Blocks
+            'The Use of Static Locals within Try/Catch/Finally Blocks
 
             Dim compilationDef =
     <compilation name="StaticLocaltest">

@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis
         Friend Function GetDiagnosticForMissingRuntimeHelper(typename As String, membername As String, embedVBCoreRuntime As Boolean) As DiagnosticInfo
             Dim diag As DiagnosticInfo
             ' Depending upon whether the vbruntime embed compilation option is used and this is a function we have intentionally
-            ' ommitted from VB will determine which diagnostic is reported.
+            ' omitted from VB will determine which diagnostic is reported.
             '  Examples 
             '     (Late binding, old style error handling, like operator, Err Object) - with VB Embed - report new diagnostic
             '     (Late binding, old style error handling, like operator)  - without VB Embed just no reference to microsoft.visualbasic.dll - report old diagnostic

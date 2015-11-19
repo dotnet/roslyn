@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return esentStorage;
             }
 
-            // first attemp could fail if there was something wrong with existing esent db.
+            // first attempt could fail if there was something wrong with existing esent db.
             // try one more time in case the first attempt fixed the problem.
             if (TryCreateEsentStorage(workingFolderPath, solutionPath, out esentStorage))
             {

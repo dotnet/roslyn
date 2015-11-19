@@ -68,6 +68,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
+            ' Case:
+            '   ($"")
+            If expression.IsKind(SyntaxKind.InterpolatedStringExpression) Then
+                Return True
+            End If
+
             ' Cases:
             '   (Me)
             '   (MyBase)
@@ -170,10 +176,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Cases:
+            '   (<xml/>)
+            '   (<xml></xml>)
             '   (<x/>.@a)
             '   (<x/>...<b>)
             '   (<x/>.<a>)
-            If expression.IsKind(SyntaxKind.XmlAttributeAccessExpression) OrElse
+            If expression.IsKind(SyntaxKind.XmlEmptyElement) OrElse
+               expression.IsKind(SyntaxKind.XmlElement) OrElse
+               expression.IsKind(SyntaxKind.XmlAttributeAccessExpression) OrElse
                expression.IsKind(SyntaxKind.XmlDescendantAccessExpression) OrElse
                expression.IsKind(SyntaxKind.XmlElementAccessExpression) Then
                 Return True

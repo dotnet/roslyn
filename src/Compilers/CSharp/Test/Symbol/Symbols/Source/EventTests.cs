@@ -307,7 +307,7 @@ public class E
 
         [WorkItem(542748, "DevDiv")]
         [Fact()]
-        public void FieldLikeEventAceessorIsSynthesized()
+        public void FieldLikeEventAccessorIsSynthesized()
         {
             var text = @"
 delegate void D();

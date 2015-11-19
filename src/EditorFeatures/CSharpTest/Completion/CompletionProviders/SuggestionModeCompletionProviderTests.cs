@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,24 +11,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
-            return new SuggestionModeCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        internal override CompletionListProvider CreateCompletionProvider()
+        {
+            return new CSharpSuggestionModeCompletionProvider();
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterFirstExplicitArgument()
         {
             VerifyNotBuilder(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterFirstImplicitArgument()
         {
             VerifyNotBuilder(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterFirstImplicitArgumentInMethodCall()
         {
             var markup = @"class c
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNotBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterFirstExplicitArgumentInMethodCall()
         {
             var markup = @"class c
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyNotBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DelegateTypeExpected1()
         {
             var markup = @"using System;
@@ -80,13 +82,13 @@ class c
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DelegateTypeExpected2()
         {
             VerifyBuilder(AddUsingDirectives("using System;", AddInsideMethod(@"Func<int, int, int> f = $$")));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ObjectInitializerDelegateType()
         {
             var markup = @"using System;
@@ -108,7 +110,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, WorkItem(817145), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, WorkItem(817145), Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitArrayInitializer()
         {
             var markup = @"using System;
@@ -123,7 +125,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ImplicitArrayInitializerUnknownType()
         {
             var markup = @"using System;
@@ -138,7 +140,7 @@ class a
             VerifyNotBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ImplicitArrayInitializerKnownDelegateType()
         {
             var markup = @"using System;
@@ -153,7 +155,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TernaryOperatorUnknownType()
         {
             var markup = @"using System;
@@ -168,7 +170,7 @@ class a
             VerifyNotBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TernaryOperatorKnownDelegateType1()
         {
             var markup = @"using System;
@@ -183,7 +185,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TernaryOperatorKnownDelegateType2()
         {
             var markup = @"using System;
@@ -198,7 +200,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void OverloadTakesADelegate1()
         {
             var markup = @"using System;
@@ -216,7 +218,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void OverloadTakesDelegate2()
         {
             var markup = @"using System;
@@ -234,7 +236,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitCastToDelegate()
         {
             var markup = @"using System;
@@ -250,7 +252,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(860580)]
         public void ReturnStatement()
         {
@@ -266,7 +268,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void BuilderInAnonymousType1()
         {
             var markup = @"using System;
@@ -281,7 +283,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void BuilderInAnonymousType2()
         {
             var markup = @"using System;
@@ -296,7 +298,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void BuilderInAnonymousType3()
         {
             var markup = @"using System;
@@ -310,7 +312,7 @@ class a
             VerifyBuilder(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void BuilderInFromClause()
         {
             var markup = @"using System;
@@ -327,7 +329,7 @@ class a
         }
 
         [WorkItem(823968)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void BuilderInJoinClause()
         {
             var markup = @"using System;
@@ -347,7 +349,7 @@ class a
         }
 
         [WorkItem(544290)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ParenthesizedLambdaArgument()
         {
             var markup = @"using System;
@@ -362,7 +364,7 @@ class Program
         }
 
         [WorkItem(544379)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IncompleteParenthesizedLambdaArgument()
         {
             var markup = @"using System;
@@ -377,7 +379,7 @@ class Program
         }
 
         [WorkItem(544379)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IncompleteNestedParenthesizedLambdaArgument()
         {
             var markup = @"using System;
@@ -392,7 +394,7 @@ class Program
         }
 
         [WorkItem(546363)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void BuilderForLinqExpression()
         {
             var markup = @"using System;
@@ -409,7 +411,7 @@ public class Class
         }
 
         [WorkItem(546363)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInTypeParameter()
         {
             var markup = @"using System;
@@ -426,7 +428,7 @@ public class Class
         }
 
         [WorkItem(611477)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExtensionMethodFaultTolerance()
         {
             var markup = @"using System;
@@ -473,7 +475,7 @@ namespace Outer
         }
 
         [WorkItem(834609)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void LambdaWithAutomaticBraceCompletion()
         {
             var markup = @"using System;
@@ -490,7 +492,7 @@ public class Class
         }
 
         [WorkItem(858112)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ThisConstructorInitializer()
         {
             var markup = @"using System;
@@ -502,7 +504,7 @@ class X
         }
 
         [WorkItem(858112)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void BaseConstructorInitializer()
         {
             var markup = @"using System;
@@ -519,7 +521,7 @@ class D : B
         }
 
         [WorkItem(887842)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void PreprocessorExpression()
         {
             var markup = @"class C
@@ -530,7 +532,7 @@ class D : B
         }
 
         [WorkItem(967254)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ImplicitArrayInitializerAfterNew()
         {
             var markup = @"using System;
@@ -576,22 +578,19 @@ class a
 
         private void CheckResults(Document document, int position, bool isBuilder)
         {
-            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a', isAugment: true);
-            var provider = CreateCompletionProvider();
+            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+            var completionList = GetCompletionList(document, position, triggerInfo);
 
             if (isBuilder)
             {
-                var group = provider.GetGroupAsync(document, position, triggerInfo, CancellationToken.None).Result;
-                Assert.NotNull(group);
-                Assert.NotNull(group.Builder);
+                Assert.NotNull(completionList);
+                Assert.NotNull(completionList.Builder);
             }
             else
             {
-                var group = provider.GetGroupAsync(document, position, triggerInfo, CancellationToken.None).Result;
-
-                if (group != null)
+                if (completionList != null)
                 {
-                    Assert.True(group.Builder == null, "group.Builder == " + group.Builder.DisplayText);
+                    Assert.True(completionList.Builder == null, "group.Builder == " + (completionList.Builder != null ? completionList.Builder.DisplayText : "null"));
                 }
             }
         }

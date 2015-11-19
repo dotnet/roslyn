@@ -3,10 +3,8 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -18,11 +16,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class CrefCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New CrefCompletionProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotOutsideCref()
             Dim text = <File>
 Class C
@@ -35,7 +37,7 @@ End Class
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotOutsideCref2()
             Dim text = <File>
 Class C
@@ -48,7 +50,7 @@ End Class
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotOutsideCref3()
             Dim text = <File>
 Class C
@@ -61,7 +63,7 @@ End Class
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterCrefOpenQuote()
             Dim text = <File><![CDATA[
 Imports System
@@ -77,7 +79,7 @@ End Module]]></File>.Value
             VerifyAnyItemExists(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RightSideOfQualifiedName()
             Dim text = <File><![CDATA[
 Imports System
@@ -93,7 +95,7 @@ End Module]]></File>.Value
             VerifyItemExists(text, "Foo()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInTypeParameterContext()
             Dim text = <File><![CDATA[
 Imports System
@@ -109,7 +111,7 @@ End Class]]></File>.Value
             VerifyItemIsAbsent(text, "Integer")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InSignature_FirstParameter()
             Dim text = <File><![CDATA[
 Imports System
@@ -126,7 +128,7 @@ End Class]]></File>.Value
             VerifyItemIsAbsent(text, "Foo(Integer")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InSignature_SecondParameter()
             Dim text = <File><![CDATA[
 Imports System
@@ -142,7 +144,7 @@ End Class]]></File>.Value
             VerifyItemExists(text, "Integer")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotAfterSignature()
             Dim text = <File><![CDATA[
 Imports System
@@ -157,7 +159,7 @@ End Class]]></File>.Value
 
             VerifyNoItemsExist(text)
         End Sub
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotAfterDotAfterSignature()
             Dim text = <File><![CDATA[
 Imports System
@@ -173,7 +175,7 @@ End Class]]></File>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MethodParametersIncluded()
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -187,7 +189,7 @@ End Class]]></File>.Value
             VerifyItemExists(text, "Foo(ByRef Integer, Integer, Integer())")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypesSuggestedWithTypeParameters()
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -202,7 +204,7 @@ End Class]]></File>.Value
             VerifyItemExists(text, "Program")
             VerifyItemExists(text, "Program(Of TTypeParameter)")
         End Sub
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Operators()
             Dim text = <File><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -228,7 +230,7 @@ End Class]]></File>.Value
             VerifyItemExists(text, "Operator +(C)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ModOperator()
             Dim text = <File><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -254,7 +256,7 @@ End Class]]></File>.Value
             VerifyItemExists(text, "Operator Mod(C, Integer)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ConstructorsShown()
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -268,7 +270,7 @@ End Class
 
             VerifyItemExists(text, "New(Integer)")
         End Sub
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterNamespace()
             Dim text = <File><![CDATA[
 Imports System
@@ -284,7 +286,7 @@ End Class
             VerifyItemExists(text, "String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterizedProperties()
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -314,7 +316,7 @@ End Class
             VerifyItemExists(text, "Item(Integer, String)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoIdentifierEscaping()
             Dim text = <File><![CDATA[
 ''' <see cref="A.$$"/>
@@ -327,7 +329,7 @@ End Class
             VerifyItemExists(text, "GetType()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoCommitOnParen()
             Dim text = <File><![CDATA[
 ''' <summary>
@@ -341,7 +343,7 @@ End Class
 
             Dim expected = <File><![CDATA[
 ''' <summary>
-''' <see cref="C."/>
+''' <see cref="C.("/>
 ''' </summary>
 Class C
 Sub bar(x As Integer, y As Integer)
@@ -352,7 +354,7 @@ End Class
             VerifyProviderCommit(text, "bar(Integer, Integer)", expected, "("c, "bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowTypingTypeParameters()
             Dim text = <File><![CDATA[
 Imports System.Collections.Generic
@@ -368,7 +370,7 @@ End Class
             Dim expected = <File><![CDATA[
 Imports System.Collections.Generic
 ''' <summary>
-''' <see cref=""/>
+''' <see cref=" "/>
 ''' </summary>
 Class C
 Sub bar(x As Integer, y As Integer)
@@ -379,7 +381,7 @@ End Class
             VerifyProviderCommit(text, "List(Of T)", expected, " "c, "List(Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OfAfterParen()
             Dim text = <File><![CDATA[
 Imports System
@@ -395,7 +397,7 @@ End Module]]></File>.Value
             VerifyItemExists(text, "Of")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OfNotAfterComma()
             Dim text = <File><![CDATA[
 Imports System
@@ -429,7 +431,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Dim provider = New CrefCompletionProvider()
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim items = provider.GetGroupAsync(document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), CancellationToken.None).Result
+                Dim completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
             End Using
         End Sub
 
@@ -807,6 +809,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
             End Function
 
             Public Function TryGetPredefinedType(token As SyntaxToken, ByRef type As PredefinedType) As Boolean Implements ISyntaxFactsService.TryGetPredefinedType
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan Implements ISyntaxFactsService.GetInactiveRegionSpanAroundPosition
                 Throw New NotImplementedException()
             End Function
         End Class

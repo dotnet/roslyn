@@ -9,23 +9,23 @@ namespace Microsoft.CodeAnalysis
     // InternalsVisibleTo(this-assembly) because there are numerous shared (linked) files common to both
     // Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.Workspaces and that gives us major issues with duplicate 
     // internal types that suddenly become visible (e.g., SpecializedCollections) and that leads down a rabbit hole
-    // of requiring assembly aliasing that would make many tests in this project unreadable.  The descision was made to
+    // of requiring assembly aliasing that would make many tests in this project unreadable.  The decision was made to
     // manually load the few resources we need from the CodeAnalysis assembly at the cost of Find All References and
     // Rename not working as expected.
     internal static class CodeAnalysisResources
     {
         public static string InMemoryAssembly => GetString("InMemoryAssembly");
 
-        private static ResourceManager _codeAnalysisResourceManager;
+        private static ResourceManager s_codeAnalysisResourceManager;
 
         private static string GetString(string resourceName)
         {
-            if (_codeAnalysisResourceManager == null)
+            if (s_codeAnalysisResourceManager == null)
             {
-                _codeAnalysisResourceManager = new ResourceManager("Microsoft.CodeAnalysis.CodeAnalysisResources", typeof(Compilation).Assembly);
+                s_codeAnalysisResourceManager = new ResourceManager("Microsoft.CodeAnalysis.CodeAnalysisResources", typeof(Compilation).Assembly);
             }
 
-            return _codeAnalysisResourceManager.GetString(resourceName);
+            return s_codeAnalysisResourceManager.GetString(resourceName);
         }
     }
 }

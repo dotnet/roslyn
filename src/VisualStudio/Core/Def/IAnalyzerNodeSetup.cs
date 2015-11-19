@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// <summary>
     /// An interface to be implemented in the SolutionExplorerShim project to register the stuff needed there.
     /// </summary>
-    interface IAnalyzerNodeSetup
+    internal interface IAnalyzerNodeSetup
     {
         void Initialize(IServiceProvider serviceProvider);
         void Unregister();

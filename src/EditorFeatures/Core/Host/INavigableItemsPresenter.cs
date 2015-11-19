@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 {
     internal interface INavigableItemsPresenter
     {
-        void DisplayResult(IEnumerable<INavigableItem> items);
+        void DisplayResult(string title, IEnumerable<INavigableItem> items);
     }
 }

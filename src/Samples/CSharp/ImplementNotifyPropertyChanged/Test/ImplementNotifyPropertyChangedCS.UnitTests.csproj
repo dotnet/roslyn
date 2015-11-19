@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="$(SolutionDir)..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <!-- dynamic -->
@@ -18,7 +17,8 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <None Include="packages.config" />
+    <None Include="App.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <Reference Include="Microsoft.CodeAnalysis">
@@ -53,13 +53,6 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit">
-      <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
-    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -73,8 +66,6 @@
   </ItemGroup>
   <ItemGroup />
   <ImportGroup Label="Targets">
-    <Import Project="$(SolutionDir)..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\..\..\build\Roslyn.Toolsets.Xunit.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>

@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -15,7 +16,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 10)]
+    [ProvideMenuResource("Menus.ctmenu", version: 12)]
     internal class RoslynPackage : Package
     {
         private LibraryManager _libraryManager;
@@ -41,7 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             base.Initialize();
 
-            ForegroundThreadAffinitizedObject.Initialize();
+            ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = ForegroundThreadData.CreateDefault();
+            Debug.Assert(ForegroundThreadAffinitizedObject.DefaultForegroundThreadData.Kind == ForegroundThreadDataKind.Wpf);
 
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;
@@ -53,6 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var compilerFailFast = compilerAssembly.GetType(typeof(FailFast).FullName, throwOnError: true);
             var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
             property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
+
+            InitializePortableShim(compilerAssembly);
 
             RegisterFindResultsLibraryManager();
 
@@ -74,6 +77,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             LoadComponentsInUIContext();
 
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
+        }
+
+        private static void InitializePortableShim(Assembly compilerAssembly)
+        {
+            // We eagerly force all of the types to be loaded within the PortableShim because there are scenarios
+            // in which loading types can trigger the current AppDomain's AssemblyResolve or TypeResolve events.
+            // If handlers of those events do anything that would cause PortableShim to be accessed recursively,
+            // bad things can happen. In particular, this fixes the scenario described in TFS bug #1185842.
+            //
+            // Note that the fix below is written to be as defensive as possible to do no harm if it impacts other
+            // scenarios.
+
+            // Initialize the PortableShim linked into the Workspaces layer.
+            Roslyn.Utilities.PortableShim.Initialize();
+
+            // Initialize the PortableShim linked into the Compilers layer via reflection.
+            var compilerPortableShim = compilerAssembly.GetType("Roslyn.Utilities.PortableShim", throwOnError: false);
+            var initializeMethod = compilerPortableShim?.GetMethod(nameof(Roslyn.Utilities.PortableShim.Initialize), BindingFlags.Static | BindingFlags.NonPublic);
+            initializeMethod?.Invoke(null, null);
         }
 
         private void InitializeColors()
@@ -121,8 +143,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // package from each language very early
             this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
+            this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
-            this.ComponentModel.GetService<VisualStudioTodoTaskList>();
             this.ComponentModel.GetService<HACK_ThemeColorFixer>();
             this.ComponentModel.GetExtensions<IReferencedSymbolsPresenter>();
             this.ComponentModel.GetExtensions<INavigableItemsPresenter>();

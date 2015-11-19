@@ -13,7 +13,7 @@ Public Class XmlInternalSyntax
     Public Sub ScannerXml_SimpleComment()
         Dim str = SourceText.From(" <!-- hello there --> ")
 
-        ' First validate that we corrrectly detect comment in the element context
+        ' First validate that we correctly detect comment in the element context
         Using s As InternalSyntax.Scanner = New InternalSyntax.Scanner(str, TestOptions.Regular)
             Dim tkBeginComment = s.ScanXmlElement()
             Assert.Equal(SyntaxKind.LessThanExclamationMinusMinusToken, tkBeginComment.Kind)
@@ -40,7 +40,7 @@ Public Class XmlInternalSyntax
     Public Sub ScannerXml_SimpleCData()
         Dim str = SourceText.From(" <![CDATA[some data / > < % @ here ]]> ")
 
-        ' First validate that we corrrectly detect CData in the element context
+        ' First validate that we correctly detect CData in the element context
         Using s = New InternalSyntax.Scanner(str, TestOptions.Regular)
             Dim tkBeginComment = s.ScanXmlElement()
             Assert.Equal(SyntaxKind.BeginCDataToken, tkBeginComment.Kind)

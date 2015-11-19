@@ -757,6 +757,5 @@ Func<int, int> W() => delegate (int y2) { return 2; }
                 Assert.Equal($"System.Int32 y{i}", model.LookupSymbols(nodes[i].SpanStart, name: $"y{i}").Single().ToTestDisplayString());
             }
         }
-
     }
 }

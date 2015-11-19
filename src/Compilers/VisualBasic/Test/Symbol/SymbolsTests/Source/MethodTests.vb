@@ -768,7 +768,7 @@ End Class
                                                     Dim constructedM1WrongArity = m1.Construct((New TypeSymbol() {compilation.GetSpecialType(SpecialType.System_String)}).AsImmutableOrNull())
                                                 End Sub)
 
-            ' Try identity substution.
+            ' Try identity substitution.
             Dim identityM1 = m1.Construct(m1.OriginalDefinition.TypeParameters.As(Of TypeSymbol)())
             Assert.NotEqual(m1, identityM1)
             Assert.Same(m1, identityM1.ConstructedFrom)
@@ -1143,7 +1143,7 @@ End Namespace
         End Sub
 
         <Fact>
-        Public Sub OverloadsAndOverrids01()
+        Public Sub OverloadsAndOverrides01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="C">
     <file name="a.vb">

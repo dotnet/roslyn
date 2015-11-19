@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
                     var newRoot = root.ReplaceNode(node, newNode);
                     var newDocument = context.Document.WithSyntaxRoot(newRoot);
 
-                    // Disable RS0005 as this is test code and we don't need telemtry for created code action.
+                    // Disable RS0005 as this is test code and we don't need telemetry for created code action.
 #pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
                     var fix = CodeAction.Create("QualifyWithThisFix", _ => Task.FromResult(newDocument));
 #pragma warning restore RS0005 // Do not use generic CodeAction.Create to create CodeAction
@@ -152,7 +152,7 @@ class C
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false);
+            Test(input, expected, compareTokens: false);
         }
 
         #endregion

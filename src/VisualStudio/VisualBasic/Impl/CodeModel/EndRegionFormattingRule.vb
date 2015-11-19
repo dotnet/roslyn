@@ -8,7 +8,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Friend Class EndRegionFormattingRule
         Implements IFormattingRule
 
-        Public Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
+        Public Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, lastToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
             nextOperation.Invoke(list)
         End Sub
 

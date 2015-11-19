@@ -39,6 +39,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class ObjectPool<T> where T : class
     {
+        [DebuggerDisplay("{Value,nq}")]
         private struct Element
         {
             internal T Value;

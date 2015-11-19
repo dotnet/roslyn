@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public string Language { get; private set; }
+        public string Language { get; }
 
         public void UpdatePreview(string text)
         {
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     "System.Core"
                 };
 
-            var metadataService  = workspace.Services.GetService<IMetadataService>();
+            var metadataService = workspace.Services.GetService<IMetadataService>();
 
             var referenceAssemblies = Thread.GetDomain().GetAssemblies()
                 .Where(x => references.Contains(x.GetName(true).Name, StringComparer.OrdinalIgnoreCase))

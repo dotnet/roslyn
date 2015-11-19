@@ -4,10 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -106,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 var viewSnapshot = _textView.TextSnapshot;
 
                 // No need to remove tags as these spans are reformatted anyways.
-                UpdateSpans_CallOnlyOnUIThread(reformattedSpans, viewSnapshot, removeOldTags: false);
+                UpdateSpans_CallOnlyOnUIThread(reformattedSpans, removeOldTags: false);
 
                 // Compute any spans that had been invalidated but were not affected by layout.
                 List<IMappingSpan> invalidated;
@@ -123,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                         invalidatedAndNormalized,
                         e.NewOrReformattedSpans);
 
-                    UpdateSpans_CallOnlyOnUIThread(invalidatedButNotReformatted, viewSnapshot, removeOldTags: true);
+                    UpdateSpans_CallOnlyOnUIThread(invalidatedButNotReformatted, removeOldTags: true);
                 }
             }
         }
@@ -220,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 {
                     var viewSnapshot = _textView.TextSnapshot;
                     var invalidatedNormalized = TranslateAndNormalize(invalidated, viewSnapshot);
-                    UpdateSpans_CallOnlyOnUIThread(invalidatedNormalized, viewSnapshot, removeOldTags: true);
+                    UpdateSpans_CallOnlyOnUIThread(invalidatedNormalized, removeOldTags: true);
                 }
             }
         }
@@ -233,15 +230,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         /// It happens when another region of the view becomes visible or there is a change in tags.
         /// For us the end result is the same - get tags from tagger and update visuals correspondingly.
         /// </summary>        
-        private void UpdateSpans_CallOnlyOnUIThread(
-            NormalizedSnapshotSpanCollection changedSpanCollection,
-            ITextSnapshot viewSnapshot,
-            bool removeOldTags)
+        private void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
         {
             Contract.ThrowIfNull(changedSpanCollection);
 
             // this method should only run on UI thread as we do WPF here.
             Contract.ThrowIfFalse(_textView.VisualElement.Dispatcher.CheckAccess());
+
+            var viewSnapshot = _textView.TextSnapshot;
+            var visualSnapshot = _textView.VisualSnapshot;
 
             var viewLines = _textView.TextViewLines;
             if (viewLines == null || viewLines.Count == 0)
@@ -273,6 +270,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 var tagSpans = _tagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
+                    // We don't want to draw line separators if they would intersect a collapsed outlining
+                    // region.  So we test if we can map the start of the line separator up to our visual 
+                    // snapshot. If we can't, then we just skip it.
+                    var point = tagMappingSpan.Span.Start.GetPoint(changedSpan.Snapshot, PositionAffinity.Predecessor);
+                    if (point == null)
+                    {
+                        continue;
+                    }
+
+                    var mappedPoint = _textView.BufferGraph.MapUpToSnapshot(
+                        point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, _textView.VisualSnapshot);
+                    if (mappedPoint == null)
+                    {
+                        continue;
+                    }
+
                     SnapshotSpan span;
                     if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, viewSnapshot, out span))
                     {
@@ -281,7 +294,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
                     if (!viewLines.IntersectsBufferSpan(span))
                     {
-                        // span is outside of the view so we will not get geometry for it, but may spent a lot of time trying
+                        // span is outside of the view so we will not get geometry for it, but may 
+                        // spent a lot of time trying.
                         continue;
                     }
 

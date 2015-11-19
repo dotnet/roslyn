@@ -169,7 +169,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        ' Traversing items in ‘Nothing’
+        ' Traversing items in 'Nothing'
         <Fact>
         Public Sub TraversingNothingStrictOn()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -198,7 +198,7 @@ End Class
             VerifyForeachSemanticInfo(compilation1)
         End Sub
 
-        ' Traversing items in ‘Nothing’
+        ' Traversing items in 'Nothing'
         <Fact()>
         Public Sub TraversingNothingStrictOff()
             Dim compilation1 = CreateCompilationWithMscorlib(

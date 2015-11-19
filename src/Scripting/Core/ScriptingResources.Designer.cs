@@ -10,6 +10,7 @@
 
 namespace Microsoft.CodeAnalysis.Scripting {
     using System;
+    using System.Reflection;
     
     
     /// <summary>
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.ScriptingResources", typeof(ScriptingResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.ScriptingResources", typeof(ScriptingResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -70,11 +71,29 @@ namespace Microsoft.CodeAnalysis.Scripting {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assembly not found..
+        ///   Looks up a localized string similar to  at {0} : {1}.
         /// </summary>
-        internal static string AssemblyNotFound {
+        internal static string AtFileLine {
             get {
-                return ResourceManager.GetString("AssemblyNotFound", resourceCulture);
+                return ResourceManager.GetString("AtFileLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot set a constant variable.
+        /// </summary>
+        internal static string CannotSetConstantVariable {
+            get {
+                return ResourceManager.GetString("CannotSetConstantVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot set a read-only variable.
+        /// </summary>
+        internal static string CannotSetReadOnlyVariable {
+            get {
+                return ResourceManager.GetString("CannotSetReadOnlyVariable", resourceCulture);
             }
         }
         
@@ -97,15 +116,6 @@ namespace Microsoft.CodeAnalysis.Scripting {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Execution state is frozen and cannot be modified..
-        /// </summary>
-        internal static string ExecutionStateFrozen {
-            get {
-                return ResourceManager.GetString("ExecutionStateFrozen", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Expected an assembly reference..
         /// </summary>
         internal static string ExpectedAnAssemblyReference {
@@ -124,6 +134,41 @@ namespace Microsoft.CodeAnalysis.Scripting {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Global variables passed to a script without a global type.
+        /// </summary>
+        internal static string GlobalVariablesWithoutGlobalType {
+            get {
+                return ResourceManager.GetString("GlobalVariablesWithoutGlobalType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &quot;#help&quot; for more information..
+        /// </summary>
+        internal static string HelpPrompt {
+            get {
+                return ResourceManager.GetString("HelpPrompt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keyboard shortcuts:
+        ///  Enter         If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+        ///  Escape        Clear the current submission.
+        ///  UpArrow       Replace the current submission with a previous submission.
+        ///  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+        ///REPL commands:
+        ///  #help         Display help on available commands and key bindings.
+        ///Script directives:
+        ///  #r            Add a metad [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string HelpText {
+            get {
+                return ResourceManager.GetString("HelpText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid assembly name.
         /// </summary>
         internal static string InvalidAssemblyName {
@@ -138,6 +183,33 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static string InvalidCharactersInAssemblyName {
             get {
                 return ResourceManager.GetString("InvalidCharactersInAssemblyName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to + additional {0} error.
+        /// </summary>
+        internal static string PlusAdditionalError {
+            get {
+                return ResourceManager.GetString("PlusAdditionalError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to + additional {0} errors.
+        /// </summary>
+        internal static string PlusAdditionalErrors {
+            get {
+                return ResourceManager.GetString("PlusAdditionalErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The script requires access to global variables but none were given.
+        /// </summary>
+        internal static string ScriptRequiresGlobalVariables {
+            get {
+                return ResourceManager.GetString("ScriptRequiresGlobalVariables", resourceCulture);
             }
         }
         

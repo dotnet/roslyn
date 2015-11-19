@@ -325,8 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.ImplicitUserDefined:
                                     return false;
                                 default:
-                                    Debug.Assert(false, "Unhandled conversion kind in reordering logic");
-                                    return false;
+                                    // Unhandled conversion kind in reordering logic
+                                    throw ExceptionUtilities.UnexpectedValue(conv.ConversionKind);
                             }
                             break;
                         }
@@ -460,6 +460,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Do not yet attempt to deal with params arrays or optional arguments.
             BuildStoresToTemps(expanded, argsToParamsOpt, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
 
+
+            // all the formal arguments, except missing optionals, are now in place. 
+            // Optimize away unnecessary temporaries.
+            // Necessary temporaries have their store instructions merged into the appropriate 
+            // argument expression.
+            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            OptimizeTemporaries(actualArguments, refKinds, storesToTemps, temporariesBuilder);
+
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
@@ -468,13 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Step three: Now fill in the optional arguments.
             InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, enableCallerInfo);
-
-            // Step four: all the arguments are now in place. Optimize away unnecessary temporaries.
-            // Necessary temporaries have their store instructions merged into the appropriate 
-            // argument expression.
-            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            OptimizeTemporaries(actualArguments, refKinds, storesToTemps, temporariesBuilder);
-
+            
             if (isComReceiver)
             {
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temporariesBuilder);
@@ -685,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Process tempStores and add them as sideeffects to arguments where needed. The return
+        /// Process tempStores and add them as side-effects to arguments where needed. The return
         /// value tells how many temps are actually needed. For unnecessary temps the corresponding
         /// temp store will be cleared.
         /// </summary>
@@ -723,7 +725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the actual expression we were storing and add it as an argument - this one does
                 // not need a temp. if there are any unclaimed stores before the found one, add them
                 // as side effects that precede this arg, they cannot happen later.
-                if (argument.Kind == BoundKind.Local)
+                // NOTE: missing optional parameters are not filled yet and therefore nulls - no need to do anything for them
+                if (argument?.Kind == BoundKind.Local)
                 {
                     var correspondingStore = -1;
                     for (int i = firstUnclaimedStore; i < tempStores.Count; i++)
@@ -745,12 +748,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the temp, the argument RefKind needs to be restored.
                         refKinds[a] = ((BoundLocal)argument).LocalSymbol.RefKind;
 
-                        // the matched store will not need to go into sideeffects, only ones before it will
+                        // the matched store will not need to go into side-effects, only ones before it will
                         // remove the store to signal that we are not using its temp.
                         tempStores[correspondingStore] = null;
                         tempsRemainedInUse--;
 
-                        // no need for sideeffects?
+                        // no need for side-effects?
                         // just combine store and load
                         if (correspondingStore == firstUnclaimedStore)
                         {
@@ -780,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(firstUnclaimedStore == tempStores.Count, "not all sideeffects were claimed");
+            Debug.Assert(firstUnclaimedStore == tempStores.Count, "not all side-effects were claimed");
             return tempsRemainedInUse;
         }
 
@@ -871,8 +874,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(parameter.IsOptional);
             ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
             BoundExpression defaultValue;
-
             SourceLocation callerSourceLocation;
+
+            // For compatibility with the native compiler we treat all bad imported constant
+            // values as default(T).  
+            if (defaultConstantValue != null && defaultConstantValue.IsBad)
+            {
+                defaultConstantValue = ConstantValue.Null;
+            }
 
             if (parameter.IsCallerLineNumber && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
@@ -1063,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
         // We should have ignored the 'ref' on the parameter during overload resolution for the given method call.
         // If we had any ref omitted argument for the given call, we create a temporary local and
-        // replace the argument with the following BoundSequence: { sideeffects: { temp = argument }, value = { ref temp } }
+        // replace the argument with the following BoundSequence: { side-effects: { temp = argument }, value = { ref temp } }
         // NOTE: The temporary local must be scoped to live across the entire BoundCall node,
         // otherwise the codegen optimizer might re-use the same temporary for multiple ref-omitted arguments for this call.
         private void RewriteArgumentsForComCall(

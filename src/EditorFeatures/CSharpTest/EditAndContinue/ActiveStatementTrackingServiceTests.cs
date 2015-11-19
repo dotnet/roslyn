@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class ActiveStatementTrackingServiceTests : RudeEditTestBase
     {
-        [Fact, WorkItem(846042)]
+        [WpfFact, WorkItem(846042)]
         public void MovedOutsideOfMethod1()
         {
             string src1 = @"
@@ -28,7 +28,7 @@ class C
 
     static void Foo()
     {
-        // tracking span moves to another method as the user types aound it
+        // tracking span moves to another method as the user types around it
         <TS:0>Foo(1);</TS:0>
     }
 }
@@ -39,7 +39,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void MovedOutsideOfMethod2()
         {
             string src1 = @"
@@ -70,7 +70,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void MovedOutsideOfLambda1()
         {
             string src1 = @"
@@ -97,7 +97,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void MovedOutsideOfLambda2()
         {
             string src1 = @"

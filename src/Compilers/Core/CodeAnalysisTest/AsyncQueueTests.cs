@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await queue.WhenCompletedTask.ConfigureAwait(false);
 
             // The AsyncQueue<T>.Task property won't complete until all of the 
-            // exitsing DequeueAsync values have also completed.
+            // existing DequeueAsync values have also completed.
             Assert.True(task.IsCompleted);
         }
 

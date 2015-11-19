@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private const string FromKeyword = "from";
         private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
+        private const string AwaitKeyword = "await";
 
         /// <summary>
         /// Determine the classification type for a given token.
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
-            else if (IsActualContextualKeyword(token) || CouldBeVarKeywordInDeclaration(token))
+            else if (IsActualContextualKeyword(token))
             {
                 return ClassificationTypeNames.Keyword;
             }
@@ -259,11 +260,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 switch (token.ValueText)
                 {
+                    case AwaitKeyword:
+                        return token.GetNextToken(includeZeroWidth: true).IsMissing;
+
                     case FromKeyword:
                         var fromClause = token.Parent.FirstAncestorOrSelf<FromClauseSyntax>();
                         return fromClause != null && fromClause.FromKeyword == token;
 
                     case VarKeyword:
+                        // var
+                        if (token.Parent is IdentifierNameSyntax && token.Parent?.Parent is ExpressionStatementSyntax)
+                        {
+                            return true;
+                        }
+
                         // we allow var any time it looks like a variable declaration, and is not in a
                         // field or event field.
                         return
@@ -271,34 +281,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             token.Parent.Parent is VariableDeclarationSyntax &&
                             !(token.Parent.Parent.Parent is FieldDeclarationSyntax) &&
                             !(token.Parent.Parent.Parent is EventFieldDeclarationSyntax);
-                }
-            }
-
-            return false;
-        }
-
-        private static bool CouldBeVarKeywordInDeclaration(SyntaxToken token)
-        {
-            if (token.ValueText == VarKeyword && token.Parent != null && token.Parent.Parent != null)
-            {
-                // cases:
-                //   var
-                //   out var
-                if (token.Parent is IdentifierNameSyntax)
-                {
-                    if (token.Parent.Parent is ExpressionStatementSyntax)
-                    {
-                        return true;
-                    }
-
-                    if (token.Parent.Parent is ArgumentSyntax)
-                    {
-                        var argument = (ArgumentSyntax)token.Parent.Parent;
-                        if (argument.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
-                        {
-                            return true;
-                        }
-                    }
                 }
             }
 

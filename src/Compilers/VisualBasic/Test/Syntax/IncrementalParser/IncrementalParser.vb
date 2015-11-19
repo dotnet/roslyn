@@ -144,7 +144,7 @@ End Module]]>.Value
     <Fact>
     Public Sub IncParseWithEventsFollowingProperty()
         'Unable to verify this using CDATA, since CDATA value only has Cr appended at end of each line, 
-        'where as this bug is reproable only with CrLf at the end of each line
+        'where as this bug is reproducible only with CrLf at the end of each line
         Dim code As String = "Public Class HasPublicMembersToConflictWith" & vbCrLf &
     "Public ConflictWithProp" & vbCrLf &
     "" & vbCrLf &
@@ -1998,7 +1998,7 @@ End Namespace
     End Sub
 
     <Fact>
-    Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxNamespacNamespaceBlock()
+    Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxNamespaceNamespaceBlock()
         Dim source = ToText(<![CDATA[
 
 Namespace NS1

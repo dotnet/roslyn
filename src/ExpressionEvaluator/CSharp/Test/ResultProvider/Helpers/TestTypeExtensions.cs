@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -14,7 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public static string GetTypeName(this System.Type type, DkmClrCustomTypeInfo typeInfo, bool escapeKeywordIdentifiers = false)
         {
-            return CSharpFormatter.Instance.GetTypeName(new TypeAndCustomInfo((TypeImpl)type, typeInfo), escapeKeywordIdentifiers);
+            bool sawInvalidIdentifier;
+            var result = CSharpFormatter.Instance.GetTypeName(new TypeAndCustomInfo((TypeImpl)type, typeInfo), escapeKeywordIdentifiers, out sawInvalidIdentifier);
+            Assert.False(sawInvalidIdentifier);
+            return result;
         }
     }
 }

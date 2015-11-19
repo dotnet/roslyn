@@ -35,7 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        {
+            return Imports.Empty;
+        }
+
         protected override SourceLocalSymbol LookupLocal(SyntaxToken nameToken)
+        {
+            return null;
+        }
+
+        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
         {
             return null;
         }
@@ -144,7 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -192,6 +207,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override ImmutableArray<LocalSymbol> Locals
+        {
+            get
+            {
+                // There's supposed to be a LocalScopeBinder (or other overrider of this method) in the chain.
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> LocalFunctions
         {
             get
             {

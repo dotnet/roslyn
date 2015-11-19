@@ -356,7 +356,7 @@ class Test
 
         // malformed 'lock' statement
         [Fact]
-        public void MalfomedLock()
+        public void MalformedLock()
         {
             var source = @"
 using System.Collections.Generic;
@@ -428,7 +428,7 @@ class Test
 
         [WorkItem(543168, "DevDiv")]
         [Fact()]
-        public void MalfomedLock_1()
+        public void MalformedLock_1()
         {
             var source = @"
 class D

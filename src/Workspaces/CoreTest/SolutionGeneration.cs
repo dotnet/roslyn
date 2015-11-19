@@ -319,11 +319,7 @@ EndGlobal
                 {
                     var itemElement = CreateXElement(itemTypeSelector(item));
                     itemElement.SetAttributeValue("Include", attributeValueGetter(item));
-
-                    if (elementModifier != null)
-                    {
-                        elementModifier(item, itemElement);
-                    }
+                    elementModifier?.Invoke(item, itemElement);
 
                     itemGroup.Add(itemElement);
                 }

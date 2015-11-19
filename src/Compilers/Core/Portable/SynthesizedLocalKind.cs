@@ -236,7 +236,12 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsSlotReusable(this SynthesizedLocalKind kind, OptimizationLevel optimizations)
         {
-            if (optimizations == OptimizationLevel.Debug)
+            return kind.IsSlotReusable(optimizations != OptimizationLevel.Release);
+        }
+
+        public static bool IsSlotReusable(this SynthesizedLocalKind kind, bool isDebug)
+        {
+            if (isDebug)
             {
                 // Don't reuse any long-lived locals in debug builds to provide good debugging experience 
                 // for user-defined locals and to allow EnC.
@@ -259,7 +264,7 @@ namespace Microsoft.CodeAnalysis
         public static uint PdbAttributes(this SynthesizedLocalKind kind)
         {
             // Marking variables with hidden attribute is only needed for compat with Dev12 EE.
-            // We mark all synthesized locals, other than lambda display class as hidden so that they don't whow up in Dev12 EE.
+            // We mark all synthesized locals, other than lambda display class as hidden so that they don't show up in Dev12 EE.
             // Display class is special - it is used by the EE to access variables lifted into a closure.
             return (kind != SynthesizedLocalKind.LambdaDisplayClass && kind != SynthesizedLocalKind.UserDefined && kind != SynthesizedLocalKind.With)
                 ? Cci.PdbWriter.HiddenLocalAttributesValue

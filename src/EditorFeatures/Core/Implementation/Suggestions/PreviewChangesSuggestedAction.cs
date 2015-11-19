@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -13,9 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
+            IWaitIndicator waitIndicator,
             PreviewChangesCodeAction codeAction,
             object provider)
-            : base(workspace, subjectBuffer, editHandler, codeAction, provider)
+            : base(workspace, subjectBuffer, editHandler, waitIndicator, codeAction, provider)
         {
         }
 
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             get
             {
                 // Since PreviewChangesSuggestedAction will always be presented as a
-                // 'flavored' action, it will never havve a preview.
+                // 'flavored' action, it will never have a preview.
                 return false;
             }
         }

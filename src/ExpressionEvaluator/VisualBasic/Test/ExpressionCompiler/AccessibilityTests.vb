@@ -44,13 +44,13 @@ End Class
                 "Me.get_P()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData:=Nothing)
-            Assert.Equal("(1,2): error BC30456: 'get_P' is not a member of 'C'.", errorMessage)
+            Assert.Equal("error BC30456: 'get_P' is not a member of 'C'.", errorMessage)
         End Sub
 
         <Fact>
@@ -180,7 +180,7 @@ End Class
   .maxstack  2
   .locals init (Integer V_0) //Test
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  callvirt   ""Function C.get_P() As Integer""
   IL_0007:  callvirt   ""Function B.M(Integer) As Integer""
   IL_000c:  ret

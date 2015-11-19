@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)
         {
             var type = typeMap.SubstituteType(_type);
-            return new EELocalConstantSymbol(method, _name, type, _value);
+            return new EELocalConstantSymbol(method, _name, type.Type, _value);
         }
 
         public override string Name
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (diagnostics != null && _value.IsBad)
             {
-                diagnostics.Add(ErrorCode.ERR_BadPdbData, Location.None, Name); 
+                diagnostics.Add(ErrorCode.ERR_BadPdbData, Location.None, Name);
             }
-            
+
             return _value;
         }
 

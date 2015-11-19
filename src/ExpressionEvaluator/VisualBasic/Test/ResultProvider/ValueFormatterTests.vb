@@ -564,7 +564,7 @@ End Namespace
             Assert.Equal("#1/1/0001 12:00:00 AM#", FormatValue(New Date(0)))
             Assert.Equal("#1/1/1970 12:00:00 AM#", FormatValue(New Date(1970, 1, 1)))
             Assert.Equal("#1/1/0001 12:00:00 PM#", FormatValue(New Date(1, 1, 1, 12, 0, 0, 0)))
-            Assert.Equal("#1/1/0001 12:00:00 PM#", FormatValue(New Date(1, 1, 1, 12, 0, 0, 0), useHexadecimal:=True)) ' Hexadecimal setting shouldn't change ouptut
+            Assert.Equal("#1/1/0001 12:00:00 PM#", FormatValue(New Date(1, 1, 1, 12, 0, 0, 0), useHexadecimal:=True)) ' Hexadecimal setting shouldn't change output
             ' DateTimeKind is stored in the top two bits of the ULong value that backs the DateTime instance.
             ' We need to make sure we don't throw an Exception when those bits are set to non-zero values.
             Assert.Equal("#1/1/1970 12:00:00 AM#", FormatValue(New Date(&H89F7FF5F7B58000, DateTimeKind.Local)))

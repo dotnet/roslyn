@@ -315,7 +315,7 @@ class Test
             // as a statement, and therefore gives three additional errors: that there is 
             // a missing semicolon before and after the '=', and that '=' is not a valid statement.
             // In Roslyn we now do error recovery better and treat the initialization clause
-            // as an initialzier. We therefore expect one parse error, not four.
+            // as an initializer. We therefore expect one parse error, not four.
 
             var tree = Parse(text);
             Assert.Equal(1, tree.GetDiagnostics().Count());

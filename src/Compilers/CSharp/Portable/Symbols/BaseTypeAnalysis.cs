@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class BaseTypeAnalysis
     {
         // let's keep up to 16 hashsets so that we do not need to allocate them over and over.
-        // we do not allocate hashsets recursively, so even for bigh hieararchies, one hashset is sufficient
+        // we do not allocate hashsets recursively, so even for big hierarchies, one hashset is sufficient
         // We may need more than one in a case of running this analysis concurrently, so we will keep up to 16
         // which seems plenty for this scenario.
         private static readonly ObjectPool<HashSet<Symbol>> s_hsPool =

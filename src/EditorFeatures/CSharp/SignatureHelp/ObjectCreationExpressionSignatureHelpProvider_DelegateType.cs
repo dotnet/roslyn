@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
             ObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDispalyService,
+            IAnonymousTypeDisplayService anonymousTypeDisplayService,
             INamedTypeSymbol delegateType,
             INamedTypeSymbol containingType,
             CancellationToken cancellationToken)
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
             var position = objectCreationExpression.SpanStart;
             var item = CreateItem(
                 invokeMethod, semanticModel, position,
-                symbolDisplayService, anonymousTypeDispalyService,
+                symbolDisplayService, anonymousTypeDisplayService,
                 isVariadic: false,
                 documentationFactory: null,
                 prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),

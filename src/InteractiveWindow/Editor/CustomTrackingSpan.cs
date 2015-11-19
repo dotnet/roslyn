@@ -11,28 +11,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// and these are initially zero length.  When we insert at the beginning of these we'll end up keeping the
     /// span zero length if we're just EdgePositive tracking.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class CustomTrackingSpan : ITrackingSpan
     {
         private readonly ITrackingPoint _start;
         private readonly ITrackingPoint _end;
 
-        private CustomTrackingSpan(ITrackingPoint start, ITrackingPoint end)
+        public CustomTrackingSpan(ITextSnapshot snapshot, Span span, bool canAppend = false)
         {
-            Debug.Assert(start.TextBuffer == end.TextBuffer);
-            _start = start;
-            _end = end;
-        }
-
-        public CustomTrackingSpan(ITextSnapshot snapshot, Span span, PointTrackingMode startTrackingMode, PointTrackingMode endTrackingMode)
-            : this(snapshot.CreateTrackingPoint(span.Start, startTrackingMode), snapshot.CreateTrackingPoint(span.End, endTrackingMode))
-        {
-        }
-
-        public CustomTrackingSpan WithEndTrackingMode(PointTrackingMode endTrackingMode)
-        {
-            var snapshot = TextBuffer.CurrentSnapshot;
-            var newEnd = snapshot.CreateTrackingPoint(_end.GetPosition(snapshot), endTrackingMode);
-            return new CustomTrackingSpan(_start, newEnd);
+            _start = snapshot.CreateTrackingPoint(span.Start, PointTrackingMode.Negative);
+            _end = snapshot.CreateTrackingPoint(span.End, canAppend ? PointTrackingMode.Positive : PointTrackingMode.Negative);
         }
 
         #region ITrackingSpan Members
@@ -79,7 +67,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #endregion
 
-        public override string ToString()
+        private string GetDebuggerDisplay()
         {
             return "CustomSpan: " + GetSpan(_start.TextBuffer.CurrentSnapshot).ToString();
         }

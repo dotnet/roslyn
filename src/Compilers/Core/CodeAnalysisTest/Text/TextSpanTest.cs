@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TextSpan span_10_11 = new TextSpan(10, 1);
             TextSpan span_00_03 = new TextSpan(0, 3);
 
-            // nonoverlapping
+            // non-overlapping
             Assert.False(span_05_15.Contains(span_00_03));
             Assert.False(span_00_03.Contains(span_05_15));
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TextSpanContainsEmpty()
         {
-            // nonoverlapping
+            // non-overlapping
             Assert.False(new TextSpan(2, 5).Contains(new TextSpan(0, 0)));
             Assert.False(new TextSpan(2, 5).Contains(new TextSpan(10, 0)));
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TextSpanEmptyContains()
         {
-            // nonoverlapping
+            // non-overlapping
             Assert.False(new TextSpan(0, 0).Contains(new TextSpan(2, 5)));
             Assert.False(new TextSpan(10, 0).Contains(new TextSpan(2, 5)));
 

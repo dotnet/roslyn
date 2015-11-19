@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
-            if (formattingService != null && 
+            if (formattingService != null &&
                 (item.ShouldFormatOnCommit || (commitChar != null && formattingService.SupportsFormattingOnTypedCharacter(document, commitChar.GetValueOrDefault()))))
             {
                 // Formatting the completion item affected span is done as a separate transaction because this gives the user
@@ -136,11 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            // Let the rules factories know that this item was committed.
-            foreach (var rules in GetCompletionRules())
-            {
-                rules.CompletionItemComitted(item);
-            }
+            // Let the completion rules know that this item was committed.
+            GetCompletionRules().CompletionItemCommitted(item);
         }
 
         private SnapshotSpan GetFinalSpan(SnapshotSpan currentSpan, char commitChar, bool textChanged)

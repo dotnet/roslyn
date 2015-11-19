@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits AbstractRegionDataFlowPass
 
         ' TODO: normalize the result by removing variables that are unassigned in an unmodified flow analysis.
-        Public Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo, unassignedVariables As HashSet(Of Symbol))
+        Private Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo, unassignedVariables As HashSet(Of Symbol))
             MyBase.New(info, region, unassignedVariables, trackStructsWithIntrinsicTypedFields:=True)
         End Sub
 
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.VisitAmbiguousLocalSymbol(ambiguous)
 
             ' Locals from ambiguous implicit receiver can only be unassigned in *REGION* flow analysis 
-            ' if a new region starts after they are declared and begore the implicit receiver is referenced; 
+            ' if a new region starts after they are declared and before the implicit receiver is referenced; 
             ' region data flow analysis for such regions is prohibited and should return Succeeded = False.
 
             ' Check if the first local in the collection was 'unassigned' by entering a region, 

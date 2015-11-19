@@ -5,7 +5,7 @@ Imports System.Globalization
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
-    ''' The LocalizableErrorArgument class contains members members that allows formatting and serialization of error arguments.
+    ''' The LocalizableErrorArgument class contains members that allows formatting and serialization of error arguments.
     ''' Message IDs may refer to strings that need to be localized.   This struct makes an IFormattable wrapper around a MessageID
     ''' </summary>
     Public Structure LocalizableErrorArgument
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''Creates a string representing the unformatted LocalizableErrorArgument instance.
         ''' </summary>
         Public Overrides Function ToString() As String
-            Return ToString(Nothing)
+            Return ToString_IFormattable(Nothing, Nothing)
         End Function
 
         ''' <summary>

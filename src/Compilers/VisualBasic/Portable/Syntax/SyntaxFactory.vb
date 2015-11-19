@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 4-byte signed integer value to be represented by the returned token.</param> 
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Integer, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("I", StringComparison.OrdinalIgnoreCase), TypeCharacter.IntegerLiteral, TypeCharacter.None), CULng(value),
+            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, If(text.StartsWith("&B", StringComparison.OrdinalIgnoreCase), LiteralBase.Binary, LiteralBase.Decimal))), If(text.EndsWith("I", StringComparison.OrdinalIgnoreCase), TypeCharacter.IntegerLiteral, TypeCharacter.None), CULng(value),
                         DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 4-byte unsigned integer value to be represented by the returned token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As UInteger, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("UI", StringComparison.OrdinalIgnoreCase), TypeCharacter.UIntegerLiteral, TypeCharacter.None), value,
+            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, If(text.StartsWith("&B", StringComparison.OrdinalIgnoreCase), LiteralBase.Binary, LiteralBase.Decimal))), If(text.EndsWith("UI", StringComparison.OrdinalIgnoreCase), TypeCharacter.UIntegerLiteral, TypeCharacter.None), value,
                     DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 8-byte signed integer value to be represented by the returned token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Long, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("L", StringComparison.OrdinalIgnoreCase), TypeCharacter.LongLiteral, TypeCharacter.None), CULng(value),
+            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, If(text.StartsWith("&B", StringComparison.OrdinalIgnoreCase), LiteralBase.Binary, LiteralBase.Decimal))), If(text.EndsWith("L", StringComparison.OrdinalIgnoreCase), TypeCharacter.LongLiteral, TypeCharacter.None), CULng(value),
                     DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 8-byte unsigned integer value to be represented by the returned token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As ULong, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("UL", StringComparison.OrdinalIgnoreCase), TypeCharacter.ULongLiteral, TypeCharacter.None), value,
+            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, If(text.StartsWith("&B", StringComparison.OrdinalIgnoreCase), LiteralBase.Binary, LiteralBase.Decimal))), If(text.EndsWith("UL", StringComparison.OrdinalIgnoreCase), TypeCharacter.ULongLiteral, TypeCharacter.None), value,
                     DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -513,7 +513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="newList">The new list.</param>
         ''' <param name="ignoreChildNode">
         ''' If specified called for every child syntax node (not token) that is visited during the comparison. 
-        ''' It it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
+        ''' It returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
         ''' </param>
         Public Shared Function AreEquivalent(Of TNode As SyntaxNode)(oldList As SyntaxList(Of TNode), newList As SyntaxList(Of TNode), Optional ignoreChildNode As Func(Of SyntaxKind, Boolean) = Nothing) As Boolean
             Return SyntaxEquivalence.AreEquivalent(oldList.Node, newList.Node, ignoreChildNode, topLevel:=False)
@@ -526,7 +526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="newList">The new list.</param>
         ''' <param name="ignoreChildNode">
         ''' If specified called for every child syntax node (not token) that is visited during the comparison. 
-        ''' It it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
+        ''' It returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
         ''' </param>
         Public Shared Function AreEquivalent(Of TNode As SyntaxNode)(oldList As SeparatedSyntaxList(Of TNode), newList As SeparatedSyntaxList(Of TNode), Optional ignoreChildNode As Func(Of SyntaxKind, Boolean) = Nothing) As Boolean
             Return SyntaxEquivalence.AreEquivalent(oldList.Node, newList.Node, ignoreChildNode, topLevel:=False)

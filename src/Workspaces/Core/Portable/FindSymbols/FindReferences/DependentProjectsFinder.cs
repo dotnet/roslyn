@@ -192,11 +192,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await AddNonSubmissionDependentProjectsAsync(symbol.ContainingAssembly, solution, sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
             }
 
-#if SCRIPTING
             // submission projects are special here. The fields generated inside the Script object
             // is private, but further submissions can bind to them.
             await AddSubmissionDependentProjectsAsync(solution, sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
-#endif
+
             return dependentProjects;
         }
 
@@ -218,7 +217,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return GetProjects(solution, projectIds);
         }
 
-#if SCRIPTING
         private static async Task AddSubmissionDependentProjectsAsync(Solution solution, Project sourceProject, HashSet<DependentProject> dependentProjects, CancellationToken cancellationToken)
         {
             var isSubmission = sourceProject != null && sourceProject.IsSubmission;
@@ -233,16 +231,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId);
-                if (project.IsSubmission)
+                if (project.IsSubmission && project.SupportsCompilation)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // If we are referencing another project, store the link in the other direction
                     // so we walk across it later
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    if (compilation.PreviousSubmission != null)
+                    var previous = compilation.ScriptCompilationInfo.PreviousScriptCompilation;
+
+                    if (previous != null)
                     {
-                        var referencedProject = solution.GetProject(compilation.PreviousSubmission.Assembly, cancellationToken);
+                        var referencedProject = solution.GetProject(previous.Assembly, cancellationToken);
                         List<ProjectId> referencingSubmissions = null;
 
                         if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out referencingSubmissions))
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
         }
-#endif
+
         private static bool IsInternalsVisibleToAttribute(AttributeData attr)
         {
             var attrType = attr.AttributeClass;

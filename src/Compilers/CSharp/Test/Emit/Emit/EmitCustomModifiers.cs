@@ -48,7 +48,7 @@ F8
 F9
 F10
 M4
-", emitters: TestEmitters.RefEmitBug);
+");
         }
 
         /// <summary>
@@ -505,8 +505,7 @@ Derived2.Method(Int64[], Int16[], Single[])
             CompileAndVerify(
                 source: text,
                 additionalRefs: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput,
-                emitters: TestEmitters.RefEmitUnsupported_646023);
+                expectedOutput: expectedOutput);
         }
 
         /// <summary>
@@ -549,8 +548,7 @@ System.Int32[]
             CompileAndVerify(
                 source: text,
                 additionalRefs: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput,
-                emitters: TestEmitters.RefEmitUnsupported_646023);
+                expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -602,9 +600,9 @@ class Test
 
             Assert.Equal(RefKind.Ref, parameter.RefKind);
             Assert.False(parameter.CustomModifiers.IsEmpty);
-            Assert.True(parameter.HasByRefBeforeCustomModifiers);
+            Assert.Equal(0, parameter.CountOfCustomModifiersPrecedingByRef);
 
-            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, expectedOutput: "2");
+            CompileAndVerify(comp, expectedOutput: "2");
         }
 
         [Fact]
@@ -658,7 +656,7 @@ class Test
 
             Assert.Equal(RefKind.Ref, baseParameter.RefKind);
             Assert.False(baseParameter.CustomModifiers.IsEmpty);
-            Assert.True(baseParameter.HasByRefBeforeCustomModifiers);
+            Assert.Equal(0, baseParameter.CountOfCustomModifiersPrecedingByRef);
 
             var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
             var derivedMethod = derivedType.GetMember<MethodSymbol>("M");
@@ -666,9 +664,9 @@ class Test
 
             Assert.Equal(RefKind.Ref, derivedParameter.RefKind);
             Assert.False(derivedParameter.CustomModifiers.IsEmpty);
-            Assert.True(derivedParameter.HasByRefBeforeCustomModifiers);
+            Assert.Equal(0, derivedParameter.CountOfCustomModifiersPrecedingByRef);
 
-            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, expectedOutput: "2");
+            CompileAndVerify(comp, expectedOutput: "2");
         }
     }
 }

@@ -257,10 +257,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.LexXmlCrefOrNameToken();
                 case LexerMode.XmlCharacter:
                     return this.LexXmlCharacter();
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(ModeOf(_mode));
             }
-
-            Debug.Assert(false, "Unknown LexMode passed to Lexer.Lex");
-            return this.LexSyntaxToken();
         }
 
         private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
@@ -921,11 +920,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return start < TextWindow.Position;
         }
 
+        // Allows underscores in integers, except at beginning and end
+        private void ScanNumericLiteralSingleInteger(StringBuilder builder, ref bool underscoreInWrongPlace, ref bool usedUnderscore, bool isHex, bool isBinary)
+        {
+            if (TextWindow.PeekChar() == '_')
+            {
+                underscoreInWrongPlace = true;
+            }
+
+            char ch;
+            var lastCharWasUnderscore = false;
+            while (true)
+            {
+                ch = TextWindow.PeekChar();
+                if (ch == '_')
+                {
+                    usedUnderscore = true;
+                    lastCharWasUnderscore = true;
+                }
+                else if ((isHex && !SyntaxFacts.IsHexDigit(ch))
+                        || (isBinary && !SyntaxFacts.IsBinaryDigit(ch))
+                        || (!isHex && !isBinary && !SyntaxFacts.IsDecDigit(ch)))
+                {
+                    break;
+                }
+                else
+                {
+                    _builder.Append(ch);
+                    lastCharWasUnderscore = false;
+                }
+                TextWindow.AdvanceChar();
+            }
+
+            if (lastCharWasUnderscore)
+            {
+                underscoreInWrongPlace = true;
+            }
+        }
+
         private bool ScanNumericLiteral(ref TokenInfo info)
         {
             int start = TextWindow.Position;
             char ch;
             bool isHex = false;
+            bool isBinary = false;
             bool hasDecimal = false;
             bool hasExponent = false;
             info.Text = null;
@@ -933,23 +971,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _builder.Clear();
             bool hasUSuffix = false;
             bool hasLSuffix = false;
+            bool underscoreInWrongPlace = false;
+            bool usedUnderscore = false;
 
             ch = TextWindow.PeekChar();
-            if (ch == '0' && ((ch = TextWindow.PeekChar(1)) == 'x' || ch == 'X'))
+            if (ch == '0')
             {
-                TextWindow.AdvanceChar(2);
-                isHex = true;
+                ch = TextWindow.PeekChar(1);
+                if (ch == 'x' || ch == 'X')
+                {
+                    TextWindow.AdvanceChar(2);
+                    isHex = true;
+                }
+                else if (ch == 'b' || ch == 'B')
+                {
+                    CheckFeatureAvailability(MessageID.IDS_FeatureBinaryLiteral);
+                    TextWindow.AdvanceChar(2);
+                    isBinary = true;
+                }
             }
 
-            if (isHex)
+            if (isHex || isBinary)
             {
                 // It's OK if it has no digits after the '0x' -- we'll catch it in ScanNumericLiteral
                 // and give a proper error then.
-                while (SyntaxFacts.IsHexDigit(ch = TextWindow.PeekChar()))
-                {
-                    _builder.Append(ch);
-                    TextWindow.AdvanceChar();
-                }
+                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex, isBinary);
 
                 if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
                 {
@@ -979,11 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
-                {
-                    _builder.Append(ch);
-                    TextWindow.AdvanceChar();
-                }
+                ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
 
                 if (this.ModeIs(LexerMode.DebuggerSyntax) && TextWindow.PeekChar() == '#')
                 {
@@ -1004,11 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         _builder.Append(ch);
                         TextWindow.AdvanceChar();
 
-                        while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
-                        {
-                            _builder.Append(ch);
-                            TextWindow.AdvanceChar();
-                        }
+                        ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
                     }
                     else if (_builder.Length == 0)
                     {
@@ -1030,11 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                     }
 
-                    while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
-                    {
-                        _builder.Append(ch);
-                        TextWindow.AdvanceChar();
-                    }
+                    ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
                 }
 
                 if (hasExponent || hasDecimal)
@@ -1101,6 +1135,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
+            if (underscoreInWrongPlace)
+            {
+                this.AddError(MakeError(start, TextWindow.Position - start, ErrorCode.ERR_InvalidNumber));
+            }
+            if (usedUnderscore)
+            {
+                CheckFeatureAvailability(MessageID.IDS_FeatureDigitSeparator);
+            }
+
             info.Kind = SyntaxKind.NumericLiteralToken;
             info.Text = TextWindow.GetText(true);
             Debug.Assert(info.Text != null);
@@ -1125,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        val = this.GetValueUInt64(valueText, isHex);
+                        val = this.GetValueUInt64(valueText, isHex, isBinary);
                     }
 
                     // 2.4.4.2 Integer literals
@@ -1221,6 +1264,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return true;
         }
 
+        // TODO: Change to Int64.TryParse when it supports NumberStyles.AllowBinarySpecifier (inline this method into GetValueUInt32/64)
+        private bool TryParseBinaryUInt64(string text, out ulong value)
+        {
+            value = 0;
+            foreach (char c in text)
+            {
+                // if uppermost bit is set, then the next bitshift will overflow
+                if ((value & 0x8000000000000000) != 0)
+                {
+                    return false;
+                }
+                // We shouldn't ever get a string that's nonbinary (see ScanNumericLiteral),
+                // so don't explicitly check for it (there's a debug assert in SyntaxFacts)
+                var bit = (ulong)SyntaxFacts.BinaryValue(c);
+                value = (value << 1) | bit;
+            }
+            return true;
+        }
+
         //used in directives
         private int GetValueInt32(string text, bool isHex)
         {
@@ -1235,10 +1297,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         //used for all non-directive integer literals (cast to desired type afterward)
-        private ulong GetValueUInt64(string text, bool isHex)
+        private ulong GetValueUInt64(string text, bool isHex, bool isBinary)
         {
             ulong result;
-            if (!UInt64.TryParse(text, isHex ? NumberStyles.AllowHexSpecifier : NumberStyles.None, CultureInfo.InvariantCulture, out result))
+            if (isBinary)
+            {
+                if (!TryParseBinaryUInt64(text, out result))
+                {
+                    this.AddError(MakeError(ErrorCode.ERR_IntOverflow));
+                }
+            }
+            else if (!UInt64.TryParse(text, isHex ? NumberStyles.AllowHexSpecifier : NumberStyles.None, CultureInfo.InvariantCulture, out result))
             {
                 //we've already lexed the literal, so the error must be from overflow
                 this.AddError(MakeError(ErrorCode.ERR_IntOverflow));
@@ -1250,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private double GetValueDouble(string text)
         {
             double result;
-            if (!Double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out result))
+            if (!RealParser.TryParseDouble(text, out result))
             {
                 //we've already lexed the literal, so the error must be from overflow
                 this.AddError(MakeError(ErrorCode.ERR_FloatOverflow, "double"));
@@ -1262,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private float GetValueSingle(string text)
         {
             float result;
-            if (!Single.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out result))
+            if (!RealParser.TryParseFloat(text, out result))
             {
                 //we've already lexed the literal, so the error must be from overflow
                 this.AddError(MakeError(ErrorCode.ERR_FloatOverflow, "float"));
@@ -1357,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // and max positions and use those for quick checks internally.
         //
         // Note: it is critical that this method must only be called from a 
-        // codepath that checked for IsIdentifierStartChar or '@' first. 
+        // code path that checked for IsIdentifierStartChar or '@' first. 
         private bool ScanIdentifier_FastPath(ref TokenInfo info)
         {
             if ((_mode & LexerMode.MaskLexMode) == LexerMode.DebuggerSyntax)
@@ -1695,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else if (_identLen > 0 && ch > 127 && SyntaxFacts.IsIdentifierPartCharacter(ch))
                             {
                                 //// BUG 424819 : Handle identifier chars > 0xFFFF via surrogate pairs
-                                if (SyntaxFacts.IsFormattingChar(ch))
+                                if (UnicodeCharacterUtilities.IsFormattingChar(ch))
                                 {
                                     if (isEscaped)
                                     {
@@ -1767,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         goto Fail;
                     }
                     // Parse hex value to check for overflow.
-                    this.GetValueUInt64(valueText, isHex: true);
+                    this.GetValueUInt64(valueText, isHex: true, isBinary: false);
                 }
 
                 return true;
@@ -1983,7 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             else if (_identLen > 0 && consumedChar > 127 && SyntaxFacts.IsIdentifierPartCharacter(consumedChar))
                             {
                                 //// BUG 424819 : Handle identifier chars > 0xFFFF via surrogate pairs
-                                if (SyntaxFacts.IsFormattingChar(consumedChar))
+                                if (UnicodeCharacterUtilities.IsFormattingChar(consumedChar))
                                 {
                                     continue; // Ignore formatting characters
                                 }
@@ -2011,7 +2080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // NOTE: If we don't intern the string value, then we won't get a hit
                 // in the keyword dictionary!  (It searches for a key using identity.)
-                // The text does not have to be interned (and probalbly shouldn't be
+                // The text does not have to be interned (and probably shouldn't be
                 // if it contains entities (else-case).
 
                 var width = TextWindow.Width; // exact size of input characters

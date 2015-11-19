@@ -1,5 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
+using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -7,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 {
     public class EncapsulateFieldCommandHandlerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulatePrivateField()
         {
             var text = @"
@@ -50,7 +58,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateNonPrivateField()
         {
             var text = @"
@@ -93,7 +101,7 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void DialogShownIfNotFieldsFound()
         {
             var text = @"
@@ -114,7 +122,7 @@ class$$ C
         }
 
         [WorkItem(1086632)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateTwoFields()
         {
             var text = @"
@@ -173,6 +181,45 @@ class Program
             using (var state = new EncapsulateFieldTestState(text))
             {
                 state.AssertEncapsulateAs(expected);
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [Trait(Traits.Feature, Traits.Features.Interactive)]
+        public void EncapsulateFieldCommandDisabledInSubmission()
+        {
+            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+
+            using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
+                <Workspace>
+                    <Submission Language=""C#"" CommonReferences=""true"">  
+                        class C
+                        {
+                            object $$foo;
+                        }
+                    </Submission>
+                </Workspace> "),
+                workspaceKind: WorkspaceKind.Interactive,
+                exportProvider: exportProvider))
+            {
+                // Force initialization.
+                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+
+                var textView = workspace.Documents.Single().GetTextView();
+
+                var handler = new EncapsulateFieldCommandHandler(workspace.GetService<Host.IWaitIndicator>(), workspace.GetService<ITextBufferUndoManagerProvider>());
+                var delegatedToNext = false;
+                Func<CommandState> nextHandler = () =>
+                {
+                    delegatedToNext = true;
+                    return CommandState.Unavailable;
+                };
+
+                var state = handler.GetCommandState(new Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
             }
         }
     }

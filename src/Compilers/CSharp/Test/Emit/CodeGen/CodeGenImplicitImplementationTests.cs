@@ -464,7 +464,6 @@ Base.Property.set(6)
 
             CompileAndVerify(
                 CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                emitters: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                 expectedOutput: expectedOutput);
         }
 
@@ -528,7 +527,6 @@ Base.Property.set(6)
 
             CompileAndVerify(
                 CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                emitters: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                 expectedOutput: expectedOutput);
         }
 
@@ -576,7 +574,6 @@ Base.Method(3)
 
             CompileAndVerify(
                  CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                 emitters: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                  expectedOutput: expectedOutput);
         }
 
@@ -635,7 +632,6 @@ Base.Method(9)
 
             CompileAndVerify(
                 CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                emitters: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                 expectedOutput: expectedOutput);
         }
 
@@ -750,7 +746,7 @@ Derived2.P.set";
 
         [WorkItem(540410, "DevDiv")]
         [Fact]
-        public void ImplementMulipleInterfaceWithSommonBase()
+        public void ImplementMultipleInterfaceWithCommonBase()
         {
             var source = @"
 interface IBase
@@ -885,7 +881,7 @@ public static class MainClass
         }
 
         [Fact]
-        public void TestImplicitImplSigntureMismatches_ParamsAndOptionals()
+        public void TestImplicitImplSignatureMismatches_ParamsAndOptionals()
         {
             // Tests:
             // Replace params with non-params in signature of implemented member (and vice-versa)
@@ -1563,7 +1559,7 @@ Base.Method()");
             // Tests:
             // Implement I<string> implicitly in base class and I<int> implicitly in derived class –
             // assuming I<string> and I<int> have members with same signature (i.e. members 
-            // that don’t depend on generic-ness of the interface) test which (base / derived class) 
+            // that don't depend on generic-ness of the interface) test which (base / derived class) 
             // members are invoked when calling through each interface
 
             var source = @"

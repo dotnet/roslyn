@@ -12,7 +12,7 @@
   <InitTest>
     <StartTarget DontResetOptions="true" />
     <EnableClosedFileDiagnostic Enabled="true" Language="C#"/>
-    <OpenProject ProjectFile="$(WorkingDir)\..\..\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn-CSharp.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
+    <OpenProject ProjectFile="C:\Roslyn\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn-CSharp.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
     <OpenFile FileName="LanguageParser.cs"/>
     <GoToLine LineNumber="411"/>
     <PlaceCursor Marker="name = " CharsOffset="-1" />

@@ -1,545 +1,20 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
+using ObjectFormatterFixtures;
 using Roslyn.Test.Utilities;
 using Xunit;
-using SymbolDisplay = Microsoft.CodeAnalysis.CSharp.SymbolDisplay;
-using VB = Microsoft.CodeAnalysis.VisualBasic;
-using ObjectFormatterFixtures;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
 
-#region Fixtures
-
-
-#pragma warning disable 169 // unused field
-#pragma warning disable 649 // field not set, will always be default value
-namespace ObjectFormatterFixtures
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
-    internal class Outer
+    public class ObjectFormatterTests : ObjectFormatterTestBase
     {
-        public class Nested<T>
-        {
-            public readonly int A = 1;
-            public readonly int B = 2;
-            public static readonly int S = 3;
-        }
-    }
-
-    internal class A<T>
-    {
-        public class B<S>
-        {
-            public class C
-            {
-                public class D<Q, R>
-                {
-                    public class E
-                    {
-                    }
-                }
-            }
-        }
-
-        public static readonly B<T> X = new B<T>();
-    }
-
-    internal class Sort
-    {
-        public readonly byte ab = 1;
-        public readonly sbyte aB = -1;
-        public readonly short Ac = -1;
-        public readonly ushort Ad = 1;
-        public readonly int ad = -1;
-        public readonly uint aE = 1;
-        public readonly long aF = -1;
-        public readonly ulong AG = 1;
-    }
-
-    internal class RecursiveRootHidden
-    {
-        public readonly int A;
-        public readonly int B;
-
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public RecursiveRootHidden C;
-    }
-
-    internal class RecursiveProxy
-    {
-        private class Proxy
-        {
-            public Proxy() { }
-            public Proxy(Node node) { x = node.value; y = node.next; }
-
-            public readonly int x;
-            public readonly Node y;
-        }
-
-        [DebuggerTypeProxy(typeof(Proxy))]
-        public class Node
-        {
-            public Node(int value)
-            {
-                if (value < 5)
-                {
-                    next = new Node(value + 1);
-                }
-                this.value = value;
-            }
-
-            public readonly int value;
-            public readonly Node next;
-        }
-    }
-
-    internal class InvalidRecursiveProxy
-    {
-        private class Proxy
-        {
-            public Proxy() { }
-            public Proxy(Node c) { }
-
-            public readonly int x;
-            public readonly Node p = new Node();
-            public readonly int y;
-        }
-
-        [DebuggerTypeProxy(typeof(Proxy))]
-        public class Node
-        {
-            public readonly int a;
-            public readonly int b;
-        }
-    }
-
-    internal class ComplexProxyBase
-    {
-        private int Foo()
-        {
-            return 1;
-        }
-    }
-
-    internal class ComplexProxy : ComplexProxyBase
-    {
-        public ComplexProxy()
-        {
-        }
-
-        public ComplexProxy(object b)
-        {
-        }
-
-        [DebuggerDisplay("*1")]
-        public int _02_public_property_dd { get { return 1; } }
-
-        [DebuggerDisplay("*2")]
-        private int _03_private_property_dd { get { return 1; } }
-
-        [DebuggerDisplay("*3")]
-        protected int _04_protected_property_dd { get { return 1; } }
-
-        [DebuggerDisplay("*4")]
-        internal int _05_internal_property_dd { get { return 1; } }
-
-
-        [DebuggerDisplay("+1")]
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        public readonly int _06_public_field_dd_never;
-
-        [DebuggerDisplay("+2")]
-        private readonly int _07_private_field_dd;
-
-        [DebuggerDisplay("+3")]
-        protected readonly int _08_protected_field_dd;
-
-        [DebuggerDisplay("+4")]
-        internal readonly int _09_internal_field_dd;
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        private readonly int _10_private_collapsed;
-
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        private readonly int _10_private_rootHidden;
-
-        public readonly int _12_public;
-        private readonly int _13_private;
-        protected readonly int _14_protected;
-        internal readonly int _15_internal;
-
-        [DebuggerDisplay("==\r\n=\r\n=")]
-        public readonly int _16_eolns;
-
-        [DebuggerDisplay("=={==")]
-        public readonly int _17_braces_0;
-
-        [DebuggerDisplay("=={{==")]
-        public readonly int _17_braces_1;
-
-        [DebuggerDisplay("=={'{'}==")]
-        public readonly int _17_braces_2;
-
-        [DebuggerDisplay("=={'\\{'}==")]
-        public readonly int _17_braces_3;
-
-        [DebuggerDisplay("=={1/*{*/}==")]
-        public readonly int _17_braces_4;
-
-        [DebuggerDisplay("=={'{'/*\\}*/}==")]
-        public readonly int _17_braces_5;
-
-        [DebuggerDisplay("=={'{'/*}*/}==")]
-        public readonly int _17_braces_6;
-
-        [DebuggerDisplay("==\\{\\x\\t==")]
-        public readonly int _19_escapes;
-
-        [DebuggerDisplay("{1+1}")]
-        public readonly int _21;
-
-        [DebuggerDisplay("{\"xxx\"}")]
-        public readonly int _22;
-
-        [DebuggerDisplay("{\"xxx\",nq}")]
-        public readonly int _23;
-
-        [DebuggerDisplay("{'x'}")]
-        public readonly int _24;
-
-        [DebuggerDisplay("{'x',nq}")]
-        public readonly int _25;
-
-        [DebuggerDisplay("{new B()}")]
-        public readonly int _26_0;
-
-        [DebuggerDisplay("{new D()}")]
-        public readonly int _26_1;
-
-        [DebuggerDisplay("{new E()}")]
-        public readonly int _26_2;
-
-        [DebuggerDisplay("{ReturnVoid()}")]
-        public readonly int _26_3;
-
-        private void ReturnVoid() { }
-
-        [DebuggerDisplay("{F1(1)}")]
-        public readonly int _26_4;
-
-        [DebuggerDisplay("{Foo}")]
-        public readonly int _26_5;
-
-        [DebuggerDisplay("{foo}")]
-        public readonly int _26_6;
-
-        private int foo()
-        {
-            return 2;
-        }
-
-        private int F1(int a) { return 1; }
-        private int F2(short a) { return 2; }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public readonly C _27_rootHidden = new C();
-
-        public readonly C _28 = new C();
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public readonly C _29_collapsed = new C();
-
-        public int _31 { get; set; }
-
-        [CompilerGenerated]
-        public readonly int _32;
-
-        [CompilerGenerated]
-        private readonly int _33;
-
-        public int _34_Exception { get { throw new Exception("error1"); } }
-
-        [DebuggerDisplay("-!-")]
-        public int _35_Exception { get { throw new Exception("error2"); } }
-
-        public readonly object _36 = new ToStringException();
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        public int _37 { get { throw new Exception("error3"); } }
-
-        public int _38_private_get_public_set { private get { return 1; } set { } }
-        public int _39_public_get_private_set { get { return 1; } private set { } }
-        private int _40_private_get_private_set { get { return 1; } set { } }
-
-        public override string ToString()
-        {
-            return "AStr";
-        }
-    }
-    [DebuggerTypeProxy(typeof(ComplexProxy))]
-
-    internal class TypeWithComplexProxy
-    {
-        public override string ToString()
-        {
-            return "BStr";
-        }
-    }
-    [DebuggerTypeProxy(typeof(Proxy))]
-    [DebuggerDisplay("DD")]
-
-    internal class TypeWithDebuggerDisplayAndProxy
-    {
-        public override string ToString()
-        {
-            return "<ToString>";
-        }
-        [DebuggerDisplay("pxy")]
-
-        private class Proxy
-        {
-            public Proxy(object x)
-            {
-            }
-
-            public readonly int A;
-            public readonly int B;
-        }
-    }
-
-
-    internal class C
-    {
-        public readonly int A = 1;
-        public readonly int B = 2;
-
-        public override string ToString()
-        {
-            return "CStr";
-        }
-    }
-
-    internal class ToStringException
-    {
-        public override string ToString()
-        {
-            throw new MyException();
-        }
-    }
-
-    internal class MyException : Exception
-    {
-        public override string ToString()
-        {
-            return "my exception";
-        }
-    }
-
-    public class ThrowingDictionary : IDictionary
-    {
-        private readonly int _throwAt;
-
-        public ThrowingDictionary(int throwAt)
-        {
-            _throwAt = throwAt;
-        }
-
-        public void Add(object key, object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Clear()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Contains(object key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IDictionaryEnumerator GetEnumerator()
-        {
-            return new E(_throwAt);
-        }
-
-        public bool IsFixedSize
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public bool IsReadOnly
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public ICollection Keys
-        {
-            get { return new[] { 1, 2 }; }
-        }
-
-        public void Remove(object key)
-        {
-        }
-
-        public ICollection Values
-        {
-            get { return new[] { 1, 2 }; }
-        }
-
-        public object this[object key]
-        {
-            get
-            {
-                return 1;
-            }
-            set
-            {
-            }
-        }
-
-        public void CopyTo(Array array, int index)
-        {
-        }
-
-        public int Count
-        {
-            get { return 10; }
-        }
-
-        public bool IsSynchronized
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public object SyncRoot
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return new E(-1);
-        }
-
-        private class E : IEnumerator, IDictionaryEnumerator
-        {
-            private int _i;
-            private readonly int _throwAt;
-
-            public E(int throwAt)
-            {
-                _throwAt = throwAt;
-            }
-
-            public object Current
-            {
-                get { return new DictionaryEntry(_i, _i); }
-            }
-
-            public bool MoveNext()
-            {
-                _i++;
-                if (_i == _throwAt)
-                {
-                    throw new Exception();
-                }
-
-                return _i < 5;
-            }
-
-            public void Reset()
-            {
-            }
-
-            public DictionaryEntry Entry
-            {
-                get { return (DictionaryEntry)Current; }
-            }
-
-            public object Key
-            {
-                get { return _i; }
-            }
-
-            public object Value
-            {
-                get { return _i; }
-            }
-        }
-    }
-
-    public class ListNode
-    {
-        public ListNode next;
-        public object data;
-    }
-
-    public class LongMembers
-    {
-        public readonly string LongName0123456789_0123456789_0123456789_0123456789_0123456789_0123456789_0123456789 = "hello";
-        public readonly string LongValue = "0123456789_0123456789_0123456789_0123456789_0123456789_0123456789_0123456789";
-    }
-}
-
-#pragma warning restore 169 // unused field
-#pragma warning restore 649 // field not set, will always be default value
-
-#endregion
-
-namespace Microsoft.CodeAnalysis.Scripting.UnitTests
-{
-    public class ObjectFormatterTests
-    {
-        private static readonly ObjectFormattingOptions s_hexa = new ObjectFormattingOptions(useHexadecimalNumbers: true);
-        private static readonly ObjectFormattingOptions s_memberList = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.List);
-        private static readonly ObjectFormattingOptions s_inline = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.Inline);
-
-        private void AssertMembers(string str, params string[] expected)
-        {
-            int i = 0;
-            foreach (var line in str.Split(new[] { "\r\n  " }, StringSplitOptions.None))
-            {
-                if (i == 0)
-                {
-                    Assert.Equal(expected[i] + " {", line);
-                }
-                else if (i == expected.Length - 1)
-                {
-                    Assert.Equal(expected[i] + "\r\n}\r\n", line);
-                }
-                else
-                {
-                    Assert.Equal(expected[i] + ",", line);
-                }
-
-                i++;
-            }
-            Assert.Equal(expected.Length, i);
-        }
-
-        private string FilterDisplayString(string str)
-        {
-            str = System.Text.RegularExpressions.Regex.Replace(str, @"Id = \d+", "Id = *");
-            str = System.Text.RegularExpressions.Regex.Replace(str, @"Id=\d+", "Id=*");
-            str = System.Text.RegularExpressions.Regex.Replace(str, @"Id: \d+", "Id: *");
-
-            return str;
-        }
-
         [Fact]
         public void Objects()
         {
@@ -749,6 +224,15 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
                 @"_38_private_get_public_set: 1",
                 @"_39_public_get_private_set: 1"
             );
+        }
+
+        [Fact]
+        public void DebuggerDisplay_Inherited()
+        {
+            var obj = new InheritedDebuggerDisplay();
+
+            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
+            Assert.Equal("InheritedDebuggerDisplay(DebuggerDisplayValue)", str);
         }
 
         [Fact]
@@ -980,15 +464,6 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_ArrayList()
-        {
-            var obj = new ArrayList { 1, 2, true, "foo" };
-            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
-
-            Assert.Equal("ArrayList(4) { 1, 2, true, \"foo\" }", str);
-        }
-
-        [Fact]
         public void DebuggerProxy_FrameworkTypes_BitArray()
         {
             // BitArray doesn't have debugger proxy/display
@@ -998,42 +473,27 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
         }
 
         [Fact]
-        public void DebuggerProxy_FrameworkTypes_Hashtable()
-        {
-            var obj = new Hashtable
-            {
-                { new byte[] { 1, 2 }, new[] { 1,2,3 } },
-            };
-
-            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_memberList);
-
-            AssertMembers(str, "Hashtable(1)",
-                "{ byte[2] { 1, 2 }, int[3] { 1, 2, 3 } }"
-            );
-        }
-
-        [Fact]
         public void DebuggerProxy_FrameworkTypes_Queue()
         {
-            var obj = new Queue();
+            var obj = new Queue<int>();
             obj.Enqueue(1);
             obj.Enqueue(2);
             obj.Enqueue(3);
 
             var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
-            Assert.Equal("Queue(3) { 1, 2, 3 }", str);
+            Assert.Equal("Queue<int>(3) { 1, 2, 3 }", str);
         }
 
         [Fact]
         public void DebuggerProxy_FrameworkTypes_Stack()
         {
-            var obj = new Stack();
+            var obj = new Stack<int>();
             obj.Push(1);
             obj.Push(2);
             obj.Push(3);
 
             var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
-            Assert.Equal("Stack(3) { 3, 2, 1 }", str);
+            Assert.Equal("Stack<int>(3) { 3, 2, 1 }", str);
         }
 
         [Fact]
@@ -1088,19 +548,19 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
         [Fact]
         public void DebuggerProxy_FrameworkTypes_SortedList()
         {
-            SortedList obj = new SortedList();
+            var obj = new SortedList<int, int>();
             obj.Add(3, 4);
             obj.Add(1, 5);
             obj.Add(2, 6);
 
             var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
-            Assert.Equal("SortedList(3) { { 1, 5 }, { 2, 6 }, { 3, 4 } }", str);
+            Assert.Equal("SortedList<int, int>(3) { { 1, 5 }, { 2, 6 }, { 3, 4 } }", str);
 
-            obj = new SortedList();
-            obj.Add(new[] { 3 }, new int[] { 4 });
+            var obj2 = new SortedList<int[], int[]>();
+            obj2.Add(new[] { 3 }, new int[] { 4 });
 
-            str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
-            Assert.Equal("SortedList(1) { { int[1] { 3 }, int[1] { 4 } } }", str);
+            str = CSharpObjectFormatter.Instance.FormatObject(obj2, s_inline);
+            Assert.Equal("SortedList<int[], int[]>(1) { { int[1] { 3 }, int[1] { 4 } } }", str);
         }
 
         [Fact]
@@ -1317,49 +777,6 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
                  "4",
                  "5"
             );
-        }
-
-        [Fact]
-        public void VBBackingFields_DebuggerBrowsable()
-        {
-            string source = @"
-Imports System
-
-Class C
-   Public WithEvents WE As C
-   Public Event E As Action
-   Public Property A As Integer
-End Class
-";
-            var compilation = VB.VisualBasicCompilation.Create(
-                "foo",
-                new[] { VB.VisualBasicSyntaxTree.ParseText(source) },
-                new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
-                new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug));
-
-            Assembly a;
-            using (var stream = new MemoryStream())
-            {
-                var result = compilation.Emit(stream);
-                a = Assembly.Load(stream.ToArray());
-            }
-
-            var c = a.GetType("C");
-            var obj = Activator.CreateInstance(c);
-
-            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_memberList);
-            AssertMembers(str, "C",
-                "A: 0",
-                "WE: null"
-            );
-
-            var attrsA = c.GetField("_A", BindingFlags.Instance | BindingFlags.NonPublic).GetCustomAttributes(typeof(DebuggerBrowsableAttribute), true);
-            var attrsWE = c.GetField("_WE", BindingFlags.Instance | BindingFlags.NonPublic).GetCustomAttributes(typeof(DebuggerBrowsableAttribute), true);
-            var attrsE = c.GetField("EEvent", BindingFlags.Instance | BindingFlags.NonPublic).GetCustomAttributes(typeof(DebuggerBrowsableAttribute), true);
-
-            Assert.Equal(1, attrsA.Length);
-            Assert.Equal(1, attrsWE.Length);
-            Assert.Equal(1, attrsE.Length);
         }
     }
 }

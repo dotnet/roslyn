@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal abstract class AbstractTriviaFormatter<TTrivia> where TTrivia : struct
+    internal abstract class AbstractTriviaFormatter
     {
         #region Caches
         private static readonly string[] s_spaceCache;
@@ -160,11 +160,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected abstract bool IsNewLine(char ch);
 
         /// <summary>
-        /// convert common syntax trivia to SyntaxTrivia
-        /// </summary>
-        protected abstract TTrivia Convert(SyntaxTrivia trivia);
-
-        /// <summary>
         /// create whitespace trivia
         /// </summary>
         protected abstract SyntaxTrivia CreateWhitespace(string text);
@@ -240,19 +235,19 @@ namespace Microsoft.CodeAnalysis.Formatting
             get { return this.Context.TokenStream; }
         }
 
-        public List<TTrivia> FormatToSyntaxTrivia(CancellationToken cancellationToken)
+        public List<SyntaxTrivia> FormatToSyntaxTrivia(CancellationToken cancellationToken)
         {
             var changes = ListPool<SyntaxTrivia>.Allocate();
 
             var lineColumn = FormatTrivia(Format, AddWhitespaceTrivia, changes, cancellationToken);
 
             // deal with edges
-            // insert empty linebreaks at the begining of trivia list
+            // insert empty linebreaks at the beginning of trivia list
             AddExtraLines(lineColumn.Line, changes);
 
             if (Succeeded())
             {
-                var temp = new List<TTrivia>(changes.Select(Convert));
+                var temp = new List<SyntaxTrivia>(changes);
                 ListPool<SyntaxTrivia>.Free(changes);
 
                 return temp;
@@ -261,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             ListPool<SyntaxTrivia>.Free(changes);
 
             var triviaList = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
-            return new List<TTrivia>(triviaList.Select(Convert));
+            return new List<SyntaxTrivia>(triviaList);
         }
 
         public List<TextChange> FormatToTextChanges(CancellationToken cancellationToken)
@@ -271,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var lineColumn = FormatTrivia(Format, AddWhitespaceTextChange, changes, cancellationToken);
 
             // deal with edges
-            // insert empty linebreaks at the begining of trivia list
+            // insert empty linebreaks at the beginning of trivia list
             AddExtraLines(lineColumn.Line, changes);
 
             if (Succeeded())
@@ -523,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             LineColumn lineColumnBeforeTrivia1, SyntaxTrivia trivia1, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween, SyntaxTrivia trivia2, LineColumnRule rule)
         {
             // we do not touch spaces adjacent to missing token
-            // [missing token] [whitespace] [trivia] or [trivia] [whitepsace] [missing token] case
+            // [missing token] [whitespace] [trivia] or [trivia] [whitespace] [missing token] case
             if ((this.Token1.IsMissing && trivia1.RawKind == 0) ||
                 (trivia2.RawKind == 0 && this.Token2.IsMissing))
             {
@@ -870,7 +865,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return LineColumnDelta.Default;
                 }
 
-                // if there was alrady new lines, ignore elastic
+                // if there was already new lines, ignore elastic
                 var lineColumnAfterPreviousTrivia = GetLineColumn(lineColumn, previousTrivia);
 
                 var newLineFromPreviousOperation = (whitespaceBetween.Lines > 0) ||

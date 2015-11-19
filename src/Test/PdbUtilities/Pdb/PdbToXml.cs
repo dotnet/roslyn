@@ -18,7 +18,18 @@ using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 using CDI = Microsoft.CodeAnalysis.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
+using ImportScope = Microsoft.CodeAnalysis.ImportScope;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
+
+// Point-in-time conflict between System.Reflection.Metadata and temporary internal Roslyn.Reflection.Metadata
+// Replace this with using System.Reflection.Metadata.Decoding and uncomment type parameters when switching
+// back to public System.Reflection.Metadata API. 
+using ArrayShape = Roslyn.Reflection.Metadata.Decoding.ArrayShape;
+using CustomModifier = Roslyn.Reflection.Metadata.Decoding.CustomModifier<string>;
+using MethodSignature = Roslyn.Reflection.Metadata.Decoding.MethodSignature<string>;
+using ISignatureTypeProvider = Roslyn.Reflection.Metadata.Decoding.ISignatureTypeProvider<string>;
+using PrimitiveTypeCode = Roslyn.Reflection.Metadata.Decoding.PrimitiveTypeCode;
+using SignatureDecoder = Roslyn.Reflection.Metadata.Decoding.SignatureDecoder;
 
 namespace Roslyn.Test.PdbUtilities
 {
@@ -35,8 +46,13 @@ namespace Roslyn.Test.PdbUtilities
         private readonly PdbToXmlOptions _options;
         private readonly XmlWriter _writer;
 
-        // Maps files to ids. 
-        private readonly Dictionary<string, int> _fileMapping = new Dictionary<string, int>();
+        private static readonly XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
+        {
+            Encoding = Encoding.UTF8,
+            Indent = true,
+            IndentChars = "  ",
+            NewLineChars = "\r\n",
+        };
 
         private PdbToXmlConverter(XmlWriter writer, ISymUnmanagedReader symReader, MetadataReader metadataReader, PdbToXmlOptions options)
         {
@@ -130,75 +146,93 @@ namespace Roslyn.Test.PdbUtilities
             Debug.Assert(pdbStream != null);
             Debug.Assert((options & PdbToXmlOptions.ResolveTokens) == 0 || metadataReaderOpt != null);
 
-            XmlDocument doc = new XmlDocument();
-            XmlWriter writer = doc.CreateNavigator().AppendChild();
-
-            using (SymReader symReader = new SymReader(pdbStream, metadataReaderOpt))
+            using (var writer = XmlWriter.Create(xmlWriter, s_xmlWriterSettings))
             {
-                var converter = new PdbToXmlConverter(writer, symReader, metadataReaderOpt, options);
+                var symReader = SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt);
 
-                converter.WriteRoot(methodHandles ?? metadataReaderOpt.MethodDefinitions);
+                try
+                {
+                    var converter = new PdbToXmlConverter(writer, symReader, metadataReaderOpt, options);
+                    converter.WriteRoot(methodHandles ?? metadataReaderOpt.MethodDefinitions);
+                }
+                finally
+                {
+                    ((ISymUnmanagedDispose)symReader).Destroy();
+                }
             }
-
-            writer.Close();
-
-            // Save xml to disk
-            doc.Save(xmlWriter);
-        }
-
-        private static byte[] GetImage(Stream stream)
-        {
-            MemoryStream memoryStream = stream as MemoryStream;
-            if (memoryStream == null)
-            {
-                memoryStream = new MemoryStream((int)stream.Length);
-                stream.Position = 0;
-                stream.CopyTo(memoryStream);
-            }
-
-            return memoryStream.GetBuffer();
         }
 
         private void WriteRoot(IEnumerable<MethodDefinitionHandle> methodHandles)
         {
             _writer.WriteStartDocument();
-
             _writer.WriteStartElement("symbols");
 
-            WriteDocList();
-            WriteEntryPoint();
-            WriteAllMethods(methodHandles);
+            var documents = _symReader.GetDocuments();
+            var documentIndex = BuildDocumentIndex(documents);
 
-            if ((_options & PdbToXmlOptions.IncludeMethodSpans) != 0)
+            if ((_options & PdbToXmlOptions.ExcludeDocuments) == 0)
             {
+                WriteDocuments(documents, documentIndex);
+            }
+
+            if ((_options & PdbToXmlOptions.ExcludeMethods) == 0)
+            {
+                WriteEntryPoint();
+                WriteAllMethods(methodHandles, documentIndex);
                 WriteAllMethodSpans();
             }
 
             _writer.WriteEndElement();
         }
 
-        // Dump all of the methods in the given ISymbolReader to the XmlWriter provided in the ctor.
-        private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles)
+        private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles, IReadOnlyDictionary<string, int> documentIndex)
         {
             _writer.WriteStartElement("methods");
 
             foreach (var methodHandle in methodHandles)
             {
-                WriteMethod(methodHandle);
+                WriteMethod(methodHandle, documentIndex);
             }
 
             _writer.WriteEndElement();
         }
 
-        private void WriteMethod(MethodDefinitionHandle methodHandle)
+        private void WriteMethod(MethodDefinitionHandle methodHandle, IReadOnlyDictionary<string, int> documentIndex)
         {
             int token = _metadataReader.GetToken(methodHandle);
-
-            byte[] cdi = _symReader.GetCustomDebugInfoBytes(token, methodVersion: 1);
             ISymUnmanagedMethod method = _symReader.GetMethod(token);
-            if (cdi == null && method == null)
+
+            byte[] cdi = null;
+            var sequencePoints = default(ImmutableArray<SymUnmanagedSequencePoint>);
+            ISymUnmanagedAsyncMethod asyncMethod = null;
+            ISymUnmanagedScope rootScope = null;
+
+            if ((_options & PdbToXmlOptions.ExcludeCustomDebugInformation) == 0)
             {
-                // no debug info for the method
+                cdi = _symReader.GetCustomDebugInfoBytes(token, methodVersion: 1);
+            }
+
+            if (method != null)
+            {
+                if ((_options & PdbToXmlOptions.ExcludeAsyncInfo) == 0)
+                {
+                    asyncMethod = method.AsAsync();
+                }
+
+                if ((_options & PdbToXmlOptions.ExcludeSequencePoints) == 0)
+                {
+                    sequencePoints = method.GetSequencePoints();
+                }
+
+                if ((_options & PdbToXmlOptions.ExcludeScopes) == 0)
+                {
+                    rootScope = method.GetRootScope();
+                }
+            }
+
+            if (cdi == null && sequencePoints.IsDefaultOrEmpty && rootScope == null && asyncMethod == null)
+            {
+                // no debug info to write
                 return;
             }
 
@@ -210,30 +244,22 @@ namespace Roslyn.Test.PdbUtilities
                 WriteCustomDebugInfo(cdi);
             }
 
-            if (method != null)
+            if (!sequencePoints.IsDefaultOrEmpty)
             {
-                WriteSequencePoints(method);
-
-                var rootScope = method.GetRootScope();
-
-                // C# and VB compilers leave the root scope empty and put outermost lexical scope in it.
-                // Don't display such empty root scope.
-                if (rootScope.GetNamespaces().IsEmpty && rootScope.GetLocals().IsEmpty && rootScope.GetConstants().IsEmpty)
-                {
-                    foreach (ISymUnmanagedScope child in rootScope.GetScopes())
-                    {
-                        WriteScope(child, isRoot: false);
-                    }
-                }
-                else
-                {
-                    WriteScope(rootScope, isRoot: true);
-                }
-
-                WriteAsyncInfo(method);
+                WriteSequencePoints(sequencePoints, documentIndex);
             }
 
-            _writer.WriteEndElement(); // method
+            if (rootScope != null)
+            {
+                WriteScopes(rootScope);
+            }
+
+            if (asyncMethod != null)
+            {
+                WriteAsyncInfo(asyncMethod);
+            }
+
+            _writer.WriteEndElement();
         }
 
         /// <summary>
@@ -266,7 +292,7 @@ namespace Roslyn.Test.PdbUtilities
                             WriteForwardToModuleCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.StateMachineHoistedLocalScopes:
-                            WriteStatemachineHoistedLocalScopesCustomDebugInfo(record);
+                            WriteStateMachineHoistedLocalScopesCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.ForwardIterator:
                             WriteForwardIteratorCustomDebugInfo(record);
@@ -385,7 +411,7 @@ namespace Roslyn.Test.PdbUtilities
         /// <remarks>
         /// Appears when there are locals in iterator methods.
         /// </remarks>
-        private void WriteStatemachineHoistedLocalScopesCustomDebugInfo(CustomDebugInfoRecord record)
+        private void WriteStateMachineHoistedLocalScopesCustomDebugInfo(CustomDebugInfoRecord record)
         {
             Debug.Assert(record.Kind == CustomDebugInfoKind.StateMachineHoistedLocalScopes);
 
@@ -398,7 +424,7 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteStartElement("slot");
                 _writer.WriteAttributeString("startOffset", AsILOffset(scope.StartOffset));
                 _writer.WriteAttributeString("endOffset", AsILOffset(scope.EndOffset));
-                _writer.WriteEndElement(); //bucket
+                _writer.WriteEndElement(); //slot
             }
 
             _writer.WriteEndElement();
@@ -641,15 +667,35 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
+        private void WriteScopes(ISymUnmanagedScope rootScope)
+        {
+            // The root scope is always empty. The first scope opened by SymWriter is the child of the root scope.
+            if (rootScope.GetNamespaces().IsEmpty && rootScope.GetLocals().IsEmpty && rootScope.GetConstants().IsEmpty)
+            {
+                foreach (ISymUnmanagedScope child in rootScope.GetScopes())
+                {
+                    WriteScope(child, isRoot: false);
+                }
+            }
+            else
+            {
+                // This shouldn't be executed for PDBs generated via SymWriter.
+                WriteScope(rootScope, isRoot: true);
+            }
+        }
+
         private void WriteScope(ISymUnmanagedScope scope, bool isRoot)
         {
             _writer.WriteStartElement(isRoot ? "rootScope" : "scope");
             _writer.WriteAttributeString("startOffset", AsILOffset(scope.GetStartOffset()));
             _writer.WriteAttributeString("endOffset", AsILOffset(scope.GetEndOffset()));
 
-            foreach (ISymUnmanagedNamespace @namespace in scope.GetNamespaces())
+            if ((_options & PdbToXmlOptions.ExcludeNamespaces) == 0)
             {
-                WriteNamespace(@namespace);
+                foreach (ISymUnmanagedNamespace @namespace in scope.GetNamespaces())
+                {
+                    WriteNamespace(@namespace);
+                }
             }
 
             WriteLocals(scope);
@@ -659,7 +705,7 @@ namespace Roslyn.Test.PdbUtilities
                 WriteScope(child, isRoot: false);
             }
 
-            _writer.WriteEndElement(); 
+            _writer.WriteEndElement();
         }
 
         private void WriteNamespace(ISymUnmanagedNamespace @namespace)
@@ -693,7 +739,7 @@ namespace Roslyn.Test.PdbUtilities
                             scope = ImportScope.Unspecified;
                             if (!CDI.TryParseCSharpImportString(rawName, out alias, out externAlias, out target, out kind))
                             {
-                                throw new InvalidOperationException(string.Format("Invalid import '{0}'", rawName));
+                                throw new InvalidOperationException($"Invalid import '{rawName}'");
                             }
                             break;
 
@@ -701,19 +747,14 @@ namespace Roslyn.Test.PdbUtilities
                             externAlias = null;
                             if (!CDI.TryParseVisualBasicImportString(rawName, out alias, out target, out kind, out scope))
                             {
-                                throw new InvalidOperationException(string.Format("Invalid import '{0}'", rawName));
+                                throw new InvalidOperationException($"Invalid import '{rawName}'");
                             }
                             break;
                     }
                 }
             }
-            catch (ArgumentException) // TODO: filter
+            catch (ArgumentException) when ((_options & PdbToXmlOptions.ThrowOnError) == 0)
             {
-                if ((_options & PdbToXmlOptions.ThrowOnError) != 0)
-                {
-                    throw;
-                }
-
                 _writer.WriteStartElement("invalid-custom-data");
                 _writer.WriteAttributeString("raw", rawName);
                 _writer.WriteEndElement();
@@ -726,54 +767,68 @@ namespace Roslyn.Test.PdbUtilities
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
+
                     _writer.WriteStartElement("currentnamespace");
                     _writer.WriteAttributeString("name", target);
-                    _writer.WriteEndElement(); // </currentnamespace>
+                    _writer.WriteEndElement();
                     break;
+
                 case ImportTargetKind.DefaultNamespace:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
+
                     _writer.WriteStartElement("defaultnamespace");
                     _writer.WriteAttributeString("name", target);
-                    _writer.WriteEndElement(); // </defaultnamespace>
+                    _writer.WriteEndElement();
                     break;
+
                 case ImportTargetKind.MethodToken:
                     Debug.Assert(alias == null);
                     Debug.Assert(externAlias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
+
                     int token = Convert.ToInt32(target);
                     _writer.WriteStartElement("importsforward");
                     WriteMethodAttributes(token, isReference: true);
-                    _writer.WriteEndElement(); // </importsforward>
+                    _writer.WriteEndElement();
                     break;
+
                 case ImportTargetKind.XmlNamespace:
                     Debug.Assert(externAlias == null);
+
                     _writer.WriteStartElement("xmlnamespace");
                     _writer.WriteAttributeString("prefix", alias);
                     _writer.WriteAttributeString("name", target);
                     WriteScopeAttribute(scope);
-                    _writer.WriteEndElement(); // </xmlnamespace>
+                    _writer.WriteEndElement();
                     break;
+
                 case ImportTargetKind.NamespaceOrType:
                     Debug.Assert(externAlias == null);
+
                     _writer.WriteStartElement("alias");
                     _writer.WriteAttributeString("name", alias);
                     _writer.WriteAttributeString("target", target);
                     _writer.WriteAttributeString("kind", "namespace"); // Strange, but retaining to avoid breaking tests.
                     WriteScopeAttribute(scope);
-                    _writer.WriteEndElement(); // </alias>
+                    _writer.WriteEndElement();
                     break;
+
                 case ImportTargetKind.Namespace:
                     if (alias != null)
                     {
                         _writer.WriteStartElement("alias");
                         _writer.WriteAttributeString("name", alias);
-                        if (externAlias != null) _writer.WriteAttributeString("qualifier", externAlias);
+                        if (externAlias != null)
+                        {
+                            _writer.WriteAttributeString("qualifier", externAlias);
+                        }
+
                         _writer.WriteAttributeString("target", target);
                         _writer.WriteAttributeString("kind", "namespace");
                         Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
-                        _writer.WriteEndElement(); // </alias>
+                        _writer.WriteEndElement();
                     }
                     else
                     {
@@ -781,9 +836,11 @@ namespace Roslyn.Test.PdbUtilities
                         if (externAlias != null) _writer.WriteAttributeString("qualifier", externAlias);
                         _writer.WriteAttributeString("name", target);
                         WriteScopeAttribute(scope);
-                        _writer.WriteEndElement(); // </namespace>
+                        _writer.WriteEndElement();
                     }
+
                     break;
+
                 case ImportTargetKind.Type:
                     Debug.Assert(externAlias == null);
                     if (alias != null)
@@ -793,16 +850,18 @@ namespace Roslyn.Test.PdbUtilities
                         _writer.WriteAttributeString("target", target);
                         _writer.WriteAttributeString("kind", "type");
                         Debug.Assert(scope == ImportScope.Unspecified); // Only C# hits this case.
-                        _writer.WriteEndElement(); // </alias>
+                        _writer.WriteEndElement(); 
                     }
                     else
                     {
                         _writer.WriteStartElement("type");
                         _writer.WriteAttributeString("name", target);
                         WriteScopeAttribute(scope);
-                        _writer.WriteEndElement(); // </type>
+                        _writer.WriteEndElement();
                     }
+
                     break;
+
                 case ImportTargetKind.Assembly:
                     Debug.Assert(alias != null);
                     Debug.Assert(externAlias == null);
@@ -811,28 +870,31 @@ namespace Roslyn.Test.PdbUtilities
                     {
                         _writer.WriteStartElement("extern");
                         _writer.WriteAttributeString("alias", alias);
-                        _writer.WriteEndElement(); // </extern>
+                        _writer.WriteEndElement();
                     }
                     else
                     {
                         _writer.WriteStartElement("externinfo");
                         _writer.WriteAttributeString("alias", alias);
                         _writer.WriteAttributeString("assembly", target);
-                        _writer.WriteEndElement(); // </externinfo>
+                        _writer.WriteEndElement();
                     }
+
                     break;
+
                 case ImportTargetKind.Defunct:
                     Debug.Assert(alias == null);
                     Debug.Assert(scope == ImportScope.Unspecified);
                     _writer.WriteStartElement("defunct");
                     _writer.WriteAttributeString("name", rawName);
-                    _writer.WriteEndElement(); // </defunct>
+                    _writer.WriteEndElement();
                     break;
+
                 default:
                     Debug.Assert(false, "Unexpected import kind '" + kind + "'");
                     _writer.WriteStartElement("unknown");
                     _writer.WriteAttributeString("name", rawName);
-                    _writer.WriteEndElement(); // </unknown>
+                    _writer.WriteEndElement();
                     break;
             }
         }
@@ -853,14 +915,8 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private void WriteAsyncInfo(ISymUnmanagedMethod method)
+        private void WriteAsyncInfo(ISymUnmanagedAsyncMethod asyncMethod)
         {
-            var asyncMethod = method.AsAsync();
-            if (asyncMethod == null)
-            {
-                return;
-            }
-
             _writer.WriteStartElement("asyncInfo");
 
             var catchOffset = asyncMethod.GetCatchHandlerILOffset();
@@ -919,10 +975,8 @@ namespace Roslyn.Test.PdbUtilities
                     (signature[0] == (byte)ConstantTypeCode.NullReference ||
                      signature[0] == (int)SignatureTypeCode.Object ||
                      signature[0] == (int)SignatureTypeCode.String ||
-                     signature[0] == (int)SignatureTypeCode.GenericTypeInstance))
+                     (signature.Length > 2 && signature[0] == (int)SignatureTypeCode.GenericTypeInstance && signature[1] == (byte)ConstantTypeCode.NullReference)))
                 {
-                    // TODO: 0 for enums nested in a generic class, null for reference type
-                    // We need to decode the signature and see if the target type is enum.
                     _writer.WriteAttributeString("value", "null");
 
                     if (signature[0] == (int)SignatureTypeCode.String)
@@ -935,11 +989,7 @@ namespace Roslyn.Test.PdbUtilities
                     }
                     else
                     {
-                        // TODO:
-                        // A null reference, the type is encoded in the signature. 
-                        // Ideally we would parse the signature and display the target type name. 
-                        // That requires MetadataReader vNext though.
-                        _writer.WriteAttributeString("signature", BitConverter.ToString(signature.ToArray()));
+                        _writer.WriteAttributeString("signature", FormatSignature(signature));
                     }
                 }
                 else if (value == null)
@@ -970,18 +1020,22 @@ namespace Roslyn.Test.PdbUtilities
                 }
                 else
                 {
-                    _writer.WriteAttributeString("value", (value as string)?.Replace("\0", "U+0000") ?? string.Format(CultureInfo.InvariantCulture, "{0}", value));
+                    string str = value as string;
+                    if (str != null)
+                    {
+                        _writer.WriteAttributeString("value", StringUtilities.EscapeNonPrintableCharacters(str));
+                    }
+                    else
+                    {
+                        _writer.WriteAttributeString("value", string.Format(CultureInfo.InvariantCulture, "{0}", value));
+                    }
 
                     var runtimeType = GetConstantRuntimeType(signature);
-                    if (runtimeType == null && 
+                    if (runtimeType == null &&
                         (value is sbyte || value is byte || value is short || value is ushort ||
                          value is int || value is uint || value is long || value is ulong))
                     {
-                        // TODO:
-                        // Enum.
-                        // Ideally we would parse the signature and display the target type name. 
-                        // That requires MetadataReader vNext though.
-                        _writer.WriteAttributeString("signature", BitConverter.ToString(signature.ToArray()));
+                        _writer.WriteAttributeString("signature", FormatSignature(signature));
                     }
                     else if (runtimeType == value.GetType())
                     {
@@ -995,6 +1049,100 @@ namespace Roslyn.Test.PdbUtilities
                 }
 
                 _writer.WriteEndElement();
+            }
+        }
+        
+        private unsafe string FormatSignature(ImmutableArray<byte> signature)
+        {
+            fixed (byte* sigPtr = signature.ToArray())
+            {
+                var sigReader = new BlobReader(sigPtr, signature.Length);
+                var provider = new SignatureVisualizer(_metadataReader);
+                return SignatureDecoder.DecodeType(ref sigReader, provider);
+            }
+        }
+
+        private sealed class SignatureVisualizer : ISignatureTypeProvider/*<string>*/
+        {
+            private readonly MetadataReader _reader;
+
+            public SignatureVisualizer(MetadataReader reader)
+            {
+                _reader = reader;
+            }
+
+            public MetadataReader Reader => _reader;
+
+            public string GetArrayType(string elementType, ArrayShape shape)
+            {
+                return elementType + "[" + new string(',', shape.Rank) + "]";
+            }
+
+            public string GetByReferenceType(string elementType)
+            {
+                return elementType + "&";  
+            }
+
+            public string GetFunctionPointerType(MethodSignature/*<string>*/ signature)
+            {
+                // TODO:
+                return "method-ptr"; 
+            }
+
+            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments)
+            {
+                // using {} since the result is embedded in XML
+                return genericType + "{" + string.Join(", ", typeArguments) + "}";
+            }
+
+            public string GetGenericMethodParameter(int index)
+            {
+                return "!!" + index;
+            }
+
+            public string GetGenericTypeParameter(int index)
+            {
+                return "!" + index;
+            }
+
+            public string GetModifiedType(string unmodifiedType, ImmutableArray<CustomModifier/*<string>*/> customModifiers)
+            {
+                return string.Join(" ", customModifiers.Select(mod => (mod.IsRequired ? "modreq(" : "modopt(") + mod.Type + ")")) + 
+                    unmodifiedType;
+            }
+
+            public string GetPinnedType(string elementType)
+            {
+                return "pinned " + elementType;
+            }
+
+            public string GetPointerType(string elementType)
+            {
+                return elementType + "*";
+            }
+
+            public string GetPrimitiveType(PrimitiveTypeCode typeCode)
+            {
+                return typeCode.ToString();
+            }
+
+            public string GetSZArrayType(string elementType)
+            {
+                return elementType + "[]";
+            }
+
+            public string GetTypeFromDefinition(TypeDefinitionHandle handle, bool? isValueType)
+            {
+                var typeDef = _reader.GetTypeDefinition(handle);
+                var name = _reader.GetString(typeDef.Name);
+                return typeDef.Namespace.IsNil ? name : _reader.GetString(typeDef.Namespace) + "." + name;
+            }
+
+            public string GetTypeFromReference(TypeReferenceHandle handle, bool? isValueType)
+            {
+                var typeRef = _reader.GetTypeReference(handle);
+                var name = _reader.GetString(typeRef.Name);
+                return typeRef.Namespace.IsNil ? name : _reader.GetString(typeRef.Namespace) + "." + name;
             }
         }
 
@@ -1037,16 +1185,9 @@ namespace Roslyn.Test.PdbUtilities
             return null;
         }
 
-        // Write the sequence points for the given method
-        // Sequence points are the map between IL offsets and source lines.
-        // A single method could span multiple files (use C#'s #line directive to see for yourself).        
-        private void WriteSequencePoints(ISymUnmanagedMethod method)
+        private void WriteSequencePoints(ImmutableArray<SymUnmanagedSequencePoint> sequencePoints, IReadOnlyDictionary<string, int> documentIndex)
         {
-            var sequencePoints = method.GetSequencePoints();
-            if (sequencePoints.Length == 0)
-            {
-                return;
-            }
+            Debug.Assert(!sequencePoints.IsDefaultOrEmpty);
 
             _writer.WriteStartElement("sequencePoints");
 
@@ -1076,8 +1217,18 @@ namespace Roslyn.Test.PdbUtilities
                 }
 
                 int documentId;
-                _fileMapping.TryGetValue(sequencePoint.Document.GetName(), out documentId);
-                _writer.WriteAttributeString("document", CultureInvariantToString(documentId));
+                string documentName = sequencePoint.Document.GetName();
+                if (documentName.Length > 0)
+                {
+                    if (documentIndex.TryGetValue(documentName, out documentId))
+                    {
+                        _writer.WriteAttributeString("document", CultureInvariantToString(documentId));
+                    }
+                    else
+                    {
+                        _writer.WriteAttributeString("document", "?");
+                    }
+                }
 
                 _writer.WriteEndElement();
             }
@@ -1085,31 +1236,56 @@ namespace Roslyn.Test.PdbUtilities
             _writer.WriteEndElement(); // sequencepoints
         }
 
-        // Write all docs, and add to the m_fileMapping list.
-        // Other references to docs will then just refer to this list.
-        private void WriteDocList()
+        private IReadOnlyDictionary<string, int> BuildDocumentIndex(ImmutableArray<ISymUnmanagedDocument> documents)
         {
-            var documents = _symReader.GetDocuments();
-            if (documents.Length == 0)
-            {
-                return;
-            }
+            var index = new Dictionary<string, int>(documents.Length);
 
-            int id = 0;
-            _writer.WriteStartElement("files");
-            foreach (ISymUnmanagedDocument doc in documents)
+            int id = 1;
+            foreach (var document in documents)
             {
-                string name = doc.GetName();
+                string name = document.GetName();
 
-                // Symbol store may give out duplicate documents. We'll fold them here
-                if (_fileMapping.ContainsKey(name))
+                // Native PDB doesn't allow no-name documents. SymWriter silently ignores them.
+                // In Portable PDB all methods must be contained in a document, whose name may be empty. 
+                // Skip such documents - like they were never in the document table.
+                if (name.Length == 0)
                 {
-                    _writer.WriteComment("There is a duplicate entry for: " + name);
                     continue;
                 }
 
+                // Skip adding dups into the index, but increment id so that we 
+                // can tell what methods are referring to the duplicate.
+                if (!index.ContainsKey(name))
+                {
+                    index.Add(name, id);
+                }
+
                 id++;
-                _fileMapping.Add(name, id);
+            }
+
+            return index;
+        }
+
+        private void WriteDocuments(ImmutableArray<ISymUnmanagedDocument> documents, IReadOnlyDictionary<string, int> documentIndex)
+        {
+            bool hasDocument = false;
+
+            foreach (var doc in documents)
+            {
+                string name = doc.GetName();
+
+                int id;
+                if (!documentIndex.TryGetValue(name, out id))
+                {
+                    continue;
+                }
+
+                if (!hasDocument)
+                {
+                    _writer.WriteStartElement("files");
+                }
+
+                hasDocument = true;
 
                 _writer.WriteStartElement("file");
 
@@ -1119,7 +1295,7 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteAttributeString("languageVendor", doc.GetLanguageVendor().ToString());
                 _writer.WriteAttributeString("documentType", doc.GetDocumentType().ToString());
 
-                var checkSum = string.Concat(doc.GetChecksum().Select(b => string.Format("{0,2:X}", b) + ", "));
+                var checkSum = string.Concat(doc.GetChecksum().Select(b => $"{b,2:X}, "));
 
                 if (!string.IsNullOrEmpty(checkSum))
                 {
@@ -1127,13 +1303,22 @@ namespace Roslyn.Test.PdbUtilities
                     _writer.WriteAttributeString("checkSum", checkSum);
                 }
 
-                _writer.WriteEndElement(); // file
+                _writer.WriteEndElement();
             }
-            _writer.WriteEndElement(); // files
+
+            if (hasDocument)
+            {
+                _writer.WriteEndElement();
+            }
         }
 
         private void WriteAllMethodSpans()
         {
+            if ((_options & PdbToXmlOptions.IncludeMethodSpans) == 0)
+            {
+                return;
+            }
+
             _writer.WriteStartElement("method-spans");
 
             foreach (ISymUnmanagedDocument doc in _symReader.GetDocuments())
@@ -1197,7 +1382,7 @@ namespace Roslyn.Test.PdbUtilities
 
                         default:
                             WriteToken(token);
-                            _writer.WriteAttributeString("error", string.Format("Unexpected token type: {0}", handle.Kind));
+                            _writer.WriteAttributeString("error", $"Unexpected token type: {handle.Kind}");
                             break;
                     }
                 }
@@ -1319,7 +1504,7 @@ namespace Roslyn.Test.PdbUtilities
             return string.Format("<unexpected token kind: {0}>", AsToken(metadataReader.GetToken(handle)));
         }
 
-        #region Utils
+#region Utils
 
         private void WriteToken(int token)
         {
@@ -1341,12 +1526,6 @@ namespace Roslyn.Test.PdbUtilities
             return input.ToString(CultureInfo.InvariantCulture);
         }
 
-        internal static void Error(string message)
-        {
-            Console.WriteLine("Error: {0}", message);
-            Debug.Assert(false, message);
-        }
-
-        #endregion
+#endregion
     }
 }

@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' There's no real need to set MethodConversionKind.Error because there are no overloads of the same method where one 
                     ' may be legal to call because it's shared and the other's not.
-                    ' However to be future proove, we set it regardless.
+                    ' However to be future proof, we set it regardless.
                     methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
                 End If
 
@@ -1127,7 +1127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntaxNode">Location to use for various synthetic nodes and symbols.</param>
         ''' <param name="delegateInvoke">The Invoke method to "implement".</param>
         ''' <param name="methodGroup">The method group with the only method in it.</param>
-        ''' <param name="delegateRelaxation">Delegate relaxation to store withing the new BoundLambda node.</param>
+        ''' <param name="delegateRelaxation">Delegate relaxation to store within the new BoundLambda node.</param>
         ''' <param name="diagnostics"></param>
         Private Function BuildDelegateRelaxationLambda(
             syntaxNode As VisualBasicSyntaxNode,
@@ -1166,7 +1166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' this lambda symbol.
             Dim lambdaSymbol = New SynthesizedLambdaSymbol(SynthesizedLambdaKind.DelegateRelaxationStub,
                                                            syntaxNode,
-                                                           lambdaSymbolParameters.AsImmutableOrNull,
+                                                           lambdaSymbolParameters.AsImmutable(),
                                                            delegateInvokeReturnType,
                                                            Me)
 
@@ -1182,7 +1182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaBoundParameters(targetParameterCount - 1) As BoundExpression
 
             If Not droppedArguments Then
-                For parameterIndex = 0 To lambdaSymbolParameters.Count - 1
+                For parameterIndex = 0 To lambdaSymbolParameters.Length - 1
                     Dim lambdaSymbolParameter = lambdaSymbolParameters(parameterIndex)
                     Dim boundParameter = New BoundParameter(syntaxNode,
                                                             lambdaSymbolParameter,
@@ -1204,7 +1204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                         syntaxNode,
                                                                                         TypeCharacter.None,
                                                                                         methodGroup,
-                                                                                        lambdaBoundParameters.AsImmutableOrNull,
+                                                                                        lambdaBoundParameters.AsImmutable(),
                                                                                         Nothing,
                                                                                         diagnostics,
                                                                                         suppressAbstractCallDiagnostics:=True,

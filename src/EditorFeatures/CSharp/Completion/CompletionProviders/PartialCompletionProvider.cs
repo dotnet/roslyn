@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -14,11 +13,10 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 {
@@ -33,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 
         protected override SyntaxNode GetSyntax(SyntaxToken token)
         {
-            return (SyntaxNode)token.GetAncestor<EventFieldDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<EventDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<PropertyDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<IndexerDeclarationSyntax>()
+            return token.GetAncestor<EventFieldDeclarationSyntax>()
+                ?? token.GetAncestor<EventDeclarationSyntax>()
+                ?? token.GetAncestor<PropertyDeclarationSyntax>()
+                ?? token.GetAncestor<IndexerDeclarationSyntax>()
                 ?? (SyntaxNode)token.GetAncestor<MethodDeclarationSyntax>();
         }
 

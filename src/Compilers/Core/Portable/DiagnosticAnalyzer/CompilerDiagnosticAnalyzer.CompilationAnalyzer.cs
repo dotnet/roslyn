@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _properties = properties;
                 }
 
-#pragma warning disable RS0013 // we are delegating to delegatee so it is okay here
+#pragma warning disable RS0013 // we are delegating so it is okay here
                 public override DiagnosticDescriptor Descriptor => _original.Descriptor;
 #pragma warning restore RS0013 
 
@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 public override int WarningLevel => _original.WarningLevel;
                 public override Location Location => _original.Location;
                 public override IReadOnlyList<Location> AdditionalLocations => _original.AdditionalLocations;
+                public override bool IsSuppressed => _original.IsSuppressed;
                 public override ImmutableDictionary<string, string> Properties => _properties;
 
                 public override string GetMessage(IFormatProvider formatProvider = null)
@@ -121,6 +122,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
                 {
                     return new CompilerDiagnostic(_original.WithSeverity(severity), _properties);
+                }
+
+                internal override Diagnostic WithIsSuppressed(bool isSuppressed)
+                {
+                    return new CompilerDiagnostic(_original.WithIsSuppressed(isSuppressed), _properties);
                 }
             }
         }

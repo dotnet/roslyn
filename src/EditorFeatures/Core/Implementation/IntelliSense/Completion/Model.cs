@@ -2,14 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         // The CompletionItem the model will use to represent selecting
         // and interacting with the builder. This CompletionItem includes
         // the language specific default tracking span for completion
-        // as determined by CompletionUtilites for that language.
+        // as determined by CompletionUtilities for that language.
         // All models always have a DefaultBuilder set.
         public CompletionItem DefaultBuilder { get; }
 
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public static Model CreateModel(
             DisconnectedBufferGraph disconnectedBufferGraph,
             TextSpan defaultTrackingSpanInSubjectBuffer,
-            IList<CompletionItem> totalItems,
+            ImmutableArray<CompletionItem> totalItems,
             CompletionItem selectedItem,
             bool isHardSelection,
             bool isUnique,
@@ -93,27 +92,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             CompletionItem updatedBuilder = builder;
             CompletionItem updatedDefaultBuilder = GetDefaultBuilder(defaultTrackingSpanInSubjectBuffer);
 
-            if (completionService != null && workspace != null && triggerInfo.TriggerReason != CompletionTriggerReason.Snippets)
+            if (completionService != null && 
+                workspace != null && 
+                workspace.Kind != WorkspaceKind.Interactive && // TODO (https://github.com/dotnet/roslyn/issues/5107): support in interactive
+                workspace.Options.GetOption(InternalFeatureOnOffOptions.Snippets) && 
+                triggerInfo.TriggerReason != CompletionTriggerReason.Snippets)
             {
                 // In order to add snippet expansion notes to completion item descriptions, update
-                // all of the provided CompletionItems to DisplayCompletionItems which will proxy
+                // all of the provided CompletionItems to DescriptionModifyingCompletionItem which will proxy
                 // requests to the original completion items and add the snippet expansion note to
                 // the description if necessary. We won't do this if the list was triggered to show
-                // snippet shorcuts.
+                // snippet shortcuts.
 
-                updatedTotalItems = new List<CompletionItem>();
+                var updatedTotalItemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
                 updatedSelectedItem = null;
 
                 foreach (var item in totalItems)
                 {
                     var updatedItem = new DescriptionModifyingCompletionItem(item, completionService, workspace);
-                    updatedTotalItems.Add(updatedItem);
+                    updatedTotalItemsBuilder.Add(updatedItem);
 
                     if (item == selectedItem)
                     {
                         updatedSelectedItem = updatedItem;
                     }
                 }
+
+                updatedTotalItems = updatedTotalItemsBuilder.AsImmutable();
 
                 updatedBuilder = null;
                 if (builder != null)

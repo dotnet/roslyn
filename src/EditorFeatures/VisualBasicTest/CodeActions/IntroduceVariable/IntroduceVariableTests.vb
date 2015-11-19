@@ -1657,5 +1657,90 @@ End Namespace"
 
             Test(code, expected, index:=0, compareTokens:=False)
         End Sub
+
+        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub InAutoPropertyInitializerEqualsClause()
+            Dim code =
+<File>
+Imports System
+Class C
+    Property Name As String = [|"Roslyn"|]
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Class C
+    Private Const {|Rename:V|} As String = "Roslyn"
+    Property Name As String = V
+End Class
+</File>
+            Test(code, expected, index:=0, compareTokens:=False)
+        End Sub
+
+        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub InAutoPropertyWithCollectionInitializerAfterEqualsClause()
+            Dim code =
+<File>
+Imports System
+Class C
+    Property Grades As Integer() = [|{90, 73}|]
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Class C
+    Private Shared ReadOnly {|Rename:p|} As Integer() = {90, 73}
+    Property Grades As Integer() = p
+End Class
+</File>
+            Test(code, expected, index:=0, compareTokens:=False)
+        End Sub
+
+        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub InAutoPropertyInitializerAsClause()
+            Dim code =
+<File>
+Imports System
+Class C
+        Public Property Items As New List(Of String) From {[|"M"|], "T", "W"}
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Class C
+    Private Const {|Rename:V|} As String = "M"
+    Public Property Items As New List(Of String) From {V, "T", "W"}
+End Class
+</File>
+            Test(code, expected, index:=0, compareTokens:=False)
+        End Sub
+
+        <WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Sub InAutoPropertyObjectCreationExpressionWithinAsClause()
+            Dim code =
+<File>
+Imports System
+Class C
+        Property Orders As New List(Of Object)([|500|])
+End Class
+</File>
+            Dim expected =
+<File>
+Imports System
+Class C
+    Private Const {|Rename:V|} As Integer = 500
+    Property Orders As New List(Of Object)(V)
+End Class
+</File>
+            Test(code, expected, index:=0, compareTokens:=False)
+        End Sub
+
     End Class
 End Namespace

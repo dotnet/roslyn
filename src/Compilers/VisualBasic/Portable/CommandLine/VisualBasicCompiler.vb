@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    errorLogger As ErrorLogger) As SyntaxTree
 
             Dim fileReadDiagnostics As New List(Of DiagnosticInfo)()
-            Dim content = ReadFileContent(file, fileReadDiagnostics, Arguments.Encoding, Arguments.ChecksumAlgorithm)
+            Dim content = ReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
                 ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)
@@ -76,6 +76,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
             Dim parseOptions = Arguments.ParseOptions
+
+            ' We compute script parse options once so we don't have to do it repeatedly in
+            ' case there are many script files.
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
             Dim hadErrors As Boolean = False
@@ -111,11 +114,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim diagnostics = New List(Of DiagnosticInfo)()
 
             Dim assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default
-            Dim referenceDirectiveResolver As MetadataFileReferenceResolver = Nothing
-            Dim metadataProvider As MetadataFileReferenceProvider = GetMetadataProvider()
 
-            Dim externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger)
-            Dim resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, referenceDirectiveResolver)
+            Dim referenceDirectiveResolver As MetadataReferenceResolver = Nothing
+            Dim resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, referenceDirectiveResolver)
 
             If ReportErrors(diagnostics, consoleOutput, errorLogger) Then
                 Return Nothing
@@ -129,14 +130,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim xmlFileResolver = New LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger)
 
             ' TODO: support for #load search paths
-            Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, touchedFilesLogger)
+            Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
             Dim result = VisualBasicCompilation.Create(
                  Arguments.CompilationName,
                  trees,
                  resolvedReferences,
                  Arguments.CompilationOptions.
-                     WithMetadataReferenceResolver(New AssemblyReferenceResolver(referenceDirectiveResolver, metadataProvider)).
+                     WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithStrongNameProvider(strongNameProvider).
                      WithXmlReferenceResolver(xmlFileResolver).

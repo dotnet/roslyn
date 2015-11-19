@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <param name="propertyStyle">
         /// The settings that determine how properties are displayed. 
-        /// For eaxmple, "Prop" vs "Prop { get; set; }" in C# or "Prop" vs. "ReadOnly Prop" in Visual Basic.
+        /// For example, "Prop" vs "Prop { get; set; }" in C# or "Prop" vs. "ReadOnly Prop" in Visual Basic.
         /// </param>
         /// <param name="localOptions">
         /// The settings that determine how local variables are displayed.

@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
@@ -14,20 +13,13 @@
     <RootNamespace>Roslyn.Test.PdbUtilities</RootNamespace>
     <AssemblyName>Roslyn.Test.PdbUtilities</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <RestorePackages>true</RestorePackages>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
   </PropertyGroup>
-  <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
-      <Link>Collections\PooledStringBuilder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
-      <Link>InternalUtilities\ExceptionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
-      <Link>InternalUtilities\ComStreamWrapper.cs</Link>
-    </Compile>
-  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -65,53 +57,78 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.DiaSymReader">
-      <HintPath>..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.XML" />
-  </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
+      <Link>Collections\PooledStringBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
+      <Link>InternalUtilities\ExceptionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
+      <Link>InternalUtilities\ComStreamWrapper.cs</Link>
+    </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
+      <Link>InternalUtilities\StreamExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
+      <Link>Shared\CustomDebugInfoConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\CustomModifier.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\CustomModifier.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
     </Compile>
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
     <Compile Include="Metadata\MetadataVisualizer.cs" />
     <Compile Include="Metadata\MethodILExtensions.cs" />
+    <Compile Include="Pdb\CustomDebugInfoUtilities.cs" />
     <Compile Include="Pdb\PdbToXml.cs" />
     <Compile Include="Pdb\PdbToXmlOptions.cs" />
     <Compile Include="Pdb\SymReader.cs" />
+    <Compile Include="Pdb\SymReaderFactory.cs" />
     <Compile Include="Pdb\Token2SourceLineExporter.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
-      <Link>Shared\CustomDebugInfoConstants.cs</Link>
-    </Compile>
     <Compile Include="Shared\CustomDebugInfoReader.cs" />
     <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
-    <Compile Include="Shared\IMetadataImport.cs" />
+    <Compile Include="Shared\StringUtilities.cs" />
     <Compile Include="Shared\SymUnmanagedReaderTestExtensions.cs" />
     <Compile Include="Shared\SymUnmanagedReaderExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
+      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
+      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>

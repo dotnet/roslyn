@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' // We need to return the even one.
                     floor = Math.Floor(temporary)
 
-                    '[AlekseyT]: Using Math.IEEERemainder as areplacement for fmod.
+                    '[AlekseyT]: Using Math.IEEERemainder as a replacement for fmod.
                     If floor <> temporary OrElse Math.IEEERemainder(temporary, 2.0) = 0 Then
                         integralValue = If(IsUnsignedLongType(targetType), ConvertFloatingToUI64(floor), UncheckedCLng(floor))
                     Else
@@ -633,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' // Conversion from double to uint64 is annoyingly implemented by the
             ' // VC++ compiler as (uint64)(int64)(double)val, so we have to do it by hand.
 
-            Dim result As Long = UncheckedCLng(UncheckedCULng(sourceValue))
+            Dim result As Long
 
             ' // code below stolen from jit...
             Dim two63 As Double = 2147483648.0 * 4294967296.0

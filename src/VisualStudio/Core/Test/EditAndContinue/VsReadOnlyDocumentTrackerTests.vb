@@ -19,7 +19,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
     Public Class VsReadOnlyDocumentTrackerTests
-        <Fact>
+        <WpfFact>
         Public Sub StandardTextDocumentTest()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
@@ -68,7 +68,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         End Sub
 
         <WorkItem(1089964, "DevDiv")>
-        <Fact>
+        <WpfFact>
         Public Sub ContainedDocumentTest()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
@@ -117,7 +117,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
         End Sub
 
         <WorkItem(1147868, "DevDiv")>
-        <Fact>
+        <WpfFact>
         Public Sub InvalidDocumentTest1()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
@@ -139,12 +139,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), False)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
 
-            ' invlid documentId
+            ' invalid documentId
             readOnlyDocumentTracker.SetReadOnly(Nothing, False) ' Check no NRE
         End Sub
 
         <WorkItem(1147868, "DevDiv")>
-        <Fact>
+        <WpfFact>
         Public Sub InvalidDocumentTest2()
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)

@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
         {
-            // TODO - This is really ineffecient. Creating a new array on each lookup needs to fixed!
+            // TODO - This is really inefficient. Creating a new array on each lookup needs to fixed!
             return ImmutableArray.CreateRange<NamedTypeSymbol>(_cachedLookup[name].OfType<NamedTypeSymbol>());
         }
 

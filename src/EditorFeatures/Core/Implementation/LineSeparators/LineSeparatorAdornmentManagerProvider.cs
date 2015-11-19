@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         {
             if (textView == null)
             {
-                throw new ArgumentNullException("textView");
+                throw new ArgumentNullException(nameof(textView));
             }
 
             if (!textView.TextBuffer.GetOption(EditorComponentOnOffOptions.Adornment))

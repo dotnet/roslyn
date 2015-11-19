@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.Subtraction:
                         return BindEventAssignment(node, (BoundEventAccess)left, right, kindOperator, diagnostics);
 
-                        // fallthrough for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
+                        // fall-through for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
                 }
             }
 
@@ -623,8 +623,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindConditionalLogicalOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression left = BindValue(node.Left, diagnostics, BindValueKind.RValue);
-            BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
+            Debug.Assert(node.Kind() == SyntaxKind.LogicalOrExpression || node.Kind() == SyntaxKind.LogicalAndExpression);
+
+            // Do not blow the stack due to a deep recursion on the left. 
+
+            BinaryExpressionSyntax binary = node;
+            ExpressionSyntax child;
+
+            while (true)
+            {
+                child = binary.Left;
+                var childAsBinary = child as BinaryExpressionSyntax;
+
+                if (childAsBinary == null || 
+                    (childAsBinary.Kind() != SyntaxKind.LogicalOrExpression && childAsBinary.Kind() != SyntaxKind.LogicalAndExpression))
+                {
+                    break;
+                }
+
+                binary = childAsBinary;
+            }
+
+            BoundExpression left = BindValue(child, diagnostics, BindValueKind.RValue);
+
+            do
+            {
+                binary = (BinaryExpressionSyntax)child.Parent;
+                BoundExpression right = BindValue(binary.Right, diagnostics, BindValueKind.RValue);
+
+                left = BindConditionalLogicalOperator(binary, left, right, diagnostics);
+                child = binary;
+            }
+            while ((object)child != node);
+
+            return left;
+        }
+
+        private BoundExpression BindConditionalLogicalOperator(BinaryExpressionSyntax node, BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
+        {
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
             Debug.Assert(kind == BinaryOperatorKind.LogicalAnd || kind == BinaryOperatorKind.LogicalOr);
@@ -1250,8 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.UnderlyingAndEnumSubtraction:
                     return right.Type;
                 default:
-                    Debug.Assert(false, "Unexpected non-enum operation in GetEnumType");
-                    return null;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -1272,8 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return underlyingType;
 
                 default:
-                    Debug.Assert(false, "Unexpected underlying enum type.");
-                    return underlyingType;
+                    throw ExceptionUtilities.UnexpectedValue(underlyingType);
             }
         }
 
@@ -1337,8 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    Debug.Assert(false, "Unexpected operator kind");
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(newKind.Operator());
             }
 
             var constantValue = FoldBinaryOperator(syntax, newKind, newLeftOperand, newRightOperand, operatorType, diagnostics);
@@ -1806,10 +1839,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclusiveOrExpression: return BinaryOperatorKind.Xor;
                 case SyntaxKind.LogicalAndExpression: return BinaryOperatorKind.LogicalAnd;
                 case SyntaxKind.LogicalOrExpression: return BinaryOperatorKind.LogicalOr;
+                default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
-
-            Debug.Assert(false, "Bad syntax kind in binary operator binding");
-            return BinaryOperatorKind.Error;
         }
 
         private BoundExpression BindIncrementOperator(CSharpSyntaxNode node, ExpressionSyntax operandSyntax, SyntaxToken operatorToken, DiagnosticBag diagnostics)
@@ -2375,10 +2406,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnaryMinusExpression: return UnaryOperatorKind.UnaryMinus;
                 case SyntaxKind.LogicalNotExpression: return UnaryOperatorKind.LogicalNegation;
                 case SyntaxKind.BitwiseNotExpression: return UnaryOperatorKind.BitwiseComplement;
+                default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
-
-            Debug.Assert(false, "Bad syntax kind in unary operator binding");
-            return UnaryOperatorKind.Error;
         }
 
         private static BindValueKind GetBinaryAssignmentKind(SyntaxKind kind)
@@ -2881,7 +2910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Is and As operator should have null ConstantValue as they are not constant expressions.
             // However we perform analysis of is/as expressions at bind time to detect if the expression 
             // will always evaluate to a constant to generate warnings (always true/false/null).
-            // We also need this analysis result during rewrite to optimize away redundant isint instructions.
+            // We also need this analysis result during rewrite to optimize away redundant isinst instructions.
             // We store the conversion kind from expression's operand type to target type to enable these
             // optimizations during is/as operator rewrite.            
 

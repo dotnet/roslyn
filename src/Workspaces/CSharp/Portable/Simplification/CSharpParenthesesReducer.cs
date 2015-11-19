@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return resultNode;
             }
 
-            // We don't know how to simplifiy this.
+            // We don't know how to simplify this.
             return node;
         }
     }

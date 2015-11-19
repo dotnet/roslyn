@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns whether this method is using CLI VARARG calling convention. This is used for C-style variable
-        /// argument lists. This is used extremely rarely in C# code and is represented using the undocumented “__arglist” keyword.
+        /// argument lists. This is used extremely rarely in C# code and is represented using the undocumented "__arglist" keyword.
         ///
-        /// Note that methods with “params” on the last parameter are indicated with the “IsParams” property on ParameterSymbol, and
+        /// Note that methods with "params" on the last parameter are indicated with the "IsParams" property on ParameterSymbol, and
         /// are not represented with this property.
         /// </summary>
         public abstract bool IsVararg { get; }
@@ -364,7 +364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsOverride && ReferenceEquals(this.ConstructedFrom, this))
                 {
-                    return (MethodSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    if (IsDefinition)
+                    {
+                        return (MethodSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    }
+
+                    return (MethodSymbol)OverriddenOrHiddenMembersResult.GetOverriddenMember(this, OriginalDefinition.OverriddenMethod);
                 }
 
                 return null;
@@ -470,14 +475,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.DelegateInvoke:
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
+                case MethodKind.LocalFunction:
                 case MethodKind.UserDefinedOperator:
                 case MethodKind.Ordinary:
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
                     return true;
                 default:
-                    Debug.Assert(false, $"Unexpected method kind '{kind}'");
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -514,6 +519,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal virtual bool IsScriptInitializer
+        {
+            get { return false; }
+        }
+
         /// <summary>
         /// Returns if the method is implicit constructor (normal and static)
         /// </summary>
@@ -544,6 +554,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return IsScriptConstructor && ContainingAssembly.IsInteractive;
+            }
+        }
+
+        internal bool IsSubmissionInitializer
+        {
+            get
+            {
+                return IsScriptInitializer && ContainingAssembly.IsInteractive;
             }
         }
 
@@ -596,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var array = (ArrayTypeSymbol)firstType;
-            return array.Rank == 1 && array.ElementType.SpecialType == SpecialType.System_String;
+            return array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String;
         }
 
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
@@ -716,6 +734,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.Construct(ImmutableArray.Create(typeArguments));
         }
 
+        internal static readonly Func<TypeSymbol, bool> TypeSymbolIsNullFunction = type => (object)type == null;
+
         /// <summary>
         /// Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
         /// </summary>
@@ -733,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(typeArguments));
             }
 
-            if (typeArguments.Any(NamedTypeSymbol.TypeSymbolIsNullFunction))
+            if (typeArguments.Any(TypeSymbolIsNullFunction))
             {
                 throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, "typeArguments");
             }
@@ -743,12 +763,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, "typeArguments");
             }
 
-            if (ConstructedNamedTypeSymbol.TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))
+            if (TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))
             {
                 return this;
             }
 
             return new ConstructedMethodSymbol(this, typeArguments);
+        }
+
+        internal static bool TypeParametersMatchTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeSymbol> typeArguments)
+        {
+            int n = typeParameters.Length;
+            Debug.Assert(typeArguments.Length == n);
+            Debug.Assert(typeArguments.Length > 0);
+
+            for (int i = 0; i < n; i++)
+            {
+                if (!ReferenceEquals(typeArguments[i], typeParameters[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         internal MethodSymbol AsMember(NamedTypeSymbol newOwner)
@@ -960,6 +997,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return MethodKind.ReducedExtension;
                     case MethodKind.StaticConstructor:
                         return MethodKind.StaticConstructor;
+                    case MethodKind.LocalFunction:
+                        return MethodKind.LocalFunction;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.MethodKind);
                 }

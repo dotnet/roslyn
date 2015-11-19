@@ -1125,9 +1125,7 @@ namespace Microsoft.CodeAnalysis
                     return TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeObsoleteDataExtractor);
 
                 default:
-                    Debug.Assert(false, "unexpected ObsoleteAttribute signature");
-                    obsoleteData = null;
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
             }
         }
 
@@ -1143,9 +1141,7 @@ namespace Microsoft.CodeAnalysis
                     return TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeDeprecatedDataExtractor);
 
                 default:
-                    Debug.Assert(false, "unexpected DeprecatedAttribute signature");
-                    obsoleteData = null;
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
             }
         }
 
@@ -1178,9 +1174,7 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 default:
-                    Debug.Assert(false, "unexpected InterfaceTypeAttribute signature");
-                    interfaceType = 0;
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
             }
 
             interfaceType = default(ComInterfaceType);
@@ -1229,9 +1223,7 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 default:
-                    Debug.Assert(false, "unexpected TypeLibAttribute signature");
-                    flags = 0;
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(info.SignatureIndex);
             }
 
             flags = default(Cci.TypeLibTypeFlags);

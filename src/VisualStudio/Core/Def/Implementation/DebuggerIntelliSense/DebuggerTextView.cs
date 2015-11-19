@@ -52,12 +52,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         /// </summary>
         public IBufferGraph BufferGraph
         {
-            get; private set;
+            get;
         }
 
         public bool IsImmediateWindow
         {
-            get; private set;
+            get;
         }
 
         public ITextCaret Caret
@@ -320,11 +320,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             // DebuggerTextView is no longer in use.
             if (this.IsImmediateWindow)
             {
-                var handler = this.ClosedInternal;
-                if (handler != null)
-                {
-                    handler(this, EventArgs.Empty);
-                }
+                this.ClosedInternal?.Invoke(this, EventArgs.Empty);
             }
         }
 

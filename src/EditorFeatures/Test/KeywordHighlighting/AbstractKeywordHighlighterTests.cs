@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
                 // If the position being tested is immediately following the keyword, 
                 // we should get the token before this position to find the appropriate 
-                // anceestor node.
+                // ancestor node.
                 var highlighter = CreateHighlighter();
 
                 var root = document.GetSyntaxRootAsync().Result;

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private const string RegistryKey = @"Software\Microsoft\ExpressionEvaluator";
         private const string RegistryValue = "EnableFailFast";
-        private static readonly bool s_isFailFastEnabled;
+        internal static bool IsFailFastEnabled;
 
         static ExpressionEvaluatorFatalError()
         {
@@ -27,21 +27,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var registryType = typeof(object).GetTypeInfo().Assembly.GetType("Microsoft.Win32.Registry");
                 if (registryType != null)
                 {
-                    var hKeyCurrentUserField = registryType.GetTypeInfo().GetField("CurrentUser");
+                    var hKeyCurrentUserField = registryType.GetTypeInfo().GetDeclaredField("CurrentUser");
                     if (hKeyCurrentUserField != null && hKeyCurrentUserField.IsStatic)
                     {
                         using (var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null))
                         {
-                            var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
+                            var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
                             using (var eeKey = (IDisposable)openSubKeyMethod.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false }))
                             {
                                 if (eeKey != null)
                                 {
-                                    var getValueMethod = eeKey.GetType().GetTypeInfo().GetMethod("GetValue", new Type[] { typeof(string) });
+                                    var getValueMethod = eeKey.GetType().GetTypeInfo().GetDeclaredMethod("GetValue", new Type[] { typeof(string) });
                                     var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
                                     if ((value != null) && (value is int))
                                     {
-                                        s_isFailFastEnabled = ((int)value == 1);
+                                        IsFailFastEnabled = ((int)value == 1);
                                     }
                                 }
                             }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static bool CrashIfFailFastEnabled(Exception exception)
         {
-            if (!s_isFailFastEnabled)
+            if (!IsFailFastEnabled)
             {
                 return false;
             }

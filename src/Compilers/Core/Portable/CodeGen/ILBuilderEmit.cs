@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!code.IsControlTransfer(),
                 "Control transferring opcodes should not be emitted directly. Use special methods such as EmitRet().");
 
-            WriteOpCode(this.GetCurrentStream(), code);
+            WriteOpCode(this.GetCurrentWriter(), code);
 
             _emitState.AdjustStack(stackAdjustment);
             _emitState.InstructionAdded();
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void EmitToken(string value)
         {
             uint token = module?.GetFakeStringTokenForIL(value) ?? 0xFFFF;
-            this.GetCurrentStream().WriteUint(token);
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitToken(Microsoft.Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
-            this.GetCurrentStream().WriteUint(token);
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var curStack = _emitState.CurStack;
 
                 // we have already seen a branch to this label so we know its stack.
-                // Now we will require that fallthrough must agree with that stack value.
+                // Now we will require that fall-through must agree with that stack value.
                 // For the purpose of this assert we assume that all codepaths are reachable. 
                 // This is a minor additional burden for languages to makes sure that stack is balanced 
                 // even at labels that follow unconditional branches.
                 // What we get is an invariant that satisfies 1.7.5 in reachable code 
                 // even though we do not know yet what is reachable.
-                Debug.Assert(curStack == labelStack, "forward branches and fallthrough must agree on stack depth");
+                Debug.Assert(curStack == labelStack, "forward branches and fall-through must agree on stack depth");
 
                 _labelInfos[label] = labelInfo.WithNewTarget(block);
             }
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayCreation(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var ctor = module.ArrayMethods.GetArrayConstructor(arrayType);
 
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayElementLoad(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var load = module.ArrayMethods.GetArrayGet(arrayType);
 
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayElementAddress(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var address = module.ArrayMethods.GetArrayAddress(arrayType);
 
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayElementStore(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var store = module.ArrayMethods.GetArraySet(arrayType);
 
@@ -679,32 +679,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitInt8(sbyte int8)
         {
-            this.GetCurrentStream().WriteSbyte(int8);
+            this.GetCurrentWriter().WriteSByte(int8);
         }
 
         private void EmitInt32(int int32)
         {
-            this.GetCurrentStream().WriteInt(int32);
+            this.GetCurrentWriter().WriteInt32(int32);
         }
 
         private void EmitInt64(long int64)
         {
-            this.GetCurrentStream().WriteLong(int64);
+            this.GetCurrentWriter().WriteInt64(int64);
         }
 
         private void EmitFloat(float floatValue)
         {
             int int32 = BitConverter.ToInt32(BitConverter.GetBytes(floatValue), 0);
-            this.GetCurrentStream().WriteInt(int32);
+            this.GetCurrentWriter().WriteInt32(int32);
         }
 
         private void EmitDouble(double doubleValue)
         {
             long int64 = BitConverter.DoubleToInt64Bits(doubleValue);
-            this.GetCurrentStream().WriteLong(int64);
+            this.GetCurrentWriter().WriteInt64(int64);
         }
 
-        private static void WriteOpCode(Microsoft.Cci.BinaryWriter writer, ILOpCode code)
+        private static void WriteOpCode(Cci.BlobBuilder writer, ILOpCode code)
         {
             var size = code.Size();
             if (size == 1)
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private Microsoft.Cci.BinaryWriter GetCurrentStream()
+        private Cci.BlobBuilder GetCurrentWriter()
         {
             return this.GetCurrentBlock().Writer;
         }

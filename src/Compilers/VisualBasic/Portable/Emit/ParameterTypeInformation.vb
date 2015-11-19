@@ -28,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Private ReadOnly Property IParameterTypeInformationHasByRefBeforeCustomModifiers As Boolean Implements Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        Private ReadOnly Property IParameterTypeInformationCountOfCustomModifiersPrecedingByRef As UShort Implements Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
             Get
-                Return _underlyingParameter.HasByRefBeforeCustomModifiers
+                Return _underlyingParameter.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 

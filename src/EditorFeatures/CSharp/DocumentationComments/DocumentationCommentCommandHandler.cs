@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             {
                 foreach (var typeParam in typeParameterList.Parameters)
                 {
-                    list.Add("/// <typeparam name=\"" + typeParam.Identifier.ToString() + "\"></typeparam>");
+                    list.Add("/// <typeparam name=\"" + typeParam.Identifier.ValueText + "\"></typeparam>");
                 }
             }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             {
                 foreach (var param in parameterList.Parameters)
                 {
-                    list.Add("/// <param name=\"" + param.Identifier.ToString() + "\"></param>");
+                    list.Add("/// <param name=\"" + param.Identifier.ValueText + "\"></param>");
                 }
             }
 

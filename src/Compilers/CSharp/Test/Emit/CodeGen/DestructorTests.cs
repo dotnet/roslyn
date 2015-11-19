@@ -517,7 +517,7 @@ public class M<T> : L<T>
         }
 
         [WorkItem(528903, "DevDiv")] // Won't fix - test just captures behavior.
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void DestructorOverridesPublicFinalize()
         {
             var text = @"
@@ -590,7 +590,7 @@ public class A
     ~A() { }
 }
 ";
-            CompileAndVerify(text, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(text, assemblyValidator: (assembly) =>
             {
                 var peFileReader = assembly.GetMetadataReader();
 

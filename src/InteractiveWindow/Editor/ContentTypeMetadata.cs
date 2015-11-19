@@ -16,4 +16,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             this.ContentTypes = (IEnumerable<string>)data["ContentTypes"];
         }
     }
+
+    internal static class ContentTypeMetadataHelpers
+    {
+        public static T OfContentType<T>(
+            this IEnumerable<Lazy<T, ContentTypeMetadata>> exports,
+            IContentType contentType,
+            IContentTypeRegistryService contentTypeRegistry)
+        {
+            return (from export in exports
+                    from exportedContentTypeName in export.Metadata.ContentTypes
+                    let exportedContentType = contentTypeRegistry.GetContentType(exportedContentTypeName)
+                    where exportedContentType.IsOfType(contentType.TypeName)
+                    select export.Value).SingleOrDefault();
+        }
+    }
 }

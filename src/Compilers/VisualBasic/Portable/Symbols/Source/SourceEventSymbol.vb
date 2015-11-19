@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _containingType = containingType
 
             ' Decode the flags.
-            ' This will validate modifiers agains container (i.e. Protected is invalid in a structure...)
+            ' This will validate modifiers against container (i.e. Protected is invalid in a structure...)
             Dim modifiers = DecodeModifiers(syntax.Modifiers,
                                             containingType,
                                             binder,

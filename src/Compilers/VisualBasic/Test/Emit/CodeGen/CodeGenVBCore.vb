@@ -2807,7 +2807,7 @@ BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'V
 
 </errors>)
 
-            ' Remove the reference to System.XML.Linq and verify compilation behaviour that the 
+            ' Remove the reference to System.XML.Linq and verify compilation behavior that the 
             ' diagnostic is not produced.
             compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -2887,7 +2887,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")> <Fact>
         Public Sub VbCoreWithStaticLocals_UsingEmbedVBCore()
             'Static Locals use types contained within VB Runtime so verify with VBCore option to ensure the feature works
-            'usign VBCore which would be the case with platforms such as Phone.
+            'using VBCore which would be the case with platforms such as Phone.
             Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>
           <file name="a.vb">
@@ -2985,7 +2985,7 @@ End Namespace
         <WorkItem(15925, "DevDiv_Projects/Roslyn")> <Fact>
         Public Sub VbCoreWithStaticLocals_IncorrectDefinedTypes()
             'Static Locals use types in VB Runtime so verify with no VBRuntime but appropriate types specified in Source the static
-            'local scenarios should work correctly buyt if we define the types incorrectly we should generate errors although we 
+            'local scenarios should work correctly but if we define the types incorrectly we should generate errors although we 
             'should not crash.
             Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>
@@ -3306,17 +3306,9 @@ End Module
                                            allReferences:=NoVbRuntimeReferences,
                                            expectedOutput:=expectedOutput,
                                            sourceSymbolValidator:=sourceSymbolValidator,
-                                           validator:=Translate(validator),
+                                           validator:=validator,
                                            symbolValidator:=symbolValidator,
                                            options:=options)
-        End Function
-
-        Private Function Translate(action As Action(Of PEAssembly)) As Action(Of PEAssembly, TestEmitters)
-            If action IsNot Nothing Then
-                Return Sub(a, _omitted) action(a)
-            Else
-                Return Nothing
-            End If
         End Function
 
 #End Region

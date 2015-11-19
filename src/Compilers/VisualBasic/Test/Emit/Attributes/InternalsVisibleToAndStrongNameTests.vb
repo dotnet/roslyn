@@ -199,7 +199,7 @@ End Class
         Dim other = CreateCompilationWithMscorlib(s, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(True).WithStrongNameProvider(s_defaultProvider))
 
         Assert.Empty(other.GetDiagnostics())
-        Assert.True(ByteSequenceComparer.Equals(TestResources.SymbolsTests.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey))
+        Assert.True(ByteSequenceComparer.Equals(TestResources.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey))
     End Sub
 
     <Fact>
@@ -392,7 +392,7 @@ End Class
         options:=TestOptions.ReleaseDll.WithCryptoKeyFile(tmp.Path).WithStrongNameProvider(New DesktopStrongNameProvider()))
 
         other.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(tmp.Path, New ArgumentException().Message))
+            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(tmp.Path, CodeAnalysisResources.InvalidPublicKey))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -1162,7 +1162,7 @@ End Class
     </file>
 </compilation>
 
-            ' now that the module checks out, ensure that adding it to a compilation outputing a dll
+            ' now that the module checks out, ensure that adding it to a compilation outputting a dll
             ' results in a signed assembly.
             Dim assemblyComp = CreateCompilationWithMscorlibAndReferences(source, {metadata.GetReference()}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
 
@@ -1677,7 +1677,7 @@ End Class]]>
         CompileAndVerify(ca)
 
         Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={New VisualBasicCompilationReference(ca)})
-        CompileAndVerify(cb, expectedOutput:="42", emitters:=TestEmitters.CCI).Diagnostics.Verify()
+        CompileAndVerify(cb, expectedOutput:="42").Diagnostics.Verify()
     End Sub
 
     <Fact, WorkItem(1072339, "DevDiv")>
@@ -1707,7 +1707,7 @@ End Class]]>
         CompileAndVerify(ca)
 
         Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={New VisualBasicCompilationReference(ca)})
-        CompileAndVerify(cb, expectedOutput:="42", emitters:=TestEmitters.CCI).Diagnostics.Verify()
+        CompileAndVerify(cb, expectedOutput:="42").Diagnostics.Verify()
     End Sub
 
     <Fact, WorkItem(1095618, "DevDiv")>

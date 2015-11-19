@@ -199,7 +199,7 @@ namespace Roslyn.Services.CSharp.Debugging
         private static void CollectInvocationExpressionTerms(int position, ExpressionSyntax expression, IList<string> terms, ref ExpressionType expressionType)
         {
             // Invocations definitely have side effects.  So we assume this
-            // is invalid initiall;
+            // is invalid initially
             expressionType = ExpressionType.Invalid;
             ExpressionType leftFlags = ExpressionType.Invalid, rightFlags = ExpressionType.Invalid;
 

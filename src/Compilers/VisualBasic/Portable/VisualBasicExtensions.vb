@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis
         ''' </summary>
         ''' <param name="nodeOrToken">The source SyntaxNodeOrToke.</param>
         ''' <param name="kind">The SyntaxKind to test for.</param>
-        ''' <returns>A boolean value if nodeoOrToken is of specified kind; otherwise false.</returns>
+        ''' <returns>A boolean value if nodeOrToken is of specified kind; otherwise false.</returns>
         <Extension>
         Public Function IsKind(nodeOrToken As SyntaxNodeOrToken, kind As SyntaxKind) As Boolean
             Return nodeOrToken.RawKind = kind

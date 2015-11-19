@@ -4,7 +4,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 
         <WorkItem(538972)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestExplicitMethod1()
             Dim input =
 <Workspace>
@@ -26,7 +26,7 @@ class C : I
         End Sub
 
         <WorkItem(538972)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestExplicitMethod2()
             Dim input =
 <Workspace>
@@ -47,7 +47,7 @@ class C : I
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestExplicitMethodAndInheritance()
             Dim input =
 <Workspace>

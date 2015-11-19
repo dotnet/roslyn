@@ -560,7 +560,7 @@ Two
 
         ' Pass fields as a ref argument for 'foreach iteration variable'
         <Fact()>
-        Public Sub PassFieldsAsRefArgment()
+        Public Sub PassFieldsAsRefArgument()
             Dim TEMP = CompileAndVerify(
 <compilation>
     <file name="a.vb">

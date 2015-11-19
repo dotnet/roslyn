@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ' See Assembly.MetadataName.
         Private ReadOnly _metadataName As String
 
-        Private _lazyExportedTypes As ImmutableArray(Of TypeExport(Of NamedTypeSymbol))
+        Private _lazyExportedTypes As ImmutableArray(Of NamedTypeSymbol)
         Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
         Private _lazyDefaultNamespace As String
 
@@ -33,16 +33,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Sub New(sourceModule As SourceModuleSymbol,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
-                       serializationProperties As ModulePropertiesForSerialization,
-                       manifestResources As IEnumerable(Of ResourceDescription),
-                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity))
+                       serializationProperties As Cci.ModulePropertiesForSerialization,
+                       manifestResources As IEnumerable(Of ResourceDescription))
 
             MyBase.New(sourceModule.ContainingSourceAssembly.DeclaringCompilation,
                        sourceModule,
                        serializationProperties,
                        manifestResources,
                        outputKind,
-                       assemblySymbolMapper,
                        emitOptions,
                        New ModuleCompilationState())
 
@@ -120,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
 
                 Dim rootNamespace = SourceModule.RootNamespace
-                If rootNamespace Is Nothing OrElse rootNamespace.IsGlobalNamespace Then
-                    Return Nothing
+                If rootNamespace.IsGlobalNamespace Then
+                    Return String.Empty
                 End If
 
                 _lazyDefaultNamespace = rootNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)
@@ -386,11 +384,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Public Overrides Function GetExportedTypes(context As EmitContext) As IEnumerable(Of Cci.ITypeExport)
+        Public Overrides Function GetExportedTypes(context As EmitContext) As IEnumerable(Of Cci.ITypeReference)
             Debug.Assert(HaveDeterminedTopLevelTypes)
 
             If _lazyExportedTypes.IsDefault Then
-                Dim builder = ArrayBuilder(Of TypeExport(Of NamedTypeSymbol)).GetInstance()
+                Dim builder = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
                 Dim sourceAssembly As SourceAssemblySymbol = SourceModule.ContainingSourceAssembly
 
                 If Not OutputKind.IsNetModule() Then
@@ -416,21 +414,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     ' Report name collisions.
                     Dim exportedNamesMap = New Dictionary(Of String, NamedTypeSymbol)()
 
-                    For Each [alias] In _lazyExportedTypes
-                        Dim aliasedType As NamedTypeSymbol = [alias].AliasedType
-                        Debug.Assert(aliasedType.IsDefinition)
+                    For Each exportedType In _lazyExportedTypes
+                        Debug.Assert(exportedType.IsDefinition)
 
-                        If aliasedType.ContainingType Is Nothing Then
-                            Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName((DirectCast(aliasedType, Cci.INamespaceTypeReference)).NamespaceName,
-                                                                                        Cci.MetadataWriter.GetMangledName(aliasedType))
+                        If exportedType.ContainingType Is Nothing Then
+                            Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName((DirectCast(exportedType, Cci.INamespaceTypeReference)).NamespaceName,
+                                                                                               Cci.MetadataWriter.GetMangledName(exportedType))
 
                             ' First check against types declared in the primary module
                             If ContainsTopLevelType(fullEmittedName) Then
-                                If aliasedType.ContainingAssembly Is sourceAssembly Then
-                                    context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ExportedTypeConflictsWithDeclaration, aliasedType, aliasedType.ContainingModule),
+                                If exportedType.ContainingAssembly Is sourceAssembly Then
+                                    context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ExportedTypeConflictsWithDeclaration, exportedType, exportedType.ContainingModule),
                                             NoLocation.Singleton))
                                 Else
-                                    context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypeConflictsWithDeclaration, aliasedType),
+                                    context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypeConflictsWithDeclaration, exportedType),
                                             NoLocation.Singleton))
                                 End If
 
@@ -442,25 +439,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             ' Now check against other exported types
                             If exportedNamesMap.TryGetValue(fullEmittedName, contender) Then
 
-                                If aliasedType.ContainingAssembly Is sourceAssembly Then
+                                If exportedType.ContainingAssembly Is sourceAssembly Then
                                     ' all exported types precede forwarded types, therefore contender cannot be a forwarded type.
                                     Debug.Assert(contender.ContainingAssembly Is sourceAssembly)
 
                                     context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ExportedTypesConflict,
-                                                                                                aliasedType, aliasedType.ContainingModule,
+                                                                                                exportedType, exportedType.ContainingModule,
                                                                                                 contender, contender.ContainingModule),
                                         NoLocation.Singleton))
                                 Else
                                     If contender.ContainingAssembly Is sourceAssembly Then
                                         ' Forwarded type conflicts with exported type
                                         context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypeConflictsWithExportedType,
-                                                                                                    aliasedType, aliasedType.ContainingAssembly,
+                                                                                                    exportedType, exportedType.ContainingAssembly,
                                                                                                     contender, contender.ContainingModule),
                                             NoLocation.Singleton))
                                     Else
                                         ' Forwarded type conflicts with another forwarded type
                                         context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_ForwardedTypesConflict,
-                                                                                                    aliasedType, aliasedType.ContainingAssembly,
+                                                                                                    exportedType, exportedType.ContainingAssembly,
                                                                                                     contender, contender.ContainingAssembly),
                                             NoLocation.Singleton))
                                     End If
@@ -469,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                 Continue For
                             End If
 
-                            exportedNamesMap.Add(fullEmittedName, aliasedType)
+                            exportedNamesMap.Add(fullEmittedName, exportedType)
                         End If
                     Next
                 End If
@@ -478,21 +475,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _lazyExportedTypes
         End Function
 
-        Private Overloads Sub GetExportedTypes(sym As NamespaceOrTypeSymbol, builder As ArrayBuilder(Of TypeExport(Of NamedTypeSymbol)))
-            If sym.Kind = SymbolKind.NamedType Then
-                If sym.DeclaredAccessibility = Accessibility.Public Then
-                    Debug.Assert(sym.IsDefinition)
-                    builder.Add(New TypeExport(Of NamedTypeSymbol)(DirectCast(sym, NamedTypeSymbol)))
+        Private Overloads Sub GetExportedTypes(symbol As NamespaceOrTypeSymbol, builder As ArrayBuilder(Of NamedTypeSymbol))
+            If symbol.Kind = SymbolKind.NamedType Then
+                If symbol.DeclaredAccessibility = Accessibility.Public Then
+                    Debug.Assert(symbol.IsDefinition)
+                    builder.Add(DirectCast(symbol, NamedTypeSymbol))
                 Else
                     Return
                 End If
             End If
 
-            For Each t In sym.GetMembers()
-                Dim nortsym = TryCast(t, NamespaceOrTypeSymbol)
+            For Each member In symbol.GetMembers()
+                Dim namespaceOrType = TryCast(member, NamespaceOrTypeSymbol)
 
-                If nortsym IsNot Nothing Then
-                    GetExportedTypes(nortsym, builder)
+                If namespaceOrType IsNot Nothing Then
+                    GetExportedTypes(namespaceOrType, builder)
                 End If
             Next
         End Sub
@@ -500,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Shared Sub GetForwardedTypes(
             seenTopLevelTypes As HashSet(Of NamedTypeSymbol),
             wellKnownAttributeData As CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol),
-            builder As ArrayBuilder(Of TypeExport(Of NamedTypeSymbol))
+            builder As ArrayBuilder(Of NamedTypeSymbol)
         )
             If wellKnownAttributeData IsNot Nothing AndAlso wellKnownAttributeData.ForwardedTypes IsNot Nothing Then
                 For Each forwardedType As NamedTypeSymbol In wellKnownAttributeData.ForwardedTypes
@@ -518,20 +515,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     stack.Push(originalDefinition)
 
                     While stack.Count > 0
-                        Dim curr As NamedTypeSymbol = stack.Pop()
+                        Dim current As NamedTypeSymbol = stack.Pop()
 
                         ' In general, we don't want private types to appear in the ExportedTypes table.
-                        If curr.DeclaredAccessibility = Accessibility.Private Then
+                        If current.DeclaredAccessibility = Accessibility.Private Then
                             ' NOTE: this will also exclude nested types of curr.
                             Continue While
                         End If
 
                         ' NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
 
-                        builder.Add(New TypeExport(Of NamedTypeSymbol)(curr))
+                        builder.Add(current)
 
                         ' Iterate backwards so they get popped in forward order.
-                        Dim nested As ImmutableArray(Of NamedTypeSymbol) = curr.GetTypeMembers() ' Ordered.
+                        Dim nested As ImmutableArray(Of NamedTypeSymbol) = current.GetTypeMembers() ' Ordered.
                         For i As Integer = nested.Length - 1 To 0 Step -1
                             stack.Push(nested(i))
                         Next
@@ -539,24 +536,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Next
             End If
         End Sub
-
-        Friend NotOverridable Overrides ReadOnly Property LinkerMajorVersion As Byte
-            Get
-                'EDMAURER the Windows loader team says that this value is not used in loading but is used by the appcompat infrastructure.
-                'It is useful for us to have
-                'a mechanism to identify the compiler that produced the binary. This is the appropriate
-                'value to use for that. That is what it was invented for. We don't want to have the high
-                'bit set for this in case some users perform a signed comparision to determine if the value
-                'is less than some version. The C++ linker is at 0x0B. Roslyn C# will start at &H30. We'll start our numbering at &H50.
-                Return &H50
-            End Get
-        End Property
-
-        Friend NotOverridable Overrides ReadOnly Property LinkerMinorVersion As Byte
-            Get
-                Return 0
-            End Get
-        End Property
 
         Friend Iterator Function GetReferencedAssembliesUsedSoFar() As IEnumerable(Of AssemblySymbol)
             For Each assembly In SourceModule.GetReferencedAssemblySymbols()

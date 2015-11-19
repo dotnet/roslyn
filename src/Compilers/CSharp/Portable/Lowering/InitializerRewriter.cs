@@ -2,81 +2,83 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class InitializerRewriter
     {
-        internal static BoundTypeOrInstanceInitializers Rewrite(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol constructor)
+        internal static BoundTypeOrInstanceInitializers RewriteConstructor(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol method)
+        {
+            Debug.Assert(!boundInitializers.IsDefault);
+            Debug.Assert((method.MethodKind == MethodKind.Constructor) || (method.MethodKind == MethodKind.StaticConstructor));
+
+            var sourceMethod = method as SourceMethodSymbol;
+            var syntax = ((object)sourceMethod != null) ? sourceMethod.SyntaxNode : method.GetNonNullSyntaxNode();
+            return new BoundTypeOrInstanceInitializers(syntax, boundInitializers.SelectAsArray(RewriteInitializersAsStatements));
+        }
+
+        internal static BoundTypeOrInstanceInitializers RewriteScriptInitializer(ImmutableArray<BoundInitializer> boundInitializers, SynthesizedInteractiveInitializerMethod method, out bool hasTrailingExpression)
         {
             Debug.Assert(!boundInitializers.IsDefault);
 
             var boundStatements = ArrayBuilder<BoundStatement>.GetInstance(boundInitializers.Length);
+            var submissionResultType = method.ResultType;
+            var hasSubmissionResultType = (object)submissionResultType != null;
+            BoundStatement lastStatement = null;
+            BoundExpression trailingExpression = null;
 
-            for (int i = 0; i < boundInitializers.Length; i++)
+            foreach (var initializer in boundInitializers)
             {
-                var init = boundInitializers[i];
-
-                switch (init.Kind)
+                // The value of the last expression statement (if any) is returned from the submission initializer,
+                // unless this is a #load'ed tree.  I the #load'ed tree case, we'll execute the trailing expression
+                // but discard its result.
+                if (hasSubmissionResultType &&
+                    (initializer == boundInitializers.Last()) &&
+                    (initializer.Kind == BoundKind.GlobalStatementInitializer) &&
+                    method.DeclaringCompilation.IsSubmissionSyntaxTree(initializer.SyntaxTree))
                 {
-                    case BoundKind.FieldInitializer:
-                        boundStatements.Add(RewriteFieldInitializer((BoundFieldInitializer)init));
-                        break;
-
-                    case BoundKind.GlobalStatementInitializer:
-                        var stmtInit = (BoundGlobalStatementInitializer)init;
-
-                        // the value of the last expression statement (if any) is stored to a ref parameter of the submission constructor:
-                        if (constructor.IsSubmissionConstructor && i == boundInitializers.Length - 1 && stmtInit.Statement.Kind == BoundKind.ExpressionStatement)
-                        {
-                            var syntax = stmtInit.Syntax;
-                            var submissionResultVariable = new BoundParameter(syntax, constructor.Parameters[1]);
-                            var expr = ((BoundExpressionStatement)stmtInit.Statement).Expression;
-
-                            // The expression is converted to the submission result type when the initializer is bound, 
-                            // so we just need to assign it to the out parameter:
-                            if ((object)expr.Type != null && expr.Type.SpecialType != SpecialType.System_Void)
-                            {
-                                boundStatements.Add(
-                                    new BoundExpressionStatement(syntax,
-                                        new BoundAssignmentOperator(syntax,
-                                            submissionResultVariable,
-                                            expr,
-                                            expr.Type
-                                        )
-                                    ));
-
-                                break;
-                            }
-                        }
-
-                        boundStatements.Add(stmtInit.Statement);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(init.Kind);
+                    lastStatement = ((BoundGlobalStatementInitializer)initializer).Statement;
+                    var expression = GetTrailingScriptExpression(lastStatement);
+                    if (expression != null &&
+                        (object)expression.Type != null &&
+                        expression.Type.SpecialType != SpecialType.System_Void)
+                    {
+                        trailingExpression = expression;
+                        continue;
+                    }
                 }
+
+                boundStatements.Add(RewriteInitializersAsStatements(initializer));
             }
 
-            Debug.Assert(boundStatements.Count == boundInitializers.Length);
-
-            CSharpSyntaxNode listSyntax;
-
-            SourceMethodSymbol sourceConstructor = constructor as SourceMethodSymbol;
-            if ((object)sourceConstructor != null)
+            if (hasSubmissionResultType && (trailingExpression != null))
             {
-                listSyntax = sourceConstructor.SyntaxNode;
+                Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
+
+                // Note: The trailing expression was already converted to the submission result type in Binder.BindGlobalStatement.
+                boundStatements.Add(new BoundReturnStatement(lastStatement.Syntax, trailingExpression));
+                hasTrailingExpression = true;
             }
             else
             {
-                listSyntax = constructor.GetNonNullSyntaxNode();
+                hasTrailingExpression = false;
             }
+    
+            return new BoundTypeOrInstanceInitializers(method.GetNonNullSyntaxNode(), boundStatements.ToImmutableAndFree());
+        }
 
-            return new BoundTypeOrInstanceInitializers(listSyntax, boundStatements.ToImmutableAndFree());
+        /// <summary>
+        /// Returns the expression if the statement is actually an expression (ExpressionStatementSyntax with no trailing semicolon).
+        /// </summary>
+        internal static BoundExpression GetTrailingScriptExpression(BoundStatement statement)
+        {
+            return (statement.Kind == BoundKind.ExpressionStatement) && ((ExpressionStatementSyntax)statement.Syntax).SemicolonToken.IsMissing ?
+                ((BoundExpressionStatement)statement).Expression :
+                null;
         }
 
         private static BoundStatement RewriteFieldInitializer(BoundFieldInitializer fieldInit)
@@ -113,10 +115,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Parent.Parent.Kind());
             }
 
             return boundStatement;
+        }
+
+        private static BoundStatement RewriteInitializersAsStatements(BoundInitializer initializer)
+        {
+            switch (initializer.Kind)
+            {
+                case BoundKind.FieldInitializer:
+                    return RewriteFieldInitializer((BoundFieldInitializer)initializer);
+                case BoundKind.GlobalStatementInitializer:
+                    return ((BoundGlobalStatementInitializer)initializer).Statement;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
+            }
         }
     }
 }

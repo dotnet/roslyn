@@ -7,6 +7,8 @@ namespace Microsoft.Cci
 {
     internal struct ContentId
     {
+        public const int Size = 20;
+
         public readonly byte[] Guid;
         public readonly byte[] Stamp;
 
@@ -17,6 +19,8 @@ namespace Microsoft.Cci
             Guid = guid;
             Stamp = stamp;
         }
+
+        public bool IsDefault => Guid == null && Stamp == null;
 
         internal static ContentId FromHash(ImmutableArray<byte> hashCode)
         {
