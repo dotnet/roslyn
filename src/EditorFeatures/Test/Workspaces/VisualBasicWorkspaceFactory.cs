@@ -64,16 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.vb, test2.vbx, etc.</param>
-        public static TestWorkspace CreateWorkspaceFromFiles(
-            string[] files,
-            ParseOptions[] parseOptions = null,
-            CompilationOptions compilationOptions = null,
-            ExportProvider exportProvider = null)
-        {
-            return TestWorkspaceFactory.CreateWorkspaceFromFiles(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider);
-        }
-
-        /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.vb, test2.vbx, etc.</param>
         public static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string[] files,
             ParseOptions[] parseOptions = null,
