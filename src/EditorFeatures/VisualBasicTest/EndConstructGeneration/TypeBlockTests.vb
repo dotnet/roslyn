@@ -34,12 +34,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyForMatchedClass()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyForMatchedClass() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "End Class"},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ApplyAfterInterfaceStatement()
@@ -144,29 +144,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class EC",
                        "    Sub S",
                        "        Class B",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSyntax01()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax01() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Enum e(Of T)"},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSyntax02()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax02() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C Class"},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInheritsDecl()
@@ -180,12 +180,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInheritsDeclNotApplied()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInheritsDeclNotApplied() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C : Inherits B",
                        "End Class"},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyImplementsDecl()
@@ -199,12 +199,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyImplementsDeclNotApplied()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyImplementsDeclNotApplied() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C : Implements IB",
                        "End Class"},
                 caret:={0, -1})
-        End Sub
-
+        End Function
     End Class
 End Namespace

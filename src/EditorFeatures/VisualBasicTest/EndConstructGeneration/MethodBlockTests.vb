@@ -91,14 +91,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoNotApplyForInterfaceFunction()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoNotApplyForInterfaceFunction() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Interface IFoo",
                        "Function Foo() as Integer",
                        "End Interface"},
                  caret:={1, -1})
-        End Sub
-
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifySubInAModule()
@@ -165,7 +164,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={2, -1})
         End Sub
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifySharedOperator()
             VerifyStatementEndConstructApplied(
@@ -181,28 +179,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={2, -1})
         End Sub
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyRecommit()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyRecommit() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Protected friend sub S",
                        "    End sub",
                        "End Class"},
                 caret:={1, -1})
-        End Sub
-
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidLocation01()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidLocation01() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        Sub P",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WorkItem(528961)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>

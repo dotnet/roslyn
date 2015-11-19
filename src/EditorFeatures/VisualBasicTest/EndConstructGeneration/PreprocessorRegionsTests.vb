@@ -36,38 +36,38 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyAfterHashRegionWithoutStringConstant()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyAfterHashRegionWithoutStringConstant() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"#Region"},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyAfterHashRegionWhenEndRegionExists1()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyAfterHashRegionWhenEndRegionExists1() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"#Region ""Foo""",
                        "#End Region"},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyAfterHashRegionWhenEndRegionExists2()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyAfterHashRegionWhenEndRegionExists2() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"#Region ""Foo""",
                        "#Region ""Bar""",
                        "#End Region",
                        "#End Region"},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyAfterHashRegionWhenEndRegionExists3()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyAfterHashRegionWhenEndRegionExists3() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"#Region ""Foo""",
                        "#Region ""Bar""",
                        "#End Region",
                        "#End Region"},
                 caret:={1, -1})
-        End Sub
+        End Function
     End Class
 End Namespace

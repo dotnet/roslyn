@@ -24,19 +24,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             End Using
         End Function
 
-        Private Shared Sub NotSupported_ExtractMethod(codeWithMarker As XElement)
+        Private Shared Async Function NotSupported_ExtractMethodAsync(codeWithMarker As XElement) As Tasks.Task
             Dim codeWithoutMarker As String = Nothing
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(codeWithoutMarker)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithoutMarker)
                 Assert.NotNull(Record.Exception(Sub()
                                                     Dim tree = ExtractMethod(workspace, workspace.Documents.First(), textSpan)
                                                 End Sub))
             End Using
-        End Sub
+        End Function
 
-        Protected Overloads Shared Sub TestExtractMethod(
+        Protected Overloads Shared Async Function TestExtractMethodAsync(
             codeWithMarker As String,
             expected As String,
             Optional temporaryFailing As Boolean = False,
@@ -44,11 +44,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Optional dontPutOutOrRefOnStruct As Boolean = True,
             Optional metadataReference As String = Nothing,
             Optional compareTokens As Boolean = False
-        )
+        ) As Tasks.Task
 
             Dim metadataReferences = If(metadataReference Is Nothing, Array.Empty(Of String)(), New String() {metadataReference})
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFiles(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFilesAsync(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
                 Dim document = workspace.Documents.First()
                 Dim subjectBuffer = document.TextBuffer
@@ -71,9 +71,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                     End If
                 End If
             End Using
-        End Sub
+        End Function
 
-        Protected Overloads Shared Sub TestExtractMethod(
+        Protected Overloads Shared Async Function TestExtractMethodAsync(
             codeWithMarker As XElement,
             expected As XElement,
             Optional temporaryFailing As Boolean = False,
@@ -81,10 +81,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Optional dontPutOutOrRefOnStruct As Boolean = True,
             Optional metadataReference As String = Nothing,
             Optional compareTokens As Boolean = False
-        )
+        ) As Tasks.Task
 
-            TestExtractMethod(codeWithMarker.NormalizedValue, expected.NormalizedValue, temporaryFailing, allowMovingDeclaration, dontPutOutOrRefOnStruct, metadataReference, compareTokens)
-        End Sub
+            Await TestExtractMethodAsync(codeWithMarker.NormalizedValue, expected.NormalizedValue, temporaryFailing, allowMovingDeclaration, dontPutOutOrRefOnStruct, metadataReference, compareTokens)
+        End Function
 
         Private Shared Function ExtractMethod(workspace As TestWorkspace,
                                               testDocument As TestHostDocument,
@@ -120,13 +120,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Return result.Document.GetSyntaxRootAsync().Result
         End Function
 
-        Private Shared Sub TestSelection(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False)
+        Private Shared Async Function TestSelectionAsync(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False) As Tasks.Task
             Dim codeWithoutMarker As String = Nothing
             Dim namedSpans = CType(New Dictionary(Of String, IList(Of TextSpan))(), IDictionary(Of String, IList(Of TextSpan)))
 
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, codeWithoutMarker, namedSpans)
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(codeWithoutMarker)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithoutMarker)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 
@@ -145,17 +145,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                     Assert.Equal(namedSpans("r").Single(), result.FinalSpan)
                 End If
             End Using
-        End Sub
+        End Function
 
-        Private Shared Sub TestInMethod(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False)
+        Private Shared Async Function TestInMethodAsync(codeWithMarker As XElement, Optional ByVal expectedFail As Boolean = False) As Tasks.Task
             Dim markupWithMarker = <text>Class C
     Sub S<%= codeWithMarker.Value %>    End Sub
 End Class</text>
-            TestSelection(markupWithMarker, expectedFail)
-        End Sub
+            Await TestSelectionAsync(markupWithMarker, expectedFail)
+        End Function
 
-        Private Shared Sub IterateAll(ByVal code As String)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code)
+        Private Shared Async Function IterateAllAsync(ByVal code As String) As Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Assert.NotNull(document)
 
@@ -181,6 +181,6 @@ End Class</text>
                     End Try
                 Next node
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

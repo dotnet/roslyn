@@ -91,7 +91,7 @@ class 123 { }
 Class 123
 End Class
                        </code>
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code.ToString())
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
                     New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
                     New MockDiagnosticUpdateSourceRegistrationService())

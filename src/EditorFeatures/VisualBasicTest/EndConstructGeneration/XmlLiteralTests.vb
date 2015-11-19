@@ -56,69 +56,69 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyInParameterDeclaration1()
-            VerifyXmlElementEndConstructNotApplied(
+        Public Async Function DontApplyInParameterDeclaration1() As Threading.Tasks.Task
+            Await VerifyXmlElementEndConstructNotAppliedAsync(
                 text:={"Class C1",
                        "    Sub M1(<xml>)",
                        "    End Sub",
                        "End Class"},
                 caret:={1, 16})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyInParameterDeclaration2()
-            VerifyXmlElementEndConstructNotApplied(
+        Public Async Function DontApplyInParameterDeclaration2() As Threading.Tasks.Task
+            Await VerifyXmlElementEndConstructNotAppliedAsync(
                 text:={"Class C1",
                        "    Sub M1(i As Integer,",
                        "           <xml>)",
                        "    End Sub",
                        "End Class"},
                 caret:={2, 16})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyAfterXmlStartElementWithEndElement()
-            VerifyXmlElementEndConstructNotApplied(
+        Public Async Function DontApplyAfterXmlStartElementWithEndElement() As Threading.Tasks.Task
+            Await VerifyXmlElementEndConstructNotAppliedAsync(
                 text:={"Class C1",
                          "    Sub M1()",
                          "        Dim x = <xml></xml>",
                          "    End Sub",
                          "End Class"},
                 caret:={2, 23})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyAfterXmlEndElement()
-            VerifyXmlElementEndConstructNotApplied(
+        Public Async Function DontApplyAfterXmlEndElement() As Threading.Tasks.Task
+            Await VerifyXmlElementEndConstructNotAppliedAsync(
                 text:={"Class C1",
                          "    Sub M1()",
                          "        Dim x = </xml>",
                          "    End Sub",
                          "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyAfterSingleXmlTag()
-            VerifyXmlElementEndConstructNotApplied(
+        Public Async Function DontApplyAfterSingleXmlTag() As Threading.Tasks.Task
+            Await VerifyXmlElementEndConstructNotAppliedAsync(
                 text:={"Class C1",
                          "    Sub M1()",
                          "        Dim x = <xml/>",
                          "    End Sub",
                          "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyAfterProcessingInstruction()
-            VerifyXmlElementEndConstructNotApplied(
+        Public Async Function DontApplyAfterProcessingInstruction() As Threading.Tasks.Task
+            Await VerifyXmlElementEndConstructNotAppliedAsync(
                 text:={"Class C1",
                          "    Sub M1()",
                          "        Dim x = <?xml version=""1.0""?>",
                          "    End Sub",
                          "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ApplyAfterXmlStartElementWhenPassedAsParameter1()

@@ -39,34 +39,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyRecommit()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyRecommit() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"NameSpace Bar",
                        "End Namespace"},
                 caret:={0, -1})
-        End Sub
+        End Function
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidNSInMethod()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidNSInMethod() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        NameSpace T",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidNSInModule()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidNSInModule() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Module M",
                        "    Namespace n",
                        "End Module"},
                 caret:={1, -1})
-        End Sub
-
+        End Function
     End Class
 End Namespace

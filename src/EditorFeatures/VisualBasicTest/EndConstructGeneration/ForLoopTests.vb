@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -50,8 +51,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
-        Public Sub VerifyIndexMatchedInner1()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyIndexMatchedInner1() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "  Sub foo()",
                        "    For i = 1 To 10",
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "  End Sub",
                        "End Class"},
                  caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
         Public Sub VerifyIndexMatchedInner2()
@@ -86,8 +87,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481)>
-        Public Sub VerifyIndexSharedNext()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyIndexSharedNext() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "  Sub foo()",
                        "    For i = 1 To 10",
@@ -96,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "  End Sub",
                        "End Class"},
                  caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyNestedFor()
@@ -151,8 +152,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyReCommitForEach()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyReCommitForEach() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Public Property p(byval x as Integer) as Integer",
                        "        for each i in {1,2,3}",
@@ -160,26 +161,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Property",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyForAtIncorrectLocation()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyForAtIncorrectLocation() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    For i = 1 to 10"},
                 caret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidForSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidForSyntax() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub s",
                        "        for For",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
     End Class
 End Namespace

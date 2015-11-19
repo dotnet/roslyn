@@ -53,32 +53,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoNotApplyFromPairedDo()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoNotApplyFromPairedDo() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "Do",
                        "Loop",
                        "End Class"},
                 caret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoNotApplyFromInsideDo()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoNotApplyFromInsideDo() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "Do",
                        "End Class"},
                 caret:={1, 1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoNotApplyFromDoOutsideMethod()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoNotApplyFromDoOutsideMethod() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "Do",
                        "End Class"},
                 caret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyDoWhile()
@@ -183,33 +183,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyDoUntilInvalidLocation01()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyDoUntilInvalidLocation01() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub s",
                        "    End Sub",
                        "    do Until True",
                        "End Class"},
                 caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyDoUntilInvalidLocation02()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyDoUntilInvalidLocation02() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Do"},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyDoUntilInvalidLocation03()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyDoUntilInvalidLocation03() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub s",
                        "    End Sub",
                        "    do Until",
                        "End Class"},
                 caret:={3, -1})
-        End Sub
-
+        End Function
     End Class
 End Namespace

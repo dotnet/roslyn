@@ -17,6 +17,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
+Imports System.Threading.Tasks
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
     Partial Public Class ProximityExpressionsGetterTests
@@ -30,9 +31,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         ''' ProximityExpressionsGetterTests.Expressions.vb) The test file comes from the TestFiles
         ''' folder in this project.
         ''' </summary>
-        Public Sub GenerateBaseline()
+        Public Async Function GenerateBaselineAsync() As Task
             Dim text = Resources.ProximityExpressionsGetterTestFile
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(text)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(text)
                 Dim languageDebugInfo = New VisualBasicLanguageDebugInfoService()
 
                 Dim hostdoc = workspace.Documents.First()
@@ -127,11 +128,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             End Using
 #End If
 
-        End Sub
+        End Function
 
-        Private Sub TestProximityExpressionsGetter(markup As String,
-                                                   continuation As Action(Of VisualBasicProximityExpressionsService, Document, Integer))
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(markup)
+        Private Async Function TestProximityExpressionsGetterAsync(markup As String,
+                                                   continuation As Action(Of VisualBasicProximityExpressionsService, Document, Integer)) As Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(markup)
                 Dim testDocument = workspace.Documents.Single()
                 Dim snapshot = testDocument.TextBuffer.CurrentSnapshot
                 Dim caretPosition = testDocument.CursorPosition.Value
@@ -140,77 +141,77 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                 Dim proximityExpressionsGetter = New VisualBasicProximityExpressionsService()
                 continuation(proximityExpressionsGetter, document, caretPosition)
             End Using
-        End Sub
+        End Function
 
-        Public Sub TestTryDo(input As String,
-                             ParamArray expectedTerms As String())
-            TestProximityExpressionsGetter(input, Sub(getter, semanticSnapshot, point)
-                                                      Dim terms = getter.GetProximityExpressionsAsync(semanticSnapshot, point, CancellationToken.None).Result
+        Public Async Function TestTryDoAsync(input As String,
+                             ParamArray expectedTerms As String()) As Task
+            Await TestProximityExpressionsGetterAsync(input, Sub(getter, semanticSnapshot, point)
+                                                                 Dim terms = getter.GetProximityExpressionsAsync(semanticSnapshot, point, CancellationToken.None).Result
 
-                                                      If expectedTerms.Length = 0 Then
-                                                          Assert.Null(terms)
-                                                      Else
-                                                          AssertEx.Equal(expectedTerms, terms)
-                                                      End If
-                                                  End Sub)
-        End Sub
+                                                                 If expectedTerms.Length = 0 Then
+                                                                     Assert.Null(terms)
+                                                                 Else
+                                                                     AssertEx.Equal(expectedTerms, terms)
+                                                                 End If
+                                                             End Sub)
+        End Function
 
-        Public Sub TestIsValid(input As String, expression As String, expectedValid As Boolean)
-            TestProximityExpressionsGetter(input, Sub(getter, semanticSnapshot, point)
-                                                      Dim actualValid = getter.IsValidAsync(semanticSnapshot, point, expression, CancellationToken.None).Result
-                                                      Assert.Equal(expectedValid, actualValid)
-                                                  End Sub)
-        End Sub
+        Public Async Function TestIsValidAsync(input As String, expression As String, expectedValid As Boolean) As Task
+            Await TestProximityExpressionsGetterAsync(input, Sub(getter, semanticSnapshot, point)
+                                                                 Dim actualValid = getter.IsValidAsync(semanticSnapshot, point, expression, CancellationToken.None).Result
+                                                                 Assert.Equal(expectedValid, actualValid)
+                                                             End Sub)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(538819)>
         <WorkItem(527754)>
-        Public Sub TestIsValid1()
-            TestIsValid(<text>Module M
+        Public Async Function TestIsValid1() As Task
+            Await TestIsValidAsync(<text>Module M
     Sub S
         Dim local As String
         $$
     End Sub
 End Module</text>.Value, "local", True)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
-        Public Sub TestIsValidWithDiagnostics()
+        Public Async Function TestIsValidWithDiagnostics() As Task
             ' local doesn't exist in this context
-            TestIsValid("class Class { void Method() { string local; } $$}", "local", False)
-        End Sub
+            Await TestIsValidAsync("class Class { void Method() { string local; } $$}", "local", False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
-        Public Sub TestIsValidReferencingLocalBeforeDeclaration()
-            TestIsValid("class Class { void Method() { $$int i; int j; } }", "j", False)
-        End Sub
+        Public Async Function TestIsValidReferencingLocalBeforeDeclaration() As Task
+            Await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
-        Public Sub TestIsValidReferencingUndefinedVariable()
-            TestIsValid("class Class { void Method() { $$int i; int j; } }", "k", False)
-        End Sub
+        Public Async Function TestIsValidReferencingUndefinedVariable() As Task
+            Await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
-        Public Sub TestIsValidNoTypeSymbol()
-            TestIsValid("namespace Namespace$$ { }", "foo", False)
-        End Sub
+        Public Async Function TestIsValidNoTypeSymbol() As Task
+            Await TestIsValidAsync("namespace Namespace$$ { }", "foo", False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(527754)>
-        Public Sub TestIsValidLocalAfterPosition()
-            TestIsValid("class Class { void Method() { $$ int i; string local; } }", "local", False)
-        End Sub
+        Public Async Function TestIsValidLocalAfterPosition() As Task
+            Await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", False)
+        End Function
 
-        Private Sub TestLanguageDebugInfoTryGetProximityExpressions(input As String, expectedResults As IEnumerable(Of String), expectedResult As Boolean)
+        Private Async Function TestLanguageDebugInfoTryGetProximityExpressionsAsync(input As String, expectedResults As IEnumerable(Of String), expectedResult As Boolean) As Task
             Dim parsedInput As String = input
             Dim caretPosition As Integer
             MarkupTestFile.GetPosition(input, parsedInput, caretPosition)
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(parsedInput)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(parsedInput)
                 Dim service = New VisualBasicProximityExpressionsService()
                 Dim hostdoc = workspace.Documents.First()
                 Dim snapshot = hostdoc.TextBuffer.CurrentSnapshot
@@ -219,38 +220,38 @@ End Module</text>.Value, "local", True)
 
                 Dim result = service.GetProximityExpressionsAsync(document, caretPosition, CancellationToken.None).Result
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         <WorkItem(538819)>
-        Public Sub TestDebugInfo1()
-            TestLanguageDebugInfoTryGetProximityExpressions("$$Module M : End Module", Array.Empty(Of String)(), False)
-        End Sub
+        Public Async Function TestDebugInfo1() As Task
+            Await TestLanguageDebugInfoTryGetProximityExpressionsAsync("$$Module M : End Module", Array.Empty(Of String)(), False)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        Public Sub TestTryDo1()
-            TestTryDo(<text>Module M
+        Public Async Function TestTryDo1() As Task
+            Await TestTryDoAsync(<text>Module M
     Sub S
         Dim local As String
         $$
     End Sub
 End Module</text>.NormalizedValue, "local")
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        Public Sub TestStatementTerminatorToken()
-            TestTryDo(<text>Module M$$
+        Public Async Function TestStatementTerminatorToken() As Task
+            Await TestTryDoAsync(<text>Module M$$
 </text>.Value)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        Public Sub TestNoParentToken()
-            TestTryDo(<text>$$</text>.NormalizedValue)
-        End Sub
+        Public Async Function TestNoParentToken() As Task
+            Await TestTryDoAsync(<text>$$</text>.NormalizedValue)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        Public Sub TestCatchParameters()
-            TestTryDo(<text>
+        Public Async Function TestCatchParameters() As Task
+            Await TestTryDoAsync(<text>
 Module M
     Sub S
         Dim x As Integer
@@ -262,12 +263,12 @@ Module M
    End Sub
 End Module
                       </text>.NormalizedValue, "x", "e")
-        End Sub
+        End Function
 
         <WorkItem(538847)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
-        Public Sub TestMultipleStatementsOnSameLine()
-            TestTryDo(<text>
+        Public Async Function TestMultipleStatementsOnSameLine() As Task
+            Await TestTryDoAsync(<text>
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -283,7 +284,7 @@ Module Program
     End Sub
 End Module</text>.NormalizedValue, "Foo", "i", "n", "Bar", "j")
 
-        End Sub
+        End Function
 
     End Class
 End Namespace

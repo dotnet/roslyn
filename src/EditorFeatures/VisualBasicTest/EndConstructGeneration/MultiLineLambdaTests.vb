@@ -162,26 +162,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifySingleLineLambdaFunc()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifySingleLineLambdaFunc() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub s()",
                        "        Dim x = Function(x) x",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifySingleLineLambdaSub()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifySingleLineLambdaSub() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub s()",
                        "        Dim y = Sub(x As Integer) x.ToString()",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyAsDefaultParameterValue()
@@ -237,48 +237,48 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidLambdaSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidLambdaSyntax() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub s()",
                        "        Sub(x)",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNotAppliedIfSubLambdaContainsEndSub()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyNotAppliedIfSubLambdaContainsEndSub() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub s()",
                        "        Dim x = Sub() End Sub",
                        "    End Sub",
                        "End Class"},
                 caret:={2, 21})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNotAppliedIfSyntaxIsFunctionLambdaContainsEndFunction()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyNotAppliedIfSyntaxIsFunctionLambdaContainsEndFunction() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub s()",
                        "        Dim x = Function() End Function",
                        "    End Sub",
                        "End Class"},
                 caret:={2, 26})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyLambdaWithImplicitLC()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyLambdaWithImplicitLC() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub s()",
                        "        Dim x = Function(y As Integer) y +",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyLambdaWithMissingParenthesis()

@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyForMatchedUsing()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyForMatchedUsing() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "Sub foo()",
                        "SyncLock variable",
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyNestedSyncBlock()
@@ -66,23 +66,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        Using (SyncLock 1) ",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidLocation()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidLocation() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class EC",
                        "    Synclock 1",
                        "End Class"},
                 caret:={1, -1})
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void VisualBasicOutliningTagger()
+        public async Task VisualBasicOutliningTagger()
         {
             var code = new string[]
             {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
                 "End Namespace"
             };
 
-            using (var workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
                 var tags = GetTagsFromWorkspace(workspace);
 
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void OutliningTaggerTooltipText()
+        public async Task OutliningTaggerTooltipText()
         {
             var code = new string[]
             {
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
                 "End Module",
             };
 
-            using (var workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
                 var tags = GetTagsFromWorkspace(workspace);
 

@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Sub
 #End If
 
-        Private Sub VerifyRegions(code As String, ParamArray expectedRegions As OutliningSpan())
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code)
+        Private Async Function VerifyRegionsAsync(code As String, ParamArray expectedRegions As OutliningSpan()) As Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim outliningService = document.Project.LanguageServices.GetService(Of IOutliningService)()
                 Dim actualRegions = outliningService.GetOutliningSpansAsync(document, CancellationToken.None).WaitAndGetResult(CancellationToken.None).ToList()
@@ -36,6 +36,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
                     AssertRegion(expectedRegions(i), actualRegions(i))
                 Next
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -33,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyForMatchedTryWithCatch()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyForMatchedTryWithCatch() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "Sub foo()",
                        "Try",
@@ -43,11 +43,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DontApplyForMatchedTryWithoutCatch()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DontApplyForMatchedTryWithoutCatch() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class c1",
                        "Sub foo()",
                        "Try",
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyNestedTryBlock()
@@ -112,8 +112,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyMissingCatchInTryBlock()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyMissingCatchInTryBlock() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        dim x = function(x)",
@@ -124,27 +124,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Sub",
                        "End Class"},
                 caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class EC",
                        "    Sub S",
                        "        Dim x = try",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidLocation()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidLocation() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class EC",
                        "    Sub Try",
                        "End Class"},
                 caret:={1, -1})
-        End Sub
+        End Function
 
     End Class
 End Namespace

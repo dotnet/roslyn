@@ -14,22 +14,22 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class MiscellaneousTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoesNothingOnEmptyFile()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoesNothingOnEmptyFile() As Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={""},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoesNothingOnFileWithNoStatement()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoesNothingOnFileWithNoStatement() As Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"'Foo", ""},
                 caret:={0, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyLineContinuationMark()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyLineContinuationMark() As Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    function f(byval x as Integer,",
                        "               byref y as string) as string",
@@ -38,11 +38,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Function",
                        "End Class"},
                 caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyImplicitLineContinuation()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyImplicitLineContinuation() As Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    function f() as string",
                        "        While 1 +",
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Function",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyNestedDo()
@@ -108,26 +108,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNotAppliedWithJunkAtEndOfLine()
+        Public Async Function VerifyNotAppliedWithJunkAtEndOfLine() As Tasks.Task
             ' Try this without a newline at the end of the file
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C End Class"},
                 caret:={0, "Class C".Length})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyNotAppliedWithJunkAtEndOfLine2()
+        Public Async Function VerifyNotAppliedWithJunkAtEndOfLine2() As Tasks.Task
             ' Try this with a newline at the end of the file
-            VerifyStatementEndConstructNotApplied(
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C End Class",
                        ""},
                 caret:={0, "Class C".Length})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(539727)>
-        Public Sub DeletesSelectedText()
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Interface IFoo ~~")
+        Public Async Function DeletesSelectedText() As Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync("Interface IFoo ~~")
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
 
@@ -146,6 +146,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
                 Assert.Equal("End Interface", textView.TextSnapshot.Lines.Last().GetText())
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

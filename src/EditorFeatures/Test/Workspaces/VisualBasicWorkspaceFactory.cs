@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="lines">Lines of text, the buffer contents</param>
-        public static TestWorkspace CreateWorkspaceFromLines(params string[] lines)
-        {
-            return CreateWorkspaceFromLinesAsync(lines).WaitAndGetResult(CancellationToken.None);
-        }
-
         public static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(params string[] lines)
         {
             return CreateWorkspaceFromLinesAsync(lines, exportProvider: null);

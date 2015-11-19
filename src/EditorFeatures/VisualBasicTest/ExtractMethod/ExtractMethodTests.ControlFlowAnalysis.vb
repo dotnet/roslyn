@@ -39,7 +39,7 @@ End Class</text>
 
             <WorkItem(540046)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestReturnStatement()
+            Public Async Function TestReturnStatement() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
         Dim x As Integer = 5
@@ -60,11 +60,11 @@ End Class</text>
     End Function
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestDoBranch()
+            Public Async Function TestDoBranch() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
         Dim x As Integer = 5
@@ -95,11 +95,11 @@ End Class</text>
     End Sub
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestDoBranchInvalidSelection()
+            Public Async Function TestDoBranchInvalidSelection() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
         Dim x As Integer = 5
@@ -130,11 +130,11 @@ End Class</text>
     End Sub
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestDoBranchWithContinue()
+            Public Async Function TestDoBranchWithContinue() As Task
                 Dim code = <text>Class A
     Function Test1() As Integer
         Dim x As Integer = 5
@@ -169,11 +169,11 @@ End Class</text>
     End Sub
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestInvalidSelectionLeftOfAssignment()
+            Public Async Function TestInvalidSelectionLeftOfAssignment() As Task
                 Dim code = <text>Class A
     Protected x As Integer = 1
     Public Sub New()
@@ -192,11 +192,11 @@ End Class</text>
     End Sub
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestInvalidSelectionOfArrayLiterals()
+            Public Async Function TestInvalidSelectionOfArrayLiterals() As Task
                 Dim code = <text>Class A
     Public Sub Test()
         Dim numbers = New Integer() [|{1,2,3,4}|]
@@ -213,12 +213,12 @@ End Class</text>
     End Function
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WorkItem(540154)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub BugFix6313()
+            Public Async Function TestBugFix6313() As Task
                 Dim code = <text>Imports System
 
 Class A
@@ -245,8 +245,8 @@ Class A
     End Sub
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WorkItem(540154)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -284,7 +284,7 @@ End Class</text>
 
             <WorkItem(540154)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub BugFix6313_3()
+            Public Async Function TestBugFix6313_3() As Task
                 Dim code = <text>Imports System
 
 Class A
@@ -299,7 +299,7 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)
-                          End Sub|]
+                          End Function|]
     End Sub
 End Class</text>
 
@@ -321,16 +321,16 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)
-                          End Sub
+                          End Function
     End Sub
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WorkItem(540154)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub BugFix6313_4()
+            Public Async Function TestBugFix6313_4() As Task
                 Dim code = <text>Imports System
 
 Class A
@@ -341,7 +341,7 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)
-                          End Sub
+                          End Function
 
         Dim d2 As Action = Sub()
                                Dim i As Integer = 1
@@ -349,7 +349,7 @@ Class A
                                    Return
                                End If
                                Console.WriteLine(1)
-                           End Sub|]
+                           End Function|]
 
         Console.WriteLine(1)
     End Sub
@@ -371,7 +371,7 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)
-                          End Sub
+                          End Function
 
         Dim d2 As Action = Sub()
                                Dim i As Integer = 1
@@ -379,16 +379,16 @@ Class A
                                    Return
                                End If
                                Console.WriteLine(1)
-                           End Sub
+                           End Function
     End Sub
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WorkItem(540154)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub BugFix6313_5()
+            Public Async Function TestBugFix6313_5() As Task
                 Dim code = <text>Imports System
 
 Class A
@@ -399,7 +399,7 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)|]
-                          End Sub
+                          End Function
     End Sub
 End Class</text>
 
@@ -409,7 +409,7 @@ Class A
     Sub Test()
         Dim d As Action = Sub()
                               NewMethod()
-                          End Sub
+                          End Function
     End Sub
 
     Private Shared Sub NewMethod()
@@ -421,8 +421,8 @@ Class A
     End Sub
 End Class</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WorkItem(540154), WorkItem(541484)>
             <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
@@ -437,7 +437,7 @@ Class A
                                   Return
                               End If|]
                               Console.WriteLine(1)
-                          End Sub
+                          End Function
     End Sub
 End Class</text>
 
@@ -460,7 +460,7 @@ End Module</text>
             End Function
 
             <WpfFact, WorkItem(531451), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestInvalidSelectionNonExecutableStatementSyntax_01()
+            Public Async Function TestInvalidSelectionNonExecutableStatementSyntax_01() As Task
                 Dim code = <text>Module Program
     Sub Main(args As String())
         [|If True Then ElseIf True Then Return|]
@@ -477,8 +477,8 @@ End Module</text>
 End Sub
 End Module</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WpfFact, WorkItem(547156), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestInvalidSelectionNonExecutableStatementSyntax_02() As Task
@@ -493,7 +493,7 @@ End Module</text>
             End Function
 
             <WpfFact, WorkItem(530625), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestUnreachableEndInFunction()
+            Public Async Function TestUnreachableEndInFunction() As Task
                 Dim code = <text>Module Program
     Function Foo() As Integer
         If True Then
@@ -520,11 +520,11 @@ End Module</text>
     End Sub
 End Module</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
 
             <WpfFact, WorkItem(578066), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestExitAsSupportedExitPoints()
+            Public Async Function TestExitAsSupportedExitPoints() As Task
                 Dim code = <text>Imports System.Threading
 Imports System.Threading.Tasks
 
@@ -573,8 +573,8 @@ foo:
     End Function
 End Module</text>
 
-                TestExtractMethod(code, expected)
-            End Sub
+                Await TestExtractMethodAsync(code, expected)
+            End Function
         End Class
     End Class
 End Namespace

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 end class";
 
             using (var csharpWorkspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode))
-            using (var vbWorkspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(vbCode))
+            using (var vbWorkspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode))
             {
                 var csharpType = (ITypeSymbol)csharpWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("C").Single();
                 var vbType = vbWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("C").Single();
@@ -245,7 +245,7 @@ class Type2
     dim field2 as String;
 end class";
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(vbCode1))
+            using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode1))
             {
                 var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
                 var type2_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type2").Single();
@@ -646,7 +646,7 @@ class Type1
     end sub
 end class";
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(vbCode1))
+            using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode1))
             {
                 var csharpType1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
                 var vbType1 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -693,7 +693,7 @@ class Type1(of M)
     end sub
 end class";
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
-            using (var workspace2 = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(vbCode1))
+            using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode1))
             {
                 var csharpType1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
                 var vbType1 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
@@ -1256,7 +1256,7 @@ class Test
         }
 
         [WpfFact]
-        public void TestVisualBasicReducedExtensionMethodsAreEquivalent()
+        public async Task TestVisualBasicReducedExtensionMethodsAreEquivalent()
         {
             var code = @"
 Imports System.Runtime.CompilerServices
@@ -1317,8 +1317,8 @@ Class Test
     End Sub
 End Class
 ";
-            using (var workspace1 = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code))
-            using (var workspace2 = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace1 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
+            using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
                 var comp1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
                 var comp2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result;

@@ -75,19 +75,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSelectBlock()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSelectBlock() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        dim x = Select 1",
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSelectBlock01()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSelectBlock01() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class EC",
                        "    Sub T",
                        "        Select 1",
@@ -95,20 +95,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Sub",
                        "End Class"},
                 caret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyInvalidSelectBlock02()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSelectBlock02() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class EC",
                        "    Select 1",
                        "End Class"},
                 caret:={1, -1})
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub VerifyReCommitSelectBlock()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyReCommitSelectBlock() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Class C",
                        "    Sub S",
                        "        Select Case 1",
@@ -117,6 +117,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Sub",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -135,8 +135,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub DoNotApplyAfterCustomEventAlreadyTerminated()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoNotApplyAfterCustomEventAlreadyTerminated() As Threading.Tasks.Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:={"Imports System",
                        "Class c1",
                        "    Custom Event foo As EventHandler(Of ConsoleCancelEventArgs)",
@@ -152,6 +152,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                        "    End Event",
                        "End Class"},
                 caret:={2, -1})
-        End Sub
+        End Function
     End Class
 End Namespace
