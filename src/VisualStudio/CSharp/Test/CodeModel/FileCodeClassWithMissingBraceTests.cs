@@ -12,9 +12,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     public class FileCodeClassWithMissingBraceTests : AbstractFileCodeElementTests
     {
-        public static async Task<FileCodeClassWithMissingBraceTests> CreateAsync()
-        {
-            var pair = await CreateWorkspaceAndFileCodeModelAsync(@"using System;
+        public FileCodeClassWithMissingBraceTests()
+            : base(@"using System;
 
 
 public abstract class Foo : IDisposable, ICloneable
@@ -41,26 +40,20 @@ namespace N
 class Baz
 {
 
-");
-
-            return new FileCodeClassWithMissingBraceTests(pair);
-        }
-
-        public FileCodeClassWithMissingBraceTests(Tuple<TestWorkspace, EnvDTE.FileCodeModel> pair)
-            : base(pair)
+")
         {
         }
 
-        private CodeClass GetCodeClass(params object[] path)
+        private async Task<CodeClass> GetCodeClassAsync(params object[] path)
         {
-            return (CodeClass)GetCodeElement(path);
+            return (CodeClass)await GetCodeElementAsync(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Body_BeforeNamespace()
+        public async Task GetEndPoint_Body_BeforeNamespace()
         {
-            CodeClass testObject = GetCodeClass("Foo");
+            CodeClass testObject = await GetCodeClassAsync("Foo");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -70,9 +63,9 @@ class Baz
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Body_BeforeOtherClass()
+        public async Task GetEndPoint_Body_BeforeOtherClass()
         {
-            CodeClass testObject = GetCodeClass("Foo", "Bar");
+            CodeClass testObject = await GetCodeClassAsync("Foo", "Bar");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
@@ -82,9 +75,9 @@ class Baz
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Body_Eof()
+        public async Task GetEndPoint_Body_Eof()
         {
-            CodeClass testObject = GetCodeClass("Baz");
+            CodeClass testObject = await GetCodeClassAsync("Baz");
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 

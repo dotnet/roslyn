@@ -11,36 +11,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     public class FileCodeVariableManipulationTests : AbstractFileCodeElementTests
     {
-        public static async Task<FileCodeVariableManipulationTests> CreateAsync()
-        {
-            var pair = await CreateWorkspaceAndFileCodeModelAsync(@"class Foo
+        public FileCodeVariableManipulationTests()
+            : base(@"class Foo
 {
     private int bar;
-}");
-
-            return new FileCodeVariableManipulationTests(pair);
-        }
-
-        public FileCodeVariableManipulationTests(Tuple<TestWorkspace, EnvDTE.FileCodeModel> pair)
-            : base(pair)
+}")
         {
         }
 
-        private CodeVariable GetCodeVariable(params object[] path)
+        private async Task<CodeVariable> GetCodeVariableAsync(params object[] path)
         {
-            return (CodeVariable)GetCodeElement(path);
+            return (CodeVariable)await GetCodeElementAsync(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void DeleteField()
+        public async Task DeleteField()
         {
-            CodeClass c = (CodeClass)GetCodeElement("Foo");
+            CodeClass c = (CodeClass)await GetCodeElementAsync("Foo");
             c.RemoveMember(c.Members.Item("bar"));
 
             Assert.Equal(@"class Foo
 {
-}", GetFileText());
+}", await GetFileTextAsync());
         }
     }
 }
