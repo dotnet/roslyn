@@ -98,8 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var symbols = recommender.GetRecommendedSymbolsAtPosition(context.Workspace, context.SemanticModel, position, options, cancellationToken);
-            var result = Task.FromResult(symbols.Where(s => inferredTypes.Contains(s.GetSymbolType())));
-            return result;
+            return Task.FromResult(symbols.Where(s => inferredTypes.Contains(s.GetSymbolType())));
         }
     }
 }
