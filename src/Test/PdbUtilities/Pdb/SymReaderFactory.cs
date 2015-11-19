@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -41,21 +38,6 @@ namespace Roslyn.Test.PdbUtilities
             int hr = reader.Initialize(metadataImporter, null, null, new ComStreamWrapper(pdbStream));
             SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
             return reader;
-        }
-
-        public static ISymUnmanagedReader CreateReader(byte[] pdbImage, byte[] peImageOpt = null)
-        {
-            return CreateReader(new MemoryStream(pdbImage), (peImageOpt != null) ? new MemoryStream(peImageOpt) : null);
-        }
-
-        public static ISymUnmanagedReader CreateReader(ImmutableArray<byte> pdbImage, ImmutableArray<byte> peImageOpt = default(ImmutableArray<byte>))
-        {
-            return CreateReader(new MemoryStream(pdbImage.ToArray()), peImageOpt.IsDefault ? null : new MemoryStream(peImageOpt.ToArray()));
-        }
-
-        public static ISymUnmanagedReader CreateReader(Stream pdbStream, Stream peStreamOpt = null)
-        {
-            return CreateReader(pdbStream, (peStreamOpt != null) ? new PEReader(peStreamOpt, PEStreamOptions.PrefetchMetadata).GetMetadataReader() : null);
         }
 
         public static ISymUnmanagedReader CreateReader(Stream pdbStream, MetadataReader metadataReaderOpt)

@@ -1041,7 +1041,7 @@ struct S
         }
 
         [WorkItem(528571, "DevDiv")]
-        [Fact(Skip = "528571")]
+        [Fact]
         public void ConstraintsWithinStruct()
         {
             var source =

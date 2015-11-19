@@ -1211,6 +1211,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub DetectAttributeAndOptionConflicts(diagnostics As DiagnosticBag)
             EnsureAttributesAreBound()
 
+            If _compilation.Options.PublicSign AndAlso DelaySignAttributeSetting Then
+                diagnostics.Add(ERRID.ERR_CmdOptionConflictsSource, NoLocation.Singleton,
+                                AttributeDescription.AssemblyDelaySignAttribute.FullName,
+                                NameOf(_compilation.Options.PublicSign))
+            End If
+
             If _compilation.Options.OutputKind = OutputKind.NetModule Then
                 If Not String.IsNullOrEmpty(_compilation.Options.CryptoKeyContainer) Then
                     Dim assemblyKeyContainerAttributeSetting As String = Me.AssemblyKeyContainerAttributeSetting

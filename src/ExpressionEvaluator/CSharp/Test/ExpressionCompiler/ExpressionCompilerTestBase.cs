@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static readonly ImmutableArray<Alias> NoAliases = ImmutableArray<Alias>.Empty;
 
+        protected ExpressionCompilerTestBase()
+        {
+            // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
+            ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
+        }
+
         public override void Dispose()
         {
             base.Dispose();
@@ -51,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 references.AddIntrinsicAssembly(),
                 exeBytes,
-                includeSymbols ? SymReaderFactory.CreateReader(pdbBytes, exeBytes) : null);
+                includeSymbols ? new SymReader(pdbBytes, exeBytes) : null);
         }
 
         internal RuntimeInstance CreateRuntimeInstance(

@@ -17,7 +17,7 @@ using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
-    internal sealed class DesktopBuildClient : BuildClient
+    internal class DesktopBuildClient : BuildClient
     {
         private const string ServerName = "VBCSCompiler.exe";
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         private readonly CompileFunc _compileFunc;
         private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
-        private DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        protected DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             _language = language;
             _compileFunc = compileFunc;
@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libDirectory, 
             CancellationToken cancellationToken)
         {
-            return RunServerCompilation(_language, arguments, buildPaths, keepAlive, libDirectory, cancellationToken);
+            var pipeName = GetPipeName(buildPaths.ClientDirectory);
+            return RunServerCompilationCore(_language, arguments, buildPaths, pipeName, keepAlive, libDirectory, TryCreateServer, cancellationToken);
         }
 
         public static Task<BuildResponse> RunServerCompilation(
@@ -72,8 +73,29 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libEnvVariable,
             CancellationToken cancellationToken)
         {
+            return RunServerCompilationCore(
+                language,
+                arguments,
+                buildPaths,
+                GetPipeNameFromFileInfo(buildPaths.ClientDirectory),
+                keepAlive,
+                libEnvVariable,
+                TryCreateServerCore,
+                cancellationToken);
+        }
+
+        private static Task<BuildResponse> RunServerCompilationCore(
+            RequestLanguage language,
+            List<string> arguments,
+            BuildPaths buildPaths,
+            string pipeName,
+            string keepAlive,
+            string libEnvVariable,
+            Func<string, string, bool> tryCreateServerFunc,
+            CancellationToken cancellationToken)
+        {
+
             var clientDir = buildPaths.ClientDirectory;
-            var pipeName = GetBasePipeName(clientDir);
 
             var clientMutexName = $"{pipeName}.client";
             bool holdsMutex;
@@ -108,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                     NamedPipeClientStream pipe = null;
 
-                    if (wasServerRunning || TryCreateServerProcess(clientDir, pipeName))
+                    if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                     {
-                        pipe = TryConnectToProcess(pipeName,
+                        pipe = TryConnectToServer(pipeName,
                                                    timeout,
                                                    cancellationToken);
                     }
@@ -246,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// An open <see cref="NamedPipeClientStream"/> to the server process or null on failure.
         /// </returns>
-        private static NamedPipeClientStream TryConnectToProcess(
+        private static NamedPipeClientStream TryConnectToServer(
             string pipeName,
             int timeoutMs,
             CancellationToken cancellationToken)
@@ -288,8 +310,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Create a new instance of the server process, returning true on success
         /// and false otherwise.
         /// </summary>
-        private static bool TryCreateServerProcess(string clientDir, string pipeName)
+        protected virtual bool TryCreateServer(string clientDir, string pipeName)
         {
+            return TryCreateServerCore(clientDir, pipeName);
+        }
+
+        internal static bool TryCreateServerCore(string clientDir, string pipeName)
+        { 
             // The server should be in the same directory as the client
             string expectedPath = Path.Combine(clientDir, ServerName);
 
@@ -371,8 +398,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// retrieves the name of the pipe for client/server communication on
         /// that instance of the compiler.
         /// </summary>
-        internal static string GetBasePipeName(string compilerExeDirectory)
+        protected virtual string GetPipeName(string compilerExeDirectory)
         {
+            return GetPipeNameFromFileInfo(compilerExeDirectory);
+        }
+
+        internal static string GetPipeNameFromFileInfo(string compilerExeDirectory)
+        { 
             string basePipeName;
             using (var sha = SHA256.Create())
             {

@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
 
                         newActions.AddRange(childActionSets[0].Actions);
+                        continue;
                     }
 
                     newActions.Add(action);

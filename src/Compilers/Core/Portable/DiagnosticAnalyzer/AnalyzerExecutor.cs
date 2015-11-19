@@ -18,6 +18,7 @@ using OperationAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisSt
 using CodeBlockAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.CodeBlockAnalyzerStateData;
 using DeclarationAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.DeclarationAnalyzerStateData;
 
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
@@ -991,7 +992,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var title = CodeAnalysisResources.CompilerAnalyzerFailure;
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
             var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message };
-            var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, e.ToString());
+            var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, e.CreateDiagnosticDescription());
             var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
             return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
@@ -1001,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var title = CodeAnalysisResources.AnalyzerDriverFailure;
             var messageFormat = CodeAnalysisResources.AnalyzerDriverThrows;
             var messageArguments = new[] { e.GetType().ToString(), e.Message };
-            var description = string.Format(CodeAnalysisResources.AnalyzerDriverThrowsDescription, e.ToString());
+            var description = string.Format(CodeAnalysisResources.AnalyzerDriverThrowsDescription, e.CreateDiagnosticDescription());
             var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerDriverExceptionDiagnosticId, title, description, messageFormat);
             return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
