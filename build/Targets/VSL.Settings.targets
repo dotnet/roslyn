@@ -24,6 +24,11 @@
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
 
+  <!-- Prevent vsix manifests from being copied to the shared output directory, makes build more deterministic -->
+  <PropertyGroup>
+    <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
+  </PropertyGroup>
+
   <!-- This file is imported by all projects at the beginning of the project files -->
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />
