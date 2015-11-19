@@ -30,20 +30,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     {
         private sealed partial class UIThreadOnly : IDisposable
         {
-            // The following two field definitions have to stay in sync with VS editor implementation
-
-            /// <summary>
-            /// A data format used to tag the contents of the clipboard so that it's clear
-            /// the data has been put in the clipboard by our editor
-            /// </summary>
-            private const string ClipboardLineBasedCutCopyTag = "VisualStudioEditorOperationsLineCutCopyClipboardTag";
-
-            /// <summary>
-            /// A data format used to tag the contents of the clipboard as a box selection.
-            /// This is the same string that was used in VS9 and previous versions.
-            /// </summary>
-            private const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
-
             private const int SpansPerLineOfInput = 2;
 
             private static readonly object SuppressPromptInjectionTag = new object();
@@ -493,17 +479,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         var selection = TextView.Selection;
                         if (!TextView.Selection.IsEmpty)
                         {
-                            if (CutOrDeleteSelection(isCut: false) || IsEmptyBoxSelection())
+                            if (!IsSelectionInsideCurrentSubmission())
                             {
-                                if (selection.Mode == TextSelectionMode.Box)
-                                {
-                                    ReduceBoxSelectionToEditableBox(isDelete: true);
-                                }
-                                else
-                                {
-                                    selection.Clear();
-                                    MoveCaretToClosestEditableBuffer();
-                                }
+                                return;
+                            }
+
+                            DeleteSelection();
+
+                            if (selection.Mode == TextSelectionMode.Box)
+                            {
+                                ReduceBoxSelectionToEditableBox(isDelete: true);
+                            }
+                            else
+                            {
+                                selection.Clear();
+                                MoveCaretToClosestEditableBuffer();
                             }
                         }
                         else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
@@ -620,134 +610,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     SetActiveCode(_uncommittedInput);
                     _uncommittedInput = null;
-                }
-            }
-
-            /// <summary>
-            /// Pastes from the clipboard into the text view
-            /// Implements <see cref="IInteractiveWindowOperations.Paste"/>.
-            /// </summary>
-            public bool Paste()
-            {
-                bool dataHasLineCutCopyTag = false;
-                bool dataHasBoxCutCopyTag = false;
-
-                // Get text from clipboard
-                string code = Evaluator.FormatClipboard();
-                if (code == null)
-                {
-                    var data = _window.InteractiveWindowClipboard.GetDataObject();
-                    if (data == null)
-                    {
-                        return false;
-                    }
-
-                    dataHasLineCutCopyTag = data.GetDataPresent(ClipboardLineBasedCutCopyTag);
-                    dataHasBoxCutCopyTag = data.GetDataPresent(BoxSelectionCutCopyTag);
-
-                    Debug.Assert((dataHasLineCutCopyTag && dataHasBoxCutCopyTag) == false);
-
-                    if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
-                    {
-                        var sb = new StringBuilder();
-                        var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
-
-                        foreach (var block in blocks)
-                        {
-                            switch (block.Kind)
-                            {
-                                case ReplSpanKind.LineBreak:
-                                    Debug.Assert(dataHasBoxCutCopyTag);
-                                    sb.Append(block.Content);
-                                    break;
-                                case ReplSpanKind.Input:
-                                case ReplSpanKind.Output:
-                                case ReplSpanKind.StandardInput:
-                                    sb.Append(block.Content);
-                                    break;
-                            }
-                        }
-                        code = sb.ToString();
-                    }
-                    else if (_window.InteractiveWindowClipboard.ContainsText())
-                    {
-                        code = _window.InteractiveWindowClipboard.GetText();
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Paste))
-                {
-                    var selection = TextView.Selection;
-                    // Delete selected text if there's any and adjust caret position
-                    if (!selection.IsEmpty)
-                    {
-                        if (CutOrDeleteSelection(isCut: false))
-                        {
-                            if (selection.Mode == TextSelectionMode.Box)
-                            {
-                                ReduceBoxSelectionToEditableBox(isDelete: true);
-                            }
-                            else
-                            {
-                                Debug.Assert(selection.Mode == TextSelectionMode.Stream);
-
-                                selection.Clear();
-                                MoveCaretToClosestEditableBuffer();
-                            } 
-                        }
-                        // If the selection is empty box selection and can be reduced to editable buffer, do nothing.
-                        // Otherwise, return false.
-                        else if (!IsEmptyBoxSelection() || !ReduceBoxSelectionToEditableBox(isDelete: false))
-                        {
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        var caretPosition = TextView.Caret.Position.BufferPosition;
-                        var isInActivePrompt = IsInActivePrompt(caretPosition);
-
-                        if (isInActivePrompt)
-                        {
-                            MoveCaretToClosestEditableBuffer();
-                        }
-                        else if (MapToEditableBuffer(caretPosition) == null)
-                        {
-                            return false;
-                        }
-
-                        // Move caret to the begining of the line for pasting full-line when selection is empty
-                        // If the caret was in active prompt, it was already moved to strat of input line
-                        if (dataHasLineCutCopyTag && !isInActivePrompt)
-                        {
-                            var endPoint = GetSourceBufferPoint(caretPosition.GetContainingLine().End);
-                            TextView.Caret.MoveTo(GetProjectionBufferPoint(endPoint.GetContainingLine().Start));
-                        }
-                    }
-
-                    if (dataHasBoxCutCopyTag)
-                    {
-                        if (selection.IsEmpty && IsCaretOnBlankEditableLine())
-                        {
-                            InsertCode(code);
-                        }
-                        else
-                        {
-                            VirtualSnapshotPoint unusedStart, unusedEnd;
-                            EditorOperations.InsertTextAsBox(code, out unusedStart, out unusedEnd);
-                        }
-                    }
-                    else
-                    {
-                        InsertCode(code);
-                    }
-
-                    transaction.Complete();
-                    return true;
                 }
             }
 
@@ -2335,6 +2197,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 return false;
             }
+
             internal bool IsEmptyBoxSelection()
             {
                 return !TextView.Selection.IsEmpty &&
@@ -2468,197 +2331,210 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 minPromptLength = maxPromptLength = promptSpan.Length;
             }
 
-            /// <summary>Implements <see cref="IInteractiveWindowOperations.Cut"/>.</summary>
-            public void Cut()
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.Backspace"/>.</summary>
+            public bool Backspace()
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction("Cut selection"))
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction("Delete character to the left"))
                 {
-                    if (TextView.Selection.IsEmpty)
+
+                    if (DeleteHelper(isBackspace: true))
                     {
-                        if (!CutOrDeleteCurrentLine(isCut: true))
-                        {
-                            return;
-                        }
+                        transaction.Complete();
                     }
-                    else
-                    {
-                        if (!CutOrDeleteSelection(isCut: true))
-                        {
-                            return;
-                        }
-                    }
-                    MoveCaretToClosestEditableBuffer();
-                    transaction.Complete();
                 }
+                // DeleteHelper handles deleteion completely, 
+                // so always return true to indicate the backspace is done.
+                return true;
             }
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations.Delete"/>.</summary>
             public bool Delete()
             {
                 _historySearch = null;
-                return DeleteHelper();
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction("Delete text"))
+                {
+                    if (DeleteHelper(isBackspace: false))
+                    {
+                        transaction.Complete();
+                    }
+                }
+                // DeleteHelper handles deleteion completely, 
+                // so always return true to indicate the delete is done.
+                return true;
             }
 
-            private bool DeleteHelper()
+            private bool DeleteHelper(bool isBackspace)
             {
                 var selection = TextView.Selection;
 
-                // An empty box selection is logically equivalent to empty selection.
-                // if it's entirely inside readonly buffer, return true to indicate nothing further needs to be done here.
-                if (IsEmptyBoxSelection())
+                if (!selection.IsEmpty)
                 {
-                    if (ReduceBoxSelectionToEditableBox(isDelete: false))
+                    // do not delete anything if any part of selection is not in current submission
+                    if (!IsSelectionInsideCurrentSubmission())
                     {
                         return false;
                     }
+
+                    if (IsEmptyBoxSelection())
+                    {
+                        return isBackspace ? EditorOperations.Backspace() : EditorOperations.Delete();                        
+                    }
+
+                    DeleteSelection();
+
+                    if (selection.Mode == TextSelectionMode.Box)
+                    {
+                        ReduceBoxSelectionToEditableBox(isDelete: true);
+                    }
                     else
                     {
-                        return true;
+                        selection.Clear();
+                        MoveCaretToClosestEditableBuffer();
                     }
-                }
-                // Delete the selection if it's not empty
-                // Always returns `true` in this case (even nothing was deleted due to readonly buffer),
-                // to indcate the deletion is handled.
-                else if (!selection.IsEmpty)
-                {
-                    using (var transaction = UndoHistory_TestOnly.CreateTransaction("Delete text"))
-                    {
-                        if (CutOrDeleteSelection(isCut: false))
-                        {
-                            if (selection.Mode == TextSelectionMode.Box)
-                            {
-                                ReduceBoxSelectionToEditableBox(isDelete: true);
-                            }
-                            else
-                            {
-                                selection.Clear();
-                                MoveCaretToClosestEditableBuffer();
-                            }
-
-                            TextView.Caret.EnsureVisible();
-                            transaction.Complete();
-                        }
-                    }
+                    TextView.Caret.EnsureVisible();
                     return true;
                 }
-                // When selection is empty, we don't handle actual deletion, instead:
-                // 1. if caret is inside readonly buffer (and not active prompt), returns `true`.
-                // 2. if caret is inside active prompt, moves it to editable buffer and returns `false`.
-                // 3. otherwise, return `false`.
-                // For case 2 and 3, the deletion will be hadled by approperiate command-hanlder down the chain.
-                else
+                else if (TextView.Caret.Position.VirtualSpaces == 0)
                 {
                     if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
                     {
                         MoveCaretToClosestEditableBuffer();
-                        return false;
                     }
-                    else if (MapToEditableBuffer(TextView.Caret.Position.BufferPosition) == null)
+                    return isBackspace ? DeletePreviousCharacter() : DeleteNextCharacter();
+                }
+                else
+                {
+                    if (isBackspace)
                     {
-                        return true;
+                        TextView.Caret.MoveToPreviousCaretPosition();
                     }
                     else
                     {
-                        return false;
+                        TextView.Caret.MoveToNextCaretPosition();
                     }
+                    return true;
                 }
+
             }
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations2.DeleteLine"/>.</summary>
             public void DeleteLine()
             {
                 _historySearch = null;
-                CutOrDeleteLine(isCut: false);
+                CutLineOrDeleteLineHelper(isCut: false);
             }
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations2.CutLine"/>.</summary>
             public void CutLine()
             {
                 _historySearch = null;
-                CutOrDeleteLine(isCut: true);
+                CutLineOrDeleteLineHelper(isCut: true);
             }
 
             /// <summary>Cut/Delete all selected lines, or the current line if no selection. </summary>                  
-            private void CutOrDeleteLine(bool isCut)
+            private void CutLineOrDeleteLineHelper(bool isCut)
             {
                 using (var transaction = UndoHistory_TestOnly.CreateTransaction(isCut ? "Cut line" : "Delete line"))
                 {
-                    // start point for the line in which final caret position will be
-                    SnapshotPoint startPoint;
-
                     if (TextView.Selection.IsEmpty)
                     {
-                        if (!CutOrDeleteCurrentLine(isCut))
+                        if (isCut)
+                        {
+                            CopyCurrentLine();
+                        }
+                        if (!DeleteCurrentLine())
                         {
                             return;
                         }
-                        startPoint = TextView.Caret.Position.BufferPosition.GetContainingLine().Start;
+                        TextView.Caret.MoveTo(TextView.Caret.Position.BufferPosition.GetContainingLine().Start);
                     }
                     else
                     {
                         var selection = TextView.Selection;
-                        startPoint = selection.Start.Position.GetContainingLine().Start;
+                        var startPoint = selection.Start.Position.GetContainingLine().Start;
                         var projectionSpans = TextView.BufferGraph.MapUpToSnapshot(new SnapshotSpan(startPoint,
                                                                                                     selection.End.Position.GetContainingLine().EndIncludingLineBreak),
                                                                                    SpanTrackingMode.EdgeInclusive,
                                                                                    _projectionBuffer.CurrentSnapshot);
-                        if (!OverlapsWithEditableBuffer(projectionSpans))
+                        CopySpans(projectionSpans, lineCutCopyTag: true, boxCutCopyTag: false);
+                        if (!IsSpanCollectionInsideCurrentSubmission(projectionSpans))
                         {
                             return;
                         }
-                        CutOrDeleteSpans(projectionSpans, isCut, lineCutCopyTag: true, boxCutCopyTag: false);
+                        DeleteSpans(projectionSpans);
                         selection.Clear();
                     }
-                    TextView.Caret.MoveTo(startPoint);
                     MoveCaretToClosestEditableBuffer();
                     TextView.Caret.EnsureVisible();
                     transaction.Complete();
                 }
             }
-
-            private bool CutOrDeleteCurrentLine(bool isCut)
+            
+            /// <summary>
+            /// Returns true if the entire selection is inside current submission.
+            /// Current submission includes all active prompt buffers and all editable buffers
+            /// </summary>
+            private bool IsSelectionInsideCurrentSubmission()
             {
-                Debug.Assert(TextView.Selection.IsEmpty);
+                var selection = TextView.Selection;
+                Debug.Assert(!selection.IsEmpty);
+                return IsSpanCollectionInsideCurrentSubmission(selection.SelectedSpans);
+            }
 
-                var line = TextView.Caret.Position.BufferPosition.GetContainingLine();
-                // the caret is located in a line with only readonly content 
-                // (i.e. output line or previously submitted input line)
-                if (MapToEditableBuffer(line.End) != null)
+            private bool IsSpanCollectionInsideCurrentSubmission(NormalizedSnapshotSpanCollection spans)
+            {
+                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer;
+
+                foreach (var span in spans)
                 {
-                    CutOrDeleteSpans(new NormalizedSnapshotSpanCollection(line.ExtentIncludingLineBreak), isCut, lineCutCopyTag: true, boxCutCopyTag: false);
-                    return true;
+                    var currentLine = span.Start.GetContainingLine();
+                    var end = currentLine.End;
+                    if (MapToEditableBuffer(end) == null)
+                    {
+                        return false;
+                    }
                 }
-                return false;
+                return true;
+            }
+
+            private bool DeleteSelection()
+            {
+                var selection = TextView.Selection;
+
+                if (selection.IsEmpty || !IsSelectionInsideCurrentSubmission())
+                {
+                    return false;
+                }
+
+                DeleteSpans(selection.SelectedSpans);
+                return true;
             }
 
             /// <summary>
-            /// Copies entire selection if `isCut == true` and deletes editable part of the selection.
-            /// </summary>                 
-            /// <returns>Returns `true` if any part of the selection is deleted (i.e. in editable buffer).</returns>
-            private bool CutOrDeleteSelection(bool isCut)
+            /// Delete the line where the caret is located, if the line is a part of current submission.
+            /// </summary>
+            private bool DeleteCurrentLine()
             {
-                var selection = TextView.Selection;
-                if (!selection.IsEmpty)
+                Debug.Assert(TextView.Selection.IsEmpty);
+                var line = TextView.Caret.Position.BufferPosition.GetContainingLine();
+                // the caret is located in a line with only readonly content 
+                // (i.e. output line or previously submitted input line)
+                if (MapToEditableBuffer(line.End) == null)
                 {
-                    var spans = selection.SelectedSpans;
-                    if (OverlapsWithEditableBuffer(spans))
-                    {
-                        CutOrDeleteSpans(spans, isCut, lineCutCopyTag: false, boxCutCopyTag: selection.Mode == TextSelectionMode.Box);
-                        return true;
-                    }
+                    return false;
                 }
-                return false;
+
+                DeleteSpans(new NormalizedSnapshotSpanCollection(line.ExtentIncludingLineBreak));
+                return true;
             }
 
-            // This method keeps selection and caret position intact,
-            // it's caller's responsibility to adjust them accordingly.
-            private void CutOrDeleteSpans(NormalizedSnapshotSpanCollection projectionSpans, bool isCut, bool lineCutCopyTag, bool boxCutCopyTag)
+            /// <summary>
+            /// Delete spans that lie in editable buffer from given spans.
+            /// This method keeps selection and caret position intact,
+            /// therefore it's caller's responsibility to adjust them accordingly.
+            /// </summary>
+            private void DeleteSpans(NormalizedSnapshotSpanCollection projectionSpans)
             {
-                if (isCut)
-                {
-                    CopySpans(projectionSpans, lineCutCopyTag, boxCutCopyTag);
-                }
-
                 // split into multiple deletes that only affect the language/input buffer:
                 ITextBuffer affectedBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer;
                 using (var edit = affectedBuffer.CreateEdit())
@@ -2672,6 +2548,158 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         }
                     }
                     edit.Apply();
+                }
+            }
+
+            /// <summary>
+            /// Pastes from the clipboard into the text view
+            /// Implements <see cref="IInteractiveWindowOperations.Paste"/>.
+            /// </summary>
+            public bool Paste()
+            {
+                bool dataHasLineCutCopyTag = false;
+                bool dataHasBoxCutCopyTag = false;
+
+                // Get text from clipboard
+                string code = Evaluator.FormatClipboard();
+                if (code == null)
+                {
+                    var data = _window.InteractiveWindowClipboard.GetDataObject();
+                    if (data == null)
+                    {
+                        return false;
+                    }
+
+                    dataHasLineCutCopyTag = data.GetDataPresent(ClipboardLineBasedCutCopyTag);
+                    dataHasBoxCutCopyTag = data.GetDataPresent(BoxSelectionCutCopyTag);
+
+                    Debug.Assert((dataHasLineCutCopyTag && dataHasBoxCutCopyTag) == false);
+
+                    if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
+                    {
+                        var sb = new StringBuilder();
+                        var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
+
+                        foreach (var block in blocks)
+                        {
+                            switch (block.Kind)
+                            {
+                                case ReplSpanKind.LineBreak:
+                                    Debug.Assert(dataHasBoxCutCopyTag);
+                                    sb.Append(block.Content);
+                                    break;
+                                case ReplSpanKind.Input:
+                                case ReplSpanKind.Output:
+                                case ReplSpanKind.StandardInput:
+                                    sb.Append(block.Content);
+                                    break;
+                            }
+                        }
+                        code = sb.ToString();
+                    }
+                    else if (_window.InteractiveWindowClipboard.ContainsText())
+                    {
+                        code = _window.InteractiveWindowClipboard.GetText();
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Paste))
+                {
+                    var selection = TextView.Selection;
+
+                    // Delete selected text if there's any and adjust caret position
+                    if (!selection.IsEmpty)
+                    {
+                        // don not delete and paste anything if any part of selection is not in current submission
+                        if (!IsSelectionInsideCurrentSubmission())
+                        {
+                            return false;
+                        }
+
+                        DeleteSelection();
+
+                        if (selection.Mode == TextSelectionMode.Box)
+                        {
+                            ReduceBoxSelectionToEditableBox(isDelete: true);
+                        }
+                        else
+                        {
+                            selection.Clear();
+                            MoveCaretToClosestEditableBuffer();
+                        }
+                    }
+                    else
+                    {
+                        var caretPosition = TextView.Caret.Position.BufferPosition;
+                        var isInActivePrompt = IsInActivePrompt(caretPosition);
+
+                        if (isInActivePrompt)
+                        {
+                            MoveCaretToClosestEditableBuffer();
+                        }
+                        else if (MapToEditableBuffer(caretPosition) == null)
+                        {
+                            return false;
+                        }
+
+                        // Move caret to the begining of the line for pasting full-line when selection is empty
+                        // If the caret was in active prompt, it was already moved to strat of input line
+                        if (dataHasLineCutCopyTag && !isInActivePrompt)
+                        {
+                            var endPoint = GetSourceBufferPoint(caretPosition.GetContainingLine().End);
+                            TextView.Caret.MoveTo(GetProjectionBufferPoint(endPoint.GetContainingLine().Start));
+                        }
+                    }
+
+                    if (dataHasBoxCutCopyTag)
+                    {
+                        if (selection.IsEmpty && IsCaretOnBlankEditableLine())
+                        {
+                            InsertCode(code);
+                        }
+                        else
+                        {
+                            VirtualSnapshotPoint unusedStart, unusedEnd;
+                            EditorOperations.InsertTextAsBox(code, out unusedStart, out unusedEnd);
+                        }
+                    }
+                    else
+                    {
+                        InsertCode(code);
+                    }
+
+                    transaction.Complete();
+                    return true;
+                }
+            }
+            
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.Cut"/>.</summary>
+            public void Cut()
+            {
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction("Cut Selection"))
+                {
+                    if (TextView.Selection.IsEmpty)
+                    {
+                        CopyCurrentLine();
+                        if (!DeleteCurrentLine())
+                        {
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        CopySelection();
+                        if (!DeleteSelection())
+                        {
+                            return;
+                        }
+                    }
+                    MoveCaretToClosestEditableBuffer();
+                    transaction.Complete();
                 }
             }
 
@@ -2859,41 +2887,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                 }
             }
-
-            /// <summary>Implements <see cref="IInteractiveWindowOperations.Backspace"/>.</summary>
-            public bool Backspace()
-            {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction("Delete character to the left"))
-                {
-                    // if selection is not empty, the behavior is identical to `Delete`                
-                    if (!TextView.Selection.IsEmpty)
-                    {
-                        // Selection is not empty && delete returns false
-                        // only when selection is empty box selection
-                        if (!DeleteHelper())
-                        {
-                            // Delete() might reduce box selection into empty selection
-                            Debug.Assert(IsEmptyBoxSelection() || TextView.Selection.IsEmpty);
-                            EditorOperations.Backspace();
-                        }
-                    }
-                    else if (TextView.Caret.Position.VirtualSpaces == 0)
-                    {
-                        if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
-                        {
-                            MoveCaretToClosestEditableBuffer();
-                        }
-                        DeletePreviousCharacter();
-                    }
-                    else
-                    {
-                        TextView.Caret.MoveToPreviousCaretPosition();
-                    }
-                    transaction.Complete();
-                }
-                return true;
-            }
-
+            
             /// <summary>
             /// Deletes characters preceding the current caret position in the current language buffer.
             /// 
@@ -2922,6 +2916,39 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 point.Value.Snapshot.TextBuffer.Delete(new Span(point.Value.Position - characterSize, characterSize));
+
+                ScrollToCaret();
+                return true;
+            }
+
+            /// <summary>
+            /// Deletes characters succeeding the current caret position in the current language buffer.
+            /// 
+            /// Returns true if the next character was deleted
+            /// </summary>
+            private bool DeleteNextCharacter()
+            {
+                SnapshotPoint? point = MapToEditableBuffer(TextView.Caret.Position.BufferPosition);
+
+                // We are not in an editable buffer, or we are at the end of the buffer, nothing to delete.
+                if (point == null || point.Value == point.Value.Snapshot.Length)
+                {
+                    return false;
+                }
+
+                var line = point.Value.GetContainingLine();
+                int characterSize;
+                if (line.End.Position == point.Value.Position)
+                {
+                    Debug.Assert(line.LineNumber != point.Value.Snapshot.LineCount);
+                    characterSize = line.Snapshot.GetLineFromLineNumber(line.LineNumber).LineBreakLength;
+                }
+                else
+                {
+                    characterSize = 1;
+                }
+
+                point.Value.Snapshot.TextBuffer.Delete(new Span(point.Value.Position, characterSize));
 
                 ScrollToCaret();
                 return true;
@@ -3053,8 +3080,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var selection = TextView.Selection;
                 if (!TextView.Selection.IsEmpty)
                 {
-                    if (CutOrDeleteSelection(isCut: false) || IsEmptyBoxSelection())
+                    if (IsSelectionInsideCurrentSubmission())
                     {
+                        DeleteSelection();
+                        selection.Clear();
+                        MoveCaretToClosestEditableBuffer();
+                        /*
                         if (selection.Mode == TextSelectionMode.Box)
                         {
                             ReduceBoxSelectionToEditableBox(isDelete: true);
@@ -3063,7 +3094,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         {
                             selection.Clear();
                             MoveCaretToClosestEditableBuffer();
-                        }
+                        }*/
                     }
                     else
                     {

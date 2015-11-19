@@ -424,8 +424,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
                     case VSConstants.VSStd2KCmdID.TYPECHAR:
-                        _window.Operations.Delete();
-                        break;
+                        char typedChar = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
+                        _window.InsertCode(typedChar.ToString());
+                        return VSConstants.S_OK;
 
                     case VSConstants.VSStd2KCmdID.RETURN:
                         if (_window.Operations.TrySubmitStandardInput())
