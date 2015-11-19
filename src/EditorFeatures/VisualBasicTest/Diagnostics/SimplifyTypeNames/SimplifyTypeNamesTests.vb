@@ -1064,7 +1064,7 @@ End Module
 </Code>
 
             Await TestAsync(source.Value, expected.Value)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source.Value, Nothing, Nothing)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
@@ -1112,7 +1112,7 @@ End Namespace
 </Code>
 
             Await TestAsync(source.Value, expected.Value)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source.Value, Nothing, Nothing)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
@@ -1146,7 +1146,7 @@ End Module
 </Code>
 
             Await TestAsync(source.Value, expected.Value)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source.Value, Nothing, Nothing)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""foo"")", StringComparison.Ordinal))

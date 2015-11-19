@@ -23,11 +23,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
                 GetType(VisualBasicEncapsulateFieldService),
                 GetType(DefaultDocumentSupportsFeatureService)))
 
-        Public Sub New(markup As String)
-            Workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(markup, exportProvider:=s_exportProvider)
-            _testDocument = Workspace.Documents.Single(Function(d) d.CursorPosition.HasValue OrElse d.SelectedSpans.Any())
-            TargetDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id)
+        Private Sub New(workspace As TestWorkspace)
+            workspace = workspace
+            _testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue OrElse d.SelectedSpans.Any())
+            TargetDocument = workspace.CurrentSolution.GetDocument(_testDocument.Id)
         End Sub
+
+        Public Shared Async Function CreateAsync(markup As String) As System.Threading.Tasks.Task(Of EncapsulateFieldTestState)
+            Dim workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, exportProvider:=s_exportProvider)
+            Return New EncapsulateFieldTestState(workspace)
+        End Function
 
         Public Sub Encapsulate()
             Dim args = New EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer())

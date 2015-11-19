@@ -693,7 +693,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 #Region "SymbolCompletionProviderTests"
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub IsCommitCharacterTest()
+        Public Async Function IsCommitCharacterTest() As Threading.Tasks.Task
             Const code = "
 Imports System
 Class C
@@ -702,16 +702,16 @@ Class C
     End Sub
 End Class"
 
-            VerifyCommonCommitCharacters(code, textTypedSoFar:="")
-        End Sub
+            Await VerifyCommonCommitCharactersAsync(code, textTypedSoFar:="")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub IsTextualTriggerCharacterTest()
-            TestCommonIsTextualTriggerCharacter()
-        End Sub
+        Public Async Function IsTextualTriggerCharacterTest() As Threading.Tasks.Task
+            Await TestCommonIsTextualTriggerCharacterAsync()
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SendEnterThroughToEditorTest()
+        Public Async Function SendEnterThroughToEditorTest() As Threading.Tasks.Task
             Const code = "
 Imports System
 Class C
@@ -720,8 +720,8 @@ Class C
     End Sub
 End Class"
 
-            VerifySendEnterThroughToEditor(code, "Int32", expected:=True)
-        End Sub
+            Await VerifySendEnterThroughToEditorAsync(code, "Int32", expected:=True)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterDateLiteral()

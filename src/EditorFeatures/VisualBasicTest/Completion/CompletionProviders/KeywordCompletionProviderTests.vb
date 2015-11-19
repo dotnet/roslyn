@@ -17,21 +17,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IsCommitCharacterTest()
-            VerifyCommonCommitCharacters("$$", textTypedSoFar:="")
-        End Sub
+        Public Async Function IsCommitCharacterTest() As Threading.Tasks.Task
+            Await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar:="")
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub IsTextualTriggerCharacterTest()
-            TestCommonIsTextualTriggerCharacter()
+        Public Async Function IsTextualTriggerCharacterTest() As Threading.Tasks.Task
+            Await TestCommonIsTextualTriggerCharacterAsync()
 
-            VerifyTextualTriggerCharacter("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
-        End Sub
+            Await VerifyTextualTriggerCharacterAsync("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub SendEnterThroughToEditorTest()
-            VerifySendEnterThroughToEditor("$$", "Class", expected:=True)
-        End Sub
+        Public Async Function SendEnterThroughToEditorTest() As Threading.Tasks.Task
+            Await VerifySendEnterThroughToEditorAsync("$$", "Class", expected:=True)
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InEmptyFile()

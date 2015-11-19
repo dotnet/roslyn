@@ -32,20 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return CreateWorkspaceFromFileAsync(file, exportProvider: exportProvider, metadataReferences: metadataReferences);
         }
 
-        /// <summary>
-        /// Creates a single buffer in a workspace. 
-        /// </summary>
-        /// <param name="content">Lines of text, the buffer contents</param>
-        public static TestWorkspace CreateWorkspaceFromFile(
-            string file,
-            ParseOptions parseOptions = null,
-            CompilationOptions compilationOptions = null,
-            ExportProvider exportProvider = null,
-            string[] metadataReferences = null)
-        {
-            return CreateWorkspaceFromFiles(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
-        }
-
         public static Task<TestWorkspace> CreateWorkspaceFromFileAsync(
             string file,
             ParseOptions parseOptions = null,

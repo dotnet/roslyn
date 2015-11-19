@@ -369,7 +369,7 @@ End Class
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub IsCommitCharacterTest()
+        Public Async Function IsCommitCharacterTest() As Threading.Tasks.Task
             Const code = "
 Public Class C
     Public bar as Integer
@@ -381,8 +381,8 @@ Class Program
     End Sub
 End Program"
 
-            VerifyCommonCommitCharacters(code, textTypedSoFar:="")
-        End Sub
+            Await VerifyCommonCommitCharactersAsync(code, textTypedSoFar:="")
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsExclusive()
@@ -413,7 +413,7 @@ End Program</Document>
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub SendEnterThroughToEditorTest()
+        Public Async Function SendEnterThroughToEditorTest() As Threading.Tasks.Task
             Const code = "
 Public Class C
     Public bar as Integer
@@ -425,8 +425,8 @@ Class Program
     End Sub
 End Program"
 
-            VerifySendEnterThroughToEditor(code, "bar", expected:=False)
-        End Sub
+            Await VerifySendEnterThroughToEditorAsync(code, "bar", expected:=False)
+        End Function
 
         Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New ObjectInitializerCompletionProvider()

@@ -104,8 +104,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return importsStatement & vbCrLf & vbCrLf & text
         End Function
 
-        Protected Sub VerifySendEnterThroughToEditor(initialMarkup As String, textTypedSoFar As String, expected As Boolean)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(initialMarkup)
+        Protected Async Function VerifySendEnterThroughToEditorAsync(initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Threading.Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
@@ -119,15 +119,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
                 Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options))
             End Using
-        End Sub
+        End Function
 
-        Protected Sub VerifyCommonCommitCharacters(initialMarkup As String, textTypedSoFar As String)
+        Protected Async Function VerifyCommonCommitCharactersAsync(initialMarkup As String, textTypedSoFar As String) As Threading.Tasks.Task
             Dim commitCharacters = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
-            VerifyCommitCharacters(initialMarkup, textTypedSoFar, commitCharacters)
-        End Sub
+            Await VerifyCommitCharactersAsync(initialMarkup, textTypedSoFar, commitCharacters)
+        End Function
 
-        Protected Sub VerifyCommitCharacters(initialMarkup As String, textTypedSoFar As String, ParamArray chars As Char())
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(initialMarkup)
+        Protected Async Function VerifyCommitCharactersAsync(initialMarkup As String, textTypedSoFar As String, ParamArray chars As Char()) As Threading.Tasks.Task
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
@@ -147,9 +147,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Assert.False(completionRules.IsCommitCharacter(item, chr, textTypedSoFar), $"Expected '{chr}' NOT to be a commit character")
             End Using
 
-        End Sub
+        End Function
 
-        Protected Sub TestCommonIsTextualTriggerCharacter()
+        Protected Async Function TestCommonIsTextualTriggerCharacterAsync() As Threading.Tasks.Task
             Dim alwaysTriggerList =
             {
                 "foo$$.",
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             }
 
             For Each markup In alwaysTriggerList
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
+                Await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
             Next
 
             Dim triggerOnlyWithLettersList =
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             }
 
             For Each markup In triggerOnlyWithLettersList
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=False)
+                Await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=False)
             Next
 
             Dim neverTriggerList =
@@ -180,22 +180,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             }
 
             For Each markup In neverTriggerList
-                VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled:=False, shouldTriggerWithTriggerOnLettersDisabled:=False)
+                Await VerifyTextualTriggerCharacterAsync(markup, shouldTriggerWithTriggerOnLettersEnabled:=False, shouldTriggerWithTriggerOnLettersDisabled:=False)
             Next
-        End Sub
+        End Function
 
-        Protected Sub VerifyTextualTriggerCharacter(markup As String, shouldTriggerWithTriggerOnLettersEnabled As Boolean, shouldTriggerWithTriggerOnLettersDisabled As Boolean)
-            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter:=shouldTriggerWithTriggerOnLettersEnabled, triggerOnLetter:=True)
-            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter:=shouldTriggerWithTriggerOnLettersDisabled, triggerOnLetter:=False)
-        End Sub
+        Protected Async Function VerifyTextualTriggerCharacterAsync(markup As String, shouldTriggerWithTriggerOnLettersEnabled As Boolean, shouldTriggerWithTriggerOnLettersDisabled As Boolean) As Threading.Tasks.Task
+            Await VerifyTextualTriggerCharacterWorkerAsync(markup, expectedTriggerCharacter:=shouldTriggerWithTriggerOnLettersEnabled, triggerOnLetter:=True)
+            Await VerifyTextualTriggerCharacterWorkerAsync(markup, expectedTriggerCharacter:=shouldTriggerWithTriggerOnLettersDisabled, triggerOnLetter:=False)
+        End Function
 
-        Private Sub VerifyTextualTriggerCharacterWorker(markup As String, expectedTriggerCharacter As Boolean, triggerOnLetter As Boolean)
+        Private Async Function VerifyTextualTriggerCharacterWorkerAsync(markup As String, expectedTriggerCharacter As Boolean, triggerOnLetter As Boolean) As Threading.Tasks.Task
             Dim code As String = Nothing
             Dim position As Integer
 
             MarkupTestFile.GetPosition(markup, code, position)
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(code)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(code)
                 Dim document = workspace.Documents.First()
                 Dim text = document.TextBuffer.CurrentSnapshot.AsText()
                 Dim options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic, triggerOnLetter)
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                     Assert.False(isTextualTriggerCharacterResult, assertText)
                 End If
             End Using
-        End Sub
+        End Function
 
         Protected Overrides Function CreateExperimentalParseOptions(parseOptions As ParseOptions) As ParseOptions
             ' There are no experimental parse options at this time.

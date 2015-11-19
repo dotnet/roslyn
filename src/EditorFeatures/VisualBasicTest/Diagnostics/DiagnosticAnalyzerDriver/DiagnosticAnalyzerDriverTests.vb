@@ -14,7 +14,7 @@ Public Class DiagnosticAnalyzerDriverTests
     Public Async Function DiagnosticAnalyzerDriverAllInOne() As Task
         Dim source = TestResource.AllInOneVisualBasicCode
         Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
-        Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source)
+        Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source)
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
             AccessSupportedDiagnostics(analyzer)
             Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, New TextSpan(0, document.GetTextAsync().Result.Length))
@@ -37,7 +37,7 @@ End Class
 ]]></file>
 
         Dim ideEngineAnalyzer = New BasicTrackingDiagnosticAnalyzer()
-        Using ideEngineWorkspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source.Value)
+        Using ideEngineWorkspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value)
             Dim ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single()
             Await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineAnalyzer, ideEngineDocument, New TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length))
             For Each method In methodNames
@@ -48,7 +48,7 @@ End Class
         End Using
 
         Dim compilerEngineAnalyzer = New BasicTrackingDiagnosticAnalyzer()
-        Using compilerEngineWorkspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source.Value)
+        Using compilerEngineWorkspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(source.Value)
             Dim compilerEngineCompilation = CType(compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result, VisualBasicCompilation)
             compilerEngineCompilation.GetAnalyzerDiagnostics({compilerEngineAnalyzer})
             For Each method In methodNames
@@ -85,7 +85,7 @@ End Class
 
     <WpfFact>
     Public Async Function AnalyzerOptionsArePassedToAllAnalyzers() As Task
-        Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(TestResource.AllInOneVisualBasicCode)
+        Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(TestResource.AllInOneVisualBasicCode)
             Dim currentProject = workspace.CurrentSolution.Projects.Single()
             Dim additionalDocId = DocumentId.CreateNewId(currentProject.Id)
             Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"))
