@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             set
             {
+                Debug.Assert(_currentWindow == null, "This property is intended to be write-once.");
                 if (_currentWindow != value)
                 {
                     _interactiveHost.Output = value.OutputWriter;
@@ -130,10 +131,10 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                         _currentWindow.SubmissionBufferAdded -= SubmissionBufferAdded;
                     }
                     _currentWindow = value;
-                }
 
-                _currentWindow.SubmissionBufferAdded += SubmissionBufferAdded;
-                _interactiveCommands = _commandsFactory.CreateInteractiveCommands(_currentWindow, "#", _commands);
+                    _currentWindow.SubmissionBufferAdded += SubmissionBufferAdded;
+                    _interactiveCommands = _commandsFactory.CreateInteractiveCommands(_currentWindow, "#", _commands);
+                }
             }
         }
 
