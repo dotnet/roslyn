@@ -891,12 +891,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            Debug.Assert((object)localSymbol != null);
+
             DeclareLocalVariable(
                 localSymbol,
                 declarator.Identifier,
                 declTypeOpt);
 
-            Debug.Assert((object)localSymbol != null);
+            if (localSymbol.RefKind != RefKind.None && initializerOpt != null)
+            {
+                var ignoredDiagnostics = DiagnosticBag.GetInstance();
+                if (this.CheckValueKind(initializerOpt, BindValueKind.RefReturn, ignoredDiagnostics))
+                {
+                    localSymbol.SetReturnable();
+                }
+                ignoredDiagnostics.Free();
+            }
 
             ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
 
@@ -1139,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_IncrementLvalueExpected;
                 case BindValueKind.RefReturn:
-                    return ErrorCode.ERR_RefReturnLocal;
+                    return ErrorCode.ERR_RefReturnStructThis;
             }
         }
 
@@ -1415,13 +1425,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (kind)
                 {
                     case BindValueKind.RefOrOut:
+                    case BindValueKind.RefReturn:
                         errorCode = ErrorCode.ERR_RefReadonlyLocalCause;
                         break;
                     case BindValueKind.AddressOf:
                         errorCode = ErrorCode.ERR_InvalidAddrOp;
-                        break;
-                    case BindValueKind.RefReturn:
-                        errorCode = ErrorCode.ERR_RefReturnReadonlyLocalCause;
                         break;
                     default:
                         errorCode = ErrorCode.ERR_AssgReadonlyLocalCause;
@@ -1518,22 +1526,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (local != null)
             {
                 LocalSymbol localSymbol = local.LocalSymbol;
-                if (kind == BindValueKind.RefReturn && localSymbol.RefKind == RefKind.None)
+                if (kind == BindValueKind.RefReturn)
                 {
-                    if (checkingReceiver)
+                    if (localSymbol.RefKind == RefKind.None)
                     {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnLocal2, expr.Syntax, localSymbol);
+                        if (checkingReceiver)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefReturnLocal2, expr.Syntax, localSymbol);
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefReturnLocal, node, localSymbol);
+                        }
+
+                        return false;
                     }
-                    else
+
+                    if (!localSymbol.IsReturnable)
                     {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnLocal, node, localSymbol);
+                        if (checkingReceiver)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal2, expr.Syntax, localSymbol);
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal, node, localSymbol);
+                        }
+                        return false;
                     }
-                    return false;
                 }
+
                 if (this.LockedOrDisposedVariables.Contains(localSymbol))
                 {
                     diagnostics.Add(ErrorCode.WRN_AssignmentToLockOrDispose, local.Syntax.Location, localSymbol);
                 }
+
                 return CheckLocalVariable(node, localSymbol, kind, checkingReceiver, diagnostics);
             }
 

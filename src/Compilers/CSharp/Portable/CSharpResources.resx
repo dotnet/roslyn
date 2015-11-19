@@ -4717,6 +4717,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnLvalueExpected" xml:space="preserve">
     <value>An expression cannot be used in this context because it may not be returned by reference</value>
   </data>
+  <data name="ERR_RefReturnNonreturnableLocal" xml:space="preserve">
+    <value>Cannot return '{0}' by reference because it was initialized to a value that cannot be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnNonreturnableLocal2" xml:space="preserve">
+    <value>Cannot return by reference a member of '{0}' because it was initialized to a value that cannot be returned by reference</value>
+  </data>
   <data name="ERR_RefReturnReadonlyLocal" xml:space="preserve">
     <value>Cannot return '{0}' by reference because it is read-only</value>
   </data>
@@ -4742,7 +4748,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Fields of static readonly field '{0}' cannot be returned by reference</value>
   </data>
   <data name="ERR_RefReturnCall" xml:space="preserve">
-    <value>Cannot return or assign a reference to the result of '{0}' because the argument passed to parameter '{1}' cannot be returned or assigned by reference</value>
+    <value>Cannot return by reference a result of '{0}' because the argument passed to parameter '{1}' cannot be returned by reference</value>
   </data>
   <data name="ERR_RefReturnCall2" xml:space="preserve">
     <value>Cannot return by reference a member of result of '{0}' because the argument passed to parameter '{1}' cannot be returned by reference</value>
@@ -4761,6 +4767,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefReturnReceiver" xml:space="preserve">
     <value>Cannot return '{0}' by reference because its receiver may not be returned by reference</value>
+  </data>
+  <data name="ERR_RefReturnStructThis" xml:space="preserve">
+    <value>Struct members cannot return 'this' or other instance members by reference</value>
   </data>
   <data name="ERR_MustBeRefAssignable" xml:space="preserve">
     <value>'{0}' cannot be assigned a reference because it is not a by-reference local</value>
