@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     filterSpan: textChangeSpan,
                     descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, alias ?? type),
                     glyph: (alias ?? type).GetGlyph(),
-                    preselectionPriority: MatchPriority.Preselect,
+                    matchPriority: MatchPriority.Preselect,
                     rules: ItemRules.Instance);
 
                 context.AddItem(item);

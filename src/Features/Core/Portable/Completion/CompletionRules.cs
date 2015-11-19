@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // MRU list, then we definitely want to include it.
             if (filterText.Length == 0)
             {
-                if (item.PreselectionPriority != MatchPriority.Default || _completionService.GetMRUIndex(item) < 0)
+                if (item.MatchPriority != MatchPriority.Default || _completionService.GetMRUIndex(item) < 0)
                 {
                     return true;
                 }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // If they match on preselection and are from the same provider, 
             // use their rules
-            if (item1.PreselectionPriority == item2.PreselectionPriority &&
+            if (item1.MatchPriority == item2.MatchPriority &&
                 item1.CompletionProvider == item2.CompletionProvider)
             {
                 var result = item1.Rules.IsBetterPreselectedMatch(item1, item2, filterText);
@@ -163,9 +163,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // If they both seemed just as good, but they differ on preselection, then
             // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.PreselectionPriority != item2.PreselectionPriority)
+            if (item1.MatchPriority != item2.MatchPriority)
             {
-                return item1.PreselectionPriority > item2.PreselectionPriority;
+                return item1.MatchPriority > item2.MatchPriority;
             }
 
             // Prefer things with a keyword glyph, if the filter texts are the same.
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo)
         {
-            return filterText.Length == 0 && item.PreselectionPriority == MatchPriority.Default;
+            return filterText.Length == 0 && item.MatchPriority == MatchPriority.Default;
         }
 
         /// <summary>

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             List<ISymbol> symbols,
             AbstractSyntaxContext context,
-            MatchPriority preselectionPriority = MatchPriority.Default,
+            MatchPriority matchPriority = MatchPriority.Default,
             SupportedPlatformData supportedPlatforms = null,
             CompletionItemRules rules = null)
             : this(completionProvider,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                   insertionText,
                   filterText: displayText.Length > 0 && displayText[0] == '@' ? displayText : symbols[0].Name,
                   filterSpan: filterSpan,
-                  position: position, symbols: symbols, context: context, preselectionPriority: preselectionPriority, supportedPlatforms: supportedPlatforms, rules: rules)
+                  position: position, symbols: symbols, context: context, matchPriority: matchPriority, supportedPlatforms: supportedPlatforms, rules: rules)
         {
         }
 
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             List<ISymbol> symbols,
             AbstractSyntaxContext context,
-            MatchPriority preselectionPriority = MatchPriority.Default,
+            MatchPriority matchPriority = MatchPriority.Default,
             SupportedPlatformData supportedPlatforms = null,
             CompletionItemRules rules = null)
         : base(completionProvider, displayText, filterSpan,
            descriptionFactory: null, glyph: symbols[0].GetGlyph(),
-           sortText: symbols[0].Name, filterText: filterText, preselectionPriority: preselectionPriority, showsWarningIcon: supportedPlatforms != null, rules: rules)
+           sortText: symbols[0].Name, filterText: filterText, matchPriority: matchPriority, showsWarningIcon: supportedPlatforms != null, rules: rules)
         {
             this.InsertionText = insertionText;
             this.Position = position;
@@ -74,12 +74,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string sortText,
             AbstractSyntaxContext context,
             Glyph glyph,
-            MatchPriority preselectionPriority = MatchPriority.Default,
+            MatchPriority matchPriority = MatchPriority.Default,
             SupportedPlatformData supportedPlatforms = null,
             CompletionItemRules rules = null)
         : base(completionProvider, displayText, filterSpan,
            descriptionFactory: null, glyph: glyph,
-           sortText: sortText, filterText: filterText, preselectionPriority: preselectionPriority, showsWarningIcon: supportedPlatforms != null, rules: rules)
+           sortText: sortText, filterText: filterText, matchPriority: matchPriority, showsWarningIcon: supportedPlatforms != null, rules: rules)
         {
             this.InsertionText = insertionText;
             this.Position = position;

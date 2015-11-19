@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols,
                 context,
                 supportedPlatforms: supportedPlatformData,
-                preselectionPriority: MatchPriority.Preselect,
+                matchPriority: MatchPriority.Preselect,
                 rules: GetCompletionItemRules());
         }
     }

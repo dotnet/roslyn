@@ -37,9 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 End If
 
                 ' Furthermore, preselection is more important than case sensitivity
-                If leftItem.PreselectionPriority > rightItem.PreselectionPriority Then
+                If leftItem.MatchPriority > rightItem.MatchPriority Then
                     Return -1
-                ElseIf rightItem.PreselectionPriority > leftItem.PreselectionPriority Then
+                ElseIf rightItem.MatchPriority > leftItem.MatchPriority Then
                     Return 1
                 End If
 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                     Dim prefixLength1 = GetPrefixLength(item1.FilterText, filterText)
                     Dim prefixLength2 = GetPrefixLength(item2.FilterText, filterText)
 
-                    Return prefixLength1 > prefixLength2 OrElse ((item1.PreselectionPriority > item2.PreselectionPriority) AndAlso TypeOf item1.CompletionProvider IsNot EnumCompletionProvider)
+                    Return prefixLength1 > prefixLength2 OrElse ((item1.MatchPriority > item2.MatchPriority) AndAlso TypeOf item1.CompletionProvider IsNot EnumCompletionProvider)
                 End If
 
                 If TypeOf item2.CompletionProvider Is EnumCompletionProvider Then
