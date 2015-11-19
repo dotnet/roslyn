@@ -4789,7 +4789,7 @@ namespace NS
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class Foo : System.IDisposable
     {
-        public async Task Dispose()
+        public void Dispose()
         {
         }
     }
@@ -4875,7 +4875,7 @@ namespace NS
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
     public class Foo : System.IDisposable
     {
-        public async Task Dispose()
+        public void Dispose()
         {
         }
     }
@@ -4983,7 +4983,7 @@ namespace NS
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
     public class Foo : System.IDisposable
     {
-        public async Task Dispose()
+        public void Dispose()
         {
         }
     }
@@ -6757,7 +6757,7 @@ class C
 #if BAR
     class G
     {
-        public async Task DoGStuff() {}
+        public void DoGStuff() {}
     }
 #endif
     void foo()
