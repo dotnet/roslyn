@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
             Return New InlineTemporaryCodeRefactoringProvider()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub NotWithNoInitializer1()
             Dim code =
 <MethodBody>
@@ -23,7 +23,7 @@ Console.WriteLine(i)
             TestMissing(code)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub NotWithNoInitializer2()
             Dim code =
 <MethodBody>
@@ -34,7 +34,7 @@ Console.WriteLine(j)
             TestMissing(code)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub NotWithNoInitializer3()
             Dim code =
 <MethodBody>
@@ -45,7 +45,7 @@ Console.WriteLine(k)
             TestMissing(code)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub NotWithNoReference1()
             Dim code =
 <MethodBody>
@@ -56,7 +56,7 @@ Console.WriteLine(0)
             TestMissing(code)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub NotWithNoReference2()
             Dim code =
 <MethodBody>
@@ -67,7 +67,7 @@ Console.WriteLine(i)
             TestMissing(code)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub NotWithNoReference3()
             Dim code =
 <MethodBody>
@@ -78,7 +78,7 @@ Console.WriteLine(i + j)
             TestMissing(code)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub NotOnField()
             Dim code =
 <ClassDeclaration>
@@ -92,7 +92,7 @@ End Sub
             TestMissing(code)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub SingleDeclarator()
             Dim code =
 <MethodBody>
@@ -108,7 +108,7 @@ Console.WriteLine(0)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub SingleDeclaratorDontRemoveLeadingTrivia1()
             Dim code =
 <File>
@@ -143,7 +143,7 @@ End Class
         End Sub
 
         <WorkItem(545259)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub SingleDeclaratorDontRemoveLeadingTrivia2()
             Dim code =
 <File>
@@ -174,7 +174,7 @@ End Class
         End Sub
 
         <WorkItem(540330)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub SingleDeclaratorDontMoveNextStatement()
             Dim code =
 <File>
@@ -199,7 +199,7 @@ End Module
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub SingleDeclaratorInPropertyGetter()
             Dim code =
 <PropertyGetter>
@@ -215,7 +215,7 @@ Console.WriteLine(0)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TwoDeclarators1()
             Dim code =
 <MethodBody>
@@ -232,7 +232,7 @@ Console.WriteLine(0)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TwoDeclarators2()
             Dim code =
 <MethodBody>
@@ -249,7 +249,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ThreeDeclarators1()
             Dim code =
 <MethodBody>
@@ -266,7 +266,7 @@ Console.WriteLine(0)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ThreeDeclarators2()
             Dim code =
 <MethodBody>
@@ -283,7 +283,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ThreeDeclarators3()
             Dim code =
 <MethodBody>
@@ -301,7 +301,7 @@ Console.WriteLine(2)
         End Sub
 
         <WorkItem(545704)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ThreeDeclarators4()
             Dim code =
 <MethodBody>
@@ -321,7 +321,7 @@ Call New Integer.ToString()
         End Sub
 
         <WorkItem(16601, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoNextDeclarator()
             Dim code =
 <MethodBody>
@@ -336,7 +336,7 @@ Dim y = CType(Sub() Console.WriteLine(), Action)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TwoNames1()
             Dim code =
 <MethodBody>
@@ -353,7 +353,7 @@ Console.WriteLine(New String(" "c, 10))
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TwoNames2()
             Dim code =
 <MethodBody>
@@ -370,7 +370,7 @@ Console.WriteLine(New String(" "c, 10))
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ThreeNames1()
             Dim code =
 <MethodBody>
@@ -387,7 +387,7 @@ Console.WriteLine(New String(" "c, 10))
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ThreeNames2()
             Dim code =
 <MethodBody>
@@ -404,7 +404,7 @@ Console.WriteLine(New String(" "c, 10))
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ThreeNames3()
             Dim code =
 <MethodBody>
@@ -421,7 +421,7 @@ Console.WriteLine(New String(" "c, 10))
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoExpression1()
             Dim code =
 <MethodBody>
@@ -441,7 +441,7 @@ Console.WriteLine(0 + j * k)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoExpression2()
             Dim code =
 <MethodBody>
@@ -461,7 +461,7 @@ Console.WriteLine(i + 1 * k)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(551797)>
         Public Sub InlineIntoExpression3()
             Dim code =
@@ -478,7 +478,7 @@ Console.Write(New Int32 + 10)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoExpressionAsParenthesized()
             Dim code =
 <MethodBody>
@@ -498,7 +498,7 @@ Console.WriteLine(i + j * (2 + 3))
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoMemberAccess1()
             Dim code =
 <MethodBody>
@@ -514,7 +514,7 @@ Console.WriteLine(New String(" "c, 10).Length)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoMemberAccess2()
             Dim code =
 <MethodBody>
@@ -531,7 +531,7 @@ Console.WriteLine(("a" &amp; "b").Length)
         End Sub
 
         <WorkItem(540374)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoMemberAccess3()
             Dim code =
 <MethodBody>
@@ -549,7 +549,7 @@ Console.Write(New String(" "c, 10).Length)
 
         <WorkItem(541965)>
         <WorkItem(551797)>
-        <WpfFact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(Skip:="551797"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoMemberAccess4()
             Dim code =
 <MethodBody>
@@ -565,7 +565,7 @@ Call New Int32().ToString
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoMemberAccess5()
             Dim code =
 <ClassDeclaration>
@@ -593,7 +593,7 @@ End Sub
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoMemberAccess6()
             Dim code =
 <ClassDeclaration>
@@ -622,7 +622,7 @@ End Sub
         End Sub
 
         <WorkItem(542060)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoMemberAccess7()
             Dim code =
 <MethodBody>
@@ -639,7 +639,7 @@ Console.WriteLine((From x In "ABC" Select x).First())
         End Sub
 
         <WorkItem(546726)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoMemberAccess8()
             Dim code =
 <MethodBody>
@@ -655,7 +655,7 @@ Call New List(Of Integer)().ToString()
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast1()
             Dim code =
 <ClassDeclaration>
@@ -685,7 +685,7 @@ End Sub
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast2()
             Dim code =
 <ClassDeclaration>
@@ -715,7 +715,7 @@ End Sub
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast3()
             Dim code =
 <ClassDeclaration>
@@ -745,7 +745,7 @@ End Sub
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast4()
             Dim code =
 <ClassDeclaration>
@@ -775,7 +775,7 @@ End Sub
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast5()
             Dim code =
 <ClassDeclaration>
@@ -807,7 +807,7 @@ End Sub
 
         <WorkItem(544981)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast6()
             Dim code =
 <File>
@@ -836,7 +836,7 @@ End Class
         End Sub
 
         <WorkItem(544982)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast7()
             Dim code =
 <File>
@@ -868,7 +868,7 @@ End Module
 
         <WorkItem(545130)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast8()
             Dim code =
 <File>
@@ -895,7 +895,7 @@ End Class
         End Sub
 
         <WorkItem(545162)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast9()
             Dim code =
 <File>
@@ -922,7 +922,7 @@ End Module
         End Sub
 
         <WorkItem(545177)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast10()
             Dim code =
 <File>
@@ -950,7 +950,7 @@ End Module
 
         <WorkItem(545600)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast11()
             Dim code =
 <File>
@@ -989,7 +989,7 @@ End Class
         End Sub
 
         <WorkItem(545601)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast12()
             Dim code =
 <File>
@@ -1018,7 +1018,7 @@ End Module
         End Sub
 
         <WorkItem(568917)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineWithCast13()
             Dim code =
 <File>
@@ -1051,7 +1051,7 @@ End Module
         End Sub
 
         <WorkItem(546700)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoExpressionHole1()
             Dim code =
 <MethodBody>
@@ -1067,7 +1067,7 @@ Dim x = &lt;x &lt;%= Sub() If True Then Else %&gt;/&gt;
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoExpressionHole2()
             Dim code =
 <MethodBody>
@@ -1083,7 +1083,7 @@ Dim x = &lt;x &lt;%= Sub() If True Then Else %&gt;/&gt;
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineLambda1()
             Dim code =
 <MethodBody>
@@ -1099,7 +1099,7 @@ Dim i = (Function() 1).Invoke()
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineLambda2()
             Dim code =
 <MethodBody>
@@ -1119,7 +1119,7 @@ Dim i = Function()
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineInsideLambda()
             Dim code =
 <MethodBody>
@@ -1139,7 +1139,7 @@ Dim f As Func(Of Integer) = Function()
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineIntoLambda()
             Dim code =
 <MethodBody>
@@ -1159,7 +1159,7 @@ Dim f As Func(Of Integer) = Function()
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInlineTrailingComment()
             Dim code =
 <MethodBody>
@@ -1177,7 +1177,7 @@ Console.WriteLine((1 + 1) * 2)
         End Sub
 
         <WorkItem(545544)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontRemoveLineBreakAfterComment()
             Dim code =
 <MethodBody>
@@ -1194,7 +1194,7 @@ Dim y = 1
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub RemoveTrailingColon()
             Dim code =
 <MethodBody>
@@ -1211,7 +1211,7 @@ Console.WriteLine((1 + 1) * j)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInsertUnnecessaryCast1()
             Dim code =
 <MethodBody>
@@ -1227,7 +1227,7 @@ Dim j As Integer = 1 + 1
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInsertUnnecessaryCast2()
             Dim code =
 <MethodBody>
@@ -1245,7 +1245,7 @@ Console.WriteLine(j)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInsertUnnecessaryCast3()
             Dim code =
 <MethodBody>
@@ -1264,7 +1264,7 @@ Dim y As Action = Sub()
         End Sub
 
         <WorkItem(543215)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInsertUnnecessaryCast4()
             Dim code =
 <ClassDeclaration>
@@ -1291,7 +1291,7 @@ End Sub
         End Sub
 
         <WorkItem(543280)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInsertUnnecessaryCast5()
             Dim code =
 <File>
@@ -1322,7 +1322,7 @@ End Module
         End Sub
 
         <WorkItem(544973)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInsertUnnecessaryCast6()
             Dim code =
 <File>
@@ -1355,7 +1355,7 @@ End Module
         End Sub
 
         <WorkItem(545975)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInsertUnnecessaryCast7()
             Dim code =
 <File>
@@ -1382,7 +1382,7 @@ End Module
         End Sub
 
         <WorkItem(545846)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInsertUnnecessaryCast8()
             Dim markup =
 <File>
@@ -1411,7 +1411,7 @@ End Module
         End Sub
 
         <WorkItem(545624), WorkItem(799045)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInsertUnnecessaryCast9()
             Dim markup =
 <File>
@@ -1442,7 +1442,7 @@ End Module
         End Sub
 
         <WorkItem(530068)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub DontInsertUnnecessaryCast10()
             Dim markup =
 <File>
@@ -1474,7 +1474,7 @@ End Class
             Test(markup, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary1()
             Dim code =
 <MethodBody>
@@ -1490,7 +1490,7 @@ Call New Exception().ToString
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary2()
             Dim code =
 <MethodBody>
@@ -1506,7 +1506,7 @@ Call New Exception().ToString
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary3()
             Dim code =
 <MethodBody>
@@ -1522,7 +1522,7 @@ Call (Sub() Exit Sub)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary4()
             Dim code =
 <MethodBody>
@@ -1538,7 +1538,7 @@ Call (From x in "abc").Distinct()
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary5()
             Dim code =
 <MethodBody>
@@ -1554,7 +1554,7 @@ Call "abc".ToLower()
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary6()
             Dim code =
 <MethodBody>
@@ -1570,7 +1570,7 @@ Call 1.ToString()
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary7()
             Dim code =
 <MethodBody>
@@ -1586,7 +1586,7 @@ Call (1 + 1).ToString()
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary8()
             Dim code =
 <MethodBody>
@@ -1603,7 +1603,7 @@ Call New Exception().Message.ToString
         End Sub
 
         <WorkItem(542819)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary9()
             Dim code =
 <MethodBody>
@@ -1620,7 +1620,7 @@ Call If(True, 1, 2).ToString
         End Sub
 
         <WorkItem(542819)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallIfNecessary10()
             Dim code =
 <MethodBody>
@@ -1637,7 +1637,7 @@ Call If(Nothing, "").ToString
         End Sub
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary1()
             Dim code =
 <MethodBody>
@@ -1654,7 +1654,7 @@ Dim a = (From y In "" Select y), b
         End Sub
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary2()
             Dim code =
 <MethodBody>
@@ -1671,7 +1671,7 @@ Dim a = Nothing, b = From y In "" Select y
         End Sub
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary3()
             Dim code =
 <MethodBody>
@@ -1687,7 +1687,7 @@ Dim a = CType((Function() From y In "" Select y), Func(Of IEnumerable(Of Char)))
         End Sub
 
         <WorkItem(542096)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary4()
             Dim code =
 <MethodBody>
@@ -1704,7 +1704,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
         End Sub
 
         <WorkItem(542096)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary5()
             Dim code =
 <MethodBody>
@@ -1721,7 +1721,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
         End Sub
 
         <WorkItem(542096)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary6()
             Dim code =
 <ModuleDeclaration>
@@ -1749,7 +1749,7 @@ End Sub
         End Sub
 
         <WorkItem(542795)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary7()
             Dim code =
 <ModuleDeclaration>
@@ -1776,7 +1776,7 @@ End Sub
         End Sub
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary8()
             Dim code =
 <MethodBody>
@@ -1793,7 +1793,7 @@ Dim a = (From y In "" Select y Order By y), b
         End Sub
 
         <WorkItem(542795)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary9()
             Dim code =
 <ModuleDeclaration>
@@ -1820,7 +1820,7 @@ End Sub
         End Sub
 
         <WorkItem(542840)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary10()
             Dim code =
 <MethodBody>
@@ -1837,7 +1837,7 @@ Dim y = (New Collections.ArrayList())(0)
         End Sub
 
         <WorkItem(542842)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary11()
             Dim code =
 <MethodBody>
@@ -1854,7 +1854,7 @@ Dim a As Action = (Sub() If True Then Dim x), b = a
         End Sub
 
         <WorkItem(542667)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary12()
             Dim code =
 <MethodBody>
@@ -1871,7 +1871,7 @@ Dim a = (From y In "" Select y Order By y Ascending), b
         End Sub
 
         <WorkItem(542840)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary13()
             Dim code =
 <MethodBody>
@@ -1888,7 +1888,7 @@ Dim y = (New Collections.ArrayList)(0)
         End Sub
 
         <WorkItem(542931)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary14()
             Dim code =
 <MethodBody>
@@ -1905,7 +1905,7 @@ Dim p = From y In "", z In (From x In "") Distinct
         End Sub
 
         <WorkItem(542989)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary15()
             Dim code =
 <MethodBody>
@@ -1922,7 +1922,7 @@ Dim y = (From x In "" Group By x Into Count)(0)
         End Sub
 
         <WorkItem(542990)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary16()
             Dim code =
 <MethodBody>
@@ -1939,7 +1939,7 @@ Dim y As String = (Function() Console.ReadLine)()
         End Sub
 
         <WorkItem(542997)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary17()
             Dim code =
 <MethodBody>
@@ -1956,7 +1956,7 @@ Dim q = From x In "" Select z = (Sub() Return) Distinct
         End Sub
 
         <WorkItem(542997)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary18()
             Dim code =
 <MethodBody>
@@ -1975,7 +1975,7 @@ Dim q = From x In "" Select z = (Sub() Return) _
         End Sub
 
         <WorkItem(542997)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary19()
             Dim code =
 <MethodBody>
@@ -1992,7 +1992,7 @@ Dim q = From x In "" Select z = Sub() Return
         End Sub
 
         <WorkItem(529694)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary20()
             Dim code =
 <MethodBody>
@@ -2017,7 +2017,7 @@ End With
         End Sub
 
         <WorkItem(545571)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary21()
             Dim code =
 <MethodBody>
@@ -2034,7 +2034,7 @@ Call (Sub() Exit Sub).Invoke()
         End Sub
 
         <WorkItem(545849)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary22()
             Dim code =
 <MethodBody>
@@ -2053,7 +2053,7 @@ Console.WriteLine(y.Rank)
         End Sub
 
         <WorkItem(531578)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary23()
             Dim code =
 <File>
@@ -2092,7 +2092,7 @@ End Module
         End Sub
 
         <WorkItem(531582)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeIfNecessary24()
             Dim code =
 <MethodBody>
@@ -2115,7 +2115,7 @@ End Select
         <WorkItem(549182)>
         <WorkItem(549191)>
         <WorkItem(545730)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub UnparenthesizeIfNecessary1()
             Dim code =
 <File>
@@ -2148,7 +2148,7 @@ End Module
         End Sub
 
         <WorkItem(542985)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub AddExplicitArgumentListIfNecessary1()
             Dim code =
 <ModuleDeclaration>
@@ -2181,7 +2181,7 @@ End Function
         End Sub
 
         <WorkItem(542985)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub AddExplicitArgumentListIfNecessary2()
             Dim code =
 <ModuleDeclaration>
@@ -2214,7 +2214,7 @@ End Function
         End Sub
 
         <WorkItem(542985)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub AddExplicitArgumentListIfNecessary3()
             Dim code =
 <ModuleDeclaration>
@@ -2249,7 +2249,7 @@ End Property
         End Sub
 
         <WorkItem(545174)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub AddExplicitArgumentListIfNecessary4()
             Dim code =
 <ModuleDeclaration>
@@ -2275,7 +2275,7 @@ End Module
         End Sub
 
         <WorkItem(529542)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub AddExplicitArgumentListIfNecessary5()
             Dim code =
 <ModuleDeclaration>
@@ -2303,7 +2303,7 @@ End Module
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_Assignment()
             Dim code =
 <MethodBody>
@@ -2322,7 +2322,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_AddAssignment()
             Dim code =
 <MethodBody>
@@ -2341,7 +2341,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_SubtractAssignment()
             Dim code =
 <MethodBody>
@@ -2360,7 +2360,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_MultiplyAssignment()
             Dim code =
 <MethodBody>
@@ -2379,7 +2379,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_DivideAssignment1()
             Dim code =
 <MethodBody>
@@ -2398,7 +2398,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_IntegerDivideAssignment()
             Dim code =
 <MethodBody>
@@ -2417,7 +2417,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_ConcatenateAssignment()
             Dim code =
 <MethodBody>
@@ -2436,7 +2436,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_LeftShiftAssignment()
             Dim code =
 <MethodBody>
@@ -2455,7 +2455,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_RightShiftAssignment()
             Dim code =
 <MethodBody>
@@ -2474,7 +2474,7 @@ Console.WriteLine(1)
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_PowerAssignment()
             Dim code =
 <MethodBody>
@@ -2494,7 +2494,7 @@ Console.WriteLine(1)
         End Sub
 
         <WorkItem(529627)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_ByRefLiteral()
             Dim code =
 <File>
@@ -2530,7 +2530,7 @@ End Module
         End Sub
 
         <WorkItem(545342)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConflict_UsedBeforeDeclaration()
 
             Dim code =
@@ -2558,7 +2558,7 @@ End Module
 
         <WorkItem(545398)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCorrectCastsForAssignmentStatement1()
             Dim code =
 <File>
@@ -2588,7 +2588,7 @@ End Module
 
         <WorkItem(545398)>
         <WorkItem(568917)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCorrectCastsForAssignmentStatement2()
             Dim code =
 <File>
@@ -2617,7 +2617,7 @@ End Module
         End Sub
 
         <WorkItem(545398)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCorrectCastsForAssignmentStatement3()
             Dim code =
 <File>
@@ -2646,7 +2646,7 @@ End Module
         End Sub
 
         <WorkItem(545539)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontOverparenthesizeXmlAttributeAccessExpression()
             Dim code =
 <File>
@@ -2675,7 +2675,7 @@ End Module
         End Sub
 
         <WorkItem(546069)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestBrokenVariableDeclarator()
             Dim code =
 <File>
@@ -2691,7 +2691,7 @@ End Module
         End Sub
 
         <WorkItem(546658)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontInlineInUnterminatedBlock()
             Dim markup =
 <File>
@@ -2721,7 +2721,7 @@ End Module
         End Sub
 
         <WorkItem(547152)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub EscapeKeywordsIfNeeded1()
             Dim code =
 <File>
@@ -2755,7 +2755,7 @@ End Module
         End Sub
 
         <WorkItem(531473)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub EscapeKeywordsIfNeeded2()
             Dim code =
 <File>
@@ -2790,7 +2790,7 @@ End Module
         End Sub
 
         <WorkItem(531473)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub EscapeKeywordsIfNeeded3()
             Dim code =
 <File>
@@ -2825,7 +2825,7 @@ End Module
         End Sub
 
         <WorkItem(547153)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub EscapeKeywordsIfNeeded4()
             Dim code =
 <File>
@@ -2860,7 +2860,7 @@ End Module
         End Sub
 
         <WorkItem(531584)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub EscapeKeywordsIfNeeded5()
             Dim code =
 <File>
@@ -2897,7 +2897,7 @@ End Module
         End Sub
 
         <WorkItem(601123)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub EscapeKeywordsIfNeeded6()
             Dim code =
 <File>
@@ -2948,7 +2948,7 @@ End Module
         End Sub
 
         <WorkItem(580495)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeLambdaIfNeeded01()
             Dim code =
 <File>
@@ -2975,7 +2975,7 @@ End Module
         End Sub
 
         <WorkItem(607520)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeLambdaIfNeeded02()
             Dim code =
 <File>
@@ -3002,7 +3002,7 @@ End Module
         End Sub
 
         <WorkItem(607520)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeLambdaIfNeeded03()
             Dim code =
 <File>
@@ -3027,7 +3027,7 @@ End Module
         End Sub
 
         <WorkItem(621407)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeLambdaIfNeeded04()
             Dim code =
 <File>
@@ -3053,7 +3053,7 @@ End Module
         End Sub
 
         <WorkItem(608208)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeLambdaIfNeeded05()
             Dim code =
 <File>
@@ -3079,7 +3079,7 @@ End Module
         End Sub
 
         <WorkItem(621407)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeLambdaIfNeeded06()
             Dim code =
 <File>
@@ -3105,7 +3105,7 @@ End Module
         End Sub
 
         <WorkItem(621407)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeLambdaIfNeeded06_1()
             Dim code =
 <File>
@@ -3131,7 +3131,7 @@ End Module
         End Sub
 
         <WorkItem(608995)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeLambdaIfNeeded07()
             Dim code =
 <File>
@@ -3157,7 +3157,7 @@ End Module
         End Sub
 
         <WorkItem(588344)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeXmlLiteralExpressionIfNeeded()
             Dim code =
 <File>
@@ -3184,7 +3184,7 @@ End Module
         End Sub
 
         <WorkItem(608204)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeQueryExpressionIfFollowedBySelect()
             Dim code =
 <File>
@@ -3213,7 +3213,7 @@ End Module
         End Sub
 
         <WorkItem(635364)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeQueryExpressionIfFollowedBySelect_635364()
             Dim code =
 <File>
@@ -3248,7 +3248,7 @@ End Module
         End Sub
 
         <WorkItem(635373)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeQueryExpressionIfFollowedBySelect_635373()
             Dim code =
 <File>
@@ -3287,7 +3287,7 @@ End Module
         End Sub
 
         <WorkItem(608202)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeQueryExpressionIfEndingWithDistinct()
             Dim code =
 <File>
@@ -3324,7 +3324,7 @@ End Module
         End Sub
 
         <WorkItem(530129)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ConvertsDelegateInvocationToLabel()
             Dim code =
 <File>
@@ -3356,7 +3356,7 @@ End Module
         End Sub
 
         <WorkItem(529796)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ConvertExtensionMethodInvocationToPlainStaticMethodInvocationIfNecessaryToKeepCorrectOverloadResolution()
             Dim code =
 <File>
@@ -3419,7 +3419,7 @@ End Module
         End Sub
 
         <WorkItem(601907)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub EscapeContextualKeywordAfterQueryEndingWithXmlDocumentEvenWithMultipleEmptyLines()
             Dim code =
 <File>
@@ -3464,7 +3464,7 @@ End Module
         End Sub
 
         <WorkItem(530903)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineTempShouldParenthesizeExpressionIfNeeded()
             Dim code =
 <File>
@@ -3492,7 +3492,7 @@ End Module
         End Sub
 
         <WorkItem(530945)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineTempShouldParenthesizeLambdaExpressionIfNeeded()
             Dim code =
 <File>
@@ -3524,7 +3524,7 @@ End Module
         End Sub
 
         <WorkItem(530926)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineTempShouldNotAddUnnecessaryCallKeyword()
             Dim code =
 <File>
@@ -3549,7 +3549,7 @@ End Module
         End Sub
 
         <WorkItem(529833)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineTempChangesSymbolInfoForInlinedExpression()
             Dim code =
 <File>
@@ -3583,7 +3583,7 @@ End Module
         End Sub
 
         <WorkItem(529833)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineTempWithUserDefinedOperator()
             Dim code =
 <File>
@@ -3634,7 +3634,7 @@ End Class
         End Sub
 
         <WorkItem(529833)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineTempWithUserDefinedOperator2()
             Dim code =
 <File>
@@ -3685,7 +3685,7 @@ End Class
         End Sub
 
         <WorkItem(529840)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub Bugfix_529840_DetectSemanticChangesAtInlineSite()
             Dim code =
 <File>
@@ -3735,7 +3735,7 @@ End Class
         End Sub
 
         <WorkItem(718152)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub Bugfix_718152_DontRemoveParenthesisForAwaitExpression()
             Dim code =
 <File>
@@ -3770,7 +3770,7 @@ End Class
         End Sub
 
         <WorkItem(718152)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub Bugfix_718152_RemoveParenthesisForAwaitExpression()
             Dim code =
 <File>
@@ -3808,7 +3808,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub NameOfExpressionAtStartOfStatement()
             Dim code =
 <File>
@@ -3832,7 +3832,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestSimpleConditionalAccess()
             Dim code =
 <File>
@@ -3865,7 +3865,7 @@ End Class
         End Sub
 
         <WorkItem(1025, "https://github.com/dotnet/roslyn/issues/1025")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConditionalAccessWithConversion()
             Dim code =
 <File>
@@ -3889,7 +3889,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestConditionalAccessWithConditionalExpression()
             Dim code =
 <File>
@@ -3913,7 +3913,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         Public Sub TestConditionalAccessWithExtensionMethodInvocation()
             Dim code =
@@ -3966,7 +3966,7 @@ End Class]]>
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         Public Sub TestConditionalAccessWithExtensionMethodInvocation_2()
             Dim code =
@@ -4025,7 +4025,7 @@ End Class]]>
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub TestXmlLiteral()
             Dim code =
 <File>
@@ -4052,7 +4052,7 @@ End Class
         End Sub
 
         <WorkItem(2671, "https://github.com/dotnet/roslyn/issues/2671")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ReplaceReferencesInWithBlocks()
             Dim code =
 <MethodBody>
@@ -4073,7 +4073,7 @@ End With
         End Sub
 
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontParenthesizeInterpolatedStringWithNoInterpolation()
             Dim code =
 <MethodBody>
@@ -4090,7 +4090,7 @@ Dim s2 = AscW($"hello")
         End Sub
 
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub DontParenthesizeInterpolatedStringWithInterpolation()
             Dim code =
 <MethodBody>
@@ -4109,7 +4109,7 @@ Dim s2 = AscW($"hello {x}")
         End Sub
 
         <WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineFormattableStringIntoCallSiteRequiringFormattableString()
             Dim code = "
 Imports System
@@ -4142,7 +4142,7 @@ End Class
         End Sub
 
         <WorkItem(4624, "https://github.com/dotnet/roslyn/issues/4624")>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InlineFormattableStringIntoCallSiteWithFormattableStringOverload()
             Dim code = "
 Imports System

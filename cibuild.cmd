@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.32.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.35.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -11,7 +11,7 @@ set BuildRestore=false
 REM Because override the C#/VB toolset to build against our LKG package, it is important
 REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
 REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-set MSBuildAdditionalCommandLineArgs=/nologo /v:m /m /nodeReuse:false
+set MSBuildAdditionalCommandLineArgs=/nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal
 
 :ParseArguments
 if "%1" == "" goto :DoneParsing
@@ -48,14 +48,14 @@ if "%BuildRestore%" == "true" (
 REM Set the build version only so the assembly version is set to the semantic version,
 REM which allows analyzers to laod because the compiler has binding redirects to the
 REM semantic version
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile=%RoslynRoot%Binaries\Bootstrap.log || goto :BuildFailed
 
 if not exist "%RoslynRoot%Binaries\Bootstrap" mkdir "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
 move "Binaries\%BuildConfiguration%\*" "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
 copy "build\scripts\*" "%RoslynRoot%Binaries\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
-msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile=%RoslynRoot%Binaries\BootstrapClean.log || goto :BuildFailed
 
 call :TerminateCompilerServer
 
@@ -65,7 +65,7 @@ if defined Perf (
   set Target=BuildAndTest
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /fileloggerparameters:LogFile=%RoslynRoot%Binaries\Build.log || goto :BuildFailed
 
 call :TerminateCompilerServer
 

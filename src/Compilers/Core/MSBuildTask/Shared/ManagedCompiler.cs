@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -259,7 +258,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public string TargetType
         {
-            set { _store[nameof(TargetType)] = value.ToLower(CultureInfo.InvariantCulture); }
+            set { _store[nameof(TargetType)] = CultureInfo.InvariantCulture.TextInfo.ToLower(value); }
             get { return (string)_store[nameof(TargetType)]; }
         }
 
@@ -369,10 +368,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     var buildPaths = new BuildPaths(
                         clientDir: TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
-                        sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                        // MSBuild doesn't need the .NET SDK directory
+                        sdkDir: null,
                         workingDir: CurrentDirectoryToUse());
 
-                    var responseTask = DesktopBuildClient.RunServerCompilation(
+                    var responseTask = BuildClientShim.RunServerCompilation(
                         Language,
                         GetArguments(commandLineCommands, responseFileCommands).ToList(),
                         buildPaths,
@@ -410,20 +410,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         /// <summary>
         /// Try to get the directory this assembly is in. Returns null if assembly
-        /// was in the GAC.
+        /// was in the GAC or DLL location can not be retrieved.
         /// </summary>
         private static string TryGetClientDir()
         {
-            var assembly = typeof(ManagedCompiler).Assembly;
+#if PORTABLE50
+            return null;
+#else
+            var buildTask = typeof(ManagedCompiler).GetTypeInfo().Assembly;
 
-            if (assembly.GlobalAssemblyCache)
+            if (buildTask.GlobalAssemblyCache)
                 return null;
 
-            var uri = new Uri(assembly.CodeBase);
+            var uri = new Uri(buildTask.CodeBase);
             string assemblyPath = uri.IsFile
                 ? uri.LocalPath
                 : Assembly.GetCallingAssembly().Location;
             return Path.GetDirectoryName(assemblyPath);
+#endif
         }
 
         /// <summary>

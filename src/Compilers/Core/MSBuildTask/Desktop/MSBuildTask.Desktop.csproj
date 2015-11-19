@@ -2,7 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -31,54 +31,27 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Microsoft.CSharp.Core.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Microsoft.VisualBasic.Core.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\DesktopBuildClient.cs">
-      <Link>DesktopBuildClient.cs</Link>
-    </Compile>
-    <Compile Include="CanonicalError.cs" />
-    <Compile Include="CommandLineBuilderExtension.cs" />
-    <Compile Include="Csc.cs" />
-    <Compile Include="Csi.cs" />
-    <Compile Include="ErrorString.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ErrorString.resx</DependentUpon>
-    </Compile>
-    <Compile Include="ICscHostObject5.cs" />
-    <Compile Include="InteractiveCompiler.cs" />
-    <Compile Include="IVbcHostObject6.cs" />
-    <Compile Include="ManagedCompiler.cs" />
-    <Compile Include="PropertyDictionary.cs" />
-    <Compile Include="RCWForCurrentContext.cs" />
-    <Compile Include="Utilities.cs" />
-    <Compile Include="Vbc.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ErrorString.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ErrorString.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
+    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
+    <ProjectReference Include="..\..\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
+  <ItemGroup>
+    <Compile Include="..\..\..\Shared\DesktopBuildClient.cs">
+      <Link>DesktopBuildClient.cs</Link>
+    </Compile>
+    <Compile Include="BuildClientShim.cs" />
+  </ItemGroup>
+  <Import Project="..\..\CommandLine\CommandLine.projitems" Label="Shared" />
+  <Import Project="..\Shared\MSBuildTask.Shared.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>

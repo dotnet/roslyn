@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateEndConstructCodeFixProvider())
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestIf()
             Dim text = <MethodBody>
 If True Then[||]
@@ -26,7 +26,7 @@ End If</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestUsing()
             Dim text = <MethodBody>
 Using (foo)[||]
@@ -40,7 +40,7 @@ End Using</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestStructure()
             Dim text = <File>
 Structure Foo[||]</File>
@@ -50,7 +50,7 @@ Structure Foo[||]</File>
             Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestModule()
             Dim text = <File>
 Module Foo[||]
@@ -61,7 +61,7 @@ Module Foo[||]
             Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestNamespace()
             Dim text = <File>
 Namespace Foo[||]
@@ -72,7 +72,7 @@ Namespace Foo[||]
             Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestClass()
             Dim text = <File>
 Class Foo[||]
@@ -83,7 +83,7 @@ Class Foo[||]
             Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestInterface()
             Dim text = <File>
 Interface Foo[||]
@@ -94,7 +94,7 @@ Interface Foo[||]
             Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestEnum()
             Dim text = <File>
 Enum Foo[||]
@@ -105,7 +105,7 @@ Enum Foo[||]
             Test(text.ConvertTestSourceTag(), expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestWhile()
             Dim text = <MethodBody>
 While True[||]</MethodBody>
@@ -118,7 +118,7 @@ End While</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestWith()
             Dim text = <MethodBody>
 With True[||]</MethodBody>
@@ -131,7 +131,7 @@ End With</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestSyncLock()
             Dim text = <MethodBody>
 SyncLock Me[||]</MethodBody>
@@ -144,7 +144,7 @@ End SyncLock</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestDoLoop()
             Dim text = <MethodBody>
 Do While True[||]</MethodBody>
@@ -157,7 +157,7 @@ Loop</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestForNext()
             Dim text = <MethodBody>
 For x = 1 to 3[||]</MethodBody>
@@ -170,7 +170,7 @@ Next</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestForEachNext()
             Dim text = <MethodBody>
 For Each x in {}[||]</MethodBody>
@@ -183,7 +183,7 @@ Next</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestEndTry()
             Dim text = <MethodBody>
 Try[||]</MethodBody>
@@ -196,7 +196,7 @@ End Try</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestEndTryCatch()
             Dim text = <MethodBody>
 Try[||]
@@ -211,7 +211,7 @@ End Try</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestEndTryCatchFinally()
             Dim text = <MethodBody>
 Try[||]
@@ -228,7 +228,7 @@ End Try</MethodBody>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestProperty()
             Dim text = <File>
 Class C
@@ -249,7 +249,7 @@ End Class</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestReadOnlyProperty()
             Dim text = <File>
 Class C
@@ -268,7 +268,7 @@ End Class</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestWriteOnlyProperty()
             Dim text = <File>
 Class C
@@ -287,7 +287,7 @@ End Class</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestWriteOnlyPropertyFromSet()
             Dim text = <File>
 Class C
@@ -306,7 +306,7 @@ End Class</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub InvInsideEndsEnum()
             Dim text = <File>
 Public Enum e[||]
@@ -325,7 +325,7 @@ End Class</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub MissingEndSub()
             Dim text = <File>
 Class C
@@ -342,7 +342,7 @@ End Class</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub MissingEndFunction()
             Dim text = <File>
 Class C
@@ -360,7 +360,7 @@ End Class</File>
         End Sub
 
         <WorkItem(576176)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub FormatWrappedBlock()
             Dim text = <File>
 Class C
@@ -392,7 +392,7 @@ End Class</File>
         End Sub
 
         <WorkItem(578253)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub DoNotWrapCLass()
             Dim text = <File>
 Class C[||]
@@ -424,14 +424,14 @@ End Module</File>
         End Sub
 
         <WorkItem(578260)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub NotOnLambda()
             TestMissing(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n End Sub \n Function foo() \n Dim op = Sub[||](c) \n Dim kl = Sub(g) \n End Sub \n End Function \n End Module"))
         End Sub
 
         <WorkItem(578271)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub TestNamespaceThatEndsAtFile()
             Dim text = <File>
 Namespace N[||]

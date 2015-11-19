@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
     {
         #region SameProject
         #region SameProject_SameFile 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeDefaultValues()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -42,7 +42,7 @@ class Foo
 isNewFile: false).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInsideNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -76,7 +76,7 @@ namespace A
 isNewFile: false).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInsideQualifiedNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -108,7 +108,7 @@ namespace A.B
 isNewFile: false).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithinQualifiedNestedNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -146,7 +146,7 @@ namespace A.B
 isNewFile: false).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithinNestedQualifiedNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -184,7 +184,7 @@ namespace A
 isNewFile: false).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithConstructorMembers()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -219,7 +219,7 @@ class Foo
 isNewFile: false).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithBaseTypes()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -248,7 +248,7 @@ class Foo : List<int>
 isNewFile: false).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithPublicInterface()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -288,7 +288,7 @@ typeKind: TypeKind.Interface,
 isNewFile: false).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithInternalStruct()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -328,7 +328,7 @@ typeKind: TypeKind.Struct,
 isNewFile: false).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithDefaultEnum()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -369,7 +369,7 @@ isNewFile: false).ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithDefaultEnum_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -405,7 +405,7 @@ isNewFile: false).ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithDefaultEnum_DefaultNamespace_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -449,7 +449,7 @@ isNewFile: false).ConfigureAwait(true);
 
         // Working is very similar to the adding to the same file
         #region SameProject_ExistingFile
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInExistingEmptyFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -488,7 +488,7 @@ existingFilename: "Test2.cs").ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInExistingEmptyFile_Usings_Folders()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -534,7 +534,7 @@ existingFilename: "Test2.cs").ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInExistingEmptyFile_Usings_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -581,7 +581,7 @@ existingFilename: "Test2.cs").ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInExistingEmptyFile_Usings_Folders_DefaultNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -628,7 +628,7 @@ existingFilename: "Test2.cs").ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1036,7 +1036,7 @@ newFileName: "Test2.cs").ConfigureAwait(true);
         #endregion
         #region SameLanguageDifferentProject
         #region SameLanguageDifferentProject_ExistingFile
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectEmptyFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1077,7 +1077,7 @@ projectName: "Assembly2").ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1128,7 +1128,7 @@ projectName: "Assembly2").ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1708,7 +1708,7 @@ projectName: "Assembly2").ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1749,7 +1749,7 @@ projectName: "Assembly2").ConfigureAwait(true);
         }
 
         [WorkItem(850101)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile_Usings_Folder()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1795,7 +1795,7 @@ existingFilename: "Test2.vb",
 projectName: "Assembly2").ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1840,7 +1840,7 @@ existingFilename: "Test2.vb",
 projectName: "Assembly2").ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyTargetFile()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1937,7 +1937,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         #region Bugfix 
         [WorkItem(861462)]
         [WorkItem(873066)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1961,7 +1961,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         }
 
         [WorkItem(861462)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_2()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -1984,7 +1984,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         }
 
         [WorkItem(861462)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithProperAccessibilityAndTypeKind_3()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2007,7 +2007,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOpt
         }
 
         [WorkItem(861362)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInMemberAccessExpression()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2038,7 +2038,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         }
 
         [WorkItem(861362)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInMemberAccessExpressionInNamespace()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2076,7 +2076,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         }
 
         [WorkItem(861600)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithoutEnumForGenericsInMemberAccess()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2115,7 +2115,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         }
 
         [WorkItem(861600)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithoutEnumForGenericsInNameContext()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2154,7 +2154,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         }
 
         [WorkItem(861600)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInMemberAccessWithNSForModule()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2192,7 +2192,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         }
 
         [WorkItem(861600)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInMemberAccessWithGlobalNSForModule()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2223,7 +2223,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         }
 
         [WorkItem(861600)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeInMemberAccessWithoutNS()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2245,7 +2245,7 @@ isMissing: true).ConfigureAwait(true);
 
         [WorkItem(876202)]
         [WorkItem(883531)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_NoParameterLessConstructorForStruct()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2276,7 +2276,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         }
         #endregion
         #region Delegates
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2311,7 +2311,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup_Generics()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2346,7 +2346,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_ObjectCreationExpression_Delegate()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2379,7 +2379,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_ObjectCreationExpression_Action()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2412,7 +2412,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_ObjectCreationExpression_Func()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2445,7 +2445,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_ObjectCreationExpression_ParenLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2474,7 +2474,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2504,7 +2504,7 @@ assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOp
         }
 
         [WorkItem(872935)]
-        [WpfFact(Skip = "872935"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact(Skip = "872935"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2533,7 +2533,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_VarDecl_MethodGroup()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2568,7 +2568,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_VarDecl_Delegate()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2603,7 +2603,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_VarDecl_Action()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2636,7 +2636,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_VarDecl_Func()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2669,7 +2669,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_VarDecl_ParenLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2699,7 +2699,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_VarDecl_SimpleLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2728,7 +2728,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_Cast_MethodGroup()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2763,7 +2763,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_Cast_Delegate()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2798,7 +2798,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_Cast_Action()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2831,7 +2831,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_Cast_Func()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2864,7 +2864,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_Cast_ParenLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2894,7 +2894,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_Cast_SimpleLambda()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2961,7 +2961,7 @@ projectName: "Assembly2").ConfigureAwait(true);
         }
 
         [WorkItem(860210)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_NoInfo()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -2990,7 +2990,7 @@ isNewFile: false).ConfigureAwait(true);
         }
         #endregion 
         #region Dev12Filtering
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_NoEnum_InvocationExpression_0()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3020,7 +3020,7 @@ isNewFile: false,
 assertTypeKindAbsent: new[] { TypeKindOptions.Enum }).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateDelegateType_NoEnum_InvocationExpression_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3057,7 +3057,7 @@ isNewFile: false,
 assertTypeKindAbsent: new[] { TypeKindOptions.Enum }).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_TypeConstraint_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3094,7 +3094,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_TypeConstraint_2()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3137,7 +3137,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_TypeConstraint_3()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3186,7 +3186,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithProperAccessibilityWithNesting_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3215,7 +3215,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithProperAccessibilityWithNesting_2()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3244,7 +3244,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateTypeWithProperAccessibilityWithNesting_3()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3279,7 +3279,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_Event_1()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3312,7 +3312,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_Event_2()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3337,7 +3337,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_Event_3()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3372,7 +3372,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_Event_4()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3399,7 +3399,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_Event_5()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3440,7 +3440,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_Event_6()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3473,7 +3473,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_Event_7()
         {
             await TestWithMockedGenerateTypeDialog(
@@ -3506,7 +3506,7 @@ isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate)).ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateType_Event_8()
         {
             await TestWithMockedGenerateTypeDialog(
