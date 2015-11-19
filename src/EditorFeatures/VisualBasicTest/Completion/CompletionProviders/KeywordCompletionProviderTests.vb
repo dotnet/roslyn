@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -34,14 +35,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub InEmptyFile()
+        Public Async Function InEmptyFile() As Threading.Tasks.Task
 
             Dim markup = "$$"
-            VerifyAnyItemExists(markup)
-        End Sub
+            Await VerifyAnyItemExistsAsync(markup)
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInInactiveCode()
+        Public Async Function TestNotInInactiveCode() As Task
             Dim code = <Text>
 Class C
     Sub Main(args As String())
@@ -52,11 +53,11 @@ Class C
 End Class
 </Text>.Value
 
-            VerifyNoItemsExist(code)
-        End Sub
+            Await VerifyNoItemsExistAsync(code)
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInString()
+        Public Async Function TestNotInString() As Task
             Dim code = <Text>
 Class C
     Sub Main(args As String())
@@ -65,12 +66,12 @@ Class C
 End Class
 </Text>.Value
 
-            VerifyNoItemsExist(code)
-        End Sub
+            Await VerifyNoItemsExistAsync(code)
+        End Function
 
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInUnterminatedString()
+        Public Async Function TestNotInUnterminatedString() As Task
             Dim code = <Text>
 Class C
     Sub Main(args As String())
@@ -79,11 +80,11 @@ Class C
 End Class
 </Text>.Value
 
-            VerifyNoItemsExist(code)
-        End Sub
+            Await VerifyNoItemsExistAsync(code)
+        End Function
 
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInSingleLineComment()
+        Public Async Function TestNotInSingleLineComment() As Task
             Dim code = <Text>
 Class C
     Sub Main(args As String())
@@ -92,12 +93,12 @@ Class C
 End Class
 </Text>.Value
 
-            VerifyNoItemsExist(code)
-        End Sub
+            Await VerifyNoItemsExistAsync(code)
+        End Function
 
         <WorkItem(968256)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub UnionOfKeywordsFromBothFiles()
+        Public Async Function TestUnionOfKeywordsFromBothFiles() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true">
                                  <Document FilePath="CurrentDocument.vb"><![CDATA[
@@ -119,13 +120,13 @@ End Class]]>
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            VerifyItemInLinkedFiles(markup, "Public", Nothing)
-            VerifyItemInLinkedFiles(markup, "For", Nothing)
-        End Sub
+            Await VerifyItemInLinkedFilesAsync(markup, "Public", Nothing)
+            Await VerifyItemInLinkedFilesAsync(markup, "For", Nothing)
+        End Function
 
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInInteger()
+        Public Async Function TestNotInInteger() As Task
             Dim code = <Text>
 Class C
     Sub Main(args As String())
@@ -134,12 +135,12 @@ Class C
 End Class
 </Text>.Value
 
-            VerifyNoItemsExist(code)
-        End Sub
+            Await VerifyNoItemsExistAsync(code)
+        End Function
 
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInDecimal()
+        Public Async Function TestNotInDecimal() As Task
             Dim code = <Text>
 Class C
     Sub Main(args As String())
@@ -148,12 +149,12 @@ Class C
 End Class
 </Text>.Value
 
-            VerifyNoItemsExist(code)
-        End Sub
+            Await VerifyNoItemsExistAsync(code)
+        End Function
 
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInFloat()
+        Public Async Function TestNotInFloat() As Task
             Dim code = <Text>
 Class C
     Sub Main(args As String())
@@ -162,12 +163,12 @@ Class C
 End Class
 </Text>.Value
 
-            VerifyNoItemsExist(code)
-        End Sub
+            Await VerifyNoItemsExistAsync(code)
+        End Function
 
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NotInDate()
+        Public Async Function TestNotInDate() As Task
             Dim code = <Text>
 Class C
     Sub Main(args As String())
@@ -176,12 +177,12 @@ Class C
 End Class
 </Text>.Value
 
-            VerifyNoItemsExist(code)
-        End Sub
+            Await VerifyNoItemsExistAsync(code)
+        End Function
 
         <WorkItem(4167, "https://github.com/dotnet/roslyn/issues/4167")>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub ImplementsAfterSub()
+        Public Async Function ImplementsAfterSub() As Threading.Tasks.Task
             Dim code = "
 Interface I
 End Interface
@@ -194,7 +195,7 @@ Class C
 End Class
 "
 
-            VerifyItemExists(code, "Implements")
-        End Sub
+            Await VerifyItemExistsAsync(code, "Implements")
+        End Function
     End Class
 End Namespace

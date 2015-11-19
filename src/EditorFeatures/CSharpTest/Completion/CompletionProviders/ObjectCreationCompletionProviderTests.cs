@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InObjectCreation()
+        public async Task InObjectCreation()
         {
             var markup = @"
 class MyGeneric<T> { }
@@ -31,11 +31,11 @@ void foo()
    MyGeneric<string> foo = new $$
 }";
 
-            VerifyItemExists(markup, "MyGeneric<string>");
+            await VerifyItemExistsAsync(markup, "MyGeneric<string>");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotInAnonymousTypeObjectCreation1()
+        public async Task NotInAnonymousTypeObjectCreation1()
         {
             var markup = @"
 class C
@@ -46,12 +46,12 @@ class C
     }
 }";
 
-            VerifyItemIsAbsent(markup, "<anonymous type: string Foo, int Bar>");
+            await VerifyItemIsAbsentAsync(markup, "<anonymous type: string Foo, int Bar>");
         }
 
         [WorkItem(854497)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotVoid()
+        public async Task NotVoid()
         {
             var markup = @"
 class C
@@ -62,12 +62,12 @@ class C
     }
 }";
 
-            VerifyItemIsAbsent(markup, "void");
+            await VerifyItemIsAbsentAsync(markup, "void");
         }
 
         [WorkItem(827897)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InYieldReturn()
+        public async Task InYieldReturn()
         {
             var markup =
 @"using System;
@@ -80,12 +80,12 @@ class Program
         yield return new $$
     }
 }";
-            VerifyItemExists(markup, "FieldAccessException");
+            await VerifyItemExistsAsync(markup, "FieldAccessException");
         }
 
         [WorkItem(827897)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InAsyncMethodReturnStatement()
+        public async Task InAsyncMethodReturnStatement()
         {
             var markup =
 @"using System;
@@ -99,7 +99,7 @@ class Program
         return new $$
     }
 }";
-            VerifyItemExists(markup, "FieldAccessException");
+            await VerifyItemExistsAsync(markup, "FieldAccessException");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -149,7 +149,7 @@ class Program
 
         [WorkItem(828196)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SuggestAlias()
+        public async Task SuggestAlias()
         {
             var markup = @"
 using D = System.Globalization.DigitShapes; 
@@ -160,12 +160,12 @@ class Program
         D d=  new $$
     }
 }";
-            VerifyItemExists(markup, "D");
+            await VerifyItemExistsAsync(markup, "D");
         }
 
         [WorkItem(828196)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SuggestAlias2()
+        public async Task SuggestAlias2()
         {
             var markup = @"
 namespace N
@@ -181,12 +181,12 @@ class Program
 }
 
 ";
-            VerifyItemExists(markup, "D");
+            await VerifyItemExistsAsync(markup, "D");
         }
 
         [WorkItem(1075275)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitAlias()
+        public async Task CommitAlias()
         {
             var markup = @"
 using D = System.Globalization.DigitShapes; 
@@ -207,12 +207,12 @@ class Program
         D d=  new D(
     }
 }";
-            VerifyProviderCommit(markup, "D", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "D", expected, '(', "");
         }
 
         [WorkItem(1090377)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterNewFollowedByAssignment()
+        public async Task AfterNewFollowedByAssignment()
         {
             var markup = @"
 class Location {}
@@ -233,12 +233,12 @@ class Foo
 }
 
 ";
-            VerifyItemExists(markup, "Location");
+            await VerifyItemExistsAsync(markup, "Location");
         }
 
         [WorkItem(1090377)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterNewFollowedByAssignment_GrandParentIsSimpleAssignment()
+        public async Task AfterNewFollowedByAssignment_GrandParentIsSimpleAssignment()
         {
             var markup = @"
 class Program
@@ -249,12 +249,12 @@ class Program
         bool b = false;
     }
 }";
-            VerifyItemExists(markup, "Program");
+            await VerifyItemExistsAsync(markup, "Program");
         }
 
         [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterNewFollowedBySimpleAssignment_GrandParentIsEqualsValueClause()
+        public async Task AfterNewFollowedBySimpleAssignment_GrandParentIsEqualsValueClause()
         {
             var markup = @"
 class Program
@@ -266,12 +266,12 @@ class Program
         b = false;
     }
 }";
-            VerifyItemExists(markup, "Program");
+            await VerifyItemExistsAsync(markup, "Program");
         }
 
         [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause()
+        public async Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause()
         {
             var markup = @"
 class Program
@@ -283,12 +283,12 @@ class Program
         i += 5;
     }
 }";
-            VerifyItemExists(markup, "Program");
+            await VerifyItemExistsAsync(markup, "Program");
         }
 
         [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause2()
+        public async Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause2()
         {
             var markup = @"
 class Program
@@ -300,12 +300,12 @@ class Program
         i <<= 4;
     }
 }";
-            VerifyItemExists(markup, "Program");
+            await VerifyItemExistsAsync(markup, "Program");
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitObjectWithParenthesis1()
+        public async Task CommitObjectWithParenthesis1()
         {
             var markup = @"
 class C
@@ -325,12 +325,12 @@ class C
     }
 }";
 
-            VerifyProviderCommit(markup, "object", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '(', "");
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitObjectWithParenthesis2()
+        public async Task CommitObjectWithParenthesis2()
         {
             var markup = @"
 class C
@@ -354,12 +354,12 @@ class C
     void M2(object o) { }
 }";
 
-            VerifyProviderCommit(markup, "object", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '(', "");
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void DontCommitObjectWithOpenBrace1()
+        public async Task DontCommitObjectWithOpenBrace1()
         {
             var markup = @"
 class C
@@ -379,12 +379,12 @@ class C
     }
 }";
 
-            VerifyProviderCommit(markup, "object", expected, '{', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '{', "");
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void DontCommitObjectWithOpenBrace2()
+        public async Task DontCommitObjectWithOpenBrace2()
         {
             var markup = @"
 class C
@@ -408,12 +408,12 @@ class C
     void M2(object o) { }
 }";
 
-            VerifyProviderCommit(markup, "object", expected, '{', "");
+            await VerifyProviderCommitAsync(markup, "object", expected, '{', "");
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InExpressionBodiedProperty()
+        public async Task InExpressionBodiedProperty()
         {
             var markup =
 @"class C
@@ -421,12 +421,12 @@ class C
     object Object => new $$
 }
 ";
-            VerifyItemExists(markup, "object");
+            await VerifyItemExistsAsync(markup, "object");
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InExpressionBodiedMethod()
+        public async Task InExpressionBodiedMethod()
         {
             var markup =
 @"class C
@@ -434,7 +434,7 @@ class C
     object GetObject() => new $$
 }
 ";
-            VerifyItemExists(markup, "object");
+            await VerifyItemExistsAsync(markup, "object");
         }
     }
 }

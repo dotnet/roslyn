@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             return actualItem.Equals(expectedItem, StringComparison.OrdinalIgnoreCase);
         }
 
-        protected override void VerifyWorker(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
+        protected override Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
         {
-            BaseVerifyWorker(code,
+            return BaseVerifyWorkerAsync(code,
                 position,
                 expectedItemOrNull,
                 expectedDescriptionOrNull,
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
                 glyph);
         }
 
-        private void VerifyItemsExistInScriptAndInteractive(string code, params string[] expected)
+        private async Task VerifyItemsExistInScriptAndInteractiveAsync(string code, params string[] expected)
         {
             foreach (var ex in expected)
             {
-                VerifyItemExists(code, ex, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+                await VerifyItemExistsAsync(code, ex, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
         }
 
@@ -92,42 +92,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void RootDrives()
+        public async Task RootDrives()
         {
             // ensure drives are listed without the trailing backslash
             var drive = Environment.GetLogicalDrives().First().TrimEnd('\\');
-            VerifyItemsExistInScriptAndInteractive(
+            await VerifyItemsExistInScriptAndInteractiveAsync(
                 "#r \"$$",
                 drive);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void RelativeDirectories()
+        public async Task RelativeDirectories()
         {
-            VerifyItemsExistInScriptAndInteractive(
+            await VerifyItemsExistInScriptAndInteractiveAsync(
                 "#r \"$$",
                 ".",
                 "..");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void GACReference()
+        public async Task GACReference()
         {
-            VerifyItemsExistInScriptAndInteractive(
+            await VerifyItemsExistInScriptAndInteractiveAsync(
                 "#r \"$$",
                 "System.Windows.Forms");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void GACReferenceFullyQualified()
+        public async Task GACReferenceFullyQualified()
         {
-            VerifyItemsExistInScriptAndInteractive(
+            await VerifyItemsExistInScriptAndInteractiveAsync(
                 "#r \"System.Windows.Forms,$$",
                 "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void FileSystemReference()
+        public async Task FileSystemReference()
         {
             string systemDir = Path.GetFullPath(Environment.SystemDirectory);
             DirectoryInfo windowsDir = System.IO.Directory.GetParent(systemDir);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             var windowsFolderName = Path.GetFileName(normalizedWindowsPath);
 
             var code = "#r \"" + windowsRoot + "$$";
-            VerifyItemsExistInScriptAndInteractive(
+            await VerifyItemsExistInScriptAndInteractiveAsync(
                 code,
                 windowsFolderName);
         }

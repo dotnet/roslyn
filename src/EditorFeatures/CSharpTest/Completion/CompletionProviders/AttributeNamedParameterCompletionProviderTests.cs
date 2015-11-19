@@ -65,7 +65,7 @@ public class TestAttribute : Attribute
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void SimpleAttributeUsage()
+        public async Task SimpleAttributeUsage()
         {
             var markup = @"
 using System;
@@ -82,11 +82,11 @@ public class TestAttribute : Attribute
     public ConsoleColor Color { get; set; }
 }";
 
-            VerifyItemExists(markup, "Color =");
+            await VerifyItemExistsAsync(markup, "Color =");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterComma()
+        public async Task AfterComma()
         {
             var markup = @"
 using System;
@@ -104,12 +104,12 @@ public class TestAttribute : Attribute
     public string Text { get; set; }
 }";
 
-            VerifyItemExists(markup, "Text =");
+            await VerifyItemExistsAsync(markup, "Text =");
         }
 
         [WorkItem(544345)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void ExistingItemsAreFiltered()
+        public async Task ExistingItemsAreFiltered()
         {
             var markup = @"
 using System;
@@ -127,12 +127,12 @@ public class TestAttribute : Attribute
     public string Text { get; set; }
 }";
 
-            VerifyItemExists(markup, "Text =");
-            VerifyItemIsAbsent(markup, "Color =");
+            await VerifyItemExistsAsync(markup, "Text =");
+            await VerifyItemIsAbsentAsync(markup, "Color =");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AttributeConstructor()
+        public async Task AttributeConstructor()
         {
             var markup = @"
 using System;
@@ -147,11 +147,11 @@ class Foo
 { }
 ";
 
-            VerifyItemExists(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a:");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AttributeConstructorAfterComma()
+        public async Task AttributeConstructorAfterComma()
         {
             var markup = @"
 using System;
@@ -166,12 +166,12 @@ class Foo
 { }
 ";
 
-            VerifyItemExists(markup, "a:");
+            await VerifyItemExistsAsync(markup, "a:");
         }
 
         [WorkItem(545426)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void TestPropertiesInScript()
+        public async Task TestPropertiesInScript()
         {
             var markup = @"
 using System;
@@ -189,12 +189,12 @@ class Foo
 {
 }";
 
-            VerifyItemExists(markup, "Text =");
+            await VerifyItemExistsAsync(markup, "Text =");
         }
 
         [WorkItem(1075278)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotInComment()
+        public async Task NotInComment()
         {
             var markup = @"
 using System;
@@ -211,7 +211,7 @@ public class TestAttribute : Attribute
     public ConsoleColor Color { get; set; }
 }";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
     }
 }

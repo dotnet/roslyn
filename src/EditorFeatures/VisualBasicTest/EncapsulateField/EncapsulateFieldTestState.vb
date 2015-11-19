@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
                 GetType(DefaultDocumentSupportsFeatureService)))
 
         Private Sub New(workspace As TestWorkspace)
-            workspace = workspace
+            Me.Workspace = workspace
             _testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue OrElse d.SelectedSpans.Any())
             TargetDocument = workspace.CurrentSolution.GetDocument(_testDocument.Id)
         End Sub

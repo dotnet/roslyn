@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -20,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NoAliases()
+        public async Task NoAliases()
         {
-            VerifyNoItemsExist(@"
+            await VerifyNoItemsExistAsync(@"
 extern alias $$
 class C
 {
@@ -30,45 +31,45 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void ExternAlias()
+        public async Task ExternAlias()
         {
             var markup = @"
 extern alias $$ ";
-            VerifyItemWithAliasedMetadataReferences(markup, "foo", "foo", 1, "C#", "C#", false);
+            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "foo", "foo", 1, "C#", "C#", false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotAfterExternAlias()
+        public async Task NotAfterExternAlias()
         {
             var markup = @"
 extern alias foo $$ ";
-            VerifyItemWithAliasedMetadataReferences(markup, "foo", "foo", 0, "C#", "C#", false);
+            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "foo", "foo", 0, "C#", "C#", false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotGlobal()
+        public async Task NotGlobal()
         {
             var markup = @"
 extern alias $$ ";
-            VerifyItemWithAliasedMetadataReferences(markup, "foo", "global", 0, "C#", "C#", false);
+            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "foo", "global", 0, "C#", "C#", false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotIfAlreadyUsed()
+        public async Task NotIfAlreadyUsed()
         {
             var markup = @"
 extern alias foo;
 extern alias $$";
-            VerifyItemWithAliasedMetadataReferences(markup, "foo", "foo", 0, "C#", "C#", false);
+            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "foo", "foo", 0, "C#", "C#", false);
         }
 
         [WorkItem(1075278)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotInComment()
+        public async Task NotInComment()
         {
             var markup = @"
 extern alias // $$ ";
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
     }
 }
