@@ -75,16 +75,16 @@ namespace N
         public static C operator !(C c) { return c; }
         public static C operator +(C c) { return c; }
 
-        public async Task MNotStatic() { }
+        public void MNotStatic() { }
         public static void MStatic() { }
         private void MAccessA() { }
         internal void MAccessB() { }
         protected internal void MAccessC() { }
         protected void MAccessD() { }
-        public async Task MAccessE() { }
-        public async Task MGeneric<T1, T2>() { }
-        public async Task MGeneric<T>(int param) { }
-        public async Task MGeneric<T>() { }
+        public void MAccessE() { }
+        public void MGeneric<T1, T2>() { }
+        public void MGeneric<T>(int param) { }
+        public void MGeneric<T>() { }
 
         public int M2NotStatic() { return 0; }
         public static int M2Static() { return 0; }
@@ -184,11 +184,11 @@ namespace N
         public int M2Generic<T>(int param);
         public int M2Generic<T1, T2>();
         public int M2NotStatic();
-        public async Task MAccessE();
-        public async Task MGeneric<T>();
-        public async Task MGeneric<T>(int param);
-        public async Task MGeneric<T1, T2>();
-        public async Task MNotStatic();
+        public void MAccessE();
+        public void MGeneric<T>();
+        public void MGeneric<T>(int param);
+        public void MGeneric<T1, T2>();
+        public void MNotStatic();
         protected int M2AccessD();
         protected void MAccessD();
         protected internal int M2AccessC();
