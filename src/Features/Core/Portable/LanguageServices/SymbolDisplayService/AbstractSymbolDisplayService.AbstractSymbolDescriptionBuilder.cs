@@ -131,12 +131,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 // it is from one of its p2p references
-                foreach (var reference in model.Compilation.References.OfType<CompilationReference>())
+                foreach (var referencedCompilation in model.Compilation.GetReferencedCompilations())
                 {
                     // find the reference that contains the given tree
-                    if (reference.Compilation.ContainsSyntaxTree(tree))
+                    if (referencedCompilation.ContainsSyntaxTree(tree))
                     {
-                        return reference.Compilation.GetSemanticModel(tree);
+                        return referencedCompilation.GetSemanticModel(tree);
                     }
                 }
 

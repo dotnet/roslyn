@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -28,40 +29,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup, options))
             {
-                var position = workspace.Documents.Single().CursorPosition.Value;
-
-                var noListeners = SpecializedCollections.EmptyEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>>();
-
-                var provider = new SemanticQuickInfoProvider(
-                    workspace.GetService<ITextBufferFactoryService>(),
-                    workspace.GetService<IContentTypeRegistryService>(),
-                    workspace.GetService<IProjectionBufferFactoryService>(),
-                    workspace.GetService<IEditorOptionsFactoryService>(),
-                    workspace.GetService<ITextEditorFactoryService>(),
-                    workspace.GetService<IGlyphService>(),
-                    workspace.GetService<ClassificationTypeMap>());
-
-                await TestWithOptionsAsync(workspace, provider, position, expectedResults);
-
-                // speculative semantic model
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
-                if (CanUseSpeculativeSemanticModel(document, position))
-                {
-                    var buffer = workspace.Documents.Single().TextBuffer;
-                    using (var edit = buffer.CreateEdit())
-                    {
-                        edit.Replace(0, buffer.CurrentSnapshot.Length, buffer.CurrentSnapshot.GetText());
-                        edit.Apply();
-                    }
-
-                    await TestWithOptionsAsync(workspace, provider, position, expectedResults);
-                }
+                await TestWithOptionsAsync(workspace, expectedResults);
             }
         }
 
-        private async Task TestWithOptionsAsync(TestWorkspace workspace, SemanticQuickInfoProvider provider, int position, Action<object>[] expectedResults)
+        private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<object>[] expectedResults)
         {
-            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            var testDocument = workspace.DocumentWithCursor;
+            var position = testDocument.CursorPosition.GetValueOrDefault();
+            var documentId = workspace.GetDocumentId(testDocument);
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+
+            var provider = new SemanticQuickInfoProvider(
+                workspace.GetService<ITextBufferFactoryService>(),
+                workspace.GetService<IContentTypeRegistryService>(),
+                workspace.GetService<IProjectionBufferFactoryService>(),
+                workspace.GetService<IEditorOptionsFactoryService>(),
+                workspace.GetService<ITextEditorFactoryService>(),
+                workspace.GetService<IGlyphService>(),
+                workspace.GetService<ClassificationTypeMap>());
+
+            await TestWithOptionsAsync(document, provider, position, expectedResults);
+
+            // speculative semantic model
+            if (CanUseSpeculativeSemanticModel(document, position))
+            {
+                var buffer = testDocument.TextBuffer;
+                using (var edit = buffer.CreateEdit())
+                {
+                    var currentSnapshot = buffer.CurrentSnapshot;
+                    edit.Replace(0, currentSnapshot.Length, currentSnapshot.GetText());
+                    edit.Apply();
+                }
+
+                await TestWithOptionsAsync(document, provider, position, expectedResults);
+            }
+        }
+
+        private async Task TestWithOptionsAsync(Document document, SemanticQuickInfoProvider provider, int position, Action<object>[] expectedResults)
+        {
             var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
             if (state != null)
             {
@@ -4206,6 +4212,26 @@ class C
 }
 ",
                 Documentation(@"string http://microsoft.com null cat"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(6657, "https://github.com/dotnet/roslyn/issues/6657")]
+        public async Task OptionalParameterFromPreviousSubmission()
+        {
+            const string workspaceDefinition = @"
+<Workspace>
+    <Submission Language=""C#"" CommonReferences=""true"">
+        void M(int x = 1) { }
+    </Submission>
+    <Submission Language=""C#"" CommonReferences=""true"">
+        M(x$$: 2)
+    </Submission>
+</Workspace>
+";
+            using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
+            {
+                await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
+            }
         }
     }
 }
