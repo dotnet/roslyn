@@ -2318,5 +2318,94 @@ End Module]]></Document>)
                 Await state.AssertSelectedCompletionItem("E").ConfigureAwait(True)
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselection3() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Class D
+End Class
+Class Program
+
+    Sub Main(string() args)
+    
+       Dim cw = 7
+       Dim cx as D = new D()
+       Dim  cx2 as D = $$
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionLocalsOverType() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Class A 
+End Class
+Class Program
+
+    Sub Main(string() args)
+    
+       Dim  cx = new A()
+       Dim cx2 as A = $$
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact(Skip:="Not yet implemented"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionConvertibility1() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+Mustinherit Class C 
+End Class
+Class D 
+inherits C
+End Class
+Class Program
+    Sub Main(string() args)
+    
+       Dim cx = new D()
+       Dim cx2 as C = $$
+    End Sub
+End Class
+]]></Document>)
+                state.SendTypeChars("c")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionParamsArray() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                           <Document><![CDATA[
+
+Class Program
+
+    Sub Main(string() args)
+    
+       Dim azc as integer
+       M2(a$$
+    End Sub
+    Sub M2(params int() yx)  
+    End Sub
+End Class
+ 
+]]></Document>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("azc", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
     End Class
 End Namespace
