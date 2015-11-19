@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var parameters = parameterizedSymbols.SelectMany(m => m)
                                                         .Where(p => p.Name == name)
-                                                        .Select(p => p.Type);
+                                                        .SelectMany(p => ExpandParamsParameter(p));
                     if (parameters.Any())
                     {
                         return parameters;
@@ -679,13 +679,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // based on index.
                     var q = from parameterSet in parameterizedSymbols
                             where index < parameterSet.Length
-                            select parameterSet[index].Type;
+                            select ExpandParamsParameter(parameterSet[index]);
 
-                    return q;
+                    return q.SelectMany(i => i);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
+
+         
 
             private IEnumerable<ITypeSymbol> InferTypeInArrayCreationExpression(
                 ArrayCreationExpressionSyntax arrayCreationExpression, SyntaxToken? previousToken = null)

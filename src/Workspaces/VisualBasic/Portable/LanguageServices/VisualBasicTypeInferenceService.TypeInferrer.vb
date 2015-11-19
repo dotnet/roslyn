@@ -323,11 +323,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         .SelectMany(Function(m) m) _
                                         .Where(Function(p) p.Name = simpleArgument.NameColonEquals.Name.Identifier.ValueText)
 
-                    Return parameters.Select(Function(p) p.Type)
+                    Return parameters.SelectMany(Function(p) ExpandParamsParameter(p))
                 Else
                     ' Otherwise, just take the first overload and pick what type this parameter is
                     ' based on index.
-                    Return parameterizedSymbols.Where(Function(a) index < a.Length).Select(Function(a) a(index).Type)
+                    Return parameterizedSymbols.Where(Function(a) index < a.Length).SelectMany(Function(a) ExpandParamsParameter(a(index)))
                 End If
 
                 Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()

@@ -74,6 +74,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                             .Distinct()
                             .ToImmutableReadOnlyListOrEmpty();
             }
+
+            protected IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol p)
+            {
+                var result = SpecializedCollections.SingletonEnumerable(p.Type);
+                if (p.IsParams)
+                {
+                    result = result.Concat((p.Type as IArrayTypeSymbol).ElementType);
+                }
+
+                return result;
+            }
         }
 
         protected abstract AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken);
