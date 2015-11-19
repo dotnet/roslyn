@@ -38,6 +38,8 @@ if defined Perf (
 
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
+powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
+
 REM Restore the NuGet packages 
 if "%BuildRestore%" == "true" (
     call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
