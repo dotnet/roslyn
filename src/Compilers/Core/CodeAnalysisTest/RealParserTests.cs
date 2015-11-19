@@ -367,6 +367,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "40497058210285131854513962138377228261454376934125320985913276672363" +
                 "28125001e-324",
                 0x0000000000000001);
+
+            CheckOneDouble("1.0e-99999999999999999999", 0.0);
+            CheckOneDouble("0e-99999999999999999999", 0.0);
+            CheckOneDouble("0e99999999999999999999", 0.0);
         }
 
         static void TestRoundTripDouble(ulong bits)
@@ -548,10 +552,6 @@ Error for double input ""{s}""
             // 0.11111111111111111111111011
             //                          ^
             CheckOneFloat("0.99999992549419403076171875", 0x3f7fffff);
-
-            CheckOneDouble("1.0e-99999999999999999999", 0.0);
-            CheckOneDouble("0e-99999999999999999999", 0.0);
-            CheckOneDouble("0e99999999999999999999", 0.0);
         }
 
 
