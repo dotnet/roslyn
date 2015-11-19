@@ -299,7 +299,7 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)
-                          End Function|]
+                          End Sub|]
     End Sub
 End Class</text>
 
@@ -321,7 +321,7 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)
-                          End Function
+                          End Sub
     End Sub
 End Class</text>
 
@@ -341,7 +341,7 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)
-                          End Function
+                            End Sub
 
         Dim d2 As Action = Sub()
                                Dim i As Integer = 1
@@ -349,7 +349,7 @@ Class A
                                    Return
                                End If
                                Console.WriteLine(1)
-                           End Function|]
+                           End Sub|]
 
         Console.WriteLine(1)
     End Sub
@@ -371,7 +371,7 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)
-                          End Function
+                          End Sub
 
         Dim d2 As Action = Sub()
                                Dim i As Integer = 1
@@ -379,7 +379,7 @@ Class A
                                    Return
                                End If
                                Console.WriteLine(1)
-                           End Function
+                           End Sub
     End Sub
 End Class</text>
 
@@ -399,7 +399,7 @@ Class A
                                   Return
                               End If
                               Console.WriteLine(1)|]
-                          End Function
+                          End Sub
     End Sub
 End Class</text>
 
@@ -409,7 +409,7 @@ Class A
     Sub Test()
         Dim d As Action = Sub()
                               NewMethod()
-                          End Function
+                          End Sub
     End Sub
 
     Private Shared Sub NewMethod()
