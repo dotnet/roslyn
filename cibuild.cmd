@@ -25,6 +25,8 @@ if /I "%1" == "/restore" set BuildRestore=true&&shift&& goto :ParseArguments
 call :Usage && exit /b 1
 :DoneParsing
 
+set
+
 if defined Perf (
   if defined Test64 (
     echo ERROR: Cannot combine /perf with either /test32 or /test64
