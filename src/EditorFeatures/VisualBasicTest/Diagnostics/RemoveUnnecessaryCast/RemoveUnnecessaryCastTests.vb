@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
         End Function
 
         <WorkItem(545979)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToErrorType()
             Dim markup =
 <File>
@@ -29,7 +29,7 @@ End Module
         End Sub
 
         <WorkItem(545148)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub ParenthesizeToKeepParseTheSame1()
             Dim markup =
 <File>
@@ -59,7 +59,7 @@ End Module
         End Sub
 
         <WorkItem(530762)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub ParenthesizeToKeepParseTheSame2()
             Dim markup =
 <File>
@@ -83,7 +83,7 @@ End Module
         End Sub
 
         <WorkItem(530762)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub ParenthesizeToKeepParseTheSame3()
             Dim markup =
 <File>
@@ -107,7 +107,7 @@ End Module
         End Sub
 
         <WorkItem(545149)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub InsertCallKeywordIfNecessary1()
             Dim markup =
 <File>
@@ -131,7 +131,7 @@ End Module
         End Sub
 
         <WorkItem(545150)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub InsertCallKeywordIfNecessary2()
             Dim markup =
 <File>
@@ -159,7 +159,7 @@ End Module
         End Sub
 
         <WorkItem(545229)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub InsertCallKeywordIfNecessary3()
             Dim code =
 <File>
@@ -190,7 +190,7 @@ End Class
 
         <WorkItem(545528)>
         <WorkItem(16488, "DevDiv_Projects/Roslyn")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub AddExplicitArgumentListIfNecessary1()
             Dim markup =
 <File>
@@ -218,7 +218,7 @@ End Module
         End Sub
 
         <WorkItem(545134)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveConversionFromNullableLongToIComparable()
             Dim markup =
 <File>
@@ -235,7 +235,7 @@ End Class
         End Sub
 
         <WorkItem(545151)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveArrayLiteralConversion()
             Dim markup =
 <File>
@@ -251,7 +251,7 @@ End Module
         End Sub
 
         <WorkItem(545152)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveAddressOfCastToDelegate()
             Dim markup =
 <File>
@@ -268,7 +268,7 @@ End Module
         End Sub
 
         <WorkItem(545311)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInLambda1()
             Dim markup =
 <File>
@@ -292,7 +292,7 @@ End Module
         End Sub
 
         <WorkItem(545311)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInLambda2()
             Dim markup =
 <File>
@@ -320,7 +320,7 @@ End Module
         End Sub
 
         <WorkItem(545311)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInLambda3()
             Dim markup =
 <File>
@@ -353,7 +353,7 @@ End Module
         End Sub
 
         <WorkItem(545311)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInFunctionStatement()
             Dim markup =
 <File>
@@ -377,7 +377,7 @@ End Module
         End Sub
 
         <WorkItem(545311)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInFunctionVariableAssignment()
             Dim markup =
 <File>
@@ -401,7 +401,7 @@ End Module
         End Sub
 
         <WorkItem(545312)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInBinaryExpression()
             Dim markup =
 <File>
@@ -429,7 +429,7 @@ End Module
         End Sub
 
         <WorkItem(545423)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInsideCaseLabel()
             Dim markup =
 <File>
@@ -457,7 +457,7 @@ End Module
         End Sub
 
         <WorkItem(545421)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInOptionalParameterValue()
             Dim markup =
 <File>
@@ -481,7 +481,7 @@ End Module
         End Sub
 
         <WorkItem(545579)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInRangeCaseClause1()
             Dim markup =
 <File>
@@ -511,7 +511,7 @@ End Module
         End Sub
 
         <WorkItem(545579)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastInRangeCaseClause2()
             Dim markup =
 <File>
@@ -541,7 +541,7 @@ End Module
         End Sub
 
         <WorkItem(545580)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastForLoop1()
             Dim markup =
 <File>
@@ -567,7 +567,7 @@ End Module
         End Sub
 
         <WorkItem(545580)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastForLoop2()
             Dim markup =
 <File>
@@ -593,7 +593,7 @@ End Module
         End Sub
 
         <WorkItem(545580)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnneededCastForLoop3()
             Dim markup =
 <File>
@@ -619,7 +619,7 @@ End Module
         End Sub
 
         <WorkItem(545599)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNeededCastWithUserDefinedConversionsAndOptionStrictOff()
             Dim markup =
 <File>
@@ -642,7 +642,7 @@ End Class
         End Sub
 
         <WorkItem(529535)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNeededCastWhenResultIsAmbiguous()
             Dim markup =
 <File>
@@ -690,7 +690,7 @@ End Module
         End Sub
 
         <WorkItem(545261)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastToNothingInArrayInitializer()
             Dim markup =
 <File>
@@ -714,7 +714,7 @@ End Module
         End Sub
 
         <WorkItem(545526)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastThatResultsInDifferentStringRepresentations()
             Dim markup =
 <File>
@@ -735,7 +735,7 @@ End Module
         End Sub
 
         <WorkItem(545631)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastThatChangesArrayLiteralTypeAndBreaksOverloadResolution()
             Dim markup =
 <File>
@@ -754,7 +754,7 @@ End Module
         End Sub
 
         <WorkItem(545456)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastInAttribute()
             Dim markup =
 <File>
@@ -792,7 +792,7 @@ End Class
         End Sub
 
         <WorkItem(545701)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub AddParenthesesIfCopyBackAffected1()
             Dim markup =
 <File>
@@ -826,7 +826,7 @@ End Module
         End Sub
 
         <WorkItem(545701)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub AddParenthesesIfCopyBackAffected2()
             Dim markup =
 <File>
@@ -860,7 +860,7 @@ End Module
         End Sub
 
         <WorkItem(545701)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub AddParenthesesIfCopyBackAffected3()
             Dim markup =
 <File>
@@ -894,7 +894,7 @@ End Module
         End Sub
 
         <WorkItem(545971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNecessaryCastPassedToParamArray1()
             Dim markup =
 <File>
@@ -912,7 +912,7 @@ End Module
         End Sub
 
         <WorkItem(545971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNecessaryCastPassedToParamArray2()
             Dim markup =
 <File>
@@ -930,7 +930,7 @@ End Module
         End Sub
 
         <WorkItem(545971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastPassedToParamArray1()
             Dim markup =
 <File>
@@ -960,7 +960,7 @@ End Module
         End Sub
 
         <WorkItem(545971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastPassedToParamArray2()
             Dim markup =
 <File>
@@ -990,7 +990,7 @@ End Module
         End Sub
 
         <WorkItem(545971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastPassedToParamArray3()
             Dim markup =
 <File>
@@ -1022,7 +1022,7 @@ End Module
         End Sub
 
         <WorkItem(545971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastPassedToParamArray4()
             Dim markup =
 <File>
@@ -1054,7 +1054,7 @@ End Module
         End Sub
 
         <WorkItem(545971)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastPassedToParamArray5()
             Dim markup =
 <File>
@@ -1085,7 +1085,7 @@ End Module
             Test(markup, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastToArrayLiteral1()
             Dim markup =
 <File>
@@ -1108,7 +1108,7 @@ End Module
             Test(markup, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNecessaryCastToArrayLiteral2()
             Dim markup =
 <File>
@@ -1126,7 +1126,7 @@ End Module
             TestMissing(markup)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNecessaryCastToArrayLiteral()
             Dim markup =
 <File>
@@ -1141,7 +1141,7 @@ End Module
         End Sub
 
         <WorkItem(545972)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastInBinaryIf1()
             Dim markup =
 <File>
@@ -1165,7 +1165,7 @@ End Class
         End Sub
 
         <WorkItem(545972)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastInBinaryIf2()
             Dim markup =
 <File>
@@ -1189,7 +1189,7 @@ End Class
         End Sub
 
         <WorkItem(545974)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastInObjectCreationExpression()
             Dim markup =
 <File>
@@ -1215,7 +1215,7 @@ End Module
         End Sub
 
         <WorkItem(545973)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastInSelectCase()
             Dim markup =
 <File>
@@ -1247,7 +1247,7 @@ End Module
         End Sub
 
         <WorkItem(545526)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToDoubleInOptionStrictOff()
             Dim markup =
 <File>
@@ -1268,7 +1268,7 @@ End Module
         End Sub
 
         <WorkItem(545828)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCStrInCharToStringToObjectChain()
             Dim markup =
 <File>
@@ -1285,7 +1285,7 @@ End Module
         End Sub
 
         <WorkItem(545808)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNecessaryCastWithMultipleUserDefinedConversionsAndOptionStrictOff()
             Dim markup =
 <File>
@@ -1311,7 +1311,7 @@ End Class
         End Sub
 
         <WorkItem(545998)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastWhichWouldChangeAttributeOverloadResolution()
             Dim markup =
 <File>
@@ -1332,7 +1332,7 @@ End Class
             TestMissing(markup)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontMoveTrailingComment()
             Dim markup =
 <File>
@@ -1359,7 +1359,7 @@ End Module
             Test(markup, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastInFieldInitializer()
             Dim markup =
 <File>
@@ -1388,7 +1388,7 @@ End Class
             Test(markup, expected, compareTokens:=False)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontDuplicateTrivia()
             Dim markup =
 <File>
@@ -1420,7 +1420,7 @@ End Module
         End Sub
 
         <WorkItem(531479)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub EscapeNextStatementIfNeeded()
             Dim markup =
 <File>
@@ -1456,7 +1456,7 @@ End Module
         End Sub
 
         <WorkItem(607749)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub Bugfix_607749()
             Dim markup =
 <File>
@@ -1488,7 +1488,7 @@ End Class
         End Sub
 
         <WorkItem(609477)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub Bugfix_609477()
             Dim markup =
 <File>
@@ -1515,7 +1515,7 @@ End Module
         End Sub
 
         <WorkItem(552813)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastWhileNarrowingWithOptionOn()
             Dim markup =
 <File>
@@ -1532,7 +1532,7 @@ End Module
         End Sub
 
         <WorkItem(577929)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastWhileDefaultingNullables()
             Dim markup =
 <File>
@@ -1547,7 +1547,7 @@ End Module
             TestMissing(markup)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastAroundAction()
             Dim markup =
 <File>
@@ -1576,7 +1576,7 @@ End Module
         End Sub
 
         <WorkItem(578016)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCStr()
             Dim markup =
 <File>Option Strict On
@@ -1594,7 +1594,7 @@ End Module
         End Sub
 
         <WorkItem(530105)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNumericCast()
             Dim markup =
 <File>
@@ -1606,7 +1606,7 @@ End Interface
         End Sub
 
         <WorkItem(530104)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCTypeFromNumberToEnum()
             Dim markup =
 <File>
@@ -1620,7 +1620,7 @@ End Interface
         End Sub
 
         <WorkItem(530077)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastForLambdaToDelegateConversionWithOptionStrictOn()
             Dim markup =
  <File>
@@ -1639,7 +1639,7 @@ End Module
         End Sub
 
         <WorkItem(529966)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveForNarrowingConversionFromObjectWithOptionStrictOnInsideQueryExpression()
             Dim markup =
 <File>
@@ -1658,7 +1658,7 @@ End Module
         End Sub
 
         <WorkItem(530650)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastFromLambdaToDelegateParenthesizeLambda()
             Dim markup =
 <File>
@@ -1685,7 +1685,7 @@ End Module
         End Sub
 
         <WorkItem(707189)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastFromInvocationStatement()
             Dim markup =
 <File>
@@ -1718,7 +1718,7 @@ End Module
         End Sub
 
         <WorkItem(707189)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastFromInvocationStatement2()
             Dim markup =
 <File>
@@ -1755,7 +1755,7 @@ End Class
         End Sub
 
         <WorkItem(768895)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveUnnecessaryCastInTernary()
             Dim markup =
 <File>
@@ -1780,7 +1780,7 @@ End Class
         End Sub
 
         <WorkItem(770187)>
-        <WpfFact(Skip:="770187"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(Skip:="770187"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNecessaryCastInSelectCaseExpression()
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
 
@@ -1825,7 +1825,7 @@ End Namespace]]>
         End Sub
 
         <WorkItem(770187)>
-        <WpfFact(Skip:="770187"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(Skip:="770187"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNecessaryCastInSelectCaseExpression2()
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
 
@@ -1870,7 +1870,7 @@ End Namespace]]>
         End Sub
 
         <WorkItem(770187)>
-        <WpfFact(Skip:="770187"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact(Skip:="770187"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveNecessaryCastInSelectCaseExpression3()
             ' Cast removal invokes a different user defined operator, hence the cast is necessary.
 
@@ -1917,7 +1917,7 @@ End Namespace]]>
 #Region "Interface Casts"
 
         <WorkItem(545889)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToInterfaceForUnsealedType()
             Dim markup =
 <File>
@@ -1947,7 +1947,7 @@ End Class
         End Sub
 
         <WorkItem(545890)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToInterfaceForSealedType1()
             ' Note: The cast below can be removed because C is sealed and the
             ' unspecified optional parameters of I.Foo() and C.Foo() have the
@@ -1996,7 +1996,7 @@ End Class
         End Sub
 
         <WorkItem(545890)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToInterfaceForSealedType2()
             ' Note: The cast below can be removed because C is sealed and the
             ' interface member has no parameters.
@@ -2048,7 +2048,7 @@ End Class
         End Sub
 
         <WorkItem(545890)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToInterfaceForSealedType3()
             ' Note: The cast below can be removed because C is sealed and the
             ' interface member has no parameters.
@@ -2112,7 +2112,7 @@ End Class
         End Sub
 
         <WorkItem(545890)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToInterfaceForSealedType4()
             ' Note: The cast below can't be removed (even though C is sealed)
             ' because the unspecified optional parameter default values differ.
@@ -2141,7 +2141,7 @@ End Class
         End Sub
 
         <WorkItem(545890)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToInterfaceForSealedType5()
             ' Note: The cast below cannot be removed (even though C is sealed)
             ' because default values differ for optional parameters and
@@ -2171,7 +2171,7 @@ End Class
         End Sub
 
         <WorkItem(545888)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToInterfaceForSealedType6()
             ' Note: The cast below can't be removed (even though C is sealed)
             ' because the specified named arguments refer to parameters that
@@ -2201,7 +2201,7 @@ End Class
         End Sub
 
         <WorkItem(545888)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToInterfaceForSealedType7()
             ' Note: The cast below can be removed as C is sealed and
             ' because the specified named arguments refer to parameters that
@@ -2250,7 +2250,7 @@ End Class
         End Sub
 
         <WorkItem(545888)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToInterfaceForSealedType9()
             ' Note: The cast below can't be removed (even though C is sealed)
             ' because it would result in binding to a Dispose method that doesn't
@@ -2278,7 +2278,7 @@ End Class
         End Sub
 
         <WorkItem(545887)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToInterfaceForStruct1()
             ' Note: The cast below can't be removed because the cast boxes 's' and
             ' unboxing would change program behavior.
@@ -2319,7 +2319,7 @@ End Structure
         End Sub
 
         <WorkItem(545834), WorkItem(530073)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToInterfaceForStruct2()
             ' Note: The cast below can be removed because we are sure to have
             ' a fresh copy of the struct from the GetEnumerator() method.
@@ -2361,7 +2361,7 @@ End Class
         End Sub
 
         <WorkItem(544655)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToICloneableForDelegate()
             ' Note: The cast below can be removed because delegates are implicitly sealed.
 
@@ -2394,7 +2394,7 @@ End Class
         End Sub
 
         <WorkItem(545926)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToICloneableForArray()
             ' Note: The cast below can be removed because arrays are implicitly sealed.
 
@@ -2425,7 +2425,7 @@ End Class
         End Sub
 
         <WorkItem(529937)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToICloneableForArray2()
             ' Note: The cast below can be removed because arrays are implicitly sealed.
 
@@ -2454,7 +2454,7 @@ End Module
         End Sub
 
         <WorkItem(529897)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastToIConvertibleForEnum()
             ' Note: The cast below can be removed because enums are implicitly sealed.
 
@@ -2487,7 +2487,7 @@ End Class
 
         <WorkItem(844482)>
         <WorkItem(1031406)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DoNotRemoveCastFromDerivedToBaseWithImplicitReference()
             ' Cast removal changes the runtime behavior of the program.
             Dim markup =
@@ -2510,7 +2510,7 @@ End Class
         End Sub
 
         <WorkItem(995908)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveCastIntroducesDuplicateAnnotations()
             Dim markup =
 <File>
@@ -2577,7 +2577,7 @@ End Module
 #End Region
 
         <WorkItem(739, "#739")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveAroundArrayLiteralInInterpolation1()
             Dim markup =
 <File>
@@ -2597,7 +2597,7 @@ End Module
         End Sub
 
         <WorkItem(739, "#739")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveAroundArrayLiteralInInterpolation2()
             Dim markup =
 <File>
@@ -2617,7 +2617,7 @@ End Module
         End Sub
 
         <WorkItem(739, "#739")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub RemoveAroundArrayLiteralInInterpolation3()
             Dim markup =
 <File>
@@ -2637,7 +2637,7 @@ End Module
         End Sub
 
         <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastFromBaseToDerivedWithNarrowingReference()
             Dim markup =
 <File>
@@ -2660,7 +2660,7 @@ End Class
         End Sub
 
         <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToTypeParameterWithExceptionConstraint()
             Dim markup =
 <File>
@@ -2678,7 +2678,7 @@ End Class
         End Sub
 
         <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DontRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
             Dim markup =
 <File>
@@ -2696,7 +2696,7 @@ End Class
         End Sub
 
         <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DoNotRemoveCastInUserDefinedNarrowingConversionStrictOn()
             Dim markup =
 <File>
@@ -2735,7 +2735,7 @@ End Structure
         End Sub
 
         <WorkItem(3163, "https://github.com/dotnet/roslyn/issues/3163")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
         Public Sub DoNotRemoveCastInUserDefinedNarrowingConversionStrictOff()
             Dim markup =
 <File>

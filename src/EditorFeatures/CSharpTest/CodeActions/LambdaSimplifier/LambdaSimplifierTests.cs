@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
             return new LambdaSimplifierCodeRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixAll1()
         {
             Test(
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixCoContravariance1()
         {
             Test(
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixCoContravariance2()
         {
             Test(
@@ -40,28 +40,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixCoContravariance3()
         {
             TestMissing(
 @"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<string, string> f); object Quux(object o); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixCoContravariance4()
         {
             TestMissing(
 @"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<object, object> f); string Quux(string o); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixCoContravariance5()
         {
             TestMissing(
 @"using System; class C { void Foo() { Bar(s [||]=> Quux(s)); } void Bar(Func<object, string> f); object Quux(string o); }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixAll2()
         {
             Test(
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixAll3()
         {
             Test(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixAll4()
         {
             Test(
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
                 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestFixOneOrAll()
         {
             Test(
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Lambda
         }
 
         [WorkItem(542562)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestMissingOnAmbiguity1()
         {
             TestMissing(
@@ -123,7 +123,7 @@ class A
         }
 
         [WorkItem(627092)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestMissingOnLambdaWithDynamic_1()
         {
             TestMissing(
@@ -158,7 +158,7 @@ class C<T>
         }
 
         [WorkItem(627092)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestMissingOnLambdaWithDynamic_2()
         {
             TestMissing(
@@ -198,7 +198,7 @@ class Casd<T>
         }
 
         [WorkItem(544625)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void ParenthesizeIfParseChanges()
         {
             var code = @"
@@ -237,7 +237,7 @@ class C
         }
 
         [WorkItem(545856)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestWarningOnSideEffects()
         {
             Test(
@@ -246,7 +246,7 @@ class C
         }
 
         [WorkItem(545994)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public void TestNonReturnBlockSyntax()
         {
             Test(

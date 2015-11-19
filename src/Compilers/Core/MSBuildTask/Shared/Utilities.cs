@@ -13,14 +13,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     internal static class Utilities
     {
-        internal static bool IsCriticalException(Exception e)
-        {
-            return e is StackOverflowException
-                || e is AccessViolationException
-                || e is AppDomainUnloadedException
-                || e is BadImageFormatException
-                || e is DivideByZeroException;
-        }
         /// <summary>
         /// Convert a task item metadata to bool. Throw an exception if the string is badly formed and can't
         /// be converted.

@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>d87f0e46-dd1b-46ea-8425-9e185d9b602e</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>MSBuildTask.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CanonicalError.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLineBuilderExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Csc.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Csi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ErrorString.Designer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ICscHostObject5.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InteractiveCompiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IVbcHostObject6.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ManagedCompiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vbc.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)ErrorString.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Microsoft.CSharp.Core.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)Microsoft.VisualBasic.Core.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

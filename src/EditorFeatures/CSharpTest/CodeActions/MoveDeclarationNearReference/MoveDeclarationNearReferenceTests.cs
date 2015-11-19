@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
             return new MoveDeclarationNearReferenceCodeRefactoringProvider();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestMove1()
         {
             Test(
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestMove2()
         {
             Test(
@@ -32,7 +32,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestMove3()
         {
             Test(
@@ -41,7 +41,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestMove4()
         {
             Test(
@@ -50,7 +50,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestAssign1()
         {
             Test(
@@ -59,7 +59,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestAssign2()
         {
             Test(
@@ -68,7 +68,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestAssign3()
         {
             Test(
@@ -77,7 +77,7 @@ index: 0);
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestMissing1()
         {
             TestMissing(
@@ -85,21 +85,21 @@ index: 0);
         }
 
         [WorkItem(538424)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestMissingWhenReferencedInDeclaration()
         {
             TestMissing(
 @"class Program { static void Main ( ) { object [ ] [||]x = { x = null } ; x . ToString ( ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestMissingWhenInDeclarationGroup()
         {
             TestMissing(
 @"class Program { static void Main ( ) { int [||]i = 5; int j = 10; Console.WriteLine(i); } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         [WorkItem(541475)]
         public void Regression8190()
         {
@@ -107,7 +107,7 @@ index: 0);
 @"class Program { void M() { { object x; [|object|] } } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestFormatting()
         {
             Test(
@@ -131,7 +131,7 @@ index: 0,
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestMissingInHiddenBlock1()
         {
             TestMissing(
@@ -148,7 +148,7 @@ compareTokens: false);
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestMissingInHiddenBlock2()
         {
             TestMissing(
@@ -166,7 +166,7 @@ compareTokens: false);
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestAvailableInNonHiddenBlock1()
         {
             Test(
@@ -197,7 +197,7 @@ class Program
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestAvailableInNonHiddenBlock2()
         {
             Test(
@@ -231,7 +231,7 @@ compareTokens: false);
         }
 
         [WorkItem(545435)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestWarnOnChangingScopes1()
         {
             Test(
@@ -240,7 +240,7 @@ compareTokens: false);
         }
 
         [WorkItem(545435)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void TestWarnOnChangingScopes2()
         {
             Test(
@@ -249,7 +249,7 @@ compareTokens: false);
         }
 
         [WorkItem(545840)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void InsertCastIfNecessary1()
         {
             Test(
@@ -296,7 +296,7 @@ compareTokens: false);
         }
 
         [WorkItem(545835)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void InsertCastIfNecessary2()
         {
             Test(
@@ -339,7 +339,7 @@ compareTokens: false);
         }
 
         [WorkItem(546267)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public void MissingIfNotInDeclarationSpan()
         {
             TestMissing(

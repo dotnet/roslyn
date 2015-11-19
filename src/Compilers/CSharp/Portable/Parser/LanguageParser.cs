@@ -6551,7 +6551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: allowAnyExpression))
                     {
-                        return this.ParseExpressionStatement(this.ParseQueryExpression());
+                        return this.ParseExpressionStatement(this.ParseQueryExpression(0));
                     }
                     else
                     {
@@ -8572,7 +8572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else if (this.IsQueryExpression(mayBeVariableDeclaration: false, mayBeMemberDeclaration: false))
             {
-                leftOperand = this.ParseQueryExpression();
+                leftOperand = this.ParseQueryExpression(precedence);
             }
             else if (this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword && IsInQuery)
             {
@@ -8690,10 +8690,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var questionToken = this.EatToken();
 
-                var colonLeft = this.ParseSubExpression(nullCoalescingPrecedence - 1);
+                var colonLeft = this.ParseExpressionCore();
                 var colon = this.EatToken(SyntaxKind.ColonToken);
 
-                var colonRight = this.ParseSubExpression(nullCoalescingPrecedence - 1);
+                var colonRight = this.ParseExpressionCore();
                 leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
             }
 
@@ -10435,11 +10435,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private QueryExpressionSyntax ParseQueryExpression()
+        private QueryExpressionSyntax ParseQueryExpression(uint precedence)
         {
             this.EnterQuery();
             var fc = this.ParseFromClause();
             fc = CheckFeatureAvailability(fc, MessageID.IDS_FeatureQueryExpression);
+            if (precedence > 1 && IsStrict)
+            {
+                fc = this.AddError(fc, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(SyntaxKind.FromKeyword));
+            }
+
             var body = this.ParseQueryBody();
             this.LeaveQuery();
             return _syntaxFactory.QueryExpression(fc, body);
@@ -10681,6 +10686,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var body = this.ParseQueryBody();
             return _syntaxFactory.QueryContinuation(@into, name, body);
         }
+
+        private bool IsStrict => this.Options.Features.ContainsKey("strict");
 
         [Obsolete("Use IsIncrementalAndFactoryContextMatches")]
         private new bool IsIncremental
