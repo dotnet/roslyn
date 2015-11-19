@@ -474,7 +474,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else
                 {
-                    using (var transaction = UndoHistory_TestOnly.CreateTransaction("Insert Text"))
+                    using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.TypeChar))
                     {
                         var selection = TextView.Selection;
                         if (!TextView.Selection.IsEmpty)
@@ -2334,7 +2334,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Implements <see cref="IInteractiveWindowOperations.Backspace"/>.</summary>
             public bool Backspace()
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction("Delete character to the left"))
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Backspace))
                 {
 
                     if (DeleteHelper(isBackspace: true))
@@ -2351,7 +2351,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             public bool Delete()
             {
                 _historySearch = null;
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction("Delete text"))
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Delete))
                 {
                     if (DeleteHelper(isBackspace: false))
                     {
@@ -2434,7 +2434,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Cut/Delete all selected lines, or the current line if no selection. </summary>                  
             private void CutLineOrDeleteLineHelper(bool isCut)
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction(isCut ? "Cut line" : "Delete line"))
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction(isCut ? InteractiveWindowResources.CutLine : InteractiveWindowResources.DeleteLine))
                 {
                     if (TextView.Selection.IsEmpty)
                     {
@@ -2584,6 +2584,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         {
                             switch (block.Kind)
                             {
+                                // the actual linebreak was converted to regular Input when copied
+                                // This LineBreak block was created by coping box selection and is used as line separater when pasted
                                 case ReplSpanKind.LineBreak:
                                     Debug.Assert(dataHasBoxCutCopyTag);
                                     sb.Append(block.Content);
@@ -2680,7 +2682,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Implements <see cref="IInteractiveWindowOperations.Cut"/>.</summary>
             public void Cut()
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction("Cut Selection"))
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Cut))
                 {
                     if (TextView.Selection.IsEmpty)
                     {
@@ -2844,6 +2846,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             private string GetTextBlocks(NormalizedSnapshotSpanCollection spans)
             {
+                // Since spans is got from selection, only box selection has more than one 
+                // SnapshotSpan in spans. If this is the case, we use 'LineBreak' block to separate different lines of box selection.
                 var AddNewLineBlock = spans.Count > 1;
                 var blocks = new List<BufferBlock>();
                 foreach (var span in spans)
@@ -3065,7 +3069,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Implements <see cref="IInteractiveWindowOperations.BreakLine"/>.</summary>
             public bool BreakLine()
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction("Insert new line"))
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.BreakLine))
                 {
                     if (HandlePostServicesReturn(false))
                     {
@@ -3097,16 +3101,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         DeleteSelection();
                         selection.Clear();
                         MoveCaretToClosestEditableBuffer();
-                        /*
-                        if (selection.Mode == TextSelectionMode.Box)
-                        {
-                            ReduceBoxSelectionToEditableBox(isDelete: true);
-                        }
-                        else
-                        {
-                            selection.Clear();
-                            MoveCaretToClosestEditableBuffer();
-                        }*/
                     }
                     else
                     {
