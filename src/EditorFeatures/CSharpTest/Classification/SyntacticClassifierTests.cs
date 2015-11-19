@@ -2286,7 +2286,7 @@ namespace MyNamespace
         readonly int field;
         public Baz(int i)
             : base(i) { }
-        public async Task someOtherMethod(ref int i, System.Type c)
+        public void someOtherMethod(ref int i, System.Type c)
         {
             int f = 1;
             someOtherMethod(ref f, typeof(int));
