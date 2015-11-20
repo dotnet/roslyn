@@ -398,7 +398,7 @@ class C
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "field"),
                 // (19,6): warning CS0657: 'typevar' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "typevar").WithArguments("typevar", "field"),
-                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. AValid attribute locations for this declaration are 'field'. ll attributes in this block will be ignored.
+                // (20,6): warning CS0658: 'delegate' is not a recognized attribute location. Valid attribute locations for this declaration are 'field'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "delegate").WithArguments("delegate", "field"),
                 // (21,9): warning CS0169: The field 'C.a' is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("C.a"));
