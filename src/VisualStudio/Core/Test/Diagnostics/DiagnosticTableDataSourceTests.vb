@@ -602,7 +602,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <WpfFact>
-        Public Sub TestAggregatedDiagnostic()
+        Public Async Function TestAggregatedDiagnostic() As Task
             Dim markup = <Workspace>
                              <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                                  <Document FilePath="CurrentDocument.cs"><![CDATA[class { }]]></Document>
@@ -612,7 +612,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                              </Project>
                          </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(markup)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(markup)
 
                 Dim service = New DiagnosticService(AggregateAsynchronousOperationListener.EmptyListeners)
 
@@ -644,7 +644,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectguid As Object = Nothing
                 Assert.False(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectGuid, projectguid))
             End Using
-        End Sub
+        End Function
 
         Private Sub RunCompilerAnalyzer(workspace As TestWorkspace, registrationService As IDiagnosticUpdateSourceRegistrationService)
             Dim snapshot = workspace.CurrentSolution
