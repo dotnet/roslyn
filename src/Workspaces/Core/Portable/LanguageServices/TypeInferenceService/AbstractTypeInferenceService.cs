@@ -75,12 +75,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                             .ToImmutableReadOnlyListOrEmpty();
             }
 
-            protected IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol p)
+            protected IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
             {
-                var result = SpecializedCollections.SingletonEnumerable(p.Type);
-                if (p.IsParams)
+                var result = SpecializedCollections.SingletonEnumerable(parameterSymbol.Type);
+                if (parameterSymbol.IsParams)
                 {
-                    result = result.Concat((p.Type as IArrayTypeSymbol).ElementType);
+                    var arrayTypeSymbol = parameterSymbol.Type as IArrayTypeSymbol;
+                    if (arrayTypeSymbol != null)
+                    {
+                        result = result.Concat(arrayTypeSymbol.ElementType);
+                    }
                 }
 
                 return result;

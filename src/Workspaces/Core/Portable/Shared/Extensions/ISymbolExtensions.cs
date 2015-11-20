@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var methodSymbol = symbol as IMethodSymbol;
             if (methodSymbol != null)
             {
-                return methodSymbol.ReturnType as ITypeSymbol;
+                return methodSymbol.ReturnType;
             }
 
             return symbol as ITypeSymbol;

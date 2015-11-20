@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             where index < parameterSet.Length
                             select ExpandParamsParameter(parameterSet[index]);
 
-                    return q.SelectMany(i => i);
+                    return q.Flatten();
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
