@@ -18,11 +18,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             Dim position As Integer
             MarkupTestFile.GetPosition(text, text, position)
             Dim compilationOptions = If(rootNamespace IsNot Nothing, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:=rootNamespace), Nothing)
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(LanguageNames.VisualBasic, compilationOptions, parseOptions, text)
-                Dim locationInfo = LocationInfoGetter.GetInfoAsync(
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(LanguageNames.VisualBasic, compilationOptions, parseOptions, text)
+                Dim locationInfo = Await LocationInfoGetter.GetInfoAsync(
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
                     position,
-                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                    CancellationToken.None)
 
                 Assert.Equal(expectedName, locationInfo.Name)
                 Assert.Equal(expectedLineOffset, locationInfo.LineOffset)

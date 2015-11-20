@@ -32,20 +32,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             Dim textSpan As TextSpan
             MarkupTestFile.GetPositionAndSpan(input.NormalizedValue, parsedInput, expectedPosition, textSpan)
 
-            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition, Sub(document, position)
-                                                                                   Dim result = DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                                                                                   Assert.False(result.IsDefault)
-                                                                                   Assert.Equal(textSpan, result.Span)
-                                                                                   If Not String.IsNullOrEmpty(expectedText) Then
-                                                                                       Assert.Equal(expectedText, result.Text)
-                                                                                   End If
-                                                                               End Sub)
+            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
+                                      Async Function(document, position)
+                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None)
+                                          Assert.False(result.IsDefault)
+                                          Assert.Equal(textSpan, result.Span)
+                                          If Not String.IsNullOrEmpty(expectedText) Then
+                                              Assert.Equal(expectedText, result.Text)
+                                          End If
+                                      End Function)
         End Function
 
-        Private Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Action(Of Document, Integer)) As Task
+        Private Async Function TestSpanGetterAsync(parsedInput As String, position As Integer, continuation As Func(Of Document, Integer, Task)) As Task
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(parsedInput)
                 Dim debugInfo = New VisualBasicLanguageDebugInfoService()
-                continuation(workspace.CurrentSolution.Projects.First.Documents.First, position)
+                Await continuation(workspace.CurrentSolution.Projects.First.Documents.First, position)
             End Using
         End Function
 
