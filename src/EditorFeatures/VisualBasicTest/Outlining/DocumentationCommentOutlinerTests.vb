@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class DocumentationCommentOutlinerTests
-        Inherits AbstractOutlinerTests(Of DocumentationCommentTriviaSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of DocumentationCommentTriviaSyntax)
 
         Friend Overrides Function GetRegions(documentationComment As DocumentationCommentTriviaSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner As New DocumentationCommentOutliner

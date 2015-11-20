@@ -9,12 +9,10 @@ using MaSOutliners = Microsoft.CodeAnalysis.Editor.CSharp.Outlining.MetadataAsSo
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSource
 {
-    public class MethodDeclarationOutlinerTests : AbstractOutlinerTests<MethodDeclarationSyntax>
+    public class MethodDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<MethodDeclarationSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<MethodDeclarationSyntax> CreateOutliner()
-        {
-            return new MaSOutliners.MethodDeclarationOutliner();
-        }
+        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+        internal override AbstractSyntaxOutliner CreateOutliner() => new MaSOutliners.MethodDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void NoCommentsOrAttributes()

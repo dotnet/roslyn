@@ -8,12 +8,10 @@ using MaSOutliners = Microsoft.CodeAnalysis.Editor.CSharp.Outlining.MetadataAsSo
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSource
 {
-    public class RegionDirectiveOutlinerTests : AbstractOutlinerTests<RegionDirectiveTriviaSyntax>
+    public class RegionDirectiveOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<RegionDirectiveTriviaSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<RegionDirectiveTriviaSyntax> CreateOutliner()
-        {
-            return new MaSOutliners.RegionDirectiveOutliner();
-        }
+        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
+        internal override AbstractSyntaxOutliner CreateOutliner() => new MaSOutliners.RegionDirectiveOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void FileHeader()

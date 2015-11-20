@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class PropertyDeclarationOutlinerTests : AbstractOutlinerTests<PropertyDeclarationSyntax>
+    public class PropertyDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<PropertyDeclarationSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<PropertyDeclarationSyntax> CreateOutliner()
-        {
-            return new PropertyDeclarationOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new PropertyDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestProperty()

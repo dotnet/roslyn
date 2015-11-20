@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class AccessorDeclarationOutlinerTests
-        Inherits AbstractOutlinerTests(Of AccessorStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of AccessorStatementSyntax)
 
         Friend Overrides Function GetRegions(accessorDeclaration As AccessorStatementSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner As New AccessorDeclarationOutliner

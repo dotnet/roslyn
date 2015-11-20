@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
 
     Public Class CompilationUnitOutlinerTests
-        Inherits AbstractOutlinerTests(Of CompilationUnitSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of CompilationUnitSyntax)
 
         Friend Overrides Function GetRegions(compilationUnit As CompilationUnitSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner As New CompilationUnitOutliner

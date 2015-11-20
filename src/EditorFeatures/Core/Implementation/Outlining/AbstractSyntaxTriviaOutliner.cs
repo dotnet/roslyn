@@ -16,13 +16,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         {
             throw new NotSupportedException();
         }
-
-        // For testing purposes.
-        internal IEnumerable<OutliningSpan> GetOutliningSpans(Document document, SyntaxTrivia trivia, CancellationToken cancellationToken)
-        {
-            var spans = new List<OutliningSpan>();
-            this.CollectOutliningSpans(document, trivia, spans, cancellationToken);
-            return spans;
-        }
     }
 }

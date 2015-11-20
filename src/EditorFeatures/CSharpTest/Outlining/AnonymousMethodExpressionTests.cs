@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class AnonymousMethodExpressionTests : AbstractOutlinerTests<AnonymousMethodExpressionSyntax>
+    public class AnonymousMethodExpressionTests : AbstractCSharpSyntaxNodeOutlinerTests<AnonymousMethodExpressionSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<AnonymousMethodExpressionSyntax> CreateOutliner()
-        {
-            return new AnonymousMethodExpressionOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new AnonymousMethodExpressionOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestAnonymousMethod()

@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class NamespaceDeclarationOutlinerTests : AbstractOutlinerTests<NamespaceDeclarationSyntax>
+    public class NamespaceDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<NamespaceDeclarationSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<NamespaceDeclarationSyntax> CreateOutliner()
-        {
-            return new NamespaceDeclarationOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new NamespaceDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestNamespace()

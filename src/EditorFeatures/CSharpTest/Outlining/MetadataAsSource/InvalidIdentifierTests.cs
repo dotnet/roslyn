@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Outlining;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -16,24 +15,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
     /// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all possible
     /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     /// </summary>
-    public class InvalidIdentifierTests : AbstractOutlinerTests
+    public class InvalidIdentifierTests : AbstractSyntaxOutlinerTests
     {
-        private async Task TestAsync(string fileContents, params OutliningSpan[] expectedSpans)
-        {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(WorkspaceKind.MetadataAsSource, LanguageNames.CSharp, null, null, fileContents))
-            {
-                var hostDocument = workspace.Documents.Single();
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
-                var actualOutliningSpans = (await outliningService.GetOutliningSpansAsync(document, CancellationToken.None))
-                	.WhereNotNull().ToArray();
+        protected override string LanguageName => LanguageNames.CSharp;
+        protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
 
-                Assert.Equal(expectedSpans.Length, actualOutliningSpans.Length);
-                for (int i = 0; i < expectedSpans.Length; i++)
-                {
-                    AssertRegion(expectedSpans[i], actualOutliningSpans[i]);
-                }
-            }
+        internal override OutliningSpan[] GetRegions(Document document, int position)
+        {
+            var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
+
+            return outliningService
+                .GetOutliningSpansAsync(document, CancellationToken.None).Result.WhereNotNull().ToArray();
         }
 
         [WorkItem(1174405)]
@@ -41,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         public async Task PrependedDollarSign()
         {
             const string code = @"
-class C
+$$class C
 {
     public void $Invoke();
 }";
 
-            await TestAsync(code);
+            NoRegions(code);
         }
 
         [WorkItem(1174405)]
@@ -54,12 +46,12 @@ class C
         public async Task SymbolsAndPunctuation()
         {
             const string code = @"
-class C
+$$class C
 {
     public void !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`();
 }";
 
-            await TestAsync(code);
+            NoRegions(code);
         }
 
         [WorkItem(1174405)]
@@ -67,12 +59,12 @@ class C
         public async Task IdentifierThatLooksLikeCode()
         {
             const string code = @"
-class C
+$$class C
 {
     public void } } public class CodeInjection{ } /* now everything is commented ();
 }";
 
-            await TestAsync(code);
+            NoRegions(code);
         }
     }
 }

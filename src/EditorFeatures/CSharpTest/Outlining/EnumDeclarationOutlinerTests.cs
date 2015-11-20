@@ -8,13 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class EnumDeclarationOutlinerTests :
-        AbstractOutlinerTests<EnumDeclarationSyntax>
+    public class EnumDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<EnumDeclarationSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<EnumDeclarationSyntax> CreateOutliner()
-        {
-            return new EnumDeclarationOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new EnumDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestEnum()

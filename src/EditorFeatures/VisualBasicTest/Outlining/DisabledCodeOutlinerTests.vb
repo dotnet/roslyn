@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class DisabledCodeOutlinerTests
-        Inherits AbstractOutlinerTests
+        Inherits AbstractSyntaxOutlinerTests
 
         Private Function GetRegions(syntaxTree As SyntaxTree, trivia As SyntaxTrivia) As IEnumerable(Of OutliningSpan)
             Dim outliner As New DisabledTextTriviaOutliner

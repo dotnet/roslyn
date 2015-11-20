@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class DestructorDeclarationOutlinerTests : AbstractOutlinerTests<DestructorDeclarationSyntax>
+    public class DestructorDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<DestructorDeclarationSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<DestructorDeclarationSyntax> CreateOutliner()
-        {
-            return new DestructorDeclarationOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new DestructorDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestDestructor()

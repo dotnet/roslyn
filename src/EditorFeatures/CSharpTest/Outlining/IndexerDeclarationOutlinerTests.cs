@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class IndexerDeclarationOutlinerTests : AbstractOutlinerTests<IndexerDeclarationSyntax>
+    public class IndexerDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<IndexerDeclarationSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<IndexerDeclarationSyntax> CreateOutliner()
-        {
-            return new IndexerDeclarationOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new IndexerDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestIndexer()

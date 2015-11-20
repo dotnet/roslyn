@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class XmlDocumentOutlinerTests
-        Inherits AbstractOutlinerTests(Of XmlNodeSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of XmlNodeSyntax)
 
         Friend Overrides Function GetRegions(xmlExpression As XmlNodeSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner As New XmlExpressionOutliner

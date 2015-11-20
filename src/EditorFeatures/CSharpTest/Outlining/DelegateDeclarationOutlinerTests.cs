@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class DelegateDeclarationOutlinerTests : AbstractOutlinerTests<DelegateDeclarationSyntax>
+    public class DelegateDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<DelegateDeclarationSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<DelegateDeclarationSyntax> CreateOutliner()
-        {
-            return new DelegateDeclarationOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new DelegateDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestDelegateWithComments()

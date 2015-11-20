@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class ExternalMethodDeclarationOutlinerTests
-        Inherits AbstractOutlinerTests(Of DeclareStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of DeclareStatementSyntax)
 
         Friend Overrides Function GetRegions(externalMethodDeclaration As DeclareStatementSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner As New ExternalMethodDeclarationOutliner

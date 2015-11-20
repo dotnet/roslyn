@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class OperatorDeclarationOutlinerTests
-        Inherits AbstractOutlinerTests(Of OperatorStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of OperatorStatementSyntax)
 
         Friend Overrides Function GetRegions(operatorDeclaration As OperatorStatementSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner As New OperatorDeclarationOutliner

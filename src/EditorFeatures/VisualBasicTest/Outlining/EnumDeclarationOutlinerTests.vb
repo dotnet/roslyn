@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class EnumDeclarationOutlinerTests
-        Inherits AbstractOutlinerTests(Of EnumStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of EnumStatementSyntax)
 
         Friend Overrides Function GetRegions(enumDeclaration As EnumStatementSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner As New EnumDeclarationOutliner()

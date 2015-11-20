@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class EventFieldDeclarationOutlinerTests : AbstractOutlinerTests<EventFieldDeclarationSyntax>
+    public class EventFieldDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<EventFieldDeclarationSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<EventFieldDeclarationSyntax> CreateOutliner()
-        {
-            return new EventFieldDeclarationOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new EventFieldDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestEventFieldWithComments()

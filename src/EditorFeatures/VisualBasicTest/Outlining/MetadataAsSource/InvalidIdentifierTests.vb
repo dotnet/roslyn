@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
     ''' IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     ''' </summary>
     Public Class InvalidIdentifierTests
-        Inherits AbstractOutlinerTests
+        Inherits AbstractSyntaxOutlinerTests
 
         Private Async Function Test(fileContents As String, ParamArray ByVal expectedSpans As OutliningSpan()) As Tasks.Task
             Using workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(WorkspaceKind.MetadataAsSource, LanguageNames.VisualBasic, Nothing, Nothing, fileContents)

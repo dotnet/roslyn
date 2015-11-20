@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class CommentTests
-        Inherits AbstractOutlinerTests
+        Inherits AbstractSyntaxOutlinerTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestSimpleComment1()

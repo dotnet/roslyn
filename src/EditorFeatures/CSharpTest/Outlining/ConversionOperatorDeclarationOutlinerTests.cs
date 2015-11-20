@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class ConversionOperatorDeclarationOutlinerTests : AbstractOutlinerTests<ConversionOperatorDeclarationSyntax>
+    public class ConversionOperatorDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<ConversionOperatorDeclarationSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<ConversionOperatorDeclarationSyntax> CreateOutliner()
-        {
-            return new ConversionOperatorDeclarationOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new ConversionOperatorDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestOperator()

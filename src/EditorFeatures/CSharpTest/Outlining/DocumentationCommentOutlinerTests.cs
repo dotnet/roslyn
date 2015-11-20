@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class DocumentationCommentOutlinerTests : AbstractOutlinerTests<DocumentationCommentTriviaSyntax>
+    public class DocumentationCommentOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<DocumentationCommentTriviaSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<DocumentationCommentTriviaSyntax> CreateOutliner()
-        {
-            return new DocumentationCommentOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new DocumentationCommentOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestDocumentationCommentWithoutSummaryTag1()

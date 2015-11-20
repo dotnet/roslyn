@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class RegionDirectiveOutlinerTests : AbstractOutlinerTests<RegionDirectiveTriviaSyntax>
+    public class RegionDirectiveOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<RegionDirectiveTriviaSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<RegionDirectiveTriviaSyntax> CreateOutliner()
-        {
-            return new RegionDirectiveOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new RegionDirectiveOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void BrokenRegion()

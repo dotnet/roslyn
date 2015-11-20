@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class MultilineLambdaOutlinerTests
-        Inherits AbstractOutlinerTests(Of MultiLineLambdaExpressionSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of MultiLineLambdaExpressionSyntax)
 
         Friend Overrides Function GetRegions(lambdaExpression As MultiLineLambdaExpressionSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner As New MultilineLambdaOutliner

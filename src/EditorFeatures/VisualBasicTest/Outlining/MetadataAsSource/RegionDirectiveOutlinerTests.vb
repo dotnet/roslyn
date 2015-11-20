@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
     Public Class RegionDirectiveOutlinerTests
-        Inherits AbstractOutlinerTests(Of RegionDirectiveTriviaSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of RegionDirectiveTriviaSyntax)
 
         Friend Overrides Function GetRegions(node As RegionDirectiveTriviaSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner = New MaSOutliners.RegionDirectiveOutliner()

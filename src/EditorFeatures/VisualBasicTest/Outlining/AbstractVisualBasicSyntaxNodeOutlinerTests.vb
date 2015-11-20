@@ -5,8 +5,12 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
-    Public MustInherit Class AbstractOutlinerTests(Of T As SyntaxNode)
-        Inherits AbstractOutlinerTests
+    Public MustInherit Class AbstractVisualBasicSyntaxOutlinerTests(Of T As SyntaxNode)
+        Inherits AbstractSyntaxOutlinerTests
+
+        Protected Overrides Function ParseCompilationUnit(code As String) As SyntaxNode
+            Return SyntaxFactory.ParseCompilationUnit(code)
+        End Function
 
         Friend Overridable Function GetRegions(node As T) As IEnumerable(Of OutliningSpan)
             Return New List(Of OutliningSpan)

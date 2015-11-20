@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
     Public Class ConstructorDeclarationOutlinerTests
-        Inherits AbstractOutlinerTests(Of SubNewStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of SubNewStatementSyntax)
 
         Friend Overrides Function GetRegions(node As SubNewStatementSyntax) As IEnumerable(Of OutliningSpan)
             Dim outliner = New MaSOutliners.ConstructorDeclarationOutliner()

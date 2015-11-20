@@ -8,12 +8,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class SimpleLambdaExpressionOutlinerTests : AbstractOutlinerTests<SimpleLambdaExpressionSyntax>
+    public class SimpleLambdaExpressionOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<SimpleLambdaExpressionSyntax>
     {
-        internal override AbstractSyntaxNodeOutliner<SimpleLambdaExpressionSyntax> CreateOutliner()
-        {
-            return new SimpleLambdaExpressionOutliner();
-        }
+        internal override AbstractSyntaxOutliner CreateOutliner() => new SimpleLambdaExpressionOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestLambda()

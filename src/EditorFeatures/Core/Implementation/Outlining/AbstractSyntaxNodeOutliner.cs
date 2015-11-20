@@ -40,14 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             }
         }
 
-        // For testing purposes
-        internal IEnumerable<OutliningSpan> GetOutliningSpans(SyntaxNode node, CancellationToken cancellationToken)
-        {
-            var spans = new List<OutliningSpan>();
-            this.CollectOutliningSpans(node, spans, cancellationToken);
-            return spans;
-        }
-
         protected virtual bool SupportedInWorkspaceKind(string kind)
         {
             // We have other outliners specific to Metadata-as-Source.

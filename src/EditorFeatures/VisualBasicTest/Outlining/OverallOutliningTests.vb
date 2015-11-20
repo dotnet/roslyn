@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class OverallOutliningTests
-        Inherits AbstractOutlinerTests
+        Inherits AbstractSyntaxOutlinerTests
 
 #If False Then
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
