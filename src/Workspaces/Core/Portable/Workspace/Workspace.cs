@@ -60,12 +60,6 @@ namespace Microsoft.CodeAnalysis
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetService<IWorkspaceTaskSchedulerFactory>();
-
-            if (workspaceTaskSchedulerFactory == null)
-            {
-                throw new ArgumentException(WorkspacesResources.ErrorWhileCreatingTaskQueue);
-            }
-
             _taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
 
             // initialize with empty solution
