@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (CatchFilterClauseSyntax catchFilterClause) => InferTypeInCatchFilterClause(catchFilterClause, token),
                     (CheckedExpressionSyntax checkedExpression) => InferTypes(checkedExpression),
                     (ConditionalExpressionSyntax conditionalExpression) => InferTypeInConditionalExpression(conditionalExpression, previousToken: token),
-                    (DefaultExpressionSyntax defaultStatement) => InferTypeInDefaultExpression(defaultStatement),
+                    (DefaultExpressionSyntax defaultExpression) => InferTypeInDefaultExpression(defaultExpression),
                     (DoStatementSyntax doStatement) => InferTypeInDoStatement(doStatement, token),
                     (EqualsValueClauseSyntax equalsValue) => InferTypeInEqualsValueClause(equalsValue, token),
                     (ExpressionStatementSyntax expressionStatement) => InferTypeInExpressionStatement(expressionStatement, token),
