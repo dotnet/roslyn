@@ -86,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                 ' Try to get proximity expressions at every token position and the start of every
                 ' line.
                 Dim index = 0
-                Dim statements = document.GetSyntaxRootAsync(CancellationToken.None).Result.DescendantTokens().Select(Function(t) t.GetAncestor(Of StatementSyntax)()).Distinct().WhereNotNull()
+                Dim statements = (Await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Select(Function(t) t.GetAncestor(Of StatementSyntax)()).Distinct().WhereNotNull()
                 For Each statement In statements
                     builder.AppendLine("<WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>")
                     builder.AppendLine("Public Sub TestAtStartOfStatement_" & index & "()")
@@ -107,7 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                     builder.AppendLine("    dim terms = VisualBasicProximityExpressionsService.Do(tree, " & token.SpanStart & ")")
 
                     Dim proximityExpressionsGetter = New VisualBasicProximityExpressionsService()
-                    Dim terms = proximityExpressionsGetter.GetProximityExpressionsAsync(document, token.SpanStart, CancellationToken.None).Result
+                    Dim terms = Await proximityExpressionsGetter.GetProximityExpressionsAsync(document, token.SpanStart, CancellationToken.None)
 
                     If terms Is Nothing Then
                         builder.AppendLine("    Assert.Null(terms)")
@@ -131,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         End Function
 
         Private Async Function TestProximityExpressionsGetterAsync(markup As String,
-                                                   continuation As Action(Of VisualBasicProximityExpressionsService, Document, Integer)) As Task
+                                                   continuation As Func(Of VisualBasicProximityExpressionsService, Document, Integer, Task)) As Task
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(markup)
                 Dim testDocument = workspace.Documents.Single()
                 Dim snapshot = testDocument.TextBuffer.CurrentSnapshot
@@ -139,28 +139,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
 
                 Dim proximityExpressionsGetter = New VisualBasicProximityExpressionsService()
-                continuation(proximityExpressionsGetter, document, caretPosition)
+                Await continuation(proximityExpressionsGetter, document, caretPosition)
             End Using
         End Function
 
         Public Async Function TestTryDoAsync(input As String,
                              ParamArray expectedTerms As String()) As Task
-            Await TestProximityExpressionsGetterAsync(input, Sub(getter, semanticSnapshot, point)
-                                                                 Dim terms = getter.GetProximityExpressionsAsync(semanticSnapshot, point, CancellationToken.None).Result
+            Await TestProximityExpressionsGetterAsync(input,
+                                                      Async Function(getter, semanticSnapshot, point)
+                                                          Dim terms = Await getter.GetProximityExpressionsAsync(semanticSnapshot, point, CancellationToken.None)
 
-                                                                 If expectedTerms.Length = 0 Then
-                                                                     Assert.Null(terms)
-                                                                 Else
-                                                                     AssertEx.Equal(expectedTerms, terms)
-                                                                 End If
-                                                             End Sub)
+                                                          If expectedTerms.Length = 0 Then
+                                                              Assert.Null(terms)
+                                                          Else
+                                                              AssertEx.Equal(expectedTerms, terms)
+                                                          End If
+                                                      End Function)
         End Function
 
         Public Async Function TestIsValidAsync(input As String, expression As String, expectedValid As Boolean) As Task
-            Await TestProximityExpressionsGetterAsync(input, Sub(getter, semanticSnapshot, point)
-                                                                 Dim actualValid = getter.IsValidAsync(semanticSnapshot, point, expression, CancellationToken.None).Result
-                                                                 Assert.Equal(expectedValid, actualValid)
-                                                             End Sub)
+            Await TestProximityExpressionsGetterAsync(input,
+                                                      Async Function(getter, semanticSnapshot, point)
+                                                          Dim actualValid = Await getter.IsValidAsync(semanticSnapshot, point, expression, CancellationToken.None)
+                                                          Assert.Equal(expectedValid, actualValid)
+                                                      End Function)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
@@ -218,7 +220,7 @@ End Module</text>.Value, "local", True)
                 Dim snapshotPoint = New SnapshotPoint(snapshot, caretPosition)
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
 
-                Dim result = service.GetProximityExpressionsAsync(document, caretPosition, CancellationToken.None).Result
+                Dim result = Await service.GetProximityExpressionsAsync(document, caretPosition, CancellationToken.None)
             End Using
         End Function
 

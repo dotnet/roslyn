@@ -141,10 +141,10 @@ using System.Threading;
                     Assert.True(False, "Missing caret location in document.")
                 End If
 
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(workspaceDoc, doc.CursorPosition.Value, CancellationToken.None).Result
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(workspaceDoc, doc.CursorPosition.Value, CancellationToken.None)
                 Assert.NotNull(symbol)
 
-                Dim result = SymbolFinder.FindReferencesAsync(symbol, workspace.CurrentSolution, CancellationToken.None).Result
+                Dim result = Await SymbolFinder.FindReferencesAsync(symbol, workspace.CurrentSolution, CancellationToken.None)
 
                 Dim libraryManager = New LibraryManager(New MockServiceProvider(New MockComponentModel(workspace.ExportProvider)))
                 Dim findReferencesTree = libraryManager.CreateFindReferencesItems(workspace.CurrentSolution, result)

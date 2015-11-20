@@ -496,7 +496,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <WpfFact>
         Public Async Function TestBingHelpLink_NoCustomType() As Task
             Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class A { int 111a; }")
-                Dim diagnostic = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result.GetDiagnostics().First(Function(d) d.Id = "CS1519")
+                Dim diagnostic = (Await workspace.CurrentSolution.Projects.First().GetCompilationAsync()).GetDiagnostics().First(Function(d) d.Id = "CS1519")
 
                 Dim helpMessage = diagnostic.GetBingHelpMessage(workspace)
                 Assert.Equal("Invalid token '111' in class, struct, or interface member declaration", helpMessage)
