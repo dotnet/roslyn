@@ -15,9 +15,6 @@ namespace Roslyn.VisualStudio.Setup
     {
         private readonly ProvideBindingRedirectionAttribute _redirectionAttribute;
 
-        // We should include CodeBase attributes so they always are loaded from this extension
-        public const bool GenerateCodeBase = true;
-
         public ProvideRoslynBindingRedirectionAttribute(string fileName)
         {
             // ProvideBindingRedirectionAttribute is sealed, so we can't inherit from it to provide defaults.
@@ -28,7 +25,6 @@ namespace Roslyn.VisualStudio.Setup
                 PublicKeyToken = "31BF3856AD364E35",
                 OldVersionLowerBound = "0.7.0.0",
                 OldVersionUpperBound = "1.2.0.0",
-                GenerateCodeBase = GenerateCodeBase,
                 CodeBase = fileName,
             };
         }

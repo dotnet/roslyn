@@ -281,6 +281,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // remove all the spans except our initial span from the projection buffer
                 _uncommittedInput = null;
 
+                // We remove all spans from the projection buffer *before* updating the
+                // subject buffers so that composite/merged changes to the projection
+                // buffer don't have to be computed.  This seems to alleviate the problem
+                // we were having with OutOfMemoryExceptions when clearing large output
+                // buffers (which did not, themselves, trigger OOMs).
+                RemoveProjectionSpans(0, _projectionBuffer.CurrentSnapshot.SpanCount);
+
                 // Clear the projection and buffers last as this might trigger events that might access other state of the REPL window:
                 RemoveProtection(OutputBuffer, _outputProtection);
                 RemoveProtection(StandardInputBuffer, _standardInputProtection);
@@ -300,8 +307,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     edit.Delete(0, StandardInputBuffer.CurrentSnapshot.Length);
                     edit.Apply();
                 }
-
-                RemoveProjectionSpans(0, _projectionBuffer.CurrentSnapshot.SpanCount);
 
                 // Insert an empty output buffer.
                 // We do it for two reasons: 

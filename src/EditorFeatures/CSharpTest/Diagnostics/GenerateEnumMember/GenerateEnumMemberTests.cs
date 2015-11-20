@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new GenerateEnumMemberCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestEmptyEnum()
         {
             Test(
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Red ; } } enum Color { Red } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithSingleMember()
         {
             Test(
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Blue } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithExistingComma()
         {
             Test(
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Blue , } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithMultipleMembers()
         {
             Test(
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Green ; } } enum Color { Red , Blue , Green } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithZero()
         {
             Test(
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 0 , Blue = 1 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithIntegralValue()
         {
             Test(
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 1 , Blue = 2 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithSingleBitIntegral()
         {
             Test(
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 2 , Blue = 4 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateIntoGeometricSequence()
         {
             Test(
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 1 , Yellow = 2 , Green = 4 , Blue = 8}");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithSimpleSequence1()
         {
             Test(
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 1 , Green = 2 , Blue = 3 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithSimpleSequence2()
         {
             Test(
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Green = 5 , Blue = 6 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithLeftShift0()
         {
             Test(
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Green = 1 << 0 , Blue = 1 << 1 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithLeftShift5()
         {
             Test(
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Green = 1 << 5 , Blue = 1 << 6 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestWithDifferentStyles()
         {
             Test(
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 2 , Green = 1 << 5 , Blue = 33 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestHex1()
         {
             Test(
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 0x1 , Blue = 0x2 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestHex9()
         {
             Test(
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 0x9 , Blue = 0xA } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestHexF()
         {
             Test(
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 0xF , Blue = 0x10 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateAfterEnumWithIntegerMaxValue()
         {
             Test(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = int.MaxValue , Blue = int.MinValue } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestUnsigned16BitEnums()
         {
             Test(
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : ushort { Red = 65535 , Blue = 0 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateEnumMemberOfTypeLong()
         {
             Test(
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = long.MaxValue , Blue = long.MinValue } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateAfterEnumWithLongMaxValueInHex()
         {
             Test(
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
         }
 
         [WorkItem(528312)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateAfterEnumWithLongMinValueInHex()
         {
             Test(
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
         }
 
         [WorkItem(528312)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateAfterPositiveLongInHex()
         {
             Test(
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = 0xFFFFFFFFFFFFFFFF , Green = 0x0 , Blue = 0x1 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateAfterPositiveLongExprInHex()
         {
             Test(
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = 0x414 / 2 , Blue = 523 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateAfterEnumWithULongMaxValue()
         {
             Test(
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : ulong { Red = ulong.MaxValue , Blue = 0 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestNegativeRangeIn64BitSignedEnums()
         {
             Test(
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : long { Red = -10 , Blue = -9 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateWithImplicitValues()
         {
             Test(
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Green , Yellow = -1 , Blue = 2 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateWithImplicitValues2()
         {
             Test(
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateEnu
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Green = 10 , Yellow , Blue }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestNoExtraneousStatementTerminatorBeforeCommentedMember()
         {
             Test(
@@ -276,7 +276,7 @@ enum Color
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestNoExtraneousStatementTerminatorBeforeCommentedMember2()
         {
             Test(
@@ -310,7 +310,7 @@ enum Color
 compareTokens: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateAfterEnumWithMinValue()
         {
             Test(
@@ -318,7 +318,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = int.MinValue , Blue = -2147483647 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateAfterEnumWithMinValuePlusConstant()
         {
             Test(
@@ -326,7 +326,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = int.MinValue + 100 , Blue = -2147483547 } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateAfterEnumWithByteMaxValue()
         {
             Test(
@@ -334,7 +334,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color : byte { Red = 255 , Blue = 0 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateIntoBitshiftEnum1()
         {
             Test(
@@ -342,7 +342,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 1 << 1 , Green = 1 << 2 , Blue = 1 << 3 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateIntoBitshiftEnum2()
         {
             Test(
@@ -350,7 +350,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = 2 >> 1 , Blue = 2 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestStandaloneReference()
         {
             Test(
@@ -358,7 +358,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red = int.MinValue , Green = 1 , Blue = 2 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestCircularEnumsForErrorTolerance()
         {
             Test(
@@ -366,7 +366,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Circular . C ; } } enum Circular { A = B , B , C }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestEnumWithIncorrectValueForErrorTolerance()
         {
             Test(
@@ -374,7 +374,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Circular . B ; } } enum Circular : byte { A = -2 , B }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateIntoNewEnum()
         {
             Test(
@@ -382,7 +382,7 @@ compareTokens: false);
 @"class B : A { void Main ( ) { BaseColor . Blue ; } public new enum BaseColor { Yellow = 3 , Blue = 4 } } class A { public enum BaseColor { Red = 1, Green = 2 } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateIntoDerivedEnumMissingNewKeyword()
         {
             Test(
@@ -390,7 +390,7 @@ compareTokens: false);
 @"class B : A { void Main ( ) { BaseColor . Blue ; } public enum BaseColor { Yellow = 3 , Blue = 4 } } class A { public enum BaseColor { Red = 1, Green = 2 } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerateIntoBaseEnum()
         {
             Test(
@@ -398,7 +398,7 @@ compareTokens: false);
 @"class B : A { void Main ( ) { BaseColor . Blue ; } } class A { public enum BaseColor { Red = 1, Green = 2 , Blue = 3 } }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestGenerationWhenMembersShareValues()
         {
             Test(
@@ -406,7 +406,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { Color . Blue ; } } enum Color { Red , Green , Yellow = Green , Blue = 2 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestInvokeFromAddAssignmentStatement()
         {
             Test(
@@ -414,7 +414,7 @@ compareTokens: false);
 @"class Program { void Main ( ) { int a = 1 ; a += Color . Blue ; } } enum Color { Red , Green = 10 , Yellow , Blue }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestFormatting()
         {
             Test(
@@ -445,7 +445,7 @@ compareTokens: false);
         }
 
         [WorkItem(540919)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestKeyword()
         {
             Test(
@@ -454,14 +454,14 @@ compareTokens: false);
         }
 
         [WorkItem(544333)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestNotAfterPointer()
         {
             TestMissing(
 @"struct MyStruct { public int MyField ; } class Program { static unsafe void Main ( string [ ] args ) { MyStruct s = new MyStruct ( ) ; MyStruct * ptr = & s ; var i1 = ( ( ) => & s ) -> [|M|] ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestMissingOnHiddenEnum()
         {
             TestMissing(
@@ -482,7 +482,7 @@ class Program
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestMissingOnPartiallyHiddenEnum()
         {
             TestMissing(
@@ -507,7 +507,7 @@ class Program
         }
 
         [WorkItem(545903)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestNoOctal()
         {
             Test(
@@ -516,7 +516,7 @@ class Program
         }
 
         [WorkItem(546654)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)]
         public void TestLastValueDoesNotHaveInitializer()
         {
             Test(

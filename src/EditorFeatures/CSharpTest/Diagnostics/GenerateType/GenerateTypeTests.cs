@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
 
         #region Generics
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateTypeParameterFromArgumentInferT()
         {
             Test(
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromTypeParameter()
         {
             Test(
@@ -50,7 +50,7 @@ index: 1);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromASingleConstraintClause()
         {
             Test(
@@ -59,14 +59,14 @@ index: 2);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NegativeTestGenerateClassFromConstructorConstraint()
         {
             TestMissing(
 @"class EmployeeList<T> where T : Employee, [|new()|] { }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromMultipleTypeConstraintClauses()
         {
             Test(
@@ -75,14 +75,14 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NegativeTestGenerateClassFromClassOrStructConstraint()
         {
             TestMissing(
 @"class Derived<T, U> where U : [|struct|] where T : Base, new() { }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAbsenceOfGenerateIntoInvokingTypeForConstraintList()
         {
             TestActionCount(
@@ -95,7 +95,7 @@ parseOptions: Options.Regular);
 
         #region Lambdas
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromParenthesizedLambdaExpressionsParameter()
         {
             Test(
@@ -104,7 +104,7 @@ parseOptions: Options.Regular);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromParenthesizedLambdaExpressionsBody()
         {
             Test(
@@ -115,7 +115,7 @@ index: 2);
 
         #endregion
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromFieldDeclarationIntoSameType()
         {
             Test(
@@ -144,7 +144,7 @@ expectedContainers: new List<string> { "TestNamespace" },
 expectedDocumentName: "Foo.cs").ConfigureAwait(true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromFieldDeclarationIntoSameNamespace()
         {
             Test(
@@ -153,7 +153,7 @@ expectedDocumentName: "Foo.cs").ConfigureAwait(true);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassWithCtorFromObjectCreation()
         {
             Test(
@@ -162,7 +162,7 @@ index: 1);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromBaseList()
         {
             Test(
@@ -171,7 +171,7 @@ index: 2);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromMethodParameters()
         {
             Test(
@@ -180,7 +180,7 @@ index: 1);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromMethodReturnType()
         {
             Test(
@@ -189,7 +189,7 @@ index: 2);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromAttribute()
         {
             Test(
@@ -198,7 +198,7 @@ index: 2);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromExpandedAttribute()
         {
             Test(
@@ -207,7 +207,7 @@ index: 2);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromCatchClause()
         {
             Test(
@@ -225,7 +225,7 @@ protected ExType(SerializationInfo info, StreamingContext context) : base(info, 
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromThrowStatement()
         {
             Test(
@@ -242,7 +242,7 @@ protected ExType(SerializationInfo info, StreamingContext context) : base(info, 
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromThrowStatementWithDifferentArg()
         {
             Test(
@@ -261,7 +261,7 @@ protected ExType(SerializationInfo info, StreamingContext context) : base(info, 
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromThrowStatementWithMatchingArg()
         {
             Test(
@@ -278,7 +278,7 @@ protected ExType(SerializationInfo info, StreamingContext context) : base(info, 
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAbsenceOfGenerateIntoInvokingTypeForBaseList()
         {
             TestActionCount(
@@ -287,7 +287,7 @@ count: 3,
 parseOptions: Options.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromUsingStatement()
         {
             Test(
@@ -296,7 +296,7 @@ parseOptions: Options.Regular);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassFromForeachStatement()
         {
             Test(
@@ -306,7 +306,7 @@ index: 2);
         }
 
         [WorkItem(538346)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateClassWhereKeywordBecomesTypeName()
         {
             Test(
@@ -315,7 +315,7 @@ index: 2);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NegativeTestGenerateClassOnContextualKeyword()
         {
             Test(
@@ -324,7 +324,7 @@ index: 2);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NegativeTestGenerateClassOnFrameworkTypes()
         {
             TestMissing(
@@ -338,7 +338,7 @@ index: 2);
         }
 
         [WorkItem(538409)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateIntoRightPart()
         {
             Test(
@@ -348,7 +348,7 @@ index: 2);
         }
 
         [WorkItem(538408)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeIntoCompilationUnit()
         {
             Test(
@@ -358,7 +358,7 @@ index: 1);
         }
 
         [WorkItem(538408)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeIntoNamespace()
         {
             Test(
@@ -368,7 +368,7 @@ index: 1);
         }
 
         [WorkItem(538115)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeWithPreprocessor()
         {
             Test(
@@ -395,7 +395,7 @@ compareTokens: false);
         }
 
         [WorkItem(538495)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeIntoContainingNamespace()
         {
             Test(
@@ -416,7 +416,7 @@ expectedDocumentName: "C.cs").ConfigureAwait(true);
         }
 
         [WorkItem(538558)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NegativeTestGlobalAlias()
         {
             TestMissing(
@@ -427,7 +427,7 @@ expectedDocumentName: "C.cs").ConfigureAwait(true);
         }
 
         [WorkItem(538069)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeFromArrayCreation1()
         {
             Test(
@@ -438,7 +438,7 @@ parseOptions: null);
         }
 
         [WorkItem(538069)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeFromArrayCreation2()
         {
             Test(
@@ -449,7 +449,7 @@ parseOptions: null);
         }
 
         [WorkItem(538069)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeFromArrayCreation3()
         {
             Test(
@@ -460,7 +460,7 @@ parseOptions: null);
         }
 
         [WorkItem(539329)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NegativeTestNotInUsingDirective()
         {
             TestMissing(
@@ -479,7 +479,7 @@ parseOptions: null);
 @"using X = [|A|];");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateSimpleConstructor()
         {
             Test(
@@ -488,7 +488,7 @@ parseOptions: null);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithValueParameter()
         {
             Test(
@@ -497,7 +497,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithTwoValueParameters()
         {
             Test(
@@ -506,7 +506,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithNamedParameter()
         {
             Test(
@@ -515,7 +515,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithRefParameter()
         {
             Test(
@@ -524,7 +524,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithOutParameter()
         {
             Test(
@@ -533,7 +533,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithOutParameters1()
         {
             Test(
@@ -542,7 +542,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithOutParameters2()
         {
             Test(
@@ -551,7 +551,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithOutParameters3()
         {
             Test(
@@ -560,7 +560,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithOutParameters4()
         {
             Test(
@@ -569,7 +569,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithOutParameters5()
         {
             Test(
@@ -578,7 +578,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithOutParameters6()
         {
             Test(
@@ -587,7 +587,7 @@ index: 1);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithOutParameters7()
         {
             Test(
@@ -596,7 +596,7 @@ index: 2);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithOutParameters8()
         {
             Test(
@@ -605,7 +605,7 @@ index: 1);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithMethod()
         {
             Test(
@@ -614,7 +614,7 @@ index: 2);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithLambda()
         {
             Test(
@@ -623,7 +623,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithDelegatingConstructor1()
         {
             Test(
@@ -632,7 +632,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithDelegatingConstructor2()
         {
             Test(
@@ -641,7 +641,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithDelegatingConstructor3()
         {
             Test(
@@ -650,7 +650,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithDelegatingConstructor4()
         {
             Test(
@@ -659,7 +659,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithDelegatingConstructor5()
         {
             Test(
@@ -668,7 +668,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithDelegatingConstructor6()
         {
             Test(
@@ -677,7 +677,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithNonDelegatingConstructor1()
         {
             Test(
@@ -686,7 +686,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithNonDelegatingConstructor2()
         {
             Test(
@@ -695,7 +695,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithNonDelegatingConstructor3()
         {
             Test(
@@ -704,7 +704,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithNonDelegatingConstructor4()
         {
             Test(
@@ -713,7 +713,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField1()
         {
             Test(
@@ -722,7 +722,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField2()
         {
             Test(
@@ -731,7 +731,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField3()
         {
             Test(
@@ -740,7 +740,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField4()
         {
             Test(
@@ -749,7 +749,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField5()
         {
             Test(
@@ -758,7 +758,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField6()
         {
             Test(
@@ -767,7 +767,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField7()
         {
             Test(
@@ -776,7 +776,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField7WithQualification()
         {
             Test(
@@ -786,7 +786,7 @@ index: 1,
 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField8()
         {
             Test(
@@ -795,7 +795,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptio
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField9()
         {
             Test(
@@ -804,7 +804,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToField10()
         {
             Test(
@@ -813,7 +813,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToProperty1()
         {
             Test(
@@ -822,7 +822,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToProperty2()
         {
             Test(
@@ -831,7 +831,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToProperty2WithQualification()
         {
             Test(
@@ -841,7 +841,7 @@ index: 1,
 options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToProperty3()
         {
             Test(
@@ -850,7 +850,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptio
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateWithCallToProperty3WithQualification()
         {
             Test(
@@ -861,7 +861,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptio
         }
 
         [WorkItem(942568)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GenerateTypeWithPreferIntrinsicPredefinedKeywordFalse()
         {
             Test(
@@ -896,7 +896,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptio
 
         #region Generate Interface
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateInterfaceFromTypeConstraint()
         {
             Test(
@@ -905,7 +905,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptio
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateInterfaceFromTypeConstraints()
         {
             Test(
@@ -914,14 +914,14 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NegativeTestGenerateInterfaceFromTypeConstraint()
         {
             TestMissing(
 @"using System; class EmployeeList<T> where T : Employee, IEmployee, [|IComparable<T>|], new() { }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateInterfaceFromBaseList1()
         {
             Test(
@@ -931,7 +931,7 @@ index: 1);
         }
 
         [WorkItem(538519)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateInterfaceFromBaseList2()
         {
             Test(
@@ -941,7 +941,7 @@ index: 1);
         }
 
         [WorkItem(538519)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateInterfaceFromTypeConstraints2()
         {
             Test(
@@ -950,7 +950,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateInterfaceFromBaseList3()
         {
             Test(
@@ -962,7 +962,7 @@ index: 1);
         #endregion
 
         [WorkItem(539339)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NotInLeftSideOfAssignment()
         {
             TestMissing(
@@ -970,7 +970,7 @@ index: 1);
         }
 
         [WorkItem(539339)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void InLeftSideOfAssignment()
         {
             Test(
@@ -980,7 +980,7 @@ index: 1);
         }
 
         [WorkItem(539339)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void NotInRightSideOfAssignment()
         {
             TestMissing(
@@ -988,7 +988,7 @@ index: 1);
         }
 
         [WorkItem(539339)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void InRightSideOfAssignment()
         {
             Test(
@@ -998,7 +998,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestEscapedName()
         {
             Test(
@@ -1008,7 +1008,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestEscapedKeyword()
         {
             Test(
@@ -1029,7 +1029,7 @@ expectedDocumentName: "Bar.cs").ConfigureAwait(true);
         }
 
         [WorkItem(539620)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestDeclarationSpan()
         {
             TestSpans(
@@ -1039,7 +1039,7 @@ index: 1);
         }
 
         [WorkItem(539674)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestNotInEnumBaseList()
         {
             TestMissing(
@@ -1047,14 +1047,14 @@ index: 1);
         }
 
         [WorkItem(539681)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestNotInConditional()
         {
             TestMissing(
 @"class Program { static void Main ( string [ ] args ) { if ( [|IsTrue|] ) { } } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestInUsing()
         {
             Test(
@@ -1063,7 +1063,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestNotInDelegateConstructor()
         {
             TestMissing(
@@ -1071,7 +1071,7 @@ index: 1);
         }
 
         [WorkItem(539754)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestMissingOnVar()
         {
             TestMissing(
@@ -1079,7 +1079,7 @@ index: 1);
         }
 
         [WorkItem(539765)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestElideDefaultConstructor()
         {
             Test(
@@ -1088,7 +1088,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         [WorkItem(539783)]
         public void RegressionFor5867ErrorToleranceTopLevel()
         {
@@ -1098,7 +1098,7 @@ GetScriptOptions());
         }
 
         [WorkItem(539799)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestOnInaccessibleType()
         {
             TestMissing(
@@ -1106,7 +1106,7 @@ GetScriptOptions());
         }
 
         [WorkItem(539794)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestDefaultConstructorInTypeDerivingFromInterface()
         {
             Test(
@@ -1115,7 +1115,7 @@ GetScriptOptions());
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateWithThrow()
         {
             Test(
@@ -1124,7 +1124,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateInTryCatch()
         {
             Test(
@@ -1134,14 +1134,14 @@ index: 1);
         }
 
         [WorkItem(539739)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void TestNotGenerateInDelegateConstructor()
         {
             TestMissing(
 @"using System ; delegate void D ( int x ) ; class C { void M ( ) { D d = new D ( [|Test|] ) ; } } ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestInStructBaseList()
         {
             Test(
@@ -1151,7 +1151,7 @@ index: 1);
         }
 
         [WorkItem(539870)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenericWhenNonGenericExists()
         {
             Test(
@@ -1161,7 +1161,7 @@ index: 1);
         }
 
         [WorkItem(539930)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestInheritedTypeParameters()
         {
             Test(
@@ -1171,7 +1171,7 @@ index: 1);
         }
 
         [WorkItem(539971)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestDoNotUseOuterTypeParameters()
         {
             Test(
@@ -1181,7 +1181,7 @@ index: 2);
         }
 
         [WorkItem(539970)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestReferencingTypeParameters1()
         {
             Test(
@@ -1191,7 +1191,7 @@ index: 1);
         }
 
         [WorkItem(539970)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestReferencingTypeParameters2()
         {
             Test(
@@ -1201,7 +1201,7 @@ index: 2);
         }
 
         [WorkItem(539972)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestReferencingTypeParameters3()
         {
             Test(
@@ -1211,7 +1211,7 @@ index: 1);
         }
 
         [WorkItem(539972)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestReferencingTypeParameters4()
         {
             Test(
@@ -1221,7 +1221,7 @@ index: 2);
         }
 
         [WorkItem(539992)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestNotPassingEmptyIssueListToCtor()
         {
             TestMissing(
@@ -1229,7 +1229,7 @@ index: 2);
         }
 
         [WorkItem(540644)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateWithVoidArg()
         {
             Test(
@@ -1239,7 +1239,7 @@ index: 1);
         }
 
         [WorkItem(540989)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestMissingOnInaccessibleType()
         {
             TestMissing(
@@ -1247,7 +1247,7 @@ index: 1);
         }
 
         [WorkItem(540766)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestMissingOnInvalidGlobalCode()
         {
             TestMissing(
@@ -1256,7 +1256,7 @@ parseOptions: null);
         }
 
         [WorkItem(539985)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestDoNotInferTypeWithWrongArity()
         {
             Test(
@@ -1265,7 +1265,7 @@ parseOptions: null);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestMissingOnInvalidConstructorToExistingType()
         {
             TestMissing(
@@ -1273,7 +1273,7 @@ index: 1);
         }
 
         [WorkItem(541263)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAccessibilityConstraint()
         {
             Test(
@@ -1282,7 +1282,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestBaseTypeAccessibilityConstraint()
         {
             Test(
@@ -1291,7 +1291,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestBaseInterfaceAccessibilityConstraint1()
         {
             Test(
@@ -1300,7 +1300,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAccessibilityConstraint2()
         {
             Test(
@@ -1309,7 +1309,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAccessibilityConstraint3()
         {
             Test(
@@ -1318,7 +1318,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestDelegateReturnTypeAccessibilityConstraint()
         {
             Test(
@@ -1327,7 +1327,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestDelegateParameterAccessibilityConstraint()
         {
             Test(
@@ -1336,7 +1336,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestMethodParameterAccessibilityConstraint()
         {
             Test(
@@ -1345,7 +1345,7 @@ index: 1);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestMethodReturnTypeAccessibilityConstraint()
         {
             Test(
@@ -1354,7 +1354,7 @@ index: 1);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestPropertyTypeAccessibilityConstraint()
         {
             Test(
@@ -1363,7 +1363,7 @@ index: 2);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestFieldEventTypeAccessibilityConstraint()
         {
             Test(
@@ -1372,7 +1372,7 @@ index: 2);
 index: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestEventTypeAccessibilityConstraint()
         {
             Test(
@@ -1382,7 +1382,7 @@ index: 1);
         }
 
         [WorkItem(541654)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateVarType()
         {
             Test(
@@ -1392,7 +1392,7 @@ index: 1);
         }
 
         [WorkItem(541641)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestOnBadAttribute()
         {
             Test(
@@ -1410,7 +1410,7 @@ index: 1);
         }
 
         [WorkItem(542528)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateStruct1()
         {
             Test(
@@ -1420,7 +1420,7 @@ index: 1);
         }
 
         [WorkItem(542480)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestCopyConstraints1()
         {
             Test(
@@ -1430,7 +1430,7 @@ index: 1);
         }
 
         [WorkItem(542528)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateStruct2()
         {
             Test(
@@ -1440,7 +1440,7 @@ index: 0);
         }
 
         [WorkItem(542528)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateStruct3()
         {
             Test(
@@ -1450,7 +1450,7 @@ index: 0);
         }
 
         [WorkItem(542761)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateOpenType1()
         {
             Test(
@@ -1460,7 +1460,7 @@ index: 1);
         }
 
         [WorkItem(542766)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateAttributeInGenericType()
         {
             TestActionCount(
@@ -1475,7 +1475,7 @@ count: 3);
         }
 
         [WorkItem(543061)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestNestedGenericAccessibility()
         {
             Test(
@@ -1485,7 +1485,7 @@ index: 1);
         }
 
         [WorkItem(543493)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void MissingIfNotInTypeStatementOrExpressionContext()
         {
             TestMissing(@"class C { void M ( ) { a [|b|] c d } } ");
@@ -1494,7 +1494,7 @@ index: 1);
         }
 
         [WorkItem(542641)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAttributeSuffixOnAttributeSubclasses()
         {
             Test(
@@ -1504,7 +1504,7 @@ index: 1);
         }
 
         [WorkItem(543853)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestDisplayStringForGlobalNamespace()
         {
             TestSmartTagText(
@@ -1524,7 +1524,7 @@ Array.Empty<string>(),
         }
 
         [WorkItem(543886)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestVerbatimAttribute()
         {
             Test(
@@ -1534,7 +1534,7 @@ index: 1);
         }
 
         [WorkItem(531220)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CompareIncompleteMembersToEqual()
         {
             Test(
@@ -1551,7 +1551,7 @@ index: 2);
         }
 
         [WorkItem(544168)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestNotOnAbstractClassCreation()
         {
             TestMissing(
@@ -1559,7 +1559,7 @@ index: 2);
         }
 
         [WorkItem(545362)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateInVenus1()
         {
             var code = @"
@@ -1605,7 +1605,7 @@ class Program
         }
 
         [WorkItem(869506)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateTypeOutsideCurrentProject()
         {
             var code = @"<Workspace>
@@ -1718,7 +1718,7 @@ namespace Namespace1.Namespace2.Namespace3
         }
 
         [WorkItem(612700)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestGenerateTypeWithNoBraces()
         {
             var code = @"class Test : [|Base|]";
@@ -1732,7 +1732,7 @@ internal class Base
         }
 
         [WorkItem(940003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestWithProperties1()
         {
             var code = @"using System;
@@ -1774,7 +1774,7 @@ internal class Customer
         }
 
         [WorkItem(940003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestWithProperties2()
         {
             var code = @"using System;
@@ -1816,7 +1816,7 @@ internal class Customer
         }
 
         [WorkItem(940003)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestWithProperties3()
         {
             var code = @"using System;
@@ -1858,7 +1858,7 @@ internal class Customer
         }
 
         [WorkItem(1082031)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestWithProperties4()
         {
             var code = @"using System;
@@ -1891,7 +1891,7 @@ internal class Customer
         }
 
         [WorkItem(1032176), WorkItem(1073099)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestWithNameOf()
         {
             var code = @"class C
@@ -1919,7 +1919,7 @@ internal class Z
         }
 
         [WorkItem(1032176), WorkItem(1073099)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestWithNameOf2()
         {
             var code = @"class C
@@ -1945,7 +1945,7 @@ internal class Z
             Test(code, expected, index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestWithUsingStatic()
         {
             Test(
@@ -1954,14 +1954,14 @@ internal class Z
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestWithUsingStatic2()
         {
             TestMissing(@"using [|Sample|] ; ");
         }
 
         [WorkItem(1107929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAccessibilityForPublicFields()
         {
             Test(
@@ -1971,7 +1971,7 @@ index: 0);
         }
 
         [WorkItem(1107929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAccessibilityForPublicFields2()
         {
             Test(
@@ -1981,7 +1981,7 @@ index: 1);
         }
 
         [WorkItem(1107929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAccessibilityForPublicFields3()
         {
             Test(
@@ -1991,7 +1991,7 @@ index: 2);
         }
 
         [WorkItem(1107929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAccessibilityForPublicFields4()
         {
             Test(
@@ -2001,7 +2001,7 @@ index: 0);
         }
 
         [WorkItem(1107929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAccessibilityForPublicFields5()
         {
             Test(
@@ -2011,7 +2011,7 @@ index: 1);
         }
 
         [WorkItem(1107929)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void TestAccessibilityForPublicFields6()
         {
             Test(
