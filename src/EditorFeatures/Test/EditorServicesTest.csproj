@@ -230,7 +230,6 @@
     <Compile Include="Commands\CommandArgsTests.cs" />
     <Compile Include="Commands\TypeCharCommandArgsTests.cs" />
     <Compile Include="CommentSelection\CommentUncommentSelectionCommandHandlerTests.cs" />
-    <Compile Include="Completion\AbstractCompletionCommandHandlerTestState.cs" />
     <Compile Include="Completion\AbstractCompletionProviderTests.cs" />
     <Compile Include="Diagnostics\AbstractSuppressionAllCodeTests.cs" />
     <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
