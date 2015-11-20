@@ -60,11 +60,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         Public Async Function AssertGeneratedResultIsAsync(workspaceElement As XElement, leftItemToSelectText As String, rightItemToSelectText As String, expectedText As XElement) As Tasks.Task
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim snapshot = document.GetTextAsync().Result.FindCorrespondingEditorTextSnapshot()
+                Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
 
-                Dim items = service.GetItemsAsync(document, Nothing).Result
+                Dim items = Await service.GetItemsAsync(document, Nothing)
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim contextLocation = document.GetSyntaxTreeAsync().Result.GetLocation(New TextSpan(0, 0))
                 Dim generateCodeItem = DirectCast(rightItem, AbstractGenerateCodeItem)
-                Dim newDocument = generateCodeItem.GetGeneratedDocumentAsync(document, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim newDocument = Await generateCodeItem.GetGeneratedDocumentAsync(document, CancellationToken.None)
 
                 Dim actual = newDocument.GetSyntaxRootAsync(CancellationToken.None).Result.ToFullString().TrimEnd()
                 Dim expected = expectedText.NormalizedValue.TrimEnd()

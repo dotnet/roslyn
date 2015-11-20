@@ -20,10 +20,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
             Dim expectedPosition As Integer
             MarkupTestFile.GetPosition(input.NormalizedValue, parsedInput, expectedPosition)
 
-            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition, Sub(document, position)
-                                                                                   Dim result = DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                                                                                   Assert.True(result.IsDefault)
-                                                                               End Sub)
+            Await TestSpanGetterAsync(input.NormalizedValue, expectedPosition,
+                                      Async Function(document, position)
+                                          Dim result = Await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None)
+                                          Assert.True(result.IsDefault)
+                                      End Function)
         End Function
 
         Private Async Function TestAsync(input As XElement, Optional expectedText As String = Nothing) As Task
