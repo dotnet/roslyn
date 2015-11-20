@@ -19,8 +19,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
                 Dim document = solution.GetDocument(cursorDocument.Id)
-                Dim root = Await document.GetSyntaxRootAsync(CancellationToken.None)
-                Dim semanticModel = Await document.GetSemanticModelAsync(CancellationToken.None)
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim symbol = root.FindToken(cursorPosition).Parent _
                     .AncestorsAndSelf() _
                     .Select(Function(n) semanticModel.GetDeclaredSymbol(n, CancellationToken.None)) _
@@ -30,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 Dim symbolId = symbol.GetSymbolKey()
                 Dim project = document.Project
-                Dim compilation = Await project.GetCompilationAsync(CancellationToken.None)
+                Dim compilation = Await project.GetCompilationAsync()
                 Dim symbolInfo = symbolId.Resolve(compilation)
 
                 Assert.NotNull(symbolInfo.Symbol)

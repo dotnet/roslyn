@@ -86,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
                 ' Try to get proximity expressions at every token position and the start of every
                 ' line.
                 Dim index = 0
-                Dim statements = (Await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Select(Function(t) t.GetAncestor(Of StatementSyntax)()).Distinct().WhereNotNull()
+                Dim statements = (Await document.GetSyntaxRootAsync()).DescendantTokens().Select(Function(t) t.GetAncestor(Of StatementSyntax)()).Distinct().WhereNotNull()
                 For Each statement In statements
                     builder.AppendLine("<WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>")
                     builder.AppendLine("Public Sub TestAtStartOfStatement_" & index & "()")

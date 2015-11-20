@@ -344,7 +344,7 @@ using G=   H.I;
                     placeSystemNamespaceFirst, CancellationToken.None)
 
                 Assert.Equal(expectedUpdatedCode.Replace(vbLf, vbCrLf),
-                             (Await updatedDocument.GetTextAsync(CancellationToken.None)).ToString())
+                             (Await updatedDocument.GetTextAsync()).ToString())
             End Using
         End Function
 

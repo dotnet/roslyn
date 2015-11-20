@@ -210,7 +210,7 @@ End Namespace</Document>
                     fileCodeModel.EndBatch()
                 End If
 
-                Dim text = (Await state.GetDocumentAtCursor().GetTextAsync(CancellationToken.None)).ToString()
+                Dim text = (Await state.GetDocumentAtCursor().GetTextAsync()).ToString()
                 Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
             End Using
         End Function
