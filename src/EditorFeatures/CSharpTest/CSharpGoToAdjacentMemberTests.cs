@@ -536,7 +536,7 @@ $$void M2() { }";
                 {
                     var hostDocument = workspace.DocumentWithCursor;
                     var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                    Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics());
+                    Assert.Empty((await document.GetSyntaxTreeAsync()).GetDiagnostics());
                     var targetPosition = await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
                         document,
                         hostDocument.CursorPosition.Value,
@@ -559,7 +559,7 @@ $$void M2() { }";
             {
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics());
+                Assert.Empty((await document.GetSyntaxTreeAsync()).GetDiagnostics());
                 return await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
                     document,
                     hostDocument.CursorPosition.Value,

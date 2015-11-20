@@ -261,11 +261,11 @@ class C
                 var oldSolution = workspace.CurrentSolution;
                 var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
                 var oldDocument = oldSolution.GetDocument(documentId);
-                var oldText = oldDocument.GetTextAsync().Result;
-                var oldSyntaxRoot = oldDocument.GetSyntaxRootAsync().Result;
+                var oldText = await oldDocument.GetTextAsync();
+                var oldSyntaxRoot = await oldDocument.GetSyntaxRootAsync();
                 var newDocument = newSolution.GetDocument(documentId);
-                var newText = newDocument.GetTextAsync().Result;
-                var newSyntaxRoot = newDocument.GetSyntaxRootAsync().Result;
+                var newText = await newDocument.GetTextAsync();
+                var newSyntaxRoot = await newDocument.GetSyntaxRootAsync();
 
                 const string oldStatementSource = "System.Console.WriteLine(1);";
                 var oldStatementPosition = source1.IndexOf(oldStatementSource, StringComparison.Ordinal);
@@ -274,7 +274,7 @@ class C
                 var oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan);
 
                 var baseActiveStatements = ImmutableArray.Create(new ActiveStatementSpan(ActiveStatementFlags.LeafFrame, oldStatementSpan));
-                var result = analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newDocument, default(CancellationToken)).Result;
+                var result = await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newDocument, default(CancellationToken));
 
                 Assert.True(result.HasChanges);
                 Assert.True(result.SemanticEdits[0].PreserveLocalVariables);
@@ -319,7 +319,7 @@ class C
                 var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
-                var result = analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken)).Result;
+                var result = await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken));
 
                 Assert.True(result.HasChanges);
                 Assert.True(result.HasChangesAndErrors);
@@ -345,7 +345,7 @@ class C
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
-                var result = analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, default(CancellationToken)).Result;
+                var result = await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, default(CancellationToken));
 
                 Assert.False(result.HasChanges);
                 Assert.False(result.HasChangesAndErrors);
@@ -383,7 +383,7 @@ class C
                 var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
-                var result = analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken)).Result;
+                var result = await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken));
 
                 Assert.False(result.HasChanges);
                 Assert.False(result.HasChangesAndErrors);
@@ -412,7 +412,7 @@ class C
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
-                var result = analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, default(CancellationToken)).Result;
+                var result = await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, default(CancellationToken));
 
                 Assert.False(result.HasChanges);
                 Assert.False(result.HasChangesAndErrors);
@@ -460,7 +460,7 @@ class C
                     var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
                     var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
-                    var result = analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken)).Result;
+                    var result = await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken));
 
                     Assert.True(result.HasChanges);
                     Assert.True(result.HasChangesAndErrors);
@@ -489,7 +489,7 @@ class C
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
-                var result = analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, default(CancellationToken)).Result;
+                var result = await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, default(CancellationToken));
 
                 Assert.False(result.HasChanges);
                 Assert.False(result.HasChangesAndErrors);
@@ -529,7 +529,7 @@ class C
                 var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
-                var result = analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken)).Result;
+                var result = await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken));
 
                 Assert.True(result.HasChanges);
                 Assert.True(result.HasChangesAndErrors);
@@ -584,7 +584,7 @@ namespace N
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
                 foreach (var changedDocumentId in changedDocuments)
                 {
-                    result.Add(analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newProject.GetDocument(changedDocumentId), default(CancellationToken)).Result);
+                    result.Add(await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newProject.GetDocument(changedDocumentId), default(CancellationToken)));
                 }
 
                 Assert.True(result.IsSingle());
@@ -634,7 +634,7 @@ namespace N
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
                 foreach (var changedDocumentId in changedDocuments)
                 {
-                    result.Add(analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newProject.GetDocument(changedDocumentId), default(CancellationToken)).Result);
+                    result.Add(await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newProject.GetDocument(changedDocumentId), default(CancellationToken)));
                 }
 
                 Assert.True(result.IsSingle());

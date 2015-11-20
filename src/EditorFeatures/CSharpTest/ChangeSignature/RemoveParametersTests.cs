@@ -253,11 +253,11 @@ class C{i}
                 {
                     if (updatedDocument.Name == "C5.cs")
                     {
-                        Assert.Contains("void Ext(this C5 c, string s)", updatedDocument.GetTextAsync(CancellationToken.None).Result.ToString());
+                        Assert.Contains("void Ext(this C5 c, string s)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                     }
                     else
                     {
-                        Assert.Contains(@"c.Ext(""two"");", updatedDocument.GetTextAsync(CancellationToken.None).Result.ToString());
+                        Assert.Contains(@"c.Ext(""two"");", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                     }
                 }
             }
