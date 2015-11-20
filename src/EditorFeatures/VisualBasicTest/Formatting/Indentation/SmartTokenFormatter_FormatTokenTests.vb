@@ -183,7 +183,7 @@ End Class
                 Dim line = snapshot.GetLineFromPosition(position)
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
-                Dim root = DirectCast(document.GetSyntaxRootAsync().Result, CompilationUnitSyntax)
+                Dim root = DirectCast(Await document.GetSyntaxRootAsync(), CompilationUnitSyntax)
 
                 Dim formattingRules = (New SpecialFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
 

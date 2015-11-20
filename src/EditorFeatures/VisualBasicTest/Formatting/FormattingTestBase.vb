@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim clonedBuffer = EditorFactory.CreateBuffer(buffer.ContentType.TypeName, workspace.ExportProvider, buffer.CurrentSnapshot.GetText())
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
-                Dim syntaxTree = document.GetSyntaxTreeAsync().Result
+                Dim syntaxTree = Await document.GetSyntaxTreeAsync()
 
                 ' Add Base IndentationRule that we had just set up.
                 Dim formattingRuleProvider = workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
         Private Async Function CheckAsync(initial As XElement, final As XElement, specialCaseSystem As Boolean) As Threading.Tasks.Task
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim newRoot = OrganizeImportsService.OrganizeImportsAsync(document, specialCaseSystem).Result.GetSyntaxRootAsync().Result
+                Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document, specialCaseSystem)).GetSyntaxRootAsync()
 
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
             End Using

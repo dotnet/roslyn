@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
         Protected Async Function CheckAsync(initial As XElement, final As XElement) As System.Threading.Tasks.Task
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim newRoot = OrganizingService.OrganizeAsync(document).Result.GetSyntaxRootAsync().Result
+                Dim newRoot = Await (Await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync()
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())
             End Using
         End Function
