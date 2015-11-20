@@ -286,16 +286,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 workspace.GetService<ClassificationTypeMap>());
         }
 
-        protected override void AssertNoContent(
+        protected override async Task AssertNoContentAsync(
             TestWorkspace workspace,
             Document document,
             int position)
         {
             var provider = CreateProvider(workspace);
-            Assert.Null(provider.GetItemAsync(document, position, CancellationToken.None).Result);
+            Assert.Null(await provider.GetItemAsync(document, position, CancellationToken.None));
         }
 
-        protected override void AssertContentIs(
+        protected override async Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
             int position,
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider(workspace);
-            var state = provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None).Result;
+            var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
             Assert.NotNull(state);
 
             var viewHostingControl = (ViewHostingControl)((ElisionBufferDeferredContent)state.Content).Create();
@@ -347,11 +347,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
                 if (string.IsNullOrEmpty(expectedContent))
                 {
-                    AssertNoContent(workspace, document, position);
+                    await AssertNoContentAsync(workspace, document, position);
                 }
                 else
                 {
-                    AssertContentIs(workspace, document, position, expectedContent, expectedDocumentationComment);
+                    await AssertContentIsAsync(workspace, document, position, expectedContent, expectedDocumentationComment);
                 }
             }
         }

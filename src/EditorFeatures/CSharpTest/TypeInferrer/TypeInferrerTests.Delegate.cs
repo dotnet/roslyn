@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 
             Document document = await fixture.UpdateDocumentAsync(text, SourceCodeKind.Regular);
 
-            var root = document.GetSyntaxTreeAsync().Result.GetRoot();
+            var root = (await document.GetSyntaxTreeAsync()).GetRoot();
             var node = FindExpressionSyntaxFromSpan(root, textSpan);
 
             var typeInference = document.GetLanguageService<ITypeInferenceService>();
-            var delegateType = typeInference.InferDelegateType(document.GetSemanticModelAsync().Result, node, CancellationToken.None);
+            var delegateType = typeInference.InferDelegateType(await document.GetSemanticModelAsync(), node, CancellationToken.None);
 
             Assert.NotNull(delegateType);
             Assert.Equal(expectedType, delegateType.ToNameDisplayString());

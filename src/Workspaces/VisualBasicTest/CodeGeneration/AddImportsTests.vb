@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             Dim doc = GetDocument(initialText, globalImports)
             options = If(options, doc.Project.Solution.Workspace.Options)
 
-            Dim imported = ImportAdder.AddImportsAsync(doc, options).Result
+            Dim imported = Await ImportAdder.AddImportsAsync(doc, options)
 
             If importsAddedText IsNot Nothing Then
                 Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options)

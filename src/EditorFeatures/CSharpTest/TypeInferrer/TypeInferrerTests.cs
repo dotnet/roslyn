@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             var typeInference = document.GetLanguageService<ITypeInferenceService>();
 
             var inferredType = useNodeStartPosition
-                ? typeInference.InferType(document.GetSemanticModelForSpanAsync(new TextSpan(node?.SpanStart ?? textSpan.Start, 0), CancellationToken.None).Result, node?.SpanStart ?? textSpan.Start, objectAsDefault: true, cancellationToken: CancellationToken.None)
-                : typeInference.InferType(document.GetSemanticModelForSpanAsync(node?.Span ?? textSpan, CancellationToken.None).Result, node, objectAsDefault: true, cancellationToken: CancellationToken.None);
+                ? typeInference.InferType(await document.GetSemanticModelForSpanAsync(new TextSpan(node?.SpanStart ?? textSpan.Start, 0), CancellationToken.None), node?.SpanStart ?? textSpan.Start, objectAsDefault: true, cancellationToken: CancellationToken.None)
+                : typeInference.InferType(await document.GetSemanticModelForSpanAsync(node?.Span ?? textSpan, CancellationToken.None), node, objectAsDefault: true, cancellationToken: CancellationToken.None);
             var typeSyntax = inferredType.GenerateTypeSyntax();
             Assert.Equal(expectedType, typeSyntax.ToString());
         }

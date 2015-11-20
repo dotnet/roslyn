@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                         workspace.GetService<IGlyphService>(),
                         workspace.GetService<ClassificationTypeMap>());
 
-                var state = provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None).Result;
+                var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
                 if (state != null)
                 {
                     WaitForDocumentationComment(state.Content);
@@ -271,7 +271,7 @@ using System.Linq;
                         workspace.GetService<IGlyphService>(),
                         workspace.GetService<ClassificationTypeMap>());
 
-                var state = provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None).Result;
+                var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
                 if (state != null)
                 {
                     WaitForDocumentationComment(state.Content);

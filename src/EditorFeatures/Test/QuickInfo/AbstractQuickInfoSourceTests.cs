@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null);
 
-        protected abstract void AssertNoContent(
+        protected abstract Task AssertNoContentAsync(
             TestWorkspace workspace,
             Document document,
             int position);
 
-        protected abstract void AssertContentIs(
+        protected abstract Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
             int position,

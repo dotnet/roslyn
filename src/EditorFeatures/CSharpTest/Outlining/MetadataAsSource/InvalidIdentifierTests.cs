@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
             var workspace = await TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(WorkspaceKind.MetadataAsSource, LanguageNames.CSharp, null, null, fileContents);
             var outliningService = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IOutliningService>();
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var actualOutliningSpans = outliningService.GetOutliningSpansAsync(document, CancellationToken.None).Result.Where(s => s != null).ToArray();
+            var actualOutliningSpans = (await outliningService.GetOutliningSpansAsync(document, CancellationToken.None)).Where(s => s != null).ToArray();
 
             Assert.Equal(expectedSpans.Length, actualOutliningSpans.Length);
             for (int i = 0; i < expectedSpans.Length; i++)

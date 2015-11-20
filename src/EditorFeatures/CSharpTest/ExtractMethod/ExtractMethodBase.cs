@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options);
 
-            var selectedCode = validator.GetValidSelectionAsync(CancellationToken.None).Result;
+            var selectedCode = await validator.GetValidSelectionAsync(CancellationToken.None);
             if (!succeed && selectedCode.Status.FailedWithNoBestEffortSuggestion())
             {
                 return null;
