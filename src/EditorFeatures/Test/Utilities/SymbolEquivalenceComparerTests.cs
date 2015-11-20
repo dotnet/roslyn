@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode))
             {
-                var type = (ITypeSymbol)workspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("C").Single();
+                var type = (ITypeSymbol)(await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
 
                 var intField1 = (IFieldSymbol)type.GetMembers("intField1").Single();
                 var intArrayField1 = (IFieldSymbol)type.GetMembers("intArrayField1").Single();
@@ -121,8 +121,8 @@ end class";
             using (var csharpWorkspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode))
             using (var vbWorkspace = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode))
             {
-                var csharpType = (ITypeSymbol)csharpWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("C").Single();
-                var vbType = vbWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("C").Single();
+                var csharpType = (ITypeSymbol)(await csharpWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+                var vbType = (await vbWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
 
                 var csharpIntField1 = (IFieldSymbol)csharpType.GetMembers("intField1").Single();
                 var csharpIntArrayField1 = (IFieldSymbol)csharpType.GetMembers("intArrayField1").Single();
@@ -193,10 +193,10 @@ class Type2
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type2_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type2").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type2_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type2").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type2_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type2_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
 
                 var field1_v1 = type1_v1.GetMembers("field1").Single();
                 var field1_v2 = type1_v2.GetMembers("field1").Single();
@@ -247,10 +247,10 @@ end class";
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode1))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type2_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type2").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type2_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type2").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type2_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type2_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
 
                 var field1_v1 = type1_v1.GetMembers("field1").Single();
                 var field1_v2 = type1_v2.GetMembers("field1").Single();
@@ -288,8 +288,8 @@ class D
 
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
-                var typeC = workspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("C").Single();
-                var typeD = workspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("D").Single();
+                var typeC = (await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+                var typeD = (await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("D").Single();
 
                 var intInstantiation1 = (IFieldSymbol)typeC.GetMembers("intInstantiation1").Single();
                 var stringInstantiation = (IFieldSymbol)typeC.GetMembers("stringInstantiation").Single();
@@ -334,8 +334,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -361,8 +361,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo1").Single();
@@ -388,8 +388,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -415,8 +415,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -442,8 +442,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -471,8 +471,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -500,8 +500,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -529,8 +529,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -556,8 +556,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -583,8 +583,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -612,8 +612,8 @@ class D
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -648,8 +648,8 @@ end class";
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode1))
             {
-                var csharpType1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var vbType1 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var csharpType1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var vbType1 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var csharpFooMethod = csharpType1.GetMembers("Foo").Single();
                 var csharpBarMethod = csharpType1.GetMembers("Bar").Single();
@@ -695,8 +695,8 @@ end class";
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(vbCode1))
             {
-                var csharpType1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var vbType1 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var csharpType1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var vbType1 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var csharpFooMethod = csharpType1.GetMembers("Foo").Single();
                 var csharpBarMethod = csharpType1.GetMembers("Bar").Single();
@@ -728,7 +728,7 @@ end class";
 
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var field1_v1 = type1_v1.GetMembers("field1").Single();
                 var field2_v1 = type1_v1.GetMembers("field2").Single();
@@ -756,8 +756,8 @@ end class";
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -793,8 +793,8 @@ class Type1
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -828,8 +828,8 @@ class Type1
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -865,8 +865,8 @@ class Type1
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -898,8 +898,8 @@ class Type1
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             {
-                var outer1 = (INamespaceSymbol)workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetMembers("Outer").Single();
-                var outer2 = (INamespaceSymbol)workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetMembers("Outer").Single();
+                var outer1 = (INamespaceSymbol)(await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetMembers("Outer").Single();
+                var outer2 = (INamespaceSymbol)(await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetMembers("Outer").Single();
 
                 var inner1 = (INamespaceSymbol)outer1.GetMembers("Inner").Single();
                 var inner2 = (INamespaceSymbol)outer2.GetMembers("Inner").Single();
@@ -977,10 +977,10 @@ class Type2<Y>
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type2_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type2").Single();
-                var type2_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type2").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type2_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
+                var type2_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
 
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(type1_v1, type1_v2));
                 Assert.True(SymbolEquivalenceComparer.Instance.Equals(type1_v2, type1_v1));
@@ -1016,8 +1016,8 @@ class Type2
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type2").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type2").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(type1_v1, type1_v2));
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(type1_v2, type1_v1));
@@ -1043,8 +1043,8 @@ class Type1
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(type1_v1, type1_v2));
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(type1_v2, type1_v1));
@@ -1070,8 +1070,8 @@ class Type1<T>
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(type1_v1, type1_v2));
                 Assert.False(SymbolEquivalenceComparer.Instance.Equals(type1_v2, type1_v1));
@@ -1103,8 +1103,8 @@ class Other
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var outer = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Outer").Single();
-                var other = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Other").Single();
+                var outer = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Outer").Single();
+                var other = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Other").Single();
                 var type1_v1 = outer.GetTypeMembers("Type1").Single();
                 var type1_v2 = other.GetTypeMembers("Type1").Single();
 
@@ -1135,8 +1135,8 @@ class Type1
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("Type1").Single();
 
                 var method_v1 = type1_v1.GetMembers("Foo").Single();
                 var method_v2 = type1_v2.GetMembers("Foo").Single();
@@ -1169,8 +1169,8 @@ class C
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode1))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(csharpCode2))
             {
-                var type1_v1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("C").Single();
-                var type1_v2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("C").Single();
+                var type1_v1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
+                var type1_v2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetTypeMembers("C").Single();
 
                 var method_v1 = type1_v1.GetMembers("M").Single();
                 var method_v2 = type1_v2.GetMembers("M").Single();
@@ -1244,8 +1244,8 @@ class Test
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
-                var comp1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
-                var comp2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
+                var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
+                var comp2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync());
 
                 TestReducedExtension<CS.Syntax.InvocationExpressionSyntax>(comp1, comp2, "Test", "NotGeneric");
                 TestReducedExtension<CS.Syntax.InvocationExpressionSyntax>(comp1, comp2, "Test", "GenericThis");
@@ -1320,8 +1320,8 @@ End Class
             using (var workspace1 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             using (var workspace2 = await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
-                var comp1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
-                var comp2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
+                var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
+                var comp2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync());
 
                 TestReducedExtension<VB.Syntax.InvocationExpressionSyntax>(comp1, comp2, "Test", "NotGeneric");
                 TestReducedExtension<VB.Syntax.InvocationExpressionSyntax>(comp1, comp2, "Test", "GenericThis");
@@ -1345,8 +1345,8 @@ End Class
             using (var workspace1 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { csharpCode }, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "FooModule")))
             using (var workspace2 = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(new[] { csharpCode }, compilationOptions: new CS.CSharpCompilationOptions(OutputKind.NetModule, moduleName: "BarModule")))
             {
-                var namespace1 = workspace1.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");
-                var namespace2 = workspace2.CurrentSolution.Projects.Single().GetCompilationAsync().Result.GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");
+                var namespace1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");
+                var namespace2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync()).GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N").GetNamespaceMembers().Single(n => n.Name == "M");
 
                 Assert.True(SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(namespace1, namespace2));
                 Assert.Equal(SymbolEquivalenceComparer.IgnoreAssembliesInstance.GetHashCode(namespace1),
