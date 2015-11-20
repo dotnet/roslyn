@@ -28,26 +28,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
 
         Private Async Function TestAsync(input As String, expected As String) As Tasks.Task
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(input)
-                Test(expected, workspace)
+                Await TestAsync(expected, workspace)
             End Using
         End Function
 
-        Private Shared Sub Test(expected As String, workspace As TestWorkspace)
+        Private Shared Async Function TestAsync(expected As String, workspace As TestWorkspace) As Task
             Dim hostDocument = workspace.Documents.First()
             Dim buffer = hostDocument.GetTextBuffer()
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-            Dim span = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).GetRoot(CancellationToken.None).FullSpan
+            Dim span = (Await document.GetSyntaxTreeAsync(CancellationToken.None)).GetRoot(CancellationToken.None).FullSpan
 
-            Dim newDocument = CaseCorrector.CaseCorrectAsync(document, span, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Dim newDocument = Await CaseCorrector.CaseCorrectAsync(document, span, CancellationToken.None)
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None)
 
             Dim actual = buffer.CurrentSnapshot.GetText()
             Assert.Equal(expected, actual)
-        End Sub
+        End Function
 
         Private Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(input)
-                Test(expected, workspace)
+                Await TestAsync(expected, workspace)
             End Using
         End Function
 
