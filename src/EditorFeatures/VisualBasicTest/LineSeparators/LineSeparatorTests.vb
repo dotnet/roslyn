@@ -292,7 +292,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
         Private Async Function GetSpansForAsync(ParamArray lines As String()) As Tasks.Task(Of IEnumerable(Of TextSpan))
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(lines)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim spans = New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document, document.GetSyntaxTreeAsync().Result.GetRoot().FullSpan).Result
+                Dim spans = Await New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document,
+                    (Await document.GetSyntaxTreeAsync()).GetRoot().FullSpan)
                 Return spans.OrderBy(Function(span) span.Start)
             End Using
         End Function
