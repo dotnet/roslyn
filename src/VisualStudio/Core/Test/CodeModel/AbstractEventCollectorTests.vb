@@ -100,10 +100,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Assert.NotNull(codeModelService)
 
                 Dim codeDocument = workspace.CurrentSolution.GetDocument(workspace.Documents(0).Id)
-                Dim codeTree = codeDocument.GetSyntaxTreeAsync().Result
+                Dim codeTree = Await codeDocument.GetSyntaxTreeAsync()
 
                 Dim changeDocument = workspace.CurrentSolution.GetDocument(workspace.Documents(1).Id)
-                Dim changeTree = changeDocument.GetSyntaxTreeAsync().Result
+                Dim changeTree = Await changeDocument.GetSyntaxTreeAsync()
 
                 Dim collectedEvents = codeModelService.CollectCodeModelEvents(codeTree, changeTree)
                 Assert.NotNull(collectedEvents)

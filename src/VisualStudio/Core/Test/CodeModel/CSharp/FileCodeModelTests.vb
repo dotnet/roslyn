@@ -997,10 +997,10 @@ class D
                 Using changedworkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
-                    Dim originalTree = originalDocument.GetSyntaxTreeAsync().Result
+                    Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
 
                     Dim changeDocument = changedworkspace.CurrentSolution.GetDocument(changedworkspace.Documents(0).Id)
-                    Dim changeTree = changeDocument.GetSyntaxTreeAsync().Result
+                    Dim changeTree = Await changeDocument.GetSyntaxTreeAsync()
 
                     Dim codeModelEvent = originalWorkspaceAndFileCodeModel.CodeModelService.CollectCodeModelEvents(originalTree, changeTree)
                     Dim fileCodeModel = originalWorkspaceAndFileCodeModel.FileCodeModelObject

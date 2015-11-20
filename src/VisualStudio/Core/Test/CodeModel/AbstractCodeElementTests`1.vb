@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
                 updater(codeElement)
 
-                Dim text = state.GetDocumentAtCursor().GetTextAsync(CancellationToken.None).Result.ToString()
+                Dim text = (Await state.GetDocumentAtCursor().GetTextAsync(CancellationToken.None)).ToString()
                 Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
             End Using
         End Function
@@ -50,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
                 updater(state, codeElement)
 
-                Dim text = state.GetDocumentAtCursor().GetTextAsync(CancellationToken.None).Result.ToString()
+                Dim text = (Await state.GetDocumentAtCursor().GetTextAsync(CancellationToken.None)).ToString()
                 Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
             End Using
         End Function
