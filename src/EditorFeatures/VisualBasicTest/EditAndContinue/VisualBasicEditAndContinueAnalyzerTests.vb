@@ -438,11 +438,11 @@ End Class
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
                 Dim oldDocument = oldSolution.GetDocument(documentId)
-                Dim oldText = oldDocument.GetTextAsync().Result
-                Dim oldSyntaxRoot = oldDocument.GetSyntaxRootAsync().Result
+                Dim oldText = Await oldDocument.GetTextAsync()
+                Dim oldSyntaxRoot = Await oldDocument.GetSyntaxRootAsync()
                 Dim newDocument = newSolution.GetDocument(documentId)
-                Dim newText = newDocument.GetTextAsync().Result
-                Dim newSyntaxRoot = newDocument.GetSyntaxRootAsync().Result
+                Dim newText = Await newDocument.GetTextAsync()
+                Dim newSyntaxRoot = Await newDocument.GetSyntaxRootAsync()
 
                 Dim oldStatementSource = "System.Console.WriteLine(1)"
                 Dim oldStatementPosition = source1.IndexOf(oldStatementSource, StringComparison.Ordinal)
@@ -451,7 +451,7 @@ End Class
                 Dim oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan)
 
                 Dim baseActiveStatements = ImmutableArray.Create(New ActiveStatementSpan(ActiveStatementFlags.LeafFrame, oldStatementSpan))
-                Dim result = analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newDocument, Nothing).Result
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newDocument, Nothing)
 
                 Assert.True(result.HasChanges)
                 Assert.True(result.SemanticEdits(0).PreserveLocalVariables)
@@ -480,7 +480,7 @@ End Class
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(source)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
-                Dim result = analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing).Result
+                Dim result = Await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -512,7 +512,7 @@ End Class
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
 
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
-                Dim result = analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing).Result
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -535,7 +535,7 @@ End Class
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(source)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
-                Dim result = analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing).Result
+                Dim result = Await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -569,7 +569,7 @@ End Class
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
 
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
-                Dim result = analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing).Result
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
 
                 Assert.True(result.HasChanges)
                 Assert.True(result.HasChangesAndErrors)
@@ -635,7 +635,7 @@ End Class
                 Dim result = New List(Of DocumentAnalysisResults)()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
                 For Each changedDocumentId In changedDocuments
-                    result.Add(analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newProject.GetDocument(changedDocumentId), Nothing).Result)
+                    result.Add(Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newProject.GetDocument(changedDocumentId), Nothing))
                 Next
 
                 Assert.True(result.IsSingle())
