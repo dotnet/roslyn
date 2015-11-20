@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(text))
             {
                 var nameResolver = new BreakpointResolver(workspace.CurrentSolution, searchText);
-                var results = nameResolver.DoAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var results = await nameResolver.DoAsync(CancellationToken.None);
 
                 Assert.Equal(expectedNames, results.Select(r => r.LocationNameOpt));
             }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(" "))
             {
                 var debugInfo = new CSharpBreakpointResolutionService();
-                var results = debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "foo", CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "foo", CancellationToken.None);
                 Assert.Equal(0, results.Count());
             }
         }

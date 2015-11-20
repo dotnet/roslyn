@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             {
                 var testDocument = workspace.Documents.Single();
                 var position = testDocument.CursorPosition.Value;
-                var locationInfo = LocationInfoGetter.GetInfoAsync(
+                var locationInfo = await LocationInfoGetter.GetInfoAsync(
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
                     position,
-                    CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                    CancellationToken.None);
 
                 Assert.Equal(expectedName, locationInfo.Name);
                 Assert.Equal(expectedLineOffset, locationInfo.LineOffset);

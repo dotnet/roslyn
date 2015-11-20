@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
                 var builder = new StringBuilder();
-                var statements = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).DescendantTokens().Select(t => t.GetAncestor<StatementSyntax>()).Distinct().WhereNotNull();
+                var statements = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Select(t => t.GetAncestor<StatementSyntax>()).Distinct().WhereNotNull();
 
                 // Try to get proximity expressions at every token position and the start of every
                 // line.
