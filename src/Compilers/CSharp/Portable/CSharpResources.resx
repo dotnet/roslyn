@@ -4666,4 +4666,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PublicSignButNoKey" xml:space="preserve">
     <value>Public signing was specified and requires a public key, but no public key was specified.</value>
   </data>
+  <data name="ERR_InvalidReal" xml:space="preserve">
+    <value>Invalid real literal.</value>
+  </data>
 </root>

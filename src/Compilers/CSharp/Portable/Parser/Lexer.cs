@@ -1029,10 +1029,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                     }
 
-                    while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
+                    if (!((ch = TextWindow.PeekChar()) >= '0' && ch <= '9'))
                     {
-                        _builder.Append(ch);
-                        TextWindow.AdvanceChar();
+                        // use this for now (CS0595), cant use CS0594 as we dont know 'type'
+                        this.AddError(MakeError(ErrorCode.ERR_InvalidReal));
+                        // add dummy exponent, so parser does not blow up
+                        _builder.Append('0');
+                    }
+                    else
+                    {
+                        while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
+                        {
+                            _builder.Append(ch);
+                            TextWindow.AdvanceChar();
+                        }
                     }
                 }
 
