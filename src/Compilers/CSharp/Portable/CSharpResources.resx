@@ -1758,7 +1758,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Not a valid attribute location for this declaration</value>
   </data>
   <data name="WRN_InvalidAttributeLocation" xml:space="preserve">
-    <value>'{0}' is not a recognized attribute location. All attributes in this block will be ignored.</value>
+    <value>'{0}' is not a recognized attribute location. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</value>
   </data>
   <data name="WRN_InvalidAttributeLocation_Title" xml:space="preserve">
     <value>Not a recognized attribute location</value>
