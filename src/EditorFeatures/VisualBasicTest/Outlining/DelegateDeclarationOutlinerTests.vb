@@ -1,36 +1,27 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class DelegateDeclarationOutlinerTests
-        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of DelegateStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxNodeOutlinerTests(Of DelegateStatementSyntax)
 
-        Friend Overrides Function GetRegions(delegateDeclaration As DelegateStatementSyntax) As IEnumerable(Of OutliningSpan)
-            Dim outliner As New DelegateDeclarationOutliner
-            Return outliner.GetOutliningSpans(delegateDeclaration, CancellationToken.None).WhereNotNull()
+        Friend Overrides Function CreateOutliner() As AbstractSyntaxOutliner
+            Return New DelegateDeclarationOutliner()
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestDelegateWithComments()
-            Dim tree = ParseLines("'Hello",
-                                  "'World",
-                                  "Delegate Sub Foo()")
-
-            Dim delegateDecl = tree.DigToFirstNodeOfType(Of DelegateStatementSyntax)()
-            Assert.NotNull(delegateDecl)
-
-            Dim actualRegion = GetRegion(delegateDecl)
-            Dim expectedRegion = New OutliningSpan(
-                         TextSpan.FromBounds(0, 14),
-                         "' Hello ...",
-                         autoCollapse:=True)
-
-            AssertRegion(expectedRegion, actualRegion)
+            Const code = "
+{|span:'Hello
+'World|}
+Delegate Sub $$Foo()
+"
+            Regions(code,
+                Region("span", "' Hello ...", autoCollapse:=True))
         End Sub
+
     End Class
 End Namespace

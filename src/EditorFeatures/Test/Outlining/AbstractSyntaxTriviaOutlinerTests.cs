@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
     {
         internal abstract AbstractSyntaxOutliner CreateOutliner();
 
-        internal override OutliningSpan[] GetRegions(Document document, int position)
+        internal sealed override OutliningSpan[] GetRegions(Document document, int position)
         {
             var root = document.GetSyntaxRootAsync(CancellationToken.None).Result;
             var trivia = root.FindTrivia(position, findInsideTrivia: true);

@@ -3,39 +3,41 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class OverallOutliningTests
         Inherits AbstractSyntaxOutlinerTests
 
-#If False Then
+        Protected Overrides ReadOnly Property LanguageName As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Friend Overrides Function GetRegions(document As Document, position As Integer) As OutliningSpan()
+            Dim outliningService = document.Project.LanguageServices.GetService(Of IOutliningService)()
+
+            Return outliningService _
+                .GetOutliningSpansAsync(document, CancellationToken.None) _
+                .WaitAndGetResult(CancellationToken.None) _
+                .WhereNotNull() _
+                .ToArray()
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Sub DirectivesAtEndOfFile()
-            Dim code = "Class C" & vbCrLf &
-"End Class" & vbCrLf &
-"" & vbCrLf &
-"#Region ""Something""" & vbCrLf &
-"#End Region"
+            Const code = "
+$${|span1:Class C
+End Class|}
 
-            VerifyRegions(code,
-                          New OutliningSpan(TextSpan.FromBounds(0, 18), "Class C ...", autoCollapse:=False),
-                          New OutliningSpan(TextSpan.FromBounds(22, 54), "Something", autoCollapse:=False))
+{|span2:#Region ""Something""
+#End Region|}
+"
+
+            Regions(code,
+                Region("span1", "Class C ...", autoCollapse:=False),
+                Region("span2", "Something", autoCollapse:=False, isDefaultCollapsed:=True))
         End Sub
-#End If
 
-        Private Async Function VerifyRegionsAsync(code As String, ParamArray expectedRegions As OutliningSpan()) As Tasks.Task
-            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
-                Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim outliningService = document.Project.LanguageServices.GetService(Of IOutliningService)()
-                Dim actualRegions = (Await outliningService.GetOutliningSpansAsync(document, CancellationToken.None)).ToList()
-
-                Assert.Equal(expectedRegions.Length, actualRegions.Count)
-
-                For i = 0 To expectedRegions.Length - 1
-                    AssertRegion(expectedRegions(i), actualRegions(i))
-                Next
-            End Using
-        End Function
     End Class
 End Namespace

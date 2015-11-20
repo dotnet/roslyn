@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     public abstract class AbstractCSharpSyntaxNodeOutlinerTests<TSyntaxNode> : AbstractSyntaxNodeOutlinerTests<TSyntaxNode>
         where TSyntaxNode : SyntaxNode
     {
-        protected override string LanguageName => LanguageNames.CSharp;
+        protected sealed override string LanguageName => LanguageNames.CSharp;
     }
 }

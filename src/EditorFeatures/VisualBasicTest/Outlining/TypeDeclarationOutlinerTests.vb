@@ -1,361 +1,183 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class TypeDeclarationOutlinerTests
-        Inherits AbstractVisualBasicSyntaxOutlinerTests(Of TypeStatementSyntax)
+        Inherits AbstractVisualBasicSyntaxNodeOutlinerTests(Of TypeStatementSyntax)
 
-        Friend Overrides Function GetRegions(typeDeclaration As TypeStatementSyntax) As IEnumerable(Of OutliningSpan)
-            Dim outliner As New TypeDeclarationOutliner
-            Return outliner.GetOutliningSpans(typeDeclaration, CancellationToken.None).WhereNotNull()
+        Friend Overrides Function CreateOutliner() As AbstractSyntaxOutliner
+            Return New TypeDeclarationOutliner()
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestClass()
-            Dim tree = ParseLines("Class C1",
-                                  "End Class")
+            Const code = "
+{|span:Class $$C1
+End Class|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegion = GetRegion(typeDecl)
-            Dim expectedRegion = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 19),
-                                     bannerText:="Class C1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 19),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion, actualRegion)
+            Regions(code,
+                Region("span", "Class C1 ...", autoCollapse:=False))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestFriendClass()
-            Dim tree = ParseLines("Friend Class C1",
-                                  "End Class")
+            Const code = "
+{|span:Friend Class $$C1
+End Class|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegion = GetRegion(typeDecl)
-            Dim expectedRegion = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 26),
-                                     bannerText:="Friend Class C1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 26),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion, actualRegion)
+            Regions(code,
+                Region("span", "Friend Class C1 ...", autoCollapse:=False))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestClassWithLeadingComments()
-            Dim tree = ParseLines("'Hello",
-                                  "'World!",
-                                  "Class C1",
-                                  "End Class")
+            Const code = "
+{|span1:'Hello
+'World|}
+{|span2:Class $$C1
+End Class|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegions = GetRegions(typeDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 15),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 15),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(17, 36),
-                                     bannerText:="Class C1 ...",
-                                     hintSpan:=TextSpan.FromBounds(17, 36),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
+            Regions(code,
+                Region("span1", "' Hello ...", autoCollapse:=True),
+                Region("span2", "Class C1 ...", autoCollapse:=False))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestClassWithNestedComments()
-            Dim tree = ParseLines("Class C1",
-                                  "'Hello",
-                                  "'World!",
-                                  "End Class")
+            Const code = "
+{|span1:Class $$C1
+{|span2:'Hello
+'World|}
+End Class|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegions = GetRegions(typeDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 36),
-                                     bannerText:="Class C1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 36),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(10, 25),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(10, 25),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
+            Regions(code,
+                Region("span1", "Class C1 ...", autoCollapse:=False),
+                Region("span2", "' Hello ...", autoCollapse:=True))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestModule()
-            Dim tree = ParseLines("Module M1",
-                                  "End Module")
+            Const code = "
+{|span:Module $$M1
+End Module|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegion = GetRegion(typeDecl)
-            Dim expectedRegion = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 21),
-                                     bannerText:="Module M1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 21),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion, actualRegion)
+            Regions(code,
+                Region("span", "Module M1 ...", autoCollapse:=False))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestModuleWithLeadingComments()
-            Dim tree = ParseLines("'Hello",
-                                  "'World!",
-                                  "Module M1",
-                                  "End Module")
+            Const code = "
+{|span1:'Hello
+'World|}
+{|span2:Module $$M1
+End Module|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegions = GetRegions(typeDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 15),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 15),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(17, 38),
-                                     bannerText:="Module M1 ...",
-                                     hintSpan:=TextSpan.FromBounds(17, 38),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
+            Regions(code,
+                Region("span1", "' Hello ...", autoCollapse:=True),
+                Region("span2", "Module M1 ...", autoCollapse:=False))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestModuleWithNestedComments()
-            Dim tree = ParseLines("Module M1",
-                                  "'Hello",
-                                  "'World!",
-                                  "End Module")
+            Const code = "
+{|span1:Module $$M1
+{|span2:'Hello
+'World|}
+End Module|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegions = GetRegions(typeDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 38),
-                                     bannerText:="Module M1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 38),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(11, 26),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(11, 26),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
+            Regions(code,
+                Region("span1", "Module M1 ...", autoCollapse:=False),
+                Region("span2", "' Hello ...", autoCollapse:=True))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestInterface()
-            Dim tree = ParseLines("Interface I1",
-                                  "End Interface")
+            Const code = "
+{|span:Interface $$I1
+End Interface|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegion = GetRegion(typeDecl)
-            Dim expectedRegion = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 27),
-                                     bannerText:="Interface I1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 27),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion, actualRegion)
+            Regions(code,
+                Region("span", "Interface I1 ...", autoCollapse:=False))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestInterfaceWithLeadingComments()
-            Dim tree = ParseLines("'Hello",
-                                  "'World!",
-                                  "Interface I1",
-                                  "End Interface")
+            Const code = "
+{|span1:'Hello
+'World|}
+{|span2:Interface $$I1
+End Interface|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegions = GetRegions(typeDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 15),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 15),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(17, 44),
-                                     bannerText:="Interface I1 ...",
-                                     hintSpan:=TextSpan.FromBounds(17, 44),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
+            Regions(code,
+                Region("span1", "' Hello ...", autoCollapse:=True),
+                Region("span2", "Interface I1 ...", autoCollapse:=False))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestInterfaceWithNestedComments()
-            Dim tree = ParseLines("Interface I1",
-                                  "'Hello",
-                                  "'World!",
-                                  "End Interface")
+            Const code = "
+{|span1:Interface $$I1
+{|span2:'Hello
+'World|}
+End Interface|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegions = GetRegions(typeDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 44),
-                                     bannerText:="Interface I1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 44),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(14, 29),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(14, 29),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
+            Regions(code,
+                Region("span1", "Interface I1 ...", autoCollapse:=False),
+                Region("span2", "' Hello ...", autoCollapse:=True))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestStructure()
-            Dim tree = ParseLines("Structure S1",
-                                  "End Structure")
+            Const code = "
+{|span:Structure $$S1
+End Structure|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegion = GetRegion(typeDecl)
-            Dim expectedRegion = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 27),
-                                     bannerText:="Structure S1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 27),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion, actualRegion)
+            Regions(code,
+                Region("span", "Structure S1 ...", autoCollapse:=False))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestStructureWithLeadingComments()
-            Dim tree = ParseLines("'Hello",
-                                  "'World!",
-                                  "Structure S1",
-                                  "End Structure")
+            Const code = "
+{|span1:'Hello
+'World|}
+{|span2:Structure $$S1
+End Structure|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegions = GetRegions(typeDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 15),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 15),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(17, 44),
-                                     bannerText:="Structure S1 ...",
-                                     hintSpan:=TextSpan.FromBounds(17, 44),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
+            Regions(code,
+                Region("span1", "' Hello ...", autoCollapse:=True),
+                Region("span2", "Structure S1 ...", autoCollapse:=False))
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestStructureWithNestedComments()
-            Dim tree = ParseLines("Structure S1",
-                                  "'Hello",
-                                  "'World!",
-                                  "End Structure")
+            Const code = "
+{|span1:Structure $$S1
+{|span2:'Hello
+'World|}
+End Structure|}
+"
 
-            Dim typeBlock = tree.DigToFirstTypeBlock()
-            Dim typeDecl = typeBlock.BlockStatement
-            Assert.NotNull(typeDecl)
-
-            Dim actualRegions = GetRegions(typeDecl).ToList()
-            Assert.Equal(2, actualRegions.Count)
-
-            Dim expectedRegion1 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(0, 44),
-                                     bannerText:="Structure S1 ...",
-                                     hintSpan:=TextSpan.FromBounds(0, 44),
-                                     autoCollapse:=False)
-
-            AssertRegion(expectedRegion1, actualRegions(0))
-
-            Dim expectedRegion2 = New OutliningSpan(
-                                     TextSpan:=TextSpan.FromBounds(14, 29),
-                                     bannerText:="' Hello ...",
-                                     hintSpan:=TextSpan.FromBounds(14, 29),
-                                     autoCollapse:=True)
-
-            AssertRegion(expectedRegion2, actualRegions(1))
+            Regions(code,
+                Region("span1", "Structure S1 ...", autoCollapse:=False),
+                Region("span2", "' Hello ...", autoCollapse:=True))
         End Sub
+
     End Class
 End Namespace
