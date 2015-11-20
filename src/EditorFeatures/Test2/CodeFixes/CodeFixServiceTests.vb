@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestProjectCodeFix()
+        Public Async Function TestProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(test)
                 Dim project = workspace.CurrentSolution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
@@ -86,10 +86,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                                                      includeSuppressionFixes:=True, cancellationToken:=CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(0, fixes.Count())
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestDifferentLanguageProjectCodeFix()
+        Public Async Function TestDifferentLanguageProjectCodeFix() As Task
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document FilePath="Test.vb">
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                            </Project>
                        </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(test)
                 Dim project = workspace.CurrentSolution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                                                      includeSuppressionFixes:=True, cancellationToken:=CancellationToken.None).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(0, fixes.Count())
             End Using
-        End Sub
+        End Function
 
         Private Class WorkspaceDiagnosticAnalyzer
             Inherits AbstractDiagnosticAnalyzer

@@ -92,11 +92,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             }
         }
 
-        public CallHierarchyTestState(XElement markup, params Type[] additionalTypes)
+        public static async Task<CallHierarchyTestState> CreateAsync(XElement markup, params Type[] additionalTypes)
         {
             var exportProvider = CreateExportProvider(additionalTypes);
+            var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(markup, exportProvider: exportProvider);
 
-            this.Workspace = TestWorkspaceFactory.CreateWorkspace(markup, exportProvider: exportProvider);
+            return new CallHierarchyTestState(workspace);
+        }
+
+        private CallHierarchyTestState(TestWorkspace workspace)
+        {
+            this.Workspace = workspace;
             var testDocument = Workspace.Documents.Single(d => d.CursorPosition.HasValue);
 
             _textView = testDocument.GetTextView();
