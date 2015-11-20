@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public MustInherit Class AbstractOutlinerTests(Of T As SyntaxNode)

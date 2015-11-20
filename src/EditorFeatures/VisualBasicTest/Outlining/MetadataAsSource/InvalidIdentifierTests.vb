@@ -2,6 +2,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource

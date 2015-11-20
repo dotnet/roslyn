@@ -310,7 +310,6 @@
     <Compile Include="Organizing\OrganizeModifiersTests.cs" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.cs" />
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
-    <Compile Include="Outlining\AbstractOutlinerTests.cs" />
     <Compile Include="Outlining\AbstractOutlinerTests`1.cs" />
     <Compile Include="Outlining\AccessorDeclarationTests.cs" />
     <Compile Include="Outlining\AnonymousMethodExpressionTests.cs" />
@@ -351,6 +350,7 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.cs" />
     <Compile Include="Outlining\SimpleLambdaExpressionOutlinerTests.cs" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.cs" />
+    <Compile Include="Outlining\Utils.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoSourceTests.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTests.cs" />

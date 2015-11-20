@@ -1,117 +1,87 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class ParenthesizedLambdaOutlinerTests :
-        AbstractOutlinerTests<ParenthesizedLambdaExpressionSyntax>
+    public class ParenthesizedLambdaOutlinerTests : AbstractOutlinerTests<ParenthesizedLambdaExpressionSyntax>
     {
-        internal override IEnumerable<OutliningSpan> GetRegions(ParenthesizedLambdaExpressionSyntax lambdaExpression)
+        internal override AbstractSyntaxNodeOutliner<ParenthesizedLambdaExpressionSyntax> CreateOutliner()
         {
-            var outliner = new ParenthesizedLambdaExpressionOutliner();
-            return outliner.GetOutliningSpans(lambdaExpression, CancellationToken.None).WhereNotNull();
+            return new ParenthesizedLambdaExpressionOutliner();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestLambda()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  void Main()",
-                                        "  {",
-                                        "    () => {",
-                                        "      x();",
-                                        "    };",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:$$() => {|collapse:{
+            x();
+        };|}|}
+    }
+}";
 
-            var lambdaExpression = tree.GetRoot().FindFirstNodeOfType<ParenthesizedLambdaExpressionSyntax>();
-            var actualRegion = GetRegion(lambdaExpression);
-
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(42, 63),
-                TextSpan.FromBounds(36, 63),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion, actualRegion);
+            Regions(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestLambdaInForLoop()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  void Main()",
-                                        "  {",
-                                        "    for (Action a = () => { }; true; a()) { }",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    void M()
+    {
+        for (Action a = $$() => { }; true; a()) { }
+    }
+}";
 
-            var lambdaExpression = tree.GetRoot().FindFirstNodeOfType<ParenthesizedLambdaExpressionSyntax>();
-            var actualRegions = GetRegions(lambdaExpression).ToList();
-
-            Assert.Equal(0, actualRegions.Count);
+            NoRegions(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestLambdaInMethodCall1()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  void Main()",
-                                        "  {",
-                                        "    someMethod(42, \"test\", false, (x, y, z) => {",
-                                        "      return x + y + z;",
-                                        "      }, \"other arguments\");",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    void M()
+    {
+        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|collapse:{
+            return x + y + z;
+        }|}|}, ""other arguments"");
+    }
+}";
 
-            var lambdaExpression = tree.GetRoot().FindFirstNodeOfType<ParenthesizedLambdaExpressionSyntax>();
-            var actualRegion = GetRegion(lambdaExpression);
-
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(79, 114),
-                TextSpan.FromBounds(66, 114),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion, actualRegion);
+            Regions(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void TestLambdaInMethodCall2()
         {
-            var tree = ParseLines("class C",
-                                        "{",
-                                        "  void Main()",
-                                        "  {",
-                                        "    someMethod(42, \"test\", false, (x, y, z) => {",
-                                        "      return x + y + z;",
-                                        "      });",
-                                        "  }",
-                                        "}");
+            const string code = @"
+class C
+{
+    void M()
+    {
+        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|collapse:{
+            return x + y + z;
+        }|}|});
+    }
+}";
 
-            var lambdaExpression = tree.GetRoot().FindFirstNodeOfType<ParenthesizedLambdaExpressionSyntax>();
-            var actualRegion = GetRegion(lambdaExpression);
-
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(79, 114),
-                TextSpan.FromBounds(66, 114),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion, actualRegion);
+            Regions(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
     }
 }
