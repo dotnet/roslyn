@@ -607,9 +607,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim ch = Peek()
 
-            ' optimization for a common case
-            ' the ASCII range between ': and ~ , with exception of except "'", "_" and R cannot start trivia
-            If ch > ":"c AndAlso ch <= "~"c AndAlso ch <> "'"c AndAlso ch <> "_"c AndAlso ch <> "R"c AndAlso ch <> "r"c Then
+            ' Optimization for a common case the ASCII range between ":"c (Exclusive) and "~"c (Inclusive)
+            ' Except for "'"c, "_"c, "R"c or "r"c, which cannot start trivia.
+            If (":"c < ch AndAlso ch <= "~"c) AndAlso (ch <> "'"c AndAlso ch <> "_"c AndAlso ch <> "R"c AndAlso ch <> "r"c) Then
                 Return Nothing
             End If
 
