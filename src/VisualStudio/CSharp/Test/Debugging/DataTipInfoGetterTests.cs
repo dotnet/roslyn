@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     {
         private async Task TestAsync(string markup, string expectedText = null)
         {
-            await TestSpanGetterAsync(markup, (document, position, expectedSpan) =>
+            await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
             {
-                var result = DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var result = await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None);
 
                 Assert.Equal(expectedSpan, result.Span);
                 Assert.Equal(expectedText, result.Text);
@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         private async Task TestNoDataTipAsync(string markup)
         {
-            await TestSpanGetterAsync(markup, (document, position, expectedSpan) =>
+            await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
             {
-                var result = DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var result = await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None);
                 Assert.True(result.IsDefault);
             });
         }
 
-        private async Task TestSpanGetterAsync(string markup, Action<Document, int, TextSpan?> continuation)
+        private async Task TestSpanGetterAsync(string markup, Func<Document, int, TextSpan?, Task> continuation)
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(markup))
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
                     ? testHostDocument.SelectedSpans.Single()
                     : (TextSpan?)null;
 
-                continuation(
+                await continuation(
                     workspace.CurrentSolution.Projects.First().Documents.First(),
                     position,
                     expectedSpan);
