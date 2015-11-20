@@ -1010,7 +1010,7 @@ class Program $$: ISomeInterface<object>
         {
             using (var testState = await ExtractInterfaceTestState.CreateAsync(markup, LanguageNames.CSharp, compilationOptions: null))
             {
-                var result = testState.GetTypeAnalysisResult(typeDiscoveryRule);
+                var result = await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule);
                 Assert.Equal(expectedExtractable, result.CanExtractInterface);
             }
         }
