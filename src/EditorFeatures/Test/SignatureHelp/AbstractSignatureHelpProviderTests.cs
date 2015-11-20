@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
         }
 
-        private static SignatureHelpState GetArgumentState(int cursorPosition, Document document, ISignatureHelpProvider signatureHelpProvider, SignatureHelpTriggerInfo triggerInfo)
+        private static async Task<SignatureHelpState> GetArgumentStateAsync(int cursorPosition, Document document, ISignatureHelpProvider signatureHelpProvider, SignatureHelpTriggerInfo triggerInfo)
         {
-            var items = signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None);
             return items == null ? null : new SignatureHelpState(items.ArgumentIndex, items.ArgumentCount, items.ArgumentName, null);
         }
 
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var signatureHelpProvider = CreateSignatureHelpProvider();
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
             var items = signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None).Result;
-            Assert.Equal(expectedParameterName, GetArgumentState(cursorPosition, document, signatureHelpProvider, triggerInfo).ArgumentName);
+            Assert.Equal(expectedParameterName, (await GetArgumentStateAsync(cursorPosition, document, signatureHelpProvider, triggerInfo)).ArgumentName);
         }
 
         private void CompareAndAssertCollectionsAndCurrentParameter(
