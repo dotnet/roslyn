@@ -7997,7 +7997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // check for duplicates, can only be const
-                if (list.Any(mod.Kind))
+                else if (list.Any(mod.Kind))
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_TypeExpected, mod.Text);
                 }
