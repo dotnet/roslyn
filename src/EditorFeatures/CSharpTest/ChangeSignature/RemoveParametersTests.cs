@@ -266,12 +266,12 @@ class C{i}
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public void ChangeSignatureCommandDisabledInSubmission()
+        public async Task ChangeSignatureCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C

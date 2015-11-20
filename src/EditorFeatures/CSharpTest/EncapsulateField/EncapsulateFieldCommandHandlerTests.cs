@@ -188,12 +188,12 @@ class Program
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public void EncapsulateFieldCommandDisabledInSubmission()
+        public async Task EncapsulateFieldCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceAsync(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
                         class C
