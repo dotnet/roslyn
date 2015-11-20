@@ -2555,10 +2555,10 @@ namespace ConsoleApplication46
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             var completionList = GetCompletionList(provider, document, testDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
 
-            var oldTree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var oldTree = await document.GetSyntaxTreeAsync(CancellationToken.None);
 
             provider.Commit(completionList.Items.First(i => i.DisplayText == "ToString()"), testDocument.GetTextView(), testDocument.GetTextBuffer(), testDocument.TextBuffer.CurrentSnapshot, ' ');
-            var newTree = workspace.CurrentSolution.GetDocument(testDocument.Id).GetSyntaxTreeAsync().WaitAndGetResult(CancellationToken.None);
+            var newTree = await workspace.CurrentSolution.GetDocument(testDocument.Id).GetSyntaxTreeAsync();
             var changes = newTree.GetChanges(oldTree);
 
             // If we left the trailing trivia of the close curly of Main alone,

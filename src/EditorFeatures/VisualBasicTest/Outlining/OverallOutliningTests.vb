@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
                 Dim outliningService = document.Project.LanguageServices.GetService(Of IOutliningService)()
-                Dim actualRegions = outliningService.GetOutliningSpansAsync(document, CancellationToken.None).WaitAndGetResult(CancellationToken.None).ToList()
+                Dim actualRegions = (Await outliningService.GetOutliningSpansAsync(document, CancellationToken.None)).ToList()
 
                 Assert.Equal(expectedRegions.Length, actualRegions.Count)
 
