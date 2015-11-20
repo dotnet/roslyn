@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.FindResults
     Public Class FindResultsTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(1138943)>
-        Public Sub ConstructorReferencesShouldNotAppearUnderClassNodeInCSharp()
+        Public Async Function ConstructorReferencesShouldNotAppearUnderClassNodeInCSharp() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 class $$C
 {
@@ -45,12 +45,12 @@ class $$C
                         TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (13, 17) : var c = C.z;"))
                 }
 
-            Verify(markup, LanguageNames.CSharp, expectedResults)
-        End Sub
+            Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(1138943)>
-        Public Sub ConstructorReferencesShouldNotAppearUnderClassNodeInVisualBasic()
+        Public Async Function ConstructorReferencesShouldNotAppearUnderClassNodeInVisualBasic() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C$$
     Const z = 1
@@ -78,11 +78,11 @@ End Class"]]></Text>
                         TestFindResult.CreateReference("VisualBasicAssembly1\Test1.vb - (13, 21) : Dim b = New C(5)"))
                 }
 
-            Verify(markup, LanguageNames.VisualBasic, expectedResults)
-        End Sub
+            Await VerifyAsync(markup, LanguageNames.VisualBasic, expectedResults)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestSourceNamespace()
+        Public Async Function TestSourceNamespace() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 namespace NS$$
 {
@@ -100,11 +100,11 @@ namespace NS
                         TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (6, 11) : namespace NS"))
                 }
 
-            Verify(markup, LanguageNames.CSharp, expectedResults)
-        End Sub
+            Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestMetadataNamespace()
+        Public Async Function TestMetadataNamespace() As System.Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 using System$$;
 using System.Threading;
@@ -117,8 +117,8 @@ using System.Threading;
                         TestFindResult.CreateReference("CSharpAssembly1\Test1.cs - (3, 7) : using System.Threading;"))
                 }
 
-            Verify(markup, LanguageNames.CSharp, expectedResults)
-        End Sub
+            Await VerifyAsync(markup, LanguageNames.CSharp, expectedResults)
+        End Function
 
 
         Private Shared ReadOnly s_exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
@@ -126,7 +126,7 @@ using System.Threading;
                 GetType(MockDocumentNavigationServiceProvider),
                 GetType(MockSymbolNavigationServiceProvider)))
 
-        Private Sub Verify(markup As XElement, languageName As String, expectedResults As IList(Of AbstractTreeItem))
+        Private Async Function VerifyAsync(markup As XElement, languageName As String, expectedResults As IList(Of AbstractTreeItem)) As System.Threading.Tasks.Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= languageName %> CommonReferences="true">
@@ -134,7 +134,7 @@ using System.Threading;
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml, exportProvider:=s_exportProvider)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml, exportProvider:=s_exportProvider)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
                 If Not doc.CursorPosition.HasValue Then
@@ -155,7 +155,7 @@ using System.Threading;
 
                 VerifyResultsTree(expectedResults, findReferencesTree)
             End Using
-        End Sub
+        End Function
 
         Private Sub VerifyResultsTree(expectedResults As IList(Of AbstractTreeItem), findReferencesTree As IList(Of AbstractTreeItem))
             Assert.True(expectedResults.Count = findReferencesTree.Count, $"Unexpected number of results. Expected: {expectedResults.Count} Actual: {findReferencesTree.Count}
