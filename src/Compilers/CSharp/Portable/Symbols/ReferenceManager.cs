@@ -313,16 +313,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 try
                 {
-                    IDictionary<string, MetadataReference> boundReferenceDirectiveMap;
+                    IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectiveMap;
                     ImmutableArray<MetadataReference> boundReferenceDirectives;
                     ImmutableArray<AssemblyData> referencedAssemblies;
                     ImmutableArray<PEModule> modules; // To make sure the modules are not collected ahead of time.
-                    ImmutableArray<MetadataReference> references;
+                    ImmutableArray<MetadataReference> explicitReferences;
 
                     ImmutableArray<ResolvedReference> referenceMap = ResolveMetadataReferences(
                         compilation,
                         assemblyReferencesBySimpleName,
-                        out references,
+                        out explicitReferences,
                         out boundReferenceDirectiveMap,
                         out boundReferenceDirectives,
                         out referencedAssemblies,
@@ -340,9 +340,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<AssemblyData> allAssemblyData;
 
                     BoundInputAssembly[] bindingResult = Bind(
+                        compilation,
                         explicitAssemblyData,
                         modules,
-                        references,
+                        explicitReferences,
                         referenceMap,
                         compilation.Options.MetadataReferenceResolver,
                         compilation.Options.MetadataImportOptions,
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(bindingResult.Length == allAssemblyData.Length);
 
-                    references = references.AddRange(implicitlyResolvedReferences);
+                    var references = explicitReferences.AddRange(implicitlyResolvedReferences);
                     referenceMap = referenceMap.AddRange(implicitlyResolvedReferenceMap);
 
                     Dictionary<MetadataReference, int> referencedAssembliesMap, referencedModulesMap;
@@ -457,6 +458,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     referencedModulesMap,
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
+                                    explicitReferences,
+                                    implicitlyResolvedReferences,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
                                     ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,

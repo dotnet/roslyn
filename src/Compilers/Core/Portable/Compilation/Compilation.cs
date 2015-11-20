@@ -156,7 +156,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.InvalidOutputKindForSubmission, nameof(options));
             }
 
-            if (options.CryptoKeyContainer != null || options.CryptoKeyFile != null || options.DelaySign != null || !options.CryptoPublicKey.IsEmpty)
+            if (options.CryptoKeyContainer != null ||
+                options.CryptoKeyFile != null ||
+                options.DelaySign != null ||
+                !options.CryptoPublicKey.IsEmpty ||
+                (options.DelaySign == true && options.PublicSign))
             {
                 throw new ArgumentException(CodeAnalysisResources.InvalidCompilationOptions, nameof(options));
             }
@@ -495,7 +499,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps values of #r references to resolved metadata references.
         /// </summary>
-        internal abstract IDictionary<string, MetadataReference> ReferenceDirectiveMap { get; }
+        internal abstract IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap { get; }
 
         /// <summary>
         /// All metadata references -- references passed to the compilation
@@ -1300,6 +1304,7 @@ namespace Microsoft.CodeAnalysis
                 // alink would sign the assembly. So rather than give an error we just don't sign when outputting a module.
 
                 return !IsDelaySigned
+                    && !Options.PublicSign
                     && Options.OutputKind != OutputKind.NetModule
                     && StrongNameKeys.CanSign;
             }

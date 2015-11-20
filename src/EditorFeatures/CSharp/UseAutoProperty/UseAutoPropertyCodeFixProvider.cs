@@ -1,13 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
@@ -24,9 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         }
 
         protected override async Task<SyntaxNode> UpdatePropertyAsync(
-            Project project, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol, 
+            Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol, 
             PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor, CancellationToken cancellationToken)
         {
+            var project = propertyDocument.Project;
+            var sourceText = await propertyDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var getAccessor = propertyDeclaration.AccessorList.Accessors.First(d => d.IsKind(SyntaxKind.GetAccessorDeclaration));
+            var isSingleLine = sourceText.AreOnSameLine(getAccessor.GetFirstToken(), getAccessor.GetLastToken());
+
             var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList));
 
             // We may need to add a setter if the field is written to outside of the constructor
@@ -52,7 +64,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
 
+            if (isSingleLine)
+            {
+                updatedProperty = updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
+            }
+
             return updatedProperty;
+        }
+
+        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        {
+            var rules = new List<IFormattingRule> { new SingleLinePropertyFormattingRule() };
+            rules.AddRange(Formatter.GetDefaultFormattingRules(document));
+
+            return rules;
+        }
+
+        private class SingleLinePropertyFormattingRule : AbstractFormattingRule
+        {
+            private bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
+            {
+                if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
+                {
+                    return true;
+                }
+
+                if (previousToken.IsKind(SyntaxKind.OpenBraceToken) && previousToken.Parent.IsKind(SyntaxKind.AccessorList))
+                {
+                    return true;
+                }
+
+                if (currentToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+            {
+                if (ForceSingleSpace(previousToken, currentToken))
+                {
+                    return null;
+                }
+
+                return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation);
+            }
+
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
+            {
+                if (ForceSingleSpace(previousToken, currentToken))
+                {
+                    return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+
+                return base.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, nextOperation);
+            }
         }
 
         private async Task<ExpressionSyntax> GetFieldInitializerAsync(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)

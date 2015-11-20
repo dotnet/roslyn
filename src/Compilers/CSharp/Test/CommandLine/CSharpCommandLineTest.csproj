@@ -29,7 +29,7 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\VBCSCompiler\VBCSCompiler.csproj">
+    <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508F118-F62E-4C16-A6F4-7C3B56E166AD}</Project>
       <Name>VBCSCompiler</Name>
     </ProjectReference>
@@ -76,7 +76,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLineDiagnosticFormatterTests.cs" />
-    <Compile Include="CommandLineScriptTests.cs" />
     <Compile Include="CommandLineTests.cs" />
     <Compile Include="CommandLineTestResources.Designer.cs">
       <AutoGen>True</AutoGen>

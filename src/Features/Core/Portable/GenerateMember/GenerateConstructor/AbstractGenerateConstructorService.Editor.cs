@@ -41,22 +41,28 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             internal async Task<Document> GetEditAsync()
             {
-                // First, see if there's an accessible base constructor that would accept these
-                // types, then just call into that instead of generating fields.
-                //
-                // then, see if there are any constructors that would take the first 'n' arguments
-                // we've provided.  If so, delegate to those, and then create a field for any
-                // remaining arguments.  Try to match from largest to smallest.
-                //
-                // Otherwise, just generate a normal constructor that assigns any provided
-                // parameters into fields.
-
-                var edit = await GenerateThisOrBaseDelegatingConstructorAsync().ConfigureAwait(false);
+                // First, if we were just given the constructor and the type to generate it into
+                // then just go generat that constructor.  There's nothing special we need to do.
+                var edit = await GenerateDelegatedConstructorAsync().ConfigureAwait(false);
                 if (edit != null)
                 {
                     return edit;
                 }
 
+                // then, see if there's an accessible base constructor that would accept these
+                // types, then just call into that instead of generating fields.
+                //
+                // then, see if there are any constructors that would take the first 'n' arguments
+                // we've provided.  If so, delegate to those, and then create a field for any
+                // remaining arguments.  Try to match from largest to smallest.
+                edit = await GenerateThisOrBaseDelegatingConstructorAsync().ConfigureAwait(false);
+                if (edit != null)
+                {
+                    return edit;
+                }
+                
+                // Otherwise, just generate a normal constructor that assigns any provided
+                // parameters into fields.
                 return await GenerateFieldDelegatingConstructorAsync().ConfigureAwait(false);
             }
 
@@ -87,6 +93,51 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 return null;
             }
+
+            private async Task<Document> GenerateDelegatedConstructorAsync()
+            {
+                var delegatedConstructor = _state.DelegatedConstructorOpt;
+                if (delegatedConstructor == null)
+                {
+                    return null;
+                }
+
+                var namedType = _state.TypeToGenerateIn;
+                if (namedType == null)
+                {
+                    return null;
+                }
+
+                // There was a best match.  Call it directly.  
+                var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
+                var syntaxFactory = provider.GetService<SyntaxGenerator>();
+                var codeGenerationService = provider.GetService<ICodeGenerationService>();
+
+                var isThis = namedType.Equals(delegatedConstructor.ContainingType);
+                var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
+                var baseConstructorArguments = isThis ? null : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : null;
+
+                var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
+                    attributes: null,
+                    accessibility: Accessibility.Public,
+                    modifiers: default(DeclarationModifiers),
+                    typeName: _state.TypeToGenerateIn.Name,
+                    parameters: delegatedConstructor.Parameters,
+                    baseConstructorArguments: baseConstructorArguments,
+                    thisConstructorArguments: thisConstructorArguments);
+
+                var result = await codeGenerationService.AddMembersAsync(
+                    _document.Project.Solution,
+                    _state.TypeToGenerateIn,
+                    new List<ISymbol> { constructor },
+                    new CodeGenerationOptions(_state.Token.GetLocation()),
+                    _cancellationToken)
+                    .ConfigureAwait(false);
+
+                return result;
+            }
+
 
             private async Task<Document> GenerateDelegatingConstructorAsync(
                 int argumentCount,

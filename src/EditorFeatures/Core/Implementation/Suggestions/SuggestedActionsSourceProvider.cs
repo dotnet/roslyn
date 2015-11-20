@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeActionEditHandlerService _editHandler;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         public SuggestedActionsSourceProvider(
@@ -52,12 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
+            IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _codeRefactoringService = codeRefactoringService;
             _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
             _editHandler = editHandler;
+            _waitIndicator = waitIndicator;
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
         }
 
@@ -216,6 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
 
                         newActions.AddRange(childActionSets[0].Actions);
+                        continue;
                     }
 
                     newActions.Add(action);
@@ -277,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = codeAction =>
                                 CodeFixSuggestedAction.GetFixAllSuggestedActionSet(codeAction, fixCount, fixCollection.FixAllContext,
-                                    workspace, _subjectBuffer, _owner._editHandler);
+                                    workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator);
 
                     foreach (var fix in fixes)
                     {
@@ -290,19 +295,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 var nestedActions = new List<SuggestedAction>();
                                 foreach (var nestedAction in fix.Action.GetCodeActions())
                                 {
-                                    nestedActions.Add(new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                    nestedActions.Add(new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                         fix, nestedAction, fixCollection.Provider, getFixAllSuggestedActionSet(nestedAction)));
                                 }
 
                                 var diag = fix.PrimaryDiagnostic;
                                 var set = new SuggestedActionSet(nestedActions, SuggestedActionSetPriority.Medium, diag.Location.SourceSpan.ToSpan());
 
-                                suggestedAction = new SuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                suggestedAction = new SuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                     fix.Action, fixCollection.Provider, new[] { set });
                             }
                             else
                             {
-                                suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                     fix, fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action));
                             }
 
@@ -320,12 +325,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 SuggestedAction suggestedAction;
                                 if (fix.Action.HasCodeActions)
                                 {
-                                    suggestedAction = new SuppressionSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                    suggestedAction = new SuppressionSuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                         fix, fixCollection.Provider, getFixAllSuggestedActionSet);
                                 }
                                 else
                                 {
-                                    suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                    suggestedAction = new CodeFixSuggestedAction(workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator,
                                         fix, fix.Action, fixCollection.Provider, getFixAllSuggestedActionSet(fix.Action));
                                 }
 
@@ -428,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     refactoringSuggestedActions.Add(
                         new CodeRefactoringSuggestedAction(
-                            workspace, _subjectBuffer, _owner._editHandler, a, refactoring.Provider));
+                            workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator, a, refactoring.Provider));
                 }
 
                 return new SuggestedActionSet(refactoringSuggestedActions.ToImmutable(), SuggestedActionSetPriority.Low);
@@ -684,14 +689,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     return;
                 }
-
-                // make sure we only raise event once for same solution version.
-                // light bulb controller will call us back to find out new information
-                var changed = this.SuggestedActionsChanged;
-                if (changed != null)
-                {
-                    changed(this, EventArgs.Empty);
-                }
+                this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
 
                 Volatile.Write(ref _lastSolutionVersionReported, solutionVersion);
             }

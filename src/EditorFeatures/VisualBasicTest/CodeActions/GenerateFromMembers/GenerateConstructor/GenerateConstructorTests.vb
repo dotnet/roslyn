@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
             Return New GenerateConstructorCodeRefactoringProvider()
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub TestSingleField()
             Test(
 NewLines("Class Program \n [|Private i As Integer|] \n End Class"),
@@ -23,7 +23,7 @@ NewLines("Class Program \n Private i As Integer \n Public Sub New(i As Integer) 
 index:=0)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub TestMultipleFields()
             Test(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n End Class"),
@@ -31,7 +31,7 @@ NewLines("Class Program \n Private i As Integer \n Private b As String \n Public
 index:=0)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub TestSecondField()
             Test(
 NewLines("Class Program \n Private i As Integer \n [|Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -39,7 +39,7 @@ NewLines("Class Program \n Private i As Integer \n Private b As String \n Public
 index:=0)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub TestFieldAssigningConstructor()
             Test(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -47,13 +47,13 @@ NewLines("Class Program \n Private i As Integer \n Private b As String \n Public
 index:=0)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub TestMissingWithExistingConstructor()
             TestMissing(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, b As String) \n Me.i = i \n Me.b = b \n End Sub \n End Class"))
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub TestStruct()
             Test(
 NewLines("Structure S \n [|Private i As Integer|] \n End Structure"),
@@ -61,7 +61,7 @@ NewLines("Structure S \n Private i As Integer \n Public Sub New(i As Integer) \n
 index:=0)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub TestGenericType()
             Test(
 NewLines("Class Program ( Of T ) \n [|Private i As Integer|] \n End Class"),
@@ -70,7 +70,7 @@ index:=0)
         End Sub
 
         <WorkItem(541995)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub TestSimpleDelegatingConstructor()
             Test(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -79,7 +79,7 @@ index:=1)
         End Sub
 
         <WorkItem(542008)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub TestGenerateFromNormalProperties()
             Test(
 NewLines("Class Z \n [|Public Property A As Integer \n Public Property B As String|] \n End Class"),

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                     return Tuple.Create<DiagnosticAnalyzer, ISuppressionFixProvider>(null, new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestPragmaWarningDirective()
                 {
                     Test(
@@ -80,7 +80,7 @@ class Class
 }}");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestMultilineStatementPragmaWarningDirective()
                 {
                     Test(
@@ -106,7 +106,7 @@ class Class
 }}");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestPragmaWarningDirectiveWithExistingTrivia()
                 {
                     Test(
@@ -135,7 +135,7 @@ class Class
 }}");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestMultipleInstancesOfPragmaWarningDirective()
                 {
                     Test(
@@ -159,7 +159,7 @@ class Class
 }}");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [WorkItem(3311, "https://github.com/dotnet/roslyn/issues/3311")]
                 public void TestNoDuplicateSuppressionCodeFixes()
                 {
@@ -211,7 +211,7 @@ class Class
                     }
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestErrorAndWarningScenario()
                 {
                     Test(
@@ -238,7 +238,7 @@ class Class
                 }
 
                 [WorkItem(956453)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestWholeFilePragmaWarningDirective()
                 {
                     Test(
@@ -249,7 +249,7 @@ class Class {{ void Method() {{ int x = 0; }} }}
                 }
 
                 [WorkItem(970129)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionAroundSingleToken()
                 {
                     Test(
@@ -280,7 +280,7 @@ class Program
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestPragmaWarningDirectiveAroundTrivia1()
                 {
                     Test(
@@ -319,7 +319,7 @@ class Class
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestPragmaWarningDirectiveAroundTrivia2()
                 {
                     Test(
@@ -330,7 +330,7 @@ class Class
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestPragmaWarningDirectiveAroundTrivia3()
                 {
                     Test(
@@ -341,7 +341,7 @@ class Class
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestPragmaWarningDirectiveAroundTrivia4()
                 {
                     Test(
@@ -362,7 +362,7 @@ class C {{ }}
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestPragmaWarningDirectiveAroundTrivia5()
                 {
                     Test(
@@ -379,7 +379,7 @@ class C3 {{ }}");
                 }
 
                 [WorkItem(1066576)]
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestPragmaWarningDirectiveAroundTrivia6()
                 {
                     Test(
@@ -407,7 +407,7 @@ class C3 { } // comment
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestHiddenDiagnosticCannotBeSuppressed()
                 {
                     TestMissing(
@@ -458,7 +458,7 @@ int Method()
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestInfoDiagnosticSuppressed()
                 {
                     Test(
@@ -520,7 +520,7 @@ class Class
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestErrorDiagnosticCanBeSuppressed()
                 {
                     Test(
@@ -585,7 +585,7 @@ class Class
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestDiagnosticWithBadIdSuppressed()
                 {
                     // Diagnostics with bad/invalid ID are not reported.
@@ -674,7 +674,7 @@ class Class
                     return Tuple.Create<DiagnosticAnalyzer, ISuppressionFixProvider>(null, new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestCompilerDiagnosticsCannotBeSuppressed()
                 {
                     // Another test verifies we have a pragma warning action for this source, this verifies there are no other suppression actions.
@@ -698,7 +698,7 @@ class Class
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestHiddenDiagnosticsCannotBeSuppressed()
                 {
                     TestMissing(
@@ -731,7 +731,7 @@ class Class
 
                     public override void Initialize(AnalysisContext context)
                     {
-                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.FieldDeclaration, SyntaxKind.EventDeclaration);
+                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.EnumDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.FieldDeclaration, SyntaxKind.EventDeclaration);
                     }
 
                     public void AnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -767,7 +767,17 @@ class Class
                                 var e = (EventDeclarationSyntax)context.Node;
                                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, e.Identifier.GetLocation()));
                                 break;
+
+                            case SyntaxKind.EnumDeclaration:
+                                // Report diagnostic on each descendant comment trivia
+                                foreach (var trivia in context.Node.DescendantTrivia().Where(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia || t.Kind() == SyntaxKind.MultiLineCommentTrivia))
+                                {
+                                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, trivia.GetLocation()));
+                                }
+                                break;
                         }
+
+                                                   
                     }
                 }
 
@@ -777,7 +787,7 @@ class Class
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnSimpleType()
                 {
                     Test(
@@ -817,7 +827,7 @@ using System;
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnNamespace()
                 {
                     Test(
@@ -863,7 +873,7 @@ using System;
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnTypeInsideNamespace()
                 {
                     Test(
@@ -915,7 +925,7 @@ namespace N1
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnNestedType()
                 {
                     Test(
@@ -967,7 +977,7 @@ namespace N
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnMethod()
                 {
                     Test(
@@ -1019,7 +1029,7 @@ namespace N
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnOverloadedMethod()
                 {
                     Test(
@@ -1115,7 +1125,7 @@ namespace N
 ");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnGenericMethod()
                 {
                     Test(
@@ -1167,7 +1177,7 @@ namespace N
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnProperty()
                 {
                     Test(
@@ -1219,7 +1229,7 @@ namespace N
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnField()
                 {
                     Test(
@@ -1253,7 +1263,52 @@ class Class
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(6379, "https://github.com/dotnet/roslyn/issues/6379")]
+                public void TestSuppressionOnTriviaBetweenFields()
+                {
+                    Test(
+            @"
+using System;
+
+// suppressions on field are not relevant.
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:E.Field1"")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""member"", Target = ""~F:E.Field2"")]
+
+enum E
+{
+    [|
+    Field1, // trailing trivia for comma token which doesn't belong to span of any of the fields
+    Field2
+    |]
+}",
+            $@"
+// This file is used by Code Analysis to maintain SuppressMessage 
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given 
+// a specific target and scoped to a namespace, type, member, etc.
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:E"")]
+
+");
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    TestMissing(
+            @"
+using System;
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"", Scope = ""type"", Target = ""~T:E"")]
+
+enum E
+{
+    [|
+    Field1, // trailing trivia for comma token which doesn't belong to span of any of the fields
+    Field2
+    |]
+}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnField2()
                 {
                     Test(
@@ -1287,7 +1342,7 @@ class Class
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionOnEvent()
                 {
                     Test(
@@ -1349,7 +1404,7 @@ class Class
 }");
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionWithExistingGlobalSuppressionsDocument()
                 {
                     var initialMarkup = @"<Workspace>
@@ -1388,7 +1443,7 @@ class Class { }
                     Test(initialMarkup, expectedText);
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionWithExistingGlobalSuppressionsDocument2()
                 {
                     // Own custom file named GlobalSuppressions.cs
@@ -1424,7 +1479,7 @@ class Class { }
                     Test(initialMarkup, expectedText);
                 }
 
-                [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public void TestSuppressionWithExistingGlobalSuppressionsDocument3()
                 {
                     // Own custom file named GlobalSuppressions.cs + existing GlobalSuppressions2.cs with global suppressions
@@ -1516,7 +1571,7 @@ class Class { }
                 }
             }
 
-            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [WorkItem(1073825)]
             public void TestDiagnosticWithoutLocationCanBeSuppressed()
             {

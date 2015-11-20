@@ -140,14 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private static string GetProperty(IVsExtensionManager extensionManager, string propertyName)
         {
-            try
-            {
-                return (string)extensionManager.GetType().GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance).GetValue(extensionManager);
-            }
-            catch
-            {
-                return null;
-            }
+            return (string)extensionManager.GetType().GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(extensionManager);
         }
 
         private static bool ShouldInclude(IExtensionContent content)

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var descriptor = new DiagnosticDescriptor(AnalyzerExceptionDiagnosticId,
                 title: FeaturesResources.UserDiagnosticAnalyzerFailure,
                 messageFormat: FeaturesResources.UserDiagnosticAnalyzerThrows,
-                description: string.Format(FeaturesResources.UserDiagnosticAnalyzerThrowsDescription, analyzerName, e.ToString()),
+                description: string.Format(FeaturesResources.UserDiagnosticAnalyzerThrowsDescription, analyzerName, e.CreateDiagnosticDescription()),
                 category: AnalyzerExceptionDiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(
             Workspace workspace, ProjectId projectId, string language, string fullPath, AnalyzerLoadFailureEventArgs e)
         {
-            string id, message, messageFormat;
-            if (!TryGetErrorMessage(language, fullPath, e, out id, out message, out messageFormat))
+            string id, message, messageFormat, description;
+            if (!TryGetErrorMessage(language, fullPath, e, out id, out message, out messageFormat, out description))
             {
                 return null;
             }
@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 messageFormat,
                 severity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
+                description: description,
                 warningLevel: 0,
                 workspace: workspace,
                 projectId: projectId);
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool TryGetErrorMessage(
             string language, string fullPath, AnalyzerLoadFailureEventArgs e,
-            out string id, out string message, out string messageFormat)
+            out string id, out string message, out string messageFormat, out string description)
         {
             switch (e.ErrorCode)
             {
@@ -177,22 +178,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     id = Choose(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
                     messageFormat = FeaturesResources.WRN_UnableToLoadAnalyzer;
                     message = string.Format(FeaturesResources.WRN_UnableToLoadAnalyzer, fullPath, e.Message);
+                    description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
                     id = Choose(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
                     messageFormat = FeaturesResources.WRN_AnalyzerCannotBeCreated;
                     message = string.Format(FeaturesResources.WRN_AnalyzerCannotBeCreated, e.TypeName, fullPath, e.Message);
+                    description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                     id = Choose(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
                     messageFormat = FeaturesResources.WRN_NoAnalyzerInAssembly;
                     message = string.Format(FeaturesResources.WRN_NoAnalyzerInAssembly, fullPath);
+                    description = e.Exception.CreateDiagnosticDescription();
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
                 default:
                     id = string.Empty;
                     message = string.Empty;
                     messageFormat = string.Empty;
+                    description = string.Empty;
                     return false;
             }
 

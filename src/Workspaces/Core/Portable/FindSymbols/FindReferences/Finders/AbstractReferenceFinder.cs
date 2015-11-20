@@ -404,13 +404,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Contract.ThrowIfFalse(equivalentTypesWithDifferingAssemblies.All(kvp => kvp.Value.ContainingType == null));
 
             var referencedAssemblies = new MultiDictionary<string, IAssemblySymbol>();
-            foreach (var reference in compilation.References)
+            foreach (var assembly in compilation.GetReferencedAssemblySymbols())
             {
-                var referencedAssemblyOrModule = compilation.GetAssemblyOrModuleSymbol(reference);
-                if (referencedAssemblyOrModule.MatchesKind(SymbolKind.Assembly))
-                {
-                    referencedAssemblies.Add(referencedAssemblyOrModule.Name, (IAssemblySymbol)referencedAssemblyOrModule);
-                }
+                 referencedAssemblies.Add(assembly.Name, assembly);
             }
 
             int verifiedCount = 0;

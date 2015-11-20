@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             ISymbol targetSymbol = null;
-            var targetMemberNode = syntaxFacts.GetContainingMemberDeclaration(root, startToken.SpanStart);
+            var targetMemberNode = syntaxFacts.GetContainingMemberDeclaration(root, nodeWithTokens.SpanStart);
             if (targetMemberNode != null)
             {
                 targetSymbol = semanticModel.GetDeclaredSymbol(targetMemberNode, cancellationToken);

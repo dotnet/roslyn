@@ -80,11 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ExpressionSyntax expression,
             ITypeSymbol targetType,
             int position,
-            SemanticModel semanticModel,
-            out bool wasCastAdded)
+            SemanticModel semanticModel)
         {
-            wasCastAdded = false;
-
             if (targetType.ContainsAnonymousType())
             {
                 return expression;
@@ -122,7 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return expression;
             }
 
-            wasCastAdded = true;
             return castExpression;
         }
 

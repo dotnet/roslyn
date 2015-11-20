@@ -411,5 +411,14 @@ index: 0);
 @"partial class C { int Foo { get { } set { } } } partial class C { }",
 index: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSetCaseInsensitive()
+        {
+            Test(
+@"using System; class C { int [||]getFoo() { } void setFoo(int i) { } }",
+@"using System; class C { int Foo { get { } set { } } }",
+index: 1);
+        }
     }
 }
