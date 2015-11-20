@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6932"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub ErrorTagGeneratedForSimpleError()
             ' Make sure we have errors from the tree
             Dim spans = Await ProduceSquiggles("^").ConfigureAwait(True)
