@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Outlining;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSource
@@ -19,15 +20,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
     {
         private async Task TestAsync(string fileContents, params OutliningSpan[] expectedSpans)
         {
-            var workspace = await TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(WorkspaceKind.MetadataAsSource, LanguageNames.CSharp, null, null, fileContents);
-            var outliningService = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IOutliningService>();
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var actualOutliningSpans = (await outliningService.GetOutliningSpansAsync(document, CancellationToken.None)).Where(s => s != null).ToArray();
-
-            Assert.Equal(expectedSpans.Length, actualOutliningSpans.Length);
-            for (int i = 0; i < expectedSpans.Length; i++)
+            using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(WorkspaceKind.MetadataAsSource, LanguageNames.CSharp, null, null, fileContents))
             {
-                AssertRegion(expectedSpans[i], actualOutliningSpans[i]);
+                var hostDocument = workspace.Documents.Single();
+                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
+                var actualOutliningSpans = (await outliningService.GetOutliningSpansAsync(document, CancellationToken.None))
+                	.WhereNotNull().ToArray();
+
+                Assert.Equal(expectedSpans.Length, actualOutliningSpans.Length);
+                for (int i = 0; i < expectedSpans.Length; i++)
+                {
+                    AssertRegion(expectedSpans[i], actualOutliningSpans[i]);
+                }
             }
         }
 
@@ -35,36 +40,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task PrependedDollarSign()
         {
-            var source = @"
+            const string code = @"
 class C
 {
     public void $Invoke();
 }";
-            await TestAsync(source);
+
+            await TestAsync(code);
         }
 
         [WorkItem(1174405)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task SymbolsAndPunctuation()
         {
-            var source = @"
+            const string code = @"
 class C
 {
     public void !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`();
 }";
-            await TestAsync(source);
+
+            await TestAsync(code);
         }
 
         [WorkItem(1174405)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task IdentifierThatLooksLikeCode()
         {
-            var source = @"
+            const string code = @"
 class C
 {
     public void } } public class CodeInjection{ } /* now everything is commented ();
 }";
-            await TestAsync(source);
+
+            await TestAsync(code);
         }
     }
 }
