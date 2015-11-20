@@ -17,10 +17,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         Private ReadOnly _workspace As TestWorkspace
 
-        Public Sub New(workspaceXml As XElement)
-            _workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml,
-                                                              exportProvider:=MinimalTestExportProvider.CreateExportProvider(CompositionCatalog))
+        Public Sub New(workspace As TestWorkspace)
+            _workspace = workspace
         End Sub
+
+        Public Shared Async Function CreateAsync(workspaceXml As XElement) As Task(Of ProgressionTestState)
+            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml,
+                                                              exportProvider:=MinimalTestExportProvider.CreateExportProvider(CompositionCatalog))
+
+            Return New ProgressionTestState(workspace)
+        End Function
 
         Public Function GetGraphWithDocumentNode(filePath As String) As Graph
             Dim graphBuilder As New GraphBuilder(_workspace.CurrentSolution, CancellationToken.None)

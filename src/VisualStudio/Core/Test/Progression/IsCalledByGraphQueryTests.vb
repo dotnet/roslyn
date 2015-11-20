@@ -8,7 +8,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class IsCalledByGraphQueryTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function IsCalledBySimpleTests() As Threading.Tasks.Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">

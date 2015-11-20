@@ -1,13 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.GraphModel
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class VisualBasicSymbolLabelTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545008)>
-        Public Sub MethodWithOptionalParameter()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestMethodWithOptionalParameter() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -21,11 +22,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "S([Integer])", "C.S([Integer])")
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545009)>
-        Public Sub MethodWithByRefParameter()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestMethodWithByRefParameter() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -39,11 +40,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "S(ByRef Integer)", "C.S(ByRef Integer)")
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545017)>
-        Public Sub EnumMember()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestEnumMember() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -56,11 +57,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "M", "E.M")
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(608256)>
-        Public Sub GenericType()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestGenericType() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -72,6 +73,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "C(Of T)", "C(Of T)")
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

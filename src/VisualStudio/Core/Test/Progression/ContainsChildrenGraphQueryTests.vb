@@ -8,7 +8,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class ContainsChildrenGraphQueryTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForDocument() As Threading.Tasks.Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForEmptyDocument() As Threading.Tasks.Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -69,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WorkItem(794846)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function ContainsChildrenForNotYetLoadedSolution() As Threading.Tasks.Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">

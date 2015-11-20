@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class SearchGraphQueryTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForType() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -42,7 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545474)>
         Public Async Function SearchForNestedType() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -76,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForMember() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -110,7 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForPartialType() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -158,7 +158,7 @@ End Namespace
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForMethodInPartialType() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -205,7 +205,7 @@ End Namespace
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchWithResultsAcrossMultipleTypeParts() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -257,7 +257,7 @@ End Namespace
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName1() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -291,7 +291,7 @@ End Namespace
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName2() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -313,7 +313,7 @@ End Namespace
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName3() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -347,7 +347,7 @@ End Namespace
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchForDottedName4() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
@@ -381,7 +381,7 @@ End Namespace
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function SearchWithNullFilePathsOnProject() As Task
-            Using testState = New ProgressionTestState(
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath=<%= TestWorkspaceFactory.NullFilePath %>>
                             <Document FilePath="Z:\SomeVenusDocument.aspx.cs">
