@@ -210,7 +210,7 @@ End Namespace</Document>
                     fileCodeModel.EndBatch()
                 End If
 
-                Dim text = state.GetDocumentAtCursor().GetTextAsync(CancellationToken.None).Result.ToString()
+                Dim text = (Await state.GetDocumentAtCursor().GetTextAsync(CancellationToken.None)).ToString()
                 Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
             End Using
         End Function
@@ -987,11 +987,11 @@ End Class
                 Using changedworkspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
-                    Dim originalTree = originalDocument.GetSyntaxTreeAsync().Result
+                    Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
 
                     ' Assert Declaration Function Removal
                     Dim changeDocument = changedworkspace.CurrentSolution.GetDocument(changedworkspace.Documents.First(Function(d) d.Name.Equals("File1.vb")).Id)
-                    Dim changeTree = changeDocument.GetSyntaxTreeAsync().Result
+                    Dim changeTree = Await changeDocument.GetSyntaxTreeAsync()
 
                     Dim codeModelEvent = originalWorkspaceAndFileCodeModel.CodeModelService.CollectCodeModelEvents(originalTree, changeTree)
                     Dim fileCodeModel = originalWorkspaceAndFileCodeModel.FileCodeModelObject
@@ -1007,7 +1007,7 @@ End Class
 
                     ' Assert Declaration Sub Removal
                     changeDocument = changedworkspace.CurrentSolution.GetDocument(changedworkspace.Documents.First(Function(d) d.Name.Equals("File2.vb")).Id)
-                    changeTree = changeDocument.GetSyntaxTreeAsync().Result
+                    changeTree = Await changeDocument.GetSyntaxTreeAsync()
 
                     codeModelEvent = originalWorkspaceAndFileCodeModel.CodeModelService.CollectCodeModelEvents(originalTree, changeTree)
 
