@@ -12,8 +12,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
     Public Class GoToDefinitionApiTests
 
-        Private Sub Test(workspaceDefinition As XElement, expectSuccess As Boolean)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
+        Private Async Function TestAsync(workspaceDefinition As XElement, expectSuccess As Boolean) As Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -42,14 +42,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 Assert.Equal(expectSuccess, success)
             End Using
-        End Sub
+        End Function
 
-        Private Sub TestSuccess(workspaceDefinition As XElement)
-            Test(workspaceDefinition, True)
-        End Sub
+        Private Function TestSuccessAsync(workspaceDefinition As XElement) As Tasks.Task
+            Return TestAsync(workspaceDefinition, True)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVBOperator()
+        Public Async Function TestVBOperator() As Tasks.Task
             Dim workspaceDefinition =
 <Workspace>
 
@@ -82,8 +82,7 @@ End Structure
     </Project>
 </Workspace>
 
-            TestSuccess(workspaceDefinition)
-        End Sub
-
+            Await TestSuccessAsync(workspaceDefinition)
+        End Function
     End Class
 End Namespace
