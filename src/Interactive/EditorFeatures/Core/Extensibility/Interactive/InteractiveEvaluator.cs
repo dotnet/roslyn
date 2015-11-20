@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly IContentType _contentType;
         private readonly InteractiveWorkspace _workspace;
         private IInteractiveWindow _currentWindow;
-        private ImmutableArray<MetadataReference> _rspReferences;
-        private ImmutableArray<string> _rspImports;
+        private ImmutableArray<MetadataReference> _responseFileReferences;
+        private ImmutableArray<string> _responseFileImports;
         private MetadataReferenceResolver _metadataReferenceResolver;
         private SourceReferenceResolver _sourceReferenceResolver;
 
@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var mscorlibRef = metadataService.GetReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly);
             var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, Script.HostAssemblyReferenceProperties);
 
-            _rspReferences = ImmutableArray.Create<MetadataReference>(mscorlibRef, interactiveHostObjectRef);
-            _rspImports = ImmutableArray<string>.Empty;
+            _responseFileReferences = ImmutableArray.Create<MetadataReference>(mscorlibRef, interactiveHostObjectRef);
+            _responseFileImports = ImmutableArray<string>.Empty;
             _initialScriptFileOpt = null;
             ReferenceSearchPaths = ImmutableArray<string>.Empty;
             SourceSearchPaths = ImmutableArray<string>.Empty;
@@ -226,24 +226,24 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 // The base directory for relative paths is the directory that contains the .rsp file.
                 // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                var rspDirectory = Path.GetDirectoryName(_responseFilePath);
-                var args = this.CommandLineParser.Parse(new[] { "@" + _responseFilePath }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
+                var responseFileDirectory = Path.GetDirectoryName(_responseFilePath);
+                var args = this.CommandLineParser.Parse(new[] { "@" + _responseFilePath }, responseFileDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
 
                 if (args.Errors.Length == 0)
                 {
-                    var metadataResolver = CreateMetadataReferenceResolver(metadataService, args.ReferencePaths, rspDirectory);
-                    var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, rspDirectory);
+                    var metadataResolver = CreateMetadataReferenceResolver(metadataService, args.ReferencePaths, responseFileDirectory);
+                    var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, responseFileDirectory);
 
                     // ignore unresolved references, they will be reported in the interactive window:
-                    var rspReferences = args.ResolveMetadataReferences(metadataResolver).Where(r => !(r is UnresolvedMetadataReference));
+                    var responseFileReferences = args.ResolveMetadataReferences(metadataResolver).Where(r => !(r is UnresolvedMetadataReference));
 
                     _initialScriptFileOpt = args.SourceFiles.IsEmpty ? null : args.SourceFiles[0].Path;
 
                     ReferenceSearchPaths = args.ReferencePaths;
                     SourceSearchPaths = args.SourcePaths;
 
-                    _rspReferences = _rspReferences.AddRange(rspReferences);
-                    _rspImports = CommandLineHelpers.GetImports(args);
+                    _responseFileReferences = _responseFileReferences.AddRange(responseFileReferences);
+                    _responseFileImports = CommandLineHelpers.GetImports(args);
                 }
             }
 
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             else if (_initialScriptFileOpt != null)
             {
                 // insert a project for initialization script listed in .rsp:
-                project = CreateSubmissionProject(solution, languageName, _rspImports, _rspReferences);
+                project = CreateSubmissionProject(solution, languageName, _responseFileImports, _responseFileReferences);
                 var documentId = DocumentId.CreateNewId(project.Id, debugName: _initialScriptFileOpt);
                 solution = project.Solution.AddDocument(documentId, Path.GetFileName(_initialScriptFileOpt), new FileTextLoader(_initialScriptFileOpt, defaultEncoding: null));
                 _previousSubmissionProjectId = project.Id;
@@ -355,8 +355,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
             else
             {
-                imports = _rspImports;
-                references = _rspReferences;
+                imports = _responseFileImports;
+                references = _responseFileReferences;
             }
 
             // project for the new submission:
