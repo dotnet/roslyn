@@ -16,12 +16,12 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Friend Module TestHelpers
-        Public Sub AssertItemsAre(workspaceElement As XElement, ParamArray expectedItems As ExpectedItem())
-            AssertItemsAre(workspaceElement, True, expectedItems)
-        End Sub
+        Public Function AssertItemsAreAsync(workspaceElement As XElement, ParamArray expectedItems As ExpectedItem()) As Tasks.Task
+            Return AssertItemsAreAsync(workspaceElement, True, expectedItems)
+        End Function
 
-        Public Sub AssertItemsAre(workspaceElement As XElement, workspaceSupportsChangeDocument As Boolean, ParamArray expectedItems As ExpectedItem())
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceElement)
+        Public Async Function AssertItemsAreAsync(workspaceElement As XElement, workspaceSupportsChangeDocument As Boolean, ParamArray expectedItems As ExpectedItem()) As Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
                 workspace.CanApplyChangeDocument = workspaceSupportsChangeDocument
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
@@ -33,10 +33,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 AssertEqual(expectedItems, actualItems, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)().IsCaseSensitive)
             End Using
-        End Sub
+        End Function
 
-        Public Sub AssertSelectedItemsAre(workspaceElement As XElement, leftItem As ExpectedItem, leftItemGrayed As Boolean, rightItem As ExpectedItem, rightItemGrayed As Boolean)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceElement)
+        Public Async Function AssertSelectedItemsAreAsync(workspaceElement As XElement, leftItem As ExpectedItem, leftItemGrayed As Boolean, rightItem As ExpectedItem, rightItemGrayed As Boolean) As Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = document.GetTextAsync().Result.FindCorrespondingEditorTextSnapshot()
 
@@ -55,10 +55,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 AssertEqual(rightItem, selectedItems.MemberItem, isCaseSensitive)
                 Assert.Equal(rightItemGrayed, selectedItems.ShowMemberItemGrayed)
             End Using
-        End Sub
+        End Function
 
-        Public Sub AssertGeneratedResultIs(workspaceElement As XElement, leftItemToSelectText As String, rightItemToSelectText As String, expectedText As XElement)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceElement)
+        Public Async Function AssertGeneratedResultIsAsync(workspaceElement As XElement, leftItemToSelectText As String, rightItemToSelectText As String, expectedText As XElement) As Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = document.GetTextAsync().Result.FindCorrespondingEditorTextSnapshot()
 
@@ -78,15 +78,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim expected = expectedText.NormalizedValue.TrimEnd()
                 Assert.Equal(expected, actual)
             End Using
-        End Sub
+        End Function
 
-        Public Sub AssertNavigationPoint(workspaceElement As XElement,
+        Public Async Function AssertNavigationPointAsync(workspaceElement As XElement,
                                          startingDocumentFilePath As String,
                                          leftItemToSelectText As String,
                                          rightItemToSelectText As String,
-                                         Optional expectedVirtualSpace As Integer = 0)
+                                         Optional expectedVirtualSpace As Integer = 0) As Tasks.Task
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceElement)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
                 Dim snapshot = sourceDocument.GetTextAsync().Result.FindCorrespondingEditorTextSnapshot()
 
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Assert.Equal(expectedNavigationPosition, navigationPoint.Position)
                 Assert.Equal(expectedVirtualSpace, navigationPoint.VirtualSpaces)
             End Using
-        End Sub
+        End Function
 
         Private Sub AssertEqual(expectedItems As IEnumerable(Of ExpectedItem), actualItems As IEnumerable(Of NavigationBarItem), isCaseSensitive As Boolean)
             Assert.Equal(expectedItems.Count, actualItems.Count)
