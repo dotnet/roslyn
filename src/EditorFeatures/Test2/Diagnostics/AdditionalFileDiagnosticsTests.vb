@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(input)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(input)
                 Dim project = workspace.Projects.First()
                 Dim newSln = workspace.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(project.Id), "App.Config", SourceText.From("false"))
                 workspace.TryApplyChanges(newSln)

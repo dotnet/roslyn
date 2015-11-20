@@ -58,8 +58,8 @@ class C
                 Dim vbdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "VBAssembly").Documents.Single()
                 Dim csdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly").Documents.Single()
 
-                Assert.Equal(expectedCSharpCode, csdoc.GetTextAsync().Result.ToString())
-                Assert.Equal(expectedVBCode, vbdoc.GetTextAsync().Result.ToString())
+                Assert.Equal(expectedCSharpCode, (Await csdoc.GetTextAsync()).ToString())
+                Assert.Equal(expectedVBCode, (Await vbdoc.GetTextAsync()).ToString())
             End Using
         End Function
 
@@ -112,8 +112,8 @@ class C
                 Dim vbdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "VBAssembly").Documents.Single()
                 Dim csdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly").Documents.Single()
 
-                Assert.Equal(expectedCSharpCode, csdoc.GetTextAsync().Result.ToString())
-                Assert.Equal(expectedVBCode, vbdoc.GetTextAsync().Result.ToString())
+                Assert.Equal(expectedCSharpCode, (Await csdoc.GetTextAsync()).ToString())
+                Assert.Equal(expectedVBCode, (Await vbdoc.GetTextAsync()).ToString())
             End Using
         End Function
     End Class

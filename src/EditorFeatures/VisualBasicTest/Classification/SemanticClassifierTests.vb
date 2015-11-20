@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
                 Dim service = document.GetLanguageService(Of IClassificationService)()
 
-                Dim tree = document.GetSyntaxTreeAsync().Result
+                Dim tree = Await document.GetSyntaxTreeAsync()
 
                 Dim result = New List(Of ClassifiedSpan)
                 Dim classifiers = service.GetDefaultSyntaxClassifiers()
