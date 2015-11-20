@@ -10,8 +10,8 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     Public MustInherit Class AbstractExpansionTest
 
-        Protected Sub Test(definition As XElement, expected As XElement, Optional useLastProject As Boolean = False, Optional expandParameter As Boolean = False)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition)
+        Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional useLastProject As Boolean = False, Optional expandParameter As Boolean = False) As System.Threading.Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
                 Dim hostDocument = If(Not useLastProject, workspace.Documents.Single(), workspace.Documents.Last())
 
                 If hostDocument.AnnotatedSpans.Count <> 1 Then
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
                 Assert.Equal(expected.NormalizedValue.Trim(), actualText.Trim())
             End Using
-        End Sub
+        End Function
 
         Private Function GetExpressionSyntaxWithSameSpan(node As SyntaxNode, spanEnd As Integer) As SyntaxNode
             While Not node Is Nothing And Not node.Parent Is Nothing And node.Parent.SpanStart = node.SpanStart
