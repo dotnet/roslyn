@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.VisualStudio.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             IInteractiveWindowCommandsFactory commandsFactory,
             [ImportMany]IInteractiveWindowCommand[] commands,
             VisualStudioWorkspace workspace)
-            : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
+            : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, InteractiveCommandsContentTypes.CSharpInteractiveCommandContentTypeName, workspace)
         {
         }
 

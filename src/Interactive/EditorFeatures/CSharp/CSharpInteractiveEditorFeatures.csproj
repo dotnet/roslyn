@@ -97,6 +97,7 @@
     </Compile>
     <Compile Include="Interactive\CSharpInteractiveEvaluator.cs" />
     <Compile Include="Interactive\CSharpReplServiceProvider.cs" />
+    <Compile Include="Interactive\ImportsCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

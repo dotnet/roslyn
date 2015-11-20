@@ -157,8 +157,30 @@
   DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
 REPL commands:
   #help         Display help on available commands and key bindings.
+  #references   Display a list of referenced assemblies.
 Script directives:
   #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".
   #load         Load specified script file and execute it, e.g. #load "myScript.csx".</value>
+  </data>
+  <data name="FoundNoReferences" xml:space="preserve">
+    <value>No assemblies have been referenced.</value>
+  </data>
+  <data name="FoundNoFiles" xml:space="preserve">
+    <value>No files have been loaded.</value>
+  </data>
+  <data name="FoundNoGlobalImports" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="FoundNoLocalImports" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="GlobalImportsHeader" xml:space="preserve">
+    <value>Global Imports:</value>
+  </data>
+  <data name="LocalImportsHeader" xml:space="preserve">
+    <value>Local Imports:</value>
+  </data>
+  <data name="UnresolvedImport" xml:space="preserve">
+    <value>Unresolved</value>
   </data>
 </root>

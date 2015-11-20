@@ -5,13 +5,13 @@ Imports System.IO
 Imports Microsoft.CodeAnalysis.Editor.Interactive
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 Imports Microsoft.CodeAnalysis.Internal.Log
+Imports Microsoft.VisualStudio.Editor.Interactive
+Imports Microsoft.VisualStudio.InteractiveWindow.Commands
+Imports Microsoft.VisualStudio.InteractiveWindow.Shell
 Imports Microsoft.VisualStudio.LanguageServices.Interactive
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
-Imports Microsoft.VisualStudio.InteractiveWindow
-Imports Microsoft.VisualStudio.InteractiveWindow.Commands
-Imports Microsoft.VisualStudio.InteractiveWindow.Shell
 Imports LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
                        <ImportMany> commands As IInteractiveWindowCommand(),
                        workspace As VisualStudioWorkspace)
 
-            MyBase.New(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
+            MyBase.New(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, InteractiveCommandsContentTypes.VisualBasicInteractiveCommandContentTypeName, workspace)
         End Sub
 
         Protected Overrides ReadOnly Property LanguageServiceGuid As Guid
