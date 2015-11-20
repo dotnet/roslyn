@@ -49,6 +49,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public static string GetAssemblyDisplay(Compilation compilation, IAssemblySymbol assemblySymbol)
         {
+            // This method is only used to generate a comment at the top of Metadata-as-Source documents and
+            // previous submissions are never viewed as metadata (i.e. we always have compilations) so there's no
+            // need to consume compilation.ScriptCompilationInfo.PreviousScriptCompilation.
+
+            // TODO (https://github.com/dotnet/roslyn/issues/6859): compilation.GetMetadataReference(assemblySymbol)?
             var assemblyReference = compilation.References.Where(r =>
             {
                 var referencedSymbol = compilation.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol;
@@ -58,14 +63,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             })
             .FirstOrDefault();
 
-            if (assemblyReference != null && assemblyReference.Display != null)
-            {
-                return assemblyReference.Display;
-            }
-            else
-            {
-                return FeaturesResources.LocationUnknown;
-            }
+            return assemblyReference?.Display ?? FeaturesResources.LocationUnknown;
         }
 
         public static INamedTypeSymbol GetTopLevelContainingNamedType(ISymbol symbol)

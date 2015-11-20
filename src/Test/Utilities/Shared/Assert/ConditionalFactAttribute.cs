@@ -8,12 +8,16 @@ namespace Roslyn.Test.Utilities
 {
     public class ConditionalFactAttribute : FactAttribute
     {
-        public ConditionalFactAttribute(Type skipCondition)
+        public ConditionalFactAttribute(params Type[] skipConditions)
         {
-            ExecutionCondition condition = (ExecutionCondition)Activator.CreateInstance(skipCondition);
-            if (condition.ShouldSkip)
+            foreach (var skipCondition in skipConditions) 
             {
-                Skip = condition.SkipReason;
+                ExecutionCondition condition = (ExecutionCondition)Activator.CreateInstance(skipCondition);
+                if (condition.ShouldSkip)
+                {
+                    Skip = condition.SkipReason;
+                    break;
+                }
             }
         }
     }
@@ -26,9 +30,9 @@ namespace Roslyn.Test.Utilities
 
     public class x86 : ExecutionCondition
     {
-        public override bool ShouldSkip { get { return IntPtr.Size != 4; } }
+        public override bool ShouldSkip => IntPtr.Size != 4;
 
-        public override string SkipReason { get { return "Target platform is not x86"; } }
+        public override string SkipReason => "Target platform is not x86";
     }
 
     public class HasShiftJisDefaultEncoding : ExecutionCondition
@@ -36,5 +40,13 @@ namespace Roslyn.Test.Utilities
         public override bool ShouldSkip => Encoding.GetEncoding(0)?.CodePage != 932;
 
         public override string SkipReason => "OS default codepage is not Shift-JIS (932).";
+    }
+
+    public class IsEnglishLocal : ExecutionCondition
+    {
+        public override bool ShouldSkip => 
+                System.Globalization.CultureInfo.CurrentCulture != new System.Globalization.CultureInfo("en-US");
+
+        public override string SkipReason => "Current culture is not en-US";
     }
 }

@@ -95,14 +95,20 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         private static bool HasGetPrefix(string text)
         {
-            return text.StartsWith(GetPrefix) && text.Length > GetPrefix.Length && !char.IsLower(text[GetPrefix.Length]);
+            return HasPrefix(text, GetPrefix);
+        }
+        private static bool HasPrefix(string text, string prefix)
+        {
+            return text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
         }
 
         private IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
         {
             var containingType = getMethod.ContainingType;
-            var setMethod = containingType.GetMembers("Set" + getMethod.Name.Substring(GetPrefix.Length))
+            var setMethodName = "Set" + getMethod.Name.Substring(GetPrefix.Length);
+            var setMethod = containingType.GetMembers()
                                           .OfType<IMethodSymbol>()
+                                          .Where(m => setMethodName.Equals(m.Name, StringComparison.OrdinalIgnoreCase))
                                           .Where(m => IsValidSetMethod(m, getMethod))
                                           .FirstOrDefault();
 

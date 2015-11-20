@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
             return new AddConstructorParametersCodeRefactoringProvider();
         }
 
-        [WpfFact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public void TestAdd1()
         {
             Test(
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 index: 0);
         }
 
-        [WpfFact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public void TestAddOptional1()
         {
             Test(
@@ -31,7 +31,7 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public void TestAddToConstructorWithMostMatchingParameters1()
         {
             Test(
@@ -40,7 +40,7 @@ index: 1);
 index: 0);
         }
 
-        [WpfFact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, WorkItem(308077), Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public void TestAddOptionalToConstructorWithMostMatchingParameters1()
         {
             Test(
@@ -49,7 +49,7 @@ index: 0);
 index: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public void TestSmartTagDisplayText1()
         {
             TestSmartTagText(
@@ -58,7 +58,7 @@ string.Format(FeaturesResources.AddParametersTo, "Program", "bool"),
 index: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)]
         public void TestSmartTagDisplayText2()
         {
             TestSmartTagText(

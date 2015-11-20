@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CheckHostObjectSupport(param = nameof(Analyzers), analyzerHostObject.SetAnalyzers(Analyzers));
                 }
             }
-            catch (Exception e) when (!Utilities.IsCriticalException(e))
+            catch (Exception e)
             {
                 if (HostCompilerSupportsAllParameters)
                 {
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CheckHostObjectSupport(nameof(PreferredUILang), resultFromHostObjectSetOperation: false);
                 }
             }
-            catch (Exception e) when (!Utilities.IsCriticalException(e))
+            catch (Exception e)
             {
                 if (HostCompilerSupportsAllParameters)
                 {

@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6932"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub ErrorTagGeneratedForSimpleError()
             ' Make sure we have errors from the tree
             Dim spans = Await ProduceSquiggles("^").ConfigureAwait(True)
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub ArgOutOfRangeExceptionBug_904382()
             Dim spans = Await ProduceSquiggles("Class C1", "Sub Foo(", "End Class").ConfigureAwait(True)
 
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Dim count = spans.Count
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub ErrorDoesNotCrashPastEOF()
             Dim spans = Await ProduceSquiggles("Class C1",
                                          "    Sub Foo()",
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Assert.Equal(5, spans.Count())
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub SemanticError()
             Dim spans = Await ProduceSquiggles(
 "Class C1",
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             Assert.Contains("Bar", DirectCast(firstSpan.Tag.ToolTipContent, String), StringComparison.Ordinal)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Sub SuggestionTagsForUnnecessaryCode()
 
             Dim analyzerMap = New Dictionary(Of String, DiagnosticAnalyzer())

@@ -34,9 +34,9 @@
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MSBuildTask\MSBuildTask.csproj">
+    <ProjectReference Include="..\MSBuildTask\Desktop\MSBuildTask.Desktop.csproj">
       <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
-      <Name>MSBuildTask</Name>
+      <Name>MSBuildTask.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>

@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CheckHostObjectSupport(param = nameof(PreferredUILang), resultFromHostObjectSetOperation: false);
                 }
             }
-            catch (Exception e) when (!Utilities.IsCriticalException(e))
+            catch (Exception e)
             {
                 if (this.HostCompilerSupportsAllParameters)
                 {
