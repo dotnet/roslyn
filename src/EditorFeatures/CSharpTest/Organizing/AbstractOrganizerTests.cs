@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(initial))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                var newRoot = OrganizingService.OrganizeAsync(document).Result.GetSyntaxRootAsync().Result;
+                var newRoot = await (await OrganizingService.OrganizeAsync(document)).GetSyntaxRootAsync();
                 Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
             }
         }
