@@ -39,9 +39,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                 End If
 
                 document = document.WithSyntaxRoot(root)
-                document = Formatter.FormatAsync(document).WaitAndGetResult(Nothing)
+                document = Await Formatter.FormatAsync(document)
 
-                Dim actualText = document.GetTextAsync().Result.ToString()
+                Dim actualText = (Await document.GetTextAsync()).ToString()
 
                 Assert.Equal(expected.NormalizedValue.Trim(), actualText.Trim())
             End Using

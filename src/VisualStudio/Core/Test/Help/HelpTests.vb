@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Help
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(markup)
                 Dim caret = workspace.Documents.First().CursorPosition
                 Dim service = New VisualBasicHelpContextService()
-                Assert.Equal(expected, service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None).WaitAndGetResult(CancellationToken.None))
+                Assert.Equal(expected, Await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None))
             End Using
         End Function
 

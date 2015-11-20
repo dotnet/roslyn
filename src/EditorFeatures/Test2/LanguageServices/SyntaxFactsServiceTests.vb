@@ -206,7 +206,7 @@ $$End Class
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
-                Dim root = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim root = Await document.GetSyntaxRootAsync(CancellationToken.None)
                 Dim node = root.FindNode(New TextSpan(cursorPosition, 0))
                 Dim syntaxFactsService = document.GetLanguageService(Of ISyntaxFactsService)()
 

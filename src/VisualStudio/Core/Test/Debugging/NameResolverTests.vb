@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(LanguageNames.VisualBasic, compilationOptions, Nothing, text)
                 Dim nameResolver = New BreakpointResolver(workspace.CurrentSolution, searchText)
-                Dim results = nameResolver.DoAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim results = Await nameResolver.DoAsync(CancellationToken.None)
 
                 Assert.Equal(expectedNames, results.Select(Function(r) r.LocationNameOpt))
             End Using

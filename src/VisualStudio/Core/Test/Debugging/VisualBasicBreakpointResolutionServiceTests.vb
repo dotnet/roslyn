@@ -23,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
 
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(source)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
-                Dim result As BreakpointResolutionResult = VisualBasicBreakpointResolutionService.GetBreakpointAsync(document, position.Value, length, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim result As BreakpointResolutionResult = Await VisualBasicBreakpointResolutionService.GetBreakpointAsync(document, position.Value, length, CancellationToken.None)
                 Assert.True(expectedSpan.Value = result.TextSpan,
                                 String.Format(vbCrLf & "Expected: {0} ""{1}""" & vbCrLf & "Actual: {2} ""{3}""",
                                                 expectedSpan.Value,
