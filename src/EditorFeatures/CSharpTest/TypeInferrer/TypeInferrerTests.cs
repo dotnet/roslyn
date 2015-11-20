@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
         {
         }
 
-        protected override void TestWorker(Document document, TextSpan textSpan, string expectedType, bool useNodeStartPosition)
+        protected override async Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, bool useNodeStartPosition)
         {
-            var root = document.GetSyntaxTreeAsync().Result.GetRoot();
+            var root = (await document.GetSyntaxTreeAsync()).GetRoot();
             var node = FindExpressionSyntaxFromSpan(root, textSpan);
             var typeInference = document.GetLanguageService<ITypeInferenceService>();
 

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
         End Function
 
-        Protected Sub TestShared(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object))
+        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object)) As Task
             Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
 
             Dim provider = New SemanticQuickInfoProvider(
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              workspace.GetService(Of IGlyphService),
              workspace.GetService(Of ClassificationTypeMap))
 
-            TestShared(workspace, provider, position, expectedResults)
+            Await TestSharedAsync(workspace, provider, position, expectedResults)
 
             ' speculative semantic model
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
@@ -45,13 +45,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                     edit.Apply()
                 End Using
 
-                TestShared(workspace, provider, position, expectedResults)
+                Await TestSharedAsync(workspace, provider, position, expectedResults)
             End If
-        End Sub
+        End Function
 
-        Private Sub TestShared(workspace As TestWorkspace, provider As SemanticQuickInfoProvider, position As Integer, expectedResults() As Action(Of Object))
-            Dim state = provider.GetItemAsync(workspace.CurrentSolution.Projects.First().Documents.First(),
-                                         position, cancellationToken:=CancellationToken.None).Result
+        Private Async Function TestSharedAsync(workspace As TestWorkspace, provider As SemanticQuickInfoProvider, position As Integer, expectedResults() As Action(Of Object)) As Task
+            Dim state = Await provider.GetItemAsync(workspace.CurrentSolution.Projects.First().Documents.First(),
+                                         position, cancellationToken:=CancellationToken.None)
 
             If state IsNot Nothing Then
                 WaitForDocumentationComment(state.Content)
@@ -66,11 +66,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                     expected(state.Content)
                 Next
             End If
-        End Sub
+        End Function
 
         Protected Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of Object)()) As Task
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceAsync(markup)
-                TestShared(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
+                Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
             End Using
         End Function
 
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             MarkupTestFile.GetPosition(markup, code, position)
 
             Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync({code}, Nothing, metadataReferences)
-                TestShared(workspace, position, expectedResults)
+                Await TestSharedAsync(workspace, position, expectedResults)
             End Using
         End Function
 

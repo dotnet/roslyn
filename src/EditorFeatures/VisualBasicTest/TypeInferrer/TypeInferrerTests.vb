@@ -18,18 +18,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TypeInferrer
             MyBase.New(workspaceFixture)
         End Sub
 
-        Protected Overrides Sub TestWorker(document As Document, textSpan As TextSpan, expectedType As String, useNodeStartPosition As Boolean)
-            Dim root = document.GetSyntaxTreeAsync().Result.GetRoot()
+        Protected Overrides Async Function TestWorkerAsync(document As Document, textSpan As TextSpan, expectedType As String, useNodeStartPosition As Boolean) As Task
+            Dim root = (Await document.GetSyntaxTreeAsync()).GetRoot()
             Dim node = FindExpressionSyntaxFromSpan(root, textSpan)
             Dim typeInference = document.GetLanguageService(Of ITypeInferenceService)()
 
             Dim inferredType = If(
                 useNodeStartPosition,
-                typeInference.InferType(document.GetSemanticModelForSpanAsync(New TextSpan(node.SpanStart, 0), CancellationToken.None).Result, node.SpanStart, objectAsDefault:=True, cancellationToken:=CancellationToken.None),
-                typeInference.InferType(document.GetSemanticModelForSpanAsync(node.Span, CancellationToken.None).Result, node, objectAsDefault:=True, cancellationToken:=CancellationToken.None))
+                typeInference.InferType(Await document.GetSemanticModelForSpanAsync(New TextSpan(node.SpanStart, 0), CancellationToken.None), node.SpanStart, objectAsDefault:=True, cancellationToken:=CancellationToken.None),
+                typeInference.InferType(Await document.GetSemanticModelForSpanAsync(node.Span, CancellationToken.None), node, objectAsDefault:=True, cancellationToken:=CancellationToken.None))
             Dim typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace()
             Assert.Equal(expectedType, typeSyntax.ToString())
-        End Sub
+        End Function
 
         Private Async Function TestInClassAsync(text As String, expectedType As String) As Tasks.Task
             text = <text>Class C

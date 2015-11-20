@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
             bool useNodeStartPosition)
         {
             var document = await fixture.UpdateDocumentAsync(text, SourceCodeKind.Regular);
-            TestWorker(document, textSpan, expectedType, useNodeStartPosition);
+            await TestWorkerAsync(document, textSpan, expectedType, useNodeStartPosition);
 
             if (CanUseSpeculativeSemanticModel(document, textSpan.Start))
             {
                 var document2 = await fixture.UpdateDocumentAsync(text, SourceCodeKind.Regular, cleanBeforeUpdate: false);
-                TestWorker(document2, textSpan, expectedType, useNodeStartPosition);
+                await TestWorkerAsync(document2, textSpan, expectedType, useNodeStartPosition);
             }
         }
 
-        protected abstract void TestWorker(Document document, TextSpan textSpan, string expectedType, bool useNodeStartPosition);
+        protected abstract Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, bool useNodeStartPosition);
     }
 }

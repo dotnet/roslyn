@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceFromFilesAsync(WorkspaceKind.MetadataAsSource, LanguageNames.VisualBasic, Nothing, Nothing, fileContents)
             Dim outliningService = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of IOutliningService)()
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-            Dim actualOutliningSpans = outliningService.GetOutliningSpansAsync(document, CancellationToken.None).Result.Where(Function(s) s IsNot Nothing).ToArray()
+            Dim actualOutliningSpans = (Await outliningService.GetOutliningSpansAsync(document, CancellationToken.None)).Where(Function(s) s IsNot Nothing).ToArray()
 
             Assert.Equal(expectedSpans.Length, actualOutliningSpans.Length)
             For i As Integer = 0 To expectedSpans.Length - 1
