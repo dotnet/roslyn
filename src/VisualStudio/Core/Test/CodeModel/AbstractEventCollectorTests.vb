@@ -85,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End If
         End Sub
 
-        Friend Sub Test(code As XElement, change As XElement, ParamArray expectedEvents As Action(Of CodeModelEvent, ICodeModelService)())
+        Friend Async Function TestAsync(code As XElement, change As XElement, ParamArray expectedEvents As Action(Of CodeModelEvent, ICodeModelService)()) As Threading.Tasks.Task
             Dim definition =
 <Workspace>
     <Project Language=<%= LanguageName %> CommonReferences="true">
@@ -94,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()
                 Assert.NotNull(codeModelService)
@@ -114,7 +114,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     expectedEvent(collectedEvent, codeModelService)
                 Next
             End Using
-        End Sub
+        End Function
 
     End Class
 End Namespace

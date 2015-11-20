@@ -7,8 +7,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractFileCodeModelTests
         Inherits AbstractCodeModelObjectTests(Of EnvDTE80.FileCodeModel2)
 
-        Protected Sub TestOperation(code As XElement, expectedCode As XElement, operation As Action(Of EnvDTE80.FileCodeModel2))
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+        Protected Async Function TestOperation(code As XElement, expectedCode As XElement, operation As Action(Of EnvDTE80.FileCodeModel2)) As Tasks.Task
+            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
             End Using
 
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
@@ -31,17 +31,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
                 Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
             End Using
-        End Sub
+        End Function
 
-        Protected Sub TestOperation(code As XElement, operation As Action(Of EnvDTE80.FileCodeModel2))
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+        Protected Async Function TestOperation(code As XElement, operation As Action(Of EnvDTE80.FileCodeModel2)) As Tasks.Task
+            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
                 operation(fileCodeModel)
             End Using
 
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+            Using state = Await CreateCodeModelTestStateAsync(GetWorkspaceDefinition(code))
                 Dim fileCodeModel = state.FileCodeModel
                 Assert.NotNull(fileCodeModel)
 
@@ -49,56 +49,56 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 operation(fileCodeModel)
                 fileCodeModel.EndBatch()
             End Using
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddAttribute(code As XElement, expectedCode As XElement, data As AttributeData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddAttribute(code As XElement, expectedCode As XElement, data As AttributeData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Dim newAttribute = fileCodeModel.AddAttribute(data.Name, data.Value, data.Position)
                     Assert.NotNull(newAttribute)
                     Assert.Equal(data.Name, newAttribute.Name)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddClass(code As XElement, expectedCode As XElement, data As ClassData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddClass(code As XElement, expectedCode As XElement, data As ClassData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Dim newClass = fileCodeModel.AddClass(data.Name, data.Position, data.Bases, data.ImplementedInterfaces, data.Access)
                     Assert.NotNull(newClass)
                     Assert.Equal(data.Name, newClass.Name)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddDelegate(code As XElement, expectedCode As XElement, data As DelegateData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddDelegate(code As XElement, expectedCode As XElement, data As DelegateData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Dim newDelegate = fileCodeModel.AddDelegate(data.Name, data.Type, data.Position, data.Access)
                     Assert.NotNull(newDelegate)
                     Assert.Equal(data.Name, newDelegate.Name)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddEnum(code As XElement, expectedCode As XElement, data As EnumData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddEnum(code As XElement, expectedCode As XElement, data As EnumData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Dim newEnum = fileCodeModel.AddEnum(data.Name, data.Position, data.Base, data.Access)
                     Assert.NotNull(newEnum)
                     Assert.Equal(data.Name, newEnum.Name)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddFunction(code As XElement, expectedCode As XElement, data As FunctionData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddFunction(code As XElement, expectedCode As XElement, data As FunctionData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Assert.Throws(Of System.Runtime.InteropServices.COMException)(
                         Sub()
                             fileCodeModel.AddFunction(data.Name, data.Kind, data.Type, data.Position, data.Access)
                         End Sub)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddImport(code As XElement, expectedCode As XElement, data As ImportData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddImport(code As XElement, expectedCode As XElement, data As ImportData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Dim newImport = fileCodeModel.AddImport(data.Namespace, data.Position, data.Alias)
                     Assert.NotNull(newImport)
@@ -108,51 +108,51 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         Assert.Equal(data.Alias, newImport.Alias)
                     End If
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddInterface(code As XElement, expectedCode As XElement, data As InterfaceData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddInterface(code As XElement, expectedCode As XElement, data As InterfaceData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Dim newInterface = fileCodeModel.AddInterface(data.Name, data.Position, data.Bases, data.Access)
                     Assert.NotNull(newInterface)
                     Assert.Equal(data.Name, newInterface.Name)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddNamespace(code As XElement, expectedCode As XElement, data As NamespaceData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddNamespace(code As XElement, expectedCode As XElement, data As NamespaceData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Dim newNamespace = fileCodeModel.AddNamespace(data.Name, data.Position)
                     Assert.NotNull(newNamespace)
                     Assert.Equal(data.Name, newNamespace.Name)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddStruct(code As XElement, expectedCode As XElement, data As StructData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddStruct(code As XElement, expectedCode As XElement, data As StructData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Dim newStruct = fileCodeModel.AddStruct(data.Name, data.Position, data.Bases, data.ImplementedInterfaces, data.Access)
                     Assert.NotNull(newStruct)
                     Assert.Equal(data.Name, newStruct.Name)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestAddVariable(code As XElement, expectedCode As XElement, data As VariableData)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestAddVariable(code As XElement, expectedCode As XElement, data As VariableData) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     Assert.Throws(Of System.Runtime.InteropServices.COMException)(
                         Sub()
                             fileCodeModel.AddVariable(data.Name, data.Type, data.Position, data.Access)
                         End Sub)
                 End Sub)
-        End Sub
+        End Function
 
-        Protected Overrides Sub TestRemoveChild(code As XElement, expectedCode As XElement, element As Object)
-            TestOperation(code, expectedCode,
+        Protected Overrides Async Function TestRemoveChild(code As XElement, expectedCode As XElement, element As Object) As Tasks.Task
+            Await TestOperation(code, expectedCode,
                 Sub(fileCodeModel)
                     fileCodeModel.Remove(element)
                 End Sub)
-        End Sub
+        End Function
 
     End Class
 End Namespace

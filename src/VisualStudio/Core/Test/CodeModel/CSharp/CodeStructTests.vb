@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -10,17 +11,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "Attributes tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Attributes1()
+        Public Async Function TestAttributes1() As Task
             Dim code =
 <Code>
 struct $$C { }
 </Code>
 
-            TestAttributes(code, NoElements)
-        End Sub
+            Await TestAttributes(code, NoElements)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Attributes2()
+        Public Async Function TestAttributes2() As Task
             Dim code =
 <Code>
 using System;
@@ -29,11 +30,11 @@ using System;
 struct $$C { }
 </Code>
 
-            TestAttributes(code, IsElement("Serializable"))
-        End Sub
+            Await TestAttributes(code, IsElement("Serializable"))
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Attributes3()
+        Public Async Function TestAttributes3() As Task
             Dim code =
 <Code>using System;
 
@@ -42,11 +43,11 @@ struct $$C { }
 struct $$C { }
 </Code>
 
-            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
-        End Sub
+            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Attributes4()
+        Public Async Function TestAttributes4() As Task
             Dim code =
 <Code>using System;
 
@@ -54,31 +55,31 @@ struct $$C { }
 struct $$C { }
 </Code>
 
-            TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
-        End Sub
+            Await TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
+        End Function
 #End Region
 
 #Region "Bases tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Base1()
+        Public Async Function TestBase1() As Task
             Dim code =
 <Code>
 struct $$S { }
 </Code>
 
-            TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
-        End Sub
+            Await TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Base2()
+        Public Async Function TestBase2() As Task
             Dim code =
 <Code>
 struct $$S : System.IDisposable { }
 </Code>
 
-            TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
-        End Sub
+            Await TestBases(code, IsElement("ValueType", kind:=EnvDTE.vsCMElement.vsCMElementClass))
+        End Function
 
 
 #End Region
@@ -86,17 +87,17 @@ struct $$S : System.IDisposable { }
 #Region "DataTypeKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub DataTypeKind1()
+        Public Async Function TestDataTypeKind1() As Task
             Dim code =
 <Code>
 struct $$S { }
 </Code>
 
-            TestDataTypeKind(code, EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindMain)
-        End Sub
+            Await TestDataTypeKind(code, EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindMain)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub DataTypeKind2()
+        Public Async Function TestDataTypeKind2() As Task
             Dim code =
 <Code>
 partial struct $$S { }
@@ -104,25 +105,25 @@ partial struct $$S { }
 partial struct S { }
 </Code>
 
-            TestDataTypeKind(code, EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindPartial)
-        End Sub
+            Await TestDataTypeKind(code, EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindPartial)
+        End Function
 
 #End Region
 
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub FullName1()
+        Public Async Function TestFullName1() As Task
             Dim code =
 <Code>
 struct $$S { }
 </Code>
 
-            TestFullName(code, "S")
-        End Sub
+            Await TestFullName(code, "S")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub FullName2()
+        Public Async Function TestFullName2() As Task
             Dim code =
 <Code>
 namespace N
@@ -131,11 +132,11 @@ namespace N
 }
 </Code>
 
-            TestFullName(code, "N.S")
-        End Sub
+            Await TestFullName(code, "N.S")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub FullName3()
+        Public Async Function TestFullName3() As Task
             Dim code =
 <Code>
 namespace N
@@ -147,39 +148,39 @@ namespace N
 }
 </Code>
 
-            TestFullName(code, "N.C.S")
-        End Sub
+            Await TestFullName(code, "N.C.S")
+        End Function
 
 #End Region
 
 #Region "ImplementedInterfaces tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ImplementedInterfaces1()
+        Public Async Function TestImplementedInterfaces1() As Task
             Dim code =
 <Code>
 struct $$S : System.IDisposable { }
 </Code>
 
-            TestImplementedInterfaces(code, IsElement("IDisposable", kind:=EnvDTE.vsCMElement.vsCMElementInterface))
-        End Sub
+            Await TestImplementedInterfaces(code, IsElement("IDisposable", kind:=EnvDTE.vsCMElement.vsCMElementInterface))
+        End Function
 
 #End Region
 
 #Region "Name tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Name1()
+        Public Async Function TestName1() As Task
             Dim code =
 <Code>
 struct $$S { }
 </Code>
 
-            TestName(code, "S")
-        End Sub
+            Await TestName(code, "S")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Name2()
+        Public Async Function TestName2() As Task
             Dim code =
 <Code>
 namespace N
@@ -188,11 +189,11 @@ namespace N
 }
 </Code>
 
-            TestName(code, "S")
-        End Sub
+            Await TestName(code, "S")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Name3()
+        Public Async Function TestName3() As Task
             Dim code =
 <Code>
 namespace N
@@ -204,25 +205,25 @@ namespace N
 }
 </Code>
 
-            TestName(code, "S")
-        End Sub
+            Await TestName(code, "S")
+        End Function
 
 #End Region
 
 #Region "Parent tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parent1()
+        Public Async Function TestParent1() As Task
             Dim code =
 <Code>
 struct $$S { }
 </Code>
 
-            TestParent(code, IsFileCodeModel)
-        End Sub
+            Await TestParent(code, IsFileCodeModel)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parent2()
+        Public Async Function TestParent2() As Task
             Dim code =
 <Code>
 namespace N
@@ -231,11 +232,11 @@ namespace N
 }
 </Code>
 
-            TestParent(code, IsElement("N", kind:=EnvDTE.vsCMElement.vsCMElementNamespace))
-        End Sub
+            Await TestParent(code, IsElement("N", kind:=EnvDTE.vsCMElement.vsCMElementNamespace))
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parent3()
+        Public Async Function TestParent3() As Task
             Dim code =
 <Code>
 namespace N
@@ -247,14 +248,14 @@ namespace N
 }
 </Code>
 
-            TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
-        End Sub
+            Await TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
+        End Function
 
 #End Region
 
 #Region "Parts tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parts1()
+        Public Async Function TestParts1() As Task
             Dim code =
 <Code>
 struct $$S
@@ -262,11 +263,11 @@ struct $$S
 }
 </Code>
 
-            TestParts(code, 1)
-        End Sub
+            Await TestParts(code, 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parts2()
+        Public Async Function TestParts2() As Task
             Dim code =
 <Code>
 partial struct $$S
@@ -274,11 +275,11 @@ partial struct $$S
 }
 </Code>
 
-            TestParts(code, 1)
-        End Sub
+            Await TestParts(code, 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parts3()
+        Public Async Function TestParts3() As Task
             Dim code =
 <Code>
 partial struct $$S
@@ -290,13 +291,13 @@ partial struct S
 }
 </Code>
 
-            TestParts(code, 2)
-        End Sub
+            Await TestParts(code, 2)
+        End Function
 #End Region
 
 #Region "AddAttribute tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute1()
+        Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
 using System;
@@ -311,11 +312,11 @@ using System;
 [Serializable()]
 struct S { }
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute2()
+        Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
 using System;
@@ -332,12 +333,12 @@ using System;
 [CLSCompliant(true)]
 struct S { }
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute_BelowDocComment()
+        Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =
 <Code>
 using System;
@@ -354,15 +355,15 @@ using System;
 [CLSCompliant(true)]
 struct S { }
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Function
 
 #End Region
 
 #Region "AddFunction tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddFunction1()
+        Public Async Function TestAddFunction1() As Task
             Dim code =
 <Code>
 struct $$S { }
@@ -379,25 +380,25 @@ struct S
 }
 </Code>
 
-            TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void"})
-        End Sub
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void"})
+        End Function
 
 #End Region
 
 #Region "AddImplementedInterface tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddImplementedInterface1()
+        Public Async Function TestAddImplementedInterface1() As Task
             Dim code =
 <Code>
 struct $$S { }
 </Code>
 
-            TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", Nothing)
-        End Sub
+            Await TestAddImplementedInterfaceThrows(Of ArgumentException)(code, "I", Nothing)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddImplementedInterface2()
+        Public Async Function TestAddImplementedInterface2() As Task
             Dim code =
 <Code>
 struct $$S { }
@@ -410,11 +411,11 @@ struct S : I { }
 interface I { }
 </Code>
 
-            TestAddImplementedInterface(code, "I", -1, expected)
-        End Sub
+            Await TestAddImplementedInterface(code, "I", -1, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddImplementedInterface3()
+        Public Async Function TestAddImplementedInterface3() As Task
             Dim code =
 <Code>
 struct $$S : I { }
@@ -429,11 +430,11 @@ interface I { }
 interface J { }
 </Code>
 
-            TestAddImplementedInterface(code, "J", -1, expected)
-        End Sub
+            Await TestAddImplementedInterface(code, "J", -1, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddImplementedInterface4()
+        Public Async Function TestAddImplementedInterface4() As Task
             Dim code =
 <Code>
 struct $$S : I { }
@@ -448,11 +449,11 @@ interface I { }
 interface J { }
 </Code>
 
-            TestAddImplementedInterface(code, "J", 0, expected)
-        End Sub
+            Await TestAddImplementedInterface(code, "J", 0, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddImplementedInterface5()
+        Public Async Function TestAddImplementedInterface5() As Task
             Dim code =
 <Code>
 struct $$S : I, K { }
@@ -469,15 +470,15 @@ interface J { }
 interface K { }
 </Code>
 
-            TestAddImplementedInterface(code, "J", 1, expected)
-        End Sub
+            Await TestAddImplementedInterface(code, "J", 1, expected)
+        End Function
 
 #End Region
 
 #Region "RemoveImplementedInterface tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub RemoveImplementedInterface1()
+        Public Async Function TestRemoveImplementedInterface1() As Task
             Dim code =
 <Code>
 struct $$S : I { }
@@ -489,14 +490,14 @@ interface I { }
 struct S { }
 interface I { }
 </Code>
-            TestRemoveImplementedInterface(code, "I", expected)
-        End Sub
+            Await TestRemoveImplementedInterface(code, "I", expected)
+        End Function
 
 #End Region
 
 #Region "Set Name tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetName1()
+        Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
 struct $$Foo
@@ -511,12 +512,12 @@ struct Bar
 }
 </Code>
 
-            TestSetName(code, expected, "Bar", NoThrow(Of String)())
-        End Sub
+            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+        End Function
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TypeDescriptor_GetProperties()
+        Public Async Function TestTypeDescriptor_GetProperties() As Task
             Dim code =
 <Code>
 struct $$S
@@ -531,8 +532,8 @@ struct $$S
                  "DocComment", "Comment", "DerivedTypes", "ImplementedInterfaces", "IsAbstract",
                  "IsGeneric", "DataTypeKind", "Parts"}
 
-            TestPropertyDescriptors(code, expectedPropertyNames)
-        End Sub
+            Await TestPropertyDescriptors(code, expectedPropertyNames)
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

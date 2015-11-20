@@ -1,12 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_NoInitializer()
+        Public Async Function TestVBLocalDeclarations_NoInitializer() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -29,11 +30,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_WithLiteralInitializer()
+        Public Async Function TestVBLocalDeclarations_WithLiteralInitializer() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -61,11 +62,11 @@ End Class
         </Local>
     </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_WithInvocationInitializer1()
+        Public Async Function TestVBLocalDeclarations_WithInvocationInitializer1() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -104,11 +105,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_WithInvocationInitializer2()
+        Public Async Function TestVBLocalDeclarations_WithInvocationInitializer2() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -154,11 +155,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_WithEscapedNameAndAsNewClause()
+        Public Async Function TestVBLocalDeclarations_WithEscapedNameAndAsNewClause() As Task
             ' Note: The behavior here is different than Dev10 where escaped keywords
             ' would not be escaped in the generated XML.
 
@@ -189,11 +190,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_TwoInferredDeclarators()
+        Public Async Function TestVBLocalDeclarations_TwoInferredDeclarators() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -230,11 +231,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_StaticLocal()
+        Public Async Function TestVBLocalDeclarations_StaticLocal() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -262,11 +263,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ConstLocal()
+        Public Async Function TestVBLocalDeclarations_ConstLocal() As Task
             ' NOTE: Dev10 didn't generate *any* XML for Const locals because it walked the
             ' lowered IL tree. We're now generating the same thing that C# does (which has
             ' generates a local without the "Const" modifier -- i.e. a bug).
@@ -298,11 +299,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_TwoNamesWithAsNewClause()
+        Public Async Function TestVBLocalDeclarations_TwoNamesWithAsNewClause() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -336,11 +337,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithNoBoundOrInitializer1()
+        Public Async Function TestVBLocalDeclarations_ArrayWithNoBoundOrInitializer1() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -365,11 +366,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithNoBoundOrInitializer2()
+        Public Async Function TestVBLocalDeclarations_ArrayWithNoBoundOrInitializer2() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -394,11 +395,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithSimpleBound()
+        Public Async Function TestVBLocalDeclarations_ArrayWithSimpleBound() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -437,11 +438,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithRangeBound()
+        Public Async Function TestVBLocalDeclarations_ArrayWithRangeBound() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -480,11 +481,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithSimpleAndRangeBounds()
+        Public Async Function TestVBLocalDeclarations_ArrayWithSimpleAndRangeBounds() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -530,11 +531,11 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithStringBound()
+        Public Async Function TestVBLocalDeclarations_ArrayWithStringBound() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -554,11 +555,11 @@ End Class
     <Quote line="3">Dim i("Foo") As Integer</Quote>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithStringAndCastBound()
+        Public Async Function TestVBLocalDeclarations_ArrayWithStringAndCastBound() As Task
             Dim definition =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -578,11 +579,11 @@ End Class
     <Quote line="3">Dim i(CInt("Foo")) As Integer</Quote>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithPropertyAccessBound()
+        Public Async Function TestVBLocalDeclarations_ArrayWithPropertyAccessBound() As Task
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -602,11 +603,11 @@ End Class
         <Quote line="3">Dim i("Foo".Length) As Integer</Quote>
     </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithNoBoundAndCollectionInitializer1()
+        Public Async Function TestVBLocalDeclarations_ArrayWithNoBoundAndCollectionInitializer1() As Task
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -660,11 +661,11 @@ End Class
         </Local>
     </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_ArrayWithNoBoundAndCollectionInitializer2()
+        Public Async Function TestVBLocalDeclarations_ArrayWithNoBoundAndCollectionInitializer2() As Task
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -718,11 +719,11 @@ End Class
         </Local>
     </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub VBLocalDeclarations_InitializeWithStringConcatenation()
+        Public Async Function TestVBLocalDeclarations_InitializeWithStringConcatenation() As Task
             Dim definition =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">
@@ -758,8 +759,8 @@ End Class
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
     End Class
 End Namespace

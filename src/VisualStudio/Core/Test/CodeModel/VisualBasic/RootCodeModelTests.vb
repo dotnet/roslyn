@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
@@ -12,63 +13,63 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "CodeElements tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub CodeElements1()
+        Public Async Function TestCodeElements1() As Task
             Dim code =
 <code>
 Class Foo
 End Class
 </code>
 
-            TestCodeElements(code, "MS", "My", "Microsoft", "System", "Foo")
-        End Sub
+            Await TestCodeElements(code, "MS", "My", "Microsoft", "System", "Foo")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub CodeElements2()
+        Public Async Function TestCodeElements2() As Task
             Dim code =
 <code>
 Module Foo
 End Module
 </code>
 
-            TestCodeElements(code, "MS", "My", "Microsoft", "System", "Foo")
-        End Sub
+            Await TestCodeElements(code, "MS", "My", "Microsoft", "System", "Foo")
+        End Function
 
 #End Region
 
 #Region "CreateCodeTypeRef"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub CreateCodeTypeRef_Int32()
-            TestCreateCodeTypeRef("System.Int32",
+        Public Async Function TestCreateCodeTypeRef_Int32() As Task
+            Await TestCreateCodeTypeRef("System.Int32",
                                   New CodeTypeRefData With {
                                       .AsString = "Integer",
                                       .AsFullName = "System.Int32",
                                       .CodeTypeFullName = "System.Int32",
                                       .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefInt
                                   })
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub CreateCodeTypeRef_System_Text_StringBuilder()
-            TestCreateCodeTypeRef("System.Text.StringBuilder",
+        Public Async Function TestCreateCodeTypeRef_System_Text_StringBuilder() As Task
+            Await TestCreateCodeTypeRef("System.Text.StringBuilder",
                                   New CodeTypeRefData With {
                                       .AsString = "System.Text.StringBuilder",
                                       .AsFullName = "System.Text.StringBuilder",
                                       .CodeTypeFullName = "System.Text.StringBuilder",
                                       .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                                   })
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub CreateCodeTypeRef_NullableInteger()
-            TestCreateCodeTypeRef("Integer?",
+        Public Async Function TestCreateCodeTypeRef_NullableInteger() As Task
+            Await TestCreateCodeTypeRef("Integer?",
                                   New CodeTypeRefData With {
                                       .AsString = "Integer?",
                                       .AsFullName = "System.Nullable(Of System.Int32)",
                                       .CodeTypeFullName = "System.Nullable(Of System.Int32)",
                                       .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefCodeType
                                   })
-        End Sub
+        End Function
 
 #End Region
 
@@ -76,7 +77,7 @@ End Module
 
         <WorkItem(1107453)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestCodeTypeFromFullName_NonGenerated()
+        Public Async Function TestCodeTypeFromFullName_NonGenerated() As Task
 
             Dim workspace = <Workspace>
                                 <Project Language=<%= LanguageName %> CommonReferences="true">
@@ -89,7 +90,7 @@ End Namespace
                                 </Project>
                             </Workspace>
 
-            TestCodeTypeFromFullName(workspace, "N.C",
+            Await TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -107,12 +108,12 @@ End Namespace
                     Assert.Equal("C.vb", filePath)
                 End Sub)
 
-        End Sub
+        End Function
 
 
         <WorkItem(1107453)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestCodeTypeFromFullName_Generated()
+        Public Async Function TestCodeTypeFromFullName_Generated() As Task
 
             Dim workspace = <Workspace>
                                 <Project Language=<%= LanguageName %> CommonReferences="true">
@@ -125,7 +126,7 @@ End Namespace
                                 </Project>
                             </Workspace>
 
-            TestCodeTypeFromFullName(workspace, "N.C",
+            Await TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -143,11 +144,11 @@ End Namespace
                     Assert.Equal("C.g.vb", filePath)
                 End Sub)
 
-        End Sub
+        End Function
 
         <WorkItem(1107453)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestCodeTypeFromFullName_NonGenerated_Generated()
+        Public Async Function TestCodeTypeFromFullName_NonGenerated_Generated() As Task
 
             Dim workspace = <Workspace>
                                 <Project Language=<%= LanguageName %> CommonReferences="true">
@@ -166,7 +167,7 @@ End Namespace
                                 </Project>
                             </Workspace>
 
-            TestCodeTypeFromFullName(workspace, "N.C",
+            Await TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -184,11 +185,11 @@ End Namespace
                     Assert.Equal("C.vb", filePath)
                 End Sub)
 
-        End Sub
+        End Function
 
         <WorkItem(1107453)>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestCodeTypeFromFullName_Generated_NonGenerated()
+        Public Async Function TestCodeTypeFromFullName_Generated_NonGenerated() As Task
 
             Dim workspace = <Workspace>
                                 <Project Language=<%= LanguageName %> CommonReferences="true">
@@ -207,7 +208,7 @@ End Namespace
                                 </Project>
                             </Workspace>
 
-            TestCodeTypeFromFullName(workspace, "N.C",
+            Await TestCodeTypeFromFullName(workspace, "N.C",
                 Sub(codeType)
                     Assert.NotNull(codeType)
                     Assert.Equal("N.C", codeType.FullName)
@@ -225,12 +226,12 @@ End Namespace
                     Assert.Equal("C.vb", filePath)
                 End Sub)
 
-        End Sub
+        End Function
 
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestDotNetNameFromLanguageSpecific()
+        Public Async Function TestDotNetNameFromLanguageSpecific() As Task
             Dim code =
 <code>
 Imports N.M
@@ -243,12 +244,12 @@ Namespace N
 End Namespace
 </code>
 
-            TestRootCodeModelWithCodeFile(code,
+            Await TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
                     Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("N.M.Generic(Of String)")
                     Assert.Equal("N.M.Generic`1[System.String]", dotNetName)
                 End Sub)
-        End Sub
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get
