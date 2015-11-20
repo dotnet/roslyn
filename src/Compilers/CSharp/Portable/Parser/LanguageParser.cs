@@ -7996,6 +7996,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
 
+                // check for duplicates, can only be const
+                if (list.Any(mod.Kind))
+                {
+                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected, mod.Text);
+                }
+
                 list.Add(mod);
             }
         }
