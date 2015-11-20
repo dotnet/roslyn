@@ -1182,8 +1182,8 @@ End Class</text>.NormalizedValue()
                 Dim part1Id = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).Id
                 Dim part2Id = workspace.Documents.Single(Function(d) Not d.CursorPosition.HasValue).Id
 
-                Assert.Equal(expectedDoc1Text, result.UpdatedSolution.GetDocument(part1Id).GetTextAsync().Result.ToString())
-                Assert.Equal(expectedDoc2Text, result.UpdatedSolution.GetDocument(part2Id).GetTextAsync().Result.ToString())
+                Assert.Equal(expectedDoc1Text, (Await result.UpdatedSolution.GetDocument(part1Id).GetTextAsync()).ToString())
+                Assert.Equal(expectedDoc2Text, (Await result.UpdatedSolution.GetDocument(part2Id).GetTextAsync()).ToString())
             End Using
         End Function
 
