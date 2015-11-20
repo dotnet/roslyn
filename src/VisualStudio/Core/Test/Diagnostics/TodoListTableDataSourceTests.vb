@@ -304,7 +304,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <WpfFact>
-        Public Sub TestAggregatedEntries()
+        Public Async Function TestAggregatedEntries() As Task
             Dim markup = <Workspace>
                              <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                                  <Document FilePath="test1"><![CDATA[// TODO hello]]></Document>
@@ -314,7 +314,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                              </Project>
                          </Workspace>
 
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(markup)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(markup)
                 Dim projects = workspace.CurrentSolution.Projects.ToArray()
 
                 Dim item1 = CreateItem(workspace, projects(0).DocumentIds.First())
@@ -351,7 +351,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectguid As Object = Nothing
                 Assert.False(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectGuid, projectguid))
             End Using
-        End Sub
+        End Function
 
         Private Function CreateItem(workspace As Workspace, documentId As DocumentId) As TodoItem
             Return New TodoItem(0, "test", workspace, documentId, 10, 10, 20, 20, Nothing, "test1")
