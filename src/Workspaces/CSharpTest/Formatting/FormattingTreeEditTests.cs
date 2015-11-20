@@ -35,7 +35,7 @@ public class C
 ";
             var document = GetDocument(code);
             var g = SyntaxGenerator.GetGenerator(document);
-            var root = document.GetSyntaxRootAsync().Result;
+            var root = await document.GetSyntaxRootAsync();
             var attr = g.Attribute("MyAttr");
 
             var param = root.DescendantNodes().OfType<ParameterSyntax>().First();

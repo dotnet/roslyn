@@ -164,7 +164,7 @@ class A { }";
                 var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
                 var document = project.AddDocument("Document", SourceText.From(""));
 
-                var syntaxTree = document.GetSyntaxTreeAsync().Result;
+                var syntaxTree = await document.GetSyntaxTreeAsync();
                 var result = await Formatter.FormatAsync(syntaxTree.GetRoot(CancellationToken.None), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
             }
         }

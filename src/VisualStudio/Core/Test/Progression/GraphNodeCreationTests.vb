@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Document>
                     </Project>
                 </Workspace>)
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim node = GraphNodeCreation.CreateNodeIdAsync(symbol, testState.GetSolution(), CancellationToken.None).Result
                 Assert.Equal(expectedId, node.ToString())
 
@@ -192,7 +192,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo(string[]) : void", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo", graphNode.Label)
@@ -251,7 +251,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -289,7 +289,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -322,7 +322,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -356,7 +356,7 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -389,7 +389,7 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -426,7 +426,7 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -463,7 +463,7 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -517,7 +517,7 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -571,7 +571,7 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -600,7 +600,7 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo<T, K>() : void", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo", graphNode.Label)
@@ -619,12 +619,12 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("C<T>", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("C<T>", graphNode.Label)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -653,7 +653,7 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -685,7 +685,7 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo(T)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo", graphNode.Label)
@@ -706,12 +706,12 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo(Of T)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo(Of T)", graphNode.Label)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -741,12 +741,12 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo(Of T, X)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo(Of T, X)", graphNode.Label)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
@@ -787,7 +787,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
                 Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,

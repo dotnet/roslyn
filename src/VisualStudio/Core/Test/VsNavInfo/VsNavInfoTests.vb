@@ -871,7 +871,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim semanticModel = document.GetSemanticModelAsync(CancellationToken.None).Result
+                Dim semanticModel = Await document.GetSemanticModelAsync(CancellationToken.None)
                 Dim position As Integer = hostDocument.CursorPosition.Value
                 Dim symbol = SymbolFinder.FindSymbolAtPosition(semanticModel, position, workspace, CancellationToken.None)
                 Assert.True(symbol IsNot Nothing, $"Could not find symbol as position, {position}")
@@ -879,7 +879,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                 Dim libraryService = document.Project.LanguageServices.GetService(Of ILibraryService)
 
                 Dim project = document.Project
-                Dim compilation = project.GetCompilationAsync(CancellationToken.None).Result
+                Dim compilation = Await project.GetCompilationAsync(CancellationToken.None)
                 Dim navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, compilation, useExpandedHierarchy)
                 Assert.True(navInfo IsNot Nothing, $"Could not retrieve nav info for {symbol.ToDisplayString()}")
 
@@ -909,7 +909,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                 Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim semanticModel = document.GetSemanticModelAsync(CancellationToken.None).Result
+                Dim semanticModel = Await document.GetSemanticModelAsync(CancellationToken.None)
                 Dim position As Integer = hostDocument.CursorPosition.Value
                 Dim symbol = SymbolFinder.FindSymbolAtPosition(semanticModel, position, workspace, CancellationToken.None)
                 Assert.True(symbol IsNot Nothing, $"Could not find symbol as position, {position}")
@@ -917,7 +917,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                 Dim libraryService = document.Project.LanguageServices.GetService(Of ILibraryService)
 
                 Dim project = document.Project
-                Dim compilation = project.GetCompilationAsync(CancellationToken.None).Result
+                Dim compilation = Await project.GetCompilationAsync(CancellationToken.None)
                 Dim navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, compilation, useExpandedHierarchy)
                 Assert.Null(navInfo)
             End Using

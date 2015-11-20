@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Project>
                 </Workspace>)
 
-                Dim graph = testState.GetGraphWithMarkedSymbolNode(symbolTransform)
+                Dim graph = await testState.GetGraphWithMarkedSymbolNodeAsync(symbolTransform)
                 Dim node = graph.Nodes.Single()
                 Assert.Equal(expectedId, node.Id.ToString())
             End Using

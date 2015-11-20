@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "S([Integer])", "C.S([Integer])")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "S([Integer])", "C.S([Integer])")
             End Using
         End Function
 
@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "S(ByRef Integer)", "C.S(ByRef Integer)")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "S(ByRef Integer)", "C.S(ByRef Integer)")
             End Using
         End Function
 
@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "M", "E.M")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "M", "E.M")
             End Using
         End Function
 
@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "C(Of T)", "C(Of T)")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "C(Of T)", "C(Of T)")
             End Using
         End Function
     End Class

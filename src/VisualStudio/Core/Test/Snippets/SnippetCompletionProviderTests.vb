@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 Await testState.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
-                Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync().Result.ToDisplayString(), "Description")
+                Assert.Equal((Await testState.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync()).ToDisplayString(), "Description")
 
                 testState.SendTabToCompletion()
 

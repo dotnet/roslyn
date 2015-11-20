@@ -43,7 +43,7 @@ class Foo2 : Base, IBlah
                         </Project>
                     </Workspace>)
 
-                Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
+                Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ImplementedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(

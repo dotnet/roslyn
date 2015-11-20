@@ -404,7 +404,7 @@ End Class</Test>
                     placeSystemNamespaceFirst, CancellationToken.None)
 
                 Assert.Equal(expectedUpdatedCode.Replace(vbLf, vbCrLf),
-                             updatedDocument.GetTextAsync(CancellationToken.None).Result.ToString())
+                             (Await updatedDocument.GetTextAsync(CancellationToken.None)).ToString())
             End Using
         End Function
 

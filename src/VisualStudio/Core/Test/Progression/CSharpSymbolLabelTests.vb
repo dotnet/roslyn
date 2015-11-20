@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "C", "C")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "C", "C")
             End Using
         End Function
 
@@ -32,7 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "C<T>", "C<T>")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "C<T>", "C<T>")
             End Using
         End Function
 
@@ -47,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "M<T>() : void", "C.M<T>() : void")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "M<T>() : void", "C.M<T>() : void")
             End Using
         End Function
 
@@ -62,7 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "M(params string[]) : void", "C.M(params string[]) : void")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "M(params string[]) : void", "C.M(params string[]) : void")
             End Using
         End Function
 
@@ -77,7 +77,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "M([int]) : void", "C.M([int]) : void")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "M([int]) : void", "C.M([int]) : void")
             End Using
         End Function
 
@@ -92,7 +92,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "M(out string, ref string) : void", "C.M(out string, ref string) : void")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "M(out string, ref string) : void", "C.M(out string, ref string) : void")
             End Using
         End Function
 
@@ -107,7 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "M", "E.M")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "M", "E.M")
             End Using
         End Function
 
@@ -122,7 +122,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "C()", "C.C()")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "C()", "C.C()")
             End Using
         End Function
 
@@ -137,7 +137,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "~C()", "C.~C()")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "~C()", "C.~C()")
             End Using
         End Function
 
@@ -153,7 +153,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "IDisposable.Dispose() : void", "C.Dispose() : void")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "IDisposable.Dispose() : void", "C.Dispose() : void")
             End Using
         End Function
 
@@ -168,7 +168,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "f : int*", "C.f : int*")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "f : int*", "C.f : int*")
             End Using
         End Function
 
@@ -184,7 +184,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                testState.AssertMarkedSymbolLabelIs(GraphCommandDefinition.Contains.Id, "Foo() : void", "Foo : void")
+                Await testState.AssertMarkedSymbolLabelIsAsync(GraphCommandDefinition.Contains.Id, "Foo() : void", "Foo : void")
             End Using
         End Function
     End Class
