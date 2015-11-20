@@ -355,7 +355,7 @@ class Program
                 var spans = subjectDocument.SelectedSpans;
 
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-                var syntaxRoot = document.GetSyntaxRootAsync().Result;
+                var syntaxRoot = await document.GetSyntaxRootAsync();
 
                 var node = Formatter.Format(syntaxRoot, spans, workspace);
                 Assert.Equal(expected, node.ToFullString());
@@ -451,7 +451,7 @@ class Program
                 workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.AllowDisjointSpanMerging, true);
 
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-                var syntaxRoot = document.GetSyntaxRootAsync().Result;
+                var syntaxRoot = await document.GetSyntaxRootAsync();
 
                 var node = Formatter.Format(syntaxRoot, spans, workspace);
                 Assert.Equal(expected, node.ToFullString());

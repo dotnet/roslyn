@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                     buffer.CurrentSnapshot.GetText());
 
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-                var syntaxTree = document.GetSyntaxTreeAsync().Result;
+                var syntaxTree = await document.GetSyntaxTreeAsync();
 
                 var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 var buffer = hostdoc.GetTextBuffer();
 
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-                var syntaxTree = document.GetSyntaxTreeAsync().Result;
+                var syntaxTree = await document.GetSyntaxTreeAsync();
 
                 // create new buffer with cloned content
                 var clonedBuffer = EditorFactory.CreateBuffer(
