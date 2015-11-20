@@ -1,17 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
@@ -54,11 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             _contentType = contentType;
             this.ProjectionBufferFactoryService = componentModel.GetService<IProjectionBufferFactoryService>();
             _bufferGraphFactoryService = componentModel.GetService<IBufferGraphFactoryService>();
-            var _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-
-            _isImmediateWindow = vsTextView.IsImmediateWindow(
-                (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell)),
-                _editorAdaptersFactoryService);
+            _isImmediateWindow = IsImmediateWindow((IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell)), vsTextView);
         }
 
         // Constructor for testing
@@ -263,6 +265,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
 
             return -1;
+        }
+
+        private bool IsImmediateWindow(IVsUIShell shellService, IVsTextView textView)
+        {
+            IEnumWindowFrames windowEnum = null;
+            IVsTextLines buffer = null;
+            Marshal.ThrowExceptionForHR(shellService.GetToolWindowEnum(out windowEnum));
+            Marshal.ThrowExceptionForHR(textView.GetBuffer(out buffer));
+
+            IVsWindowFrame[] frame = new IVsWindowFrame[1];
+            uint value;
+
+            var immediateWindowGuid = Guid.Parse(ToolWindowGuids80.ImmediateWindow);
+
+            while (windowEnum.Next(1, frame, out value) == VSConstants.S_OK)
+            {
+                Guid toolWindowGuid;
+                Marshal.ThrowExceptionForHR(frame[0].GetGuidProperty((int)__VSFPROPID.VSFPROPID_GuidPersistenceSlot, out toolWindowGuid));
+                if (toolWindowGuid == immediateWindowGuid)
+                {
+                    IntPtr frameTextView;
+                    Marshal.ThrowExceptionForHR(frame[0].QueryViewInterface(typeof(IVsTextView).GUID, out frameTextView));
+                    try
+                    {
+                        var immediateWindowTextView = Marshal.GetObjectForIUnknown(frameTextView) as IVsTextView;
+                        return textView == immediateWindowTextView;
+                    }
+                    finally
+                    {
+                        Marshal.Release(frameTextView);
+                    }
+                }
+            }
+
+            return false;
         }
 
         public void Dispose()

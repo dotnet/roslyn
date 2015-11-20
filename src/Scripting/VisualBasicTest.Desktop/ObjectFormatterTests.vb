@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 Imports ObjectFormatterFixtures
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
 
     Public Class ObjectFormatterTests
         Inherits ObjectFormatterTestBase
@@ -61,4 +61,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic.UnitTests
             Assert.Equal("SortedList(1) { { Integer(1) { 3 }, Integer(1) { 4 } } }", str)
         End Sub
     End Class
+
 End Namespace

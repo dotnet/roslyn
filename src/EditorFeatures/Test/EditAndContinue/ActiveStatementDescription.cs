@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var ids = GetIds(match.Groups["Id"].Value);
                 int absoluteOffset = offset + markedSyntax.Index;
 
-                yield return ValueTuple.Create(new TextSpan(absoluteOffset, markedSyntax.Length), ids);
+                var span = markedSyntax.Length != 0 ? new TextSpan(absoluteOffset, markedSyntax.Length) : new TextSpan();
+                yield return ValueTuple.Create(span, ids);
 
                 foreach (var nestedSpan in GetSpansRecursive(regex, contentGroupName, markedSyntax.Value, absoluteOffset))
                 {

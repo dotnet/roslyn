@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -130,6 +131,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  TypeOf (node) Is OrderingSyntax)
         End Function
 
+        Friend Enum GetOperationOptions
+            Lowest
+            Highest
+            Parent
+        End Enum
+
+        Protected Overrides Function GetOperationCore(node As SyntaxNode, cancellationToken As CancellationToken) As IOperation
+            Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)
+            CheckSyntaxNode(vbnode)
+            Return GetOperationWorker(vbnode, GetOperationOptions.Highest, cancellationToken)
+        End Function
+
+        Friend Overridable Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Return Nothing
+        End Function
+
         ''' <summary>
         ''' Returns what symbol(s), if any, the given expression syntax bound to in the program.
         ''' 
@@ -164,10 +181,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             CheckSyntaxNode(expression)
 
             If expression.Parent IsNot Nothing AndAlso expression.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
-                   expression.Parent.Parent IsNot Nothing AndAlso expression.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer AndAlso
-                   DirectCast(expression.Parent.Parent, ObjectCollectionInitializerSyntax).Initializer Is expression.Parent AndAlso
-                   expression.Parent.Parent.Parent IsNot Nothing AndAlso expression.Parent.Parent.Parent.Kind = SyntaxKind.ObjectCreationExpression AndAlso
-                   CanGetSemanticInfo(expression.Parent.Parent.Parent, allowNamedArgumentName:=False) Then
+               expression.Parent.Parent IsNot Nothing AndAlso expression.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer AndAlso
+               DirectCast(expression.Parent.Parent, ObjectCollectionInitializerSyntax).Initializer Is expression.Parent AndAlso
+               expression.Parent.Parent.Parent IsNot Nothing AndAlso expression.Parent.Parent.Parent.Kind = SyntaxKind.ObjectCreationExpression AndAlso
+               CanGetSemanticInfo(expression.Parent.Parent.Parent, allowNamedArgumentName:=False) Then
 
                 Dim collectionInitializer = DirectCast(expression.Parent.Parent.Parent, ObjectCreationExpressionSyntax)
                 If collectionInitializer.Initializer Is expression.Parent.Parent Then
@@ -1854,7 +1871,7 @@ _Default:
                 For Each result In sealedResults
                     ' Special case: we want to see constructors, even though they can't be referenced by name.
                     If result.CanBeReferencedByName OrElse
-                            (result.Kind = SymbolKind.Method AndAlso DirectCast(result, MethodSymbol).MethodKind = MethodKind.Constructor) Then
+                        (result.Kind = SymbolKind.Method AndAlso DirectCast(result, MethodSymbol).MethodKind = MethodKind.Constructor) Then
                         If builder IsNot Nothing Then
                             builder.Add(result)
                         End If

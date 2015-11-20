@@ -21,10 +21,12 @@
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
       <Name>csc</Name>
+      <Aliases>csc</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
       <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
       <Name>vbc</Name>
+      <Aliases>vbc</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
@@ -42,9 +44,10 @@
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Core\MSBuildTask\MSBuildTask.csproj">
+    <ProjectReference Include="..\..\Core\MSBuildTask\Desktop\MSBuildTask.Desktop.csproj">
       <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
-      <Name>MSBuildTask</Name>
+      <Name>MSBuildTask.Desktop</Name>
+      <Aliases>MSBuildTask</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
@@ -100,10 +103,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Shared\DesktopBuildClient.cs">
+      <Link>DesktopBuildClient.cs</Link>
+    </Compile>
     <Compile Include="AnalyzerConsistencyCheckerTests.cs" />
     <Compile Include="BuildProtocolTest.cs" />
+    <Compile Include="ClientConnectionTests.cs" />
     <Compile Include="CompilerServerApiTest.cs" />
     <Compile Include="CompilerServerTests.cs" />
+    <Compile Include="DesktopBuildClientTests.cs" />
     <Compile Include="EndToEndDeterminismTest.cs" />
     <Compile Include="MockEngine.cs" />
     <Compile Include="RunKeepAliveTests.cs" />

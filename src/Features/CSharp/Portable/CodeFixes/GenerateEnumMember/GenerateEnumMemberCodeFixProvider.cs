@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
             return service.GenerateEnumMemberAsync(document, node, cancellationToken);
         }
 
-        protected override bool IsCandidate(SyntaxNode node)
+        protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
         {
             return node is IdentifierNameSyntax;
         }

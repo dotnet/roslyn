@@ -47,7 +47,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 MethodBase method = frame.GetMethod();
                 if (method == null) continue;
 
-                builder.Append(method);
+                // method.ToString() does not include the declaring type, so we'll prepend it manually.
+                // It will appear before the return type, but that won't disrupt our telemetry.
+                builder.Append(method.ReflectedType.ToString().Replace(',', '\''));
+                builder.Append("::");
+                builder.Append(method.ToString().Replace(',', '\''));
                 builder.Append(';'); // Method signatures should not contain semicolons.
             }
 

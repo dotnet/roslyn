@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 references,
                 exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes),
+                new SymReader(pdbBytes),
                 includeLocalSignatures: false);
             var context = CreateMethodContext(
                 runtime,
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(928113)]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6651")]
         public void Constants()
         {
             var source =
@@ -561,7 +561,7 @@ class C
             ImmutableArray<MetadataReference> references;
             compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
 
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, exeBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -622,7 +622,7 @@ class P
             ImmutableArray<MetadataReference> references;
             compilation0.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
 
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, exeBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -1663,7 +1663,7 @@ public struct B
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 ImmutableArray.Create(MscorlibRef), // no reference to compilation0
                 exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
+                new SymReader(pdbBytes));
 
             var context = CreateMethodContext(
                 runtime,
@@ -1715,7 +1715,7 @@ public struct B
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 ImmutableArray.Create(MscorlibRef), // no reference to compilation0
                 exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes));
+                new SymReader(pdbBytes));
 
             var context = CreateMethodContext(
                 runtime,
@@ -1813,7 +1813,7 @@ class C
             ImmutableArray<MetadataReference> references;
             comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
 
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, exeBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -1852,7 +1852,7 @@ class C
             ImmutableArray<MetadataReference> references;
             comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
 
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, exeBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -1894,7 +1894,7 @@ class C
             ImmutableArray<MetadataReference> references;
             comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
 
-            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes, exeBytes));
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, new SymReader(pdbBytes, exeBytes));
             var context = CreateMethodContext(
                 runtime,
                 methodName: "C.M");
@@ -2675,7 +2675,7 @@ class C
             var result = comp.EmitAndGetReferences(out exeBytes, out pdbBytes, out unusedReferences);
             Assert.True(result);
 
-            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef), exeBytes, SymReaderFactory.CreateReader(pdbBytes));
+            var runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef), exeBytes, new SymReader(pdbBytes));
 
             string typeName;
             var locals = ArrayBuilder<LocalAndMethod>.GetInstance();

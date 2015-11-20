@@ -24,11 +24,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal readonly DkmInspectionContext DefaultInspectionContext;
 
-        internal ResultProviderTestBase(ResultProvider resultProvider, DkmInspectionContext defaultInspectionContext)
+        protected static readonly string DynamicDebugViewEmptyMessage;
+
+        static ResultProviderTestBase()
+        {
+            var exceptionType = typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).Assembly.GetType(
+                "Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView+DynamicDebugViewEmptyException");
+            var emptyProperty = exceptionType.GetProperty("Empty");
+            DynamicDebugViewEmptyMessage = (string)emptyProperty.GetValue(exceptionType.Instantiate());
+        }
+
+        protected ResultProviderTestBase(ResultProvider resultProvider, DkmInspectionContext defaultInspectionContext)
         {
             _formatter = resultProvider.Formatter;
             _resultProvider = resultProvider;
             this.DefaultInspectionContext = defaultInspectionContext;
+
+            // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
+            ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
         }
 
         internal DkmClrValue CreateDkmClrValue(

@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Verify(dynamicView,
                 EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", "o, dynamic", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
             Verify(GetChildren(dynamicView),
-            EvalFailedResult(Resources.ErrorName, "No further information on this object could be discovered"))
+            EvalFailedResult(Resources.ErrorName, DynamicDebugViewEmptyMessage))
         End Sub
 
         <Fact>

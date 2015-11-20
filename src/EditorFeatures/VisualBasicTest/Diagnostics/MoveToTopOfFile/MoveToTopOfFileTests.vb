@@ -14,27 +14,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MoveTo
 
 #Region "Imports Tests"
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub TestImportsMissing()
             TestMissing(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n [|Imports Microsoft|] \n Module Program \n Sub Main(args As String()) \n  \n End Sub \n End Module"))
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub ImportsInsideDeclaration()
             Test(
 NewLines("Module Program \n [|Imports System|] \n Sub Main(args As String()) \n End Sub \n End Module"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub ImportsAfterDeclarations()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n [|Imports System|]"),
 NewLines("Imports System Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub ImportsMovedNextToOtherImports()
             Dim text = <File>
 Imports Microsoft
@@ -59,7 +59,7 @@ End Module</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub ImportsMovedAfterOptions()
             Dim text = <File>
 Option Explicit Off
@@ -84,7 +84,7 @@ End Module</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub ImportsWithTriviaMovedNextToOtherImports()
             Dim text = <File>
 Imports Microsoft
@@ -109,7 +109,7 @@ End Module</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub ImportsWithTriviaMovedNextToOtherImportsWithTrivia()
             Dim text = <File>
 Imports Microsoft 'C1
@@ -135,7 +135,7 @@ End Module</File>
         End Sub
 
         <WorkItem(601222)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub OnlyMoveOptions()
             Dim text = <File>
 Imports Sys = System
@@ -147,27 +147,27 @@ Option Infer Off
 #End Region
 
 #Region "Option Tests"
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub TestOptionsMissing()
             TestMissing(
 NewLines("[|Option Explicit Off|] \n Module Program \n Sub Main(args As String()) \n  \n End Sub \n End Module"))
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub OptionsInsideDeclaration()
             Test(
 NewLines("Module Program \n [|Option Explicit Off|] \n Sub Main(args As String()) \n End Sub \n End Module"),
 NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub OptionsAfterDeclarations()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n [|Option Explicit Off|]"),
 NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub OptionsMovedNextToOtherOptions()
             Dim text = <File>
 Option Explicit Off
@@ -192,7 +192,7 @@ End Module</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub OptionsWithTriviaMovedNextToOtherOptions()
             Dim text = <File>
 Imports Microsoft
@@ -217,7 +217,7 @@ End Module</File>
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub OptionsWithTriviaMovedNextToOtherOptionsWithTrivia()
             Dim text = <File>
 Option Explicit Off'C1
@@ -244,7 +244,7 @@ End Module</File>
 #End Region
 
 #Region "Attribute Tests"
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub AttributeNoAction1()
             Dim text = <File>
 [|&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;|]
@@ -259,7 +259,7 @@ End Module</File>
             TestMissing(text.ConvertTestSourceTag())
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub AttributeNoAction2()
             Dim text = <File>
 [|&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt;|]
@@ -273,7 +273,7 @@ End Module</File>
             TestMissing(text.ConvertTestSourceTag())
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub AttributeAfterDeclaration()
             Dim text = <File>
 Module Program
@@ -295,7 +295,7 @@ End Module
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub AttributeInsideDeclaration()
             Dim text = <File>
 Module Program
@@ -316,7 +316,7 @@ End Module
             Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Sub
 
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub AttributePreserveTrivia()
             Dim text = <File>
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Comment
@@ -340,7 +340,7 @@ End Module
         End Sub
 
         <WorkItem(600949)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub RemoveAttribute()
             Dim text = <File>
 Class C
@@ -356,7 +356,7 @@ End Class
         End Sub
 
         <WorkItem(606857)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub MoveImportBeforeAttribute()
             Dim text = <File>
 &lt;Assembly:CLSCompliant(True)&gt;
@@ -369,7 +369,7 @@ End Class
         End Sub
 
         <WorkItem(606877)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub NewLineWhenMovingFromEOF()
             Dim text = <File>Imports System
 &lt;Assembly:CLSCompliant(True)&gt;
@@ -383,7 +383,7 @@ Imports System
         End Sub
 
         <WorkItem(606851)>
-        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
         Public Sub DoNotMoveLeadingWhitespace()
             Dim text = <File>Imports System
  
@@ -399,7 +399,7 @@ Imports System
 #End Region
 
         <WorkItem(632305)>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestHiddenRegion()
             Dim code =
 <File>
