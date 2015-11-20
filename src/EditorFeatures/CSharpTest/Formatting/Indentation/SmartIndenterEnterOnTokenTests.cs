@@ -1317,7 +1317,7 @@ Program.number}"";
 
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
-                var root = document.GetSyntaxRootAsync().Result as CompilationUnitSyntax;
+                var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
                 Assert.True(
                     CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
@@ -1345,7 +1345,7 @@ Program.number}"";
 
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
-                var root = document.GetSyntaxRootAsync().Result as CompilationUnitSyntax;
+                var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
                 Assert.False(
                     CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),

@@ -3082,7 +3082,7 @@ class Program{
 
                 var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-                var root = (CompilationUnitSyntax)document.GetSyntaxRootAsync().Result;
+                var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
                 var endToken = root.FindToken(position);
                 if (position == endToken.SpanStart && !endToken.GetPreviousToken().IsKind(SyntaxKind.None))
                 {
