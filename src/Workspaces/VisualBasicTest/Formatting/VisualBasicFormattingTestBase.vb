@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
 
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(code))
-                Dim syntaxTree = document.GetSyntaxTreeAsync().Result
+                Dim syntaxTree = Await document.GetSyntaxTreeAsync()
 
                 ' Test various entry points into the formatter
 
@@ -50,16 +50,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
                 Dim changes = Await Formatter.GetFormattedTextChangesAsync(syntaxTree.GetRoot(CancellationToken.None), workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
-                AssertResult(expected, document.GetTextAsync().Result, changes)
+                AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 changes = Await Formatter.GetFormattedTextChangesAsync(syntaxTree.GetRoot(), syntaxTree.GetRoot(CancellationToken.None).FullSpan, workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
-                AssertResult(expected, document.GetTextAsync().Result, changes)
+                AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 spans = New List(Of TextSpan)()
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
                 changes = Await Formatter.GetFormattedTextChangesAsync(syntaxTree.GetRoot(CancellationToken.None), spans, workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
-                AssertResult(expected, document.GetTextAsync().Result, changes)
+                AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 ' format with node and transform
                 Await AssertFormatWithTransformationAsync(workspace, expected, syntaxTree.GetRoot(), spans, Nothing, False)

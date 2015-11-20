@@ -2767,18 +2767,18 @@ End Class</Code>
 
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(My.Resources.XmlLiterals.XmlTest4_Input_Output))
-                Dim root = document.GetSyntaxRootAsync().Result
+                Dim root = Await document.GetSyntaxRootAsync()
 
                 ' format first time
                 Dim result = Await Formatter.GetFormattedTextChangesAsync(root, workspace)
-                AssertResult(My.Resources.XmlLiterals.XmlTest4_Input_Output, document.GetTextAsync().Result, result)
+                AssertResult(My.Resources.XmlLiterals.XmlTest4_Input_Output, Await document.GetTextAsync(), result)
 
-                Dim document2 = document.WithText(document.GetTextAsync().Result.WithChanges(result))
-                Dim root2 = document2.GetSyntaxRootAsync().Result
+                Dim document2 = document.WithText((Await document.GetTextAsync()).WithChanges(result))
+                Dim root2 = Await document2.GetSyntaxRootAsync()
 
                 ' format second time
                 Dim result2 = Await Formatter.GetFormattedTextChangesAsync(root, workspace)
-                AssertResult(My.Resources.XmlLiterals.XmlTest4_Input_Output, document2.GetTextAsync().Result, result2)
+                AssertResult(My.Resources.XmlLiterals.XmlTest4_Input_Output, Await document2.GetTextAsync(), result2)
             End Using
         End Function
 
@@ -3914,10 +3914,11 @@ End Module
     End Property
 End Class</text>.Value)
 
-            Dim propertyBlock = document.GetSyntaxRootAsync().Result.DescendantNodes().OfType(Of PropertyBlockSyntax).Single()
-            document = Await Formatter.FormatAsync(document.WithSyntaxRoot(document.GetSyntaxRootAsync().Result.ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter)))))
+            Dim propertyBlock = (Await document.GetSyntaxRootAsync()).DescendantNodes().OfType(Of PropertyBlockSyntax).Single()
+            document = Await Formatter.FormatAsync(document.WithSyntaxRoot(
+                (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter)))))
 
-            Dim actual = document.GetTextAsync().Result.ToString()
+            Dim actual = (Await document.GetTextAsync()).ToString()
             Assert.Equal(actual, actual)
         End Function
 
