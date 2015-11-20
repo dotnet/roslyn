@@ -562,5 +562,21 @@ Public Class Derived
     End Sub
 End Class")
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Sub TestGenerateInDerivedType_Crash()
+            TestMissing(
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class [|;;|]Derived
+    Inherits Base
+
+End Class")
+        End Sub
     End Class
 End Namespace
