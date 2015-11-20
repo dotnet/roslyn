@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
-    public class FuzzTesting : CSharpTestBase
+    public class ParserRegressionTests : CSharpTestBase
     {
         [WorkItem(540005, "DevDiv")]
         [Fact]
@@ -83,16 +83,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void TestBinary()
         {
-            // use a fixed seed so the test is reproducible
+            // Apparently this fixed seed exposed a bug at some point
             var random = new System.Random(12345);
-            const int n = 40 * 1000 * 1000; // 40 million "character"s
-            var builder = new StringBuilder(n + 10);
-            for (int i = 0; i < n; i++)
+            // 40 million "character"s
+            const int n = 40 * 1000 * 1000;
+            var str = new string(' ', n);
+
+            unsafe
             {
-                builder.Append((char)random.Next(0xffff));
+                fixed(char* chars = str)
+                {
+                    for(int i = 0; i < n; i++)
+                    {
+                        chars[i] = (char)random.Next(char.MaxValue);
+                    }
+                }
             }
-            var source = builder.ToString();
-            var tree = CSharpSyntaxTree.ParseText(source);
+
+            var tree = CSharpSyntaxTree.ParseText(str);
         }
     }
 }
