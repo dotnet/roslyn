@@ -70,11 +70,13 @@
     <Compile Include="AutomaticCompletion\Sessions\StringLiteralCompletionSession.vb" />
     <Compile Include="AutomaticCompletion\VisualBasicBraceCompletions.vb" />
     <Compile Include="AutomaticCompletion\VisualBasicBraceCompletionSessionProvider.vb" />
+    <Compile Include="AutomaticEndConstructCorrection\AbstractCorrector.vb" />
     <Compile Include="AutomaticEndConstructCorrection\AutomaticEndConstructCorrector.Session.vb" />
     <Compile Include="AutomaticEndConstructCorrection\AutomaticEndConstructCorrector.vb" />
     <Compile Include="AutomaticEndConstructCorrection\AutomaticEndConstructSet.vb" />
     <Compile Include="AutomaticEndConstructCorrection\LetterOnlyTrackingSpan.vb" />
     <Compile Include="AutomaticEndConstructCorrection\ViewCreationListener.vb" />
+    <Compile Include="AutomaticEndConstructCorrection\XmlElementTagCorrector.vb" />
     <Compile Include="BraceMatching\AbstractVisualBasicBraceMatcher.vb" />
     <Compile Include="BraceMatching\InterpolatedStringBraceMatcher.vb" />
     <Compile Include="BraceMatching\LessThanGreaterThanBraceMatcher.vb" />

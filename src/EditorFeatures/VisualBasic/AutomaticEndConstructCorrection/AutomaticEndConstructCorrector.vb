@@ -12,146 +12,40 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
     ''' Tracks user's interaction with editor
     ''' </summary>
     Partial Friend Class AutomaticEndConstructCorrector
-        Private ReadOnly _buffer As ITextBuffer
-        Private ReadOnly _session As Session
-        Private ReadOnly _waitIndicator As IWaitIndicator
-
-        Private _previousDocument As Document
-        Private _referencingViews As Integer
+        Inherits AbstractCorrector
 
         Public Sub New(subjectBuffer As ITextBuffer, waitIndicator As IWaitIndicator)
-            Contract.ThrowIfNull(subjectBuffer)
-
-            Me._buffer = subjectBuffer
-            Me._waitIndicator = waitIndicator
-            Me._session = New Session(subjectBuffer)
-
-            Me._previousDocument = Nothing
-            Me._referencingViews = 0
+            MyBase.New(subjectBuffer, waitIndicator)
         End Sub
 
-        Public Sub Connect()
-            If _referencingViews = 0 Then
-                AddHandler _buffer.Changing, AddressOf OnTextBufferChanging
-                AddHandler _buffer.Changed, AddressOf OnTextBufferChanged
-            End If
-
-            _referencingViews = _referencingViews + 1
-        End Sub
-
-        Public Sub Disconnect()
-            If _referencingViews = 1 Then
-                RemoveHandler _buffer.Changed, AddressOf OnTextBufferChanged
-                RemoveHandler _buffer.Changing, AddressOf OnTextBufferChanging
-            End If
-
-            _referencingViews = Math.Max(_referencingViews - 1, 0)
-        End Sub
-
-        Public ReadOnly Property IsDisconnected As Boolean
-            Get
-                Return _referencingViews = 0
-            End Get
-        End Property
-
-        Private Sub OnTextBufferChanging(sender As Object, e As TextContentChangingEventArgs)
-            If Me._session.Alive Then
-                _previousDocument = Nothing
-                Return
-            End If
-
-            ' try holding onto previous Document so that we can use it when we diff syntax tree
-            _previousDocument = e.Before.GetOpenDocumentInCurrentContextWithChanges()
-        End Sub
-
-        Private Sub OnTextBufferChanged(sender As Object, e As TextContentChangedEventArgs)
-            _waitIndicator.Wait(
-                "IntelliSense",
-                allowCancel:=True,
-                action:=Sub(c) StartSession(e, c.CancellationToken))
-
-            ' clear previous document
-            _previousDocument = Nothing
-        End Sub
-
-        Private Sub StartSession(e As TextContentChangedEventArgs, cancellationToken As CancellationToken)
-            If e.Changes.Count = 0 Then
-                Return
-            End If
-
-            ' If this is a reiterated version, then it's part of undo/redo and we should ignore it
-            If e.AfterVersion.ReiteratedVersionNumber <> e.AfterVersion.VersionNumber Then
-                Return
-            End If
-
-            If Me._session.Alive Then
-                If Me._session.OnTextChange(e) Then
-                    Return
-                End If
-            End If
-
-            Dim token As SyntaxToken = Nothing
-            If Not IsValidChange(e, token, cancellationToken) Then
-                Return
-            End If
-
-            Me._session.Start(GetLinkedEditSpans(e.Before, token), e)
-        End Sub
-
-        Private Function GetLinkedEditSpans(snapshot As ITextSnapshot, token As SyntaxToken) As IEnumerable(Of ITrackingSpan)
-            Dim startToken = GetBeginToken(token.Parent)
-            If startToken.Kind = SyntaxKind.None Then
-                startToken = GetCorrespondingBeginToken(token)
-            End If
-
-            Dim endToken = GetCorrespondingEndToken(startToken)
-
-            Return {New LetterOnlyTrackingSpan(startToken.Span.ToSnapshotSpan(snapshot)), New LetterOnlyTrackingSpan(endToken.Span.ToSnapshotSpan(snapshot))}
+        Protected Overrides Function ShouldReplaceText(text As String) As Boolean
+            Return AutomaticEndConstructSet.Contains(text)
         End Function
 
-        Private Function IsValidChange(bufferChanges As TextContentChangedEventArgs, ByRef token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
-            ' set out parameter first
-            token = Nothing
+        Protected Overrides Function IsAllowableWordAtIndex(lineText As String, wordStartIndex As Integer, wordLength As Integer) As Boolean
+            Dim textUnderPosition = lineText.Substring(wordStartIndex, wordLength)
 
-            ' we will be very conservative when staring session
-            Dim changes = bufferChanges.Changes
+            Return AutomaticEndConstructSet.Contains(textUnderPosition)
+        End Function
 
-            ' change should not contain any line changes
-            If changes.IncludesLineChanges Then
-                Return False
-            End If
-
-            ' we only start session if one edit happens, not multi-edits
-            If changes.Count <> 1 Then
-                Return False
-            End If
-
-            Dim textChange = changes.Item(0)
-            If Not IsChangeOnSameLine(bufferChanges.After, textChange) Then
-                Return False
-            End If
-
-            If Not IsChangeOnCorrectText(bufferChanges.Before, textChange.OldPosition) Then
-                Return False
-            End If
-
-            If _previousDocument Is Nothing Then
-                Return False
-            End If
-
-            Dim root = _previousDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-            token = root.FindToken(textChange.OldPosition)
+        Protected Overrides Function TryGetValidTokens(wordStartIndex As Integer,
+                                                       ByRef startToken As SyntaxToken,
+                                                       ByRef endToken As SyntaxToken,
+                                                       cancellationToken As CancellationToken) As Boolean
+            Dim root = Me.PreviousDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim token = root.FindToken(wordStartIndex)
 
             If Not IsChangeOnCorrectToken(token) Then
                 Return False
             End If
 
-            Return True
-        End Function
+            startToken = GetBeginToken(token.Parent)
+            If startToken.Kind = SyntaxKind.None Then
+                startToken = GetCorrespondingBeginToken(token)
+            End If
 
-        Private Shared Function IsChangeOnSameLine(snapshot As ITextSnapshot, change As ITextChange) As Boolean
-            ' changes on same line
-            Return snapshot.GetLineNumberFromPosition(change.NewPosition) = snapshot.GetLineNumberFromPosition(change.NewEnd)
+            endToken = GetCorrespondingEndToken(startToken)
+            Return True
         End Function
 
         Private Function IsChangeOnCorrectToken(token As SyntaxToken) As Boolean
@@ -279,53 +173,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                         Function(context As AccessorStatementSyntax) context.DeclarationKeyword,
                         Function(dontCare As SyntaxNode) New SyntaxToken())
         End Function
-
-        Private Function IsChangeOnCorrectText(snapshot As ITextSnapshot, position As Integer) As Boolean
-            Dim line = snapshot.GetLineFromPosition(position)
-
-            Dim text = line.GetText()
-            Dim positionInText = position - line.Start.Position
-            Contract.ThrowIfFalse(positionInText >= 0)
-
-            If text.Length = 0 OrElse text.Length < positionInText Then
-                Return False
-            End If
-
-            If text.Length <= positionInText OrElse Not Char.IsLetter(text(positionInText)) Then
-                positionInText = positionInText - 1
-
-                If Not Char.IsLetter(text(Math.Max(0, positionInText))) Then
-                    Return False
-                End If
-            End If
-
-            Dim startIndex = GetStartIndexOfWord(text, positionInText)
-            Dim length = GetEndIndexOfWord(text, positionInText) - startIndex + 1
-
-            Dim textUnderPosition = text.Substring(startIndex, length)
-
-            Return AutomaticEndConstructSet.Contains(textUnderPosition)
-        End Function
-
-        Private Function GetStartIndexOfWord(text As String, position As Integer) As Integer
-            For index = position To 0 Step -1
-                If Not Char.IsLetter(text(index)) Then
-                    Return index + 1
-                End If
-            Next
-
-            Return 0
-        End Function
-
-        Private Function GetEndIndexOfWord(text As String, position As Integer) As Integer
-            For index = position To text.Length - 1
-                If Not Char.IsLetter(text(index)) Then
-                    Return index - 1
-                End If
-            Next
-
-            Return text.Length - 1
-        End Function
-
     End Class
 End Namespace
