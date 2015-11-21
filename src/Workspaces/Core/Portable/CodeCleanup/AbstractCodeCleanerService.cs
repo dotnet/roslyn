@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 var codeCleaners = providers ?? GetDefaultProviders();
 
-                var normalizedSpan = spans.ToNormalizedSpans();
+                var normalizedSpan = spans.ToNormalizedSpans().ToArray();
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
                 {
                     // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 var codeCleaners = providers ?? GetDefaultProviders();
 
-                var normalizedSpan = spans.ToNormalizedSpans();
+                var normalizedSpan = spans.ToNormalizedSpans().ToArray();
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
                 {
                     // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// Inject annotations into the node so that it can re-calculate spans for each code cleaner after each tree transformation.
         /// </summary>
         private ValueTuple<SyntaxNode, List<ValueTuple<SyntaxAnnotation, SyntaxAnnotation>>> AnnotateNodeForTextSpans(
-            ISyntaxFactsService syntaxFactsService, SyntaxNode root, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFactsService, SyntaxNode root, TextSpan[] spans, CancellationToken cancellationToken)
         {
             // Get spans where the tokens around the spans are not overlapping with the spans.
             var nonOverlappingSpans = GetNonOverlappingSpans(syntaxFactsService, root, spans, cancellationToken);
@@ -310,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Make sure annotations are positioned outside of any spans. If not, merge two adjacent spans to one.
         /// </summary>
-        private IEnumerable<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        private IEnumerable<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, TextSpan[] spans, CancellationToken cancellationToken)
         {
             // Create interval tree for spans
             var intervalTree = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spans);
@@ -433,14 +434,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             return startMarker.Type == SpanMarkerType.BeginningOfFile && endMarker.Type == SpanMarkerType.EndOfFile;
         }
 
-        private bool CleanupWholeNode(TextSpan nodeSpan, IEnumerable<TextSpan> spans)
+        private bool CleanupWholeNode(TextSpan nodeSpan, TextSpan[] spans)
         {
-            if (spans.Skip(1).Any())
+            if (spans.Length > 1)
             {
                 return false;
             }
 
-            var firstSpan = spans.First();
+            var firstSpan = spans[0];
             return firstSpan.Contains(nodeSpan);
         }
 

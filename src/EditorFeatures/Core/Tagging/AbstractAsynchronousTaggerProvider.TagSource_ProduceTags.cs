@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagTree = new TagSpanIntervalTree<TTag>(
                     buffer,
                     treeForBuffer.SpanTrackingMode,
-                    allTags.Except(tagsToRemove, _tagSpanComparer));
+                    allTags.Except(tagsToRemove, _tagSpanComparer).ToList());
 
                 var snapshot = e.After;
 
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
                 foreach (var buffer in buffers)
                 {
-                    var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsByBuffer[buffer], spansToInvalidateByBuffer[buffer]);
+                    var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsByBuffer[buffer].ToList(), spansToInvalidateByBuffer[buffer]);
                     if (newTagTree != null)
                     {
                         newTagTrees = newTagTrees.Add(buffer, newTagTree);
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private TagSpanIntervalTree<TTag> ComputeNewTagTree(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ITextBuffer textBuffer,
-                IEnumerable<ITagSpan<TTag>> newTags,
+                List<ITagSpan<TTag>> newTags,
                 IEnumerable<SnapshotSpan> spansToInvalidate)
             {
                 var noNewTags = newTags.IsEmpty();
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : GetNonIntersectingTagSpans(spansToInvalidate, oldTagTree);
 
                 // Then union those with the new tags to produce the final tag tree.
-                var finalTags = oldTagsToKeep.Concat(newTags);
+                var finalTags = oldTagsToKeep.Concat(newTags).ToList();
                 return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode, finalTags);
             }
 
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
                 foreach (var buffer in allBuffers)
                 {
-                    var newTagTree = ComputeNewTagTree(spanTagged, oldTagTrees, buffer, newTagsByBuffer[buffer]);
+                    var newTagTree = ComputeNewTagTree(spanTagged, oldTagTrees, buffer, newTagsByBuffer[buffer].ToList());
                     if (newTagTree != null)
                     {
                         newTagTrees = newTagTrees.Add(buffer, newTagTree);
@@ -450,14 +450,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             /// <summary>
-            /// This is the same as <see cref="ComputeNewTagTree(ImmutableDictionary{ITextBuffer, TagSpanIntervalTree{TTag}}, ITextBuffer, IEnumerable{ITagSpan{TTag}}, IEnumerable{SnapshotSpan})"/>,
+            /// This is the same as <see cref="ComputeNewTagTree(ImmutableDictionary{ITextBuffer, TagSpanIntervalTree{TTag}}, ITextBuffer, List{ITagSpan{TTag}}, IEnumerable{SnapshotSpan})"/>,
             /// just optimized for the case where we were tagging a single snapshot span.
             /// </summary>
             private TagSpanIntervalTree<TTag> ComputeNewTagTree(
                 SnapshotSpan spanToInvalidate,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ITextBuffer textBuffer,
-                IEnumerable<ITagSpan<TTag>> newTags)
+                List<ITagSpan<TTag>> newTags)
             {
                 TagSpanIntervalTree<TTag> oldTagTree;
                 oldTagTrees.TryGetValue(textBuffer, out oldTagTree);
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     }
 
                     // Otherwise, merge the old and new tags.
-                    var finalTags = oldTagTree.GetSpans(newTags.First().Span.Snapshot).Concat(newTags);
+                    var finalTags = oldTagTree.GetSpans(newTags.First().Span.Snapshot).Concat(newTags).ToList();
                     return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode, finalTags);
                 }
                 else

@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // more expensive case
             var result = Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken);
-            return CreateAggregatedFormattingResult(node, new List<AbstractFormattingResult>(1) { result }, SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spanToFormat));
+            return CreateAggregatedFormattingResult(node, new List<AbstractFormattingResult>(1) { result },
+                SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, new TextSpan[] { spanToFormat }));
         }
 
         private IFormattingResult FormatIndividually(

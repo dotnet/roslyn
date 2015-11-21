@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected SimpleIntervalTree<TextSpan> GetFormattingSpans()
         {
-            return _formattingSpans ?? SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, _formattingResults.Select(r => r.FormattedSpan));
+            return _formattingSpans ?? SimpleIntervalTree.Create(
+                TextSpanIntervalIntrospector.Instance,
+                _formattingResults.Select(r => r.FormattedSpan).ToArray());
         }
 
         #region IFormattingResult implementation

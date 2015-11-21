@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Function GetRewriter(document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As AbstractTokensCodeCleanupProvider.Rewriter
+        Protected Overrides Function GetRewriter(document As Document, root As SyntaxNode, spans As TextSpan(), workspace As Workspace, cancellationToken As CancellationToken) As AbstractTokensCodeCleanupProvider.Rewriter
             Return New FixIncorrectTokensRewriter(document, spans, cancellationToken)
         End Function
 
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private _model As SemanticModel = Nothing
 
-            Public Sub New(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken)
+            Public Sub New(document As Document, spans As TextSpan(), cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
                 Me._document = document

@@ -11,23 +11,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     {
         private readonly IIntervalIntrospector<T> _introspector;
 
-        public SimpleIntervalTree(IIntervalIntrospector<T> introspector, IEnumerable<T> values)
+        public SimpleIntervalTree(IIntervalIntrospector<T> introspector, T[] values)
+            : base(introspector, values)
         {
             this._introspector = introspector;
-
-            if (values != null)
-            {
-                foreach (var value in values)
-                {
-                    root = Insert(root, new Node(value), introspector);
-                }
-            }
         }
 
-        protected IIntervalIntrospector<T> Introspector
-        {
-            get { return _introspector; }
-        }
+        protected IIntervalIntrospector<T> Introspector => _introspector;
 
         public IEnumerable<T> GetOverlappingIntervals(int start, int length)
         {

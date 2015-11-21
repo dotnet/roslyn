@@ -29,12 +29,111 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
         }
 
-        public IntervalTree(IIntervalIntrospector<T> introspector, IEnumerable<T> values)
+        public IntervalTree(IIntervalIntrospector<T> introspector, T[] values)
         {
-            foreach (var value in values)
+            if (values != null)
             {
-                root = Insert(root, new Node(value), introspector);
+                // If we walk the values and add them one at a time, then we'll just end up causing
+                // an enormous amount of rebalancing and value introspection.  This can actually be
+                // somewhat expensive, esp when the tree contians 10s of thousands of elements.  So
+                // instead we sort the items up front and then build up the tree in a bottom-up 
+                // fashion so that it stays sorted.
+                Array.Sort(values, (t1, t2) => introspector.GetStart(t1) - introspector.GetStart(t2));
+
+                root = BuildNode(introspector, values, 0, values.Length);
             }
+        }
+
+        private static Node BuildNode(IIntervalIntrospector<T> introspector, T[] values, int start, int end)
+        {
+            if (start == end)
+            {
+                return null;
+            }
+
+            // Use the value in the middle as the root of the new tree we're creating.
+            var middle = start + ((end - start) >> 1);
+            var left = BuildNode(introspector, values, start, middle);
+            var right = BuildNode(introspector, values, middle + 1, end);
+
+            AssertIsBalanced(left);
+            AssertIsBalanced(right);
+
+            var node = new Node(introspector, values[middle], left, right);
+            AssertIsBalanced(node);
+            return node;
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertIsBalanced(Node node)
+        {
+            var balanceFactor = BalanceFactor(node);
+            Debug.Assert(-1 <= balanceFactor && balanceFactor <= 1);
+        }
+
+        protected static Node Insert(Node root, Node newNode, IIntervalIntrospector<T> introspector)
+        {
+            var newNodeStart = introspector.GetStart(newNode.Value);
+            return Insert(root, newNode, newNodeStart, introspector);
+        }
+
+        private static Node Insert(Node root, Node newNode, int newNodeStart, IIntervalIntrospector<T> introspector)
+        {
+            if (root == null)
+            {
+                return newNode;
+            }
+
+            Node newLeft, newRight;
+
+            if (newNodeStart < introspector.GetStart(root.Value))
+            {
+                newLeft = Insert(root.Left, newNode, newNodeStart, introspector);
+                newRight = root.Right;
+            }
+            else
+            {
+                newLeft = root.Left;
+                newRight = Insert(root.Right, newNode, newNodeStart, introspector);
+            }
+
+            root.SetLeftRight(newLeft, newRight, introspector);
+            var newRoot = root;
+
+            return Balance(newRoot, introspector);
+        }
+
+        private static Node Balance(Node node, IIntervalIntrospector<T> introspector)
+        {
+            int balanceFactor = BalanceFactor(node);
+            if (balanceFactor == -2)
+            {
+                int rightBalance = BalanceFactor(node.Right);
+                if (rightBalance == -1)
+                {
+                    return node.LeftRotation(introspector);
+                }
+                else
+                {
+                    Contract.Requires(rightBalance == 1);
+                    return node.InnerRightOuterLeftRotation(introspector);
+                }
+            }
+            else if (balanceFactor == 2)
+            {
+                int leftBalance = BalanceFactor(node.Left);
+                if (leftBalance == 1)
+                {
+                    return node.RightRotation(introspector);
+                }
+                else
+                {
+                    Contract.Requires(leftBalance == -1);
+                    return node.InnerLeftOuterRightRotation(introspector);
+                }
+            }
+
+            return node;
         }
 
         protected static bool Contains(T value, int start, int length, IIntervalIntrospector<T> introspector)
@@ -169,71 +268,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public bool IsEmpty()
         {
             return this.root == null;
-        }
-
-        protected static Node Insert(Node root, Node newNode, IIntervalIntrospector<T> introspector)
-        {
-            var newNodeStart = introspector.GetStart(newNode.Value);
-            return Insert(root, newNode, newNodeStart, introspector);
-        }
-
-        private static Node Insert(Node root, Node newNode, int newNodeStart, IIntervalIntrospector<T> introspector)
-        {
-            if (root == null)
-            {
-                return newNode;
-            }
-
-            Node newLeft, newRight;
-
-            if (newNodeStart < introspector.GetStart(root.Value))
-            {
-                newLeft = Insert(root.Left, newNode, newNodeStart, introspector);
-                newRight = root.Right;
-            }
-            else
-            {
-                newLeft = root.Left;
-                newRight = Insert(root.Right, newNode, newNodeStart, introspector);
-            }
-
-            root.SetLeftRight(newLeft, newRight, introspector);
-            var newRoot = root;
-
-            return Balance(newRoot, introspector);
-        }
-
-        private static Node Balance(Node node, IIntervalIntrospector<T> introspector)
-        {
-            int balanceFactor = BalanceFactor(node);
-            if (balanceFactor == -2)
-            {
-                int rightBalance = BalanceFactor(node.Right);
-                if (rightBalance == -1)
-                {
-                    return node.LeftRotation(introspector);
-                }
-                else
-                {
-                    Contract.Requires(rightBalance == 1);
-                    return node.InnerRightOuterLeftRotation(introspector);
-                }
-            }
-            else if (balanceFactor == 2)
-            {
-                int leftBalance = BalanceFactor(node.Left);
-                if (leftBalance == 1)
-                {
-                    return node.RightRotation(introspector);
-                }
-                else
-                {
-                    Contract.Requires(leftBalance == -1);
-                    return node.InnerLeftOuterRightRotation(introspector);
-                }
-            }
-
-            return node;
         }
 
         public IEnumerator<T> GetEnumerator()

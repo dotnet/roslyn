@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var root = model.SyntaxTree.GetRoot();
 
             // Create a simple interval tree for simplification spans.
-            var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
+            var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans.ToArray());
 
             Func<SyntaxNodeOrToken, bool> isInSpan = (nodeOrToken) =>
                 spansTree.GetOverlappingIntervals(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length).Any();
