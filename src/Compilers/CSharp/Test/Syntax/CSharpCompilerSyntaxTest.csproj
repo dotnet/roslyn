@@ -61,6 +61,7 @@
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
@@ -102,7 +103,7 @@
     <Compile Include="Parsing\CrefParsingTests.cs" />
     <Compile Include="Parsing\DeclarationParsingTests.cs" />
     <Compile Include="Parsing\ExpressionParsingTests.cs" />
-    <Compile Include="Parsing\FuzzTesting.cs" />
+    <Compile Include="Parsing\ParserRegressionTests.cs" />
     <Compile Include="Parsing\ScriptParsingTests.cs" />
     <Compile Include="Parsing\LambdaParameterParsingTests.cs" />
     <Compile Include="Parsing\NameAttributeValueParsingTests.cs" />
