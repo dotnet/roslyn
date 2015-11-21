@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
                 Dim snapshot = workspace.CurrentSolution
-                Dim Type = GetProject(snapshot, "CSharpAssembly").GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("CSClass").Single()
+                Dim Type = (Await GetProject(snapshot, "CSharpAssembly").GetCompilationAsync()).GlobalNamespace.GetTypeMembers("CSClass").Single()
 
                 Dim field = DirectCast(Type.GetMembers("field").Single(), IFieldSymbol)
                 Dim fieldType = field.Type
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Assert.Equal(LanguageNames.CSharp, fieldType.Language)
                 Assert.True(fieldType.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedType = SymbolFinder.FindSourceDefinitionAsync(fieldType, snapshot, CancellationToken.None).Result
+                Dim mappedType = Await SymbolFinder.FindSourceDefinitionAsync(fieldType, snapshot, CancellationToken.None)
                 Assert.NotNull(mappedType)
 
                 Assert.Equal(LanguageNames.VisualBasic, mappedType.Language)
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
                 Dim snapshot = workspace.CurrentSolution
-                Dim Type = GetProject(snapshot, "VBAssembly").GetCompilationAsync().Result.GlobalNamespace.GetTypeMembers("VBClass").Single()
+                Dim Type = (Await GetProject(snapshot, "VBAssembly").GetCompilationAsync()).GlobalNamespace.GetTypeMembers("VBClass").Single()
 
                 Dim field = DirectCast(Type.GetMembers("field").Single(), IFieldSymbol)
                 Dim fieldType = field.Type
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Assert.Equal(LanguageNames.VisualBasic, fieldType.Language)
                 Assert.True(fieldType.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedType = SymbolFinder.FindSourceDefinitionAsync(fieldType, snapshot, CancellationToken.None).Result
+                Dim mappedType = Await SymbolFinder.FindSourceDefinitionAsync(fieldType, snapshot)
                 Assert.NotNull(mappedType)
 
                 Assert.Equal(LanguageNames.CSharp, mappedType.Language)
@@ -125,13 +125,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 </Workspace>
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
-                Dim compilation = GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync().Result
+                Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
                 Assert.Equal(LanguageNames.VisualBasic, member.Language)
                 Assert.True(member.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedMember = SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution, CancellationToken.None).Result
+                Dim mappedMember = Await SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution)
                 Assert.NotNull(mappedMember)
 
                 Assert.Equal(LanguageNames.CSharp, mappedMember.Language)
@@ -163,13 +163,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 </Workspace>
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
-                Dim compilation = GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync().Result
+                Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
                 Assert.Equal(LanguageNames.VisualBasic, member.Language)
                 Assert.True(member.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedMember = SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution, CancellationToken.None).Result
+                Dim mappedMember = Await SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution)
                 Assert.NotNull(mappedMember)
 
                 Assert.Equal(LanguageNames.CSharp, mappedMember.Language)
@@ -201,13 +201,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 </Workspace>
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
-                Dim compilation = GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync().Result
+                Dim compilation = Await GetProject(workspace.CurrentSolution, "VBAssembly").GetCompilationAsync()
                 Dim member = compilation.GlobalNamespace.GetMembers("N").Single().GetTypeMembers("CSClass").Single().GetMembers("M").Single()
 
                 Assert.Equal(LanguageNames.VisualBasic, member.Language)
                 Assert.True(member.Locations.All(Function(Loc) Loc.IsInMetadata))
 
-                Dim mappedMember = SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution, CancellationToken.None).Result
+                Dim mappedMember = Await SymbolFinder.FindSourceDefinitionAsync(member, workspace.CurrentSolution)
                 Assert.NotNull(mappedMember)
 
                 Assert.Equal(LanguageNames.CSharp, mappedMember.Language)
