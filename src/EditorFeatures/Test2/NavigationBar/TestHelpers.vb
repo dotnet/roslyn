@@ -25,10 +25,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 workspace.CanApplyChangeDocument = workspaceSupportsChangeDocument
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim snapshot = document.GetTextAsync().Result.FindCorrespondingEditorTextSnapshot()
+                Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
-                Dim actualItems = service.GetItemsAsync(document, Nothing).Result
+                Dim actualItems = Await service.GetItemsAsync(document, Nothing)
                 actualItems.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
                 AssertEqual(expectedItems, actualItems, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)().IsCaseSensitive)
@@ -38,10 +38,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         Public Async Function AssertSelectedItemsAreAsync(workspaceElement As XElement, leftItem As ExpectedItem, leftItemGrayed As Boolean, rightItem As ExpectedItem, rightItemGrayed As Boolean) As Tasks.Task
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
-                Dim snapshot = document.GetTextAsync().Result.FindCorrespondingEditorTextSnapshot()
+                Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
-                Dim items = service.GetItemsAsync(document, Nothing).Result
+                Dim items = Await service.GetItemsAsync(document, Nothing)
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
@@ -70,11 +70,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
 
-                Dim contextLocation = document.GetSyntaxTreeAsync().Result.GetLocation(New TextSpan(0, 0))
+                Dim contextLocation = (Await document.GetSyntaxTreeAsync()).GetLocation(New TextSpan(0, 0))
                 Dim generateCodeItem = DirectCast(rightItem, AbstractGenerateCodeItem)
                 Dim newDocument = Await generateCodeItem.GetGeneratedDocumentAsync(document, CancellationToken.None)
 
-                Dim actual = newDocument.GetSyntaxRootAsync(CancellationToken.None).Result.ToFullString().TrimEnd()
+                Dim actual = (Await newDocument.GetSyntaxRootAsync()).ToFullString().TrimEnd()
                 Dim expected = expectedText.NormalizedValue.TrimEnd()
                 Assert.Equal(expected, actual)
             End Using
@@ -88,10 +88,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceElement)
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
-                Dim snapshot = sourceDocument.GetTextAsync().Result.FindCorrespondingEditorTextSnapshot()
+                Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractNavigationBarItemService)
-                Dim items = service.GetItemsAsync(sourceDocument, Nothing).Result
+                Dim items = Await service.GetItemsAsync(sourceDocument, Nothing)
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)

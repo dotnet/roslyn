@@ -19,13 +19,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
                 Assert.NotNull(document)
 
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition).Result
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, cursorPosition)
                 Dim result = SpecializedCollections.EmptyEnumerable(Of ReferencedSymbol)()
                 If symbol IsNot Nothing Then
 
                     Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(Of Document)(document), Nothing)
 
-                    result = result.Concat(SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=scope).Result())
+                    result = result.Concat(Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=scope))
                 End If
 
                 Dim actualDefinitions =

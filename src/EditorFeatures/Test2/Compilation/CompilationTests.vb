@@ -24,10 +24,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
                 Dim project = GetProject(workspace.CurrentSolution, "TestAssembly")
-                Assert.Null(project.GetCompilationAsync(CancellationToken.None).Result)
+                Assert.Null(project.GetCompilationAsync().Result)
 
                 Dim solution = project.Solution
-                Assert.Null(project.GetCompilationAsync(CancellationToken.None).Result)
+                Assert.Null(Await project.GetCompilationAsync())
                 Assert.False(solution.ContainsSymbolsWithNameAsync(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None).Result)
                 Assert.Empty(solution.GetDocumentsWithName(project.Id, Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None).Result)
             End Using
