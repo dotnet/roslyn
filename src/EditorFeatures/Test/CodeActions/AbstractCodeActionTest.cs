@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedPreviewContents = null,
             bool compareTokens = true)
         {
-            var operations = VerifyInputsAndGetOperations(index, actions);
+            var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
 
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             foreach (var document in workspace.Documents)
             {
-                var fixedRoot = workspace.CurrentSolution.GetDocument(document.Id).GetSyntaxRootAsync().Result;
+                var fixedRoot = await workspace.CurrentSolution.GetDocument(document.Id).GetSyntaxRootAsync();
                 var actualText = compareTokens ? fixedRoot.ToString() : fixedRoot.ToFullString();
 
                 if (compareTokens)

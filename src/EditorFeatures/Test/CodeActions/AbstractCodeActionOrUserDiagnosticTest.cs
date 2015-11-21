@@ -201,14 +201,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected Task<Tuple<Solution, Solution>> TestActionsAsync(
+        protected async Task<Tuple<Solution, Solution>> TestActionsAsync(
             TestWorkspace workspace, string expected, 
             int index, IList<CodeAction> actions, 
             IList<TextSpan> conflictSpans, IList<TextSpan> renameSpans, IList<TextSpan> warningSpans, 
             bool compareTokens)
         {
-            var operations = VerifyInputsAndGetOperations(index, actions);
-            return TestOperationsAsync(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null);
+            var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
+            return await TestOperationsAsync(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null);
         }
 
         private static bool IsWorkspaceElement(string text)
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var document = GetDocumentToVerify(expectedChangedDocumentId, oldSolution, newSolution);
 
-            var fixedRoot = document.GetSyntaxRootAsync().Result;
+            var fixedRoot = await document.GetSyntaxRootAsync();
             var actualText = compareTokens ? fixedRoot.ToString() : fixedRoot.ToFullString();
 
             if (compareTokens)
@@ -290,16 +290,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                     foreach (var doc in project.Documents)
                     {
-                        var root = doc.GetSyntaxRootAsync().Result;
+                        var root = await doc.GetSyntaxRootAsync();
                         var expectedDocument = expectedProject.Documents.Single(d => d.Name == doc.Name);
-                        var expectedRoot = expectedDocument.GetSyntaxRootAsync().Result;
+                        var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
                         Assert.Equal(expectedRoot.ToFullString(), root.ToFullString());
                     }
                 }
             }
         }
 
-        protected static IEnumerable<CodeActionOperation> VerifyInputsAndGetOperations(int index, IList<CodeAction> actions)
+        protected static async Task<IEnumerable<CodeActionOperation>> VerifyInputsAndGetOperationsAsync(int index, IList<CodeAction> actions)
         {
             Assert.NotNull(actions);
             if (actions.Count == 1)
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Assert.InRange(index, 0, actions.Count - 1);
 
             var action = actions[index];
-            return action.GetOperationsAsync(CancellationToken.None).Result;
+            return await action.GetOperationsAsync(CancellationToken.None);
         }
 
         protected Tuple<Solution, Solution> ApplyOperationsAndGetSolution(

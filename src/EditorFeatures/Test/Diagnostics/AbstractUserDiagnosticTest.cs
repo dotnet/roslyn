@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IList<CodeAction> actions,
             bool compareTokens)
         {
-            var operations = VerifyInputsAndGetOperations(index, actions);
+            var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
             await TestAddDocument(
                 workspace,
                 expectedMarkup,

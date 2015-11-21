@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 var reference = new MockAnalyzerReference();
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 var document = project.Documents.Single();
-                var unused = fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None).Result;
+                var unused = await fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None);
 
                 var fixer1 = fixers.Single().Value as MockFixer;
                 var fixer2 = reference.Fixer as MockFixer;
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
                 GetDocumentAndExtensionManager(tuple.Item2, workspace, out document, out extensionManager);
-                var fixes = tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None).Result;
+                var fixes = await tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
                 Assert.True(((TestErrorLogger)tuple.Item4).Messages.Count == 1);
                 string message;
                 Assert.True(((TestErrorLogger)tuple.Item4).Messages.TryGetValue(codefix.GetType().Name, out message));
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 var reference = new MockAnalyzerReference(codefix);
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 document = project.Documents.Single();
-                var fixes = tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None).Result;
+                var fixes = await tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
 
                 Assert.True(extensionManager.IsDisabled(codefix));
                 Assert.False(extensionManager.IsIgnored(codefix));
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
                 GetDocumentAndExtensionManager(tuple.Item2, workspace, out document, out extensionManager);
-                var unused = tuple.Item3.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None).Result;
+                var unused = await tuple.Item3.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), considerSuppressionFixes: false, cancellationToken: CancellationToken.None);
                 Assert.True(extensionManager.IsDisabled(codefix));
                 Assert.False(extensionManager.IsIgnored(codefix));
             }
