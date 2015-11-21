@@ -1,12 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub CSInvocations_InvocationWithThis()
+        Public Async Function TestCSInvocations_InvocationWithThis() As Task
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -44,11 +45,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub CSInvocations_InvocationWithThisAndArgs()
+        Public Async Function TestCSInvocations_InvocationWithThisAndArgs() As Task
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -100,11 +101,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub CSInvocations_InvocationWithoutThis()
+        Public Async Function TestCSInvocations_InvocationWithoutThis() As Task
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -142,11 +143,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub CSInvocations_WithArrayInitializer()
+        Public Async Function TestCSInvocations_WithArrayInitializer() As Task
             Dim definition =
     <Workspace>
         <Project Language="C#" CommonReferences="true">
@@ -224,11 +225,11 @@ public class C
     </ExpressionStatement>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
-        Public Sub CSInvocations_CastOfParenthesizedExpression()
+        Public Async Function TestCSInvocations_CastOfParenthesizedExpression() As Task
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -308,8 +309,8 @@ public class C
     </Local>
 </Block>
 
-            Test(definition, expected)
-        End Sub
+            Await TestAsync(definition, expected)
+        End Function
 
     End Class
 End Namespace

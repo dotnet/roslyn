@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithIfAndSingleElse1()
+        public async Task TestIfStatementWithIfAndSingleElse1()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -37,9 +38,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithIfAndSingleElse2()
+        public async Task TestIfStatementWithIfAndSingleElse2()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -60,9 +61,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithIfAndElseIfAndElse1()
+        public async Task TestIfStatementWithIfAndElseIfAndElse1()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -87,9 +88,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithIfAndElseIfAndElse2()
+        public async Task TestIfStatementWithIfAndElseIfAndElse2()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -114,9 +115,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithIfAndElseIfAndElse3()
+        public async Task TestIfStatementWithIfAndElseIfAndElse3()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -163,9 +164,9 @@ public class C
 }";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithElseIfOnDifferentLines1()
+        public async Task TestIfStatementWithElseIfOnDifferentLines1()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -191,9 +192,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithElseIfOnDifferentLines2()
+        public async Task TestIfStatementWithElseIfOnDifferentLines2()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -219,9 +220,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithElseIfOnDifferentLines3()
+        public async Task TestIfStatementWithElseIfOnDifferentLines3()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -247,9 +248,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithElseIfOnDifferentLines4()
+        public async Task TestIfStatementWithElseIfOnDifferentLines4()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -293,9 +294,9 @@ public class C
 }";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithIfAndElseIfAndElseTouching1()
+        public async Task TestIfStatementWithIfAndElseIfAndElseTouching1()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -317,9 +318,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithIfAndElseIfAndElseTouching2()
+        public async Task TestIfStatementWithIfAndElseIfAndElseTouching2()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -341,9 +342,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestIfStatementWithIfAndElseIfAndElseTouching3()
+        public async Task TestIfStatementWithIfAndElseIfAndElseTouching3()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -365,9 +366,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExtraSpacesBetweenElseAndIf1()
+        public async Task TestExtraSpacesBetweenElseAndIf1()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -389,9 +390,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExtraSpacesBetweenElseAndIf2()
+        public async Task TestExtraSpacesBetweenElseAndIf2()
         {
-            Test(@"
+            await TestAsync(@"
 public class C
 {
     public void Foo()
@@ -411,9 +412,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExtraSpacesBetweenElseAndIf3()
+        public async Task TestExtraSpacesBetweenElseAndIf3()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -456,9 +457,9 @@ public class C
 }";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestCommentBetweenElseIf1()
+        public async Task TestCommentBetweenElseIf1()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -483,9 +484,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestCommentBetweenElseIf2()
+        public async Task TestCommentBetweenElseIf2()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -510,9 +511,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestCommentBetweenElseIf3()
+        public async Task TestCommentBetweenElseIf3()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -537,9 +538,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestCommentBetweenElseIf4()
+        public async Task TestCommentBetweenElseIf4()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -587,9 +588,9 @@ public class C
 }";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedIfDoesNotHighlight1()
+        public async Task TestNestedIfDoesNotHighlight1()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -616,9 +617,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedIfDoesNotHighlight2()
+        public async Task TestNestedIfDoesNotHighlight2()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -645,9 +646,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedIfDoesNotHighlight3()
+        public async Task TestNestedIfDoesNotHighlight3()
         {
-            Test(
+            await TestAsync(
         @"
 public class C
 {
@@ -674,9 +675,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_1()
+        public async Task TestExample1_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         {|Cursor:[|if|]|} (x) {
@@ -696,9 +697,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_1()
+        public async Task TestExample2_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         if (x) {
@@ -718,9 +719,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_2()
+        public async Task TestExample2_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         if (x) {
@@ -740,9 +741,9 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_3()
+        public async Task TestExample2_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         if (x) {

@@ -13,7 +13,6 @@
     </RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests</AssemblyName>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <VBRuntime>
     </VBRuntime>

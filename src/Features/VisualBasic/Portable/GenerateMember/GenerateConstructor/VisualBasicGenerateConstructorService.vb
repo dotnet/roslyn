@@ -162,9 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
             Dim semanticModel = document.SemanticModel
             Dim classBlock = DirectCast(classDeclaration, ClassBlockSyntax)
             Dim classSymbol = semanticModel.GetDeclaredSymbol(classBlock.BlockStatement, cancellationToken)
-
-            Dim baseType = classSymbol.BaseType
-            Dim constructor = baseType.Constructors.FirstOrDefault(Function(c) IsSymbolAccessible(c, document))
+            Dim constructor = classSymbol?.BaseType?.Constructors.FirstOrDefault(Function(c) IsSymbolAccessible(c, document))
             If constructor Is Nothing Then
                 Return False
             End If

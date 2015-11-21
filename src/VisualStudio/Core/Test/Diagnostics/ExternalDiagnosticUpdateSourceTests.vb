@@ -17,19 +17,19 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class ExternalDiagnosticUpdateSourceTests
         <WpfFact>
-        Public Sub TestExternalDiagnostics_SupportGetDiagnostics()
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+        Public Async Function TestExternalDiagnostics_SupportGetDiagnostics() As Task
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim waiter = New Waiter()
                 Dim service = New TestDiagnosticAnalyzerService()
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
 
                 Assert.False(source.SupportGetDiagnostics)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         Public Async Function TestExternalDiagnostics_RaiseEvents() As Task
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim waiter = New Waiter()
                 Dim service = New TestDiagnosticAnalyzerService()
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
@@ -47,17 +47,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.AddNewErrors(project.DocumentIds.First(), diagnostic)
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
 
                 expected = 0
                 source.ClearErrors(project.Id)
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
             End Using
         End Function
 
         <WpfFact>
         Public Async Function TestExternalDiagnostics_DuplicatedError() As Task
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim waiter = New Waiter()
 
                 Dim project = workspace.CurrentSolution.Projects.First()
@@ -76,13 +76,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
                                                           Assert.Equal(1, a.Diagnostics.Length)
                                                       End Sub
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
             End Using
         End Function
 
         <WpfFact>
         Public Async Function TestBuildStartEvent() As Task
-            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
                 Dim waiter = New Waiter()
 
                 Dim project = workspace.CurrentSolution.Projects.First()
@@ -101,10 +101,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(workspace, project.Id))))
 
                 source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                Await waiter.CreateWaitTask().ConfigureAwait(True)
+                Await waiter.CreateWaitTask()
             End Using
         End Function
 

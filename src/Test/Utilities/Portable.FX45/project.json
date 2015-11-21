@@ -13,6 +13,8 @@
     "win7": { },
     "win7-anycpu": { },
     "ubuntu.14.04": { },
-    "ubuntu.14.04-anycpu": { }
+    "ubuntu.14.04-anycpu": { },
+    "osx.10.10": { },
+    "osx.10.10-anycpu": { }
   }
 }

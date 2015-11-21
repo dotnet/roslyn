@@ -58,30 +58,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await AddDeclarationsAsync(project, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
 
             // get declarations from directly referenced projects and metadata
-            foreach (var mr in compilation.References)
+            foreach (var assembly in compilation.GetReferencedAssemblySymbols())
             {
-                var assembly = compilation.GetAssemblyOrModuleSymbol(mr) as IAssemblySymbol;
-                if (assembly != null)
+                var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
+                if (assemblyProject != null)
                 {
-                    var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
-                    if (assemblyProject != null)
-                    {
-                        await AddDeclarationsAsync(assemblyProject, compilation, assembly, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(mr), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
-                    }
+                    await AddDeclarationsAsync(assemblyProject, compilation, assembly, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
                 }
-            }
-
-            // get declarations from metadata referenced in source directives
-            foreach (var mr in compilation.DirectiveReferences)
-            {
-                var assembly = compilation.GetAssemblyOrModuleSymbol(mr) as IAssemblySymbol;
-                if (assembly != null)
+                else
                 {
-                    await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(mr), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
+                    await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(compilation.GetMetadataReference(assembly)), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -90,13 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static string GetMetadataReferenceFilePath(MetadataReference metadataReference)
         {
-            var executableReference = metadataReference as PortableExecutableReference;
-            if (executableReference == null)
-            {
-                return null;
-            }
-
-            return executableReference.FilePath;
+            return (metadataReference as PortableExecutableReference)?.FilePath;
         }
 
         /// <summary>

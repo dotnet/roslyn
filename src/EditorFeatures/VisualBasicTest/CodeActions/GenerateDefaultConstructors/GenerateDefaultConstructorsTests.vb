@@ -1,6 +1,7 @@
+Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -18,99 +19,99 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
             Return New GenerateDefaultConstructorsCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestException0()
-            Test(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException0() As Task
+            Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Sub Main(args As String()) \n End Sub \n End Class"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits Exception \n Public Sub New(message As String) \n MyBase.New(message) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 index:=0)
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestException1()
-            Test(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException1() As Task
+            Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Sub Main(args As String()) \n End Sub \n End Class"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits Exception \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 index:=1)
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestException2()
-            Test(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException2() As Task
+            Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Sub Main(args As String()) \n End Sub \n End Class"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Imports System.Runtime.Serialization \n Class Program \n Inherits Exception \n Protected Sub New(info As SerializationInfo, context As StreamingContext) \n MyBase.New(info, context) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 index:=2)
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestException3()
-            Test(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException3() As Task
+            Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Sub Main(args As String()) \n End Sub \n End Class"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Imports System.Runtime.Serialization \n Class Program \n Inherits Exception \n Public Sub New() \n End Sub \n Public Sub New(message As String) \n MyBase.New(message) \n End Sub \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Protected Sub New(info As SerializationInfo, context As StreamingContext) \n MyBase.New(info, context) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 index:=3)
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(539676)>
-        Public Sub TestNotOfferedOnResolvedBaseClassName()
-            TestMissing(
+        Public Async Function TestNotOfferedOnResolvedBaseClassName() As Task
+            Await TestMissingAsync(
 NewLines("Class Base \n End Class \n Class Derived \n Inherits B[||]ase \n End Class"))
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestNotOfferedOnUnresolvedBaseClassName()
-            TestMissing(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestNotOfferedOnUnresolvedBaseClassName() As Task
+            Await TestMissingAsync(
 NewLines("Class Derived \n Inherits [||]Base \n End Class"))
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestNotOfferedOnInheritsStatementForStructures()
-            TestMissing(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestNotOfferedOnInheritsStatementForStructures() As Task
+            Await TestMissingAsync(
 NewLines("Structure Derived \n Inherits [||]Base \n End Structure"))
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestNotOfferedForIncorrectlyParentedInheritsStatement()
-            TestMissing(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestNotOfferedForIncorrectlyParentedInheritsStatement() As Task
+            Await TestMissingAsync(
 NewLines("Inherits [||]Foo"))
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestWithDefaultConstructor()
-            Test(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestWithDefaultConstructor() As Task
+            Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Public Sub New() \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Imports System.Runtime.Serialization \n Class Program \n Inherits Exception \n Public Sub New() \n End Sub \n Public Sub New(message As String) \n MyBase.New(message) \n End Sub \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Protected Sub New(info As SerializationInfo, context As StreamingContext) \n MyBase.New(info, context) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 index:=3)
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestWithDefaultConstructorMissing1()
-            Test(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestWithDefaultConstructorMissing1() As Task
+            Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Public Sub New(message As String) \n MyBase.New(message) \n End Sub \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Protected Sub New(info As Runtime.Serialization.SerializationInfo, context As Runtime.Serialization.StreamingContext) \n MyBase.New(info, context) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits Exception \n Public Sub New() \n End Sub \n Public Sub New(message As String) \n MyBase.New(message) \n End Sub \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Protected Sub New(info As Runtime.Serialization.SerializationInfo, context As Runtime.Serialization.StreamingContext) \n MyBase.New(info, context) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 index:=0)
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestWithDefaultConstructorMissing2()
-            Test(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestWithDefaultConstructorMissing2() As Task
+            Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Protected Sub New(info As Runtime.Serialization.SerializationInfo, context As Runtime.Serialization.StreamingContext) \n MyBase.New(info, context) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits Exception \n Public Sub New() \n End Sub \n Public Sub New() \n End Sub \n Public Sub New(message As String) \n MyBase.New(message) \n End Sub \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Protected Sub New(info As Runtime.Serialization.SerializationInfo, context As Runtime.Serialization.StreamingContext) \n MyBase.New(info, context) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 index:=2)
-        End Sub
+        End Function
 
         <WorkItem(540712)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestEndOfToken()
-            Test(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestEndOfToken() As Task
+            Await TestAsync(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits Exception[||] \n Sub Main(args As String()) \n End Sub \n End Class"),
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits Exception \n Public Sub New(message As String) \n MyBase.New(message) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
 index:=0)
-        End Sub
+        End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestFormattingInGenerateDefaultConstructor()
-            Test(
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestFormattingInGenerateDefaultConstructor() As Task
+            Await TestAsync(
 <Text>Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -138,12 +139,12 @@ Class Program
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
 compareTokens:=False)
-        End Sub
+        End Function
 
         <WorkItem(889349)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Sub TestDefaultConstructorGeneration()
-            Test(
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestDefaultConstructorGeneration() As Task
+            Await TestAsync(
 <Text>Class C
     Inherits B[||]
     Public Sub New(y As Integer)
@@ -170,7 +171,7 @@ Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
 index:=0,
 compareTokens:=False)
-        End Sub
+        End Function
 
     End Class
 End Namespace

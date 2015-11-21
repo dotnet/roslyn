@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                     return false;
                 }
 
-                var textView = interactiveWorkspace.Engine.CurrentWindow.TextView;
                 return _textUndoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
             }
         }

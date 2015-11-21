@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -12,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class CSharpTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override TestWorkspace CreateWorkspace()
+        protected override Task<TestWorkspace> CreateWorkspaceAsync()
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromFiles(
+            return CSharpWorkspaceFactory.CreateWorkspaceFromFilesAsync(
                 new string[] { string.Empty, },
                 new CSharpParseOptions[] { new CSharpParseOptions(kind: SourceCodeKind.Regular), });
         }

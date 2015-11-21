@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             private static readonly Func<SyntaxToken, bool> _tokenHasDirective = tk => tk.ContainsDirectives &&
                                                   (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
 
-            public AbstractIndenter(Document document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
+            public AbstractIndenter(SyntacticDocument document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
             {
                 this.OptionSet = optionSet;
-                this.Document = SyntacticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                this.Document = document;
                 this.LineToBeIndented = lineToBeIndented;
                 this.TabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, this.Document.Root.Language);
                 this.CancellationToken = cancellationToken;

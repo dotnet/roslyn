@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInDocument()
+        public async Task TestFixAllInDocument()
         {
             var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32");
 
@@ -119,13 +120,13 @@ class Program2
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInProject()
+        public async Task TestFixAllInProject()
         {
             var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32");
 
@@ -229,13 +230,13 @@ class Program2
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInSolution()
+        public async Task TestFixAllInSolution()
         {
             var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32");
 
@@ -339,13 +340,13 @@ class Program2
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInSolution_RemoveThis()
+        public async Task TestFixAllInSolution_RemoveThis()
         {
             var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId, null);
 
@@ -593,13 +594,13 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public void TestFixAllInSolution_SimplifyMemberAccess()
+        public async Task TestFixAllInSolution_SimplifyMemberAccess()
         {
             var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, "System.Console");
 
@@ -847,7 +848,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         #endregion

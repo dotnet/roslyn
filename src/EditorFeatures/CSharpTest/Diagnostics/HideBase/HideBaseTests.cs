@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using Xunit;
 using Roslyn.Test.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
 {
@@ -17,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
-        public void TestAddNewToProperty()
+        public async Task TestAddNewToProperty()
         {
-            Test(
+            await TestAsync(
 @"class Application
 {
     public static Application Current { get; }
@@ -39,9 +40,9 @@ class App : Application
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
-        public void TestAddNewToMethod()
+        public async Task TestAddNewToMethod()
         {
-            Test(
+            await TestAsync(
 @"class Application
 {
     public static void Method()
@@ -69,9 +70,9 @@ class App : Application
         }
 
         [Fact,Trait(Traits.Feature,Traits.Features.CodeActionsAddNew)]
-        public void TestAddNewToMember()
+        public async Task TestAddNewToMember()
         {
-            Test(
+            await TestAsync(
 @"class Application
 {
     public string Test;
