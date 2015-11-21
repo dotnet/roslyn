@@ -412,6 +412,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.CutLine());
         }
 
+        void IInteractiveWindowOperations2.TypeChar(char typedChar)
+        {
+            UIThread(uiOnly => uiOnly.TypeChar(typedChar));
+        }
+
         #endregion
 
         #region Command Debugging

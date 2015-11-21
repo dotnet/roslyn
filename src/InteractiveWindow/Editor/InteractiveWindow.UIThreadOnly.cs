@@ -166,6 +166,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 OutputBuffer = bufferFactory.CreateTextBuffer(replOutputContentType);
                 StandardInputBuffer = bufferFactory.CreateTextBuffer();
+                _standardInputStart = 0;
                 _inertType = bufferFactory.InertContentType;
 
                 _projectionBuffer = projectionBufferFactory.CreateProjectionBuffer(
@@ -373,6 +374,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     Debug.Assert(ReadingStandardInput);
 
+                    // disable undo for current language buffer so undo/redo is greyed out when reading standard input
+                    if (CurrentLanguageBuffer != null && CurrentLanguageBuffer.IsReadOnly(0))
+                    {
+                        _undoManager.UnregisterUndoHistory();
+                        _textBufferUndoManagerProvider.RemoveTextBufferUndoManager(CurrentLanguageBuffer);
+                    }
+
                     _buffer.Flush();
 
                     if (State == State.WaitingForInputAndReadingStandardInput)
@@ -392,10 +400,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     ResetCursor();
 
                     _uncommittedInput = null;
-                    _standardInputStart = StandardInputBuffer.CurrentSnapshot.Length;
 
                     var value = await GetStandardInputValue().ConfigureAwait(true);
                     Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
+
+                    // set new start location after read is done.
+                    _standardInputStart = StandardInputBuffer.CurrentSnapshot.Length;
+
                     return value.HasValue
                         ? new StringReader(value.GetValueOrDefault().GetText())
                         : null;
@@ -465,6 +476,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
+            internal void TypeChar(char typedChar)
+            {
+                InsertText(typedChar.ToString());
+            }
+
             /// <summary>Implements <see cref="IInteractiveWindow.InsertCode"/>.</summary>
             public void InsertCode(string text)
             {
@@ -479,34 +495,49 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else
                 {
-                    using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.TypeChar))
+                    InsertText(text);
+                }
+            }
+
+            private void InsertText(string text)
+            {
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.TypeChar))
+                {
+                    var selection = TextView.Selection;
+                    var caretPosition = TextView.Caret.Position.BufferPosition;
+                    if (!TextView.Selection.IsEmpty)
                     {
-                        var selection = TextView.Selection;
-                        if (!TextView.Selection.IsEmpty)
+                        if (!IsSelectionInsideCurrentSubmission())
                         {
-                            if (!IsSelectionInsideCurrentSubmission())
-                            {
-                                return;
-                            }
-
-                            DeleteSelection();
-
-                            if (selection.Mode == TextSelectionMode.Box)
-                            {
-                                ReduceBoxSelectionToEditableBox(isDelete: true);
-                            }
-                            else
-                            {
-                                selection.Clear();
-                                MoveCaretToClosestEditableBuffer();
-                            }
+                            return;
                         }
-                        else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
+
+                        DeleteSelection();
+
+                        if (selection.Mode == TextSelectionMode.Box)
                         {
+                            ReduceBoxSelectionToEditableBox(isDelete: true);
+                        }
+                        else
+                        {
+                            selection.Clear();
                             MoveCaretToClosestEditableBuffer();
                         }
+                    }
+                    else if (IsInActivePrompt(caretPosition))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
+                    else if (MapToEditableBuffer(caretPosition) == null)
+                    {
+                        return;
+                    }
 
-                        EditorOperations.InsertText(text);
+                    EditorOperations.InsertText(text);
+
+                    // don't record undo histroy for standard-input
+                    if (!ReadingStandardInput)
+                    { 
                         transaction.Complete();
                     }
                 }
@@ -1376,6 +1407,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 ITextBuffer buffer = _factory.CreateAndActivateBuffer(_window);
 
+                if (CurrentLanguageBuffer != null)
+                {
+                    _undoManager.UnregisterUndoHistory();
+                    _textBufferUndoManagerProvider.RemoveTextBufferUndoManager(CurrentLanguageBuffer);
+                }
                 _undoManager = _textBufferUndoManagerProvider.GetTextBufferUndoManager(buffer);
 
                 buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), Evaluator);
@@ -2273,7 +2309,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 int minPromptLength, maxPromptLength;
-                MeasurePrompts(editableLine.LineNumber, selectionBottomLine.LineNumber + 1, out minPromptLength, out maxPromptLength);
+                if (ReadingStandardInput)
+                {
+                    minPromptLength = maxPromptLength = 0;
+                }
+                else
+                {
+                    MeasurePrompts(editableLine.LineNumber, selectionBottomLine.LineNumber + 1, out minPromptLength, out maxPromptLength);
+                }
 
                 bool result = true;
                 if (isDelete)
@@ -2344,7 +2387,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     if (DeleteHelper(isBackspace: true))
                     {
-                        transaction.Complete();
+                        // don't record undo histroy for standard-input
+                        if (!ReadingStandardInput)
+                        {
+                            transaction.Complete();
+                        }
                     }
                 }
                 // DeleteHelper handles deleteion completely, 
@@ -2360,7 +2407,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     if (DeleteHelper(isBackspace: false))
                     {
-                        transaction.Complete();
+                        // don't record undo histroy for standard-input
+                        if (!ReadingStandardInput)
+                        {
+                            transaction.Complete();
+                        }
                     }
                 }
                 // DeleteHelper handles deleteion completely, 
@@ -2471,7 +2522,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                     MoveCaretToClosestEditableBuffer();
                     TextView.Caret.EnsureVisible();
-                    transaction.Complete();
+
+                    // don't record undo histroy for standard-input
+                    if (!ReadingStandardInput)
+                    {
+                        transaction.Complete();
+                    }
                 }
             }
             
@@ -2488,8 +2544,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private bool IsSpanCollectionInsideCurrentSubmission(NormalizedSnapshotSpanCollection spans)
             {
-                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer;
-
                 foreach (var span in spans)
                 {
                     var currentLine = span.Start.GetContainingLine();
@@ -2666,7 +2720,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     {
                         if (selection.IsEmpty && IsCaretOnBlankEditableLine())
                         {
-                            InsertCode(code);
+                            InsertText(code);
                         }
                         else
                         {
@@ -2676,10 +2730,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                     else
                     {
-                        InsertCode(code);
+                        InsertText(code);
                     }
 
-                    transaction.Complete();
+                    // don't record undo histroy for standard-input
+                    if (!ReadingStandardInput)
+                    {
+                        transaction.Complete();
+                    }
                     return true;
                 }
             }
@@ -2718,7 +2776,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         }
                         TextView.Caret.EnsureVisible();
                     }
-                    transaction.Complete();
+
+                    // don't record undo histroy for standard-input
+                    if (!ReadingStandardInput)
+                    {
+                        transaction.Complete();
+                    }
                 }
             }
 
@@ -2976,7 +3039,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             /// <summary>
-            /// Maps point to the current language buffer or standard input buffer.
+            /// Maps point to the current language buffer or editable region of standard input buffer.
             /// </summary>
             private SnapshotPoint? MapToEditableBuffer(SnapshotPoint projectionPoint)
             {
@@ -2992,7 +3055,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return result;
                 }
 
-                if (StandardInputBuffer != null)
+                if (StandardInputBuffer != null && InStandardInputRegion(projectionPoint))
                 {
                     result = GetPositionInStandardInputBuffer(projectionPoint);
                 }
@@ -3078,7 +3141,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     if (HandlePostServicesReturn(false))
                     {
-                        transaction.Complete();
+                        // don't record undo histroy for standard-input
+                        if (!ReadingStandardInput)
+                        {
+                            transaction.Complete();
+                        }
                     }
                 }
                 return true;
