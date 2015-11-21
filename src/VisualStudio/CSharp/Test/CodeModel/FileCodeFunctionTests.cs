@@ -532,8 +532,8 @@ public class Ref<T> where T : Entity
         [WorkItem(530496)]
         public async Task TestCodeElementFromPoint()
         {
-            var text = (await GetCurrentDocumentAsync()).GetTextAsync().Result;
-            var tree = (await GetCurrentDocumentAsync()).GetSyntaxTreeAsync().Result;
+            var text = await (await GetCurrentDocumentAsync()).GetTextAsync();
+            var tree = await (await GetCurrentDocumentAsync()).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("DynamicMethod", StringComparison.Ordinal);
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint, 4);
@@ -547,8 +547,8 @@ public class Ref<T> where T : Entity
         [WorkItem(726710)]
         public async Task TestCodeElementFromPointBetweenMembers()
         {
-            var text = (await GetCurrentDocumentAsync()).GetTextAsync().Result;
-            var tree = (await GetCurrentDocumentAsync()).GetSyntaxTreeAsync().Result;
+            var text = await (await GetCurrentDocumentAsync()).GetTextAsync();
+            var tree = await (await GetCurrentDocumentAsync()).GetSyntaxTreeAsync();
             var position = text.ToString().IndexOf("protected virtual string MethodB", StringComparison.Ordinal) - 1;
             var virtualTreePoint = new VirtualTreePoint(tree, text, position);
             var textPoint = new MockTextPoint(virtualTreePoint, 4);

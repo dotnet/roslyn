@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
 
                     var expected = expectedArray[i];
 
-                    var result = languageDebugInfo.DoAsync(document, position, string.Empty, CancellationToken.None).Result;
+                    var result = await languageDebugInfo.DoAsync(document, position, string.Empty, CancellationToken.None);
                     AssertEx.Equal(expectedArray[i], result);
                 }
             }

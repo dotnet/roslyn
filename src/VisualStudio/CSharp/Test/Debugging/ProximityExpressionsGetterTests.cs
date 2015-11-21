@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
                     builder.AppendLine("    var terms = CSharpProximityExpressionsService.Do(tree, " + token.SpanStart + ");");
 
                     var proximityExpressionsGetter = new CSharpProximityExpressionsService();
-                    var terms = proximityExpressionsGetter.GetProximityExpressionsAsync(document, token.SpanStart, CancellationToken.None).Result;
+                    var terms = await proximityExpressionsGetter.GetProximityExpressionsAsync(document, token.SpanStart, CancellationToken.None);
                     if (terms == null)
                     {
                         builder.AppendLine("    Assert.Null(terms);");
@@ -122,7 +122,7 @@ namespace ConsoleApplication1
 
         private async Task TestProximityExpressionGetterAsync(
             string markup,
-            Action<CSharpProximityExpressionsService, Document, int> continuation)
+            Func<CSharpProximityExpressionsService, Document, int, Task> continuation)
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(markup))
             {
@@ -134,15 +134,15 @@ namespace ConsoleApplication1
 
                 var proximityExpressionsGetter = new CSharpProximityExpressionsService();
 
-                continuation(proximityExpressionsGetter, document, caretPosition);
+                await continuation(proximityExpressionsGetter, document, caretPosition);
             }
         }
 
         private async Task TestTryDoAsync(string input, params string[] expectedTerms)
         {
-            await TestProximityExpressionGetterAsync(input, (getter, document, position) =>
+            await TestProximityExpressionGetterAsync(input, async (getter, document, position) =>
             {
-                var actualTerms = getter.GetProximityExpressionsAsync(document, position, CancellationToken.None).Result;
+                var actualTerms = await getter.GetProximityExpressionsAsync(document, position, CancellationToken.None);
 
                 Assert.Equal(expectedTerms.Length == 0, actualTerms == null);
                 if (expectedTerms.Length > 0)
@@ -154,9 +154,9 @@ namespace ConsoleApplication1
 
         private async Task TestIsValidAsync(string input, string expression, bool expectedValid)
         {
-            await TestProximityExpressionGetterAsync(input, (getter, semanticSnapshot, position) =>
+            await TestProximityExpressionGetterAsync(input, async (getter, semanticSnapshot, position) =>
             {
-                var actualValid = getter.IsValidAsync(semanticSnapshot, position, expression, CancellationToken.None).Result;
+                var actualValid = await getter.IsValidAsync(semanticSnapshot, position, expression, CancellationToken.None);
                 Assert.Equal(expectedValid, actualValid);
             });
         }
