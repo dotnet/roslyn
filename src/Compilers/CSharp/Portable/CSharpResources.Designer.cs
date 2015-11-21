@@ -11711,7 +11711,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a recognized attribute location. All attributes in this block will be ignored..
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a recognized attribute location. Valid attribute locations for this declaration are &apos;{1}&apos;. All attributes in this block will be ignored..
         /// </summary>
         internal static string WRN_InvalidAttributeLocation {
             get {

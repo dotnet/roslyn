@@ -144,6 +144,46 @@ namespace x
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_TooManyCharsInConst, ""));
         }
 
+        [Fact]
+        public void CS1015ERR_TypeExpected()
+        {
+            var test = @"
+public class C
+{
+    public static void Main()
+    {
+        const int i = 0;
+        const const double d = 0;
+        const const const long l = 0;
+        const readonly readonly readonly const double r = 0;
+    }    
+}
+";
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (7,15): error CS1031: Type expected
+                //         const const double d = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(7, 15),
+                // (8,15): error CS1031: Type expected
+                //         const const const long l = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(8, 15),
+                // (8,21): error CS1031: Type expected
+                //         const const const long l = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(8, 21),
+                // (9,15): error CS0106: The modifier 'readonly' is not valid for this item
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 15),
+                // (9,24): error CS0106: The modifier 'readonly' is not valid for this item
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 24),
+                // (9,33): error CS0106: The modifier 'readonly' is not valid for this item
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 33),
+                // (9,42): error CS1031: Type expected
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(9, 42)
+            );
+        }
+
         [WorkItem(553293, "DevDiv")]
         [Fact]
         public void CS1021ERR_IntOverflow()

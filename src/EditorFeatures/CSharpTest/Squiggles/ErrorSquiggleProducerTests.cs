@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
     public class ErrorSquiggleProducerTests : AbstractSquiggleProducerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForError()
         {
             var spans = await GetErrorSpans("class C {");
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForWarning()
         {
             var spans = await GetErrorSpans("class C { long x = 5l; }");
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.Warning, spans.First().Tag.ErrorType);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForWarningAsError()
         {
             var workspaceXml =
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task SuggestionTagsForUnnecessaryCode()
         {
             var workspaceXml =
@@ -135,14 +135,14 @@ class Program
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorDoesNotCrashPastEOF()
         {
             var spans = await GetErrorSpans("class C { int x =");
             Assert.Equal(3, spans.Count());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task SemanticErrorReported()
         {
             var spans = await GetErrorSpans("class C : Bar { }");
@@ -153,7 +153,7 @@ class Program
             Assert.Contains("Bar", (string)firstSpan.Tag.ToolTipContent, StringComparison.Ordinal);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class"))
@@ -183,7 +183,7 @@ class Program
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task TestNoErrorsAfterProjectRemoved()
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class"))
@@ -214,7 +214,7 @@ class Program
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task BuildErrorZeroLengthSpan()
         {
             var workspaceXml =
@@ -247,7 +247,7 @@ class Program
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6866"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task LiveErrorZeroLengthSpan()
         {
             var workspaceXml =

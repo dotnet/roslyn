@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     [ContentType(CSharpVBInteractiveCommandsContentTypes.CSharpVBInteractiveCommandContentTypeName)]
     internal sealed class ResetCommand : IInteractiveWindowCommand
     {
-        private const string CommandName = "reset";
+        internal const string CommandName = "reset";
         private const string NoConfigParameterName = "noconfig";
         private static readonly int NoConfigParameterNameLength = NoConfigParameterName.Length;
         private readonly IStandardClassificationService _registry;
@@ -69,12 +69,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             }
 
             return window.Operations.ResetAsync(initialize);
-        }
-
-        internal static string BuildCommandLine(bool initialize)
-        {
-            string result = CommandName;
-            return initialize ? result : result + " " + NoConfigParameterName;
         }
 
         public IEnumerable<ClassificationSpan> ClassifyArguments(ITextSnapshot snapshot, Span argumentsSpan, Span spanToClassify)
