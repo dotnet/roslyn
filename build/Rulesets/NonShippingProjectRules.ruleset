@@ -9,5 +9,6 @@
   </Rules>
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.VisualBasic" RuleNamespace="Roslyn.Diagnostics.Analyzers.VisualBasic">
     <Rule Id="RS0007" Action="None" />
+    <Rule Id="RS0003" Action="None" />
   </Rules>
 </RuleSet>

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractSuppressionAllCodeTests : IEqualityComparer<Diagnostic>
     {
-        protected abstract TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
+        protected abstract Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions);
         internal abstract Tuple<Analyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
-        protected void TestPragma(string code, ParseOptions options, Func<string, bool> verifier)
+        protected Task TestPragmaAsync(string code, ParseOptions options, Func<string, bool> verifier)
         {
             var set = new HashSet<ValueTuple<SyntaxToken, SyntaxToken>>();
-            TestPragmaOrAttribute(code, options, pragma: true, digInto: n => true, verifier: verifier, fixChecker: c =>
+            return TestPragmaOrAttributeAsync(code, options, pragma: true, digInto: n => true, verifier: verifier, fixChecker: c =>
             {
                 var fix = (AbstractSuppressionCodeFixProvider.PragmaWarningCodeAction)c;
                 var tuple = ValueTuple.Create(fix.StartToken_TestOnly, fix.EndToken_TestOnly);
@@ -37,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             });
         }
 
-        protected void TestSuppressionWithAttribute(string code, ParseOptions options, Func<SyntaxNode, bool> digInto, Func<string, bool> verifier)
+        protected Task TestSuppressionWithAttributeAsync(string code, ParseOptions options, Func<SyntaxNode, bool> digInto, Func<string, bool> verifier)
         {
             var set = new HashSet<ISymbol>();
-            TestPragmaOrAttribute(code, options, pragma: false, digInto: digInto, verifier: verifier, fixChecker: c =>
+            return TestPragmaOrAttributeAsync(code, options, pragma: false, digInto: digInto, verifier: verifier, fixChecker: c =>
             {
                 var fix = (AbstractSuppressionCodeFixProvider.GlobalSuppressMessageCodeAction)c;
                 if (set.Contains(fix.TargetSymbol_TestOnly))
@@ -53,10 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             });
         }
 
-        protected void TestPragmaOrAttribute(
+        protected async Task TestPragmaOrAttributeAsync(
             string code, ParseOptions options, bool pragma, Func<SyntaxNode, bool> digInto, Func<string, bool> verifier, Func<CodeAction, bool> fixChecker)
         {
-            using (var workspace = CreateWorkspaceFromFile(code, options))
+            using (var workspace = await CreateWorkspaceFromFileAsync(code, options))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 var root = document.GetSyntaxRootAsync().GetAwaiter().GetResult();
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var fixer = analyzerAndFixer.Item2;
                 var descendants = root.DescendantNodesAndSelf(digInto).ToImmutableArray();
                 analyzer.AllNodes = descendants;
-                var diagnostics = DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, root.FullSpan);
+                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, root.FullSpan);
 
                 foreach (var diagnostic in diagnostics)
                 {

@@ -1,11 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderParameters_Cascade_ToImplementedMethod()
+        Public Async Function TestReorderParameters_Cascade_ToImplementedMethod() As Task
             Dim markup = <Text><![CDATA[
 Interface I
     Sub Foo(x As Integer, y As String)
@@ -30,11 +31,11 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
-        End Sub
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderParameters_Cascade_ToImplementingMethod()
+        Public Async Function TestReorderParameters_Cascade_ToImplementingMethod() As Task
             Dim markup = <Text><![CDATA[
 Interface I
     $$Sub Foo(x As Integer, y As String)
@@ -59,11 +60,11 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
-        End Sub
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderParameters_Cascade_ToOverriddenMethod()
+        Public Async Function TestReorderParameters_Cascade_ToOverriddenMethod() As Task
             Dim markup = <Text><![CDATA[
 Class B
     Overridable Sub Foo(x As Integer, y As String)
@@ -92,11 +93,11 @@ Class D
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
-        End Sub
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderParameters_Cascade_ToOverridingMethod()
+        Public Async Function TestReorderParameters_Cascade_ToOverridingMethod() As Task
             Dim markup = <Text><![CDATA[
 Class B
     $$Overridable Sub Foo(x As Integer, y As String)
@@ -125,11 +126,11 @@ Class D
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
-        End Sub
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderParameters_Cascade_ToOverriddenMethod_Transitive()
+        Public Async Function TestReorderParameters_Cascade_ToOverriddenMethod_Transitive() As Task
 
             Dim markup = <Text><![CDATA[
 Class B
@@ -171,11 +172,11 @@ Class D
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
-        End Sub
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderParameters_Cascade_ToOverridingMethod_Transitive()
+        Public Async Function TestReorderParameters_Cascade_ToOverridingMethod_Transitive() As Task
 
             Dim markup = <Text><![CDATA[
 Class B
@@ -217,12 +218,12 @@ Class D
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub ReorderParameters_Cascade_ToMethods_Complex()
+        Public Async Function TestReorderParameters_Cascade_ToMethods_Complex() As Task
 
             '     B   I   I2
             '      \ / \ / 
@@ -316,10 +317,10 @@ Class C
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
-        End Sub
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
 
-        Public Sub ReorderParameters_Cascade_ToOverridingMethod_IncludeParamTags()
+        Public Async Function TestReorderParameters_Cascade_ToOverridingMethod_IncludeParamTags() As Task
 
             Dim markup = <Text><![CDATA[
 Class B
@@ -357,8 +358,7 @@ Class D
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
-
-        End Sub
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
     End Class
 End Namespace

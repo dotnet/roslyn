@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
-            return await SquiggleUtilities.GetErrorSpans(workspace, analyzerMap).ConfigureAwait(true);
+            return await SquiggleUtilities.GetErrorSpans(workspace, analyzerMap);
         }
 
         internal static async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 {
                     source.RaiseDiagnosticsUpdated(updateArgs);
 
-                    await wrapper.WaitForTags().ConfigureAwait(true);
+                    await wrapper.WaitForTags();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();

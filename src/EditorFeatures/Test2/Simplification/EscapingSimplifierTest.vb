@@ -1,5 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class EscapingSimplifierTest
         Inherits AbstractSimplificationTests
@@ -7,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 #Region "Visual Basic Escaping Simplification tests"
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyUnescapedIdentifier()
+        Public Async Function TestVisualBasic_SimplifyUnescapedIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -32,11 +34,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifier()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -61,11 +63,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameWithUnescapedIdentifier()
+        Public Async Function TestVisualBasic_SimplifyNameWithUnescapedIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -90,11 +92,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameWithEscapedIdentifier()
+        Public Async Function TestVisualBasic_SimplifyNameWithEscapedIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -119,11 +121,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierRem()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierRem() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -148,12 +150,12 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierKeyword()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierKeyword() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -178,12 +180,12 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameWithUnescapedIdentifierKeyword()
+        Public Async Function TestVisualBasic_SimplifyNameWithUnescapedIdentifierKeyword() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -208,11 +210,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameWithEscapedIdentifierKeyword()
+        Public Async Function TestVisualBasic_SimplifyNameWithEscapedIdentifierKeyword() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -237,11 +239,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyUnescapedIdentifierMid_1()
+        Public Async Function TestVisualBasic_SimplifyUnescapedIdentifierMid_1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -268,11 +270,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyUnescapedIdentifierMid_2()
+        Public Async Function TestVisualBasic_SimplifyUnescapedIdentifierMid_2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -300,11 +302,11 @@ End Class
 
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierMid_1()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierMid_1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -329,13 +331,13 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WorkItem(547117)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameWithUnescapedIdentifierMid()
+        Public Async Function TestVisualBasic_SimplifyNameWithUnescapedIdentifierMid() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -360,12 +362,12 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WorkItem(547117)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameWithEscapedIdentifierMid()
+        Public Async Function TestVisualBasic_SimplifyNameWithEscapedIdentifierMid() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -390,11 +392,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameUnescapedIdentifierMid()
+        Public Async Function TestVisualBasic_SimplifyNameUnescapedIdentifierMid() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -423,11 +425,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierPreserve_1()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierPreserve_1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -452,11 +454,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierPreserve_2()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierPreserve_2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -481,11 +483,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyUnescapedIdentifierPreserve()
+        Public Async Function TestVisualBasic_SimplifyUnescapedIdentifierPreserve() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -510,11 +512,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameUnescapedIdentifierPreserve_1()
+        Public Async Function TestVisualBasic_SimplifyNameUnescapedIdentifierPreserve_1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -539,11 +541,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameUnescapedIdentifierPreserve_2()
+        Public Async Function TestVisualBasic_SimplifyNameUnescapedIdentifierPreserve_2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -568,11 +570,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyNameEscapedIdentifierPreserve()
+        Public Async Function TestVisualBasic_SimplifyNameEscapedIdentifierPreserve() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -597,11 +599,11 @@ Class C
 End Class
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierNew_1()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierNew_1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -636,12 +638,12 @@ Structure Foo3
 End Structure
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierNew_2()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierNew_2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -678,12 +680,12 @@ Structure Foo3
 End Structure
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierNew_3()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierNew_3() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -718,12 +720,12 @@ Structure Foo3
 End Structure
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierNew_4()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierNew_4() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -756,12 +758,12 @@ Class Foo1
 End Class
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_1()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -796,12 +798,12 @@ Class Foo1
 End Class
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_2()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -838,12 +840,12 @@ Class Foo1
 End Class
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_3()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_3() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -887,12 +889,12 @@ End Module
 
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_SimplifyEscapedIdentifierQueryOperatorInsideOfQuery_1()
+        Public Async Function TestVisualBasic_SimplifyEscapedIdentifierQueryOperatorInsideOfQuery_1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -927,12 +929,12 @@ Class Foo1
 End Class
 </code>
 
-            Test(input, expected)
+            Await TestAsync(input, expected)
 
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_DoNotEscapeIdentifierWithEmptyValueText()
+        Public Async Function TestVisualBasic_DoNotEscapeIdentifierWithEmptyValueText() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -955,15 +957,15 @@ Module Program
 End Module
 </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
 #End Region
 
 #Region "CSharp Escaping Simplification tests"
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyUnescapedIdentifier()
+        Public Async Function TestCSharp_SimplifyUnescapedIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -992,11 +994,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedIdentifier()
+        Public Async Function TestCSharp_SimplifyEscapedIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1025,11 +1027,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyNameUnescapedIdentifier()
+        Public Async Function TestCSharp_SimplifyNameUnescapedIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1058,11 +1060,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyNameEscapedIdentifier()
+        Public Async Function TestCSharp_SimplifyNameEscapedIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1091,11 +1093,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedTypenameAsIdentifier()
+        Public Async Function TestCSharp_SimplifyEscapedTypenameAsIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1124,11 +1126,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedKeywordAsIdentifier()
+        Public Async Function TestCSharp_SimplifyEscapedKeywordAsIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1157,11 +1159,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyNameEscapedTypenameAsIdentifier()
+        Public Async Function TestCSharp_SimplifyNameEscapedTypenameAsIdentifier() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1190,11 +1192,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedContextualKeywordAsIdentifierInQuery()
+        Public Async Function TestCSharp_SimplifyEscapedContextualKeywordAsIdentifierInQuery() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1231,11 +1233,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedContextualKeywordAsIdentifierInNestedQuery_1()
+        Public Async Function TestCSharp_SimplifyEscapedContextualKeywordAsIdentifierInNestedQuery_1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1280,11 +1282,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedContextualKeywordAsIdentifierOutsideQuery()
+        Public Async Function TestCSharp_SimplifyEscapedContextualKeywordAsIdentifierOutsideQuery() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1323,11 +1325,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyUnescapedUnambiguousAttributeName()
+        Public Async Function TestCSharp_SimplifyUnescapedUnambiguousAttributeName() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1349,11 +1351,11 @@ End Module
 
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyUnEscapedUnambiguousAttributeName2()
+        Public Async Function TestCSharp_SimplifyUnEscapedUnambiguousAttributeName2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1380,11 +1382,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyUnEscapedUnambiguousAttributeName3()
+        Public Async Function TestCSharp_SimplifyUnEscapedUnambiguousAttributeName3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1405,11 +1407,11 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedAmbiguousAttributeName()
+        Public Async Function TestCSharp_SimplifyEscapedAmbiguousAttributeName() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1438,8 +1440,8 @@ End Module
         }
         </code>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
 #End Region
 

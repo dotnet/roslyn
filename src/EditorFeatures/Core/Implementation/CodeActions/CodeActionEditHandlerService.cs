@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 foreach (var document in project.Documents)
                 {
-                    if (!document.HasAnyErrors(cancellationToken).WaitAndGetResult(cancellationToken))
+                    if (!document.HasAnyErrorsAsync(cancellationToken).WaitAndGetResult(cancellationToken))
                     {
                         documentErrorLookup.Add(document.Id);
                     }

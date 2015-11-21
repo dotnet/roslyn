@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -718,7 +719,7 @@ class AnonymousFunctions
         End Sub
 
         <WpfFact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestStatefulCompilationAnalyzer()
+        Public Async Function TestStatefulCompilationAnalyzer() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
@@ -733,17 +734,17 @@ class AnonymousFunctions
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
 
-                Dim projectDiagnostics = DiagnosticProviderTestUtilities.GetProjectDiagnostics(workspaceAnalyzerOpt:=Nothing, project:=project)
+                Dim projectDiagnostics = Await DiagnosticProviderTestUtilities.GetProjectDiagnosticsAsync(workspaceAnalyzerOpt:=Nothing, project:=project)
                 Assert.Equal(1, projectDiagnostics.Count())
                 Dim diagnostic = projectDiagnostics.Single()
                 Assert.Equal(StatefulCompilationAnalyzer.Descriptor.Id, diagnostic.Id)
                 Dim expectedMessage = String.Format(StatefulCompilationAnalyzer.Descriptor.MessageFormat.ToString(), 1)
                 Assert.Equal(expectedMessage, diagnostic.GetMessage)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, WorkItem(248, "https://github.com/dotnet/roslyn/issues/248"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestStatefulCompilationAnalyzer_2()
+        Public Async Function TestStatefulCompilationAnalyzer_2() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
@@ -761,18 +762,18 @@ class AnonymousFunctions
                 ' Make couple of dummy invocations to GetDocumentDiagnostics.
                 Dim document = project.Documents.Single()
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
-                Dim documentDiagnostics = DiagnosticProviderTestUtilities.GetDocumentDiagnostics(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
-                documentDiagnostics = DiagnosticProviderTestUtilities.GetDocumentDiagnostics(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
+                Dim documentDiagnostics = Await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
+                documentDiagnostics = Await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(workspaceAnalyzerOpt:=Nothing, document:=document, span:=fullSpan)
 
                 ' Verify that the eventual compilation end diagnostics (and hence the analyzer state) is not affected by prior document analysis.
-                Dim projectDiagnostics = DiagnosticProviderTestUtilities.GetProjectDiagnostics(workspaceAnalyzerOpt:=Nothing, project:=project)
+                Dim projectDiagnostics = Await DiagnosticProviderTestUtilities.GetProjectDiagnosticsAsync(workspaceAnalyzerOpt:=Nothing, project:=project)
                 Assert.Equal(1, projectDiagnostics.Count())
                 Dim diagnostic = projectDiagnostics.Single()
                 Assert.Equal(StatefulCompilationAnalyzer.Descriptor.Id, diagnostic.Id)
                 Dim expectedMessage = String.Format(StatefulCompilationAnalyzer.Descriptor.MessageFormat.ToString(), 1)
                 Assert.Equal(expectedMessage, diagnostic.GetMessage)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestPartialTypeInGeneratedCode()

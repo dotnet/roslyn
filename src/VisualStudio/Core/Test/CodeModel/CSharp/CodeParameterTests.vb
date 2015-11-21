@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -10,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 #Region "AddAttribute tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute1()
+        Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
 class C
@@ -30,11 +31,11 @@ class C
     }
 }
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "Out"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Out"})
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttribute2()
+        Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
 class C
@@ -54,13 +55,13 @@ class C
     }
 }
 </Code>
-            TestAddAttribute(code, expected, New AttributeData With {.Name = "Foo"})
-        End Sub
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Foo"})
+        End Function
 #End Region
 
 #Region "DefaultValue tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub DefaultValue()
+        Public Async Function TestDefaultValue1() As Task
             Dim code =
 <Code>
 class C
@@ -69,11 +70,11 @@ class C
 }
 </Code>
 
-            TestDefaultValue(code, """Foo""")
-        End Sub
+            Await TestDefaultValue(code, """Foo""")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub DefaultValue_ExternalCodeParameter_NoDefaultValue()
+        Public Async Function TestDefaultValue_ExternalCodeParameter_NoDefaultValue() As Task
             Dim code =
 <Code>
 class C : System.Console
@@ -81,7 +82,7 @@ class C : System.Console
     void M(string $$s = "Foo") { }
 }
 </Code>
-            TestElement(code,
+            Await TestElement(code,
                         Sub(codeParameter)
                             Dim method = TryCast(codeParameter.Parent, EnvDTE80.CodeFunction2)
                             Assert.NotNull(method)
@@ -97,14 +98,14 @@ class C : System.Console
                             Dim defaultValue = CType(method2.Parameters.Item(1), EnvDTE80.CodeParameter2).DefaultValue
                         End Sub)
 
-        End Sub
+        End Function
 
 #End Region
 
 #Region "FullName tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub FullName()
+        Public Async Function TestFullName1() As Task
             Dim code =
 <Code>
 class C
@@ -115,15 +116,15 @@ class C
 }
 </Code>
 
-            TestFullName(code, "s")
-        End Sub
+            Await TestFullName(code, "s")
+        End Function
 
 #End Region
 
 #Region "Kind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Kind()
+        Public Async Function TestKind1() As Task
             Dim code =
 <Code>
 class C
@@ -134,14 +135,14 @@ class C
 }
 </Code>
 
-            TestKind(code, EnvDTE.vsCMElement.vsCMElementParameter)
-        End Sub
+            Await TestKind(code, EnvDTE.vsCMElement.vsCMElementParameter)
+        End Function
 
 #End Region
 
 #Region "ParameterKind tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ParameterKind_None()
+        Public Async Function TestParameterKind_None() As Task
             Dim code =
 <Code>
 class C
@@ -152,11 +153,11 @@ class C
 }
 </Code>
 
-            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindNone)
-        End Sub
+            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindNone)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ParameterKind_Ref()
+        Public Async Function TestParameterKind_Ref() As Task
             Dim code =
 <Code>
 class C
@@ -167,12 +168,12 @@ class C
 }
 </Code>
 
-            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
-        End Sub
+            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
+        End Function
 
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ParameterKind_Out()
+        Public Async Function TestParameterKind_Out() As Task
             Dim code =
 <Code>
 class C
@@ -183,11 +184,11 @@ class C
 }
 </Code>
 
-            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
-        End Sub
+            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ParameterKind_ParamArray()
+        Public Async Function TestParameterKind_ParamArray() As Task
             Dim code =
 <Code>
 class C
@@ -198,11 +199,11 @@ class C
 }
 </Code>
 
-            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray)
-        End Sub
+            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ParameterKind_Optional()
+        Public Async Function TestParameterKind_Optional() As Task
             Dim code =
 <Code>
 class C
@@ -213,11 +214,11 @@ class C
 }
 </Code>
 
-            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional)
-        End Sub
+            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ParameterKind_OptionalAndRef()
+        Public Async Function TestParameterKind_OptionalAndRef() As Task
             Dim code =
 <Code>
 class C
@@ -228,14 +229,14 @@ class C
 }
 </Code>
 
-            TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional Or EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
-        End Sub
+            Await TestParameterKind(code, EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional Or EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
+        End Function
 #End Region
 
 #Region "Parent tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parent1()
+        Public Async Function TestParent1() As Task
             Dim code =
 <Code>
 class C
@@ -246,21 +247,21 @@ class C
 }
 </Code>
 
-            TestParent(code, IsElement("M", kind:=EnvDTE.vsCMElement.vsCMElementFunction))
-        End Sub
+            Await TestParent(code, IsElement("M", kind:=EnvDTE.vsCMElement.vsCMElementFunction))
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parent2()
+        Public Async Function TestParent2() As Task
             Dim code =
 <Code>
 delegate void Foo(int $$i);
 </Code>
 
-            TestParent(code, IsElement("Foo", kind:=EnvDTE.vsCMElement.vsCMElementDelegate))
-        End Sub
+            Await TestParent(code, IsElement("Foo", kind:=EnvDTE.vsCMElement.vsCMElementDelegate))
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Parent3()
+        Public Async Function TestParent3() As Task
             Dim code =
 <Code>
 class C
@@ -272,15 +273,15 @@ class C
 }
 </Code>
 
-            TestParent(code, IsElement("this", kind:=EnvDTE.vsCMElement.vsCMElementProperty))
-        End Sub
+            Await TestParent(code, IsElement("this", kind:=EnvDTE.vsCMElement.vsCMElementProperty))
+        End Function
 
 #End Region
 
 #Region "Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub Type1()
+        Public Async Function TestType1() As Task
             Dim code =
 <Code>
 class C
@@ -289,21 +290,21 @@ class C
 }
 </Code>
 
-            TestTypeProp(code,
+            Await TestTypeProp(code,
                          New CodeTypeRefData With {
                              .AsString = "int",
                              .AsFullName = "System.Int32",
                              .CodeTypeFullName = "System.Int32",
                              .TypeKind = EnvDTE.vsCMTypeRef.vsCMTypeRefInt
                          })
-        End Sub
+        End Function
 
 #End Region
 
 #Region "Set ParameterKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetParameterKind_In()
+        Public Async Function TestSetParameterKind_In() As Task
             Dim code =
 <Code>
 class C
@@ -320,11 +321,11 @@ class C
 }
 </Code>
 
-            TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
-        End Sub
+            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetParameterKind_None()
+        Public Async Function TestSetParameterKind_None() As Task
             Dim code =
 <Code>
 class C
@@ -341,11 +342,11 @@ class C
 }
 </Code>
 
-            TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindNone)
-        End Sub
+            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindNone)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetParameterKind_Out()
+        Public Async Function TestSetParameterKind_Out() As Task
             Dim code =
 <Code>
 class C
@@ -362,11 +363,11 @@ class C
 }
 </Code>
 
-            TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
-        End Sub
+            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetParameterKind_Ref()
+        Public Async Function TestSetParameterKind_Ref() As Task
             Dim code =
 <Code>
 class C
@@ -382,11 +383,11 @@ class C
     void M(ref string s) { }
 }
 </Code>
-            TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
-        End Sub
+            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetParameterKind_Params()
+        Public Async Function TestSetParameterKind_Params() As Task
             Dim code =
 <Code>
 class C
@@ -402,11 +403,11 @@ class C
     void M(params string[] s) { }
 }
 </Code>
-            TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray)
-        End Sub
+            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetParameterKind_ParamsInvalid()
+        Public Async Function TestSetParameterKind_ParamsInvalid() As Task
             Dim code =
 <Code>
 class C
@@ -422,11 +423,11 @@ class C
     void M(string s) { }
 }
 </Code>
-            TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray, ThrowsArgumentException(Of EnvDTE80.vsCMParameterKind)())
-        End Sub
+            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray, ThrowsArgumentException(Of EnvDTE80.vsCMParameterKind)())
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetParameterKind_Optional()
+        Public Async Function TestSetParameterKind_Optional() As Task
             Dim code =
 <Code>
 class C
@@ -443,13 +444,13 @@ class C
 }
 </Code>
 
-            TestSetParameterKind(code,
+            Await TestSetParameterKind(code,
                                  expected,
                                  EnvDTE80.vsCMParameterKind.vsCMParameterKindRef Or EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional)
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetParameterKind_Same()
+        Public Async Function TestSetParameterKind_Same() As Task
             Dim code =
 <Code>
 class C
@@ -465,15 +466,15 @@ class C
     void M(out string s) { }
 }
 </Code>
-            TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
-        End Sub
+            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
+        End Function
 
 #End Region
 
 #Region "Set DefaultValue tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetDefaultValue()
+        Public Async Function TestSetDefaultValue1() As Task
             Dim code =
 <Code>
 class C
@@ -489,11 +490,11 @@ class C
     void M(string s = "Foo") { }
 }
 </Code>
-            TestSetDefaultValue(code, expected, """Foo""")
-        End Sub
+            Await TestSetDefaultValue(code, expected, """Foo""")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetDefaultValue_ReplaceExisting()
+        Public Async Function TestSetDefaultValue_ReplaceExisting() As Task
             Dim code =
 <Code>
 class C
@@ -509,11 +510,11 @@ class C
     void M(string s = "Foo") { }
 }
 </Code>
-            TestSetDefaultValue(code, expected, """Foo""")
-        End Sub
+            Await TestSetDefaultValue(code, expected, """Foo""")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetDefaultValue_None()
+        Public Async Function TestSetDefaultValue_None() As Task
             Dim code =
 <Code>
 class C
@@ -529,15 +530,15 @@ class C
     void M(string s) { }
 }
 </Code>
-            TestSetDefaultValue(code, expected, "")
-        End Sub
+            Await TestSetDefaultValue(code, expected, "")
+        End Function
 
 #End Region
 
 #Region "Set Type tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType1()
+        Public Async Function TestSetType1() As Task
             Dim code =
 <Code>
 class C
@@ -554,11 +555,11 @@ class C
 }
 </Code>
 
-            TestSetTypeProp(code, expected, "byte?[,]")
-        End Sub
+            Await TestSetTypeProp(code, expected, "byte?[,]")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub SetType2()
+        Public Async Function TestSetType2() As Task
             Dim code =
 <Code>
 delegate void Foo(int $$i) { }
@@ -569,13 +570,13 @@ delegate void Foo(int $$i) { }
 delegate void Foo(byte?[,] i) { }
 </Code>
 
-            TestSetTypeProp(code, expected, "byte?[,]")
-        End Sub
+            Await TestSetTypeProp(code, expected, "byte?[,]")
+        End Function
 
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TypeDescriptor_GetProperties()
+        Public Async Function TestTypeDescriptor_GetProperties() As Task
             Dim code =
 <Code>
 class C
@@ -589,8 +590,8 @@ class C
                  "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
                  "ExtenderCATID", "Parent", "Type", "Attributes", "DocComment", "ParameterKind", "DefaultValue"}
 
-            TestPropertyDescriptors(code, expectedPropertyNames)
-        End Sub
+            Await TestPropertyDescriptors(code, expectedPropertyNames)
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

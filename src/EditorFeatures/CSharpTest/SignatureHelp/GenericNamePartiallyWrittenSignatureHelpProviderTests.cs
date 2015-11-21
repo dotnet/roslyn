@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void NestedGenericUnterminated()
+        public async Task NestedGenericUnterminated()
         {
             var markup = @"
 class G<T> { };
@@ -38,12 +39,12 @@ class C
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
         [WorkItem(544088)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void DeclaringGenericTypeWith1ParameterUnterminated()
+        public async Task DeclaringGenericTypeWith1ParameterUnterminated()
         {
             var markup = @"
 class G<T> { };
@@ -59,11 +60,11 @@ class C
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void CallingGenericAsyncMethod()
+        public async Task CallingGenericAsyncMethod()
         {
             var markup = @"
 using System.Threading.Tasks;
@@ -87,12 +88,12 @@ class Program
             expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.Awaitable}) Task<int> Program.Foo<T>()", documentation, string.Empty, currentParameterIndex: 0));
 
             // TODO: Enable the script case when we have support for extension methods in scripts
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: false, sourceCodeKind: Microsoft.CodeAnalysis.SourceCodeKind.Regular);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false, sourceCodeKind: Microsoft.CodeAnalysis.SourceCodeKind.Regular);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void EditorBrowsable_GenericMethod_BrowsableAlways()
+        public async Task EditorBrowsable_GenericMethod_BrowsableAlways()
         {
             var markup = @"
 class Program
@@ -115,7 +116,7 @@ public class C
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                        referencedCode: referencedCode,
                                                        expectedOrderedItemsMetadataReference: expectedOrderedItems,
                                                        expectedOrderedItemsSameSolution: expectedOrderedItems,
@@ -125,7 +126,7 @@ public class C
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void EditorBrowsable_GenericMethod_BrowsableNever()
+        public async Task EditorBrowsable_GenericMethod_BrowsableNever()
         {
             var markup = @"
 class Program
@@ -148,7 +149,7 @@ public class C
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                        referencedCode: referencedCode,
                                                        expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
                                                        expectedOrderedItemsSameSolution: expectedOrderedItems,
@@ -158,7 +159,7 @@ public class C
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void EditorBrowsable_GenericMethod_BrowsableAdvanced()
+        public async Task EditorBrowsable_GenericMethod_BrowsableAdvanced()
         {
             var markup = @"
 class Program
@@ -181,7 +182,7 @@ public class C
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                        referencedCode: referencedCode,
                                                        expectedOrderedItemsMetadataReference: expectedOrderedItems,
                                                        expectedOrderedItemsSameSolution: expectedOrderedItems,
@@ -189,7 +190,7 @@ public class C
                                                        referencedLanguage: LanguageNames.CSharp,
                                                        hideAdvancedMembers: false);
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                        referencedCode: referencedCode,
                                                        expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
                                                        expectedOrderedItemsSameSolution: expectedOrderedItems,
@@ -200,7 +201,7 @@ public class C
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void EditorBrowsable_GenericMethod_BrowsableMixed()
+        public async Task EditorBrowsable_GenericMethod_BrowsableMixed()
         {
             var markup = @"
 class Program
@@ -230,7 +231,7 @@ public class C
             expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void C.Foo<T>(T x)", string.Empty, string.Empty, currentParameterIndex: 0));
             expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("void C.Foo<T, U>(T x, U y)", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            TestSignatureHelpInEditorBrowsableContexts(markup: markup,
+            await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                        referencedCode: referencedCode,
                                                        expectedOrderedItemsMetadataReference: expectedOrderedItemsMetadataReference,
                                                        expectedOrderedItemsSameSolution: expectedOrderedItemsSameSolution,
@@ -239,7 +240,7 @@ public class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void GenericExtensionMethod()
+        public async Task GenericExtensionMethod()
         {
             var markup = @"
 interface IFoo
@@ -268,12 +269,12 @@ class Program
             };
 
             // Extension methods are supported in Interactive/Script (yet).
-            Test(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
+            await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(544088)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void InvokingGenericMethodWith1ParameterUnterminated()
+        public async Task InvokingGenericMethodWith1ParameterUnterminated()
         {
             var markup = @"
 class C
@@ -294,11 +295,11 @@ class C
             expectedOrderedItems.Add(new SignatureHelpTestItem("void C.Foo<T>()",
                     "Method Foo", "Method type parameter", currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems);
+            await TestAsync(markup, expectedOrderedItems);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationOnTriggerBracket()
+        public async Task TestInvocationOnTriggerBracket()
         {
             var markup = @"
 class G<S, T> { };
@@ -314,11 +315,11 @@ class C
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 0));
 
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void TestInvocationOnTriggerComma()
+        public async Task TestInvocationOnTriggerComma()
         {
             var markup = @"
 class G<S, T> { };
@@ -334,17 +335,17 @@ class C
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 1));
 
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
 
         [WorkItem(1067933)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void InvokedWithNoToken()
+        public async Task InvokedWithNoToken()
         {
             var markup = @"
 // foo<$$";
 
-            Test(markup);
+            await TestAsync(markup);
         }
     }
 }

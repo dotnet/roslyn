@@ -25,14 +25,15 @@ using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Roslyn.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class FormattingEngineTestBase
     {
-        protected void AssertFormat(string expected, string code, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, bool useTab = false, bool testWithTransformation = true)
+        protected async Task AssertFormatAsync(string expected, string code, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, bool useTab = false, bool testWithTransformation = true)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
                 var hostdoc = workspace.Documents.First();
 
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                     buffer.CurrentSnapshot.GetText());
 
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-                var syntaxTree = document.GetSyntaxTreeAsync().Result;
+                var syntaxTree = await document.GetSyntaxTreeAsync();
 
                 var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
 
@@ -110,15 +111,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             return buffer.CurrentSnapshot.GetText();
         }
 
-        protected void AssertFormat(string expected, string code, IEnumerable<TextSpan> spans, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, int? baseIndentation = null)
+        protected async Task AssertFormatAsync(string expected, string code, IEnumerable<TextSpan> spans, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, int? baseIndentation = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code))
             {
                 var hostdoc = workspace.Documents.First();
                 var buffer = hostdoc.GetTextBuffer();
 
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-                var syntaxTree = document.GetSyntaxTreeAsync().Result;
+                var syntaxTree = await document.GetSyntaxTreeAsync();
 
                 // create new buffer with cloned content
                 var clonedBuffer = EditorFactory.CreateBuffer(
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             Assert.Equal(expected, actual);
         }
 
-        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, bool debugMode = false)
+        protected static async Task AssertFormatWithViewAsync(string expectedWithMarker, string codeWithMarker, bool debugMode = false)
         {
             var editorOperations = new Mock<IEditorOperations>(MockBehavior.Strict);
             var editorOperationsFactoryService = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
             editorOperationsFactoryService.Setup(s => s.GetEditorOperations(It.IsAny<ITextView>())).Returns(editorOperations.Object);
 
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(codeWithMarker))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithMarker))
             {
                 // set up caret position
                 var testDocument = workspace.Documents.Single();
@@ -210,9 +211,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             }
         }
 
-        protected static void AssertFormatWithPasteOrReturn(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges, bool isPaste = true)
+        protected static async Task AssertFormatWithPasteOrReturnAsync(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges, bool isPaste = true)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(codeWithMarker))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(codeWithMarker))
             {
                 workspace.CanApplyChangeDocument = allowDocumentChanges;
 
@@ -256,13 +257,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             }
         }
 
-        protected void AssertFormatWithBaseIndent(string expected, string markupCode, int baseIndentation)
+        protected async Task AssertFormatWithBaseIndentAsync(string expected, string markupCode, int baseIndentation)
         {
             string code;
             TextSpan span;
             MarkupTestFile.GetSpan(markupCode, out code, out span);
 
-            AssertFormat(
+            await AssertFormatAsync(
                 expected,
                 code,
             new List<TextSpan> { span },

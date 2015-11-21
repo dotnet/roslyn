@@ -13,171 +13,172 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.EditorUtilities
 Imports Moq
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
     Public Class TodoCommentTests
         <WpfFact>
-        Public Sub SingleLineTodoComment_Colon()
+        Public Async Function TestSingleLineTodoComment_Colon() As Task
             Dim code = <code>' [|TODO:test|]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Space()
+        Public Async Function TestSingleLineTodoComment_Space() As Task
             Dim code = <code>' [|TODO test|]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Underscore()
+        Public Async Function TestSingleLineTodoComment_Underscore() As Task
             Dim code = <code>' TODO_test</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Number()
+        Public Async Function TestSingleLineTodoComment_Number() As Task
             Dim code = <code>' TODO1 test</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Quote()
+        Public Async Function TestSingleLineTodoComment_Quote() As Task
             Dim code = <code>' "TODO test"</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Middle()
+        Public Async Function TestSingleLineTodoComment_Middle() As Task
             Dim code = <code>' Hello TODO test</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Document()
+        Public Async Function TestSingleLineTodoComment_Document() As Task
             Dim code = <code>'''        [|TODO test|]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Preprocessor1()
+        Public Async Function TestSingleLineTodoComment_Preprocessor1() As Task
             Dim code = <code>#If DEBUG Then ' [|TODO test|]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Preprocessor2()
+        Public Async Function TestSingleLineTodoComment_Preprocessor2() As Task
             Dim code = <code>#If DEBUG Then ''' [|TODO test|]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Region()
+        Public Async Function TestSingleLineTodoComment_Region() As Task
             Dim code = <code>#Region ' [|TODO test      |]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_EndRegion()
+        Public Async Function TestSingleLineTodoComment_EndRegion() As Task
             Dim code = <code>#End Region        '        [|TODO test      |]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_TrailingSpan()
+        Public Async Function TestSingleLineTodoComment_TrailingSpan() As Task
             Dim code = <code>'        [|TODO test                   |]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_REM()
+        Public Async Function TestSingleLineTodoComment_REM() As Task
             Dim code = <code>REM        [|TODO test                   |]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SingleLineTodoComment_Preprocessor_REM()
+        Public Async Function TestSingleLineTodoComment_Preprocessor_REM() As Task
             Dim code = <code>#If Debug Then    REM        [|TODO test                   |]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
-        Public Sub SinglelineDocumentComment_Multiline()
+        Public Async Function TestSinglelineDocumentComment_Multiline() As Task
             Dim code = <code>
         ''' <summary>
         ''' [|TODO : test       |]
         ''' </summary>
         '''         [|UNDONE: test2             |]</code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
         <WorkItem(606010)>
-        Public Sub LeftRightSingleQuote()
+        Public Async Function TestLeftRightSingleQuote() As Task
             Dim code = <code>
          ‘[|todo　ｆｕｌｌｗｉｄｔｈ 1|]
          ’[|todo　ｆｕｌｌｗｉｄｔｈ 2|]
         </code>
 
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
         <WorkItem(606019)>
-        Public Sub HalfFullTodo()
+        Public Async Function TestHalfFullTodo() As Task
             Dim code = <code>
             '[|ｔoｄo whatever|]
         </code>
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
         <WorkItem(627723)>
-        Public Sub SingleQuote_Invalid1()
+        Public Async Function TestSingleQuote_Invalid1() As Task
             Dim code = <code>
             '' todo whatever
         </code>
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
         <WorkItem(627723)>
-        Public Sub SingleQuote_Invalid2()
+        Public Async Function TestSingleQuote_Invalid2() As Task
             Dim code = <code>
             '''' todo whatever
         </code>
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
         <WpfFact>
         <WorkItem(627723)>
-        Public Sub SingleQuote_Invalid3()
+        Public Async Function TestSingleQuote_Invalid3() As Task
             Dim code = <code>
             ' '' todo whatever
         </code>
-            Test(code)
-        End Sub
+            Await TestAsync(code)
+        End Function
 
-        Private Shared Sub Test(codeWithMarker As XElement)
+        Private Shared Async Function TestAsync(codeWithMarker As XElement) As Tasks.Task
             Dim code As String = Nothing
             Dim list As IList(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(codeWithMarker.NormalizedValue, code, list)
 
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code)
+            Using workspace = Await VisualBasicWorkspaceFactory.CreateWorkspaceFromLinesAsync(code)
                 Dim commentTokens = New TodoCommentTokens()
                 Dim provider = New TodoCommentIncrementalAnalyzerProvider(commentTokens)
                 Dim worker = DirectCast(provider.CreateIncrementalAnalyzer(workspace), TodoCommentIncrementalAnalyzer)
@@ -201,6 +202,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
                     Assert.Equal(todo.Message, code.Substring(span.Start, span.Length))
                 Next
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

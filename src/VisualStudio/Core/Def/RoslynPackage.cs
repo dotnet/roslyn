@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -41,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             base.Initialize();
 
-            ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = ForegroundThreadData.CreateDefault();
-            Debug.Assert(ForegroundThreadAffinitizedObject.DefaultForegroundThreadData.Kind == ForegroundThreadDataKind.Wpf);
+            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = ForegroundThreadData.CreateDefault();
+            Debug.Assert(ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Wpf);
 
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;

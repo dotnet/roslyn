@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,108 +26,108 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         public class CSharp
         {
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddNamespace()
+            public async Task AddNamespace()
             {
                 var input = "namespace [|N1|] { }";
                 var expected = "namespace N1 { namespace N2 { } }";
-                TestAddNamespace(input, expected,
+                await TestAddNamespaceAsync(input, expected,
                     name: "N2");
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddField()
+            public async Task AddField()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public int F; }";
-                TestAddField(input, expected,
+                await TestAddFieldAsync(input, expected,
                     type: GetTypeSymbol(typeof(int)));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddStaticField()
+            public async Task AddStaticField()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { private static string F; }";
-                TestAddField(input, expected,
+                await TestAddFieldAsync(input, expected,
                     type: GetTypeSymbol(typeof(string)),
                     accessibility: Accessibility.Private,
                     modifiers: new DeclarationModifiers(isStatic: true));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddArrayField()
+            public async Task AddArrayField()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public int[] F; }";
-                TestAddField(input, expected,
+                await TestAddFieldAsync(input, expected,
                     type: CreateArrayType(typeof(int)));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddUnsafeField()
+            public async Task AddUnsafeField()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public unsafe int F; }";
-                TestAddField(input, expected,
+                await TestAddFieldAsync(input, expected,
                     modifiers: new DeclarationModifiers(isUnsafe: true),
                     type: GetTypeSymbol(typeof(int)));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddFieldToCompilationUnit()
+            public async Task AddFieldToCompilationUnit()
             {
                 var input = "";
                 var expected = "public int F;";
-                TestAddField(input, expected,
+                await TestAddFieldAsync(input, expected,
                     type: GetTypeSymbol(typeof(int)), addToCompilationUnit: true);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddConstructor()
+            public async Task AddConstructor()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public C() { } }";
-                TestAddConstructor(input, expected);
+                await TestAddConstructorAsync(input, expected);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddConstructorWithoutBody()
+            public async Task AddConstructorWithoutBody()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public C(); }";
-                TestAddConstructor(input, expected,
+                await TestAddConstructorAsync(input, expected,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddConstructorResolveNamespaceImport()
+            public async Task AddConstructorResolveNamespaceImport()
             {
                 var input = "class [|C|] { }";
                 var expected = "using System; class C { public C(DateTime dt, int i) { } }";
-                TestAddConstructor(input, expected,
+                await TestAddConstructorAsync(input, expected,
                     parameters: Parameters(Parameter(typeof(DateTime), "dt"), Parameter(typeof(int), "i")));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddChainedConstructor()
+            public async Task AddChainedConstructor()
             {
                 var input = "class [|C|] { public C(int i) { } }";
                 var expected = "class C { public C() : this(42) { } public C(int i) { } }";
-                TestAddConstructor(input, expected,
+                await TestAddConstructorAsync(input, expected,
                     thisArguments: new[] { CS.SyntaxFactory.ParseExpression("42") });
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddStaticConstructor()
+            public async Task AddStaticConstructor()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { static C() { } }";
-                TestAddConstructor(input, expected,
+                await TestAddConstructorAsync(input, expected,
                     modifiers: new DeclarationModifiers(isStatic: true));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544082)]
-            public void AddClass()
+            public async Task AddClass()
             {
                 var input = "namespace [|N|] { }";
                 var expected = @"namespace N
@@ -135,74 +136,74 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     {
     }
 }";
-                TestAddNamedType(input, expected,
+                await TestAddNamedTypeAsync(input, expected,
                     compareTokens: false);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddClassEscapeName()
+            public async Task AddClassEscapeName()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { public class @class { } }";
-                TestAddNamedType(input, expected,
+                await TestAddNamedTypeAsync(input, expected,
                     name: "class");
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddClassUnicodeName()
+            public async Task AddClassUnicodeName()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { public class classæøå { } }";
-                TestAddNamedType(input, expected,
+                await TestAddNamedTypeAsync(input, expected,
                     name: "cl\u0061ssæøå");
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405)]
-            public void AddStaticClass()
+            public async Task AddStaticClass()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { public static class C { } }";
-                TestAddNamedType(input, expected,
+                await TestAddNamedTypeAsync(input, expected,
                     modifiers: new DeclarationModifiers(isStatic: true));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405)]
-            public void AddSealedClass()
+            public async Task AddSealedClass()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { private sealed class C { } }";
-                TestAddNamedType(input, expected,
+                await TestAddNamedTypeAsync(input, expected,
                     accessibility: Accessibility.Private,
                     modifiers: new DeclarationModifiers(isSealed: true));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405)]
-            public void AddAbstractClass()
+            public async Task AddAbstractClass()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { protected internal abstract class C { } }";
-                TestAddNamedType(input, expected,
+                await TestAddNamedTypeAsync(input, expected,
                     accessibility: Accessibility.ProtectedOrInternal,
                     modifiers: new DeclarationModifiers(isAbstract: true));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddStruct()
+            public async Task AddStruct()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { internal struct S { } }";
-                TestAddNamedType(input, expected,
+                await TestAddNamedTypeAsync(input, expected,
                     name: "S",
                     accessibility: Accessibility.Internal,
                     typeKind: TypeKind.Struct);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224)]
-            public void AddSealedStruct()
+            public async Task AddSealedStruct()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { public struct S { } }";
-                TestAddNamedType(input, expected,
+                await TestAddNamedTypeAsync(input, expected,
                     name: "S",
                     modifiers: new DeclarationModifiers(isSealed: true),
                     accessibility: Accessibility.Public,
@@ -210,121 +211,121 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddInterface()
+            public async Task AddInterface()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { public interface I { } }";
-                TestAddNamedType(input, expected,
+                await TestAddNamedTypeAsync(input, expected,
                     name: "I",
                     typeKind: TypeKind.Interface);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544080)]
-            public void AddEnum()
+            public async Task AddEnum()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { public enum E { } }";
-                TestAddNamedType(input, expected, "E",
+                await TestAddNamedTypeAsync(input, expected, "E",
                     typeKind: TypeKind.Enum);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544527)]
-            public void AddEnumWithValues()
+            public async Task AddEnumWithValues()
             {
                 var input = "namespace [|N|] { }";
                 var expected = "namespace N { public enum E { F1 = 1, F2 = 2 } }";
-                TestAddNamedType(input, expected, "E",
+                await TestAddNamedTypeAsync(input, expected, "E",
                     typeKind: TypeKind.Enum,
                     members: Members(CreateEnumField("F1", 1), CreateEnumField("F2", 2)));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544080)]
-            public void AddDelegateType()
+            public async Task AddDelegateType()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public delegate int D(string s); }";
-                TestAddDelegateType(input, expected,
+                await TestAddDelegateTypeAsync(input, expected,
                     returnType: typeof(int),
                     parameters: Parameters(Parameter(typeof(string), "s")));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224)]
-            public void AddSealedDelegateType()
+            public async Task AddSealedDelegateType()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public delegate int D(string s); }";
-                TestAddDelegateType(input, expected,
+                await TestAddDelegateTypeAsync(input, expected,
                     returnType: typeof(int),
                     parameters: Parameters(Parameter(typeof(string), "s")),
                     modifiers: new DeclarationModifiers(isSealed: true));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddEvent()
+            public async Task AddEvent()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public event System.Action E; }";
-                TestAddEvent(input, expected,
+                await TestAddEventAsync(input, expected,
                     codeGenerationOptions: new CodeGenerationOptions(addImports: false));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddUnsafeEvent()
+            public async Task AddUnsafeEvent()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public unsafe event System.Action E; }";
-                TestAddEvent(input, expected,
+                await TestAddEventAsync(input, expected,
                     modifiers: new DeclarationModifiers(isUnsafe: true),
                     codeGenerationOptions: new CodeGenerationOptions(addImports: false));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddEventWithAccessors()
+            public async Task AddEventWithAccessors()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public event System.Action E { add { } remove { } } }";
-                TestAddEvent(input, expected,
+                await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, SpecializedCollections.EmptyList<SyntaxNode>()),
                     removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, SpecializedCollections.EmptyList<SyntaxNode>()),
                     codeGenerationOptions: new CodeGenerationOptions(addImports: false));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddMethodToClass()
+            public async Task AddMethodToClass()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public void M() { } }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     returnType: typeof(void));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddMethodToClassEscapedName()
+            public async Task AddMethodToClassEscapedName()
             {
                 var input = "class [|C|] { }";
                 var expected = "using System; class C { public DateTime @static() { } }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     name: "static",
                     returnType: typeof(DateTime));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddStaticMethodToStruct()
+            public async Task AddStaticMethodToStruct()
             {
                 var input = "struct [|S|] { }";
                 var expected = "struct S { public static int M() { $$ } }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     modifiers: new DeclarationModifiers(isStatic: true),
                     returnType: typeof(int),
                     statements: "return 0;");
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddSealedOverrideMethod()
+            public async Task AddSealedOverrideMethod()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public sealed override int GetHashCode() { $$ } }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     name: "GetHashCode",
                     modifiers: new DeclarationModifiers(isOverride: true, isSealed: true),
                     returnType: typeof(int),
@@ -332,42 +333,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAbstractMethod()
+            public async Task AddAbstractMethod()
             {
                 var input = "abstract class [|C|] { }";
                 var expected = "abstract class C { public abstract int M(); }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     modifiers: new DeclarationModifiers(isAbstract: true),
                     returnType: typeof(int));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddMethodWithoutBody()
+            public async Task AddMethodWithoutBody()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public int M(); }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     returnType: typeof(int),
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddGenericMethod()
+            public async Task AddGenericMethod()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public int M<T>() { $$ } }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     returnType: typeof(int),
                     typeParameters: new[] { CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T") },
                     statements: "return new T().GetHashCode();");
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddVirtualMethod()
+            public async Task AddVirtualMethod()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { protected virtual int M() { $$ } }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     accessibility: Accessibility.Protected,
                     modifiers: new DeclarationModifiers(isVirtual: true),
                     returnType: typeof(int),
@@ -375,11 +376,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddUnsafeNewMethod()
+            public async Task AddUnsafeNewMethod()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public unsafe new string ToString() { $$ } }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     name: "ToString",
                     modifiers: new DeclarationModifiers(isNew: true, isUnsafe: true),
                     returnType: typeof(string),
@@ -387,11 +388,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddExplicitImplementationOfUnsafeMethod()
+            public async Task AddExplicitImplementationOfUnsafeMethod()
             {
                 var input = "interface I { unsafe void M(int i); } class [|C|] : I { }";
                 var expected = "interface I { unsafe void M(int i); } class C : I { unsafe void I.M(int i) { } }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     name: "M",
                     returnType: typeof(void),
                     parameters: Parameters(Parameter(typeof(int), "i")),
@@ -400,11 +401,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddExplicitImplementation()
+            public async Task AddExplicitImplementation()
             {
                 var input = "interface I { void M(int i); } class [|C|] : I { }";
                 var expected = "interface I { void M(int i); } class C : I { void I.M(int i) { } }";
-                TestAddMethod(input, expected,
+                await TestAddMethodAsync(input, expected,
                     name: "M",
                     returnType: typeof(void),
                     parameters: Parameters(Parameter(typeof(int), "i")),
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddTrueFalseOperators()
+            public async Task AddTrueFalseOperators()
             {
                 var input = @"
 class [|C|]
@@ -425,7 +426,7 @@ class C
     public static bool operator false (C other) { $$ }
 }
 ";
-                TestAddOperators(input, expected,
+                await TestAddOperatorsAsync(input, expected,
                     new[] { CodeGenerationOperatorKind.True, CodeGenerationOperatorKind.False },
                     parameters: Parameters(Parameter("C", "other")),
                     returnType: typeof(bool),
@@ -433,7 +434,7 @@ class C
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddUnaryOperators()
+            public async Task AddUnaryOperators()
             {
                 var input = @"
 class [|C|]
@@ -449,7 +450,7 @@ class C
     public static object operator ++ (C other) { $$ }
     public static object operator -- (C other) { $$ }
 }";
-                TestAddOperators(input, expected,
+                await TestAddOperatorsAsync(input, expected,
                     new[]
                     {
                         CodeGenerationOperatorKind.UnaryPlus,
@@ -465,7 +466,7 @@ class C
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddBinaryOperators()
+            public async Task AddBinaryOperators()
             {
                 var input = @"
 class [|C|]
@@ -485,7 +486,7 @@ class C
     public static object operator << (C a, C b) { $$ }
     public static object operator >> (C a, C b) { $$ }
 }";
-                TestAddOperators(input, expected,
+                await TestAddOperatorsAsync(input, expected,
                     new[]
                     {
                         CodeGenerationOperatorKind.Addition,
@@ -505,7 +506,7 @@ class C
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddComparisonOperators()
+            public async Task AddComparisonOperators()
             {
                 var input = @"
 class [|C|]
@@ -521,7 +522,7 @@ class C
     public static bool operator <= (C a, C b) { $$ }
     public static bool operator >= (C a, C b) { $$ }
 }";
-                TestAddOperators(input, expected,
+                await TestAddOperatorsAsync(input, expected,
                     new[]
                     {
                         CodeGenerationOperatorKind.Equality,
@@ -537,10 +538,10 @@ class C
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddUnsupportedOperator()
+            public async Task AddUnsupportedOperator()
             {
                 var input = "class [|C|] { }";
-                TestAddUnsupportedOperator(input,
+                await TestAddUnsupportedOperatorAsync(input,
                     operatorKind: CodeGenerationOperatorKind.Like,
                     parameters: Parameters(Parameter("C", "a"), Parameter("C", "b")),
                     returnType: typeof(bool),
@@ -548,22 +549,22 @@ class C
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddExplicitConversion()
+            public async Task AddExplicitConversion()
             {
                 var input = @"class [|C|] { }";
                 var expected = @"class C { public static explicit operator int(C other) { $$ } }";
-                TestAddConversion(input, expected,
+                await TestAddConversionAsync(input, expected,
                     toType: typeof(int),
                     fromType: Parameter("C", "other"),
                     statements: "return 0;");
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddImplicitConversion()
+            public async Task AddImplicitConversion()
             {
                 var input = @"class [|C|] { }";
                 var expected = @"class C { public static implicit operator int(C other) { $$ } }";
-                TestAddConversion(input, expected,
+                await TestAddConversionAsync(input, expected,
                     toType: typeof(int),
                     fromType: Parameter("C", "other"),
                     isImplicit: true,
@@ -571,78 +572,78 @@ class C
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddStatements()
+            public async Task AddStatements()
             {
                 var input = "class C { public void [|M|]() { Console.WriteLine(1); } }";
                 var expected = "class C { public void M() { Console.WriteLine(1); $$ } }";
-                TestAddStatements(input, expected, "Console.WriteLine(2);");
+                await TestAddStatementsAsync(input, expected, "Console.WriteLine(2);");
             }
 
             [WorkItem(840265)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddDefaultParameterWithNonDefaultValueToMethod()
+            public async Task AddDefaultParameterWithNonDefaultValueToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
                 var expected = "class C { public void M(string text = \"Hello\") { } }";
-                TestAddParameters(input, expected,
+                await TestAddParametersAsync(input, expected,
                     Parameters(Parameter(typeof(string), "text", true, "Hello")));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddDefaultParameterWithDefaultValueToMethod()
+            public async Task AddDefaultParameterWithDefaultValueToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
                 var expected = "class C { public void M(double number = default(double)) { } }";
-                TestAddParameters(input, expected,
+                await TestAddParametersAsync(input, expected,
                     Parameters(Parameter(typeof(double), "number", true)));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddParametersToMethod()
+            public async Task AddParametersToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
                 var expected = "class C { public void M(int num, string text =\"Hello!\", float floating = 0.5F) { } }";
-                TestAddParameters(input, expected,
+                await TestAddParametersAsync(input, expected,
                     Parameters(Parameter(typeof(int), "num"), Parameter(typeof(string), "text", true, "Hello!"), Parameter(typeof(float), "floating", true, .5f)));
             }
 
             [WorkItem(841365)]
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddParamsParameterToMethod()
+            public async Task AddParamsParameterToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
                 var expected = "class C { public void M(params char[] characters) { } }";
-                TestAddParameters(input, expected,
+                await TestAddParametersAsync(input, expected,
                     Parameters(Parameter(typeof(char[]), "characters", isParams: true)));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544015)]
-            public void AddAutoProperty()
+            public async Task AddAutoProperty()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public int P { get; internal set; } }";
-                TestAddProperty(input, expected,
+                await TestAddPropertyAsync(input, expected,
                     type: typeof(int),
                     setterAccessibility: Accessibility.Internal);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddUnsafeAutoProperty()
+            public async Task AddUnsafeAutoProperty()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public unsafe int P { get; internal set; } }";
-                TestAddProperty(input, expected,
+                await TestAddPropertyAsync(input, expected,
                     type: typeof(int),
                     modifiers: new DeclarationModifiers(isUnsafe: true),
                     setterAccessibility: Accessibility.Internal);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddIndexer()
+            public async Task AddIndexer()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public string this[int i] { get { $$ } } }";
-                TestAddProperty(input, expected,
+                await TestAddPropertyAsync(input, expected,
                     type: typeof(string),
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
@@ -650,11 +651,11 @@ class C
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddParameterfulProperty()
+            public async Task AddParameterfulProperty()
             {
                 var input = "class [|C|] { }";
                 var expected = "class C { public string get_P(int i, int j) { $$ } public void set_P(int i, int j, string value) { } }";
-                TestAddProperty(input, expected,
+                await TestAddPropertyAsync(input, expected,
                     type: typeof(string),
                     getStatements: "return String.Empty;",
                     setStatements: "",
@@ -662,215 +663,216 @@ class C
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToTypes()
+            public async Task AddAttributeToTypes()
             {
                 var input = "class [|C|] { }";
                 var expected = "[System.Serializable] class C { }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromTypes()
+            public async Task RemoveAttributeFromTypes()
             {
                 var input = @"[System.Serializable] class [|C|] { }";
                 var expected = "class C { }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToMethods()
+            public async Task AddAttributeToMethods()
             {
                 var input = "class C { public void [|M()|] { } }";
                 var expected = "class C { [System.Serializable] public void M() { } }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromMethods()
+            public async Task RemoveAttributeFromMethods()
             {
                 var input = "class C { [System.Serializable] public void [|M()|] { } }";
                 var expected = "class C { public void M() { } }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToFields()
+            public async Task AddAttributeToFields()
             {
                 var input = "class C { [|public int F|]; }";
                 var expected = "class C { [System.Serializable] public int F; }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromFields()
+            public async Task RemoveAttributeFromFields()
             {
                 var input = "class C { [System.Serializable] public int [|F|]; }";
                 var expected = "class C { public int F; }";
-                TestRemoveAttribute<FieldDeclarationSyntax>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<FieldDeclarationSyntax>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToProperties()
+            public async Task AddAttributeToProperties()
             {
                 var input = "class C { public int [|P|] { get; set; }}";
                 var expected = "class C { [System.Serializable] public int P { get; set; } }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromProperties()
+            public async Task RemoveAttributeFromProperties()
             {
                 var input = "class C { [System.Serializable] public int [|P|] { get; set; }}";
                 var expected = "class C { public int P { get; set; } }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToPropertyAccessor()
+            public async Task AddAttributeToPropertyAccessor()
             {
                 var input = "class C { public int P { [|get|]; set; }}";
                 var expected = "class C { public int P { [System.Serializable] get; set; } }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromPropertyAccessor()
+            public async Task RemoveAttributeFromPropertyAccessor()
             {
                 var input = "class C { public int P { [System.Serializable] [|get|]; set; } }";
                 var expected = "class C { public int P { get; set; } }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToEnums()
+            public async Task AddAttributeToEnums()
             {
                 var input = "enum [|C|] { One, Two }";
                 var expected = "[System.Serializable] enum C { One, Two }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromEnums()
+            public async Task RemoveAttributeFromEnums()
             {
                 var input = "[System.Serializable] enum [|C|] { One, Two }";
                 var expected = "enum C { One, Two }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToEnumMembers()
+            public async Task AddAttributeToEnumMembers()
             {
                 var input = "enum C { [|One|], Two }";
                 var expected = "enum C { [System.Serializable] One, Two }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromEnumMembers()
+            public async Task RemoveAttributeFromEnumMembers()
             {
                 var input = "enum C { [System.Serializable] [|One|], Two }";
                 var expected = "enum C { One, Two }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToIndexer()
+            public async Task AddAttributeToIndexer()
             {
                 var input = "class C { public int [|this[int y]|] { get; set; }}";
                 var expected = "class C { [System.Serializable] public int this[int y] { get; set; } }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromIndexer()
+            public async Task RemoveAttributeFromIndexer()
             {
                 var input = "class C { [System.Serializable] public int [|this[int y]|] { get; set; }}";
                 var expected = "class C { public int this[int y] { get; set; } }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToOperator()
+            public async Task AddAttributeToOperator()
             {
                 var input = "class C { public static C operator [|+|] (C c1, C c2) { return new C(); }}";
                 var expected = "class C { [System.Serializable] public static C operator + (C c1, C c2) { return new C(); } }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromOperator()
+            public async Task RemoveAttributeFromOperator()
             {
                 var input = "class C { [System.Serializable] public static C operator [|+|](C c1, C c2) { return new C(); }}";
                 var expected = "class C { public static C operator +(C c1, C c2) { return new C(); } }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToDelegate()
+            public async Task AddAttributeToDelegate()
             {
                 var input = "delegate int [|D()|];";
                 var expected = "[System.Serializable] delegate int D();";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromDelegate()
+            public async Task RemoveAttributeFromDelegate()
             {
                 var input = "[System.Serializable] delegate int [|D()|];";
                 var expected = "delegate int D();";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToParam()
+            public async Task AddAttributeToParam()
             {
                 var input = "class C { public void M([|int x|]) { } }";
                 var expected = "class C { public void M([System.Serializable] int x) { } }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromParam()
+            public async Task RemoveAttributeFromParam()
             {
                 var input = "class C { public void M([System.Serializable] [|int x|]) { } }";
                 var expected = "class C { public void M(int x) { } }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToTypeParam()
+            public async Task AddAttributeToTypeParam()
             {
                 var input = "class C<[|T|]> { }";
                 var expected = "class C<[System.Serializable] T> { }";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeFromTypeParam()
+            public async Task RemoveAttributeFromTypeParam()
             {
                 var input = "class C<[System.Serializable] [|T|]> { }";
                 var expected = "class C<T> { }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeToCompilationUnit()
+            public async Task AddAttributeToCompilationUnit()
             {
                 var input = "[|class C { } class D {} |]";
                 var expected = "[assembly: System.Serializable] class C{ } class D {}";
-                TestAddAttribute(input, expected, typeof(SerializableAttribute), SyntaxFactory.Token(SyntaxKind.AssemblyKeyword));
+                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), SyntaxFactory.Token(SyntaxKind.AssemblyKeyword));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void AddAttributeWithWrongTarget()
+            public async Task AddAttributeWithWrongTarget()
             {
                 var input = "[|class C { } class D {} |]";
                 var expected = "";
-                Assert.Throws<AggregateException>(() => TestAddAttribute(input, expected, typeof(SerializableAttribute), SyntaxFactory.Token(SyntaxKind.RefKeyword)));
+                await Assert.ThrowsAsync<AggregateException>(async () => 
+                    await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), SyntaxFactory.Token(SyntaxKind.RefKeyword)));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeWithTrivia()
+            public async Task RemoveAttributeWithTrivia()
             {
                 // With trivia.
                 var input = @"// Comment 1
@@ -878,11 +880,11 @@ class C
 /* Comment 3*/ class [|C|] { }";
                 var expected = @"// Comment 1
 /* Comment 3*/ class C { }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeWithTrivia_NewLine()
+            public async Task RemoveAttributeWithTrivia_NewLine()
             {
                 // With trivia, redundant newline at end of attribute removed.
                 var input = @"// Comment 1
@@ -890,11 +892,11 @@ class C
 /* Comment 3*/ class [|C|] { }";
                 var expected = @"// Comment 1
 /* Comment 3*/ class C { }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeWithMultipleAttributes()
+            public async Task RemoveAttributeWithMultipleAttributes()
             {
                 // Multiple attributes.
                 var input = @"// Comment 1
@@ -905,11 +907,11 @@ class [|C|] { }";
 /*Comment2*/[ /*Comment3*/  /*Comment5*/System.Flags /*Comment6*/] /*Comment7*/
 /* Comment 8*/
 class C { }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void RemoveAttributeWithMultipleAttributeLists()
+            public async Task RemoveAttributeWithMultipleAttributeLists()
             {
                 // Multiple attributes.
                 var input = @"// Comment 1
@@ -922,11 +924,11 @@ class [|C|] { }";
 [ /*Comment9*/ System.Obsolete /*Comment10*/] /*Comment11*/
 /* Comment12*/
 class C { }";
-                TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+                await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void TestUpdateModifiers()
+            public async Task TestUpdateModifiers()
             {
                 var input = @"public static class [|C|] // Comment 1
 {
@@ -940,11 +942,11 @@ class C { }";
                 var newModifiers = new[] { SyntaxFactory.Token(SyntaxKind.InternalKeyword).WithLeadingTrivia(eol) }.Concat(
                     CreateModifierTokens(new DeclarationModifiers(isSealed: true, isPartial: true), LanguageNames.CSharp));
 
-                TestUpdateDeclaration<ClassDeclarationSyntax>(input, expected, modifiers: newModifiers);
+                await TestUpdateDeclarationAsync<ClassDeclarationSyntax>(input, expected, modifiers: newModifiers);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void TestUpdateAccessibility()
+            public async Task TestUpdateAccessibility()
             {
                 var input = @"// Comment 0
 public static class [|C|] // Comment 1
@@ -956,11 +958,11 @@ internal static class C // Comment 1
 {
     // Comment 2
 }";
-                TestUpdateDeclaration<ClassDeclarationSyntax>(input, expected, accessibility: Accessibility.Internal);
+                await TestUpdateDeclarationAsync<ClassDeclarationSyntax>(input, expected, accessibility: Accessibility.Internal);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void TestUpdateDeclarationType()
+            public async Task TestUpdateDeclarationType()
             {
                 var input = @"
 public static class C
@@ -974,11 +976,11 @@ public static class C
     // Comment 1
     public static int F() { return 0; }
 }";
-                TestUpdateDeclaration<MethodDeclarationSyntax>(input, expected, getType: GetTypeSymbol(typeof(int)));
+                await TestUpdateDeclarationAsync<MethodDeclarationSyntax>(input, expected, getType: GetTypeSymbol(typeof(int)));
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void TestUpdateDeclarationMembers()
+            public async Task TestUpdateDeclarationMembers()
             {
                 var input = @"
 public static class [|C|]
@@ -999,11 +1001,11 @@ public static class C
                 var getField = CreateField(Accessibility.Public, new DeclarationModifiers(), typeof(int), "f2");
                 var getMembers = new List<Func<SemanticModel, ISymbol>>();
                 getMembers.Add(getField);
-                TestUpdateDeclaration<ClassDeclarationSyntax>(input, expected, getNewMembers: getMembers);
+                await TestUpdateDeclarationAsync<ClassDeclarationSyntax>(input, expected, getNewMembers: getMembers);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-            public void TestUpdateDeclarationMembers_DifferentOrder()
+            public async Task TestUpdateDeclarationMembers_DifferentOrder()
             {
                 var input = @"
 public static class [|C|]
@@ -1025,11 +1027,11 @@ public static class C
                 var getField = CreateField(Accessibility.Public, new DeclarationModifiers(), typeof(int), "f2");
                 var getMembers = new List<Func<SemanticModel, ISymbol>>();
                 getMembers.Add(getField);
-                TestUpdateDeclaration<ClassDeclarationSyntax>(input, expected, getNewMembers: getMembers, declareNewMembersAtTop: true);
+                await TestUpdateDeclarationAsync<ClassDeclarationSyntax>(input, expected, getNewMembers: getMembers, declareNewMembersAtTop: true);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public void SortAroundDestructor()
+            public async Task SortAroundDestructor()
             {
                 var generationSource = "public class [|C|] { public C(){} public int this[int index]{get{return 0;}set{value = 0;}} }";
                 var initial = "public class [|C|] { ~C(){} }";
@@ -1040,11 +1042,11 @@ public class C
     ~C(){}
     public int this[int index] { get{} set{} }
 }";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true);
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-            public void SortOperators()
+            public async Task SortOperators()
             {
                 var generationSource = @"
 namespace N
@@ -1114,7 +1116,7 @@ namespace N
         public static bool operator false(C other);
     }
 }";
-                TestGenerateFromSourceSymbol(generationSource, initial, expected,
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     forceLanguage: LanguageNames.CSharp,
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
             }
@@ -1122,7 +1124,7 @@ namespace N
 
         [WorkItem(665008)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public void TestExtensionMethods()
+        public async Task TestExtensionMethods()
         {
             var generationSource = @"
 public static class [|C|]
@@ -1136,14 +1138,14 @@ public static class C
     public static void ExtMethod1(this string s, int y, string z);
 }
 ";
-            TestGenerateFromSourceSymbol(generationSource, initial, expected,
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                 codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
 
         [WorkItem(530829)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public void TestVBPropertiesWithParams()
+        public async Task TestVBPropertiesWithParams()
         {
             var generationSource = @"
 Namespace N
@@ -1170,13 +1172,13 @@ namespace N
     } 
 } 
 ";
-            TestGenerateFromSourceSymbol(generationSource, initial, expected,
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                 codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
         }
 
         [WorkItem(812738)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public void TestRefParamsWithDefaultValue()
+        public async Task TestRefParamsWithDefaultValue()
         {
             var generationSource = @"
 Public Class [|C|]
@@ -1190,14 +1192,14 @@ public class C
     public void Foo(int x, ref int y, ref object z);
 }
 ";
-            TestGenerateFromSourceSymbol(generationSource, initial, expected,
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                 codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
 
         [WorkItem(848357)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public void TestConstraints()
+        public async Task TestConstraints()
         {
             var generationSource = @"
 namespace N
@@ -1220,7 +1222,7 @@ namespace N
     }
 }
 ";
-            TestGenerateFromSourceSymbol(generationSource, initial, expected,
+            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                 codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
