@@ -87,17 +87,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 if (expectedUpdatedInvocationDocumentCode != null)
                 {
                     var updatedInvocationDocument = result.UpdatedSolution.GetDocument(testState.InvocationDocument.Id);
-                    var updatedCode = updatedInvocationDocument.GetTextAsync(CancellationToken.None).Result.ToString();
+                    var updatedCode = (await updatedInvocationDocument.GetTextAsync()).ToString();
                     Assert.Equal(expectedUpdatedInvocationDocumentCode, updatedCode);
                 }
 
                 if (verifyNoDiagnostics)
                 {
-                    var diagnostics = testState.InvocationDocument.GetSemanticModelAsync().Result.GetDiagnostics();
+                    var diagnostics = (await testState.InvocationDocument.GetSemanticModelAsync()).GetDiagnostics();
 
                     if (diagnostics.Length > 0)
                     {
-                        Assert.True(false, CreateDiagnosticsString(diagnostics, updatedSignature, totalParameters, testState.InvocationDocument.GetTextAsync().Result.ToString()));
+                        Assert.True(false, CreateDiagnosticsString(diagnostics, updatedSignature, totalParameters, (await testState.InvocationDocument.GetTextAsync()).ToString()));
                     }
                 }
             }

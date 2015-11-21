@@ -102,14 +102,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     if (expectedUpdatedOriginalDocumentCode != null)
                     {
                         var updatedOriginalDocument = result.UpdatedSolution.GetDocument(testState.ExtractFromDocument.Id);
-                        var updatedCode = updatedOriginalDocument.GetTextAsync(CancellationToken.None).Result.ToString();
+                        var updatedCode = updatedOriginalDocument.GetTextAsync().Result.ToString();
                         Assert.Equal(expectedUpdatedOriginalDocumentCode, updatedCode);
                     }
 
                     if (expectedInterfaceCode != null)
                     {
                         var interfaceDocument = result.UpdatedSolution.GetDocument(result.NavigationDocumentId);
-                        var interfaceCode = interfaceDocument.GetTextAsync(CancellationToken.None).Result.ToString();
+                        var interfaceCode = interfaceDocument.GetTextAsync().Result.ToString();
                         Assert.Equal(expectedInterfaceCode, interfaceCode);
                     }
                 }
