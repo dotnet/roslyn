@@ -22,9 +22,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim commonSyntaxToken = document.GetSyntaxTreeAsync().Result.GetTouchingToken(cursorPosition, Nothing)
+                Dim commonSyntaxToken = (Await document.GetSyntaxTreeAsync()).GetTouchingToken(cursorPosition, Nothing)
 
-                Dim semanticModel = document.GetSemanticModelAsync().Result
+                Dim semanticModel = Await document.GetSemanticModelAsync()
                 Dim symbol = semanticModel.GetSymbols(commonSyntaxToken, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType:=False, cancellationToken:=Nothing).First()
                 Dim namedTypeSymbol = semanticModel.GetEnclosingNamedType(cursorPosition, CancellationToken.None)
 

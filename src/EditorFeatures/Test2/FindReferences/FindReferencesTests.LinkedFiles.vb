@@ -31,8 +31,8 @@ class C
                 Dim document = workspace.CurrentSolution.GetDocument(invocationDocument.Id)
                 Assert.NotNull(document)
 
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition).Result
-                Dim references = SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing).Result
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
 
                 Assert.Equal(2, references.Count())
                 Assert.Equal("C.M()", references.ElementAt(0).Definition.ToString())
@@ -63,8 +63,8 @@ End Class
                 Dim document = workspace.CurrentSolution.GetDocument(invocationDocument.Id)
                 Assert.NotNull(document)
 
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition).Result
-                Dim references = SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing).Result
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
 
                 references = references.Where(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
 
@@ -106,8 +106,8 @@ End Class
                 Dim document = startingSolution.GetDocument(invocationDocument.Id)
                 Assert.NotNull(document)
 
-                Dim symbol = SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition).Result
-                Dim references = SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing).Result
+                Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 references = references.Where(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
 
                 Assert.Equal(2, references.Count())
@@ -120,8 +120,8 @@ End Class
                 document = updatedSolution.GetDocument(invocationDocument.Id)
                 Assert.NotNull(document)
 
-                symbol = SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition).Result
-                references = SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing).Result
+                symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
+                references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 references = references.Where(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
 
                 Assert.Equal(1, references.Count())
