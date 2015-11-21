@@ -111,20 +111,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public static async Task FindDeclarationsAsync_Test_Cancellation()
         {
-            await Assert.ThrowsAsync<AggregateException>(async () =>
+            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
             {
-                try
-                {
-                    var cts = new CancellationTokenSource();
-                    cts.Cancel();
-                    var project = GetProject(WorkspaceKind.SingleClass);
-                    var declarations = await SymbolFinder.FindDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token);
-                }
-                catch (AggregateException ex)
-                {
-                    VerifyInnerExceptionIsType<OperationCanceledException>(ex);
-                    throw;
-                }
+                var cts = new CancellationTokenSource();
+                cts.Cancel();
+                var project = GetProject(WorkspaceKind.SingleClass);
+                var declarations = await SymbolFinder.FindDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token);
             });
         }
 
@@ -283,20 +275,12 @@ Inner i;
         [Fact]
         public static async Task FindSourceDeclarationsAsync_Project_Test_Cancellation()
         {
-            await Assert.ThrowsAsync<AggregateException>(async () =>
+            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
             {
-                try
-                {
-                    var cts = new CancellationTokenSource();
-                    var project = GetProject(WorkspaceKind.SingleClass);
-                    cts.Cancel();
-                    var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token);
-                }
-                catch (AggregateException ex)
-                {
-                    VerifyInnerExceptionIsType<OperationCanceledException>(ex);
-                    throw;
-                }
+                var cts = new CancellationTokenSource();
+                var project = GetProject(WorkspaceKind.SingleClass);
+                cts.Cancel();
+                var declarations = await SymbolFinder.FindSourceDeclarationsAsync(project, "Test", true, SymbolFilter.All, cts.Token);
             });
         }
 
