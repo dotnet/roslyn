@@ -15,6 +15,8 @@
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <CSharpSyntaxGeneratorToolPath>$(OutDir)\CSharpSyntaxGenerator.exe</CSharpSyntaxGeneratorToolPath>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <SyntaxTestDefinition Include="..\..\Portable\Syntax\Syntax.xml" />
@@ -59,21 +61,6 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
-    <PlatformTarget>ARM</PlatformTarget>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
-    <PlatformTarget>ARM</PlatformTarget>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(IntermediateOutputPath)\Syntax.xml.Generated.cs" />
     <Compile Include="Diagnostics\DiagnosticTest.cs" />
