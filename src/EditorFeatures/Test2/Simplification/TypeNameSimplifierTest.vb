@@ -3468,7 +3468,7 @@ End Module
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(input)
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-                Dim root = document.GetSyntaxRootAsync().Result
+                Dim root = Await document.GetSyntaxRootAsync()
 
                 For Each span In hostDocument.AnnotatedSpans("Expand")
                     Dim node = root.FindToken(span.Start).Parent.Parent
@@ -3478,7 +3478,7 @@ End Module
 
                     Assert.True(TypeOf node Is ExpressionStatementSyntax)
 
-                    Dim result = Simplifier.ExpandAsync(node, document).Result
+                    Dim result = Await Simplifier.ExpandAsync(node, document)
 
                     Assert.NotEqual(0, result.ToString().Count)
                 Next

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
     Public Class SymbolDescriptionServiceTests
 
-        Private Sub Test(languageServiceProvider As HostLanguageServices, workspace As TestWorkspace, expectedDescription As String)
+        Private Async Function TestAsync(languageServiceProvider As HostLanguageServices, workspace As TestWorkspace, expectedDescription As String) As Task
 
             Dim solution = workspace.CurrentSolution
             Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -20,23 +20,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
             ' using GetTouchingWord instead of FindToken allows us to test scenarios where cursor is at the end of token (E.g: Foo$$)
-            Dim commonSyntaxToken = document.GetSyntaxTreeAsync().Result.GetTouchingWord(cursorPosition, languageServiceProvider.GetService(Of ISyntaxFactsService), Nothing)
+            Dim commonSyntaxToken = (Await document.GetSyntaxTreeAsync()).GetTouchingWord(cursorPosition, languageServiceProvider.GetService(Of ISyntaxFactsService), Nothing)
 
             ' For String Literals GetTouchingWord returns Nothing, we still need this for Quick Info. Quick Info code does exactly the following.
             ' caveat: The comment above the previous line of code. Do not put the cursor at the end of the token.
             If commonSyntaxToken = Nothing Then
-                commonSyntaxToken = document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition)
+                commonSyntaxToken = (Await document.GetSyntaxTreeAsync()).GetRoot().FindToken(cursorPosition)
             End If
 
-            Dim semanticModel = document.GetSemanticModelAsync().Result
+            Dim semanticModel = Await document.GetSemanticModelAsync()
             Dim symbol = semanticModel.GetSymbols(commonSyntaxToken, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType:=True, cancellationToken:=CancellationToken.None).AsImmutable()
             Dim symbolDescriptionService = languageServiceProvider.GetService(Of ISymbolDisplayService)()
 
-            Dim actualDescription = symbolDescriptionService.ToDescriptionStringAsync(workspace, semanticModel, cursorPosition, symbol).Result
+            Dim actualDescription = Await symbolDescriptionService.ToDescriptionStringAsync(workspace, semanticModel, cursorPosition, symbol)
 
             Assert.Equal(expectedDescription, actualDescription)
 
-        End Sub
+        End Function
 
         Private Function StringFromLines(ParamArray lines As String()) As String
             Return String.Join(Environment.NewLine, lines)
@@ -44,13 +44,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         Private Async Function TestCSharpAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
-                Test(GetLanguageServiceProvider(workspace, LanguageNames.CSharp), workspace, expectedDescription)
+                Await TestAsync(GetLanguageServiceProvider(workspace, LanguageNames.CSharp), workspace, expectedDescription)
             End Using
         End Function
 
         Private Async Function TestBasicAsync(workspaceDefinition As XElement, expectedDescription As String) As Tasks.Task
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition)
-                Test(GetLanguageServiceProvider(workspace, LanguageNames.VisualBasic), workspace, expectedDescription)
+                Await TestAsync(GetLanguageServiceProvider(workspace, LanguageNames.VisualBasic), workspace, expectedDescription)
             End Using
         End Function
 
