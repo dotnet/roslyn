@@ -758,5 +758,13 @@ class Derived : Base
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public void TestGenerateWithIncorrectConstructorArguments_Crash()
+        {
+            Test(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; abstract class Y { class X : Y { void M ( ) { new X ( new [|string|] ( ) ) ; } } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; abstract class Y { class X : Y { private string v ; public X ( string v ) { this . v = v ; } void M ( ) { new X ( new string ( ) ) ; } } } ");
+        }
     }
 }
