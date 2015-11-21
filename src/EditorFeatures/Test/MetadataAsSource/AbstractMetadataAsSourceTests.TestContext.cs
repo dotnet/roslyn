@@ -273,8 +273,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var testDocument = _workspace.Documents.Single(d => d.FilePath == "SourceDocument");
                 var document = _workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-                var syntaxRoot = document.GetSyntaxRootAsync(CancellationToken.None).Result;
-                var semanticModel = document.GetSemanticModelAsync(CancellationToken.None).Result;
+                var syntaxRoot = document.GetSyntaxRootAsync().Result;
+                var semanticModel = document.GetSemanticModelAsync().Result;
                 return semanticModel.GetSymbolInfo(syntaxRoot.FindNode(testDocument.SelectedSpans.Single())).Symbol;
             }
 
