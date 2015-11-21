@@ -13,9 +13,10 @@ usage()
 XUNIT_VERSION=2.1.0
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
+CLEAN_RUN=true
 USE_CACHE=true
 MONO_ARGS='--debug=mdb-optimizations --attach=disable'
-MSBUILD_ADDITIONALARGS='/v:m  /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal'
+MSBUILD_ADDITIONALARGS='/v:m /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal'
 
 export MONO_THREADS_PER_CPU=50
 
@@ -52,12 +53,28 @@ do
         USE_CACHE=false
         shift 1
         ;;
+        --noclean)
+        CLEAN_RUN=false
+        shift 1
+        ;;
         *)
         usage 
         exit 1
         ;;
     esac
 done
+
+set_msbuild_info()
+{
+    if [ "$OS_NAME" == "Linux" ]; then
+        MSBUILD_ADDITIONALARGS="$MSBUILD_ADDITIONALARGS /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04"
+    elif [ "$OS_NAME" == "Darwin" ]; then
+        MSBUILD_ADDITIONALARGS="$MSBUILD_ADDITIONALARGS /p:BaseNuGetRuntimeIdentifier=osx.10.10"
+    else
+        echo Unrecognized OS $OS_NAME
+        exit 1
+    fi
+}
 
 restore_nuget()
 {
@@ -151,21 +168,28 @@ save_toolset()
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces
 # a rebuild instead of picking up older binaries.
-clean_roslyn()
+clean_toolset()
 {
     echo Cleaning the enlistment
     mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/BootstrapClean.log
     rm -rf Binaries/$BUILD_CONFIGURATION
 }
 
+set_toolset()
+{
+    if [ "$CLEAN_RUN" == "false" ]; then
+        return
+    fi
+    
+    compile_toolset
+    save_toolset
+    clean_toolset
+}
+
 build_roslyn()
 {    
-    local bootstrapArg=""
-
-    if [ "$OS_NAME" == "Linux" ]; then
-        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap/csccore /p:CscToolExe=csc \
+    local bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap/csccore /p:CscToolExe=csc \
 /p:VbcToolPath=$(pwd)/Binaries/Bootstrap/vbccore /p:VbcToolExe=vbc"
-    fi
 
     echo Building CrossPlatform.sln
     run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Build.log
@@ -262,15 +286,16 @@ test_roslyn()
     fi
 }
 
-echo Clean out the enlistment
-git clean -dxf . 
+if [ "$CLEAN_RUN" == "true" ]; then
+    echo Clean out the enlistment
+    git clean -dxf . 
+fi
 
+set_msbuild_info
 restore_nuget
 set_mono_path
 check_mono
-compile_toolset
-save_toolset
-clean_roslyn
+set_toolset
 build_roslyn
 test_roslyn
 

@@ -65,7 +65,6 @@
       '$(OutputType)' == 'Exe'">
     <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
