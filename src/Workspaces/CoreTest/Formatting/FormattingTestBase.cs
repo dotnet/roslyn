@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
 
                 var document = project.AddDocument("Document", SourceText.From(code));
 
-                var syntaxTree = document.GetSyntaxTreeAsync().Result;
+                var syntaxTree = await document.GetSyntaxTreeAsync();
 
                 var options = workspace.Options;
                 if (changedOptionSet != null)
