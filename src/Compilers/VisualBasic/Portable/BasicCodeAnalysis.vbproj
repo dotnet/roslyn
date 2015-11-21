@@ -45,7 +45,6 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>false</Optimize>
     <DebugType>full</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>

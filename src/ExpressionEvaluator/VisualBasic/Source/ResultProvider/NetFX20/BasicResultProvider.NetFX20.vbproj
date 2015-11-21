@@ -18,7 +18,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider</AssemblyName>
     <VBSyntaxGeneratorToolPath>$(OutDir)..\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <RestorePackages>true</RestorePackages>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>

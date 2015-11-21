@@ -232,7 +232,6 @@
         <DebugSymbols>true</DebugSymbols>
         <DebugType>full</DebugType>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <DebugType>pdbonly</DebugType>
