@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     currentDestination = member.TypeSwitch(
                         (IEventSymbol @event) => this.AddEvent(currentDestination, @event, options, availableIndices),
                         (IFieldSymbol field) => this.AddField(currentDestination, field, options, availableIndices),
-                        (IPropertySymbol property) => this.AddProperty(currentDestination, property, options, availableIndices),
+                        (IPropertySymbol property) => this.AddProperty(currentDestination, property, ShouldGenerateMethodBody(options, property), availableIndices),
                         (IMethodSymbol method) => this.AddMethod(currentDestination, method, options, availableIndices),
                         (INamedTypeSymbol namedType) => this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken),
                         (INamespaceSymbol @namespace) => this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken),
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     var newMember = member.TypeSwitch(
                         (IEventSymbol @event) => this.CreateEventDeclaration(@event, codeGenerationDestination, options),
                         (IFieldSymbol field) => this.CreateFieldDeclaration(field, codeGenerationDestination, options),
-                        (IPropertySymbol property) => this.CreatePropertyDeclaration(property, codeGenerationDestination, options),
+                        (IPropertySymbol property) => this.CreatePropertyDeclaration(property, codeGenerationDestination, ShouldGenerateMethodBody(options, property)),
                         (IMethodSymbol method) => this.CreateMethodDeclaration(method, codeGenerationDestination, options),
                         (INamedTypeSymbol namedType) => this.CreateNamedTypeDeclaration(namedType, codeGenerationDestination, options, cancellationToken),
                         (INamespaceSymbol @namespace) => this.CreateNamespaceDeclaration(@namespace, codeGenerationDestination, options, cancellationToken),
@@ -275,6 +275,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             return currentDestination;
         }
+
+        private static CodeGenerationOptions ShouldGenerateMethodBody(CodeGenerationOptions options, IPropertySymbol property) =>
+            options.GenerateMethodBodies ? options.WithGenerateMethodBodies(property.IsIndexer || property.IsWriteOnly || property.IsReadOnly || property.Parameters.Length > 0) : options;
 
         private bool GeneratingEnum(IEnumerable<ISymbol> members)
         {
