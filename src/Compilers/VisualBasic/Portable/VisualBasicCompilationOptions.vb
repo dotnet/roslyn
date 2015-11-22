@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
                 concurrentBuild,
-                deterministic:=False,' TODO: fix this
+                deterministic:=deterministic,
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
                 debugPlusMode:=False,

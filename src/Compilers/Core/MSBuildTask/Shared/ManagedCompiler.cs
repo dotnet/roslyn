@@ -103,6 +103,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(Deterministic), false); }
         }
 
+        public bool PublicSign
+        {
+            set { _store[nameof(PublicSign)] = value; }
+            get { return _store.GetOrDefault(nameof(PublicSign), false); }
+        }
+
         public bool EmitDebugInformation
         {
             set { _store[nameof(EmitDebugInformation)] = value; }
@@ -646,6 +652,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/nowin32manifest", _store, nameof(NoWin32Manifest));
             commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
             commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
+            commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
             commandLine.AppendSwitchIfNotNull("/pathmap:", PathMap);
             commandLine.AppendSwitchIfNotNull("/out:", OutputAssembly);
             commandLine.AppendSwitchIfNotNull("/ruleset:", CodeAnalysisRuleSet);
