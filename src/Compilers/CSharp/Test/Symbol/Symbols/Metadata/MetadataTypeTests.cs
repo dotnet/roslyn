@@ -263,11 +263,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var type1 = ns3.GetTypeMembers("EventProviderBase").Single() as NamedTypeSymbol;
             // EventData[]
-            var type2 = (type1.GetMembers("m_eventData").Single() as FieldSymbol).Type as ArrayTypeSymbol;
+            var type2 = (type1.GetMembers("m_eventData").Single() as FieldSymbol).Type.TypeSymbol as ArrayTypeSymbol;
             var member2 = type1.GetMembers("WriteTransferEventHelper").Single() as MethodSymbol;
             Assert.Equal(3, member2.Parameters.Length);
             // params object[]
-            var type3 = (member2.Parameters[2] as ParameterSymbol).Type as ArrayTypeSymbol;
+            var type3 = (member2.Parameters[2] as ParameterSymbol).Type.TypeSymbol as ArrayTypeSymbol;
 
             Assert.Equal(SymbolKind.ArrayType, type2.Kind);
             Assert.Equal(SymbolKind.ArrayType, type3.Kind);

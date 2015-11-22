@@ -6280,7 +6280,7 @@ class Program
 
             // It's type is not equal to the SemanticInfo type, because that is
             // not an error type.
-            Assert.NotEqual(semanticInfo.Type, param.Type);
+            Assert.NotEqual(semanticInfo.Type, param.Type.TypeSymbol);
         }
 
         [Fact]
@@ -9127,15 +9127,15 @@ class Program
             Assert.Equal("B", type.Name);
             Assert.True(type.IsUnboundGenericType);
             Assert.False(type.IsErrorType());
-            Assert.True(type.TypeArguments[0].IsErrorType());
+            Assert.True(type.TypeArguments[0].TypeSymbol.IsErrorType());
 
             var constructedFrom = type.ConstructedFrom;
             Assert.Equal(constructedFrom, constructedFrom.ConstructedFrom);
             Assert.Equal(constructedFrom, constructedFrom.TypeParameters[0].ContainingSymbol);
-            Assert.Equal(constructedFrom.TypeArguments[0], constructedFrom.TypeParameters[0]);
+            Assert.Equal(constructedFrom.TypeArguments[0].TypeSymbol, constructedFrom.TypeParameters[0]);
             Assert.Equal(type.ContainingSymbol, constructedFrom.ContainingSymbol);
             Assert.Equal(type.TypeParameters[0], constructedFrom.TypeParameters[0]);
-            Assert.False(constructedFrom.TypeArguments[0].IsErrorType());
+            Assert.False(constructedFrom.TypeArguments[0].TypeSymbol.IsErrorType());
             Assert.NotEqual(type, constructedFrom);
             Assert.False(constructedFrom.IsUnboundGenericType);
             var a = type.ContainingType;

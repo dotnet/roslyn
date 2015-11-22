@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool assignLocals)
         {
             Debug.Assert((object)thisType != null);
-            Debug.Assert(((object)thisParameter == null) || (thisParameter.Type == thisType));
+            Debug.Assert(((object)thisParameter == null) || (thisParameter.Type.TypeSymbol == thisType));
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
 
             var analysis = Analysis.Analyze(loweredBody, method);
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (CSharpSyntaxNode syntax in kvp.Value)
                     {
                         // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                        this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
+                        this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type.TypeSymbol);
                     }
                 }
             }
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(frameClass.IsDefinition);
 
             // If in an instance method of the right type, we can just return the "this" pointer.
-            if ((object)_currentFrameThis != null && _currentFrameThis.Type == frameClass)
+            if ((object)_currentFrameThis != null && _currentFrameThis.Type.TypeSymbol == frameClass)
             {
                 return new BoundThisReference(syntax, frameClass);
             }
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (var i = start; i < lambda.ParameterCount; i++)
                 {
                     var potentialParameter = lambda.Parameters[i];
-                    if (potentialParameter.Type.OriginalDefinition == frameClass)
+                    if (potentialParameter.Type.TypeSymbol.OriginalDefinition == frameClass)
                     {
                         return new BoundParameter(syntax, potentialParameter);
                     }
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var localFrame = framePointer as LocalSymbol;
-            return new BoundLocal(syntax, localFrame, null, localFrame.Type);
+            return new BoundLocal(syntax, localFrame, null, localFrame.Type.TypeSymbol);
         }
 
         private static void InsertAndFreePrologue(ArrayBuilder<BoundStatement> result, ArrayBuilder<BoundExpression> prologue)
@@ -500,11 +500,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The translated statement, as returned from F</returns>
         private T IntroduceFrame<T>(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, T> F)
         {
-            var frameTypeParameters = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters).SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers), 0, frame.Arity);
+            var frameTypeParameters = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations), 0, frame.Arity);
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(frameTypeParameters);
 
             Debug.Assert(frame.ScopeSyntaxOpt != null);
-            LocalSymbol framePointer = new SynthesizedLocal(_topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntaxOpt);
+            LocalSymbol framePointer = new SynthesizedLocal(_topLevelMethod, TypeSymbolWithAnnotations.Create(frameType), SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntaxOpt);
 
             CSharpSyntaxNode syntax = node.Syntax;
 
@@ -541,10 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
                     BoundExpression left = new BoundFieldAccess(syntax, new BoundLocal(syntax, framePointer, null, frameType), frameParent, null);
-                    BoundExpression right = FrameOfType(syntax, frameParent.Type as NamedTypeSymbol);
+                    BoundExpression right = FrameOfType(syntax, frameParent.Type.TypeSymbol as NamedTypeSymbol);
                     BoundExpression assignment = new BoundAssignmentOperator(syntax, left, right, left.Type);
 
-                    if (_currentMethod.MethodKind == MethodKind.Constructor && capturedFrame.Type == _currentMethod.ContainingType && !_seenBaseCall)
+                    if (_currentMethod.MethodKind == MethodKind.Constructor && capturedFrame.Type.TypeSymbol == _currentMethod.ContainingType && !_seenBaseCall)
                     {
                         // Containing method is a constructor 
                         // Initialization statement for the "this" proxy must be inserted
@@ -640,14 +640,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             localToUse = local;
                         }
 
-                        value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
+                        value = new BoundLocal(syntax, localToUse, null, localToUse.Type.TypeSymbol);
                         break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
 
-                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
+                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type.TypeSymbol));
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 prologue.Add(assignToProxy);
             }
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol replacementParameter;
             if (_parameterMap.TryGetValue(node.ParameterSymbol, out replacementParameter))
             {
-                return new BoundParameter(node.Syntax, replacementParameter, replacementParameter.Type, node.HasErrors);
+                return new BoundParameter(node.Syntax, replacementParameter, replacementParameter.Type.TypeSymbol, node.HasErrors);
             }
 
             return base.VisitUnhoistedParameter(node);
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void RemapLambdaOrLocalFunction(
             CSharpSyntaxNode syntax,
             MethodSymbol originalMethod,
-            ImmutableArray<TypeSymbol> typeArgumentsOpt,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt,
             ClosureKind closureKind,
             ref MethodSymbol synthesizedMethod,
             out BoundExpression receiver,
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // All of _currentTypeParameters might not be preserved here due to recursively calling upwards in the chain of local functions/lambdas
             Debug.Assert((typeArgumentsOpt.IsDefault && !originalMethod.IsGenericMethod) || (typeArgumentsOpt.Length == originalMethod.Arity));
             var totalTypeArgumentCount = (containerAsFrame?.Arity ?? 0) + synthesizedMethod.Arity;
-            var realTypeArguments = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters), 0, totalTypeArgumentCount - originalMethod.Arity);
+            var realTypeArguments = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations), 0, totalTypeArgumentCount - originalMethod.Arity);
             if (!typeArgumentsOpt.IsDefault)
             {
                 realTypeArguments = realTypeArguments.Concat(typeArgumentsOpt);
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             synthesizedMethod = synthesizedMethod.AsMember(constructedFrame);
             if (synthesizedMethod.IsGenericMethod)
             {
-                synthesizedMethod = synthesizedMethod.Construct(StaticCast<TypeSymbol>.From(realTypeArguments));
+                synthesizedMethod = synthesizedMethod.Construct(realTypeArguments);
             }
             else
             {
@@ -753,14 +753,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax, MethodSymbol symbol,
             out BoundExpression receiver, out MethodSymbol method,
             ref ImmutableArray<BoundExpression> parameters,
-            ImmutableArray<TypeSymbol> typeArguments = default(ImmutableArray<TypeSymbol>))
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments = default(ImmutableArray<TypeSymbolWithAnnotations>))
         {
             Debug.Assert(symbol.MethodKind == MethodKind.LocalFunction);
 
             var constructed = symbol as ConstructedMethodSymbol;
             if (constructed != null)
             {
-                RemapLocalFunction(syntax, constructed.ConstructedFrom, out receiver, out method, ref parameters, this.TypeMap.SubstituteTypes(constructed.TypeArguments).SelectAsArray(t => t.Type));
+                RemapLocalFunction(syntax, constructed.ConstructedFrom, out receiver, out method, ref parameters, this.TypeMap.SubstituteTypes(constructed.TypeArguments));
                 return;
             }
 
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = start; i < lambda.ParameterCount; i++)
                 {
                     // will always be a LambdaFrame, it's always a closure class
-                    var frameType = (NamedTypeSymbol)lambda.Parameters[i].Type.OriginalDefinition;
+                    var frameType = (NamedTypeSymbol)lambda.Parameters[i].Type.TypeSymbol.OriginalDefinition;
                     if (frameType.IsGenericType)
                     {
                         var typeParameters = ((LambdaFrame)frameType).ConstructedFromTypeParameters;
@@ -1377,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol referencedMethod = synthesizedMethod;
             BoundExpression receiver;
             NamedTypeSymbol constructedFrame;
-            RemapLambdaOrLocalFunction(node.Syntax, node.Symbol, default(ImmutableArray<TypeSymbol>), closureKind, ref referencedMethod, out receiver, out constructedFrame);
+            RemapLambdaOrLocalFunction(node.Syntax, node.Symbol, default(ImmutableArray<TypeSymbolWithAnnotations>), closureKind, ref referencedMethod, out receiver, out constructedFrame);
 
             // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
 
@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Since the cache variable will be in a container with possibly alpha-rewritten generic parameters, we need to
                         // substitute the original type according to the type map for that container. That substituted type may be
                         // different from the local variable `type`, which has the node's type substituted for the current container.
-                        var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
+                        var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).TypeSymbol;
 
                         var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
                             // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 

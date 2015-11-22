@@ -695,8 +695,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             PropertySymbol overridingProperty = (PropertySymbol)overridingMember;
                             PropertySymbol overriddenProperty = (PropertySymbol)overriddenMember;
 
-                            TypeSymbol overridingMemberType = overridingProperty.Type;
-                            TypeSymbol overriddenMemberType = overriddenProperty.Type;
+                            TypeSymbol overridingMemberType = overridingProperty.Type.TypeSymbol;
+                            TypeSymbol overriddenMemberType = overriddenProperty.Type.TypeSymbol;
 
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
                             if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
@@ -732,8 +732,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             EventSymbol overridingEvent = (EventSymbol)overridingMember;
                             EventSymbol overriddenEvent = (EventSymbol)overriddenMember;
 
-                            TypeSymbol overridingMemberType = overridingEvent.Type;
-                            TypeSymbol overriddenMemberType = overriddenEvent.Type;
+                            TypeSymbol overridingMemberType = overridingEvent.Type.TypeSymbol;
+                            TypeSymbol overriddenMemberType = overriddenEvent.Type.TypeSymbol;
 
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
                             if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
@@ -757,8 +757,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // "return type must be C<T>".
 
                                 TypeSymbol returnType = overriddenMethod.IsGenericMethod ?
-                                    overriddenMethod.Construct(overridingMethod.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>()).ReturnType :
-                                    overriddenMethod.ReturnType;
+                                    overriddenMethod.Construct(overridingMethod.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>()).ReturnType.TypeSymbol :
+                                    overriddenMethod.ReturnType.TypeSymbol;
 
                                 // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
                                 diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, returnType);

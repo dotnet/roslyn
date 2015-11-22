@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public readonly Location Location;
 
         /// <summary>Anonymous type field type</summary>
-        public readonly TypeSymbol Type;
+        public readonly TypeSymbolWithAnnotations Type;
 
-        public AnonymousTypeField(string name, Location location, TypeSymbol type)
+        public AnonymousTypeField(string name, Location location, TypeSymbolWithAnnotations type)
         {
             this.Name = name;
             this.Location = location;

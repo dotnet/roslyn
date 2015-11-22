@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(localM1_1.IsOverride);
             Assert.False(localM1_1.IsStatic);
             Assert.False(localM1_1.IsExtern);
-            Assert.Equal(0, localM1_1.CustomModifiers.Length);
+            Assert.Equal(0, localM1_1.Type.CustomModifiers.Length);
 
             Assert.Equal("TC8 TC10.M3()", localM3.ToTestDisplayString());
             Assert.False(localM3.ReturnsVoid);
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var basicC1_M11 = (MethodSymbol)basicC1.GetMembers("M11").Single();
             Assert.Equal("T3 C1.M11<T2, T3>(T2 x)", basicC1_M11.ToTestDisplayString());
             Assert.Equal(0, basicC1_M11.TypeParameters[0].ConstraintTypes.Length);
-            Assert.Same(basicC1, basicC1_M11.TypeParameters[1].ConstraintTypes.Single());
+            Assert.Same(basicC1, basicC1_M11.TypeParameters[1].ConstraintTypes.Single().TypeSymbol);
 
             var basicC1_M12 = (MethodSymbol)basicC1.GetMembers("M12").Single();
             Assert.Equal(0, basicC1_M12.TypeArguments.Length);
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var byrefReturnMethod = byrefReturn.GlobalNamespace.GetTypeMembers("ByRefReturn").Single().GetMembers("M").OfType<MethodSymbol>().Single();
             Assert.Equal(TypeKind.Error, byrefReturnMethod.ReturnType.TypeKind);
-            Assert.IsType<ByRefReturnErrorTypeSymbol>(byrefReturnMethod.ReturnType);
+            Assert.IsType<ByRefReturnErrorTypeSymbol>(byrefReturnMethod.ReturnType.TypeSymbol);
         }
 
         [Fact]

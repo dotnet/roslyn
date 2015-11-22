@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodName,
                 args,
                 diagnostics,
-                typeArgs: typeArgs,
+                typeArgs: typeArgs.IsDefault ? default(ImmutableArray<TypeSymbolWithAnnotations>) : typeArgs.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations),
                 allowFieldsAndProperties: false,
                 allowUnexpandedForm: allowUnexpandedForm);
         }
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundHoistedFieldAccess HoistedField(FieldSymbol field)
         {
-            return new BoundHoistedFieldAccess(Syntax, field, field.Type);
+            return new BoundHoistedFieldAccess(Syntax, field, field.Type.TypeSymbol);
         }
 
         public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false)
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundThisReference This()
         {
             Debug.Assert((object)CurrentMethod != null && !CurrentMethod.IsStatic);
-            return new BoundThisReference(Syntax, CurrentMethod.ThisParameter.Type) { WasCompilerGenerated = true };
+            return new BoundThisReference(Syntax, CurrentMethod.ThisParameter.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
         public BoundExpression This(LocalSymbol thisTempOpt)
@@ -248,17 +248,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBaseReference Base()
         {
             Debug.Assert((object)CurrentMethod != null && !CurrentMethod.IsStatic);
-            return new BoundBaseReference(Syntax, CurrentMethod.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
+            return new BoundBaseReference(Syntax, CurrentMethod.ThisParameter.Type.TypeSymbol.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
         }
 
         public BoundParameter Parameter(ParameterSymbol p)
         {
-            return new BoundParameter(Syntax, p, p.Type) { WasCompilerGenerated = true };
+            return new BoundParameter(Syntax, p, p.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
         public BoundFieldAccess Field(BoundExpression receiver, FieldSymbol f)
         {
-            return new BoundFieldAccess(Syntax, receiver, f, ConstantValue.NotAvailable, LookupResultKind.Viable, f.Type) { WasCompilerGenerated = true };
+            return new BoundFieldAccess(Syntax, receiver, f, ConstantValue.NotAvailable, LookupResultKind.Viable, f.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Property(WellKnownMember member)
@@ -422,12 +422,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If necessary, add a conversion on the return expression.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var conversion = Compilation.Conversions.ClassifyConversion(expression.Type, CurrentMethod.ReturnType, ref useSiteDiagnostics);
+                var conversion = Compilation.Conversions.ClassifyConversion(expression.Type, CurrentMethod.ReturnType.TypeSymbol, ref useSiteDiagnostics);
                 Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
                 if (conversion.Kind != ConversionKind.Identity)
                 {
-                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, false, ConstantValue.NotAvailable, CurrentMethod.ReturnType);
+                    expression = BoundConversion.Synthesized(Syntax, expression, conversion, false, false, ConstantValue.NotAvailable, CurrentMethod.ReturnType.TypeSymbol);
                 }
             }
 
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             [CallerLineNumber]int createdAtLineNumber = 0,
             [CallerFilePath]string createdAtFilePath = null)
         {
-            return new SynthesizedLocal(CurrentMethod, type, kind, syntax, isPinned, refKind, createdAtLineNumber, createdAtFilePath);
+            return new SynthesizedLocal(CurrentMethod, TypeSymbolWithAnnotations.Create(type), kind, syntax, isPinned, refKind, createdAtLineNumber, createdAtFilePath);
         }
 #else
         public LocalSymbol SynthesizedLocal(
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
-                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType)
+                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType.TypeSymbol)
             { WasCompilerGenerated = true };
         }
 
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLocal Local(LocalSymbol local)
         {
-            return new BoundLocal(Syntax, local, null, local.Type) { WasCompilerGenerated = true };
+            return new BoundLocal(Syntax, local, null, local.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Sequence(LocalSymbol temp, params BoundExpression[] parts)
@@ -838,13 +838,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundArrayAccess ArrayAccess(BoundExpression array, ImmutableArray<BoundExpression> indices)
         {
             Debug.Assert((object)array.Type != null && array.Type.IsArray());
-            return new BoundArrayAccess(Syntax, array, indices, ((ArrayTypeSymbol)array.Type).ElementType);
+            return new BoundArrayAccess(Syntax, array, indices, ((ArrayTypeSymbol)array.Type).ElementType.TypeSymbol);
         }
 
         public BoundStatement BaseInitialization()
         {
             // TODO: add diagnostics for when things fall apart
-            var ctor = CurrentMethod.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(c => c.ParameterCount == 0);
+            var ctor = CurrentMethod.ThisParameter.Type.TypeSymbol.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(c => c.ParameterCount == 0);
             return new BoundExpressionStatement(Syntax, Call(Base(), ctor)) { WasCompilerGenerated = true };
         }
 
@@ -982,9 +982,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // NOTE: We can see user-defined conversions at this point because there are places in the bound tree where
             // the binder stashes Conversion objects for later consumption (e.g. foreach, nullable, increment).
-            if ((object)conversion.Method != null && conversion.Method.Parameters[0].Type != arg.Type)
+            if ((object)conversion.Method != null && conversion.Method.Parameters[0].Type.TypeSymbol != arg.Type)
             {
-                arg = Convert(conversion.Method.Parameters[0].Type, arg);
+                arg = Convert(conversion.Method.Parameters[0].Type.TypeSymbol, arg);
             }
 
             return new BoundConversion(Syntax, arg, conversion, isChecked, true, null, type) { WasCompilerGenerated = true };
@@ -1096,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 new SynthesizedLocal(
                     containingMethod,
-                    type,
+                    TypeSymbolWithAnnotations.Create(type),
                     kind,
 #if DEBUG
                     createdAtLineNumber: callerLineNumber,

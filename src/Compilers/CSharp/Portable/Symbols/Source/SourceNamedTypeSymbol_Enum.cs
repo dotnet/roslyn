@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var typeSyntax = types[0].Type;
 
                     var baseBinder = compilation.GetBinder(bases);
-                    var type = baseBinder.BindType(typeSyntax, diagnostics);
+                    var type = baseBinder.BindType(typeSyntax, diagnostics).TypeSymbol;
 
                     // Error types are not exposed to the caller. In those
                     // cases, the underlying type is treated as int.

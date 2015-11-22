@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var nt = (NamedTypeSymbol)destination;
                 if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
-                    HasImplicitConstantExpressionConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0]))
+                    HasImplicitConstantExpressionConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol))
                 {
                     return ConversionKind.ImplicitNullable;
                 }
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
                         if (delegateParameters[p].RefKind != anonymousFunction.RefKind(p) ||
-                            !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                            !delegateParameters[p].Type.TypeSymbol.Equals(anonymousFunction.ParameterType(p).TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
                         }
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This appears to be a spec omission; the intention is to make old-style anonymous methods not 
             // convertible to expression trees.
 
-            var delegateType = type.TypeArgumentsNoUseSiteDiagnostics[0];
+            var delegateType = type.TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
             if (!delegateType.IsDelegateType())
             {
                 return LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument;
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ErrorCode.ERR_ValueTypeExtDelegate,
                                     expr.Syntax.Location,
                                     method,
-                                    thisParameter.Type);
+                                    thisParameter.Type.TypeSymbol);
                                 hasErrors = true;
                             }
                         }
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If we don't have System.Object, then we'll get an error type, which will cause overload resolution to fail, 
                     // which will cause some error to be reported.  That's sufficient (i.e. no need to specifically report its absence here).
                     parameter = new SignatureOnlyParameterSymbol(
-                        compilation.GetSpecialType(SpecialType.System_Object), parameter.CustomModifiers, parameter.IsParams, parameter.RefKind);
+                        TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), parameter.Type.CustomModifiers), parameter.IsParams, parameter.RefKind);
                 }
 
                 analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });

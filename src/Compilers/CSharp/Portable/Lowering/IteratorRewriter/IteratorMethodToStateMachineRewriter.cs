@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var stateLocal = F.SynthesizedLocal(stateField.Type);
+                var stateLocal = F.SynthesizedLocal(stateField.Type.TypeSymbol);
                 var state = F.Local(stateLocal);
 
                 var disposeBody = F.Block(

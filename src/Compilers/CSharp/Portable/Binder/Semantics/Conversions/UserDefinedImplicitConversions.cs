@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     TypeSymbol convertsFrom = op.ParameterTypes[0];
-                    TypeSymbol convertsTo = op.ReturnType;
+                    TypeSymbol convertsTo = op.ReturnType.TypeSymbol;
                     Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
                     Conversion toConversion = allowAnyTarget ? Conversion.Identity :
                         EncompassingImplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 count += 1;
             }
 
-            if (conv.ToType != conv.Operator.ReturnType)
+            if (conv.ToType != conv.Operator.ReturnType.TypeSymbol)
             {
                 count += 1;
             }

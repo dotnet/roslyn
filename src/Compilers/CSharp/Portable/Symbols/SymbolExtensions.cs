@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns a constructed named type symbol if 'type' is generic, otherwise just returns 'type'
         /// </summary>
-        public static NamedTypeSymbol ConstructIfGeneric(this NamedTypeSymbol type, ImmutableArray<TypeWithModifiers> typeArguments)
+        public static NamedTypeSymbol ConstructIfGeneric(this NamedTypeSymbol type, ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
         {
             Debug.Assert(type.TypeParameters.IsEmpty == (typeArguments.Length == 0));
             return type.TypeParameters.IsEmpty ? type : type.Construct(typeArguments, unbound:false);
@@ -44,6 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool Any<T>(this ImmutableArray<T> array, SymbolKind kind)
             where T : Symbol
+        {
+            for (int i = 0, n = array.Length; i < n; i++)
+            {
+                var item = array[i];
+                if ((object)item != null && item.Kind == kind)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool Any(this ImmutableArray<TypeSymbolWithAnnotations> array, SymbolKind kind)
         {
             for (int i = 0, n = array.Length; i < n; i++)
             {
@@ -89,6 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
+        }
+
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbolWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
         }

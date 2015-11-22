@@ -2071,16 +2071,16 @@ class C<T>
             var methodData = testData.GetMethodData("<>x<T>.<>c.<<>m0>b__0_0");
             var method = (MethodSymbol)methodData.Method;
             var containingType = method.ContainingType;
-            var returnType = (NamedTypeSymbol)method.ReturnType;
+            var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
             // Return type E<T> with type argument T from <>c<T>.
-            Assert.Equal(returnType.TypeArguments[0].ContainingSymbol, containingType.ContainingType);
+            Assert.Equal(returnType.TypeArguments[0].TypeSymbol.ContainingSymbol, containingType.ContainingType);
             var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
             Assert.Equal(1, locals.Length);
             // All locals of type E<T> with type argument T from <>c<T>.
             foreach (var local in locals)
             {
                 var localType = (NamedTypeSymbol)local.Type;
-                var typeArg = localType.TypeArguments[0];
+                var typeArg = localType.TypeArguments[0].TypeSymbol;
                 Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
             }
 
@@ -2145,7 +2145,7 @@ class C<T>
             var method = (MethodSymbol)methodData.Method;
             var returnType = method.ReturnType;
             Assert.Equal(returnType.TypeKind, TypeKind.TypeParameter);
-            Assert.Equal(returnType.ContainingSymbol, method);
+            Assert.Equal(returnType.TypeSymbol.ContainingSymbol, method);
 
             var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
             // The original local of type T from <>m0<T>.
@@ -5676,7 +5676,7 @@ public class Source
             var methodData = testData.GetMethodData("<>x.<>m0");
 
             // Even though the method's return type has a use-site warning, we are able to evaluate the expression.
-            Assert.Equal(ErrorCode.WRN_UnifyReferenceMajMin, (ErrorCode)((MethodSymbol)methodData.Method).ReturnType.GetUseSiteDiagnostic().Code);
+            Assert.Equal(ErrorCode.WRN_UnifyReferenceMajMin, (ErrorCode)((MethodSymbol)methodData.Method).ReturnType.TypeSymbol.GetUseSiteDiagnostic().Code);
             methodData.VerifyIL(@"
 {
   // Code size        6 (0x6)

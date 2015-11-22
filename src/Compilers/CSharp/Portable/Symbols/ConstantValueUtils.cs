@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var boundValue = BindFieldOrEnumInitializer(inProgressBinder, symbol, equalsValueNode, diagnostics);
             var initValueNodeLocation = equalsValueNode.Value.Location;
 
-            var value = GetAndValidateConstantValue(boundValue, symbol, symbol.Type, initValueNodeLocation, diagnostics);
+            var value = GetAndValidateConstantValue(boundValue, symbol, symbol.Type.TypeSymbol, initValueNodeLocation, diagnostics);
             Debug.Assert(value != null);
 
             return value;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return collisionDetector.BindVariableOrAutoPropInitializer(initializer, fieldSymbol.Type, diagnostics);
+                return collisionDetector.BindVariableOrAutoPropInitializer(initializer, fieldSymbol.Type.TypeSymbol, diagnostics);
             }
         }
 

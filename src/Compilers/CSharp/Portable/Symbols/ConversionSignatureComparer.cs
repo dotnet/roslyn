@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return member1.ReturnType.Equals(member2.ReturnType, ignoreDynamic: true)
+            return member1.ReturnType.TypeSymbol.Equals(member2.ReturnType.TypeSymbol, ignoreDynamic: true)
                 && member1.ParameterTypes[0].Equals(member2.ParameterTypes[0], ignoreDynamic: true);
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             int hash = 1;
-            hash = Hash.Combine(member.ReturnType.GetHashCode(), hash);
+            hash = Hash.Combine(member.ReturnType.TypeSymbol.GetHashCode(), hash);
             if (member.ParameterCount != 1)
             {
                 return hash;

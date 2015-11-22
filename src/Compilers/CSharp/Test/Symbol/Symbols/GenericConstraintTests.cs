@@ -4680,22 +4680,22 @@ abstract class E : D, IB
                 Assert.Equal("IA<A<T1>.B<object>>", typeParameter.ConstraintTypes[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 0);
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveInterfacesNoUseSiteDiagnostics[0], 1);
-                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0], 1);
+                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0].TypeSymbol, 1);
                 typeParameter = method.TypeParameters[1];
                 Assert.Equal("A<T2[]>.B<T1>", typeParameter.ConstraintTypes[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 2);
-                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0], 2);
+                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0].TypeSymbol, 2);
 
                 method = type.GetMethod("IB.M2");
                 typeParameter = method.TypeParameters[0];
                 Assert.Equal("IA<A<X>.B<object>>", typeParameter.ConstraintTypes[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 0);
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveInterfacesNoUseSiteDiagnostics[0], 1);
-                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0], 1);
+                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0].TypeSymbol, 1);
                 typeParameter = method.TypeParameters[1];
                 Assert.Equal("A<Y[]>.B<X>", typeParameter.ConstraintTypes[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 2);
-                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0], 2);
+                CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0].TypeSymbol, 2);
             };
             CompileAndVerify(
                 source: source,
@@ -5548,7 +5548,7 @@ End Module",
             Assert.Equal(typeParameter.Interfaces.Length, 0);
             Utils.CheckSymbol(typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, effectiveBaseClassDescription);
             Utils.CheckSymbol(typeParameter.DeducedBaseTypeNoUseSiteDiagnostics, deducedBaseTypeDescription);
-            Utils.CheckSymbols(typeParameter.ConstraintTypes, constraintTypeDescriptions);
+            Utils.CheckSymbols(typeParameter.ConstraintTypes.SelectAsArray(c => c.TypeSymbol), constraintTypeDescriptions);
         }
 
         [WorkItem(545327, "DevDiv")]

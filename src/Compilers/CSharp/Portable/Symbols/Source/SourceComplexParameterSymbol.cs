@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceComplexParameterSymbol(
             Symbol owner,
             int ordinal,
-            TypeSymbol parameterType,
+            TypeSymbolWithAnnotations parameterType,
             RefKind refKind,
             string name,
             ImmutableArray<Location> locations,
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             BoundExpression valueBeforeConversion;
-            var convertedExpression = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax).BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
+            var convertedExpression = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax).BindParameterDefaultValue(defaultSyntax, parameterType.TypeSymbol, diagnostics, out valueBeforeConversion);
 
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)
@@ -252,9 +252,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion)
             {
-                if (parameterType.IsNullableType())
+                if (parameterType.TypeSymbol.IsNullableType())
                 {
-                    convertedExpression = binder.GenerateConversionForAssignment(parameterType.GetNullableUnderlyingType(),
+                    convertedExpression = binder.GenerateConversionForAssignment(parameterType.TypeSymbol.GetNullableUnderlyingType(),
                         valueBeforeConversion, diagnostics, isDefaultParameter: true);
                 }
             }
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ConstantValue.Bad;
                 }
             }
-            else if (!compilation.Conversions.ClassifyConversion((TypeSymbol)arg.Type, this.Type, ref useSiteDiagnostics).Kind.IsImplicitConversion())
+            else if (!compilation.Conversions.ClassifyConversion((TypeSymbol)arg.Type, this.Type.TypeSymbol, ref useSiteDiagnostics).Kind.IsImplicitConversion())
             {
                 // error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 if (diagnose)
@@ -807,11 +807,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (!compilation.Conversions.HasCallerLineNumberConversion(Type, ref useSiteDiagnostics))
+            else if (!compilation.Conversions.HasCallerLineNumberConversion(Type.TypeSymbol, ref useSiteDiagnostics))
             {
                 // CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol intType = compilation.GetSpecialType(SpecialType.System_Int32);
-                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerLineNumberParam, node.Name.Location, intType, Type);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerLineNumberParam, node.Name.Location, intType, Type.TypeSymbol);
             }
             else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
             {
@@ -835,11 +835,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type, ref useSiteDiagnostics))
+            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type.TypeSymbol, ref useSiteDiagnostics))
             {
                 // CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
-                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerFilePathParam, node.Name.Location, stringType, Type);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerFilePathParam, node.Name.Location, stringType, Type.TypeSymbol);
             }
             else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
             {
@@ -868,11 +868,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type, ref useSiteDiagnostics))
+            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type.TypeSymbol, ref useSiteDiagnostics))
             {
                 // CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
-                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerMemberNameParam, node.Name.Location, stringType, Type);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerMemberNameParam, node.Name.Location, stringType, Type.TypeSymbol);
             }
             else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
             {
@@ -1027,22 +1027,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
-
-        internal override ushort CountOfCustomModifiersPrecedingByRef
-        {
-            get
-            {
-                return 0;
-            }
-        }
-
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
             base.ForceComplete(locationOpt, cancellationToken);
@@ -1052,17 +1036,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class SourceComplexParameterSymbolWithCustomModifiers : SourceComplexParameterSymbol
+    internal sealed class SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef : SourceComplexParameterSymbol
     {
-        private readonly ImmutableArray<CustomModifier> _customModifiers;
         private readonly ushort _countOfCustomModifiersPrecedingByRef;
 
-        internal SourceComplexParameterSymbolWithCustomModifiers(
+        internal SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
             Symbol owner,
             int ordinal,
-            TypeSymbol parameterType,
+            TypeSymbolWithAnnotations parameterType,
             RefKind refKind,
-            ImmutableArray<CustomModifier> customModifiers,
             ushort countOfCustomModifiersPrecedingByRef,
             string name,
             ImmutableArray<Location> locations,
@@ -1072,21 +1054,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExtensionMethodThis)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
         {
-            Debug.Assert(!customModifiers.IsDefaultOrEmpty);
-
-            _customModifiers = customModifiers;
             _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
 
-            Debug.Assert(refKind != RefKind.None || _countOfCustomModifiersPrecedingByRef == 0);
-            Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length);
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return _customModifiers;
-            }
+            Debug.Assert(refKind != RefKind.None);
+            Debug.Assert(_countOfCustomModifiersPrecedingByRef > 0);
+            Debug.Assert(_countOfCustomModifiersPrecedingByRef <= parameterType.CustomModifiers.Length);
         }
 
         internal override ushort CountOfCustomModifiersPrecedingByRef

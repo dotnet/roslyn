@@ -2025,14 +2025,14 @@ public class D : B, I
 
             var derivedType = global.GetMember<SourceNamedTypeSymbol>("D");
 
-            var byRefType = (ByRefReturnErrorTypeSymbol)interfaceMethod.ReturnType;
+            var byRefType = (ByRefReturnErrorTypeSymbol)interfaceMethod.ReturnType.TypeSymbol;
 
             // General characteristics of type:
             Assert.NotEqual(byRefType, byRefType.ReferencedType);
             Assert.NotEqual(byRefType.GetHashCode(), byRefType.ReferencedType.GetHashCode());
 
             // Interface implementation:
-            Assert.Equal(byRefType, interfaceMethod.ReturnType);
+            Assert.Equal(byRefType, interfaceMethod.ReturnType.TypeSymbol);
             Assert.Equal(baseMethod, derivedType.FindImplementationForInterfaceMember(interfaceMethod));
 
             var synthesized = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();

@@ -153,25 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (object)Constructor == null; }
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
-            get { return StaticCast<TypeSymbol>.From(TypeParameters); }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
-            }
+            get { return TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
         }
 
         public override ImmutableArray<Symbol> GetMembers()

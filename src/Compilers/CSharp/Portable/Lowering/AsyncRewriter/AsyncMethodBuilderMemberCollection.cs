@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.IsGenericTaskReturningAsync(F.Compilation))
             {
-                TypeSymbol resultType = method.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
+                TypeSymbol resultType = method.ReturnType.TypeSymbol.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
 
                 if (resultType.IsDynamic())
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (typeMap != null)
                 {
-                    resultType = typeMap.SubstituteType(resultType).Type;
+                    resultType = typeMap.SubstituteType(resultType).TypeSymbol;
                 }
 
                 NamedTypeSymbol builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T).Construct(resultType);

@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return SymbolName; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
-            get { return _containingType; }
+            get { return TypeSymbolWithAnnotations.Create(_containingType); }
         }
 
         public override RefKind RefKind
@@ -105,11 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int Ordinal
         {
             get { return -1; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         // TODO: structs

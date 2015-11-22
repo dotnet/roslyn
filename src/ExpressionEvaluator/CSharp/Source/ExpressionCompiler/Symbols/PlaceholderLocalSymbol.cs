@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly MethodSymbol _method;
         private readonly string _name;
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
 
         internal readonly string DisplayName;
 
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             _method = method;
             _name = name;
-            _type = type;
+            _type = TypeSymbolWithAnnotations.Create(type);
 
             this.DisplayName = displayName;
         }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _type; }
         }

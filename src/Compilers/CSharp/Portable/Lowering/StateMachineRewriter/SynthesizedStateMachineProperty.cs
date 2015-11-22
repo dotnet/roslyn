@@ -33,14 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _name; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _getter.ReturnType; }
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get { return _getter.ReturnTypeCustomModifiers; }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters

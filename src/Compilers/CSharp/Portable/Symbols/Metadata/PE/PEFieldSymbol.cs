@@ -27,14 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PENamedTypeSymbol _containingType;
         private bool _lazyIsVolatile;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
         private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset; // Indicates an uninitialized ConstantValue
         private Tuple<CultureInfo, string> _lazyDocComment;
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations _lazyType;
         private int _lazyFixedSize;
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
@@ -220,11 +219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     _lazyFixedSize = fixedSize;
                     _lazyFixedImplementationType = type as NamedTypeSymbol;
-                    type = new PointerTypeSymbol(fixedElementType);
+                    type = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(fixedElementType));
                 }
 
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCustomModifiers, customModifiersArray, default(ImmutableArray<CustomModifier>));
-                Interlocked.CompareExchange(ref _lazyType, type, null);
+                Interlocked.CompareExchange(ref _lazyType, TypeSymbolWithAnnotations.Create(type, customModifiersArray), null);
             }
         }
 
@@ -259,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             EnsureSignatureIsLoaded();
             return _lazyType;
@@ -287,15 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             EnsureSignatureIsLoaded();
             return _lazyFixedImplementationType;
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                EnsureSignatureIsLoaded();
-                return _lazyCustomModifiers;
-            }
         }
 
         public override Symbol AssociatedSymbol

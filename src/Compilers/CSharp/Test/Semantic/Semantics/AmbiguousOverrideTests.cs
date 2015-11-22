@@ -880,7 +880,7 @@ public class Derived : Base
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
 
-            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
+            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.TypeSymbol.CustomModifierCount() == c;
 
             var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
             var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
@@ -963,7 +963,7 @@ public class Derived : Base
                 //     public override event System.Action<int[]> E;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("Derived.E", "Base.E", "System.Action<char[]>"));
 
-            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
+            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.TypeSymbol.CustomModifierCount() == c;
 
             var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
             var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string FactoryName = "<Factory>";
 
         private readonly NamedTypeSymbol _containingType;
-        private readonly TypeSymbol _returnType;
+        private readonly TypeSymbolWithAnnotations _returnType;
 
         internal static SynthesizedEntryPointSymbol Create(SynthesizedInteractiveInitializerMethod initializerMethod, DiagnosticBag diagnostics)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var taskType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
 #if DEBUG
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Debug.Assert(taskType.IsErrorType() || initializerMethod.ReturnType.IsDerivedFrom(taskType, ignoreDynamic: true, useSiteDiagnostics: ref useSiteDiagnostics));
+                Debug.Assert(taskType.IsErrorType() || initializerMethod.ReturnType.TypeSymbol.IsDerivedFrom(taskType, ignoreDynamic: true, useSiteDiagnostics: ref useSiteDiagnostics));
 #endif
                 ReportUseSiteDiagnostics(taskType, diagnostics);
                 var getAwaiterMethod = taskType.IsErrorType() ?
@@ -45,16 +45,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     GetRequiredMethod(taskType, WellKnownMemberNames.GetAwaiter, diagnostics);
                 var getResultMethod = ((object)getAwaiterMethod == null) ?
                     null :
-                    GetRequiredMethod(getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnostics);
+                    GetRequiredMethod(getAwaiterMethod.ReturnType.TypeSymbol, WellKnownMemberNames.GetResult, diagnostics);
                 return new ScriptEntryPoint(
                     containingType,
-                    compilation.GetSpecialType(SpecialType.System_Void),
+                    TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Void)),
                     getAwaiterMethod,
                     getResultMethod);
             }
         }
 
-        private SynthesizedEntryPointSymbol(NamedTypeSymbol containingType, TypeSymbol returnType)
+        private SynthesizedEntryPointSymbol(NamedTypeSymbol containingType, TypeSymbolWithAnnotations returnType)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)returnType != null);
@@ -123,19 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get { return _returnType; }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return ImmutableArray<CustomModifier>.Empty; }
-        }
-
-        public override ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
         }
 
         public override Symbol AssociatedSymbol
@@ -315,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 resultKind: LookupResultKind.Viable,
-                type: method.ReturnType)
+                type: method.ReturnType.TypeSymbol)
             { WasCompilerGenerated = true };
         }
 
@@ -324,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly MethodSymbol _getAwaiterMethod;
             private readonly MethodSymbol _getResultMethod;
 
-            internal ScriptEntryPoint(NamedTypeSymbol containingType, TypeSymbol returnType, MethodSymbol getAwaiterMethod, MethodSymbol getResultMethod) :
+            internal ScriptEntryPoint(NamedTypeSymbol containingType, TypeSymbolWithAnnotations returnType, MethodSymbol getAwaiterMethod, MethodSymbol getResultMethod) :
                 base(containingType, returnType)
             {
                 Debug.Assert(containingType.IsScriptClass);
@@ -365,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var scriptLocal = new BoundLocal(
                     syntax,
-                    new SynthesizedLocal(this, _containingType, SynthesizedLocalKind.LoweringTemp),
+                    new SynthesizedLocal(this, TypeSymbolWithAnnotations.Create(_containingType), SynthesizedLocalKind.LoweringTemp),
                     null,
                     _containingType)
                 { WasCompilerGenerated = true };
@@ -414,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-            internal SubmissionEntryPoint(NamedTypeSymbol containingType, TypeSymbol returnType, TypeSymbol submissionArrayType) :
+            internal SubmissionEntryPoint(NamedTypeSymbol containingType, TypeSymbolWithAnnotations returnType, TypeSymbol submissionArrayType) :
                 base(containingType, returnType)
             {
                 Debug.Assert(containingType.IsSubmissionClass);
@@ -450,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var submissionArrayParameter = new BoundParameter(syntax, _parameters[0]) { WasCompilerGenerated = true };
                 var submissionLocal = new BoundLocal(
                     syntax,
-                    new SynthesizedLocal(this, _containingType, SynthesizedLocalKind.LoweringTemp),
+                    new SynthesizedLocal(this, TypeSymbolWithAnnotations.Create(_containingType), SynthesizedLocalKind.LoweringTemp),
                     null,
                     _containingType)
                 { WasCompilerGenerated = true };
@@ -482,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax,
                     submissionLocal,
                     initializer);
-                Debug.Assert(initializeResult.Type == _returnType);
+                Debug.Assert(initializeResult.Type == _returnType.TypeSymbol);
                 var returnStatement = new BoundReturnStatement(
                     syntax,
                     initializeResult)

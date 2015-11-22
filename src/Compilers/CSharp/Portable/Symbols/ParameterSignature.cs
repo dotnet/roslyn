@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int parm = 0; parm < parameters.Length; ++parm)
             {
                 var parameter = parameters[parm];
-                types.Add(parameter.Type);
+                types.Add(parameter.Type.TypeSymbol);
 
                 var refKind = parameter.RefKind;
                 if (refs == null)

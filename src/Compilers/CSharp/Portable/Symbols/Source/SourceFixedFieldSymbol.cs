@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
             var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type).PointedAtType);
+            var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type.TypeSymbol).PointedAtType.TypeSymbol);
             var item2 = new TypedConstant(intType, TypedConstantKind.Primitive, this.FixedSize);
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_FixedBufferAttribute__ctor,
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     size = int32Value;
 
-                                    TypeSymbol elementType = ((PointerTypeSymbol)this.Type).PointedAtType;
+                                    TypeSymbol elementType = ((PointerTypeSymbol)this.Type.TypeSymbol).PointedAtType.TypeSymbol;
                                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                                     long totalSize = elementSize * 1L * int32Value;
                                     if (totalSize > int.MaxValue)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _field = field;
             _constructor = new SynthesizedInstanceConstructor(this);
-            _internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type).PointedAtType, FixedElementFieldName, isPublic: true);
+            _internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type.TypeSymbol).PointedAtType.TypeSymbol, FixedElementFieldName, isPublic: true);
         }
 
         public override Symbol ContainingSymbol
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 int nElements = _field.FixedSize;
-                var elementType = ((PointerTypeSymbol)_field.Type).PointedAtType;
+                var elementType = ((PointerTypeSymbol)_field.Type.TypeSymbol).PointedAtType.TypeSymbol;
                 int elementSize = elementType.FixedBufferElementSizeInBytes();
                 const int alignment = 0;
                 int totalSize = nElements * elementSize;

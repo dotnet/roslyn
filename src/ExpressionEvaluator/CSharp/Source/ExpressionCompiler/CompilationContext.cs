@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
                                 var aliasMethod = this.CreateMethod(container, methodName, syntax, (method, diags) =>
                                 {
-                                    var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
+                                    var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type.TypeSymbol);
                                     return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
                                 });
                                 var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return this.CreateMethod(container, methodName, syntax, (method, diagnostics) =>
             {
                 var local = method.LocalsForBinding[localIndex];
-                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
+                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type.TypeSymbol);
                 return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
             });
         }
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     continue;
                 }
                 var field = (FieldSymbol)member;
-                var fieldType = field.Type;
+                var fieldType = field.Type.TypeSymbol;
                 var fieldKind = GeneratedNames.GetKind(field.Name);
                 if (fieldKind == GeneratedNameKind.DisplayClassLocalOrField ||
                     fieldKind == GeneratedNameKind.TransparentIdentifier ||
@@ -1564,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal NamedTypeSymbol Type
             {
-                get { return this.Fields.Any() ? (NamedTypeSymbol)this.Fields.Head.Type : this.Instance.Type; }
+                get { return this.Fields.Any() ? (NamedTypeSymbol)this.Fields.Head.Type.TypeSymbol : this.Instance.Type; }
             }
 
             internal int Depth
@@ -1574,8 +1574,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             internal DisplayClassInstanceAndFields FromField(FieldSymbol field)
             {
-                Debug.Assert(IsDisplayClassType((NamedTypeSymbol)field.Type) ||
-                    GeneratedNames.GetKind(field.Type.Name) == GeneratedNameKind.AnonymousType);
+                Debug.Assert(IsDisplayClassType((NamedTypeSymbol)field.Type.TypeSymbol) ||
+                    GeneratedNames.GetKind(field.Type.TypeSymbol.Name) == GeneratedNameKind.AnonymousType);
                 return new DisplayClassInstanceAndFields(this.Instance, this.Fields.Prepend(field));
             }
 

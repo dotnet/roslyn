@@ -201,10 +201,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
 
                 case SymbolKind.ArrayType:
-                    return IsOrClosedOverATypeFromAssemblies(((ArrayTypeSymbol)symbol).ElementType, assemblies);
+                    return IsOrClosedOverATypeFromAssemblies(((ArrayTypeSymbol)symbol).ElementType.TypeSymbol, assemblies);
 
                 case SymbolKind.PointerType:
-                    return IsOrClosedOverATypeFromAssemblies(((PointerTypeSymbol)symbol).PointedAtType, assemblies);
+                    return IsOrClosedOverATypeFromAssemblies(((PointerTypeSymbol)symbol).PointedAtType.TypeSymbol, assemblies);
 
                 case SymbolKind.DynamicType:
                     return false;
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         for (i = 0; i < count; i++)
                         {
-                            if (IsOrClosedOverATypeFromAssemblies(arguments[i], assemblies))
+                            if (IsOrClosedOverATypeFromAssemblies(arguments[i].TypeSymbol, assemblies))
                             {
                                 return true;
                             }

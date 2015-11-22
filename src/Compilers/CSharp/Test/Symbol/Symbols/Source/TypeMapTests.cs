@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var nts = t as NamedTypeSymbol;
             Assert.NotEqual(null, nts);
             Assert.Equal(1, nts.Arity);
-            return nts.TypeArguments[0];
+            return nts.TypeArguments[0].TypeSymbol;
         }
 
         [Fact]
@@ -89,7 +89,7 @@ public class Top : A<E> { // base is A<E>
             Assert.True(type.IsDefinition);
             var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             type.GetAllTypeParameters(allTypeParameters);
-            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers)).SubstituteNamedType(type);
+            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).SubstituteNamedType(type);
         }
 
         [Fact]
@@ -108,7 +108,7 @@ class C
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
             var field = c.GetMembers("field").Single() as FieldSymbol;
-            var neti = field.Type as NamedTypeSymbol;
+            var neti = field.Type.TypeSymbol as NamedTypeSymbol;
             Assert.Equal(SpecialType.System_Int32, neti.TypeArguments[0].SpecialType);
         }
 

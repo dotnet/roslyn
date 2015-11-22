@@ -98,25 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
             {
-                get { return ImmutableArray<TypeSymbol>.Empty; }
-            }
-
-            internal override bool HasTypeArgumentsCustomModifiers
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-            {
-                get
-                {
-                    return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
-                }
+                get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
             }
 
             public override ImmutableArray<Symbol> GetMembers(string name)

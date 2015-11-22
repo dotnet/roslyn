@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitArrayInitializers(ArrayTypeSymbol arrayType, BoundArrayInitialization inits)
         {
             var initExprs = inits.Initializers;
-            var initializationStyle = ShouldEmitBlockInitializer(arrayType.ElementType, initExprs);
+            var initializationStyle = ShouldEmitBlockInitializer(arrayType.ElementType.TypeSymbol, initExprs);
 
             if (initializationStyle == ArrayInitializerStyle.Element)
             {

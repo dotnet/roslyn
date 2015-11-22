@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!local.SynthesizedKind.IsSlotReusable(F.Compilation.Options.OptimizationLevel))
                     {
                         // variable needs to be hoisted
-                        var fieldType = typeMap.SubstituteType(local.Type).Type;
+                        var fieldType = typeMap.SubstituteType(local.Type.TypeSymbol).TypeSymbol;
 
                         LocalDebugId id;
                         int slotIndex = -1;
@@ -217,12 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The field needs to be public iff it is initialized directly from the kickoff method 
                         // (i.e. not for IEnumerable which loads the values from parameter proxies).
-                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, isPublic: !PreserveInitialParameterValues);
+                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type.TypeSymbol).TypeSymbol, parameter.Name, isPublic: !PreserveInitialParameterValues);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
                         {
-                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
+                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type.TypeSymbol).TypeSymbol, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(field, isReusable: false));
                         }
                     }
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CurrentMethod = method;
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            var frameType = method.IsGenericMethod ? stateMachineType.Construct(method.TypeArguments) : stateMachineType;
+            var frameType = method.IsGenericMethod ? stateMachineType.Construct(method.TypeArguments, unbound: false) : stateMachineType;
             LocalSymbol stateMachineVariable = F.SynthesizedLocal(frameType, null);
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable);
 

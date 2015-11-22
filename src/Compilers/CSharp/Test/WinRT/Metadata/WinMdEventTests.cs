@@ -3254,10 +3254,10 @@ class C
             var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var @event = @class.GetMember<EventSymbol>("E");
             var field = @event.AssociatedField;
-            var fieldType = (NamedTypeSymbol)field.Type;
+            var fieldType = (NamedTypeSymbol)field.Type.TypeSymbol;
             Assert.Equal(TypeKind.Error, fieldType.TypeKind);
             Assert.Equal("EventRegistrationTokenTable", fieldType.Name);
-            Assert.Equal(@event.Type, fieldType.TypeArguments.Single());
+            Assert.Equal(@event.Type.TypeSymbol, fieldType.TypeArguments.Single().TypeSymbol);
         }
 
         [Fact]
@@ -3488,21 +3488,21 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             Assert.NotNull(voidType);
 
             var addMethod = @event.AddMethod;
-            Assert.Equal(tokenType, addMethod.ReturnType);
+            Assert.Equal(tokenType, addMethod.ReturnType.TypeSymbol);
             Assert.False(addMethod.ReturnsVoid);
             Assert.Equal(1, addMethod.ParameterCount);
-            Assert.Equal(eventType, addMethod.ParameterTypes.Single());
+            Assert.Equal(eventType.TypeSymbol, addMethod.ParameterTypes.Single());
 
             var removeMethod = @event.RemoveMethod;
-            Assert.Equal(voidType, removeMethod.ReturnType);
+            Assert.Equal(voidType, removeMethod.ReturnType.TypeSymbol);
             Assert.True(removeMethod.ReturnsVoid);
             Assert.Equal(1, removeMethod.ParameterCount);
             Assert.Equal(tokenType, removeMethod.ParameterTypes.Single());
 
             if (@event.HasAssociatedField)
             {
-                var expectedFieldType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T).Construct(eventType);
-                Assert.Equal(expectedFieldType, @event.AssociatedField.Type);
+                var expectedFieldType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T).Construct(eventType.TypeSymbol);
+                Assert.Equal(expectedFieldType, @event.AssociatedField.Type.TypeSymbol);
             }
             else
             {
@@ -3514,25 +3514,25 @@ namespace System.Runtime.InteropServices.WindowsRuntime
         {
             Assert.False(@event.IsWindowsRuntimeEvent);
 
-            var eventType = @event.Type;
+            var eventType = @event.Type.TypeSymbol;
             var voidType = compilation.GetSpecialType(SpecialType.System_Void);
             Assert.NotNull(voidType);
 
             var addMethod = @event.AddMethod;
-            Assert.Equal(voidType, addMethod.ReturnType);
+            Assert.Equal(voidType, addMethod.ReturnType.TypeSymbol);
             Assert.True(addMethod.ReturnsVoid);
             Assert.Equal(1, addMethod.ParameterCount);
             Assert.Equal(eventType, addMethod.ParameterTypes.Single());
 
             var removeMethod = @event.RemoveMethod;
-            Assert.Equal(voidType, removeMethod.ReturnType);
+            Assert.Equal(voidType, removeMethod.ReturnType.TypeSymbol);
             Assert.True(removeMethod.ReturnsVoid);
             Assert.Equal(1, removeMethod.ParameterCount);
             Assert.Equal(eventType, removeMethod.ParameterTypes.Single());
 
             if (@event.HasAssociatedField)
             {
-                Assert.Equal(eventType, @event.AssociatedField.Type);
+                Assert.Equal(eventType, @event.AssociatedField.Type.TypeSymbol);
             }
             else
             {

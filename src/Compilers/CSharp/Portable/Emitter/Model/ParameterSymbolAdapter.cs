@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.CustomModifiers.As<Cci.ICustomModifier>();
+                return this.Type.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.Type,
+            return ((PEModuleBuilder)context.Module).Translate(this.Type.TypeSymbol,
                                                       syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                       diagnostics: context.Diagnostics);
         }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 // default(struct), enum
-                type = this.Type;
+                type = this.Type.TypeSymbol;
             }
 
             return ((PEModuleBuilder)context.Module).CreateConstant(type, constant.Value,

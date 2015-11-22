@@ -216,19 +216,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
-                return _returnType;
+                return TypeSymbolWithAnnotations.Create(_returnType);
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
-                return ImmutableArray<TypeSymbol>.Empty;
+                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
             }
         }
 
@@ -253,14 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return ImmutableArray<MethodSymbol>.Empty;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 
@@ -416,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 for (int i = 0; i < _parameters.Length; i++)
                 {
-                    if (_parameters[i].Type != other._parameters[i].Type)
+                    if (_parameters[i].Type.TypeSymbol != other._parameters[i].Type.TypeSymbol)
                     {
                         return false;
                     }

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(@event.IsExtern, @accessor.IsExtern);
 
             Assert.Equal(SpecialType.System_Void, accessor.ReturnType.SpecialType);
-            Assert.Equal(@event.Type, accessor.Parameters.Single().Type);
+            Assert.Equal(@event.Type.TypeSymbol, accessor.Parameters.Single().Type.TypeSymbol);
         }
 
         [Fact]
@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var mismatchedAddEvent = @class.GetMember<EventSymbol>("AddMismatch");
             var mismatchedRemoveEvent = @class.GetMember<EventSymbol>("RemoveMismatch");
 
-            Assert.NotEqual(mismatchedAddEvent.Type, mismatchedAddEvent.AddMethod.Parameters.Single().Type);
+            Assert.NotEqual(mismatchedAddEvent.Type.TypeSymbol, mismatchedAddEvent.AddMethod.Parameters.Single().Type.TypeSymbol);
             Assert.True(mismatchedAddEvent.MustCallMethodsDirectly);
 
-            Assert.NotEqual(mismatchedRemoveEvent.Type, mismatchedRemoveEvent.RemoveMethod.Parameters.Single().Type);
+            Assert.NotEqual(mismatchedRemoveEvent.Type.TypeSymbol, mismatchedRemoveEvent.RemoveMethod.Parameters.Single().Type.TypeSymbol);
             Assert.True(mismatchedRemoveEvent.MustCallMethodsDirectly);
         }
 
@@ -525,7 +525,7 @@ public class C
             Assert.NotNull(field);
 
             Assert.Equal(@event, field.AssociatedSymbol);
-            Assert.Equal(@event.Type, field.Type);
+            Assert.Equal(@event.Type.TypeSymbol, field.Type.TypeSymbol);
         }
 
         [Fact]

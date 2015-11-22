@@ -101,14 +101,14 @@ class A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var field = a.GetMembers("Field")[0] as FieldSymbol;
-            var fieldType = field.Type as NamedTypeSymbol;
+            var fieldType = field.Type.TypeSymbol as NamedTypeSymbol;
             Assert.Equal(TypeKind.Delegate, fieldType.TypeKind);
             var invoke = fieldType.DelegateInvokeMethod;
             Assert.Equal(MethodKind.DelegateInvoke, invoke.MethodKind);
             var ctor = fieldType.InstanceConstructors[0];
             Assert.Equal(2, ctor.Parameters.Length);
-            Assert.Equal(comp.GetSpecialType(SpecialType.System_Object), ctor.Parameters[0].Type);
-            Assert.Equal(comp.GetSpecialType(SpecialType.System_IntPtr), ctor.Parameters[1].Type);
+            Assert.Equal(comp.GetSpecialType(SpecialType.System_Object), ctor.Parameters[0].Type.TypeSymbol);
+            Assert.Equal(comp.GetSpecialType(SpecialType.System_IntPtr), ctor.Parameters[1].Type.TypeSymbol);
         }
 
         [WorkItem(537188, "DevDiv")]
@@ -206,7 +206,7 @@ namespace System
             Assert.Equal("Q", d.TypeParameters[0].Name);
             var q = d.TypeParameters[0];
             Assert.Equal(q.ContainingSymbol, d);
-            Assert.Equal(d.DelegateInvokeMethod.Parameters[0].Type, q);
+            Assert.Equal(d.DelegateInvokeMethod.Parameters[0].Type.TypeSymbol, q);
 
             // same as type parameter
             Assert.Equal(1, d.TypeArguments.Length);

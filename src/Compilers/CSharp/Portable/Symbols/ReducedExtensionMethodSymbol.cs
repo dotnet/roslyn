@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MethodSymbol _reducedFrom;
         private readonly TypeMap _typeMap;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-        private readonly ImmutableArray<TypeSymbol> _typeArguments;
+        private readonly ImmutableArray<TypeSymbolWithAnnotations> _typeArguments;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var conversions = new TypeConversions(method.ContainingAssembly.CorLibrary);
-            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteDiagnostics);
+            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type.TypeSymbol, receiverType, ref useSiteDiagnostics);
             if (!conversion.Exists)
             {
                 return null;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _reducedFrom = reducedFrom;
             _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, out _typeParameters);
-            _typeArguments = _typeMap.SubstituteTypesWithoutModifiers(reducedFrom.TypeArguments);
+            _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArguments);
         }
 
         internal override MethodSymbol CallsiteReducedFromMethod
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _reducedFrom.Parameters[0].Type;
+                return _reducedFrom.Parameters[0].Type.TypeSymbol;
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get { return _typeArguments; }
         }
@@ -331,14 +331,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.IsVararg; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
-            get { return _typeMap.SubstituteType(_reducedFrom.ReturnType).Type; }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.ReturnType, _reducedFrom.ReturnTypeCustomModifiers); }
+            get { return _typeMap.SubstituteType(_reducedFrom.ReturnType); }
         }
 
         internal override int ParameterCount
@@ -444,17 +439,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return this.underlyingParameter.Ordinal - 1; }
             }
 
-            public override TypeSymbol Type
+            public override TypeSymbolWithAnnotations Type
             {
-                get { return _containingMethod._typeMap.SubstituteType(this.underlyingParameter.Type).Type; }
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get
-                {
-                    return _containingMethod._typeMap.SubstituteCustomModifiers(this.underlyingParameter.Type, this.underlyingParameter.CustomModifiers);
-                }
+                get { return _containingMethod._typeMap.SubstituteType(this.underlyingParameter.Type); }
             }
         }
     }

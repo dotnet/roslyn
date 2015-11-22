@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _referencedType; }
         }
 
-        internal override TypeWithModifiers Substitute(AbstractTypeMap typeMap)
+        internal override TypeSymbolWithAnnotations Substitute(AbstractTypeMap typeMap)
         {
-            TypeWithModifiers substitutedReferencedType = typeMap.SubstituteType(_referencedType);
+            TypeSymbolWithAnnotations substitutedReferencedType = typeMap.SubstituteType(_referencedType);
             return substitutedReferencedType.Is(_referencedType) ?
-                       new TypeWithModifiers(this) : 
-                       new TypeWithModifiers(new ByRefReturnErrorTypeSymbol(substitutedReferencedType.Type, _countOfCustomModifiersPrecedingByRef),
-                                             substitutedReferencedType.CustomModifiers);
+                       TypeSymbolWithAnnotations.Create(this) : 
+                       substitutedReferencedType.Update(new ByRefReturnErrorTypeSymbol(substitutedReferencedType.TypeSymbol, _countOfCustomModifiersPrecedingByRef),
+                                                        substitutedReferencedType.CustomModifiers);
         }
 
         internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)

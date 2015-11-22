@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             //spec only applies this to non-void methods, but it falls out of our impl anyway
             IsVarianceUnsafe(
-                method.ReturnType,
+                method.ReturnType.TypeSymbol,
                 requireOutputSafety: true,
                 requireInputSafety: false,
                 context: method,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (hasGetter || hasSetter)
             {
                 IsVarianceUnsafe(
-                    property.Type,
+                    property.Type.TypeSymbol,
                     requireOutputSafety: hasGetter,
                     requireInputSafety: hasSetter,
                     context: property,
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void CheckEventVarianceSafety(EventSymbol @event, DiagnosticBag diagnostics)
         {
             IsVarianceUnsafe(
-                @event.Type,
+                @event.Type.TypeSymbol,
                 requireOutputSafety: false,
                 requireInputSafety: true,
                 context: @event,
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (ParameterSymbol param in parameters)
             {
                 IsVarianceUnsafe(
-                    param.Type,
+                    param.Type.TypeSymbol,
                     requireOutputSafety: param.RefKind != RefKind.None,
                     requireInputSafety: true,
                     context: context,
@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
-                foreach (TypeSymbol constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                foreach (TypeSymbolWithAnnotations constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
                 {
-                    IsVarianceUnsafe(constraintType,
+                    IsVarianceUnsafe(constraintType.TypeSymbol,
                         requireOutputSafety: false,
                         requireInputSafety: true,
                         context: context,
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 case SymbolKind.ArrayType:
                     // 2) T is an array type with an output-unsafe [input-unsafe] element type
-                    return IsVarianceUnsafe(((ArrayTypeSymbol)type).ElementType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
+                    return IsVarianceUnsafe(((ArrayTypeSymbol)type).ElementType.TypeSymbol, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                     // 3) (see IsVarianceUnsafe(NamedTypeSymbol))
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = 0; i < namedType.Arity; i++)
                 {
                     TypeParameterSymbol typeParam = namedType.TypeParameters[i];
-                    TypeSymbol typeArg = namedType.TypeArgumentsNoUseSiteDiagnostics[i];
+                    TypeSymbol typeArg = namedType.TypeArgumentsNoUseSiteDiagnostics[i].TypeSymbol;
 
                     bool requireOut;
                     bool requireIn;

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitArrayType(ArrayTypeSymbol symbol, StringBuilder builder)
             {
-                Visit(symbol.ElementType, builder);
+                Visit(symbol.ElementType.TypeSymbol, builder);
 
                 // Rank-one arrays are displayed different than rectangular arrays
                 if (symbol.IsSZArray)
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.MethodKind == MethodKind.Conversion)
                 {
                     builder.Append('~');
-                    s_parameterOrReturnTypeInstance.Visit(symbol.ReturnType, builder);
+                    s_parameterOrReturnTypeInstance.Visit(symbol.ReturnType.TypeSymbol, builder);
                 }
 
                 return null;
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 builder.Append(',');
                             }
 
-                            Visit(typeArgument, builder);
+                            Visit(typeArgument.TypeSymbol, builder);
 
                             needsComma = true;
                         }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitPointerType(PointerTypeSymbol symbol, StringBuilder builder)
             {
-                Visit(symbol.PointedAtType, builder);
+                Visit(symbol.PointedAtType.TypeSymbol, builder);
                 builder.Append('*');
 
                 return null;
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(_inParameterOrReturnType);
 
-                Visit(symbol.Type, builder);
+                Visit(symbol.Type.TypeSymbol, builder);
 
                 // ref and out params are suffixed with @
                 if (symbol.RefKind != RefKind.None)

@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceDelegateMethodSymbol : SourceMethodSymbol
     {
         private ImmutableArray<ParameterSymbol> _parameters;
-        private readonly TypeSymbol _returnType;
+        private readonly TypeSymbolWithAnnotations _returnType;
 
         protected SourceDelegateMethodSymbol(
             SourceMemberContainerTypeSymbol delegateType,
-            TypeSymbol returnType,
+            TypeSymbolWithAnnotations returnType,
             DelegateDeclarationSyntax syntax,
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             Binder binder = delegateType.GetBinder(syntax.ParameterList);
-            TypeSymbol returnType = binder.BindType(syntax.ReturnType, diagnostics);
+            var returnType = binder.BindType(syntax.ReturnType, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
             var voidType = binder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (returnType.IsRestrictedType())
             {
                 // Method or delegate cannot return type '{0}'
-                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, returnType);
+                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, returnType.TypeSymbol);
             }
 
             // A delegate has the following members: (see CLI spec 13.6)
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!delegateType.IsNoMoreVisibleThan(invoke.ReturnType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than delegate '{0}'
-                diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
+                diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType.TypeSymbol);
             }
 
             foreach (var parameter in invoke.Parameters)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!parameter.Type.IsAtLeastAsVisibleAs(delegateType, ref useSiteDiagnostics))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameter.Type.TypeSymbol);
                 }
             }
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol objectType,
                 TypeSymbol intPtrType,
                 DelegateDeclarationSyntax syntax)
-                : base(delegateType, voidType, syntax, MethodKind.Constructor, DeclarationModifiers.Public)
+                : base(delegateType, TypeSymbolWithAnnotations.Create(voidType), syntax, MethodKind.Constructor, DeclarationModifiers.Public)
             {
                 InitializeParameters(ImmutableArray.Create<ParameterSymbol>(
                     new SynthesizedParameterSymbol(this, objectType, 0, RefKind.None, "object"),
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             internal InvokeMethod(
                 SourceMemberContainerTypeSymbol delegateType,
-                TypeSymbol returnType,
+                TypeSymbolWithAnnotations returnType,
                 DelegateDeclarationSyntax syntax,
                 Binder binder,
                 DiagnosticBag diagnostics)
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol objectType,
                 TypeSymbol asyncCallbackType,
                 DelegateDeclarationSyntax syntax)
-                : base((SourceNamedTypeSymbol)invoke.ContainingType, iAsyncResultType, syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
+                : base((SourceNamedTypeSymbol)invoke.ContainingType, TypeSymbolWithAnnotations.Create(iAsyncResultType), syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 foreach (SourceParameterSymbol p in invoke.Parameters)

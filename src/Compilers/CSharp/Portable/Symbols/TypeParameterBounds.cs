@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
         public TypeParameterBounds(
-            ImmutableArray<TypeSymbol> constraintTypes,
+            ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
             ImmutableArray<NamedTypeSymbol> interfaces,
             NamedTypeSymbol effectiveBaseClass,
             TypeSymbol deducedBaseType)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The type parameters, classes, and interfaces explicitly declared as
         /// constraint types on the containing type parameter, with cycles removed.
         /// </summary>
-        public readonly ImmutableArray<TypeSymbol> ConstraintTypes;
+        public readonly ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypes;
 
         /// <summary>
         /// The set of interfaces explicitly declared on the containing type

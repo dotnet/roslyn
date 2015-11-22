@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked);
                 }
 
-                TypeSymbol userDefinedConversionRewrittenType = conversion.Method.ReturnType;
+                TypeSymbol userDefinedConversionRewrittenType = conversion.Method.ReturnType.TypeSymbol;
 
                 if (rewrittenOperand.Type != conversion.Method.ParameterTypes[0])
                 {
@@ -963,9 +963,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeLiftedUserDefinedConversionConsequence(BoundCall call, TypeSymbol resultType)
         {
-            if (call.Method.ReturnType.IsNonNullableValueType())
+            if (call.Method.ReturnType.TypeSymbol.IsNonNullableValueType())
             {
-                Debug.Assert(resultType.IsNullableType() && resultType.GetNullableUnderlyingType() == call.Method.ReturnType);
+                Debug.Assert(resultType.IsNullableType() && resultType.GetNullableUnderlyingType() == call.Method.ReturnType.TypeSymbol);
                 MethodSymbol ctor = GetNullableMethod(call.Syntax, resultType, SpecialMember.System_Nullable_T__ctor);
                 return new BoundObjectCreationExpression(call.Syntax, ctor, call);
             }
@@ -1088,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             rewrittenOperand = MakeConversion(rewrittenOperand, method.ParameterTypes[0], @checked);
 
-            var returnType = method.ReturnType;
+            var returnType = method.ReturnType.TypeSymbol;
             Debug.Assert((object)returnType != null);
 
             if (_inExpressionLambda)
@@ -1292,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(method.ReturnType == toType);
+                Debug.Assert(method.ReturnType.TypeSymbol == toType);
                 return BoundCall.Synthesized(syntax, null, method, operand);
             }
         }
@@ -1305,8 +1305,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitUserDefined:
                     {
                         var meth = conversion.Method;
-                        Conversion fromConversion = MakeConversion(syntax, conversion.UserDefinedFromConversion, fromType, meth.Parameters[0].Type);
-                        Conversion toConversion = MakeConversion(syntax, conversion.UserDefinedToConversion, meth.ReturnType, toType);
+                        Conversion fromConversion = MakeConversion(syntax, conversion.UserDefinedFromConversion, fromType, meth.Parameters[0].Type.TypeSymbol);
+                        Conversion toConversion = MakeConversion(syntax, conversion.UserDefinedToConversion, meth.ReturnType.TypeSymbol, toType);
                         if (fromConversion == conversion.UserDefinedFromConversion && toConversion == conversion.UserDefinedToConversion)
                         {
                             return conversion;
@@ -1366,8 +1366,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion MakeUserDefinedConversion(CSharpSyntaxNode syntax, MethodSymbol meth, TypeSymbol fromType, TypeSymbol toType, bool isImplicit = true)
         {
-            Conversion fromConversion = MakeConversion(syntax, fromType, meth.Parameters[0].Type);
-            Conversion toConversion = MakeConversion(syntax, meth.ReturnType, toType);
+            Conversion fromConversion = MakeConversion(syntax, fromType, meth.Parameters[0].Type.TypeSymbol);
+            Conversion toConversion = MakeConversion(syntax, meth.ReturnType.TypeSymbol, toType);
             // TODO: distinguish between normal and lifted conversions here
             var analysis = UserDefinedConversionAnalysis.Normal(meth, fromConversion, toConversion, fromType, toType);
             var result = UserDefinedConversionResult.Valid(ImmutableArray.Create<UserDefinedConversionAnalysis>(analysis), 0);

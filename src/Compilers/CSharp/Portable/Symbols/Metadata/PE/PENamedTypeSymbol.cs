@@ -1451,27 +1451,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
             get
             {
-                return ImmutableArray<TypeSymbol>.Empty;
-            }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
+                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
             }
         }
 
@@ -2245,28 +2229,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
             {
                 get
                 {
                     // This is always the instance type, so the type arguments are the same as the type parameters.
-                    return this.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
-                }
-            }
-
-            internal override bool HasTypeArgumentsCustomModifiers
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-            {
-                get
-                {
-                    return CreateEmptyTypeArgumentsCustomModifiers();
+                    return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
                 }
             }
 

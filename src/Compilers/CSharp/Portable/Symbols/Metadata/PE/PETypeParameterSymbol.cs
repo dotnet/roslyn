@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private ImmutableArray<TypeSymbol> GetDeclaredConstraintTypes()
+        private ImmutableArray<TypeSymbolWithAnnotations> GetDeclaredConstraintTypes()
         {
             PEMethodSymbol containingMethod = null;
             PENamedTypeSymbol containingType;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (constraints != null && constraints.Length > 0)
             {
-                var symbolsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+                var symbolsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
                 MetadataDecoder tokenDecoder;
 
                 if ((object)containingMethod != null)
@@ -195,14 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue;
                     }
 
-                    symbolsBuilder.Add(typeSymbol);
+                    symbolsBuilder.Add(TypeSymbolWithAnnotations.Create(typeSymbol));
                 }
 
                 return symbolsBuilder.ToImmutableAndFree();
             }
             else
             {
-                return ImmutableArray<TypeSymbol>.Empty;
+                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
             }
         }
 
@@ -265,10 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             var bounds = this.GetBounds(inProgress);
-            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)

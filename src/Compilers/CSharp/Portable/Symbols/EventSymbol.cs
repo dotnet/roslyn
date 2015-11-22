@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The type of the event. 
         /// </summary>
-        public abstract TypeSymbol Type { get; }
+        public abstract TypeSymbolWithAnnotations Type { get; }
 
         /// <summary>
         /// The 'add' accessor of the event.  Null only in error scenarios.
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type;
+                return this.Type.TypeSymbol;
             }
         }
 

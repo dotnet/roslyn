@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we have no modifiers then the modifiers array is null; if we have any modifiers
         // then the modifiers array is non-null and not empty.
 
-        private Tuple<ImmutableArray<RefKind>, ImmutableArray<TypeSymbol>, ImmutableArray<string>, bool> AnalyzeAnonymousFunction(
+        private Tuple<ImmutableArray<RefKind>, ImmutableArray<TypeSymbolWithAnnotations>, ImmutableArray<string>, bool> AnalyzeAnonymousFunction(
             CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var names = default(ImmutableArray<string>);
             var refKinds = default(ImmutableArray<RefKind>);
-            var types = default(ImmutableArray<TypeSymbol>);
+            var types = default(ImmutableArray<TypeSymbolWithAnnotations>);
             bool isAsync = false;
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var hasExplicitlyTypedParameterList = true;
                 var allValue = true;
 
-                var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+                var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var typeSyntax = p.Type;
-                    TypeSymbol type = null;
+                    TypeSymbolWithAnnotations type = null;
                     var refKind = RefKind.None;
 
                     if (typeSyntax == null)
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // UNDONE: Where do we report improper use of pointer types?
                     if ((object)type != null && type.IsStatic)
                     {
-                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type);
+                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type.TypeSymbol);
                     }
                 }
             }

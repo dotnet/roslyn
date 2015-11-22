@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SourceSimpleParameterSymbol(
             Symbol owner,
-            TypeSymbol parameterType,
+            TypeSymbolWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
             string name,
@@ -46,11 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasDefaultArgumentSyntax
         {
             get { return false; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         internal override SyntaxReference SyntaxReference

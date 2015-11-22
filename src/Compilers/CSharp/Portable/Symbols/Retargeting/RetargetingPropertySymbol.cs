@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         //we want to compute this lazily since it may be expensive for the underlying symbol
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private ImmutableArray<CustomModifier> _lazyTypeCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations _lazyType;
 
         public RetargetingPropertySymbol(RetargetingModuleSymbol retargetingModule, PropertySymbol underlyingProperty)
         {
@@ -79,26 +78,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
                 if ((object)_lazyType == null)
                 {
-                    var type = this.RetargetingTranslator.Retarget(_underlyingProperty.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-                    _lazyType = type.AsDynamicIfNoPia(this.ContainingType);
+                    _lazyType = this.RetargetingTranslator.Retarget(_underlyingProperty.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode, this.ContainingType);
                 }
-                return _lazyType;
-            }
-        }
 
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get
-            {
-                return RetargetingTranslator.RetargetModifiers(
-                    _underlyingProperty.TypeCustomModifiers,
-                    ref _lazyTypeCustomModifiers);
+                return _lazyType;
             }
         }
 

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> args,
             DiagnosticBag diagnostics,
             SeparatedSyntaxList<TypeSyntax> typeArgsSyntax = default(SeparatedSyntaxList<TypeSyntax>),
-            ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
+            ImmutableArray<TypeSymbolWithAnnotations> typeArgs = default(ImmutableArray<TypeSymbolWithAnnotations>),
             CSharpSyntaxNode queryClause = null,
             bool allowFieldsAndProperties = false,
             bool allowUnexpandedForm = true)
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We still have to determine if it passes final validation.
 
             var methodResult = result.ValidResult;
-            var returnType = methodResult.Member.ReturnType;
+            var returnType = methodResult.Member.ReturnType.TypeSymbol;
             this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
 
             var method = methodResult.Member;
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // conversion here.
                 Debug.Assert(method.ParameterCount > 0);
                 Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
+                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type.TypeSymbol, diagnostics);
                 builder.Add(convertedReceiver);
 
                 bool first = true;
@@ -1016,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             switch (oldArgument.Kind)
                             {
                                 case BoundKind.UnboundLambda:
-                                    NamedTypeSymbol parameterType = parameters[i].Type as NamedTypeSymbol;
+                                    NamedTypeSymbol parameterType = parameters[i].Type.TypeSymbol as NamedTypeSymbol;
                                     if ((object)parameterType != null)
                                     {
                                         newArguments[i] = ((UnboundLambda)oldArgument).Bind(parameterType);
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = null;
             for (int i = 0, n = members.Length; i < n; i++)
             {
-                TypeSymbol returnType = members[i].GetTypeOrReturnType();
+                TypeSymbol returnType = members[i].GetTypeOrReturnType().TypeSymbol;
                 if ((object)type == null)
                 {
                     type = returnType;

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var varC1_T = varC1.TypeParameters[0];
 
-            Assert.Equal(varC1_T, varC1.TypeArguments[0]);
+            Assert.Equal(varC1_T, varC1.TypeArguments[0].TypeSymbol);
 
             Assert.NotNull(varC1_T.EffectiveBaseClassNoUseSiteDiagnostics);
             Assert.Equal(assembly, varC1_T.ContainingAssembly);
@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var varTC2_T1 = varTC2.TypeParameters[0];
             var varTC2_T2 = varTC2.TypeParameters[1];
 
-            Assert.Equal(varTC2_T1, varTC2.TypeArguments[0]);
-            Assert.Equal(varTC2_T2, varTC2.TypeArguments[1]);
+            Assert.Equal(varTC2_T1, varTC2.TypeArguments[0].TypeSymbol);
+            Assert.Equal(varTC2_T2, varTC2.TypeArguments[1].TypeSymbol);
 
             Assert.Equal("TC2_T1", varTC2_T1.Name);
             Assert.Equal(varTC2, varTC2_T1.ContainingType);
@@ -175,13 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var varC201 = module0.GlobalNamespace.GetTypeMembers("C201").Single();
             varT = varC201.TypeParameters[0];
             Assert.Equal(1, varT.ConstraintTypes.Length);
-            Assert.Same(varI101, varT.ConstraintTypes.ElementAt(0));
+            Assert.Same(varI101, varT.ConstraintTypes.ElementAt(0).TypeSymbol);
 
             var localC202 = module0.GlobalNamespace.GetTypeMembers("C202").Single();
             varT = localC202.TypeParameters[0];
             Assert.Equal(2, varT.ConstraintTypes.Length);
-            Assert.Same(varI101, varT.ConstraintTypes.ElementAt(0));
-            Assert.Same(varI102, varT.ConstraintTypes.ElementAt(1));
+            Assert.Same(varI101, varT.ConstraintTypes.ElementAt(0).TypeSymbol);
+            Assert.Same(varI102, varT.ConstraintTypes.ElementAt(1).TypeSymbol);
         }
 
         [Fact, WorkItem(619267, "DevDiv")]

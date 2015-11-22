@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PENamedTypeSymbol _containingType;
         private readonly PropertyDefinitionHandle _handle;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
-        private readonly TypeSymbol _propertyType;
+        private readonly TypeSymbolWithAnnotations _propertyType;
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
-        private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private Tuple<CultureInfo, string> _lazyDocComment;
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
@@ -108,14 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
             }
 
-            _typeCustomModifiers = CSharpCustomModifier.Convert(propertyParams[0].CustomModifiers);
+            var typeCustomModifiers = CSharpCustomModifier.Convert(propertyParams[0].CustomModifiers);
 
             // CONSIDER: Can we make parameter type computation lazy?
             TypeSymbol originalPropertyType = propertyParams[0].Type;
-            _propertyType = DynamicTypeDecoder.TransformType(originalPropertyType, _typeCustomModifiers.Length, handle, moduleSymbol);
+            TypeSymbol propertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol);
 
             // Dynamify object type if necessary
-            _propertyType = _propertyType.AsDynamicIfNoPia(_containingType);
+            _propertyType = TypeSymbolWithAnnotations.Create(propertyType.AsDynamicIfNoPia(_containingType), typeCustomModifiers);
 
             // A property is bogus and must be accessed by calling its accessors directly if the
             // accessor signatures do not agree, both with each other and with the property,
@@ -418,14 +417,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _propertyType; }
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get { return _typeCustomModifiers; }
         }
 
         public override MethodSymbol GetMethod

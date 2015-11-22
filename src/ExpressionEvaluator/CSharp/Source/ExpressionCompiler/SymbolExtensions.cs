@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal static ReadOnlyCollection<byte> GetCustomTypeInfoPayload(this MethodSymbol method)
         {
-            var dynamicFlags = CSharpCompilation.DynamicTransformsEncoder.Encode(method.ReturnType, method.ReturnTypeCustomModifiers.Length, RefKind.None);
+            var dynamicFlags = CSharpCompilation.DynamicTransformsEncoder.Encode(method.ReturnType.TypeSymbol, method.ReturnType.CustomModifiers.Length, RefKind.None);
             var dynamicFlagsInfo = DynamicFlagsCustomTypeInfo.Create(dynamicFlags);
             return dynamicFlagsInfo.GetCustomTypeInfoPayload();
         }

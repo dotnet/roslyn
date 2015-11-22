@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 position -= peType.MetadataArity - peType.Arity;
                 Debug.Assert(position >= 0 && position < peType.Arity);
 
-                return peType.TypeArgumentsNoUseSiteDiagnostics[position]; //NB: args, not params
+                return peType.TypeArgumentsNoUseSiteDiagnostics[position].TypeSymbol; //NB: args, not params
             }
 
             NamedTypeSymbol namedType = _containingType as NamedTypeSymbol;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 Debug.Assert((object)typeArgument == null);
 
-                typeArgument = namedType.TypeArgumentsNoUseSiteDiagnostics[position - arityOffset];
+                typeArgument = namedType.TypeArgumentsNoUseSiteDiagnostics[position - arityOffset].TypeSymbol;
             }
         }
 
@@ -177,9 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             foreach (Symbol member in targetTypeSymbol.GetMembers(targetMemberName))
             {
                 var field = member as FieldSymbol;
+                TypeSymbolWithAnnotations fieldType;
+
                 if ((object)field != null &&
-                    field.Type == type &&
-                    CustomModifiersMatch(field.CustomModifiers, customModifiers))
+                    (fieldType = field.Type).TypeSymbol == type &&
+                    CustomModifiersMatch(fieldType.CustomModifiers, customModifiers))
                 {
                     // Behavior in the face of multiple matching signatures is
                     // implementation defined - we'll just pick the first one.
@@ -251,8 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            var substituted = new TypeWithModifiers(candidateParam.Type, candidateParam.CustomModifiers).SubstituteType(candidateMethodTypeMap);
-            if (substituted.Type != targetParam.Type)
+            var substituted = candidateParam.Type.SubstituteType(candidateMethodTypeMap);
+            if (substituted.TypeSymbol != targetParam.Type)
             {
                 return false;
             }
@@ -267,12 +269,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private static bool ReturnTypesMatch(MethodSymbol candidateMethod, TypeMap candidateMethodTypeMap, ref ParamInfo<TypeSymbol> targetReturnParam)
         {
-            TypeSymbol candidateReturnType = candidateMethod.ReturnType;
+            TypeSymbolWithAnnotations candidateMethodType = candidateMethod.ReturnType;
             TypeSymbol targetReturnType = targetReturnParam.Type;
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
-            var substituted = new TypeWithModifiers(candidateReturnType, candidateMethod.ReturnTypeCustomModifiers).SubstituteType(candidateMethodTypeMap);
-            if (substituted.Type != targetReturnType)
+            var substituted = candidateMethodType.SubstituteType(candidateMethodTypeMap);
+            if (substituted.TypeSymbol != targetReturnType)
             {
                 return false;
             }

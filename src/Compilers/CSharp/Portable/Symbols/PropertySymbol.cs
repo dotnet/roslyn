@@ -53,12 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The type of the property. 
         /// </summary>
-        public abstract TypeSymbol Type { get; }
-
-        /// <summary>
-        /// The list of custom modifiers, if any, associated with the type of the property. 
-        /// </summary>
-        public abstract ImmutableArray<CustomModifier> TypeCustomModifiers { get; }
+        public abstract TypeSymbolWithAnnotations Type { get; }
 
         /// <summary>
         /// The parameters of this property. If this property has no parameters, returns
@@ -318,7 +313,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check return type, custom modifiers and parameters:
             if (DeriveUseSiteDiagnosticFromType(ref result, this.Type) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.TypeCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
                 return true;
@@ -330,7 +324,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
                 if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.TypeCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes))
                 {
                     return true;
@@ -371,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IPropertySymbol.Type
         {
-            get { return this.Type; }
+            get { return this.Type.TypeSymbol; }
         }
 
         ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters
@@ -421,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
         {
-            get { return this.TypeCustomModifiers; }
+            get { return this.Type.CustomModifiers; }
         }
 
         #endregion

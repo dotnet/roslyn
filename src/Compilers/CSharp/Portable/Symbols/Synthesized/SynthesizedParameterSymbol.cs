@@ -15,10 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class SynthesizedParameterSymbol : ParameterSymbol
     {
         private readonly MethodSymbol _container;
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly int _ordinal;
         private readonly string _name;
-        private readonly ImmutableArray<CustomModifier> _customModifiers;
         private readonly RefKind _refKind;
 
         public SynthesizedParameterSymbol(
@@ -34,14 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(ordinal >= 0);
 
             _container = container;
-            _type = type;
+            _type = TypeSymbolWithAnnotations.Create(type, customModifiers.NullToEmpty());
             _ordinal = ordinal;
             _refKind = refKind;
             _name = name;
-            _customModifiers = customModifiers.NullToEmpty();
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _type; }
         }
@@ -69,11 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name
         {
             get { return _name; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return _customModifiers; }
         }
 
         public override int Ordinal
@@ -156,11 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // this is a no-op.  Emitting an error here, or when the original parameter was bound, would
             // adversely effect the compilation or potentially change overload resolution.  
             var compilation = this.DeclaringCompilation;
-            if (Type.ContainsDynamic() && 
+            if (Type.TypeSymbol.ContainsDynamic() && 
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.GetSpecialType(SpecialType.System_Boolean).SpecialType == SpecialType.System_Boolean)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length, this.RefKind));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length, this.RefKind));
             }
         }
 
@@ -178,8 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var oldParam in sourceMethod.Parameters)
             {
                 //same properties as the old one, just change the owner
-                builder.Add(new SynthesizedParameterSymbol(destinationMethod, oldParam.Type, oldParam.Ordinal,
-                    oldParam.RefKind, oldParam.Name, oldParam.CustomModifiers));
+                builder.Add(new SynthesizedParameterSymbol(destinationMethod, oldParam.Type.TypeSymbol, oldParam.Ordinal,
+                    oldParam.RefKind, oldParam.Name, oldParam.Type.CustomModifiers));
             }
 
             return builder.ToImmutableAndFree();

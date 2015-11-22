@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
-
         /// <summary>
         /// Retargeted custom attributes
         /// </summary>
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        private TypeSymbol _lazyReturnType;
+        private TypeSymbolWithAnnotations _lazyReturnType;
 
         public RetargetingMethodSymbol(RetargetingModuleSymbol retargetingModule, MethodSymbol underlyingMethod)
         {
@@ -131,17 +129,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
                 if (IsGenericMethod)
                 {
-                    return StaticCast<TypeSymbol>.From(this.TypeParameters);
+                    return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
                 }
                 else
                 {
-                    return ImmutableArray<TypeSymbol>.Empty;
+                    return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
                 }
             }
         }
@@ -154,26 +152,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
                 if ((object)_lazyReturnType == null)
                 {
-                    var type = this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-                    _lazyReturnType = type.AsDynamicIfNoPia(this.ContainingType);
+                    _lazyReturnType = this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode, this.ContainingType);
                 }
                 return _lazyReturnType;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return RetargetingTranslator.RetargetModifiers(
-                    _underlyingMethod.ReturnTypeCustomModifiers,
-                    ref _lazyCustomModifiers);
             }
         }
 

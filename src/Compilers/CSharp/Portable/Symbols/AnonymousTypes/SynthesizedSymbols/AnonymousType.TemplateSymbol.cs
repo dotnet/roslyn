@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         typeParametersArray[fieldIndex] = typeParameter;
 
                         // Add a property
-                        AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, typeParameter);
+                        AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, TypeSymbolWithAnnotations.Create(typeParameter));
                         propertiesArray[fieldIndex] = property;
 
                         // Property related symbols
@@ -212,25 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
             {
-                get { return StaticCast<TypeSymbol>.From(this.TypeParameters); }
-            }
-
-            internal override bool HasTypeArgumentsCustomModifiers
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-            {
-                get
-                {
-                    return CreateEmptyTypeArgumentsCustomModifiers();
-                }
+                get { return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
             }
 
             public override ImmutableArray<Symbol> GetMembers(string name)

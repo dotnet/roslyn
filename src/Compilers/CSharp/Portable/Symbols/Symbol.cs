@@ -913,10 +913,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeSymbolWithAnnotations type)
+        {
+            return DeriveUseSiteDiagnosticFromType(ref result, type.TypeSymbol) ||
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
+        }
+
         internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, param.Type) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.CustomModifiers);
+            return DeriveUseSiteDiagnosticFromType(ref result, param.Type);
         }
 
         internal bool DeriveUseSiteDiagnosticFromParameters(ref DiagnosticInfo result, ImmutableArray<ParameterSymbol> parameters)
@@ -966,6 +971,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeSymbolWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes) 
+        {
+            foreach (var t in types)
+            {
+                if (t.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<CustomModifier> modifiers, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             foreach (var modifier in modifiers)
@@ -983,8 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.CustomModifiers, owner, ref checkedTypes))
+                if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
                 {
                     return true;
                 }

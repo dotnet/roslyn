@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Location> _locations;
         private readonly TypeSyntax _typeSyntax;
         private readonly LocalDeclarationKind _declarationKind;
-        private TypeSymbol _type;
+        private TypeSymbolWithAnnotations _type;
 
         /// <summary>
         /// There are three ways to initialize a fixed statement local:
@@ -157,13 +157,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
                 if ((object)_type == null)
                 {
-                    TypeSymbol localType = GetTypeSymbol();
+                    TypeSymbolWithAnnotations localType = GetTypeSymbol();
                     SetTypeSymbol(localType);
                 }
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_typeSyntax.IsVar)
                 {
                     bool isVar;
-                    TypeSymbol declType = this.binder.BindType(_typeSyntax, new DiagnosticBag(), out isVar);
+                    var declType = this.binder.BindType(_typeSyntax, new DiagnosticBag(), out isVar);
                     return isVar;
                 }
 
@@ -186,14 +186,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private TypeSymbol GetTypeSymbol()
+        private TypeSymbolWithAnnotations GetTypeSymbol()
         {
             var diagnostics = DiagnosticBag.GetInstance();
 
             Binder typeBinder = this.binder;
 
             bool isVar;
-            TypeSymbol declType = typeBinder.BindType(_typeSyntax, diagnostics, out isVar);
+            TypeSymbolWithAnnotations declType = typeBinder.BindType(_typeSyntax, diagnostics, out isVar);
 
             if (isVar)
             {
@@ -204,11 +204,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)inferredType != null &&
                     inferredType.SpecialType != SpecialType.System_Void)
                 {
-                    declType = inferredType;
+                    declType = TypeSymbolWithAnnotations.Create(inferredType);
                 }
                 else
                 {
-                    declType = typeBinder.CreateErrorType("var");
+                    declType = TypeSymbolWithAnnotations.Create(typeBinder.CreateErrorType("var"));
                 }
             }
 
@@ -223,16 +223,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal void SetTypeSymbol(TypeSymbol newType)
+        internal void SetTypeSymbol(TypeSymbolWithAnnotations newType)
         {
-            TypeSymbol originalType = _type;
+            TypeSymbolWithAnnotations originalType = _type;
 
             // In the event that we race to set the type of a local, we should
             // always deduce the same type, or deduce that the type is an error.
 
             Debug.Assert((object)originalType == null ||
-                originalType.IsErrorType() && newType.IsErrorType() ||
-                originalType == newType);
+                originalType.TypeSymbol.IsErrorType() && newType.TypeSymbol.IsErrorType() ||
+                originalType.TypeSymbol == newType.TypeSymbol);
 
             if ((object)originalType == null)
             {
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var initValueNodeLocation = _initializer.Value.Location;
                     var diagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
-                    var type = this.Type;
+                    var type = this.Type.TypeSymbol;
                     if (boundInitValue == null)
                     {
                         var inProgressBinder = new LocalInProgressBinder(this, this.binder);

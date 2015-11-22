@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                     var local = v as LocalSymbol;
                     if (local != null && (local.Type.Kind == SymbolKind.ArrayType || local.Type.Kind == SymbolKind.PointerType))
                     {
-                        list.Add(local.Type);
+                        list.Add(local.Type.TypeSymbol);
                     }
                 }
             }

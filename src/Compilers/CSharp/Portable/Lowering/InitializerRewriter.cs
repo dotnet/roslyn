@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             fieldInit.Field,
                             constantValueOpt: null),
                         fieldInit.InitialValue,
-                        fieldInit.Field.Type)
+                        fieldInit.Field.Type.TypeSymbol)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = true };
 

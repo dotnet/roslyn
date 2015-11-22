@@ -495,9 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal PEParameterSymbol ReturnTypeParameter => Signature.ReturnParam;
 
-        public override TypeSymbol ReturnType => Signature.ReturnParam.Type;
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => Signature.ReturnParam.CustomModifiers;
+        public override TypeSymbolWithAnnotations ReturnType => Signature.ReturnParam.Type;
 
         /// <summary>
         /// Associate the method with a particular property. Returns
@@ -658,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments => IsGenericMethod ? TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>() : ImmutableArray<TypeSymbol>.Empty;
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => IsGenericMethod ? TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations) : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
 
         public override Symbol AssociatedSymbol => _associatedPropertyOrEventOpt;
 

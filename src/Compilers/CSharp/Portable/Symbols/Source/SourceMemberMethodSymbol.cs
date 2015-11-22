@@ -19,9 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isExpressionBodied;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
-        private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbol _lazyReturnType;
+        private TypeSymbolWithAnnotations _lazyReturnType;
         private bool _lazyIsVararg;
 
         /// <summary>
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Method or delegate cannot return type '{0}'
-                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType);
+                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType.TypeSymbol);
                 }
             }
 
@@ -208,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
-                var parameter0Type = this.Parameters[0].Type;
+                var parameter0Type = this.Parameters[0].Type.TypeSymbol;
                 if (!parameter0Type.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
@@ -310,8 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // This value may not be correct, but we need something while we compute this.OverriddenMethod.
                 // May be re-assigned below.
-                Debug.Assert(_lazyReturnTypeCustomModifiers.IsDefault);
-                _lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
 
                 // If this method is an override, we may need to copy custom modifiers from
                 // the overridden method (so that the runtime will recognize it as an override).
@@ -329,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)overriddenMethod != null)
                     {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: true);
+                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, out _lazyParameters, alsoCopyParamsModifier: true);
                     }
                 }
             }
@@ -343,15 +341,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                     _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
 
-                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: false);
+                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, out _lazyParameters, alsoCopyParamsModifier: false);
                 }
                 else
                 {
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                     _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
 
-                    Debug.Assert(_lazyReturnTypeCustomModifiers.IsDefault);
-                    _lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
                 }
             }
 
@@ -376,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else if (parameter.Type.IsRestrictedType())
                     {
-                        diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
+                        diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type.TypeSymbol);
                     }
                 }
             }
@@ -468,10 +465,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
         }
 
-        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParameterConstraintTypes(int ordinal)
         {
             var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
         }
 
         private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
@@ -562,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
@@ -684,15 +681,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 LazyMethodChecks();
                 return _lazyExplicitInterfaceImplementations;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyReturnTypeCustomModifiers;
             }
         }
 
@@ -900,10 +888,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
             }
-            else if (!ContainingType.IsInterfaceType() && _lazyReturnType.IsStatic)
+            else if (!ContainingType.IsInterfaceType() && _lazyReturnType.TypeSymbol.IsStatic)
             {
                 // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType);
+                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType.TypeSymbol);
             }
             else if (IsAbstract && IsExtern)
             {

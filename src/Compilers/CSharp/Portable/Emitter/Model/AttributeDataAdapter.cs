@@ -144,11 +144,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var fieldSymbol = symbol as FieldSymbol;
             if ((object)fieldSymbol != null)
             {
-                type = fieldSymbol.Type;
+                type = fieldSymbol.Type.TypeSymbol;
             }
             else
             {
-                type = ((PropertySymbol)symbol).Type;
+                type = ((PropertySymbol)symbol).Type.TypeSymbol;
             }
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;

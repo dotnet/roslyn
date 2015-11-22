@@ -210,10 +210,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal static void VerifyTypeParameters(MethodSymbol method)
         {
-            Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType));
+            Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType.TypeSymbol));
             AssertEx.All(method.TypeParameters, typeParameter => method.IsContainingSymbolOfAllTypeParameters(typeParameter));
-            AssertEx.All(method.TypeArguments, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument));
-            AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type));
+            AssertEx.All(method.TypeArguments, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument.TypeSymbol));
+            AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type.TypeSymbol));
             VerifyTypeParameters(method.ContainingType);
         }
 
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static void VerifyTypeParameters(NamedTypeSymbol type)
         {
             AssertEx.All(type.TypeParameters, typeParameter => type.IsContainingSymbolOfAllTypeParameters(typeParameter));
-            AssertEx.All(type.TypeArguments, typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
+            AssertEx.All(type.TypeArguments, typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument.TypeSymbol));
             var container = type.ContainingType;
             if ((object)container != null)
             {

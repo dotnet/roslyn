@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 if (argument.Kind == BoundKind.UnboundLambda)
                 {
-                    ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameter.Type);
+                    ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameter.Type.TypeSymbol);
                 }
                 else
                 {
@@ -996,8 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // NOTE: since this is a symbol, it will use the SymbolDisplay options for parameters (i.e. will
                     // have the same format as the display value of the parameter).
                     SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
-                        argType,
-                        ImmutableArray<CustomModifier>.Empty,
+                        TypeSymbolWithAnnotations.Create(argType),
                         isParams: false,
                         refKind: refArg);
 
@@ -1024,10 +1023,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameter.IsParams)
             {
-                ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
+                ArrayTypeSymbol arrayType = parameter.Type.TypeSymbol as ArrayTypeSymbol;
                 if ((object)arrayType != null && arrayType.IsSZArray)
                 {
-                    return arrayType.ElementType;
+                    return arrayType.ElementType.TypeSymbol;
                 }
             }
             return parameter;

@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            return ((SourceNamedTypeSymbol)ContainingType).EnumUnderlyingType;
+            return TypeSymbolWithAnnotations.Create(((SourceNamedTypeSymbol)ContainingType).EnumUnderlyingType);
         }
 
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)

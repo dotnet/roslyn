@@ -256,7 +256,7 @@ class C
             var m = semanticInfo.Symbol.ContainingSymbol as SourceMemberMethodSymbol;
             Assert.Equal(1, m.TypeParameters.Length);
             Assert.Equal(m.TypeParameters[0], semanticInfo.Type);
-            Assert.Equal(m.TypeParameters[0], m.ReturnType);
+            Assert.Equal(m.TypeParameters[0], m.ReturnType.TypeSymbol);
             Assert.Equal(m, semanticInfo.Type.ContainingSymbol);
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
         }

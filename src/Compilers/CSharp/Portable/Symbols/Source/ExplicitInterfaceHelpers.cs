@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             binder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
 
             NameSyntax explicitInterfaceName = explicitInterfaceSpecifierOpt.Name;
-            explicitInterfaceTypeOpt = binder.BindType(explicitInterfaceName, diagnostics);
+            explicitInterfaceTypeOpt = binder.BindType(explicitInterfaceName, diagnostics).TypeSymbol;
             aliasQualifierOpt = explicitInterfaceName.GetAliasQualifierOpt();
             return GetMemberName(name, explicitInterfaceTypeOpt, aliasQualifierOpt);
         }

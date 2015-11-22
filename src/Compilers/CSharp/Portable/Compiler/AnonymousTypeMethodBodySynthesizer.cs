@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                             F.Call(new BoundConditionalReceiver(
                                                                                 F.Syntax,
                                                                                 id: i,
-                                                                                type: property.BackingField.Type), manager.System_Object__ToString),
+                                                                                type: property.BackingField.Type.TypeSymbol), manager.System_Object__ToString),
                                                                             null,
                                                                             id: i,
                                                                             type: manager.System_String),
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     //  Generate expression for return statement
                     //      retExpression <= System.String.Format(args)
                     var formatMethod = manager.System_String__Format_IFormatProvider;
-                    retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type), format, F.Array(manager.System_Object, arguments));
+                    retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type.TypeSymbol), format, F.Array(manager.System_Object, arguments));
                 }
                 else
                 {

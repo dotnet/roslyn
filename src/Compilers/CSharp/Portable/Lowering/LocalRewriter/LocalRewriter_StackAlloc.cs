@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression convertedCount = _factory.Convert(uintType, rewrittenCount, Conversion.ExplicitNumeric);
             convertedCount = _factory.Convert(uintPtrType, convertedCount, Conversion.IntegerToPointer);
 
-            BoundExpression sizeOfExpression = _factory.Sizeof(((PointerTypeSymbol)node.Type).PointedAtType);
+            BoundExpression sizeOfExpression = _factory.Sizeof(((PointerTypeSymbol)node.Type).PointedAtType.TypeSymbol);
             BinaryOperatorKind multiplicationKind = BinaryOperatorKind.Checked | BinaryOperatorKind.UIntMultiplication; //"UInt" just to make it unsigned
             BoundExpression product = _factory.Binary(multiplicationKind, uintPtrType, convertedCount, sizeOfExpression);
 

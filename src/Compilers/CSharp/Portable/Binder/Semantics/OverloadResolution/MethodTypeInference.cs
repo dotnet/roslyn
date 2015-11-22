@@ -493,10 +493,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or there may be input parameters fixed to _unfixed_ method type variables.
             // Both of those scenarios are legal.)
 
-            var fixedArguments = ArrayBuilder<TypeWithModifiers>.GetInstance(_methodTypeParameters.Length);
+            var fixedArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(_methodTypeParameters.Length);
             for (int iParam = 0; iParam < _methodTypeParameters.Length; iParam++)
             {
-                fixedArguments.Add(new TypeWithModifiers(IsUnfixed(iParam) ? _methodTypeParameters[iParam] : _fixedResults[iParam]));
+                fixedArguments.Add(TypeSymbolWithAnnotations.Create(IsUnfixed(iParam) ? _methodTypeParameters[iParam] : _fixedResults[iParam]));
             }
 
             TypeMap typeMap = new TypeMap(_constructedContainingTypeOfMethod, _methodTypeParameters, fixedArguments.ToImmutableAndFree());
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var delegateParameter in delegateParameters)
             {
-                if (delegateParameter.Type.ContainsTypeParameter(typeParameter))
+                if (delegateParameter.Type.TypeSymbol.ContainsTypeParameter(typeParameter))
                 {
                     return true;
                 }
@@ -884,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var delegateReturnType = delegateInvoke.ReturnType;
+            var delegateReturnType = delegateInvoke.ReturnType.TypeSymbol;
             if ((object)delegateReturnType == null)
             {
                 return false;
@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // this will be checked earlier.
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types.");
-            var returnType = delegateType.DelegateInvokeMethod.ReturnType;
+            var returnType = delegateType.DelegateInvokeMethod.ReturnType.TypeSymbol;
             if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
 
-            TypeSymbol delegateReturnType = delegateType.DelegateInvokeMethod.ReturnType;
+            TypeSymbol delegateReturnType = delegateType.DelegateInvokeMethod.ReturnType.TypeSymbol;
             if ((object)delegateReturnType == null || delegateReturnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1288,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = resolution.OverloadResolutionResult;
                 if (result.Succeeded)
                 {
-                    type = result.BestResult.Member.ReturnType;
+                    type = result.BestResult.Member.ReturnType.TypeSymbol;
                 }
             }
 
@@ -1352,7 +1352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < size; ++i)
             {
-                ExactInference(anonymousFunction.ParameterType(i), delegateParameters[i].Type, ref useSiteDiagnostics);
+                ExactInference(anonymousFunction.ParameterType(i).TypeSymbol, delegateParameters[i].Type.TypeSymbol, ref useSiteDiagnostics);
             }
         }
 
@@ -1435,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            ExactInference(arraySource.ElementType, arrayTarget.ElementType, ref useSiteDiagnostics);
+            ExactInference(arraySource.ElementType.TypeSymbol, arrayTarget.ElementType.TypeSymbol, ref useSiteDiagnostics);
             return true;
         }
 
@@ -1631,7 +1631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                return arrayTarget.ElementType;
+                return arrayTarget.ElementType.TypeSymbol;
             }
 
             // Or it might be IEnum<T> and source is rank one.
@@ -1650,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return ((NamedTypeSymbol)target).TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics);
+            return ((NamedTypeSymbol)target).TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics).TypeSymbol;
         }
 
         private bool LowerBoundArrayInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1681,11 +1681,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (elementSource.IsReferenceType)
             {
-                LowerBoundInference(elementSource, elementTarget, ref useSiteDiagnostics);
+                LowerBoundInference(elementSource.TypeSymbol, elementTarget, ref useSiteDiagnostics);
             }
             else
             {
-                ExactInference(elementSource, elementTarget, ref useSiteDiagnostics);
+                ExactInference(elementSource.TypeSymbol, elementTarget, ref useSiteDiagnostics);
             }
 
             return true;
@@ -2002,7 +2002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
             var arrayTarget = (ArrayTypeSymbol)target;
-            var elementTarget = arrayTarget.ElementType;
+            var elementTarget = arrayTarget.ElementType.TypeSymbol;
             var elementSource = GetMatchingElementType(arrayTarget, source, ref useSiteDiagnostics);
             if ((object)elementSource == null)
             {
@@ -2433,7 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int p = 0; p < anonymousFunction.ParameterCount; ++p)
                 {
-                    if (anonymousFunction.ParameterType(p) != fixedDelegateParameters[p].Type)
+                    if (anonymousFunction.ParameterType(p).TypeSymbol != fixedDelegateParameters[p].Type.TypeSymbol)
                     {
                         return null;
                     }

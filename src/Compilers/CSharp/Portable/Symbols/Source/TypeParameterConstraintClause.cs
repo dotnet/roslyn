@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TypeParameterConstraintClause
     {
-        public TypeParameterConstraintClause(TypeParameterConstraintKind constraints, ImmutableArray<TypeSymbol> constraintTypes)
+        public TypeParameterConstraintClause(TypeParameterConstraintKind constraints, ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefault);
             this.Constraints = constraints;
@@ -32,6 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public readonly TypeParameterConstraintKind Constraints;
-        public readonly ImmutableArray<TypeSymbol> ConstraintTypes;
+        public readonly ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypes;
     }
 }
