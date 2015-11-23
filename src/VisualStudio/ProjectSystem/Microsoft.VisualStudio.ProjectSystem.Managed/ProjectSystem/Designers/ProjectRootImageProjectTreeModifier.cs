@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     /// </summary>
     [Export(typeof(IProjectTreeModifier))]
     [AppliesTo(ProjectCapability.CSharpOrVisualBasic)]
-    internal class ProjectRootImageProjectTreeModifier : ProjectTreeModifierBase
+    internal class ProjectRootImageProjectTreeModifier : AbstractProjectTreeModifier
     {
         private readonly IProjectImageProvider _imageProvider;
 

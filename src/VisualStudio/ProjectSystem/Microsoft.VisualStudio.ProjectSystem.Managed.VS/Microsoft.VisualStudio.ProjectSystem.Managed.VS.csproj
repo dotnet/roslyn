@@ -95,13 +95,13 @@
     <Compile Include="Input\UIHierarchyWindowCommandId.cs" />
     <Compile Include="Input\VisualStudioStandard97CommandId.cs" />
     <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerCommand.cs" />
-    <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerCommandBase.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\Commands\AbstractOpenProjectDesignerCommand.cs" />
     <Compile Include="ProjectSystem\Designers\Input\Commands\OpenProjectDesignerOnDefaultActionCommand.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectDesignerPageMetadata.cs" />
     <Compile Include="ProjectSystem\IAddItemTemplatesGuidProvider.cs" />
     <Compile Include="ProjectSystem\IItemTypeGuidProvider.cs" />
     <Compile Include="ProjectSystem\IUnconfiguredProjectVsServices.cs" />
-    <Compile Include="ProjectSystem\LanguageServices\LanguageServiceHostBase.cs" />
+    <Compile Include="ProjectSystem\LanguageServices\AbstractLanguageServiceHost.cs" />
     <Compile Include="ProjectSystem\UnconfiguredProjectVsServices.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectDesignerService.cs" />
     <Compile Include="Shell\HierarchyId.cs" />

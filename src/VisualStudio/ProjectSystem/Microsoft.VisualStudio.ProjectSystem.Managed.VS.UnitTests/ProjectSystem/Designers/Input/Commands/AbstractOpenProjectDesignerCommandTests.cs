@@ -9,7 +9,7 @@ using Xunit.Extensions;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
-    public abstract class OpenProjectDesignerCommandBaseTests
+    public abstract class AbstractOpenProjectDesignerCommandTests
     {
         [Fact]
         public void GetCommandStatusAsync_NullAsNodes_ThrowsArgumentNull()
@@ -201,6 +201,6 @@ Root (capabilities: {ProjectRoot})
 
         internal abstract long GetCommandId();
 
-        internal abstract OpenProjectDesignerCommandBase CreateInstance(IProjectDesignerService designerService = null);
+        internal abstract AbstractOpenProjectDesignerCommand CreateInstance(IProjectDesignerService designerService = null);
     }
 }

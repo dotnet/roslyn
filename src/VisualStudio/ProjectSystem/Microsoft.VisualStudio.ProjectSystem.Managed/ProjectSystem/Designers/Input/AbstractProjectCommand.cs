@@ -10,11 +10,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
     /// <summary>
     ///     Provides the base <see langword="abstract"/> class for all commands that operate on <see cref="IProjectTree"/> nodes.
     /// </summary>
-    internal abstract class ProjectCommandBase : IAsyncCommandGroupHandler
+    internal abstract class AbstractProjectCommand : IAsyncCommandGroupHandler
     {
         private readonly Lazy<long[]> _commandIds;
 
-        protected ProjectCommandBase()
+        protected AbstractProjectCommand()
         {
             _commandIds = new Lazy<long[]>(() => GetCommandIds(this));
         }
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
 
         protected abstract Task<bool> TryHandleCommandAsync(IImmutableSet<IProjectTree> nodes, bool focused, long commandExecuteOptions, IntPtr variantArgIn, IntPtr variantArgOut);
 
-        private static long[] GetCommandIds(ProjectCommandBase command)
+        private static long[] GetCommandIds(AbstractProjectCommand command)
         {
             ProjectCommandAttribute attribute = (ProjectCommandAttribute)Attribute.GetCustomAttribute(command.GetType(), typeof(ProjectCommandAttribute));
             if (attribute == null)

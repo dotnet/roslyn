@@ -7,7 +7,7 @@ using Xunit;
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
     [ProjectSystemTrait]
-    public class OpenProjectDesignerOnDefaultActionCommandTests : OpenProjectDesignerCommandBaseTests
+    public class OpenProjectDesignerOnDefaultActionCommandTests : AbstractOpenProjectDesignerCommandTests
     {
         [Fact]
         public void Constructor_NullAsDesignerService_ThrowsArgumentNull()
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
             return UIHierarchyWindowCommandId.DoubleClick;
         }
 
-        internal override OpenProjectDesignerCommandBase CreateInstance(IProjectDesignerService designerService = null)
+        internal override AbstractOpenProjectDesignerCommand CreateInstance(IProjectDesignerService designerService = null)
         {
             designerService = designerService ?? IProjectDesignerServiceFactory.Create();
 

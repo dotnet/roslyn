@@ -9,11 +9,11 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     /// <summary>
     ///     Provides the base class for <see cref="IProjectTreeModifier"/> objects that handle special items, such as the AppDesigner folder.
     /// </summary>
-    internal abstract class SpecialItemProjectTreeModifierBase : ProjectTreeModifierBase
+    internal abstract class AbstractSpecialItemProjectTreeModifier : AbstractProjectTreeModifier
     {
         private readonly IProjectImageProvider _imageProvider;
 
-        protected SpecialItemProjectTreeModifierBase(IProjectImageProvider imageProvider)
+        protected AbstractSpecialItemProjectTreeModifier(IProjectImageProvider imageProvider)
         {
             Requires.NotNull(imageProvider, nameof(imageProvider));
 

@@ -11,9 +11,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
     /// <summary>
     ///     Provides the base <see langword="abstract"/> class for all commands that handle a single <see cref="IProjectTree"/> node.
     /// </summary>
-    internal abstract class SingleNodeProjectCommandBase : ProjectCommandBase
+    internal abstract class AbstractSingleNodeProjectCommand : AbstractProjectCommand
     {
-        protected SingleNodeProjectCommandBase()
+        protected AbstractSingleNodeProjectCommand()
         {
         }
 

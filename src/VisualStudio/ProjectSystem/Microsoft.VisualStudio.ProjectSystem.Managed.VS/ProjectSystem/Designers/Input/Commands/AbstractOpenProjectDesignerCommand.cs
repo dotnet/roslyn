@@ -9,11 +9,11 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
-    internal abstract class OpenProjectDesignerCommandBase : SingleNodeProjectCommandBase
+    internal abstract class AbstractOpenProjectDesignerCommand : AbstractSingleNodeProjectCommand
     {
         private readonly IProjectDesignerService _designerService;
 
-        protected OpenProjectDesignerCommandBase(IProjectDesignerService designerService)
+        protected AbstractOpenProjectDesignerCommand(IProjectDesignerService designerService)
         {
             Requires.NotNull(designerService, nameof(designerService));
 

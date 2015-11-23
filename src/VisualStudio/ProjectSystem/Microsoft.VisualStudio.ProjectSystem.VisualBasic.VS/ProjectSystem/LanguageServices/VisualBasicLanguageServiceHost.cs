@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
     /// </summary>
     [Export(typeof(ICodeModelProvider))]
     [AppliesTo(ProjectCapability.VisualBasicLanguageService)]
-    internal class VisualBasicLanguageServiceHost : LanguageServiceHostBase
+    internal class VisualBasicLanguageServiceHost : AbstractLanguageServiceHost
     {
         private static readonly Guid VisualBasicIntelliSenseProvider = new Guid(0xA1B799FA, 0xB147, 0x4999, 0xA8, 0x6E, 0x1F, 0x37, 0x76, 0x5E, 0x6F, 0xB5);
 
