@@ -151,6 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim features = New List(Of String)()
             Dim reportAnalyzer As Boolean = False
             Dim publicSign As Boolean = False
+            Dim interactiveMode As Boolean = False
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -399,6 +400,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If IsScriptRunner Then
                     Select Case name
+                        Case "i", "i+"
+                            interactiveMode = True
+                            Continue For
+
+                        Case "i-"
+                            interactiveMode = False
+                            Continue For
                         Case "loadpath", "loadpaths"
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
@@ -1272,6 +1280,7 @@ lVbRuntimePlus:
             Return New VisualBasicCommandLineArguments With
             {
                 .IsScriptRunner = IsScriptRunner,
+                .InteractiveMode = InteractiveMode Or (IsScriptRunner AndAlso sourceFiles.Count = 0),
                 .BaseDirectory = baseDirectory,
                 .Errors = diagnostics.AsImmutable(),
                 .Utf8Output = utf8output,
