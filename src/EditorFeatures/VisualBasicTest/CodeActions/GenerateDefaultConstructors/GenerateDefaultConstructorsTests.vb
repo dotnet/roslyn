@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
             Return New GenerateDefaultConstructorsCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestException0()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Sub Main(args As String()) \n End Sub \n End Class"),
@@ -26,7 +26,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestException1()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Sub Main(args As String()) \n End Sub \n End Class"),
@@ -34,7 +34,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestException2()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Sub Main(args As String()) \n End Sub \n End Class"),
@@ -42,7 +42,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=2)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestException3()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Sub Main(args As String()) \n End Sub \n End Class"),
@@ -50,32 +50,32 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=3)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(539676)>
         Public Sub TestNotOfferedOnResolvedBaseClassName()
             TestMissing(
 NewLines("Class Base \n End Class \n Class Derived \n Inherits B[||]ase \n End Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestNotOfferedOnUnresolvedBaseClassName()
             TestMissing(
 NewLines("Class Derived \n Inherits [||]Base \n End Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestNotOfferedOnInheritsStatementForStructures()
             TestMissing(
 NewLines("Structure Derived \n Inherits [||]Base \n End Structure"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestNotOfferedForIncorrectlyParentedInheritsStatement()
             TestMissing(
 NewLines("Inherits [||]Foo"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestWithDefaultConstructor()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Public Sub New() \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
@@ -83,7 +83,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=3)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestWithDefaultConstructorMissing1()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Public Sub New(message As String) \n MyBase.New(message) \n End Sub \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Protected Sub New(info As Runtime.Serialization.SerializationInfo, context As Runtime.Serialization.StreamingContext) \n MyBase.New(info, context) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
@@ -91,7 +91,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestWithDefaultConstructorMissing2()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits [||]Exception \n Public Sub New(message As String, innerException As Exception) \n MyBase.New(message, innerException) \n End Sub \n Protected Sub New(info As Runtime.Serialization.SerializationInfo, context As Runtime.Serialization.StreamingContext) \n MyBase.New(info, context) \n End Sub \n Sub Main(args As String()) \n End Sub \n End Class"),
@@ -100,7 +100,7 @@ index:=2)
         End Sub
 
         <WorkItem(540712)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestEndOfToken()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Inherits Exception[||] \n Sub Main(args As String()) \n End Sub \n End Class"),
@@ -108,7 +108,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=0)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestFormattingInGenerateDefaultConstructor()
             Test(
 <Text>Imports System
@@ -141,7 +141,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(889349)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Sub TestDefaultConstructorGeneration()
             Test(
 <Text>Class C

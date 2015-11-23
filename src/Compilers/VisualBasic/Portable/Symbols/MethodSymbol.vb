@@ -266,7 +266,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return DirectCast(Me.AssociatedSymbol, PropertySymbol).GetAccessorOverride(getter:=(MethodKind = MethodKind.PropertyGet))
                 Else
                     If Me.IsOverrides AndAlso Me.ConstructedFrom Is Me Then
-                        Return OverriddenMembers.OverriddenMember
+                        If IsDefinition Then
+                            Return OverriddenMembers.OverriddenMember
+                        End If
+
+                        Return OverriddenMembersResult(Of MethodSymbol).GetOverriddenMember(Me, Me.OriginalDefinition.OverriddenMethod)
                     End If
                 End If
 

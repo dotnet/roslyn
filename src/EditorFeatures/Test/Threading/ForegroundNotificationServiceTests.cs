@@ -2,11 +2,13 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
@@ -14,37 +16,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
     public class ForegroundNotificationServiceTests
     {
         private readonly IForegroundNotificationService _service;
+        private bool _done;
 
         public ForegroundNotificationServiceTests()
         {
             TestWorkspace.ResetThreadAffinity();
-            _service = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IForegroundNotificationService>();
+            _service = new ForegroundNotificationService();
         }
 
-        [Fact]
-        public void Test_Enqueue()
+        [ConditionalWpfFact(typeof(x86))]
+        public async Task Test_Enqueue()
         {
-            var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
-            var done = false;
+            var asyncToken = EmptyAsyncToken.Instance;
             var ran = false;
 
             _service.RegisterNotification(() => { Thread.Sleep(100); }, asyncToken, CancellationToken.None);
             _service.RegisterNotification(() => { /* do nothing */ }, asyncToken, CancellationToken.None);
-            _service.RegisterNotification(() => { ran = true; done = true; }, asyncToken, CancellationToken.None);
+            _service.RegisterNotification(() => { ran = true; _done = true; }, asyncToken, CancellationToken.None);
 
-            PumpWait(ref done);
+            await PumpWait().ConfigureAwait(true);
 
+            Assert.True(_done);
             Assert.True(ran);
             Assert.True(Empty(_service));
         }
 
-        [Fact]
-        public void Test_Cancellation()
+        [WpfFact]
+        public async Task Test_Cancellation()
         {
             using (var waitEvent = new AutoResetEvent(initialState: false))
             {
-                var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
-                var done = false;
+                var asyncToken = EmptyAsyncToken.Instance;
                 var ran = false;
 
                 var source = new CancellationTokenSource();
@@ -52,45 +54,43 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
                 _service.RegisterNotification(() => { waitEvent.WaitOne(); }, asyncToken, CancellationToken.None);
                 _service.RegisterNotification(() => { ran = true; }, asyncToken, source.Token);
-                _service.RegisterNotification(() => { done = true; }, asyncToken, CancellationToken.None);
+                _service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
 
                 waitEvent.Set();
-                PumpWait(ref done);
+                await PumpWait().ConfigureAwait(true);
 
                 Assert.False(ran);
                 Assert.True(Empty(_service));
             }
         }
 
-        [Fact]
-        public void Test_Delay()
+        [WpfFact]
+        public async Task Test_Delay()
         {
-            var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+            var asyncToken = EmptyAsyncToken.Instance;
 
-            bool done = false;
             DateTime now = DateTime.UtcNow;
             DateTime set = DateTime.UtcNow;
 
             _service.RegisterNotification(() =>
             {
                 set = DateTime.UtcNow;
-                done = true;
+                _done = true;
             }, 50, asyncToken, CancellationToken.None);
 
-            PumpWait(ref done);
+            await PumpWait().ConfigureAwait(true);
 
             Assert.True(set.Subtract(now).TotalMilliseconds > 50);
             Assert.True(Empty(_service));
         }
 
-        [Fact]
-        public void Test_HeavyMultipleCall()
+        [WpfFact]
+        public async Task Test_HeavyMultipleCall()
         {
-            var asyncToken = AggregateAsynchronousOperationListener.CreateEmptyListener().BeginAsyncOperation("EnqueueTest");
+            var asyncToken = EmptyAsyncToken.Instance;
             var count = 0;
 
             var loopCount = 100000;
-            var done = false;
 
             for (var i = 0; i < loopCount; i++)
             {
@@ -124,25 +124,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
                     if (index == loopCount - 1)
                     {
-                        _service.RegisterNotification(() => { done = true; }, asyncToken, CancellationToken.None);
+                        _service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
                     }
 
                     return false;
                 }, asyncToken, CancellationToken.None);
             }
 
-            PumpWait(ref done);
-
-            Assert.True(done);
+            await PumpWait().ConfigureAwait(false);
+            Assert.True(_done);
             Assert.Equal(count, 9000000);
             Assert.True(Empty(_service));
         }
 
-        private static void PumpWait(ref bool done)
+        private async Task PumpWait()
         {
-            while (!done)
+            while (!_done)
             {
-                new FrameworkElement().Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                await Task.Delay(TimeSpan.FromMilliseconds(1)).ConfigureAwait(true);
             }
         }
 

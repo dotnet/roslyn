@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class CatchKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CatchNotInMethodBody()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Catch")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CatchInTryBlock()
             VerifyRecommendationsContain(<MethodBody>
@@ -25,7 +25,7 @@ Finally
 End Try</MethodBody>, "Catch")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CatchInCatchBlock()
             VerifyRecommendationsContain(<MethodBody>
@@ -36,7 +36,7 @@ Finally
 End Try</MethodBody>, "Catch")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CatchNotInFinallyBlock()
             VerifyRecommendationsMissing(<MethodBody>

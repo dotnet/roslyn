@@ -288,16 +288,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return previousToken.Kind() == SyntaxKind.None ? token : previousToken;
         }
 
-        private static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
+        public static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
             var tree = token1.SyntaxTree;
             var text = default(SourceText);
             if (tree != null && tree.TryGetText(out text))
             {
-                var line1 = text.Lines.IndexOf(token1.Span.End);
-                var line2 = text.Lines.IndexOf(token2.SpanStart);
-
-                return line1 == line2;
+                return text.AreOnSameLine(token1, token2);
             }
 
             return CommonFormattingHelpers.GetTextBetween(token1, token2).ContainsLineBreak();

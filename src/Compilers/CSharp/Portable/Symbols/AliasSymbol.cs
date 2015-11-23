@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class AliasSymbol : Symbol, IAliasSymbol
     {
         private readonly SyntaxToken _aliasName;
-        private readonly InContainerBinder _binder;
+        private readonly Binder _binder;
 
         private SymbolCompletionState _state;
         private NamespaceOrTypeSymbol _aliasTarget;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isExtern;
         private DiagnosticBag _aliasTargetDiagnostics;
 
-        private AliasSymbol(InContainerBinder binder, NamespaceOrTypeSymbol target, SyntaxToken aliasName, ImmutableArray<Location> locations)
+        private AliasSymbol(Binder binder, NamespaceOrTypeSymbol target, SyntaxToken aliasName, ImmutableArray<Location> locations)
         {
             _aliasName = aliasName;
             _locations = locations;
@@ -65,20 +65,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _state.NotePartComplete(CompletionPart.AliasTarget);
         }
 
-        private AliasSymbol(InContainerBinder binder, SyntaxToken aliasName)
+        private AliasSymbol(Binder binder, SyntaxToken aliasName)
         {
             _aliasName = aliasName;
             _locations = ImmutableArray.Create(aliasName.GetLocation());
             _binder = binder;
         }
 
-        internal AliasSymbol(InContainerBinder binder, UsingDirectiveSyntax syntax)
+        internal AliasSymbol(Binder binder, UsingDirectiveSyntax syntax)
             : this(binder, syntax.Alias.Name.Identifier)
         {
             _aliasTargetName = syntax.Name;
         }
 
-        internal AliasSymbol(InContainerBinder binder, ExternAliasDirectiveSyntax syntax)
+        internal AliasSymbol(Binder binder, ExternAliasDirectiveSyntax syntax)
             : this(binder, syntax.Identifier)
         {
             _isExtern = true;
@@ -86,15 +86,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // For the purposes of SemanticModel, it is convenient to have an AliasSymbol for the "global" namespace that "global::" binds
         // to. This alias symbol is returned only when binding "global::" (special case code).
-        internal static AliasSymbol CreateGlobalNamespaceAlias(NamespaceSymbol globalNamespace, InContainerBinder globalNamespaceBinder)
+        internal static AliasSymbol CreateGlobalNamespaceAlias(NamespaceSymbol globalNamespace, Binder globalNamespaceBinder)
         {
             SyntaxToken aliasName = SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), SyntaxKind.GlobalKeyword, "global", "global", SyntaxFactory.TriviaList());
             return new AliasSymbol(globalNamespaceBinder, globalNamespace, aliasName, ImmutableArray<Location>.Empty);
         }
 
-        internal static AliasSymbol CreateCustomDebugInfoAlias(NamespaceOrTypeSymbol targetSymbol, SyntaxToken aliasToken, InContainerBinder binder)
+        internal static AliasSymbol CreateCustomDebugInfoAlias(NamespaceOrTypeSymbol targetSymbol, SyntaxToken aliasToken, Binder binder)
         {
             return new AliasSymbol(binder, targetSymbol, aliasToken, ImmutableArray.Create(aliasToken.GetLocation()));
+        }
+
+        internal AliasSymbol ToNewSubmission(CSharpCompilation compilation)
+        {
+            Debug.Assert(_binder.Compilation.IsSubmission);
+
+            // We can pass basesBeingResolved: null because base type cycles can't cross
+            // submission boundaries - there's no way to depend on a subsequent submission.
+            var previousTarget = GetAliasTarget(basesBeingResolved: null);
+            if (previousTarget.Kind != SymbolKind.Namespace)
+            {
+                return this;
+            }
+
+            var expandedGlobalNamespace = compilation.GlobalNamespace;
+            var expandedNamespace = Imports.ExpandPreviousSubmissionNamespace((NamespaceSymbol)previousTarget, expandedGlobalNamespace);
+            var binder = new InContainerBinder(expandedGlobalNamespace, new BuckStopsHereBinder(compilation));
+            return new AliasSymbol(binder, expandedNamespace, _aliasName, _locations);
         }
 
         public override string Name
@@ -303,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return target;
         }
 
-        private static NamespaceOrTypeSymbol ResolveAliasTarget(InContainerBinder binder, NameSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved)
+        private static NamespaceOrTypeSymbol ResolveAliasTarget(Binder binder, NameSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved)
         {
             var declarationBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;

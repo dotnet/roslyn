@@ -6,10 +6,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Interactive;
@@ -351,13 +353,13 @@ while(true) {}
         [Fact]
         public void AsyncExecuteFile_SourceKind()
         {
-            var file = Temp.CreateFile().WriteAllText("1+1").Path;
+            var file = Temp.CreateFile().WriteAllText("1 1").Path;
             var task = Host.ExecuteFileAsync(file);
             task.Wait();
             Assert.False(task.Result.Success);
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.True(errorOut.StartsWith(file + "(1,4):", StringComparison.Ordinal), "Error output should start with file name, line and column");
+            Assert.True(errorOut.StartsWith(file + "(1,3):", StringComparison.Ordinal), "Error output should start with file name, line and column");
             Assert.True(errorOut.Contains("CS1002"), "Error output should include error CS1002");
         }
 
@@ -453,12 +455,19 @@ WriteLine(5);
         }
 
         [Fact]
+        public void AddReference_Path()
+        {
+            Assert.False(Execute("new System.Data.DataSet()"));
+            Assert.True(LoadReference(Assembly.Load(new AssemblyName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")).Location));
+            Assert.True(Execute("new System.Data.DataSet()"));
+        }
+
+        [Fact]
         public void AddReference_PartialName()
         {
-            Assert.False(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
-
-            Assert.True(LoadReference("System"));
-            Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
+            Assert.False(Execute("new System.Data.DataSet()"));
+            Assert.True(LoadReference("System.Data"));
+            Assert.True(Execute("new System.Data.DataSet()"));
         }
 
         [Fact]
@@ -476,10 +485,9 @@ WriteLine(5);
         [Fact]
         public void AddReference_FullName()
         {
-            Assert.False(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
-
-            Assert.True(LoadReference(typeof(Process).Assembly.FullName));
-            Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
+            Assert.False(Execute("new System.Data.DataSet()"));
+            Assert.True(LoadReference("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
+            Assert.True(Execute("new System.Data.DataSet()"));
         }
                 
         [ConditionalFact(typeof(Framework35Installed), Skip="https://github.com/dotnet/roslyn/issues/5167")]
@@ -514,15 +522,6 @@ WriteLine(5);
             Assert.Equal("", ReadErrorOutputToEnd().Trim());
             Assert.Equal("", ReadOutputToEnd().Trim());
             Assert.True(result);
-        }
-
-        [Fact]
-        public void AddReference_Path()
-        {
-            Assert.False(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
-
-            Assert.True(LoadReference(typeof(Process).Assembly.Location));
-            Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
         }
 
         // Caused by submission not inheriting references.
@@ -840,7 +839,7 @@ new D().Y
             var assemblyName = GetUniqueName();
             CompileLibrary(directory, assemblyName + ".dll", assemblyName, @"public class C { }");
             var rspFile = Temp.CreateFile();
-            rspFile.WriteAllText("/rp:" + directory.Path);
+            rspFile.WriteAllText("/lib:" + directory.Path);
 
             Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
 
@@ -855,6 +854,112 @@ typeof(C).Assembly.GetName()");
             Assert.Equal("Loading context from '" + Path.GetFileName(rspFile.Path) + "'.", output[0]);
             Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
         }
+
+        [Fact]
+        public void DefaultUsings()
+        {
+            var rspFile = Temp.CreateFile();
+            rspFile.WriteAllText(@"
+/r:System
+/r:System.Core
+/r:Microsoft.CSharp
+/u:System
+/u:System.IO
+/u:System.Collections.Generic
+/u:System.Diagnostics
+/u:System.Dynamic
+/u:System.Linq
+/u:System.Linq.Expressions
+/u:System.Text
+/u:System.Threading.Tasks
+");
+            Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+
+            Execute(@"
+dynamic d = new ExpandoObject();
+");
+            Execute(@"
+Process p = new Process();
+");
+            Execute(@"
+Expression<Func<int>> e = () => 1;
+");
+            Execute(@"
+var squares = from x in new[] { 1, 2, 3 } select x * x;
+");
+            Execute(@"
+var sb = new StringBuilder();
+");
+            Execute(@"
+var list = new List<int>();
+");
+            Execute(@"
+var stream = new MemoryStream();
+await Task.Delay(10);
+p = new Process();
+
+Console.Write(""OK"")
+");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", ReadErrorOutputToEnd());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Loading context from '{Path.GetFileName(rspFile.Path)}'.
+OK
+", ReadOutputToEnd());
+        }
+
+        [Fact]
+        public void InitialScript_Error()
+        {
+            var initFile = Temp.CreateFile(extension: ".csx").WriteAllText("1 1");
+
+            var rspFile = Temp.CreateFile();
+
+            rspFile.WriteAllText($@"
+/r:System
+/u:System.Diagnostics
+{initFile.Path}
+");
+
+            Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+
+            Execute("new Process()");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+{initFile.Path}(1,3): error CS1002: ; expected
+", ReadErrorOutputToEnd());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Loading context from '{Path.GetFileName(rspFile.Path)}'.
+[System.Diagnostics.Process]
+", ReadOutputToEnd());
+        }
+
+        [Fact]
+        public void ScriptAndArguments()
+        {
+            var scriptFile = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
+
+            var rspFile = Temp.CreateFile();
+            rspFile.WriteAllText($@"
+{scriptFile}
+a
+b
+c
+");
+            Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+
+            Assert.Equal("", ReadErrorOutputToEnd());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Loading context from '{Path.GetFileName(rspFile.Path)}'.
+""a""
+""b""
+""c""
+", ReadOutputToEnd());
+        }
+
 
         [Fact]
         public void ReferenceDirectives()
@@ -872,6 +977,18 @@ WriteLine(new Complex(2, 6).Real);
 
             var output = ReadOutputToEnd();
             Assert.Equal("1\r\n2\r\n", output);
+        }
+
+        [Fact]
+        public void Script_NoHostNamespaces()
+        {
+            Execute("nameof(Microsoft.CodeAnalysis)");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+(1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)",
+                ReadErrorOutputToEnd());
+
+            Assert.Equal("", ReadOutputToEnd());
         }
 
         [Fact]
@@ -977,6 +1094,35 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Equal("[Metadata.ICSProp]\r\n", output);
         }
 
+        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+        public void MissingReferencesReuse()
+        {
+            var source = @"
+public class C
+{
+    public System.Diagnostics.Process P;
+}
+";
+
+            var lib = CSharpCompilation.Create(
+"Lib",
+new[] { SyntaxFactory.ParseSyntaxTree(source) },
+new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System },
+new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());
+
+            Execute($@"#r ""{libFile.Path}""");
+            Execute("C c;");
+            Execute("c = new C()");
+
+            var error = ReadErrorOutputToEnd();
+            Assert.Equal("", error);
+
+            var output = ReadOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
+        }
+
         #region Submission result printing - null/void/value.
 
         [Fact]
@@ -998,7 +1144,7 @@ s
             Execute(@"System.Console.WriteLine(2)");
 
             var output = ReadOutputToEnd();
-            Assert.Equal("2\r\n<void>\r\n", output);
+            Assert.Equal("2\r\n", output);
 
             Execute(@"
 void foo() { } 
@@ -1006,7 +1152,7 @@ foo()
 ");
 
             output = ReadOutputToEnd();
-            Assert.Equal("<void>\r\n", output);
+            Assert.Equal("", output);
         }
 
         #endregion

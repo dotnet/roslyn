@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -396,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         return null;
                     }
 
-                    // If we don't have any old tags then we just need to reutrn the new tags.
+                    // If we don't have any old tags then we just need to return the new tags.
                     return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode, newTags);
                 }
 
@@ -479,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // If we're examining a text buffer other than the one we tagged.
                 if (textBuffer != spanToInvalidate.Snapshot.TextBuffer)
                 {
-                    // If we have no new tags produced for it, we can just use the olg tags for is.
+                    // If we have no new tags produced for it, we can just use the old tags for it.
                     if (newTags.IsEmpty())
                     {
                         return oldTagTree;
@@ -649,7 +648,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // example, say that another change happened between the time when we 
                 // registered for UpdateStateAndReportChanges and now.  If we processed that
                 // notification (on the UI thread) first, then our cancellation token would 
-                // have been been triggered, and the foreground notification service would not 
+                // have been triggered, and the foreground notification service would not 
                 // call into this method. 
                 // 
                 // If, instead, we did get called into, then we will update our instance state.
@@ -667,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Note: we're raising changes here on the UI thread.  However, this doesn't actually
                 // mean we'll be notifying the editor.  Instead, these will be batched up in the 
                 // AsynchronousTagger's BatchChangeNotifier.  If we tell it about enough changes
-                // to a file, it will colaesce them into one large change to keep chattyness with
+                // to a file, it will coalesce them into one large change to keep chattiness with
                 // the editor down.
                 RaiseTagsChanged(bufferToChanges);
             }
@@ -706,14 +705,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 if (!this.UpToDate)
                 {
-                    // We're not up to date.  That means we have an outstandanding update that we're 
+                    // We're not up to date.  That means we have an outstanding update that we're 
                     // currently processing.  Unfortunately we have no way to track the progress of
                     // that update (i.e. a Task).  Also, even if we did, we'd have the problem that 
                     // we have delays coded into the normal tagging process.  So waiting on that Task
                     // could take a long time.
                     //
                     // So, instead, we just cancel whatever work we're currently doing, and we just
-                    // compute the the results synchronously in this call.
+                    // compute the results synchronously in this call.
 
                     // We can cancel any background computations currently happening
                     this._workQueue.CancelCurrentWork();

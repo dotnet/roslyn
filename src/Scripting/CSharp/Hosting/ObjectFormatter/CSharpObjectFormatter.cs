@@ -4,12 +4,13 @@ using System;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     public sealed class CSharpObjectFormatter : ObjectFormatter
     {
-        public static readonly CSharpObjectFormatter Instance = new CSharpObjectFormatter();
+        public static CSharpObjectFormatter Instance { get; } = new CSharpObjectFormatter();
 
         private CSharpObjectFormatter()
         {

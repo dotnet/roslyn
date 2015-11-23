@@ -12,7 +12,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
     Public Class RQNameTests
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForNamespace()
             Dim markup = "namespace $$MyNamespace { }"
             Dim expectedRQName = "Ns(NsName(MyNamespace))"
@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForDottedNamespace()
             Dim markup = "namespace MyNamespace1.MyNamespace2.$$MyNamespace3 { }"
             Dim expectedRQName = "Ns(NsName(MyNamespace1),NsName(MyNamespace2),NsName(MyNamespace3))"
@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForInterface()
             Dim markup = "interface $$IMyInterface { }"
             Dim expectedRQName = "Agg(AggName(IMyInterface,TypeVarCnt(0)))"
@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForInterfaceWithOneTypeParameter()
             Dim markup = "interface $$IMyInterface<T> { }"
             Dim expectedRQName = "Agg(AggName(IMyInterface,TypeVarCnt(1)))"
@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForInterfaceWithMultipleTypeParameters()
             Dim markup = "interface $$IMyInterface<T, U, V> { }"
             Dim expectedRQName = "Agg(AggName(IMyInterface,TypeVarCnt(3)))"
@@ -52,7 +52,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForDelegateType()
             Dim markup = "delegate void $$MyDelegate();"
             Dim expectedRQName = "Agg(AggName(MyDelegate,TypeVarCnt(0)))"
@@ -60,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.RQNameTests
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForField()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -72,7 +72,7 @@ class MyClass
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForFieldInNamespace()
             Dim markup = <Text><![CDATA[
 namespace MyNamespace
@@ -87,7 +87,7 @@ namespace MyNamespace
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForEvent()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -99,7 +99,7 @@ class MyClass
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForMethod()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -111,7 +111,7 @@ class MyClass
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForMethodWithArrayParameter()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -123,7 +123,7 @@ class MyClass
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         <WorkItem(608534)>
         Public Sub RQNameClassInModule()
             Dim markup = <Text><![CDATA[
@@ -143,7 +143,7 @@ End Module
             TestWorker(markup, LanguageNames.VisualBasic, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         Public Sub RQNameForIndexer()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -154,7 +154,7 @@ class MyClass
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         <WorkItem(792487)>
         Public Sub RQNameForOperator()
             Dim markup = <Text><![CDATA[
@@ -175,7 +175,7 @@ class MyClass
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         <WorkItem(7924037)>
         Public Sub RQNameForAnonymousTypeReturnsNull()
             Dim markup = <Text><![CDATA[
@@ -191,7 +191,7 @@ class Program
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         <WorkItem(837914)>
         Public Sub RQNameForMethodInConstructedTypeReturnsNull()
             Dim markup = <Text><![CDATA[
@@ -217,7 +217,7 @@ class C
             TestWorker(markup, LanguageNames.CSharp, expectedRQName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.RQName)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.RQName)>
         <WorkItem(885151)>
         Public Sub RQNameForAlias()
             Dim markup = <Text><![CDATA[

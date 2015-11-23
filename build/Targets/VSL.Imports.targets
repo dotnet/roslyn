@@ -2,12 +2,6 @@
   <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
   <!-- This file is imported by all projects at the end of the project files -->
-  <PropertyGroup Condition="'$(OpenSourceDebug)' == 'true'">
-    <DeployVSHive>Roslyn</DeployVSHive>
-    <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
-    <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
-  </PropertyGroup>
-
   <!-- Update common properties -->
   <PropertyGroup>
     <OutputPath>$(OutDir)</OutputPath>
@@ -49,30 +43,6 @@
     </When>
   </Choose>
 
-  <!-- Work around mono + msbuild bug https://github.com/Microsoft/msbuild/issues/191 -->
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore' and '$(OS)' != 'Windows_NT'">
-      <!-- Manually set assembly search paths so they don't get mangled later -->
-      <AssemblySearchPaths Condition=" '$(AssemblySearchPaths)' == ''">
-          {RawFileName};
-          $(OutDir)
-      </AssemblySearchPaths>
-      <RemoveAssemblyFoldersIfNoTargetFramework>false</RemoveAssemblyFoldersIfNoTargetFramework>
-  </PropertyGroup>
-
-  <!-- Work around issue in dotnet/roslyn issue #5213
-       Since MSBuild wants a reference assembly location and DNXCore doesn't have one,
-       trick MSBuild into using the .NETPortable,v5.0 reference assembly path which happens
-       to have the same set of reference assemblies as DNXCore (i.e., none). -->
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
-    <_TargetFrameworkDirectories>$([System.String]::Join(";", $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies(".NETPortable", "v5.0", ""))))</_TargetFrameworkDirectories>
-    <_FullFrameworkReferenceAssemblyPaths>$(_TargetFrameworkDirectories)</_FullFrameworkReferenceAssemblyPaths>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
-      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
-  </PropertyGroup>
-
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
           Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
@@ -89,6 +59,15 @@
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
           Condition="'$(OS)' != 'Windows_NT'" />
 
+  <PropertyGroup Condition="
+      '$(TargetFrameworkIdentifier)' == '.NETPortable' AND
+      '$(TargetFrameworkVersion)' == 'v5.0' AND
+      '$(OutputType)' == 'Exe'">
+    <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
+  </PropertyGroup>
+
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\' to '/', even when the '\'
        is being used as an escape character in a define constant in VB.
@@ -104,7 +83,6 @@
     <BuildDependsOn>
       $(BuildDependsOn);
       CopyCppOutputBackToIntDir;
-      DeployToPreviewPackageFolders;
     </BuildDependsOn>
   </PropertyGroup>
 
@@ -124,26 +102,6 @@
   <Target Name="VerifyBuildFlags">
     <Error Condition="('$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real') AND '$(BuildVersion)' == '42.42.42.42'"
            Text="Must specify a build version in order to real sign a build." />
-  </Target>
-
-  <!-- ====================================================================================
-        Deploy binary to 14.0 Package folders
-  ===================================================================================== -->
-  <PropertyGroup>
-    <RoslynOssComponentPath>$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(VisualStudioVersion)$(DeployVSHive)\Extensions\MSOpenTech\OpenSourceDebug\0.7</RoslynOssComponentPath>
-    <TargetConfigFile>$(TargetPath).config</TargetConfigFile>
-    <TargetPdbFile>$(TargetDir)$(TargetName).pdb</TargetPdbFile>
-    <TargetRspFile>$(TargetDir)$(TargetName).rsp</TargetRspFile>
-  </PropertyGroup>
-
-  <Target Name="DeployToPreviewPackageFolders" Condition="'$(DeployToPackageFolders)' == 'true' and '$(VisualStudioVersion)' == '14.0'">
-    <ItemGroup>
-      <CopySources Condition="('$(TargetExt)' == '.dll' or '$(TargetExt)' == '.exe') and Exists($(TargetPath))" Include="$(TargetPath)"/>
-      <CopySources Condition="('$(TargetExt)' == '.dll' or '$(TargetExt)' == '.exe') and Exists($(TargetPdb))" Include="$(TargetPdbFile)"/>
-      <CopySources Condition="'$(TargetExt)' == '.exe' and Exists($(TargetConfigFile))" Include="$(TargetConfigFile)"/>
-      <CopySources Condition="'$(TargetExt)' == '.exe' and Exists($(TargetRspFile))" Include="$(TargetRspFile)"/>
-    </ItemGroup>
-    <Copy SourceFiles="@(CopySources)" DestinationFolder="$(RoslynOssComponentPath)"  SkipUnchangedFiles="true" />
   </Target>
 
   <!-- ====================================================================================
@@ -293,11 +251,14 @@
   </PropertyGroup>
 
   <Target Name="FakeSign"
-          Condition="'$(DelaySign)' == 'true' AND '$(ShouldSignBuild)' != 'true' AND ('$(Language)' == 'C#' OR '$(Language)' == 'VB')"
+          Condition="'$(DelaySign)' == 'true' AND
+                     '$(ShouldSignBuild)' != 'true' AND
+                     ('$(Language)' == 'C#' OR '$(Language)' == 'VB') AND
+                     '$(BuildingProject)' == 'true'"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
-    <Exec Command="$(FakeSignToolPath) &quot;@(IntermediateAssembly)&quot;" />
+    <Exec Command="&quot;$(FakeSignToolPath)&quot; &quot;@(IntermediateAssembly)&quot;" />
 
   </Target>
 

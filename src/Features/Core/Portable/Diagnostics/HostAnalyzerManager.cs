@@ -75,17 +75,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
 
         /// <summary>
-        /// Cache from <see cref="DiagnosticAnalyzer"/> instance to its supported desciptors.
+        /// Cache from <see cref="DiagnosticAnalyzer"/> instance to its supported descriptors.
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
 
-        /// <summary>
-        /// Loader for VSIX-based analyzers.
-        /// </summary>
-        private static readonly IAnalyzerAssemblyLoader s_assemblyLoader = new LoadContextAssemblyLoader();
-
-        public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource)),
+        public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
+            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource), hostAnalyzerAssemblyLoader),
                  hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
         {
         }
@@ -469,19 +464,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableArray<AnalyzerReference> CreateAnalyzerReferencesFromPackages(
             IEnumerable<HostDiagnosticAnalyzerPackage> analyzerPackages,
-            HostAnalyzerReferenceDiagnosticReporter reporter)
+            HostAnalyzerReferenceDiagnosticReporter reporter,
+            IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader)
         {
             if (analyzerPackages == null || analyzerPackages.IsEmpty())
             {
                 return ImmutableArray<AnalyzerReference>.Empty;
             }
 
+            Contract.ThrowIfNull(hostAnalyzerAssemblyLoader);
+
             var analyzerAssemblies = analyzerPackages.SelectMany(p => p.Assemblies);
 
             var builder = ImmutableArray.CreateBuilder<AnalyzerReference>();
             foreach (var analyzerAssembly in analyzerAssemblies.Distinct(StringComparer.OrdinalIgnoreCase))
             {
-                var reference = new AnalyzerFileReference(analyzerAssembly, s_assemblyLoader);
+                var reference = new AnalyzerFileReference(analyzerAssembly, hostAnalyzerAssemblyLoader);
                 reference.AnalyzerLoadFailed += reporter.OnAnalyzerLoadFailed;
 
                 builder.Add(reference);
@@ -532,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnostic = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(reference.FullPath, e);
 
                 // diagnostic from host analyzer can never go away
-                var args = new DiagnosticsUpdatedArgs(
+                var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     id: Tuple.Create(this, reference.FullPath, e.ErrorCode, e.TypeName),
                     workspace: PrimaryWorkspace.Workspace,
                     solution: null,
@@ -541,57 +539,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     diagnostics: ImmutableArray.Create<DiagnosticData>(diagnostic));
 
                 _hostUpdateSource.RaiseDiagnosticsUpdated(args);
-            }
-        }
-
-        private class LoadContextAssemblyLoader : IAnalyzerAssemblyLoader
-        {
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                // We want to load the analyzer assembly assets in default context.
-                // Use Assembly.Load instead of Assembly.LoadFrom to ensure that if the assembly is ngen'ed, then the native image gets loaded.
-                return Assembly.Load(GetAssemblyName(fullPath));
-            }
-
-            private AssemblyName GetAssemblyName(string fullPath)
-            {
-                using (var stream = PortableShim.File.OpenRead(fullPath))
-                {
-                    using (var peReader = new PEReader(stream))
-                    {
-                        var reader = peReader.GetMetadataReader();
-                        var assemblyDef = reader.GetAssemblyDefinition();
-
-                        var name = reader.GetString(assemblyDef.Name);
-
-                        var cultureName = assemblyDef.Culture.IsNil
-                            ? null
-                            : reader.GetString(assemblyDef.Culture);
-
-                        var publicKeyOrToken = reader.GetBlobContent(assemblyDef.PublicKey);
-                        var hasPublicKey = !publicKeyOrToken.IsEmpty;
-
-                        if (publicKeyOrToken.IsEmpty)
-                        {
-                            publicKeyOrToken = default(ImmutableArray<byte>);
-                        }
-
-                        var identity = new AssemblyIdentity(
-                            name: name,
-                            version: assemblyDef.Version,
-                            cultureName: cultureName,
-                            publicKeyOrToken: publicKeyOrToken,
-                            hasPublicKey: hasPublicKey,
-                            isRetargetable: (assemblyDef.Flags & AssemblyFlags.Retargetable) != 0,
-                            contentType: (AssemblyContentType)((int)(assemblyDef.Flags & AssemblyFlags.ContentTypeMask) >> 9));
-
-                        return new AssemblyName(identity.GetDisplayName());
-                    }
-                }
             }
         }
     }

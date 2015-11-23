@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellc
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New SpellcheckCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub NoSpellcheckForIfOnly2Characters()
             Dim text = <File>Class Foo
     Sub Bar()
@@ -24,7 +24,7 @@ End Class</File>
             TestMissing(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub AfterNewExpression()
             Dim text = <File>Class Foo
     Sub Bar()
@@ -34,7 +34,7 @@ End Class</File>
             TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Fooa", "Foo")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub InAsClause()
             Dim text = <File>Class Foo
     Sub Bar()
@@ -45,7 +45,7 @@ End Class</File>
                 {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub InSimpleAsClause()
             Dim text = <File>Class Foo
     Sub Bar()
@@ -56,7 +56,7 @@ End Class</File>
                 {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub InFunc()
             Dim text = <File>Class Foo
     Sub Bar(a as Func(Of [|Foa|]))
@@ -66,7 +66,7 @@ End Class</File>
                 {String.Format(FeaturesResources.ChangeTo, "Foa", "Foo")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub CorrectIdentifier()
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -77,7 +77,7 @@ End Module</File>
             TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "zza", "zzz")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         <WorkItem(1065708)>
         Public Sub InTypeOfIsExpression()
             Dim text = <File>Imports System
@@ -90,7 +90,7 @@ End Class</File>
             TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         <WorkItem(1065708)>
         Public Sub InTypeOfIsNotExpression()
             Dim text = <File>Imports System
@@ -103,7 +103,7 @@ End Class</File>
             TestExactActionSetOffered(text.NormalizedValue, {String.Format(FeaturesResources.ChangeTo, "Boolea", "Boolean")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub InvokeCorrectIdentifier()
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -122,7 +122,7 @@ End Module</File>
             Test(text, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub AfterDot()
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -139,7 +139,7 @@ End Module</File>
             Test(text, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub NotInaccessibleProperty()
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -158,7 +158,7 @@ End Class</File>
             TestMissing(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub GenericName1()
             Dim text = <File>Class Foo(Of T)
     Dim x As [|Foo2(Of T)|]
@@ -171,7 +171,7 @@ End Class</File>
             Test(text, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub GenericName2()
             Dim text = <File>Class Foo(Of T)
     Dim x As [|Foo2|]
@@ -184,7 +184,7 @@ End Class</File>
             Test(text, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub QualifiedName1()
             Dim text = <File>Module Program
     Dim x As New [|Foo2.Bar|]
@@ -209,7 +209,7 @@ End Class</File>
             Test(text, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub QualifiedName2()
             Dim text = <File>Module Program
     Dim x As New [|Foo.Ba2|]
@@ -234,7 +234,7 @@ End Class</File>
             Test(text, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub MiddleOfDottedExpression()
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -268,7 +268,7 @@ End Class</File>
         End Sub
 
         <WorkItem(547161)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub NotForOverloadResolutionFailure()
             Dim text = <File>Module Program
     Sub Main(args As String())
@@ -287,7 +287,7 @@ End Module</File>
         End Sub
 
         <WorkItem(547169)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub HandlePredefinedTypeKeywordCorrectly()
             Dim text = <File>
 Imports System
@@ -316,7 +316,7 @@ End Module</File>
         End Sub
 
         <WorkItem(547166)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub KeepEscapedIdentifiersEscaped()
             Dim text = <File>
 Module Program
@@ -344,7 +344,7 @@ End Module</File>
         End Sub
 
         <WorkItem(547166)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub NoDuplicateCorrections()
             Dim text = <File>
 Module Program
@@ -372,7 +372,7 @@ End Module</File>
             Test(text, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86))>
+        <ConditionalWpfFact(GetType(x86))>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         <WorkItem(5391, "https://github.com/dotnet/roslyn/issues/5391")>
         Public Sub SuggestEscapedPredefinedTypes()
@@ -424,7 +424,7 @@ End Module</File>
         End Sub
 
         <WorkItem(775448)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub ShouldTriggerOnBC32045()
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
 
@@ -459,12 +459,19 @@ End Class</File>
         End Sub
 
         <WorkItem(908322)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Sub TestObjectConstruction()
             Test(
 NewLines("Class AwesomeClass \n Sub M() \n Dim foo = New [|AwesomeClas()|] \n End Sub \n End Class"),
 NewLines("Class AwesomeClass \n Sub M() \n Dim foo = New AwesomeClass() \n End Sub \n End Class"),
 index:=0)
+        End Sub
+
+        <WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestMissingName()
+            TestMissing(
+NewLines("<Assembly: Microsoft.CodeAnalysis.[||]>"))
         End Sub
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider
@@ -477,7 +484,7 @@ index:=0)
             End Function
 
             <WorkItem(829970)>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             Public Sub TestIncompleteStatement()
                 Test(
 NewLines("Class AwesomeClass \n Inherits System.Attribute \n End Class \n Module Program \n <[|AwesomeClas|]> \n End Module"),

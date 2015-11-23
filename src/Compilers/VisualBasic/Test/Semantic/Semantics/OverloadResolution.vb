@@ -5619,6 +5619,16 @@ BC30456: 'GetWordsAsync' is not a member of 'Line'.
 BC30451: 'WordsKey' is not declared. It may be inaccessible due to its protection level.
                         If imax <= WordsKey Then Return
                                    ~~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                        Await Task.WhenAll(WordTasks.ToArray())
+                                   ~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                Await Task.WhenAll(SentenceTasks.ToArray())
+                           ~~~~~~~
 ]]></expected>)
         End Sub
 
@@ -5732,6 +5742,16 @@ BC30456: 'GetDeliveryWindowVendor9Async' is not a member of 'DeliveryWindowDepar
 BC30451: 'Vendor9Key' is not declared. It may be inaccessible due to its protection level.
                                                                                           If MaxDepth <= Vendor9Key Then
                                                                                                          ~~~~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                                                                                          Await Task.WhenAll(Vendor9Tasks.ToArray())
+                                                                                                     ~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                                             Await Task.WhenAll(DepartmentTasks.ToArray())
+                                                        ~~~~~~~
 BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
     'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
     'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.

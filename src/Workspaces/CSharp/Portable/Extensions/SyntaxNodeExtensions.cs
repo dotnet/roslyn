@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n");
             var singleBlankLine = Matcher.Sequence(whitespace, endOfLine);
 
-            var shebangComment = Match(SyntaxKind.ShebangTrivia, "#!");
+            var shebangComment = Match(SyntaxKind.ShebangDirectiveTrivia, "#!");
             var singleLineComment = Match(SyntaxKind.SingleLineCommentTrivia, "//");
             var multiLineComment = Match(SyntaxKind.MultiLineCommentTrivia, "/**/");
             var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (ppIndex != -1)
             {
-                // We have a pp directive.  it (and all all previous trivia) must be stripped.
+                // We have a pp directive.  it (and all previous trivia) must be stripped.
                 leadingTriviaToStrip = new List<SyntaxTrivia>(leadingTrivia.Take(ppIndex + 1));
                 leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia.Skip(ppIndex + 1));
             }

@@ -64,25 +64,15 @@ namespace Microsoft.CodeAnalysis
 
             private static string GetExpectedPropertiesMapText()
             {
-                var isFirst = true;
-                var expectedText = @",
-        ""customProperties"": {";
+                var expectedText = "";
 
                 foreach (var kvp in s_properties.OrderBy(kvp => kvp.Key))
                 {
-                    if (!isFirst)
-                    {
-                        expectedText += ",";
-                    }
-
+                    expectedText += ",";
                     expectedText += string.Format(@"
-          ""{0}"": ""{1}""", kvp.Key, kvp.Value);
-
-                    isFirst = false;
+            ""customProperties.{0}"": ""{1}""", kvp.Key, kvp.Value);
                 }
 
-                expectedText += @"
-        }";
                 return expectedText;
             }
 
@@ -91,67 +81,69 @@ namespace Microsoft.CodeAnalysis
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
-                var filePath = EscapeDirectorySeparatorChar(tree.FilePath);
+                var filePath = GetEscapedUriForPath(tree.FilePath);
 
                 return @"
-  ""issues"": [
-    {
-      ""ruleId"": """ + Descriptor1.Id + @""",
-      ""locations"": [
+      ""issues"": [
         {
-          ""analysisTarget"": [
+          ""ruleId"": """ + Descriptor1.Id + @""",
+          ""locations"": [
             {
-              ""uri"": """ + filePath + @""",
-              ""region"": {
-                ""startLine"": " + expectedLineSpan.StartLinePosition.Line + @",
-                ""startColumn"": " + expectedLineSpan.StartLinePosition.Character + @",
-                ""endLine"": " + expectedLineSpan.EndLinePosition.Line + @",
-                ""endColumn"": " + expectedLineSpan.EndLinePosition.Character + @"
-              }
+              ""analysisTarget"": [
+                {
+                  ""uri"": """ + filePath + @""",
+                  ""region"": {
+                    ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
+                    ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
+                    ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
+                    ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
+                  }
+                }
+              ]
             }
-          ]
+          ],
+          ""shortMessage"": """ + Descriptor1.MessageFormat + @""",
+          ""fullMessage"": """ + Descriptor1.Description + @""",
+          ""properties"": {
+            ""severity"": """ + Descriptor1.DefaultSeverity + @""",
+            ""warningLevel"": ""1"",
+            ""defaultSeverity"": """ + Descriptor1.DefaultSeverity + @""",
+            ""title"": """ + Descriptor1.Title + @""",
+            ""category"": """ + Descriptor1.Category + @""",
+            ""helpLink"": """ + Descriptor1.HelpLinkUri + @""",
+            ""isEnabledByDefault"": """ + Descriptor1.IsEnabledByDefault + @""",
+            ""isSuppressedInSource"": ""False"",
+            ""customTags"": """ + Descriptor1.CustomTags.Join(";") + @"""" +
+            GetExpectedPropertiesMapText() + @"
+          }
+        },
+        {
+          ""ruleId"": """ + Descriptor2.Id + @""",
+          ""locations"": [
+          ],
+          ""shortMessage"": """ + Descriptor2.MessageFormat + @""",
+          ""fullMessage"": """ + Descriptor2.Description + @""",
+          ""properties"": {
+            ""severity"": """ + Descriptor2.DefaultSeverity + @""",
+            ""defaultSeverity"": """ + Descriptor2.DefaultSeverity + @""",
+            ""title"": """ + Descriptor2.Title + @""",
+            ""category"": """ + Descriptor2.Category + @""",
+            ""helpLink"": """ + Descriptor2.HelpLinkUri + @""",
+            ""isEnabledByDefault"": """ + Descriptor2.IsEnabledByDefault + @""",
+            ""isSuppressedInSource"": ""False"",
+            ""customTags"": """ + Descriptor2.CustomTags.Join(";") + @"""" +
+            GetExpectedPropertiesMapText() + @"
+          }
         }
-      ],
-      ""shortMessage"": """ + Descriptor1.MessageFormat + @""",
-      ""fullMessage"": """ + Descriptor1.Description + @""",
-      ""properties"": {
-        ""severity"": """ + Descriptor1.DefaultSeverity + @""",
-        ""warningLevel"": ""1"",
-        ""defaultSeverity"": """ + Descriptor1.DefaultSeverity + @""",
-        ""title"": """ + Descriptor1.Title + @""",
-        ""category"": """ + Descriptor1.Category + @""",
-        ""helpLink"": """ + Descriptor1.HelpLinkUri + @""",
-        ""isEnabledByDefault"": """ + Descriptor1.IsEnabledByDefault + @""",
-        ""isSuppressedInSource"": ""False"",
-        ""customTags"": """ + Descriptor1.CustomTags.Join(";") + @"""" +
-        GetExpectedPropertiesMapText() + @"
-      }
-    },
-    {
-      ""ruleId"": """ + Descriptor2.Id + @""",
-      ""locations"": [
-      ],
-      ""shortMessage"": """ + Descriptor2.MessageFormat + @""",
-      ""fullMessage"": """ + Descriptor2.Description + @""",
-      ""properties"": {
-        ""severity"": """ + Descriptor2.DefaultSeverity + @""",
-        ""defaultSeverity"": """ + Descriptor2.DefaultSeverity + @""",
-        ""title"": """ + Descriptor2.Title + @""",
-        ""category"": """ + Descriptor2.Category + @""",
-        ""helpLink"": """ + Descriptor2.HelpLinkUri + @""",
-        ""isEnabledByDefault"": """ + Descriptor2.IsEnabledByDefault + @""",
-        ""isSuppressedInSource"": ""False"",
-        ""customTags"": """ + Descriptor2.CustomTags.Join(";") + @"""" +
-        GetExpectedPropertiesMapText() + @"
-      }
+      ]
     }
   ]
 }";
             }
 
-            public static string EscapeDirectorySeparatorChar(string input)
+            public static string GetEscapedUriForPath(string path)
             {
-                return input.Replace(Path.DirectorySeparatorChar.ToString(), @"\" + Path.DirectorySeparatorChar);
+                return new Uri(path, UriKind.RelativeOrAbsolute).ToString().Replace("/", "\\/");
             }
         }
 

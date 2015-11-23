@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly CSharpCompilationOptions _options;
         private readonly Lazy<Imports> _globalImports;
+        private readonly Lazy<Imports> _previousSubmissionImports;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol> _scriptClass;
-        private readonly CSharpCompilation _previousSubmission;
 
         // All imports (using directives and extern aliases) in syntax trees in this compilation.
         // NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
@@ -208,25 +208,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new compilation that can be used in scripting.
         /// </summary>
-        public static CSharpCompilation CreateSubmission(
+        public static CSharpCompilation CreateScriptCompilation(
             string assemblyName,
             SyntaxTree syntaxTree = null,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            Compilation previousSubmission = null,
+            CSharpCompilation previousScriptCompilation = null,
             Type returnType = null,
-            Type hostObjectType = null)
+            Type globalsType = null)
         {
             CheckSubmissionOptions(options);
+            ValidateScriptCompilationParameters(previousScriptCompilation, returnType, ref globalsType);
 
             return Create(
                 assemblyName,
                 options ?? s_defaultSubmissionOptions,
                 (syntaxTree != null) ? new[] { syntaxTree } : SpecializedCollections.EmptyEnumerable<SyntaxTree>(),
                 references,
-                (CSharpCompilation)previousSubmission,
-                returnType,
-                hostObjectType,
+                previousScriptCompilation, 
+                returnType, 
+                globalsType,
                 isSubmission: true);
         }
 
@@ -244,7 +245,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckAssemblyName(assemblyName);
 
             var validatedReferences = ValidateReferences<CSharpCompilationReference>(references);
-            ValidateSubmissionParameters(previousSubmission, returnType, ref hostObjectType);
 
             var compilation = new CSharpCompilation(
                 assemblyName,
@@ -285,14 +285,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             AsyncQueue<CompilationEvent> eventQueue = null)
-            : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), submissionReturnType, hostObjectType, isSubmission, eventQueue)
+            : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), isSubmission, eventQueue)
         {
             _wellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
 
             this.builtInOperators = new BuiltInOperators(this);
             _scriptClass = new Lazy<ImplicitNamedTypeSymbol>(BindScriptClass);
-            _globalImports = new Lazy<Imports>(BindGlobalUsings);
+            _globalImports = new Lazy<Imports>(BindGlobalImports);
+            _previousSubmissionImports = new Lazy<Imports>(ExpandPreviousSubmissionImports);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
@@ -300,8 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isSubmission)
             {
                 Debug.Assert(previousSubmission == null || previousSubmission.HostObjectType == hostObjectType);
-
-                _previousSubmission = previousSubmission;
+                this.ScriptCompilationInfo = new CSharpScriptCompilationInfo(previousSubmission, submissionReturnType, hostObjectType);
             }
             else
             {
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.AssemblyName,
                 _options,
                 this.ExternalReferences,
-                _previousSubmission,
+                this.PreviousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.AssemblyName,
                 _options,
                 this.ExternalReferences,
-                _previousSubmission,
+                this.PreviousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assemblyName,
                 _options,
                 this.ExternalReferences,
-                _previousSubmission,
+                this.PreviousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.AssemblyName,
                 _options,
                 ValidateReferences<CSharpCompilationReference>(references),
-                _previousSubmission,
+                this.PreviousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.AssemblyName,
                 options,
                 this.ExternalReferences,
-                _previousSubmission,
+                this.PreviousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
@@ -489,23 +489,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a new compilation with the given compilation set as the previous submission.
         /// </summary>
-        internal CSharpCompilation WithPreviousSubmission(CSharpCompilation newPreviousSubmission)
+        public CSharpCompilation WithScriptCompilationInfo(CSharpScriptCompilationInfo info)
         {
-            if (!this.IsSubmission)
+            if (info == ScriptCompilationInfo)
             {
-                throw new InvalidOperationException(CSharpResources.CannotHavePreviousSubmission);
+                return this;
             }
-
+            
             // Reference binding doesn't depend on previous submission so we can reuse it.
 
             return new CSharpCompilation(
                 this.AssemblyName,
                 _options,
                 this.ExternalReferences,
-                newPreviousSubmission,
-                this.SubmissionReturnType,
-                this.HostObjectType,
-                this.IsSubmission,
+                info?.PreviousScriptCompilation,
+                info?.ReturnType,
+                info?.GlobalsType,
+                info != null,
                 _referenceManager,
                 reuseReferenceManager: true,
                 syntaxAndDeclarations: _syntaxAndDeclarations);
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.AssemblyName,
                 _options,
                 this.ExternalReferences,
-                _previousSubmission,
+                this.PreviousSubmission,
                 this.SubmissionReturnType,
                 this.HostObjectType,
                 this.IsSubmission,
@@ -534,61 +534,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Submission
 
-        internal new CSharpCompilation PreviousSubmission
+        public new CSharpScriptCompilationInfo ScriptCompilationInfo { get; }
+        internal override ScriptCompilationInfo CommonScriptCompilationInfo => ScriptCompilationInfo;
+
+        internal CSharpCompilation PreviousSubmission => ScriptCompilationInfo?.PreviousScriptCompilation;
+
+        internal override bool HasSubmissionResult()
         {
-            get { return _previousSubmission; }
-        }
-
-        // TODO (tomat): consider moving this method to SemanticModel
-
-        /// <summary>
-        /// Returns the type of the submission return value. 
-        /// </summary>
-        /// <returns>
-        /// The type of the last expression of the submission. 
-        /// Null if the type of the last expression is unknown (null).
-        /// Void type if the type of the last expression statement is void or 
-        /// the submission ends with a declaration or statement that is not an expression statement.
-        /// </returns>
-        /// <remarks>
-        /// Note that the return type is System.Void for both compilations "System.Console.WriteLine();" and "System.Console.WriteLine()", 
-        /// and <paramref name="hasValue"/> is <c>False</c> for the former and <c>True</c> for the latter.
-        /// </remarks>
-        /// <param name="hasValue">True if the submission has value, i.e. if it ends with a statement that is an expression statement.</param>
-        /// <exception cref="InvalidOperationException">The compilation doesn't represent a submission (<see cref="Compilation.IsSubmission"/> return false).</exception>
-        internal new TypeSymbol GetSubmissionResultType(out bool hasValue)
-        {
-            if (!IsSubmission)
-            {
-                throw new InvalidOperationException(CSharpResources.ThisCompilationNotInteractive);
-            }
-
-            hasValue = false;
+            Debug.Assert(IsSubmission);
 
             // A submission may be empty or comprised of a single script file.
             var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
-            if (tree == null || tree.Options.Kind != SourceCodeKind.Interactive)
+            if (tree == null)
             {
-                return GetSpecialType(SpecialType.System_Void);
+                return false;
             }
 
-            var lastStatement = (GlobalStatementSyntax)tree.GetCompilationUnitRoot().Members.LastOrDefault(decl => decl.Kind() == SyntaxKind.GlobalStatement);
-            if (lastStatement == null || lastStatement.Statement.Kind() != SyntaxKind.ExpressionStatement)
+            var root = tree.GetCompilationUnitRoot();
+            if (root.HasErrors)
             {
-                return GetSpecialType(SpecialType.System_Void);
+                return false;
             }
 
-            var expressionStatement = (ExpressionStatementSyntax)lastStatement.Statement;
-            if (!expressionStatement.SemicolonToken.IsMissing)
+            // Are there any top-level return statments?
+            if (root.DescendantNodes(n => n is GlobalStatementSyntax || n is StatementSyntax || n is CompilationUnitSyntax).Any(n => n.IsKind(SyntaxKind.ReturnStatement)))
             {
-                return GetSpecialType(SpecialType.System_Void);
+                return true;
             }
 
-            var model = GetSemanticModel(tree);
-            hasValue = true;
-            var expression = expressionStatement.Expression;
-            var info = model.GetTypeInfo(expression);
-            return (TypeSymbol)info.ConvertedType;
+            // Is there a trailing expression?
+            var lastGlobalStatement = (GlobalStatementSyntax)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
+            if (lastGlobalStatement != null)
+            {
+                var statement = lastGlobalStatement.Statement;
+                if (statement.IsKind(SyntaxKind.ExpressionStatement))
+                {
+                    var expressionStatement = (ExpressionStatementSyntax)statement;
+                    if (expressionStatement.SemicolonToken.IsMissing)
+                    {
+                        var model = GetSemanticModel(tree);
+                        var expression = expressionStatement.Expression;
+                        var info = model.GetTypeInfo(expression);
+                        return info.ConvertedType?.SpecialType != SpecialType.System_Void;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion
@@ -856,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IDictionary<string, MetadataReference> ReferenceDirectiveMap
+        internal override IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
         {
             get
             {
@@ -919,10 +911,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a metadata reference that a given #r resolves to.
         /// </summary>
         /// <param name="directive">#r directive.</param>
-        /// <returns>Metadata reference the specified directive resolves to.</returns>
+        /// <returns>Metadata reference the specified directive resolves to, or null if the <paramref name="directive"/> doesn't match any #r directive in the compilation.</returns>
         public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
-            return ReferenceDirectiveMap[directive.File.ValueText];
+            MetadataReference reference;
+            return ReferenceDirectiveMap.TryGetValue(ValueTuple.Create(directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
         /// <summary>
@@ -1195,17 +1188,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             return namespaceOrType as ImplicitNamedTypeSymbol;
         }
 
-        internal Imports GlobalImports
+        internal bool IsSubmissionSyntaxTree(SyntaxTree tree)
         {
-            get { return _globalImports.Value; }
+            Debug.Assert(tree != null);
+            Debug.Assert(!this.IsSubmission || _syntaxAndDeclarations.ExternalSyntaxTrees.Length <= 1);
+            return this.IsSubmission && tree == _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
         }
 
-        internal IEnumerable<NamespaceOrTypeSymbol> GlobalUsings
+        /// <summary>
+        /// Global imports (including those from previous submissions, if there are any).
+        /// </summary>
+        internal Imports GlobalImports => _globalImports.Value;
+
+        private Imports BindGlobalImports() => Imports.FromGlobalUsings(this);
+
+        /// <summary>
+        /// Imports declared by this submission (null if this isn't one).
+        /// </summary>
+        internal Imports GetSubmissionImports()
         {
-            get
+            Debug.Assert(this.IsSubmission);
+            Debug.Assert(_syntaxAndDeclarations.ExternalSyntaxTrees.Length <= 1);
+
+            // A submission may be empty or comprised of a single script file.
+            var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
+            if (tree == null)
             {
-                return GlobalImports.Usings.Select(u => u.NamespaceOrType);
+                return Imports.Empty;
             }
+
+            var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
+            return binder.GetImports(basesBeingResolved: null);
+        }
+
+        /// <summary>
+        /// Imports from all previous submissions.
+        /// </summary>
+        internal Imports GetPreviousSubmissionImports() => _previousSubmissionImports.Value;
+
+        private Imports ExpandPreviousSubmissionImports()
+        {
+            Debug.Assert(this.IsSubmission);
+            var previous = this.PreviousSubmission;
+
+            if (previous == null)
+            {
+                return Imports.Empty;
+            }
+
+            return Imports.ExpandPreviousSubmissionImports(previous.GetPreviousSubmissionImports(), this).Concat(
+                Imports.ExpandPreviousSubmissionImports(previous.GetSubmissionImports(), this));
         }
 
         internal AliasSymbol GlobalNamespaceAlias
@@ -1655,31 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal Imports GetImports(SingleNamespaceDeclaration declaration)
         {
-            return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports();
-        }
-
-        internal Imports GetSubmissionImports()
-        {
-            return ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).GetBoundImportsMerged().SingleOrDefault() ?? Imports.Empty;
-        }
-
-        internal InteractiveUsingsBinder GetInteractiveUsingsBinder()
-        {
-            Debug.Assert(IsSubmission);
-
-            // empty compilation:
-            if ((object)ScriptClass == null)
-            {
-                Debug.Assert(_syntaxAndDeclarations.ExternalSyntaxTrees.Length == 0);
-                return null;
-            }
-
-            return GetBinderFactory(_syntaxAndDeclarations.ExternalSyntaxTrees.Single()).GetInteractiveUsingsBinder();
-        }
-
-        private Imports BindGlobalUsings()
-        {
-            return Imports.FromGlobalUsings(this);
+            return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports(basesBeingResolved: null);
         }
 
         private AliasSymbol CreateGlobalNamespaceAlias()
@@ -2096,7 +2104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // global imports diagnostics (specified via compilation options):
             GlobalImports.Complete(cancellationToken);
 
             SourceLocation location = null;
@@ -2148,7 +2155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var diagnostic in diagnostics)
             {
-                if (diagnostic.ContainsLocation(tree, filterSpanWithinTree))
+                if (diagnostic.HasIntersectingLocation(tree, filterSpanWithinTree))
                 {
                     yield return diagnostic;
                 }
@@ -2179,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (stage == CompilationStage.Declare || (stage > CompilationStage.Declare && includeEarlierStages))
             {
                 var declarationDiagnostics = GetSourceDeclarationDiagnostics(syntaxTree, filterSpanWithinTree, FilterDiagnosticsByLocation, cancellationToken);
-                Debug.Assert(declarationDiagnostics.All(d => d.ContainsLocation(syntaxTree, filterSpanWithinTree)));
+                Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
                 builder.AddRange(declarationDiagnostics);
             }
 
@@ -2682,11 +2689,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithAssemblyName(assemblyName);
         }
 
-        protected override ITypeSymbol CommonGetSubmissionResultType(out bool hasValue)
-        {
-            return GetSubmissionResultType(out hasValue);
-        }
-
         protected override IAssemblySymbol CommonAssembly
         {
             get { return this.Assembly; }
@@ -2700,11 +2702,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompilationOptions CommonOptions
         {
             get { return _options; }
-        }
-
-        protected override Compilation CommonPreviousSubmission
-        {
-            get { return _previousSubmission; }
         }
 
         protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
@@ -2745,14 +2742,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.WithOptions((CSharpCompilationOptions)options);
         }
 
-        protected override Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission)
+        protected override Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo info)
         {
-            return this.WithPreviousSubmission((CSharpCompilation)newPreviousSubmission);
+            return this.WithScriptCompilationInfo((CSharpScriptCompilationInfo)info);
         }
 
         protected override bool CommonContainsSyntaxTree(SyntaxTree syntaxTree)
         {
-            return this.ContainsSyntaxTree((SyntaxTree)syntaxTree);
+            return this.ContainsSyntaxTree(syntaxTree);
         }
 
         protected override ISymbol CommonGetAssemblyOrModuleSymbol(MetadataReference reference)

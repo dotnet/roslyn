@@ -298,8 +298,8 @@ Imports System
 
         <Fact>
         Public Sub UnusedImportInteractive()
-            Dim tree = Parse("Imports System", options:=TestOptions.Interactive)
-            Dim compilation = VisualBasicCompilation.CreateSubmission("sub1", tree, {MscorlibRef_v4_0_30316_17626})
+            Dim tree = Parse("Imports System", options:=TestOptions.Script)
+            Dim compilation = VisualBasicCompilation.CreateScriptCompilation("sub1", tree, {MscorlibRef_v4_0_30316_17626})
             compilation.AssertNoDiagnostics(suppressInfos:=False)
         End Sub
 

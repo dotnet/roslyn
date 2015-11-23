@@ -76,11 +76,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             End If
 
             If endStatement.Kind = SyntaxKind.EndGetStatement OrElse endStatement.Kind = SyntaxKind.EndSetStatement Then
-                If endStatement.Parent IsNot Nothing AndAlso endStatement.Parent.Parent IsNot Nothing AndAlso endStatement.Parent.Parent.Kind = SyntaxKind.PropertyBlock Then
+                If endStatement?.Parent?.Parent.Kind = SyntaxKind.PropertyBlock Then
                     context.RegisterCodeFix(
                         New MyCodeAction(
                             VBFeaturesResources.InsertTheMissingEndProper,
-                            Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent, PropertyBlockSyntax), c)),
+                            Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent.Parent, PropertyBlockSyntax), c)),
                         context.Diagnostics)
                     Return
                 End If

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
@@ -10,8 +11,12 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly TouchedFileLogger _loggerOpt;
 
-            public LoggingSourceFileResolver(ImmutableArray<string> searchPaths, string baseDirectory, TouchedFileLogger logger)
-                : base(searchPaths, baseDirectory)
+            public LoggingSourceFileResolver(
+                ImmutableArray<string> searchPaths,
+                string baseDirectory,
+                ImmutableArray<KeyValuePair<string, string>> pathMap,
+                TouchedFileLogger logger)
+                : base(searchPaths, baseDirectory, pathMap)
             {
                 _loggerOpt = logger;
             }
@@ -25,6 +30,12 @@ namespace Microsoft.CodeAnalysis
 
                 return base.FileExists(fullPath);
             }
+
+            public LoggingSourceFileResolver WithBaseDirectory(string value) => 
+                (BaseDirectory == value) ? this : new LoggingSourceFileResolver(SearchPaths, value, PathMap, _loggerOpt);
+
+            public LoggingSourceFileResolver WithSearchPaths(ImmutableArray<string> value) => 
+                (SearchPaths == value) ? this : new LoggingSourceFileResolver(value, BaseDirectory, PathMap, _loggerOpt);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface
 {
     public class ExtractInterfaceTests : AbstractExtractInterfaceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_Invocation_CaretInMethod()
         {
             var markup = @"
@@ -32,7 +32,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_Invocation_CaretAfterClassClosingBrace()
         {
             var markup = @"
@@ -48,7 +48,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_Invocation_CaretBeforeClassKeyword()
         {
             var markup = @"
@@ -64,7 +64,7 @@ $$class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_Invocation_FromInnerClass1()
         {
             var markup = @"
@@ -87,7 +87,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "Bar");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_Invocation_FromInnerClass2()
         {
             var markup = @"
@@ -110,7 +110,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "Bar");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_Invocation_FromOuterClass()
         {
             var markup = @"
@@ -133,7 +133,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_Invocation_FromInterface()
         {
             var markup = @"
@@ -146,7 +146,7 @@ interface IMyInterface
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "Foo", expectedInterfaceName: "IMyInterface1");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_Invocation_FromStruct()
         {
             var markup = @"
@@ -159,7 +159,7 @@ struct SomeStruct
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "Foo", expectedInterfaceName: "ISomeStruct");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_Invocation_FromNamespace()
         {
             var markup = @"
@@ -176,7 +176,7 @@ namespace Ns$$
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_DoesNotIncludeFields()
         {
             var markup = @"
@@ -193,7 +193,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndSet()
         {
             var markup = @"
@@ -206,7 +206,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndPrivateSet()
         {
             var markup = @"
@@ -219,7 +219,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGet()
         {
             var markup = @"
@@ -232,7 +232,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "Prop");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_ExcludesPublicProperty_WithPrivateGetAndPrivateSet()
         {
             var markup = @"
@@ -245,7 +245,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_IncludesPublicIndexer()
         {
             var markup = @"
@@ -258,7 +258,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "this[]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_ExcludesInternalIndexer()
         {
             var markup = @"
@@ -271,7 +271,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_IncludesPublicMethod()
         {
             var markup = @"
@@ -286,7 +286,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "M");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_ExcludesInternalMethod()
         {
             var markup = @"
@@ -301,7 +301,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_IncludesAbstractMethod()
         {
             var markup = @"
@@ -314,7 +314,7 @@ abstract class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "M");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_IncludesPublicEvent()
         {
             var markup = @"
@@ -327,7 +327,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedMemberName: "MyEvent");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_ExtractableMembers_ExcludesPrivateEvent()
         {
             var markup = @"
@@ -340,7 +340,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_DefaultInterfaceName_DoesNotConflictWithOtherTypeNames()
         {
             var markup = @"
@@ -357,7 +357,7 @@ class IMyClass2 { }";
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedInterfaceName: "IMyClass3");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_NamespaceName_NoNamespace()
         {
             var markup = @"
@@ -370,7 +370,7 @@ class MyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedNamespaceName: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_NamespaceName_SingleNamespace()
         {
             var markup = @"
@@ -386,7 +386,7 @@ namespace MyNamespace
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedNamespaceName: "MyNamespace");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_NamespaceName_NestedNamespaces()
         {
             var markup = @"
@@ -405,7 +405,7 @@ namespace OuterNamespace
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedNamespaceName: "OuterNamespace.InnerNamespace");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_ClassesImplementExtractedInterface()
         {
             var markup = @"using System;
@@ -425,7 +425,7 @@ class MyClass : IMyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_StructsImplementExtractedInterface()
         {
             var markup = @"
@@ -447,7 +447,7 @@ struct MyStruct : IMyStruct
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_InterfacesDoNotImplementExtractedInterface()
         {
             var markup = @"
@@ -469,7 +469,7 @@ interface MyInterface
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_Methods()
         {
             var markup = @"
@@ -498,7 +498,7 @@ interface IMyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_Events()
         {
             var markup = @"
@@ -521,7 +521,7 @@ internal interface IMyClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_Properties()
         {
             var markup = @"
@@ -557,7 +557,7 @@ abstract class MyClass$$
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_Indexers()
         {
             var markup = @"
@@ -582,7 +582,7 @@ abstract class MyClass$$
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_Imports()
         {
             var markup = @"
@@ -609,7 +609,7 @@ public interface IClass
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_TypeParameters1()
         {
             var markup = @"
@@ -645,7 +645,7 @@ public class Class<A, B, C, D, E, F, G, H, NO1> where E : F
         }
 
         [WorkItem(706894)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_TypeParameters2()
         {
             var markup = @"using System.Collections.Generic;
@@ -667,7 +667,7 @@ interface IProgram<A, B, D, E>
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_TypeParameters3()
         {
             var markup = @"
@@ -690,7 +690,7 @@ class $$Class1<A, B>
         }
 
         [WorkItem(706894)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_TypeParameters4()
         {
             var markup = @"
@@ -726,7 +726,7 @@ public interface IC4<A, B, C>
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_BaseList_NewBaseListNonGeneric()
         {
             var markup = @"
@@ -744,7 +744,7 @@ class Program : IProgram
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_BaseList_NewBaseListGeneric()
         {
             var markup = @"
@@ -762,7 +762,7 @@ class Program<T> : IProgram<T>
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_BaseList_NewBaseListWithWhereClause()
         {
             var markup = @"
@@ -780,7 +780,7 @@ class Program<T, U> : IProgram<T, U> where T : U
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_BaseList_LargerBaseList1()
         {
             var markup = @"
@@ -802,7 +802,7 @@ interface ISomeInterface {}";
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_BaseList_LargerBaseList2()
         {
             var markup = @"
@@ -824,7 +824,7 @@ interface ISomeInterface<T> {}";
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_BaseList_LargerBaseList3()
         {
             var markup = @"
@@ -848,7 +848,7 @@ interface ISomeInterface2<T, U> {}";
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_CodeGen_BaseList_LargerBaseList4()
         {
             var markup = @"
@@ -872,7 +872,7 @@ interface ISomeInterface2<T, U> {}";
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedUpdatedOriginalDocumentCode: expectedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly1()
         {
             var markup = @"
@@ -885,7 +885,7 @@ class Program<T, U> : ISomeInterface<T> where T : U
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly2()
         {
             var markup = @"
@@ -898,7 +898,7 @@ class Program<T, U> $$: ISomeInterface<T> where T : U
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly3()
         {
             var markup = @"
@@ -911,7 +911,7 @@ class$$ Program<T, U> : ISomeInterface<T> where T : U
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly4()
         {
             var markup = @"
@@ -924,7 +924,7 @@ class Program<T, U>$$ : ISomeInterface<T> where T : U
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly5()
         {
             var markup = @"
@@ -937,7 +937,7 @@ class Program  $$ <T, U> : ISomeInterface<T> where T : U
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly6()
         {
             var markup = @"
@@ -950,7 +950,7 @@ class $$Program   <T, U> : ISomeInterface<T> where T : U
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly7()
         {
             var markup = @"
@@ -963,7 +963,7 @@ class $$Program : ISomeInterface<object>
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly8()
         {
             var markup = @"
@@ -976,7 +976,7 @@ class Program$$ : ISomeInterface<object>
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly9()
         {
             var markup = @"
@@ -989,7 +989,7 @@ class$$ Program : ISomeInterface<object>
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_TypeDiscovery_NameOnly10()
         {
             var markup = @"
@@ -1014,7 +1014,7 @@ class Program $$: ISomeInterface<object>
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_GeneratedNameTypeParameterSuffix1()
         {
             var markup = @"
@@ -1027,7 +1027,7 @@ class $$Test<T>
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedTypeParameterSuffix: expectedTypeParameterSuffix);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_GeneratedNameTypeParameterSuffix2()
         {
             var markup = @"
@@ -1040,7 +1040,7 @@ class $$Test<T, U>
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedTypeParameterSuffix: expectedTypeParameterSuffix);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         public void ExtractInterface_GeneratedNameTypeParameterSuffix3()
         {
             var markup = @"
@@ -1053,13 +1053,13 @@ class $$Test<T, U>
             TestExtractInterfaceCommandCSharp(markup, expectedSuccess: true, expectedTypeParameterSuffix: expectedTypeParameterSuffix);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractInterface)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ExtractInterfaceCommandDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsCodeFixService)));
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
                 <Workspace>

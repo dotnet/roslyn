@@ -137,8 +137,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateAnalyzerFolderContextMenu()
         {
-            _addMenuItem.Visible = SelectedProjectSupportsAnalyzers();
-            _addMenuItem.Enabled = _allowProjectSystemOperations;
+            if (_addMenuItem != null)
+            {
+                _addMenuItem.Visible = SelectedProjectSupportsAnalyzers();
+                _addMenuItem.Enabled = _allowProjectSystemOperations;
+            }
         }
 
         public IContextMenuController AnalyzerContextMenuController

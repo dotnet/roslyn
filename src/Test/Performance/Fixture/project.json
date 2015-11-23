@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Microsoft.DotNet.xunit.performance": "1.0.0-alpha-build0023"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win7-anycpu": { },
+    "win7": { }
+  }
+}

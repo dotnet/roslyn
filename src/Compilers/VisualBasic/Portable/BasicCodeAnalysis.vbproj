@@ -322,9 +322,9 @@
     <Compile Include="CodeGen\Optimizer\StackScheduler.LocalDefUseSpan.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.Rewriter.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.vb" />
-    <Compile Include="CommandLine\CommandLineArguments.vb" />
+    <Compile Include="CommandLine\VisualBasicCommandLineArguments.vb" />
     <Compile Include="CommandLine\CommandLineDiagnosticFormatter.vb" />
-    <Compile Include="CommandLine\CommandLineParser.vb" />
+    <Compile Include="CommandLine\VisualBasicCommandLineParser.vb" />
     <Compile Include="CommandLine\VisualBasicCompiler.vb" />
     <Compile Include="Compilation\AwaitExpressionInfo.vb" />
     <Compile Include="Compilation\BoundNodeSummary.vb" />
@@ -363,6 +363,7 @@
     <Compile Include="Compilation\VisualBasicCompilationReference.vb" />
     <Compile Include="Compilation\VisualBasicCompilerDiagnosticAnalyzer.vb" />
     <Compile Include="Compilation\VisualBasicDiagnosticFilter.vb" />
+    <Compile Include="Compilation\VisualBasicScriptCompilationInfo.vb" />
     <Compile Include="Declarations\Declaration.vb" />
     <Compile Include="Declarations\DeclarationKind.vb" />
     <Compile Include="Declarations\DeclarationModifiers.vb" />
@@ -993,10 +994,13 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CompilerServer" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="VBCSCompilerPortable" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
@@ -1011,8 +1015,8 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />

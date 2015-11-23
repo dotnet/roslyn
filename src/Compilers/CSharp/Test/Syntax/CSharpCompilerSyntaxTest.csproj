@@ -14,8 +14,6 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Syntax.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <CSharpSyntaxGeneratorToolPath>$(OutDir)\CSharpSyntaxGenerator.exe</CSharpSyntaxGeneratorToolPath>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
@@ -105,7 +103,7 @@
     <Compile Include="Parsing\DeclarationParsingTests.cs" />
     <Compile Include="Parsing\ExpressionParsingTests.cs" />
     <Compile Include="Parsing\FuzzTesting.cs" />
-    <Compile Include="Parsing\InteractiveParsingTests.cs" />
+    <Compile Include="Parsing\ScriptParsingTests.cs" />
     <Compile Include="Parsing\LambdaParameterParsingTests.cs" />
     <Compile Include="Parsing\NameAttributeValueParsingTests.cs" />
     <Compile Include="Parsing\NameParsingTests.cs" />
@@ -163,6 +161,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

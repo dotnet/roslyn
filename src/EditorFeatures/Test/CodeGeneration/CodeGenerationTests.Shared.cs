@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     {
         public class Shared
         {
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public void TestSorting()
             {
                 var initial = "namespace [|N|] { }";
@@ -397,7 +397,7 @@ End Namespace";
                     forceLanguage: LanguageNames.VisualBasic);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public void TestSortingDefaultTypeMemberAccessibility1()
             {
                 var generationSource = "public class [|C|] { private string B; public string C; }";
@@ -449,7 +449,7 @@ End Structure";
                 TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public void TestDefaultTypeMemberAccessibility2()
             {
                 var generationSource = "public class [|C|] { private void B(){} public void C(){}  }";
@@ -497,7 +497,7 @@ End Module";
                 TestGenerateFromSourceSymbol(generationSource, initial, expected, onlyGenerateMembers: true);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public void TestDefaultNamespaceMemberAccessibility1()
             {
                 var generationSource = "internal class [|B|]{}";
@@ -510,7 +510,7 @@ End Module";
                 TestGenerateFromSourceSymbol(generationSource, initial, expected);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public void TestDefaultNamespaceMemberAccessibility2()
             {
                 var generationSource = "public class [|C|]{}";
@@ -523,7 +523,7 @@ End Module";
                 TestGenerateFromSourceSymbol(generationSource, initial, expected);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
             public void TestDocumentationComment()
             {
                 var generationSource = @"
@@ -544,7 +544,7 @@ public class C
                     onlyGenerateMembers: true);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void TestModifiers()
             {
                 var generationSource = @"

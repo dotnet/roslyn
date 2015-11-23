@@ -175,8 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A <see cref="SyntaxKind"/> representing the specific kind of <see cref="SyntaxTrivia"/>. One of
         /// <see cref="SyntaxKind.WhitespaceTrivia"/>, <see cref="SyntaxKind.EndOfLineTrivia"/>,
         /// <see cref="SyntaxKind.SingleLineCommentTrivia"/>, <see cref="SyntaxKind.MultiLineCommentTrivia"/>,
-        /// <see cref="SyntaxKind.DocumentationCommentExteriorTrivia"/>, <see cref="SyntaxKind.DisabledTextTrivia"/>,
-        /// <see cref="SyntaxKind.ShebangTrivia"/>
+        /// <see cref="SyntaxKind.DocumentationCommentExteriorTrivia"/>, <see cref="SyntaxKind.DisabledTextTrivia"/>
         /// </param>
         /// <param name="text">
         /// The actual text of this token.
@@ -195,9 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EndOfLineTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
                 case SyntaxKind.SingleLineCommentTrivia:
-                case SyntaxKind.ShebangTrivia:
                 case SyntaxKind.WhitespaceTrivia:
-
                     return new SyntaxTrivia(default(SyntaxToken), new Syntax.InternalSyntax.SyntaxTrivia(kind, text, null, null), 0, 0);
                 default:
                     throw new ArgumentException("kind");
@@ -1822,15 +1819,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (token.IsMissing)
             {
-                // expression statement terminating semicolon might be missing in interactive code:
-                if (tree.Options.Kind != SourceCodeKind.Interactive ||
-                    globalStatement.Statement.Kind() != SyntaxKind.ExpressionStatement ||
-                    token.Kind() != SyntaxKind.SemicolonToken)
+                // expression statement terminating semicolon might be missing in script code:
+                if (tree.Options.Kind == SourceCodeKind.Regular ||
+                    !globalStatement.Statement.IsKind(SyntaxKind.ExpressionStatement) ||
+                    !token.IsKind(SyntaxKind.SemicolonToken))
                 {
                     return false;
                 }
 
-                token = token.GetPreviousToken(predicate: SyntaxToken.Any, stepInto: Microsoft.CodeAnalysis.SyntaxTrivia.Any);
+                token = token.GetPreviousToken(predicate: SyntaxToken.Any, stepInto: CodeAnalysis.SyntaxTrivia.Any);
                 if (token.IsMissing)
                 {
                     return false;

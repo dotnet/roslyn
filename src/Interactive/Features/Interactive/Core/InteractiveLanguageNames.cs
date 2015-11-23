@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    public class InteractiveLanguageNames
+    internal class InteractiveLanguageNames
     {
         public const string InteractiveCommand = "Interactive Command";
     }

@@ -1,13 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.EngineV1
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -15,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Roslyn.Utilities
-Imports Xunit.Sdk
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
@@ -27,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestProjectAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -138,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestEmptyProjectAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -171,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNameCollisionOnDisplayNames()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -209,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestRulesetBasedDiagnosticFiltering()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -263,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestProjectAnalyzerMessages()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -310,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestGlobalAnalyzerGroup()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -335,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateFileAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -351,12 +348,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim analyzerReference2 = CreateAnalyzerFileReference("x:\temp.dll")
                 project = project.AddAnalyzerReference(analyzerReference1)
 #If DEBUG Then
-                Assert.Throws(Of TraceAssertException)(Function() project.AddAnalyzerReference(analyzerReference2))
+                Debug.Assert(project.AnalyzerReferences.Contains(analyzerReference2))
 #End If
             End Using
         End Sub
 
-        <Fact, WorkItem(1091877), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1091877), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateFileAnalyzers2()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -390,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateImageAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -408,12 +405,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 project = project.AddAnalyzerReference(analyzerReference1)
                 project = project.AddAnalyzerReference(analyzerReference2)
 #If DEBUG Then
-                Assert.Throws(Of TraceAssertException)(Function() project.AddAnalyzerReference(analyzerReference1))
+                Debug.Assert(project.AnalyzerReferences.Contains(analyzerReference1))
 #End If
             End Using
         End Sub
 
-        <Fact, WorkItem(937956), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937956), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledGracefully()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -446,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(937915), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937915), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         <WorkItem(759)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledGracefully2()
             Dim test = <Workspace>
@@ -485,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(1167439), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1167439), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledNoCrash()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -500,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim expected = Diagnostic.Create("test", "test", "test", DiagnosticSeverity.Error, DiagnosticSeverity.Error, True, 0)
                 Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
 
-                ' check reporting diagnostic to a project that doesnt exist
+                ' check reporting diagnostic to a project that doesn't exist
                 exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, New ProjectId(Guid.NewGuid(), "dummy"))
                 Dim diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(0, diagnostics.Count())
@@ -514,7 +511,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestStatelessCodeBlockEndedAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -547,7 +544,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSameCodeBlockStartedAndEndedAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -581,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(1005568), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1005568), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestCodeBlockAnalyzerForLambda()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -657,7 +654,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <Fact, WorkItem(937952), WorkItem(944832), WorkItem(1112907), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937952), WorkItem(944832), WorkItem(1112907), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestCompilationEndedAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -720,7 +717,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <Fact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestStatefulCompilationAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -745,7 +742,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <Fact, WorkItem(248, "https://github.com/dotnet/roslyn/issues/248"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(248, "https://github.com/dotnet/roslyn/issues/248"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestStatefulCompilationAnalyzer_2()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -777,7 +774,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <Fact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestPartialTypeInGeneratedCode()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -813,7 +810,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <Fact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsReportedOnAllPartialDefinitions()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -859,7 +856,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <Fact, WorkItem(1067286)>
+        <WpfFact, WorkItem(1067286)>
         Private Sub TestCodeBlockAnalyzersForExpressionBody()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -900,7 +897,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(592)>
+        <WpfFact, WorkItem(592)>
         Private Sub TestSyntaxNodeAnalyzersForExpressionBody()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -941,7 +938,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(592)>
+        <WpfFact, WorkItem(592)>
         Private Sub TestMethodSymbolAnalyzersForExpressionBody()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -986,7 +983,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1109105)>
+        <WpfFact, WorkItem(1109105)>
         Public Sub TestMethodSymbolAnalyzer_MustOverrideMethod()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -1053,7 +1050,7 @@ End Class
             End Sub
         End Class
 
-        <Fact, WorkItem(565)>
+        <WpfFact, WorkItem(565)>
         Public Sub TestFieldDeclarationAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1119,7 +1116,7 @@ public class B
             End Sub
         End Class
 
-        <Fact, WorkItem(530)>
+        <WpfFact, WorkItem(530)>
         Public Sub TestCompilationAnalyzerWithAnalyzerOptions()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1568,7 +1565,7 @@ public class B
             End Sub
         End Class
 
-        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        <WpfFact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
         Public Sub TestCodeBlockAction()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1597,7 +1594,7 @@ End Class
             TestCodeBlockActionCore(test)
         End Sub
 
-        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        <WpfFact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
         Public Sub TestCodeBlockAction_OnlyStatelessAction()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1660,7 +1657,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")>
+        <WpfFact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")>
         Public Sub TestGenericName()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1712,7 +1709,7 @@ namespace ConsoleApplication1
             End Using
         End Sub
 
-        <Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")>
+        <WpfFact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")>
         Public Sub TestAnalyzerWithNoActions()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1740,7 +1737,7 @@ namespace ConsoleApplication1
             TestGenericNameCore(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New AnalyzerWithNoActions, New CSharpGenericNameAnalyzer)
         End Sub
 
-        <Fact, WorkItem(4055, "https://github.com/dotnet/roslyn/issues/4055")>
+        <WpfFact, WorkItem(4055, "https://github.com/dotnet/roslyn/issues/4055")>
         Public Sub TestAnalyzerWithNoSupportedDiagnostics()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1778,7 +1775,7 @@ class MyClass
             End Using
         End Sub
 
-        <Fact, WorkItem(4068, "https://github.com/dotnet/roslyn/issues/4068")>
+        <WpfFact, WorkItem(4068, "https://github.com/dotnet/roslyn/issues/4068")>
         Public Sub TestAnalyzerWithCompilationActionReportingHiddenDiagnostics()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">

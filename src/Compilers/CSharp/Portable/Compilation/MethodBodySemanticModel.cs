@@ -9,15 +9,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodBodySemanticModel : MemberSemanticModel
     {
-        private DiagnosticBag _ignoredDiagnostics = new DiagnosticBag();
-
         private MethodBodySemanticModel(CSharpCompilation compilation, Symbol owner, Binder rootBinder, CSharpSyntaxNode syntax, SyntaxTreeSemanticModel parentSemanticModelOpt = null, int speculatedPosition = 0)
             : base(compilation, syntax, owner, rootBinder, parentSemanticModelOpt, speculatedPosition)
         {
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
-            Debug.Assert(owner.ContainingType.IsScriptClass || syntax.Kind() != SyntaxKind.CompilationUnit);
+            Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
         }
 
         /// <summary>
@@ -27,16 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var executableCodeBinder = new ExecutableCodeBinder(syntax, owner, rootBinder);
             return new MethodBodySemanticModel(compilation, owner, executableCodeBinder, syntax);
-        }
-
-        /// <summary>
-        /// Creates a SemanticModel for an ArrowExpressionClause, which includes
-        /// an ExecutableCodeBinder and a ScopedExpressionBinder.
-        /// </summary>
-        internal static MethodBodySemanticModel Create(CSharpCompilation compilation, MethodSymbol owner, Binder rootBinder, ArrowExpressionClauseSyntax syntax)
-        {
-            Binder binder = new ExecutableCodeBinder(syntax, owner, rootBinder);
-            return new MethodBodySemanticModel(compilation, owner, binder, syntax);
         }
 
         internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)

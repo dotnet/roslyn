@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         Private Shared Function InteractiveParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
-            Return VisualBasicCommandLineParser.Interactive.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
+            Return VisualBasicCommandLineParser.ScriptRunner.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         End Function
 
         <Fact>
@@ -860,18 +860,6 @@ a.vb
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
-            parsedArgs = InteractiveParse({"c.vbx  /langversion:10"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = InteractiveParse({"c.vbx", "/langversion:-1"}, _baseDirectory)
-            Assert.Equal(1, parsedArgs.Errors.Length)
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(1, parsedArgs.SourceFiles.Length)
-            parsedArgs = InteractiveParse({"c.vbx  /r:d /r:d.dll"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(True, parsedArgs.SourceFiles.Any())
             parsedArgs = InteractiveParse({"@dd"}, _baseDirectory)
             Assert.Equal(True, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
@@ -884,10 +872,6 @@ a.vb
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
 
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = InteractiveParse({"c.vbx", "/r:d.dll", "/define:DEGUG"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
             parsedArgs = InteractiveParse({"""/r d.dll"""}, _baseDirectory)
@@ -1119,6 +1103,10 @@ a.vb
             Assert.Equal(False, ParsedArgs.CompilationOptions.Deterministic)
 
             ParsedArgs = DefaultParse({"/deterministic+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/deterministic", "a.vb"}, _baseDirectory)
             ParsedArgs.Errors.Verify()
             Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
 
@@ -3193,19 +3181,6 @@ End Class
 
         End Sub
 
-        <Fact>
-        Public Sub ReferencePaths()
-            Dim parsedArgs As VisualBasicCommandLineArguments
-            parsedArgs = InteractiveParse({"/rp:a,b", "/referencePath:c", "a.vb"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            AssertEx.Equal({RuntimeEnvironment.GetRuntimeDirectory(),
-                            Path.Combine(_baseDirectory, "a"),
-                            Path.Combine(_baseDirectory, "b"),
-                            Path.Combine(_baseDirectory, "c")},
-                           parsedArgs.ReferencePaths,
-                           StringComparer.OrdinalIgnoreCase)
-        End Sub
-
         <Fact, WorkItem(530088, "DevDiv")>
         Public Sub Platform()
             ' test recognizing all options
@@ -3458,7 +3433,7 @@ End Class
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\", "d:\x\y\z", Path.Combine(_baseDirectory, "abc"))
 
-            parsedArgs = DefaultParse({"/libpath:c:\Windows", "/libpath:abc\def, , , ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/lib:c:\Windows", "/libpaths:abc\def, , , ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\Windows", Path.Combine(_baseDirectory, "abc\def"))
 
@@ -7224,6 +7199,27 @@ End Class
 
             ' Verify that the diagnostic reported by AnalyzerThatThrowsInGetMessage is reported, though it doesn't have the message.
             Assert.Contains(AnalyzerThatThrowsInGetMessage.Rule.Id, output, StringComparison.Ordinal)
+
+            ' Verify that the analyzer exception diagnostic for the exception throw in AnalyzerThatThrowsInGetMessage is also reported.
+            Assert.Contains(AnalyzerExecutor.AnalyzerExceptionDiagnosticId, output, StringComparison.Ordinal)
+            Assert.Contains(NameOf(NotImplementedException), output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
+        <WorkItem(3707, "https://github.com/dotnet/roslyn/issues/3707")>
+        Public Sub AnalyzerExceptionDiagnosticCanBeConfigured()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/t:library", $"/warnaserror:{AnalyzerExecutor.AnalyzerExceptionDiagnosticId}", source},
+                                                  analyzer:=New AnalyzerThatThrowsInGetMessage)
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.NotEqual(0, exitCode)
+            Dim output = outWriter.ToString()
 
             ' Verify that the analyzer exception diagnostic for the exception throw in AnalyzerThatThrowsInGetMessage is also reported.
             Assert.Contains(AnalyzerExecutor.AnalyzerExceptionDiagnosticId, output, StringComparison.Ordinal)

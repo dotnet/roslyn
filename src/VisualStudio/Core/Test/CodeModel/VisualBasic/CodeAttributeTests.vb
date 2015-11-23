@@ -9,7 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "GetStartPoint() tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint1()
             Dim code =
 <Code>Imports System
@@ -42,7 +42,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=2, absoluteOffset:=18, lineLength:=16)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint2()
             Dim code =
 <Code>Imports System
@@ -75,7 +75,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=2, absoluteOffset:=18, lineLength:=20)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint3()
             Dim code =
 <Code>
@@ -109,7 +109,7 @@ End Class
 
 #Region "GetEndPoint() tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint1()
             Dim code =
 <Code>Imports System
@@ -142,7 +142,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=16, absoluteOffset:=32, lineLength:=16)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint2()
             Dim code =
 <Code>Imports System
@@ -175,7 +175,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=20, absoluteOffset:=36, lineLength:=20)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint3()
             Dim code =
 <Code>
@@ -209,7 +209,7 @@ End Class
 
 #Region "AttributeArgument GetStartPoint() tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetAttributeArgumentStartPoint1()
             Dim code =
 <Code>
@@ -251,7 +251,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=16, absoluteOffset:=32, lineLength:=25)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetAttributeArgumentStartPoint2()
             Dim code =
 <Code>
@@ -293,7 +293,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=17, absoluteOffset:=33, lineLength:=25)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetAttributeArgumentStartPoint3()
             Dim code =
 <Code>
@@ -335,7 +335,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=15, absoluteOffset:=31, lineLength:=23)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetAttributeArgumentStartPoint4()
             Dim code =
 <Code>
@@ -381,7 +381,7 @@ End Class
 
 #Region "AttributeArgument GetEndPoint() tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetAttributeArgumentEndPoint1()
             Dim code =
 <Code>
@@ -423,7 +423,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=17, absoluteOffset:=33, lineLength:=25)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetAttributeArgumentEndPoint2()
             Dim code =
 <Code>
@@ -465,7 +465,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=18, absoluteOffset:=34, lineLength:=25)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetAttributeArgumentEndPoint3()
             Dim code =
 <Code>
@@ -507,7 +507,7 @@ End Class
                      TextPoint(line:=3, lineOffset:=16, absoluteOffset:=32, lineLength:=23)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetAttributeArgumentEndPoint4()
             Dim code =
 <Code>
@@ -552,7 +552,7 @@ End Class
 #End Region
 
 #Region "FullName tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetFullName1()
             Dim code =
 <Code>
@@ -566,7 +566,7 @@ End Class
             TestFullName(code, "System.SerializableAttribute")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetFullName2()
             Dim code =
 <Code>
@@ -581,7 +581,7 @@ End Class
 #End Region
 
 #Region "Parent tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetParent1()
             Dim code =
 <Code>
@@ -595,7 +595,7 @@ End Class
             TestParent(code, IsElement("C", kind:=EnvDTE.vsCMElement.vsCMElementClass))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetParent2()
             Dim code =
 <Code>
@@ -612,7 +612,7 @@ End Class
 
 #Region "Attribute argument tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetArguments1()
             Dim code =
 <Code>
@@ -626,7 +626,7 @@ End Class
             TestAttributeArguments(code, NoElements)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetArguments2()
             Dim code =
 <Code>
@@ -640,7 +640,7 @@ End Class
             TestAttributeArguments(code, NoElements)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetArguments3()
             Dim code =
 <Code>
@@ -654,7 +654,7 @@ End Class
             TestAttributeArguments(code, IsAttributeArgument(value:="True"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetArguments4()
             Dim code =
 <Code>
@@ -670,7 +670,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetArguments5_Omitted()
             Dim code =
 <Code>
@@ -700,7 +700,7 @@ End Class
 #End Region
 
 #Region "Target tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetTarget1()
             Dim code =
 <Code>
@@ -714,7 +714,7 @@ Imports System
 #End Region
 
 #Region "Value tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetValue1()
             Dim code =
 <Code>
@@ -728,7 +728,7 @@ End Class
             TestValue(code, "")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetValue2()
             Dim code =
 <Code>
@@ -742,7 +742,7 @@ End Class
             TestValue(code, "")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetValue3()
             Dim code =
 <Code>
@@ -757,7 +757,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetValue4()
             Dim code =
 <Code>
@@ -774,7 +774,7 @@ End Class
 #End Region
 
 #Region "AddAttributeArgument tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttributeArgument1()
             Dim code =
 <Code>
@@ -798,7 +798,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5800"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttributeArgument2()
             Dim code =
 <Code>
@@ -822,7 +822,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5800"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAddArgument3()
             Dim code =
 <Code>
@@ -850,7 +850,7 @@ End Class
 #End Region
 
 #Region "Delete tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Delete1()
             Dim code =
 <Code><![CDATA[
@@ -869,7 +869,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Delete2()
             Dim code =
 <Code><![CDATA[
@@ -888,7 +888,7 @@ End Class
             TestDelete(code, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Delete3()
             Dim code =
 <Code><![CDATA[
@@ -908,7 +908,7 @@ End Class
             TestDelete(code, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Delete4()
             Dim code =
 <Code><![CDATA[
@@ -922,7 +922,7 @@ End Class
             TestDelete(code, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Delete5()
             Dim code =
 <Code><![CDATA[
@@ -937,7 +937,7 @@ End Class
             TestDelete(code, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Delete6()
             Dim code =
 <Code><![CDATA[
@@ -953,7 +953,7 @@ End Class
             TestDelete(code, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Delete7()
             Dim code =
 <Code><![CDATA[
@@ -977,7 +977,7 @@ End Class
             TestDelete(code, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Delete8()
             Dim code =
 <Code><![CDATA[
@@ -999,7 +999,7 @@ End Class
 
 #Region "Delete attribute argument tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub DeleteAttributeArgument1()
             Dim code =
 <Code><![CDATA[
@@ -1018,7 +1018,7 @@ End Class
             TestDeleteAttributeArgument(code, expected, 1)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub DeleteAttributeArgument2()
             Dim code =
 <Code><![CDATA[
@@ -1039,7 +1039,7 @@ End Class
             TestDeleteAttributeArgument(code, expected, 1)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub DeleteAttributeArgument3()
             Dim code =
 <Code><![CDATA[
@@ -1063,7 +1063,7 @@ End Class
 #End Region
 
 #Region "Set Name tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetName1()
             Dim code =
 <Code><![CDATA[
@@ -1084,7 +1084,7 @@ End Class
 #End Region
 
 #Region "Set Target tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetTarget1()
             Dim code =
 <Code>
@@ -1103,7 +1103,7 @@ Imports System
             TestSetTarget(code, expected, "Module")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetTarget2()
             Dim code =
 <Code>
@@ -1126,7 +1126,7 @@ End Class
             TestSetTarget(code, expected, "Assembly")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetTarget3()
             Dim code =
 <Code>
@@ -1147,7 +1147,7 @@ Imports System
 #End Region
 
 #Region "Set Value tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetValue1()
             Dim code =
 <Code>
@@ -1166,7 +1166,7 @@ Imports System
             TestSetValue(code, expected, "True")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetValue2()
             Dim code =
 <Code>
@@ -1185,7 +1185,7 @@ Imports System
             TestSetValue(code, expected, "True")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetValue3()
             Dim code =
 <Code>
@@ -1204,7 +1204,7 @@ Imports System
             TestSetValue(code, expected, "True")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetValue4()
             Dim code =
 <Code>

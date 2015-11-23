@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string test = @"
 this[1]
 ";
-            var compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -86,7 +86,7 @@ this[1]
         [Fact]
         public void NoReferences()
         {
-            var submission = CSharpCompilation.CreateSubmission("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Interactive), returnType: typeof(int));
+            var submission = CSharpCompilation.CreateScriptCompilation("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Script), returnType: typeof(int));
             submission.VerifyDiagnostics(
                 // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // 1
@@ -296,6 +296,38 @@ WriteLine(""hello"");
             var submission = CreateSubmission(source);
             var model = submission.GetSemanticModel(submission.SyntaxTrees.Single());
             Assert.Empty(model.LookupLabels(source.Length - 1)); // Used to assert.
+        }
+
+        [Fact]
+        public void Labels()
+        {
+            string source =
+@"L0: ;
+goto L0;";
+            var tree = Parse(source, options: TestOptions.Script);
+            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            var root = tree.GetCompilationUnitRoot();
+            var statements = root.ChildNodes().Select(n => ((GlobalStatementSyntax)n).Statement).ToArray();
+            var symbol0 = model.GetDeclaredSymbol((LabeledStatementSyntax)statements[0]);
+            Assert.NotNull(symbol0);
+            var symbol1 = model.GetSymbolInfo(((GotoStatementSyntax)statements[1]).Expression).Symbol;
+            Assert.Same(symbol0, symbol1);
+        }
+
+        [Fact]
+        public void Variables()
+        {
+            string source =
+@"int x = 1;
+object y = x;";
+            var tree = Parse(source, options: TestOptions.Script);
+            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            var root = tree.GetCompilationUnitRoot();
+            var declarations = root.ChildNodes().Select(n => ((FieldDeclarationSyntax)n).Declaration.Variables[0]).ToArray();
+            var symbol0 = model.GetDeclaredSymbol(declarations[0]);
+            Assert.NotNull(symbol0);
+            var symbol1 = model.GetSymbolInfo(declarations[1].Initializer.Value).Symbol;
+            Assert.Same(symbol0, symbol1);
         }
 
         [WorkItem(543890)]
@@ -704,10 +736,9 @@ static int Baz = w;
         }
 
         [Fact]
-        public void ERR_VariableUsedBeforeDeclaration()
+        public void ERR_VariableUsedBeforeDeclaration_01()
         {
             var c = CreateSubmission("var x = 1; { var x = x;}");
-
             c.VerifyDiagnostics(
                 // (1,22): error CS0841: Cannot use local variable 'x' before it is declared
                 // var x = 1; { var x = x;}
@@ -717,30 +748,54 @@ static int Baz = w;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(1, 22));
         }
 
+        [WorkItem(550)]
         [Fact]
-        public void ERR_ReturnNotAllowedInScript_Void()
+        public void ERR_VariableUsedBeforeDeclaration_02()
         {
-            var c = CreateSubmission("return;");
+            var c = CreateSubmission(
+@"object b = a;
+object a;
+void F()
+{
+    object d = c;
+    object c;
+}
+{
+    object f = e;
+    object e;
+}");
             c.VerifyDiagnostics(
-                // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                // return;
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
-                // (1,1): warning CS0162: Unreachable code detected
-                // return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
+                // (9,16): error CS0841: Cannot use local variable 'e' before it is declared
+                //     object f = e;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "e").WithArguments("e").WithLocation(9, 16),
+                // (5,16): error CS0841: Cannot use local variable 'c' before it is declared
+                //     object d = c;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "c").WithArguments("c").WithLocation(5, 16));
         }
 
+        [WorkItem(550)]
         [Fact]
-        public void ERR_ReturnNotAllowedInScript_Expr()
+        public void ERR_UseDefViolation()
         {
-            var c = CreateSubmission("return 17;");
+            var c = CreateSubmission(
+@"int a;
+int b = a;
+void F()
+{
+    int c;
+    int d = c;
+}
+{
+    int e;
+    int f = e;
+}");
             c.VerifyDiagnostics(
-                // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                // return 17;
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
-                // (1,1): warning CS0162: Unreachable code detected
-                // return 17;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
+                // (10,13): error CS0165: Use of unassigned local variable 'e'
+                //     int f = e;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "e").WithArguments("e").WithLocation(10, 13),
+                // (6,13): error CS0165: Use of unassigned local variable 'c'
+                //     int d = c;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(6, 13));
         }
 
         [Fact]

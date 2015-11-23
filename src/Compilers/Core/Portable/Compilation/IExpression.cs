@@ -111,31 +111,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public interface IReferenceExpression : IExpression
     {
-        /// <summary>
-        /// Kind of the reference.
-        /// </summary>
-        ReferenceKind ReferenceKind { get; }
     }
-
-    /// <summary>
-    /// Kinds of references.
-    /// </summary>
-    public enum ReferenceKind
-    {
-        Local,
-        Parameter,
-        SyntheticLocal,
-        ArrayElement,
-        PointerIndirection,
-        Field,
-        Method,
-        PropertyGet,
-        PropertySet,
-        Property,
-        ConstantField,
-        LateBoundMember
-    }
-
+    
     /// <summary>
     /// Represents a reference to an array element.
     /// </summary>

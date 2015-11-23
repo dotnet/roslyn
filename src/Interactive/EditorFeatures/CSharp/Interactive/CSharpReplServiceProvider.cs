@@ -5,9 +5,9 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
-using Microsoft.CodeAnalysis.Scripting.Hosting.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         }
 
         public override ObjectFormatter ObjectFormatter => CSharpObjectFormatter.Instance;
-        public override CommandLineParser CommandLineParser => CSharpCommandLineParser.Interactive;
+        public override CommandLineParser CommandLineParser => CSharpCommandLineParser.ScriptRunner;
         public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
 
         public override string Logo

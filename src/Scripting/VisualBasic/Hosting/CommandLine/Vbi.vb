@@ -3,15 +3,17 @@
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 
-Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
+
     Friend NotInheritable Class VisualBasicInteractiveCompiler
         Inherits VisualBasicCompiler
 
         Friend Sub New(responseFile As String, baseDirectory As String, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, AppContext.BaseDirectory, baseDirectory, Nothing, Nothing, analyzerLoader)
+            MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, AppContext.BaseDirectory, baseDirectory, Nothing, Nothing, analyzerLoader)
         End Sub
 
         Friend Overrides Function GetCommandLineMetadataReferenceResolver(loggerOpt As TouchedFileLogger) As MetadataReferenceResolver
@@ -37,4 +39,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
             sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_COMPILERTYPE, CType(SqmServiceProvider.CompilerType.Interactive, UInteger))
         End Sub
     End Class
+
 End Namespace

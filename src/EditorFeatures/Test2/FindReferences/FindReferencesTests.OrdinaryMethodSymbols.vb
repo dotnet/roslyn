@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethod1()
             Dim input =
 <Workspace>
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodCaseSensitivity()
             Dim input =
 <Workspace>
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodOverride1()
             Dim input =
 <Workspace>
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodOverride2()
             Dim input =
 <Workspace>
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodOverride3()
             Dim input =
 <Workspace>
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodOverride_InMetadata()
             Dim input =
 <Workspace>
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodOverrideCrossLanguage()
             Dim input =
 <Workspace>
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceInheritance_FromReference()
             Dim input =
 <Workspace>
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceInheritance_FromDefinition()
             Dim input =
 <Workspace>
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceImplementation1()
             Dim input =
 <Workspace>
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(529616)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceImplementationVB()
             Dim input =
 <Workspace>
@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceImplementation2()
             Dim input =
 <Workspace>
@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceImplementationSingleFileOnly()
             Dim input =
 <Workspace>
@@ -371,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(522786)>
-        <Fact(Skip:="Bug 522786"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="Bug 522786"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceDispose1()
             Dim input =
 <Workspace>
@@ -394,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(522786)>
-        <Fact(Skip:="Bug 522786"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="Bug 522786"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceDispose2()
             Dim input =
 <Workspace>
@@ -420,7 +420,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodIEnumerable1()
             Dim input =
 <Workspace>
@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodIEnumerable2()
             Dim input =
 <Workspace>
@@ -471,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodIEnumerable3()
             Dim input =
 <Workspace>
@@ -499,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodIEnumerable4()
             Dim input =
 <Workspace>
@@ -522,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodIEnumerable5()
             Dim input =
 <Workspace>
@@ -550,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodIEnumerable6()
             Dim input =
 <Workspace>
@@ -579,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(634818)>
-        <Fact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodLinqWhere1()
             Dim input =
 <Workspace>
@@ -605,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(636943)>
-        <Fact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodLinqWhere2()
             Dim input =
 <Workspace>
@@ -631,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(636943)>
-        <Fact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodLinqSelect1()
             Dim input =
 <Workspace>
@@ -657,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(636943)>
-        <Fact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodLinqSelect2()
             Dim input =
 <Workspace>
@@ -683,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(528936)>
-        <Fact(Skip:="Bug 528936"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="Bug 528936"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodMonitorEnter()
             Dim input =
 <Workspace>
@@ -708,7 +708,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(528936)>
-        <Fact(Skip:="Bug 528936"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="Bug 528936"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodMonitorExit()
             Dim input =
 <Workspace>
@@ -732,7 +732,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpInaccessibleInstanceAbstractMethod()
             Dim input =
 <Workspace>
@@ -755,7 +755,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_VBInaccessibleInstanceAbstractMethod()
             Dim input =
 <Workspace>
@@ -776,7 +776,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(538794)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpInaccessibleInstancePrivateStaticMethod()
             Dim input =
 <Workspace>
@@ -799,7 +799,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_VBInaccessibleInstancePrivateStaticMethod()
             Dim input =
 <Workspace>
@@ -821,7 +821,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(538794)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpInaccessibleInstanceProtectedMethod()
             Dim input =
 <Workspace>
@@ -844,7 +844,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_VBInaccessibleInstanceProtectedMethod()
             Dim input =
 <Workspace>
@@ -866,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInaccessibleMemberOverrideVB()
             Dim workspace =
 <Workspace>
@@ -891,7 +891,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")>
-        <Fact(Skip:="2544"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInaccessibleMemberOverrideCS()
             Dim workspace =
 <Workspace>
@@ -918,7 +918,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpAccessibleInstanceProtectedMethod()
             Dim input =
 <Workspace>
@@ -941,7 +941,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpAccessibleStaticProtectedMethod()
             Dim input =
 <Workspace>
@@ -965,7 +965,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(538726)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceMethodsDontCascadeThroughOtherInterfaceMethods1()
             Dim input =
 <Workspace>
@@ -992,7 +992,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(538726)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceMethodsDontCascadeThroughOtherInterfaceMethods2()
             Dim input =
 <Workspace>
@@ -1019,7 +1019,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(538726)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodInterfaceMethodsDontCascadeThroughOtherInterfaceMethods3()
             Dim input =
 <Workspace>
@@ -1046,7 +1046,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(538898)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodMatchEntireInvocation()
             Dim input =
 <Workspace>
@@ -1070,7 +1070,7 @@ End Interface
         End Sub
 
         <WorkItem(539033)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethodFromGenericInterface1()
             Dim input =
 <Workspace>
@@ -1102,7 +1102,7 @@ End Interface
         End Sub
 
         <WorkItem(539033)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethodFromGenericInterface2()
             Dim input =
 <Workspace>
@@ -1134,7 +1134,7 @@ End Interface
         End Sub
 
         <WorkItem(539033)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethodFromGenericInterface3()
             Dim input =
 <Workspace>
@@ -1166,7 +1166,7 @@ End Interface
         End Sub
 
         <WorkItem(539033)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethodFromGenericInterface4()
             Dim input =
 <Workspace>
@@ -1198,7 +1198,7 @@ End Interface
         End Sub
 
         <WorkItem(539046)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_DoNotFindInNonImplementingClass1()
             Dim input =
 <Workspace>
@@ -1231,7 +1231,7 @@ class D : C
         End Sub
 
         <WorkItem(539046)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_DoNotFindInNonImplementingClass2()
             Dim input =
 <Workspace>
@@ -1264,7 +1264,7 @@ class D : C
         End Sub
 
         <WorkItem(539046)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_DoNotFindInNonImplementingClass3()
             Dim input =
 <Workspace>
@@ -1296,7 +1296,7 @@ class D : C
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_GenericMethod1()
             Dim input =
 <Workspace>
@@ -1322,7 +1322,7 @@ class C : I
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_GenericMethod2()
             Dim input =
 <Workspace>
@@ -1348,7 +1348,7 @@ class C : I
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_GenericMethod3()
             Dim input =
 <Workspace>
@@ -1374,7 +1374,7 @@ class C<T> : I
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_GenericMethod4()
             Dim input =
 <Workspace>
@@ -1400,7 +1400,7 @@ class C<T> : I
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_GenericMethod5()
             Dim input =
 <Workspace>
@@ -1426,7 +1426,7 @@ class C : I
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_RefOut1()
             Dim input =
 <Workspace>
@@ -1452,7 +1452,7 @@ class C : I
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_RefOut2_Success()
             Dim input =
 <Workspace>
@@ -1482,7 +1482,7 @@ class C : I
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadeOrdinaryMethod_RefOut2_Error()
             ' In non-compiling code, finding an almost-matching definition
             ' seems reasonable.
@@ -1510,7 +1510,7 @@ class C : I
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethod_DelegateConstructor1()
             Dim input =
 <Workspace>
@@ -1537,7 +1537,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethod_DelegateConstructor2()
             Dim input =
 <Workspace>
@@ -1564,7 +1564,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethod_DelegateConstructor3()
             Dim input =
 <Workspace>
@@ -1592,7 +1592,7 @@ class Program
         End Sub
 
         <WorkItem(539646)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestDelegateMethod1()
             Dim input =
 <Workspace>
@@ -1621,7 +1621,7 @@ class Program
         End Sub
 
         <WorkItem(539646)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestDelegateMethod2()
             Dim input =
 <Workspace>
@@ -1650,7 +1650,7 @@ class Program
         End Sub
 
         <WorkItem(539646)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestDelegateMethod3()
             Dim input =
 <Workspace>
@@ -1679,7 +1679,7 @@ class Program
         End Sub
 
         <WorkItem(539824)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestMethodGroup1()
             Dim input =
 <Workspace>
@@ -1707,7 +1707,7 @@ class C
         End Sub
 
         <WorkItem(539824)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestMethodGroup2()
             Dim input =
 <Workspace>
@@ -1735,7 +1735,7 @@ class C
         End Sub
 
         <WorkItem(540349)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNonImplementedInterfaceMethod1()
             Dim input =
 <Workspace>
@@ -1766,7 +1766,7 @@ End Class
         End Sub
 
         <WorkItem(540349)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNonImplementedInterfaceMethod2()
             Dim input =
 <Workspace>
@@ -1797,7 +1797,7 @@ End Class
         End Sub
 
         <WorkItem(540349)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNonImplementedInterfaceMethod3()
             Dim input =
 <Workspace>
@@ -1828,7 +1828,7 @@ End Class
         End Sub
 
         <WorkItem(540359)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestShadowedMethod1()
             Dim input =
 <Workspace>
@@ -1866,7 +1866,7 @@ End Class
         End Sub
 
         <WorkItem(540359)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestShadowedMethod2()
             Dim input =
 <Workspace>
@@ -1904,7 +1904,7 @@ End Class
         End Sub
 
         <WorkItem(540359)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestShadowedMethod3()
             Dim input =
 <Workspace>
@@ -1942,7 +1942,7 @@ End Class
         End Sub
 
         <WorkItem(540359)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestShadowedMethod4()
             Dim input =
 <Workspace>
@@ -1980,7 +1980,7 @@ End Class
         End Sub
 
         <WorkItem(540946)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAddressOfOverloads1()
             Dim input =
 <Workspace>
@@ -2008,7 +2008,7 @@ End Class]]>
         End Sub
 
         <WorkItem(540946)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAddressOfOverloads2()
             Dim input =
 <Workspace>
@@ -2036,7 +2036,7 @@ End Class]]>
         End Sub
 
         <WorkItem(540946)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAddressOfOverloads3()
             Dim input =
 <Workspace>
@@ -2064,7 +2064,7 @@ End Class]]>
         End Sub
 
         <WorkItem(542034)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestFunctionValue1()
             Dim input =
 <Workspace>
@@ -2085,7 +2085,7 @@ End Class
         End Sub
 
         <WorkItem(542034)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestFunctionValue2()
             Dim input =
 <Workspace>
@@ -2106,7 +2106,7 @@ End Class
         End Sub
 
         <WorkItem(543002)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestForEachGetEnumerator1()
             Dim input =
 <Workspace>
@@ -2140,7 +2140,7 @@ class C
         End Sub
 
         <WorkItem(543002)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestForEachMoveNext1()
             Dim input =
 <Workspace>
@@ -2174,7 +2174,7 @@ class C
         End Sub
 
         <WorkItem(543002)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestForEachCurrent1()
             Dim input =
 <Workspace>
@@ -2208,7 +2208,7 @@ class C
         End Sub
 
         <WorkItem(544439)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodPartial1_CSharp()
             Dim input =
 <Workspace>
@@ -2227,7 +2227,7 @@ partial class Class1
         End Sub
 
         <WorkItem(544439)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodPartial2_CSharp()
             Dim input =
 <Workspace>
@@ -2246,7 +2246,7 @@ partial class Class1
         End Sub
 
         <WorkItem(544437)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodPartial1_VB()
             Dim input =
 <Workspace>
@@ -2268,7 +2268,7 @@ End Module
         End Sub
 
         <WorkItem(544437)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOrdinaryMethodPartial2_VB()
             Dim input =
 <Workspace>
@@ -2289,7 +2289,7 @@ End Module
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInterfaceMethod()
             Dim input =
 <Workspace>
@@ -2340,7 +2340,7 @@ public interface IClass
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefMethod()
             Dim input =
 <Workspace>
@@ -2360,7 +2360,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefMethod2()
             Dim input =
 <Workspace>
@@ -2380,7 +2380,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefMethodAcrossMultipleFiles()
             Dim input =
 <Workspace>
@@ -2410,7 +2410,7 @@ partial class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefMethodAcrossMultipleFiles2()
             Dim input =
 <Workspace>
@@ -2441,7 +2441,7 @@ partial class Program
         End Sub
 
         <WorkItem(531010)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrossAssemblyReferencesFromMetadata()
             Dim input =
 <Workspace>
@@ -2470,7 +2470,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(623148)>
         Public Sub TestFarWithInternalVisibleTo()
             Dim input =
@@ -2502,7 +2502,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(657262)>
         Public Sub MethodInsideMetadataToSourcePrimitiveTypeInCSharpSource()
             Dim input =
@@ -2523,7 +2523,7 @@ namespace System
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(657262)>
         Public Sub MethodInsideMetadataToSourcePrimitiveTypeInVisualBasicSource()
             Dim input =
@@ -2543,7 +2543,7 @@ End Namespace
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRetargetingMethod_Basic()
             Dim input =
 <Workspace>
@@ -2579,7 +2579,7 @@ class Class2
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRetargetingMethod_GenericType()
             Dim input =
 <Workspace>
@@ -2618,7 +2618,7 @@ class Class2
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRetargetingMethod_FARFromReferencingProject()
             Dim input =
 <Workspace>
@@ -2657,7 +2657,7 @@ class Class2
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRetargetingMethod_MultipleForwardedTypes()
             Dim input =
 <Workspace>
@@ -2696,7 +2696,7 @@ class Class2
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRetargetingMethod_NestedType()
             Dim input =
 <Workspace>
@@ -2735,7 +2735,7 @@ class Class2
         End Sub
 
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRefKindRef_FromDefinition()
             Dim input =
 <Workspace>
@@ -2770,7 +2770,7 @@ End Class
         End Sub
 
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRefKindRef_FromReference()
             Dim input =
 <Workspace>
@@ -2805,7 +2805,7 @@ End Class
         End Sub
 
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRefKindOut_FromDefinition()
             Dim input =
 <Workspace>
@@ -2840,7 +2840,7 @@ End Class
         End Sub
 
         <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRefKindOut_FromReference()
             Dim input =
 <Workspace>

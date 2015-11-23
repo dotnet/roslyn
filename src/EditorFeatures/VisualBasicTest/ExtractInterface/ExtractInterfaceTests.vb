@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractInterface
     Public Class ExtractInterfaceTests
         Inherits AbstractExtractInterfaceTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_Invocation_CaretInMethod()
             Dim markup = <text>Imports System
 Class TestClass
@@ -24,7 +24,7 @@ End Class
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_Invocation_CaretAfterEndClass()
             Dim markup = <text>Imports System
 Class TestClass
@@ -35,7 +35,7 @@ End Class$$
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_Invocation_CaretBeforeClassKeyword()
             Dim markup = <text>Imports System
 $$Class TestClass
@@ -46,7 +46,7 @@ End Class
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_Invocation_FromInnerClass1()
             Dim markup = <text>Imports System
 Class TestClass
@@ -62,7 +62,7 @@ End Class
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_Invocation_FromInnerClass2()
             Dim markup = <text>Imports System
 Class TestClass
@@ -78,7 +78,7 @@ End Class
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_Invocation_FromOuterClass()
             Dim markup = <text>Imports System
 Class TestClass
@@ -94,7 +94,7 @@ End Class
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_Invocation_FromInterface()
             Dim markup = <text>Imports System
 Interface IMyInterface
@@ -104,7 +104,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Foo", expectedInterfaceName:="IMyInterface1")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_Invocation_FromStruct()
             Dim markup = <text>Imports System
 Structure SomeStruct
@@ -115,7 +115,7 @@ End Structure
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Foo", expectedInterfaceName:="ISomeStruct")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_Invocation_FromNamespace()
             Dim markup = <text>
 Namespace Ns$$
@@ -127,7 +127,7 @@ End Namespace</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_DoesNotIncludeFields()
             Dim markup = <text>
 Class TestClass
@@ -139,7 +139,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndSet()
             Dim markup = <text>
 Class TestClass
@@ -154,7 +154,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Prop")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndPrivateSet()
             Dim markup = <text>
 Class TestClass
@@ -169,7 +169,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Prop")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGet()
             Dim markup = <text>
 Class TestClass
@@ -182,7 +182,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Prop")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_ExcludesPublicProperty_WithPrivateGetAndPrivateSet()
             Dim markup = <text>
 Class TestClass
@@ -197,7 +197,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_IncludesPublicIndexer()
             Dim markup = <text>
 Class TestClass$$
@@ -212,7 +212,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="Item")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_ExcludesInternalIndexer()
             Dim markup = <text>
 Class TestClass$$
@@ -227,7 +227,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_IncludesPublicMethod()
             Dim markup = <text>
 Class TestClass$$
@@ -237,7 +237,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="M")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_ExcludesInternalMethod()
             Dim markup = <text>
 Class TestClass$$
@@ -247,7 +247,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_IncludesAbstractMethod()
             Dim markup = <text>
 MustInherit Class TestClass$$
@@ -256,7 +256,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="M")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_IncludesPublicEvent()
             Dim markup = <text>
 Class TestClass$$
@@ -265,7 +265,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedMemberName:="MyEvent")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_ExtractableMembers_ExcludesPrivateEvent()
             Dim markup = <text>
 Class TestClass$$
@@ -274,7 +274,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_DefaultInterfaceName_DoesNotConflictWithOtherTypeNames()
             Dim markup = <text>
 Class TestClass$$
@@ -293,7 +293,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceName:="ITestClass3")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_NamespaceName_NoNamespace()
             Dim markup = <text>
 Class TestClass$$
@@ -303,7 +303,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedNamespaceName:="")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_NamespaceName_SingleNamespace()
             Dim markup = <text>
 Namespace MyNamespace
@@ -315,7 +315,7 @@ End Namespace</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedNamespaceName:="MyNamespace")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_NamespaceName_NestedNamespaces()
             Dim markup = <text>
 Namespace OuterNamespace
@@ -329,7 +329,7 @@ End Namespace</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedNamespaceName:="OuterNamespace.InnerNamespace")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_ClassesImplementExtractedInterface()
             Dim markup = <text>
 Class TestClass$$
@@ -345,7 +345,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_StructsImplementExtractedInterface()
             Dim markup = <text>
 Structure TestClass$$
@@ -361,7 +361,7 @@ End Structure</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_InterfacesDoNotImplementExtractedInterface()
             Dim markup = <text>
 Interface IMyInterface$$
@@ -374,7 +374,7 @@ End Interface</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_Methods()
             Dim markup = <text>
 Imports System
@@ -395,7 +395,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_Events()
             Dim markup = <text>
 Imports System
@@ -412,7 +412,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_Properties()
             Dim markup = <text>
 Imports System
@@ -482,7 +482,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_Indexers()
             Dim markup = <text>
 MustInherit Class TestClass$$
@@ -523,7 +523,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_Imports()
             Dim markup = <text>Imports System.Collections.Generic
 Public Class TestClass$$
@@ -552,7 +552,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_TypeParameters1()
             Dim markup = <text>Imports System.Collections.Generic
 Public Class TestClass(Of A, B, C, D, E As F, F, G, H, NO1)$$
@@ -597,7 +597,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_TypeParameters2()
             Dim markup = <text>Imports System.Collections.Generic
 Friend Class Program(Of A As List(Of B), B As Dictionary(Of List(Of D), List(Of E)), C, D, E)$$
@@ -613,7 +613,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact(Skip:="860565"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact(Skip:="860565"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_TypeParameters3()
             ' Note: This test should pass after RI from Airstream branch to Main.
             Dim markup = <text>
@@ -631,7 +631,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_TypeParameters4()
             Dim markup = <text>
 Class C1(Of A)
@@ -668,7 +668,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact(Skip:="738545"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact(Skip:="738545"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_VBEvents_TypeParametersAndAccessability()
             Dim markup = <text>Imports System.Collections.Generic
 Public Class TestClass(Of A, B, C, D, E As F, F, G, H, NO1)$$
@@ -683,7 +683,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedInterfaceCode:=expectedInterfaceCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_BaseList_NewBaseListNonGeneric()
             Dim markup = <text>
 Class Program$$
@@ -699,7 +699,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_BaseList_NewBaseListGeneric()
             Dim markup = <text>
 Class Program(Of T)$$
@@ -715,7 +715,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_BaseList_NewBaseListWithWhereClause()
             Dim markup = <text>
 Class Program(Of T As U, U)$$
@@ -731,7 +731,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_BaseList_LargerBaseList1()
             Dim markup = <text>
 Class Program$$
@@ -757,7 +757,7 @@ End Interface</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_BaseList_LargerBaseList2()
             Dim markup = <text>
 Class Program$$
@@ -793,7 +793,7 @@ End Interface</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_BaseList_LargerBaseList3()
             Dim markup = <text>
 Class Program(Of T, U)$$
@@ -821,7 +821,7 @@ End Interface</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_BaseList_LargerBaseList4()
             Dim markup = <text>
 Class Program(Of T, U)$$
@@ -853,7 +853,7 @@ End Interface</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_UpdateMemberDefinitions_NewImplementsClause()
             Dim markup = <text>
 Class C$$
@@ -899,7 +899,7 @@ End Class
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_CodeGen_UpdateMemberDefinitions_AddToExistingImplementsClause()
             Dim markup = <text>
 Class C$$
@@ -961,7 +961,7 @@ End Interface
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedUpdatedOriginalDocumentCode:=expectedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_TypeDiscovery_NameOnly1()
             Dim markup = <text>
 Interface ISomeInterface(Of T)
@@ -976,7 +976,7 @@ End Class</text>.NormalizedValue()
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_TypeDiscovery_NameOnly2()
             Dim markup = <text>
 Interface ISomeInterface(Of T)
@@ -991,7 +991,7 @@ End Class</text>.NormalizedValue()
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_TypeDiscovery_NameOnly3()
             Dim markup = <text>
 Interface ISomeInterface(Of T)
@@ -1006,7 +1006,7 @@ End Class</text>.NormalizedValue()
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_TypeDiscovery_NameOnly4()
             Dim markup = <text>
 Interface ISomeInterface(Of T)
@@ -1021,7 +1021,7 @@ End Class</text>.NormalizedValue()
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_TypeDiscovery_NameOnly5()
             Dim markup = <text>
 Interface ISomeInterface(Of T)
@@ -1036,7 +1036,7 @@ End Class</text>.NormalizedValue()
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_TypeDiscovery_NameOnly6()
             Dim markup = <text>
 Interface ISomeInterface(Of T)
@@ -1051,7 +1051,7 @@ End Class</text>.NormalizedValue()
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_TypeDiscovery_NameOnly7()
             Dim markup = <text>
 Interface ISomeInterface(Of T)
@@ -1066,7 +1066,7 @@ End Class</text>.NormalizedValue()
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_TypeDiscovery_NameOnly8()
             Dim markup = <text>
 Interface ISomeInterface(Of T)
@@ -1081,7 +1081,7 @@ End Class</text>.NormalizedValue()
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_TypeDiscovery_NameOnly9()
             Dim markup = <text>
 Interface ISomeInterface(Of T)
@@ -1096,7 +1096,7 @@ End Class</text>.NormalizedValue()
             TestTypeDiscovery(markup, TypeDiscoveryRule.TypeNameOnly, expectedExtractable:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_GeneratedNameTypeParameterSuffix1()
             Dim markup = <text>
 Class Test(Of T)$$
@@ -1107,7 +1107,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedTypeParameterSuffix:=expectedTypeParameterSuffix)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_GeneratedNameTypeParameterSuffix2()
             Dim markup = <text>
 Class Test(Of T, U)$$
@@ -1118,7 +1118,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedTypeParameterSuffix:=expectedTypeParameterSuffix)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_GeneratedNameTypeParameterSuffix3()
             Dim markup = <text>
 Class Test(Of T, U)$$
@@ -1129,7 +1129,7 @@ End Class</text>.NormalizedValue()
             TestExtractInterfaceCommandVisualBasic(markup, expectedSuccess:=True, expectedTypeParameterSuffix:=expectedTypeParameterSuffix)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_PartialClass()
             Dim workspaceXml =
 <Workspace>
@@ -1186,7 +1186,7 @@ End Class</text>.NormalizedValue()
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_NonEmptyRootNamespace()
             Dim markup = <text>Imports System
 Class TestClass
@@ -1216,7 +1216,7 @@ End Interface
                 rootNamespace:="RootNamespace")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Sub ExtractInterface_NonEmptyRootNamespace_ClassInAdditionalNamespace()
             Dim markup = <text>Imports System
 Namespace NS1
@@ -1252,12 +1252,12 @@ End Namespace
                 rootNamespace:="RootNamespace")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub ExtractInterfaceCommandDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsCodeFixService)))
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>

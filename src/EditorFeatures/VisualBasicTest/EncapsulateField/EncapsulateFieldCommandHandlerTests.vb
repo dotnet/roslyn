@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Public Class EncapsulateFieldCommandHandlerTests
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub PrivateField()
             Dim text = <File>
 Class C
@@ -43,7 +43,7 @@ End Class</File>.ConvertTestSourceTag()
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub NonPrivateField()
             Dim text = <File>
 Class C
@@ -78,7 +78,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <WorkItem(1086632)>
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateTwoFields()
             Dim text = "
 Class Program
@@ -126,12 +126,12 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub EncapsulateFieldCommandDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsCodeFixService)))
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>

@@ -1671,15 +1671,21 @@ End Class
             ' c - a -> b
             Dim bRef = CreateCompilationWithMscorlib({"Public Class B : End Class"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
             Dim aRef = CreateCompilationWithMscorlib({"Public Class A : Inherits B : End Class"}, {bRef}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
+
+            Dim resolver As TestMissingMetadataReferenceResolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B", bRef}
+            })
+
             Dim c = CreateCompilationWithMscorlib({"Public Class C : Inherits A : End Class"}, {aRef},
-                TestOptions.ReleaseDll.WithMetadataReferenceResolver(New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
-                {
-                    {"B", bRef}
-                })))
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
 
             c.VerifyEmitDiagnostics()
 
             Assert.Equal("B", DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol).Name)
+
+            Resolver.VerifyResolutionAttempts(
+                "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
         <Fact>
@@ -1694,12 +1700,14 @@ End Class
             Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits B : End Interface"}, {b1Ref}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
             Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : Inherits B : End Interface"}, {b2Ref}, TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
 
+            Dim resolver As TestMissingMetadataReferenceResolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 1.0.0.0", b1Ref},
+                {"B, 2.0.0.0", b2Ref}
+            })
+
             Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A, D : End Interface"}, {aRef, dRef},
-                TestOptions.ReleaseDll.WithMetadataReferenceResolver(New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
-                {
-                    {"B, 1.0.0.0", b1Ref},
-                    {"B, 2.0.0.0", b2Ref}
-                })))
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
 
             AssertEx.Equal(
             {
@@ -1710,6 +1718,9 @@ End Class
                 "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
             }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(Function(a) a.Identity.GetDisplayName()))
 
+            resolver.VerifyResolutionAttempts(
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
         <Fact>
@@ -1724,12 +1735,14 @@ End Class
             Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits B : End Interface"}, {b1Ref}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
             Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : Inherits B : End Interface"}, {b2Ref}, TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
 
+            Dim resolver As TestMissingMetadataReferenceResolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 1.0.0.0", b3Ref},
+                {"B, 2.0.0.0", b4Ref}
+            })
+
             Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A, D : End Interface"}, {aRef, dRef},
-                TestOptions.ReleaseDll.WithMetadataReferenceResolver(New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
-                {
-                    {"B, 1.0.0.0", b3Ref},
-                    {"B, 2.0.0.0", b4Ref}
-                })))
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
 
             AssertEx.Equal(
             {
@@ -1739,6 +1752,10 @@ End Class
                 "B, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null",
                 "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=null"
             }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(Function(a) a.Identity.GetDisplayName()))
+
+            resolver.VerifyResolutionAttempts(
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
         <Fact>
@@ -1754,7 +1771,7 @@ End Class
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
 
             c.VerifyDiagnostics()
-            Assert.Equal(0, resolver.ResolutionAttempts.Count)
+            resolver.VerifyResolutionAttempts()
         End Sub
 
         <Fact>
@@ -1771,7 +1788,8 @@ End Class
             c.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_UnreferencedAssembly3, "A").WithArguments("D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D"))
 
-            Assert.Equal(1, resolver.ResolutionAttempts.Count)
+            resolver.VerifyResolutionAttempts(
+                "A -> D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
         ''' <summary>
@@ -1796,7 +1814,8 @@ End Class
             c.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_UnreferencedAssembly3, "A").WithArguments("B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D"))
 
-            Assert.Equal(1, resolver.ResolutionAttempts.Count)
+            resolver.VerifyResolutionAttempts(
+                "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
         <Fact>
@@ -1824,6 +1843,11 @@ End Class
             c.VerifyEmitDiagnostics()
             Assert.Equal("B", (DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol)).Name)
             Assert.Equal("D", (DirectCast(c.GetAssemblyOrModuleSymbol(dRef), AssemblySymbol)).Name)
+
+            ' We don't resolve one assembly reference identity twice, even if the requesting definition is different.
+            resolver.VerifyResolutionAttempts(
+                "A -> D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "M.netmodule -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
         End Sub
 
         ''' <summary>
@@ -1848,13 +1872,13 @@ End Class
 
             c.VerifyEmitDiagnostics()
 
-            Assert.Equal(0, resolver.ResolutionAttempts.Count)
-
             Assert.Equal(
                 "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 DirectCast(c.GetAssemblyOrModuleSymbol(b3Ref), AssemblySymbol).Identity.GetDisplayName())
 
             Assert.Null(DirectCast(c.GetAssemblyOrModuleSymbol(b2Ref), AssemblySymbol))
+
+            resolver.VerifyResolutionAttempts()
         End Sub
 
         ''' <summary>
@@ -1892,7 +1916,9 @@ End Class
             c.VerifyEmitDiagnostics(
                 Diagnostic(ERRID.ERR_SxSIndirectRefHigherThanDirectRef3, "A").WithArguments("B", "2.0.0.0", "1.0.0.0"))
 
-            Assert.Equal(2, resolverC.ResolutionAttempts.Count)
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
 
         ''' <summary>
@@ -1932,7 +1958,9 @@ End Class
 
             c.VerifyEmitDiagnostics()
 
-            Assert.Equal(2, resolverC.ResolutionAttempts.Count)
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
 
         <Fact>
@@ -1965,7 +1993,6 @@ End Class
 
             c.VerifyEmitDiagnostics()
 
-            Assert.Equal(4, resolverC.ResolutionAttempts.Count)
             Assert.Equal(
                 "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 DirectCast(c.GetAssemblyOrModuleSymbol(b1Ref), AssemblySymbol).Identity.GetDisplayName())
@@ -1973,6 +2000,12 @@ End Class
             Assert.Equal(
                 "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 DirectCast(c.GetAssemblyOrModuleSymbol(b2Ref), AssemblySymbol).Identity.GetDisplayName())
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "E -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
 
         <Fact>
@@ -2014,6 +2047,12 @@ End Class
                 "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "B, Version=4.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"
             }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(Function(a) a.Identity.GetDisplayName()))
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "E -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
     End Class
 End Namespace

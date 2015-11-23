@@ -3,12 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 {
@@ -32,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue = new PriorityQueue();
             _lastProcessedTimeInMS = Environment.TickCount;
 
+            Debug.Assert(IsValid());
+            Debug.Assert(IsForeground());
             Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
         }
 
@@ -73,15 +77,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         private async Task ProcessAsync()
         {
-            AssertIsBackground();
-
-            while (true)
+            try
             {
-                // wait until it is time to run next item
-                await WaitForPendingWorkAsync().ConfigureAwait(continueOnCapturedContext: false);
+                AssertIsBackground();
 
-                // run them in UI thread
-                await InvokeBelowInputPriority(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
+                while (true)
+                {
+                    // wait until it is time to run next item
+                    await WaitForPendingWorkAsync().ConfigureAwait(continueOnCapturedContext: false);
+
+                    // run them in UI thread
+                    await InvokeBelowInputPriority(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+            {
+                System.Diagnostics.Debug.Assert(false, ex.Message);
             }
         }
 
@@ -137,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
                     processedCount++;
 
-                    // there is input to process, or we've exceeded a timeslice, postpone the remaining work
+                    // there is input to process, or we've exceeded a time slice, postpone the remaining work
                     if (IsInputPending() || Environment.TickCount - startProcessingTime > DefaultTimeSliceInMS)
                     {
                         return;
@@ -275,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             private void Enqueue_NoLock(LinkedListNode<PendingWork> entry)
             {
                 // TODO: if this cost shows up in the trace, either use tree based implementation
-                // or just have separate lists for each delay (shart, medium, long)
+                // or just have separate lists for each delay (short, medium, long)
                 if (_list.Count == 0)
                 {
                     _list.AddLast(entry);
@@ -296,6 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 }
 
                 _list.AddFirst(entry);
+                _hasItemsGate.Release();
                 return;
             }
 

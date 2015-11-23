@@ -1205,15 +1205,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid identifier.
-        /// </summary>
-        internal static string IsNotAValidIdentifier {
-            get {
-                return ResourceManager.GetString("IsNotAValidIdentifier", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Light bulb session is already dismissed..
         /// </summary>
         internal static string LightBulbSessionIsAlreadyDismissed {
@@ -1237,6 +1228,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string LoadingPeekInformation {
             get {
                 return ResourceManager.GetString("LoadingPeekInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Navigating....
+        /// </summary>
+        internal static string Navigating {
+            get {
+                return ResourceManager.GetString("Navigating", resourceCulture);
             }
         }
         
@@ -1363,6 +1363,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Overrides {
             get {
                 return ResourceManager.GetString("Overrides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste.
+        /// </summary>
+        internal static string Paste {
+            get {
+                return ResourceManager.GetString("Paste", resourceCulture);
             }
         }
         
@@ -1520,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rename: &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Rename: {0}.
         /// </summary>
         internal static string Rename1 {
             get {
@@ -1759,6 +1768,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string TheDefinitionOfTheObjectIsHidden {
             get {
                 return ResourceManager.GetString("TheDefinitionOfTheObjectIsHidden", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The new name is not a valid identifier..
+        /// </summary>
+        internal static string TheNewNameIsNotAValidIdentifier {
+            get {
+                return ResourceManager.GetString("TheNewNameIsNotAValidIdentifier", resourceCulture);
             }
         }
         

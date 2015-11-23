@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 {
     public class TodoCommentTests
     {
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Colon()
         {
             var code = @"// [|TODO:test|]";
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Space()
         {
             var code = @"// [|TODO test|]";
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Underscore()
         {
             var code = @"// TODO_test";
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Number()
         {
             var code = @"// TODO1 test";
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Quote()
         {
             var code = @"// ""TODO test""";
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Middle()
         {
             var code = @"// Hello TODO test";
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Document()
         {
             var code = @"///    [|TODO test|]";
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Preprocessor1()
         {
             var code = @"#if DEBUG // [|TODO test|]";
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Preprocessor2()
         {
             var code = @"#if DEBUG ///    [|TODO test|]";
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_Region()
         {
             var code = @"#region // TODO test";
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_EndRegion()
         {
             var code = @"#endregion // [|TODO test|]";
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleLineTodoComment_TrailingSpan()
         {
             var code = @"// [|TODO test                        |]";
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void MultilineTodoComment_Singleline()
         {
             var code = @"/* [|TODO: hello    |]*/";
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void MultilineTodoComment_Singleline_Document()
         {
             var code = @"/** [|TODO: hello    |]*/";
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void MultilineTodoComment_Multiline()
         {
             var code = @"
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void MultilineTodoComment_Multiline_DocComment()
         {
             var code = @"
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             Test(code);
         }
 
-        [Fact]
+        [WpfFact]
         public void SinglelineDocumentComment_Multiline()
         {
             var code = @"

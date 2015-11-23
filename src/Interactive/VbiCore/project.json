@@ -1,4 +1,8 @@
 ﻿{
+  "supports": {
+    "net46.app": {},
+    "dnxcore50.app": {}
+  },
   "dependencies": {
     "Microsoft.NETCore.Platforms": "1.0.1-beta-23401",
     "Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23401",
@@ -42,7 +46,7 @@
     }
   },
   "runtimes": {
-    "win7-x64": {},
-    "ubuntu.14.04-x64": {}
+    "win7-x64": { },
+    "ubuntu.14.04-x64": { }
   }
 }

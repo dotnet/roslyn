@@ -3,8 +3,8 @@
 
   <PropertyGroup>
     <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)' == ''">$(MSBuildThisFileDirectory)\..\..\..\packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.console.x86.exe</StartProgram>
-    <StartArguments Condition="'$(StartArguments)' == ''">$(AssemblyName).dll</StartArguments>
+    <StartProgram Condition="'$(StartProgram)' == ''">$(NuGetPackagesPath)\xunit.runner.console.2.1.0\tools\xunit.console.x86.exe</StartProgram>
+    <StartArguments Condition="'$(StartArguments)' == ''">$(AssemblyName).dll -html $(OurDir)\xUnitResults\$(AssemblyName).html -noshadow</StartArguments>
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)' == ''">$(OutDir)</StartWorkingDirectory>
   </PropertyGroup>
 

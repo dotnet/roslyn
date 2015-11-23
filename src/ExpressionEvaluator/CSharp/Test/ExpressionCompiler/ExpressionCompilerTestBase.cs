@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static readonly ImmutableArray<Alias> NoAliases = ImmutableArray<Alias>.Empty;
 
+        protected ExpressionCompilerTestBase()
+        {
+            // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
+            ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
+        }
+
         public override void Dispose()
         {
             base.Dispose();
@@ -194,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expr,
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,

@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbolWithAnnotations _type;
         private readonly int _ordinal;
         private readonly string _name;
+        private readonly ushort _countOfCustomModifiersPrecedingByRef;
         private readonly RefKind _refKind;
 
         public SynthesizedParameterSymbol(
@@ -26,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             string name = "",
-            ImmutableArray<CustomModifier> customModifiers = default(ImmutableArray<CustomModifier>))
+            ImmutableArray<CustomModifier> customModifiers = default(ImmutableArray<CustomModifier>),
+            ushort countOfCustomModifiersPrecedingByRef = 0)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(name != null);
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _ordinal = ordinal;
             _refKind = refKind;
             _name = name;
+            _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
         }
 
         public override TypeSymbolWithAnnotations Type
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return 0; }
+            get { return _countOfCustomModifiersPrecedingByRef; }
         }
 
         public override Symbol ContainingSymbol
@@ -171,8 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var oldParam in sourceMethod.Parameters)
             {
                 //same properties as the old one, just change the owner
-                builder.Add(new SynthesizedParameterSymbol(destinationMethod, oldParam.Type.TypeSymbol, oldParam.Ordinal,
-                    oldParam.RefKind, oldParam.Name, oldParam.Type.CustomModifiers));
+                builder.Add(new SynthesizedParameterSymbol(destinationMethod, oldParam.Type, oldParam.Ordinal,
+                    oldParam.RefKind, oldParam.Name, oldParam.CustomModifiers, oldParam.CountOfCustomModifiersPrecedingByRef));
             }
 
             return builder.ToImmutableAndFree();

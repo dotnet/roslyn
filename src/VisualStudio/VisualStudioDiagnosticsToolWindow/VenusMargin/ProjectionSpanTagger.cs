@@ -44,11 +44,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
 
             private void RaiseTagsChanged(SnapshotSpanEventArgs args)
             {
-                var tagChanged = this.TagsChanged;
-                if (tagChanged != null)
-                {
-                    tagChanged(this, args);
-                }
+                this.TagsChanged?.Invoke(this, args);
             }
 
             public IEnumerable<ITagSpan<TextMarkerTag>> GetTags(NormalizedSnapshotSpanCollection spans)

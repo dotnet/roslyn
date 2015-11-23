@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -25,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     /// Shared implementation of the outliner tagger provider.
     /// 
     /// Note: the outliner tagger is a normal buffer tagger provider and not a view tagger provider.
-    /// This is important for two reason.  The first is that if it were view based then we would lose
+    /// This is important for two reasons.  The first is that if it were view-based then we would lose
     /// the state of the collapsed/open regions when they scrolled in and out of view.  Also, if the
-    /// editor doesn't know about all the regions in the file, then it wouldn't be able to to
+    /// editor doesn't know about all the regions in the file, then it wouldn't be able to
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
     [Export(typeof(ITaggerProvider))]

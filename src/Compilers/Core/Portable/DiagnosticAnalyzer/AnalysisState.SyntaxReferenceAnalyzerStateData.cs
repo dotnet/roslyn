@@ -21,19 +21,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public CodeBlockAnalyzerStateData CodeBlockAnalysisState { get; }
 
             /// <summary>
-            /// Partial analysis state for operation actions executed on the declaration.
+            /// Partial analysis state for operation block actions executed on the declaration.
             /// </summary>
-            public OperationAnalyzerStateData OperationAnalysisState { get; }
-
+            public OperationBlockAnalyzerStateData OperationBlockAnalysisState { get; }
+            
             public DeclarationAnalyzerStateData()
             {
                 CodeBlockAnalysisState = new CodeBlockAnalyzerStateData();
-                OperationAnalysisState = new OperationAnalyzerStateData();
+                OperationBlockAnalysisState = new OperationBlockAnalyzerStateData();
             }
 
             public override void SetStateKind(StateKind stateKind)
             {
                 CodeBlockAnalysisState.SetStateKind(stateKind);
+                OperationBlockAnalysisState.SetStateKind(stateKind);
                 base.SetStateKind(stateKind);
             }
 
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 base.Free();
                 CodeBlockAnalysisState.Free();
+                OperationBlockAnalysisState.Free();
             }
         }
 
@@ -101,20 +103,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Stores the partial analysis state for code block actions executed on the declaration.
+        /// Stores the partial analysis state for code block actions or operation block actions executed on the declaration.
         /// </summary>
-        internal sealed class CodeBlockAnalyzerStateData : AnalyzerStateData
+        internal abstract class BlockAnalyzerStateData<TBlockAction, TNodeStateData> : AnalyzerStateData
+            where TBlockAction : AnalyzerAction
+            where TNodeStateData : AnalyzerStateData, new()
         {
-            public SyntaxNodeAnalyzerStateData ExecutableNodesAnalysisState { get; }
+            public TNodeStateData ExecutableNodesAnalysisState { get; }
 
-            public ImmutableHashSet<AnalyzerAction> CurrentCodeBlockEndActions { get; set; }
-            public ImmutableHashSet<AnalyzerAction> CurrentCodeBlockNodeActions { get; set; }
+            public ImmutableHashSet<TBlockAction> CurrentBlockEndActions { get; set; }
+            public ImmutableHashSet<AnalyzerAction> CurrentBlockNodeActions { get; set; }
 
-            public CodeBlockAnalyzerStateData()
+            public BlockAnalyzerStateData()
             {
-                ExecutableNodesAnalysisState = new SyntaxNodeAnalyzerStateData();
-                CurrentCodeBlockEndActions = null;
-                CurrentCodeBlockNodeActions = null;
+                ExecutableNodesAnalysisState = new TNodeStateData();
+                CurrentBlockEndActions = null;
+                CurrentBlockNodeActions = null;
             }
 
             public override void SetStateKind(StateKind stateKind)
@@ -127,9 +131,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 base.Free();
                 ExecutableNodesAnalysisState.Free();
-                CurrentCodeBlockEndActions = null;
-                CurrentCodeBlockNodeActions = null;
+                CurrentBlockEndActions = null;
+                CurrentBlockNodeActions = null;
             }
+        }
+
+        /// <summary>
+        /// Stores the partial analysis state for code block actions executed on the declaration.
+        /// </summary>
+        internal sealed class CodeBlockAnalyzerStateData : BlockAnalyzerStateData<CodeBlockAnalyzerAction, SyntaxNodeAnalyzerStateData>
+        {
+            }
+
+        /// <summary>
+        /// Stores the partial analysis state for operation block actions executed on the declaration.
+        /// </summary>
+        internal sealed class OperationBlockAnalyzerStateData : BlockAnalyzerStateData<OperationBlockAnalyzerAction, OperationAnalyzerStateData>
+        {
         }
     }
 }

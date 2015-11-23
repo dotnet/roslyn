@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial struct InvocationReasons : IEnumerable<string>
     {
-        public static readonly InvocationReasons Empty = new InvocationReasons(ImmutableHashSet.Create<string>());
+        public static readonly InvocationReasons Empty = new InvocationReasons(ImmutableHashSet<string>.Empty);
 
         private readonly ImmutableHashSet<string> _reasons;
 
@@ -30,7 +30,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public InvocationReasons With(InvocationReasons invocationReasons)
         {
-            return new InvocationReasons((_reasons ?? ImmutableHashSet.Create<string>()).Union(invocationReasons._reasons));
+            return new InvocationReasons((_reasons ?? ImmutableHashSet<string>.Empty).Union(invocationReasons._reasons));
+        }
+
+        public InvocationReasons With(string reason)
+        {
+            return new InvocationReasons((_reasons ?? ImmutableHashSet<string>.Empty).Add(reason));
         }
 
         public bool IsEmpty

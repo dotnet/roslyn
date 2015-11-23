@@ -6,13 +6,14 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Roslyn.Test.EditorUtilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
 {
     public class TextSpanExtensionsTest
     {
-        [Fact]
+        [WpfFact]
         public void ConvertToSpan()
         {
             Action<int, int> del = (start, length) =>
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
             del(15, 20);
         }
 
-        [Fact]
+        [WpfFact]
         public void ConvertToSnapshotSpan1()
         {
             var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, new string('a', 10)).CurrentSnapshot;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
             Assert.Equal(5, ss.Length);
         }
 
-        [Fact]
+        [WpfFact]
         public void ConvertToSnapshotSpan2()
         {
             var snapshot = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, new string('a', 10)).CurrentSnapshot;

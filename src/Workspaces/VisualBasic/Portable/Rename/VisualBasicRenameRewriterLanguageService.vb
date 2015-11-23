@@ -128,11 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Next
                 End If
 
-                Dim shouldComplexifyNode =
-                    Not isInConflictLambdaBody AndAlso
-                    Me._skipRenameForComplexification = 0 AndAlso
-                    Not Me._isProcessingComplexifiedSpans AndAlso
-                    Me._conflictLocations.Contains(node.Span)
+                Dim shouldComplexifyNode = Me.ShouldComplexifyNode(node, isInConflictLambdaBody)
 
                 Dim result As SyntaxNode
                 If shouldComplexifyNode Then
@@ -145,6 +141,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End If
 
                 Return result
+            End Function
+
+            Private Function ShouldComplexifyNode(node As SyntaxNode, isInConflictLambdaBody As Boolean) As Boolean
+                Return Not isInConflictLambdaBody AndAlso
+                       _skipRenameForComplexification = 0 AndAlso
+                       Not _isProcessingComplexifiedSpans AndAlso
+                       _conflictLocations.Contains(node.Span) AndAlso
+                       (TypeOf node Is ExpressionSyntax OrElse
+                        TypeOf node Is StatementSyntax OrElse
+                        TypeOf node Is AttributeSyntax OrElse
+                        TypeOf node Is SimpleArgumentSyntax OrElse
+                        TypeOf node Is CrefReferenceSyntax OrElse
+                        TypeOf node Is TypeConstraintSyntax)
             End Function
 
             Private Function Complexify(originalNode As SyntaxNode, newNode As SyntaxNode) As SyntaxNode
@@ -712,7 +721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Next
             End If
 
-            ' if the renamed symbol is a type member, it's name should not coflict with a type parameter
+            ' if the renamed symbol is a type member, it's name should not conflict with a type parameter
             If renamedSymbol.ContainingType IsNot Nothing AndAlso renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol) Then
                 For Each typeParameter In renamedSymbol.ContainingType.TypeParameters
                     If CaseInsensitiveComparison.Equals(typeParameter.Name, renamedSymbol.Name) Then

@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private const string Kind = "Kind";
         private const string Analyzer = "Analyzer";
         private const string DocumentCount = "DocumentCount";
+        private const string HighPriority = "HighPriority";
         private const string Enabled = "Enabled";
         private const string AnalyzerCount = "AnalyzerCount";
         private const string PersistentStorage = "PersistentStorage";
@@ -67,13 +68,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogReanalyze(int correlationId, IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds)
+        public static void LogReanalyze(int correlationId, IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds, bool highPriority)
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Reanalyze, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
                 m[Analyzer] = analyzer.ToString();
                 m[DocumentCount] = documentIds == null ? 0 : documentIds.Count();
+                m[HighPriority] = highPriority;
             }));
         }
 

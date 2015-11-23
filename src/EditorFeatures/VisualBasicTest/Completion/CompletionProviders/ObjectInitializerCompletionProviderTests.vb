@@ -8,9 +8,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class ObjectInitializerCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
         Protected Overrides Sub VerifyWorker(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, experimental As Boolean, glyph As Integer?)
             ' Script/interactive support removed for now.
-            ' TODO: Reenable these when interactive is back in the product.
+            ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> SourceCodeKind.Regular Then
                 Return
             End If
@@ -18,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             BaseVerifyWorker(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NothingToShow()
             Dim text = <a>Public Class C
 End Class
@@ -33,7 +37,7 @@ End Class</a>.Value
         End Sub
 
         <WorkItem(530075)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInArgumentList()
             Dim text = <a>Public Class C
     Property A As Integer
@@ -48,7 +52,7 @@ End Class</a>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OneItem()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -63,7 +67,7 @@ End Program</a>.Value
             VerifyItemExists(text, "bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldAndProperty()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -80,7 +84,7 @@ End Program</a>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldAndPropertyBaseTypes()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -101,7 +105,7 @@ End Program</a>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersFromObjectInitializerSyntax()
             Dim text = <a>Public Class C
 End Class
@@ -123,7 +127,7 @@ End Program</a>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OneItemAfterComma()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -140,7 +144,7 @@ End Program</a>.Value
             VerifyItemIsAbsent(text, "foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NothingLeftToShow()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -156,7 +160,7 @@ End Program</a>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub WithoutAsClause()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -173,7 +177,7 @@ End Program</a>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub WithoutAsClauseNothingLeftToShow()
             Dim text = <a>Public Class C
     Public bar as Integer
@@ -190,7 +194,7 @@ End Program</a>.Value
         End Sub
 
         <WorkItem(544326)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InactiveInRValue()
             Dim text = <a>Class C
     Public X As Long = 1
@@ -205,7 +209,7 @@ End Module</a>.Value
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoBackingFields()
             Dim text = <a>Class C
     Public Property Foo As Integer
@@ -219,7 +223,7 @@ End Class</a>.Value
             VerifyItemIsAbsent(text, "_Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ReadOnlyPropertiesAreNotPresentOnLeftSide()
             Dim text = <a>Class C
     Public Property Foo As Integer
@@ -239,7 +243,7 @@ End Class</a>.Value
         End Sub
 
         <WorkItem(545881)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoReadonlyFieldsOrProperties()
             Dim text = <a>Module M
     Sub Main()
@@ -251,7 +255,7 @@ End Module
         End Sub
 
         <WorkItem(545844)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoParameterizedProperties()
             Dim text = <a>Module M
     Module M
@@ -264,7 +268,7 @@ End Module
         End Sub
 
         <WorkItem(545844)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ShowParameterizedPropertiesWithAllOptionalArguments()
             Dim text = <a>Imports System
 Public Class AImpl
@@ -287,7 +291,7 @@ End Class</a>.Value
         End Sub
 
         <WorkItem(545844)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DoNotShowParameterizedPropertiesWithSomeMandatoryArguments()
             Dim text = <a>Imports System
 Public Class AImpl
@@ -310,7 +314,7 @@ End Class</a>.Value
         End Sub
 
         <WorkItem(545844)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterizedPropertiesWithParamArrays()
             Dim text = <a>Option Strict On
 Class C
@@ -339,7 +343,7 @@ End Class
         End Sub
 
         <WorkItem(530491)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ObjectInitializerOnInterface()
             Dim text = <a><![CDATA[Option Strict On
 Imports System.Runtime.InteropServices
@@ -364,7 +368,7 @@ End Class
             VerifyItemExists(text, "c")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsCommitCharacterTest()
             Const code = "
 Public Class C
@@ -380,7 +384,7 @@ End Program"
             VerifyCommonCommitCharacters(code, textTypedSoFar:="")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsExclusive()
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -408,7 +412,7 @@ End Program</Document>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SendEnterThroughToEditorTest()
             Const code = "
 Public Class C

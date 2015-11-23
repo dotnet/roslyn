@@ -145,12 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private void OnEditorSessionDismissed()
             {
                 AssertIsForeground();
-
-                var dismissed = this.Dismissed;
-                if (dismissed != null)
-                {
-                    dismissed(this, new EventArgs());
-                }
+                this.Dismissed?.Invoke(this, new EventArgs());
             }
 
             private void OnSelectedSignatureChanged(object sender, SelectedSignatureChangedEventArgs eventArgs)

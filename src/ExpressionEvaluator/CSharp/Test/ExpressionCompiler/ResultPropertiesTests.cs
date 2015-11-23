@@ -221,7 +221,7 @@ abstract class Derived : Base
             Assert.Equal(DkmEvaluationResultTypeModifierFlags.Virtual, GetResultProperties(context, "Override").ModifierFlags);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6651")]
         public void ModifierFlags_Constant()
         {
             var source = @"
@@ -301,7 +301,7 @@ class C
             string error;
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            context.CompileAssignment("P", "1", NoAliases, DiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
+            context.CompileAssignment("P", "1", NoAliases, DebuggerDiagnosticFormatter.Instance, out resultProperties, out error, out missingAssemblyIdentities, EnsureEnglishUICulture.PreferredOrNull, testData);
             Assert.Null(error);
             Assert.Empty(missingAssemblyIdentities);
 
@@ -337,7 +337,7 @@ class C
                 "int z = 1;",
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,

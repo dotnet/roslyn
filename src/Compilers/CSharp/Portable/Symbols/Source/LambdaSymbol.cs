@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameter.Type.TypeSymbol,
                 parameter.Ordinal,
                 parameter.RefKind,
-                    string.Empty); // Make sure nothing binds to this.
+                GeneratedNames.LambdaCopyParameterName(parameter)); // Make sure nothing binds to this.
         }
 
         public sealed override bool Equals(object symbol)

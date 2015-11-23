@@ -822,7 +822,7 @@ lUnsplitAndFinish:
             Dim sideEffects = node.SideEffects
             If Not sideEffects.IsEmpty Then
                 For Each sideEffect In node.SideEffects
-                    Visit(sideEffect)
+                    VisitExpressionAsStatement(sideEffect)
                 Next
             End If
             Debug.Assert(node.ValueOpt IsNot Nothing OrElse node.HasErrors OrElse node.Type.SpecialType = SpecialType.System_Void)
@@ -844,7 +844,7 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitByRefArgumentWithCopyBack(node As BoundByRefArgumentWithCopyBack) As BoundNode
             Me.SetPlaceholderSubstitute(node.InPlaceholder, node.OriginalArgument)
-            Visit(node.InConversion)
+            VisitRvalue(node.InConversion)
             Me.RemovePlaceholderSubstitute(node.InPlaceholder)
             Return Nothing
         End Function
@@ -1009,7 +1009,7 @@ lUnsplitAndFinish:
         End Function
 
         Public Overrides Function VisitAnonymousTypeFieldInitializer(node As BoundAnonymousTypeFieldInitializer) As BoundNode
-            Visit(node.Value)
+            VisitRvalue(node.Value)
             Return Nothing
         End Function
 
@@ -1089,9 +1089,13 @@ lUnsplitAndFinish:
         End Function
 
         Public Overrides Function VisitExpressionStatement(node As BoundExpressionStatement) As BoundNode
-            VisitRvalue(node.Expression)
+            VisitExpressionAsStatement(node.Expression)
             Return Nothing
         End Function
+
+        Private Sub VisitExpressionAsStatement(node As BoundExpression)
+            VisitRvalue(node)
+        End Sub
 
         Public Overrides Function VisitLateMemberAccess(node As BoundLateMemberAccess) As BoundNode
             ' receiver of a latebound access is never modified
@@ -1334,7 +1338,13 @@ lUnsplitAndFinish:
                 If statement IsNot Nothing Then
                     VisitStatement(TryCast(child, BoundStatement))
                 Else
-                    Visit(child)
+                    Dim expression = TryCast(child, BoundExpression)
+
+                    If expression IsNot Nothing Then
+                        VisitExpressionAsStatement(expression)
+                    Else
+                        Visit(child)
+                    End If
                 End If
             Next
             Return Nothing
@@ -1361,7 +1371,7 @@ lUnsplitAndFinish:
         End Function
 
         Public Overrides Function VisitConversion(node As BoundConversion) As BoundNode
-            Visit(node.Operand)
+            VisitRvalue(node.Operand)
             Return Nothing
         End Function
 
@@ -1542,7 +1552,7 @@ lUnsplitAndFinish:
 
         Private Function VisitObjectInitializerExpressionBase(node As BoundObjectInitializerExpressionBase) As BoundNode
             For Each initializer In node.Initializers
-                Visit(initializer)
+                VisitExpressionAsStatement(initializer)
             Next
 
             Return Nothing
@@ -1736,7 +1746,7 @@ lUnsplitAndFinish:
         End Sub
 
         Public Overrides Function VisitAsNewLocalDeclarations(node As BoundAsNewLocalDeclarations) As BoundNode
-            Visit(node.Initializer)
+            VisitRvalue(node.Initializer)
             For Each v In node.LocalDeclarations
                 Visit(v)
             Next
@@ -2247,7 +2257,7 @@ EnteredRegion:
         End Function
 
         Public Overrides Function VisitRaiseEventStatement(node As BoundRaiseEventStatement) As BoundNode
-            Me.Visit(node.EventInvocation)
+            Me.VisitExpressionAsStatement(node.EventInvocation)
             Return Nothing
         End Function
 
@@ -2550,7 +2560,7 @@ EnteredRegion:
         End Function
 
         Public Overrides Function VisitXmlMemberAccess(node As BoundXmlMemberAccess) As BoundNode
-            Visit(node.MemberAccess)
+            VisitRvalue(node.MemberAccess)
             Return Nothing
         End Function
 
@@ -2560,14 +2570,14 @@ EnteredRegion:
         End Function
 
         Public Overrides Function VisitAwaitOperator(node As BoundAwaitOperator) As BoundNode
-            Visit(node.Operand)
+            VisitRvalue(node.Operand)
             Return Nothing
         End Function
 
         Public Overrides Function VisitNameOfOperator(node As BoundNameOfOperator) As BoundNode
             Dim savedState As LocalState = Me.State.Clone()
             SetUnreachable()
-            Visit(node.Argument)
+            VisitRvalue(node.Argument)
             Me.SetState(savedState)
             Return Nothing
         End Function
@@ -2579,6 +2589,7 @@ EnteredRegion:
 
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
             For Each item In node.Contents
+                Debug.Assert(item.Kind = BoundKind.Literal OrElse item.Kind = BoundKind.Interpolation)
                 Visit(item)
             Next
 
@@ -2586,11 +2597,17 @@ EnteredRegion:
         End Function
 
         Public Overrides Function VisitInterpolation(node As BoundInterpolation) As BoundNode
-            Visit(node.Expression)
-            Visit(node.AlignmentOpt)
-            Visit(node.FormatStringOpt)
+            VisitRvalue(node.Expression)
+            VisitRvalue(node.AlignmentOpt)
+            VisitRvalue(node.FormatStringOpt)
             Return Nothing
         End Function
+
+        Public Overrides Function VisitEqualsValue(node As BoundEqualsValue) As BoundNode
+            VisitRvalue(node.Value)
+            Return Nothing
+        End Function
+
 #End Region
 
     End Class

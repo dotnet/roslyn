@@ -123,4 +123,7 @@
   <data name="ResetCommandParametersDescription" xml:space="preserve">
     <value>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</value>
   </data>
+  <data name="ResettingExecutionEngine" xml:space="preserve">
+    <value>Resetting execution engine.</value>
+  </data>
 </root>

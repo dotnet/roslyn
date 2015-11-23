@@ -19,8 +19,9 @@ namespace Microsoft.Cci
             public uint Language;      // Guid
         }
 
-        private struct MethodBodyRow
+        private struct MethodDebugInformationRow
         {
+            public uint Document;       // DocumentRid
             public BlobIdx SequencePoints;
         }
 
@@ -67,7 +68,7 @@ namespace Microsoft.Cci
         }
 
         private readonly List<DocumentRow> _documentTable = new List<DocumentRow>();
-        private readonly List<MethodBodyRow> _methodBodyTable = new List<MethodBodyRow>();
+        private readonly List<MethodDebugInformationRow> _methodDebugInformationTable = new List<MethodDebugInformationRow>();
         private readonly List<LocalScopeRow> _localScopeTable = new List<LocalScopeRow>();
         private readonly List<LocalVariableRow> _localVariableTable = new List<LocalVariableRow>();
         private readonly List<LocalConstantRow> _localConstantTable = new List<LocalConstantRow>();
@@ -82,7 +83,7 @@ namespace Microsoft.Cci
         {
             if (bodyOpt == null)
             {
-                _methodBodyTable.Add(default(MethodBodyRow));
+                _methodDebugInformationTable.Add(default(MethodDebugInformationRow));
                 return;
             }
 
@@ -91,7 +92,7 @@ namespace Microsoft.Cci
 
             if (!emitDebugInfo)
             {
-                _methodBodyTable.Add(default(MethodBodyRow));
+                _methodDebugInformationTable.Add(default(MethodDebugInformationRow));
                 return;
             }
 
@@ -99,8 +100,9 @@ namespace Microsoft.Cci
             int importScopeRid = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, _scopeIndex) : 0;
 
             // documents & sequence points:
-            BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex);
-            _methodBodyTable.Add(new MethodBodyRow { SequencePoints = sequencePointsBlob });
+            int singleDocumentRowId;
+            BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex, out singleDocumentRowId);
+            _methodDebugInformationTable.Add(new MethodDebugInformationRow { Document = (uint)singleDocumentRowId, SequencePoints = sequencePointsBlob });
             
             // Unlike native PDB we don't emit an empty root scope.
             // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first).
@@ -557,10 +559,15 @@ namespace Microsoft.Cci
 
         #region Sequence Points
 
-        private BlobIdx SerializeSequencePoints(int localSignatureRowId, ImmutableArray<SequencePoint> sequencePoints, Dictionary<DebugSourceDocument, int> documentIndex)
+        private BlobIdx SerializeSequencePoints(
+            int localSignatureRowId,
+            ImmutableArray<SequencePoint> sequencePoints,
+            Dictionary<DebugSourceDocument, int> documentIndex,
+            out int singleDocumentRowId)
         {
             if (sequencePoints.Length == 0)
             {
+                singleDocumentRowId = 0;
                 return default(BlobIdx);
             }
 
@@ -569,21 +576,27 @@ namespace Microsoft.Cci
             int previousNonHiddenStartLine = -1;
             int previousNonHiddenStartColumn = -1;
 
-            uint currentDocumentRowId = GetOrAddDocument(sequencePoints[0].Document, documentIndex);
-
             // header:
             writer.WriteCompressedInteger((uint)localSignatureRowId);
-            writer.WriteCompressedInteger(currentDocumentRowId);
+
+            var previousDocument = TryGetSingleDocument(sequencePoints);
+            singleDocumentRowId = (previousDocument != null) ? GetOrAddDocument(previousDocument, documentIndex) : 0;
 
             for (int i = 0; i < sequencePoints.Length; i++)
             {
-                uint documentRowId = GetOrAddDocument(sequencePoints[i].Document, documentIndex);
-                if (documentRowId != currentDocumentRowId)
+                var currentDocument = sequencePoints[i].Document;
+                if (previousDocument != currentDocument)
                 {
-                    // document record:
-                    writer.WriteCompressedInteger(0);
-                    writer.WriteCompressedInteger(documentRowId);
-                    currentDocumentRowId = documentRowId;
+                    int documentRowId = GetOrAddDocument(currentDocument, documentIndex);
+
+                    // optional document in header or document record:
+                    if (previousDocument != null)
+                    {
+                        writer.WriteCompressedInteger(0);
+                    }
+
+                    writer.WriteCompressedInteger((uint)documentRowId);
+                    previousDocument = currentDocument;
                 }
 
                 // delta IL offset:
@@ -625,6 +638,20 @@ namespace Microsoft.Cci
             return _debugHeapsOpt.GetBlobIndex(writer);
         }
 
+        private static DebugSourceDocument TryGetSingleDocument(ImmutableArray<SequencePoint> sequencePoints)
+        {
+            DebugSourceDocument singleDocument = sequencePoints[0].Document;
+            for (int i = 1; i < sequencePoints.Length; i++)
+            {
+                if (sequencePoints[i].Document != singleDocument)
+                {
+                    return null;
+                }
+            }
+
+            return singleDocument;
+        }
+
         private void SerializeDeltaLinesAndColumns(BlobBuilder writer, SequencePoint sequencePoint)
         {
             int deltaLines = sequencePoint.EndLine - sequencePoint.StartLine;
@@ -649,7 +676,7 @@ namespace Microsoft.Cci
 
         #region Documents
 
-        private uint GetOrAddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, int> index)
+        private int GetOrAddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, int> index)
         {
             int documentRowId;
             if (!index.TryGetValue(document, out documentRowId))
@@ -667,7 +694,7 @@ namespace Microsoft.Cci
                 });
             }
 
-            return (uint)documentRowId;
+            return documentRowId;
         }
 
         private static readonly char[] Separator1 = { '/' };
@@ -761,10 +788,11 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeMethodBodyTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        private void SerializeMethodDebugInformationTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (var row in _methodBodyTable)
+            foreach (var row in _methodDebugInformationTable)
             {
+                writer.WriteReference(row.Document, metadataSizes.DocumentIndexSize);
                 writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.SequencePoints), metadataSizes.BlobIndexSize);
             }
         }

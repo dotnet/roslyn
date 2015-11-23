@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
 
                 // The unique signature is simply the node key.
-                return GetFullName(symbol);
+                return GetExternalSymbolFullName(symbol);
             }
 
             var builder = new StringBuilder();

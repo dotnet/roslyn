@@ -1,14 +1,18 @@
 ﻿{
   "dependencies": {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.1.0-beta1-20150824-02",
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta-20151016-11",
     "Microsoft.DiaSymReader": "1.0.6",
-    "xunit": "1.9.2"
+    "System.Collections.Immutable": "1.1.37",
+    "System.Reflection.Metadata": "1.1.0",
+    "xunit": "2.1.0"
   },
   "frameworks": {
     "net45": {}
   },
   "runtimes": {
-    "win7-anycpu": {},
-    "ubuntu.14.04-anycpu": {}
+    "win7": { },
+    "win7-anycpu": { },
+    "ubuntu.14.04": { },
+    "ubuntu.14.04-anycpu": { }
   }
 }

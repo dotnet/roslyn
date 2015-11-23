@@ -13,14 +13,15 @@
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    <Dependency Version="|VisualStudioSetup;GetBuildVersion|" DisplayName="Roslyn Components" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
-    <Dependency Version="|VisualStudioInteractiveComponents;GetBuildVersion|" DisplayName="Roslyn Interactive Components" Id="500fff63-afcf-4195-8db4-3fa8a5180e79" />
-    <Dependency Version="|VisualStudioInteractiveWindow;GetBuildVersion|" DisplayName="VisualStudio Interactive Components" Id="1F42C6D0-F876-4AF0-8185-1BEB0A325BB2" />
+    <Dependency Version="[|VisualStudioSetup;GetBuildVersion|,]" DisplayName="Roslyn Components" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
+    <Dependency Version="[|VisualStudioInteractiveComponents;GetBuildVersion|,]" DisplayName="Roslyn Interactive Components" Id="500fff63-afcf-4195-8db4-3fa8a5180e79" />
+    <Dependency Version="[|VisualStudioInteractiveWindow;GetBuildVersion|,]" DisplayName="VisualStudio Interactive Components" Id="1F42C6D0-F876-4AF0-8185-1BEB0A325BB2" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="BasicVisualStudioRepl" Path="|BasicVisualStudioRepl|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CSharpVisualStudioRepl" Path="|CSharpVisualStudioRepl|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="CSharpPackageRegistration.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="VisualBasicPackageRegistration.pkgdef" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
   </Assets>
 </PackageManifest>

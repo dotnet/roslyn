@@ -55,6 +55,7 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
@@ -70,6 +71,9 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
+      <Link>Shared\Utilities\DesktopShim.cs</Link>
+    </Compile>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureCodeRefactoringProvider.cs" />
@@ -107,6 +111,7 @@
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
+    <Compile Include="CodeFixes\RoslynAssemblyHelper.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.IPragmaBasedCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaBatchFixHelpers.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaHelpers.cs" />
@@ -171,7 +176,6 @@
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
     <Compile Include="Common\UpdatedEventArgs.cs" />
-    <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
     <Compile Include="Diagnostics\IDiagnosticUpdateSourceRegistrationService.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptionsProvider.cs" />
@@ -193,7 +197,6 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\DiagnosticCategory.cs" />
     <Compile Include="Diagnostics\DiagnosticCustomTags.cs" />
-    <Compile Include="Diagnostics\DiagnosticData.cs" />
     <Compile Include="Diagnostics\Log\DiagnosticLogAggregator.cs" />
     <Compile Include="Diagnostics\Log\DiagnosticLogger.cs" />
     <Compile Include="Diagnostics\DiagnosticProviderMetadata.cs" />
@@ -210,9 +213,7 @@
     <Compile Include="Diagnostics\IDiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\IDiagnosticService.cs" />
     <Compile Include="Diagnostics\IDiagnosticUpdateSource.cs" />
-    <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\IWorkspaceDiagnosticAnalyzerProviderService.cs" />
-    <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\PredefinedDiagnosticProviderNames.cs" />
     <Compile Include="Diagnostics\ISupportLiveUpdate.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerOptions.cs" />
@@ -240,7 +241,10 @@
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.AbstractIntroduceVariableCodeAction.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.IntroduceVariableAllOccurrenceCodeAction.cs" />
     <Compile Include="LanguageServices\ProjectInfoService\IProjectInfoService.cs" />
+    <Compile Include="Navigation\NavigationOptions.cs" />
+    <Compile Include="Navigation\NavigationOptionsProvider.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
     <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
     <Compile Include="Shared\Options\OrganizerOptionsProvider.cs" />
@@ -466,7 +470,6 @@
     <Compile Include="Organizing\OrganizingService.cs" />
     <Compile Include="ProjectManagement\IProjectManagementService.cs" />
     <Compile Include="RemoveUnnecessaryImports\IRemoveUnnecessaryImportsService.cs" />
-    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsService.cs" />
     <Compile Include="Shared\Extensions\DiagnosticAnalyzerExtensions.cs" />
     <Compile Include="Shared\Extensions\DocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_2.cs" />

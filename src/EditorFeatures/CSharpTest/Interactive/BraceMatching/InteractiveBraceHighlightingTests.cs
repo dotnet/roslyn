@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             return context.tagSpans;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestCurlies()
         {
             var code = new string[] { "public class C {", "} " };
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestTouchingItems()
         {
             var code = new string[] { "public class C {", "  public void Foo(){}", "}" };
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestAngles()
         {
             var code = new string[] { "/// <summary>Foo</summary>", "public class C<T> {", "  void Foo() {", "    bool a = b < c;", "    bool d = e > f;", "  }", "} " };
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestSwitch()
         {
             var code = @"

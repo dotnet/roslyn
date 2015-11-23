@@ -1585,5 +1585,59 @@ class CL3 : CL2
             CompileAndVerify(compilation, expectedOutput: @"Test
 Overriden");
         }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")]
+        public void ConcatModifiersAndByRef_05()
+        {
+            var ilSource = @"
+.class interface public abstract auto ansi beforefieldinit X.I
+{
+  .method public newslot abstract virtual 
+          instance void  A(uint32& modopt([mscorlib]System.Runtime.CompilerServices.IsImplicitlyDereferenced) x) cil managed
+  {
+  } // end of method I::A
+
+  .method public newslot abstract virtual 
+          instance void  B(uint32& x) cil managed
+  {
+  } // end of method I::B
+
+} // end of class X.I
+";
+
+            var source = @"
+using X;
+
+namespace ConsoleApplication21
+{
+    class CI : I 
+    {
+        public void A(ref uint x)
+        {
+            System.Console.WriteLine(""Implemented A"");
+        }
+
+        public void B(ref uint x)
+        {
+            System.Console.WriteLine(""Implemented B"");
+        }
+    }
+
+    internal class Program
+    {
+        private static void Main()
+        {
+            I x = new CI();
+            uint y = 0;
+            x.A(ref y);
+            x.B(ref y);
+        }
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"Implemented A
+Implemented B");
+        }
     }
 }

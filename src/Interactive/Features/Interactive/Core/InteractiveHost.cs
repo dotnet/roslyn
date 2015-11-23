@@ -151,13 +151,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 newProcess.EnableRaisingEvents = true;
 
                 newProcess.Start();
-
-                // test hook:
-                var processCreated = InteractiveHostProcessCreated;
-                if (processCreated != null)
-                {
-                    processCreated(newProcess);
-                }
+                InteractiveHostProcessCreated?.Invoke(newProcess);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -304,11 +298,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal void OnOutputReceived(bool error, char[] buffer, int count)
         {
-            var notification = error ? ErrorOutputReceived : OutputReceived;
-            if (notification != null)
-            {
-                notification(buffer, count);
-            }
+            (error ? ErrorOutputReceived : OutputReceived)?.Invoke(buffer, count);
 
             var writer = error ? ErrorOutput : Output;
             writer.Write(buffer, 0, count);

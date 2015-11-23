@@ -1,4 +1,4 @@
-{
+﻿{
   "dependencies": {
     "Moq": "4.2.1402.2112",
     "System.Collections": "4.0.10",
@@ -7,9 +7,13 @@
     "System.Runtime": "4.0.20",
     "System.Runtime.Extensions": "4.0.10",
     "System.Threading": "4.0.10",
-    "xunit": "1.9.2"
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.1.0"
   },
   "frameworks": {
-    "net46": { }
+    "net46": {}
+  },
+  "runtimes": {
+    "win7": { }
   }
 }

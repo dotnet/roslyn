@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.True(resultNonDeterministic.Success);   
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5813"), WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
+        [Fact, WorkItem(372, "https://github.com/dotnet/roslyn/issues/372")]
         public void Simple()
         {
             var source =
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.NotEqual(mvid3, mvid7);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5813")]
+        [Fact]
         public void CompareAllBytesEmitted_Release()
         {
             foreach (var pdbFormat in new[]
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5813"), WorkItem(926)]
+        [Fact, WorkItem(926)]
         public void CompareAllBytesEmitted_Debug()
         {
             foreach (var pdbFormat in new[] 

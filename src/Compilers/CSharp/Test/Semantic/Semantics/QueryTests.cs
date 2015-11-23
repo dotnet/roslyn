@@ -1301,7 +1301,7 @@ class Program
 
         [WorkItem(542460, "DevDiv")]
         [Fact]
-        public void QueryWithMultipleParseErrorsAndInteractiveParseOption()
+        public void QueryWithMultipleParseErrorsAndScriptParseOption()
         {
             string sourceCode = @"
 using System;
@@ -1318,7 +1318,7 @@ public class QueryExpressionTest
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let ").Single();
@@ -1329,7 +1329,7 @@ public class QueryExpressionTest
 
         [WorkItem(542496, "DevDiv")]
         [Fact]
-        public void QueryExpressionInFieldInitReferencingAnotherFieldWithInteractiveParseOption()
+        public void QueryExpressionInFieldInitReferencingAnotherFieldWithScriptParseOption()
         {
             string sourceCode = @"
 using System.Linq;
@@ -1344,7 +1344,7 @@ class P
                select x + one;
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
@@ -1735,6 +1735,54 @@ class Test
                 Diagnostic(ErrorCode.ERR_ComRefCallInExpressionTree, "ref1.M(x, y)")
                 );
         }
+
+        [Fact, WorkItem(5728, "https://github.com/dotnet/roslyn/issues/5728")]
+        public void RefOmittedOnComCallErr()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+using System.Runtime.InteropServices;
+
+[ComImport]
+[Guid(""A88A175D-2448-447A-B786-64682CBEF156"")]
+public interface IRef1
+{
+    long M(uint y, ref int x, int z);
+    long M(uint y, ref int x, int z, int q);
+}
+
+public class Ref1Impl : IRef1
+{
+    public long M(uint y, ref int x, int z) { return x + y; }
+    public long M(uint y, ref int x, int z, int q) { return x + y; }
+}
+
+class Test1
+{
+    static void Test(Expression<Action<IRef1>> e)
+    {
+
+    }
+
+    static void Test<U>(Expression<Func<IRef1, U>> e)
+    {
+
+    }
+
+    public static void Main()
+    {
+        Test(ref1 => ref1.M(1, ));
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+    // (34,32): error CS1525: Invalid expression term ')'
+    //         Test(ref1 => ref1.M(1, ));
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(34, 32)
+                );
+        }
+
 
         [WorkItem(529350, "DevDiv")]
         [Fact]

@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnClassName_ShouldFail()
             Dim markup = <Text><![CDATA[
 Class C$$
@@ -16,7 +16,7 @@ End Class]]></Text>.NormalizedValue()
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnField_ShouldFail()
             Dim markup = <Text><![CDATA[
 Class C
@@ -29,7 +29,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedErrorText:=FeaturesResources.YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InsufficientParameters_None()
             Dim markup = <Text><![CDATA[
 Class C
@@ -40,7 +40,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedErrorText:=FeaturesResources.ThisSignatureDoesNotContainParametersThatCanBeChanged)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnOperator_ShouldFail()
             Dim markup = <Text><![CDATA[
 Class C

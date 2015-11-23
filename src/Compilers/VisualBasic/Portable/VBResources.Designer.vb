@@ -125,15 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to This compilation doesn&apos;t represent an interactive submission..
-        '''</summary>
-        Friend ReadOnly Property CompilationDoesNotRepresentInteractiveSubmission() As String
-            Get
-                Return ResourceManager.GetString("CompilationDoesNotRepresentInteractiveSubmission", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Compilation (Visual Basic): .
         '''</summary>
         Friend ReadOnly Property CompilationVisualBasic() As String
@@ -6113,6 +6104,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InvalidParameterSyntax() As String
             Get
                 Return ResourceManager.GetString("ERR_InvalidParameterSyntax", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to The pathmap option was incorrectly formatted..
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidPathMap() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidPathMap", resourceCulture)
             End Get
         End Property
         

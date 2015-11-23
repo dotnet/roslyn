@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Return FlattenActions(actions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeParameterFromArgumentInferT()
             Test(
 NewLines("Module Program \n Sub Main() \n Dim f As [|Foo(Of Integer)|] \n End Sub \n End Module"),
@@ -30,7 +31,7 @@ NewLines("Module Program \n Sub Main() \n Dim f As Foo(Of Integer) \n End Sub \n
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateClassFromTypeParameter()
             Test(
 NewLines("Class C \n Dim emp As List(Of [|Employee|]) \n End Class"),
@@ -38,7 +39,7 @@ NewLines("Class C \n Dim emp As List(Of Employee) \n Private Class Employee \n E
 index:=2)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateClassFromFieldDeclarationIntoSameType()
             Test(
 NewLines("Class C \n dim f as [|Foo|] \n End Class"),
@@ -46,7 +47,7 @@ NewLines("Class C \n dim f as Foo \n Private Class Foo \n End Class \n End Class
 index:=2)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateClassFromFieldDeclarationIntoSameNamespace()
             Test(
 NewLines("Class C \n dim f as [|Foo|] \n End Class"),
@@ -61,7 +62,7 @@ NewLines("Class C \n dim f as [|foo|] \n End Class"))
         End Sub
 
         <WorkItem(539716)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateClassFromFullyQualifiedFieldIntoSameNamespace()
             Test(
 NewLines("Namespace NS \n Class Foo \n Private x As New NS.[|Bar|] \n End Class \n End Namespace"),
@@ -70,7 +71,7 @@ index:=1,
 parseOptions:=Nothing) ' Namespaces not supported in script
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateClassWithCtorFromObjectCreation()
             Test(
 NewLines("Class C \n Dim f As Foo = New [|Foo|]() \n End Class"),
@@ -78,7 +79,7 @@ NewLines("Class C \n Dim f As Foo = New Foo() \n Private Class Foo \n Public Sub
 index:=2)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestCreateException()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Throw New [|Foo|]() \n End Sub \n End Module"),
@@ -86,7 +87,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestCreateFieldDelegatingConstructor()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Call New [|Foo|](1, ""blah"") \n End Sub \n End Module"),
@@ -94,7 +95,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestCreateBaseDelegatingConstructor()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim d As B = New [|D|](4) \n End Sub \n End Module \n Class B \n Protected Sub New(value As Integer) \n End Sub \n End Class"),
@@ -102,7 +103,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateIntoNamespace()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Namespace Outer \n Module Program \n Sub Main(args As String()) \n Call New [|Blah|]() \n End Sub \n End Module \n End Namespace"),
@@ -110,7 +111,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateAssignmentToBaseField()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(i As Integer) \n Dim d As B = New [|D|](i) \n End Sub \n End Module \n Class B \n Protected i As Integer \n End Class"),
@@ -118,7 +119,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateGenericType()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Outer(Of M) \n Sub Main(i As Integer) \n Call New [|Foo(Of M)|] \n End Sub \n End Class"),
@@ -126,7 +127,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateIntoClass()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Outer(Of M) \n Sub Main(i As Integer) \n Call New [|Foo(Of M)|] \n End Sub \n End Class"),
@@ -134,7 +135,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=2)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateIntoClassFromFullyQualifiedInvocation()
             Test(
 NewLines("Class Program \n Sub Test() \n Dim d = New [|Program.Foo|]() \n End Sub \n End Class"),
@@ -142,7 +143,7 @@ NewLines("Class Program \n Sub Test() \n Dim d = New Program.Foo() \n End Sub \n
         End Sub
 
         <WorkItem(5776, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateIntoNamespaceFromFullyQualifiedInvocation()
             Test(
 NewLines("Namespace Foo \n Class Program \n Sub Test() \n Dim d = New [|Foo.Bar|]() \n End Sub \n End Class \n End Namespace"),
@@ -151,7 +152,7 @@ index:=1,
 parseOptions:=Nothing) ' Namespaces not supported in script
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestInSecondConstraintClause()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program(Of T As {Foo, [|IBar|]}) \n End Class"),
@@ -159,25 +160,25 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestGenerateIntoNewNamespace()
-            TestAddDocument(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestGenerateIntoNewNamespace() As Task
+            Await TestAddDocument(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Sub Main() \n Call New Foo.[|Bar|]() \n End Sub \n End Class"),
 NewLines("Namespace Foo \n Friend Class Bar \n Public Sub New() \n End Sub \n End Class \n End Namespace"),
 expectedContainers:={"Foo"},
-expectedDocumentName:="Bar.vb")
-        End Sub
+expectedDocumentName:="Bar.vb").ConfigureAwait(True)
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestGenerateIntoGlobalNamespaceNewFile()
-            TestAddDocument(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestGenerateIntoGlobalNamespaceNewFile() As Task
+            Await TestAddDocument(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim x As New [|Foo|] \n End Sub \n End Module"),
 NewLines("Friend Class Foo \n End Class"),
 expectedContainers:=Array.Empty(Of String)(),
-expectedDocumentName:="Foo.vb")
-        End Sub
+expectedDocumentName:="Foo.vb").ConfigureAwait(True)
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeThatImplementsInterface1()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim d As [|IFoo|] = New Foo() \n End Sub \n End Module"),
@@ -185,7 +186,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeThatImplementsInterface2()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim d As IFoo = New [|Foo|]() \n End Sub \n End Module \n Friend Interface IFoo \n End Interface"),
@@ -193,7 +194,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeWithNamedArguments()
             Test(
 NewLines("Class Program \n Sub Test() \n Dim x = New [|Bar|](value:=7) \n End Sub \n End Class"),
@@ -202,14 +203,14 @@ index:=1)
         End Sub
 
         <WorkItem(539730)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNotIntoType()
             TestActionCount(
 NewLines("Class Program \n Inherits [|Temp|] \n Sub Test() \n End Sub \n End Class"),
 count:=3)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateClassFromReturnType()
             Test(
 NewLines("Class Foo \n Function F() As [|Bar|] \n End Function \n End Class"),
@@ -217,7 +218,7 @@ NewLines("Class Foo \n Function F() As Bar \n End Function \n End Class \n Publi
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateClassWhereKeywordBecomesTypeName()
             Test(
 NewLines("Class Foo \n Dim x As New [|[Class]|] \n End Class"),
@@ -225,7 +226,7 @@ NewLines("Class Foo \n Dim x As New [Class] \n End Class \n Friend Class [Class]
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub NegativeTestGenerateClassFromEscapedType()
             Test(
 NewLines("Class Foo \n Dim x as New [|[Bar]|] \n End Class"),
@@ -234,7 +235,7 @@ index:=1)
         End Sub
 
         <WorkItem(539716)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeIntoContainingNamespace()
             Test(
 NewLines("Namespace NS \n Class Foo \n Dim x As New NS.[|Bar|] \n End Class \n End Namespace"),
@@ -244,7 +245,7 @@ parseOptions:=Nothing) ' Namespaces not supported in script
         End Sub
 
         <WorkItem(539736)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeIntoContainingModule()
             Test(
 NewLines("Module M \n Dim x As [|C|] \n End Module"),
@@ -253,7 +254,7 @@ index:=2)
         End Sub
 
         <WorkItem(539737)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateInterfaceInImplementsStatement()
             Test(
 NewLines("Class C \n Implements [|D|] \n End Class"),
@@ -261,7 +262,7 @@ NewLines("Class C \n Implements D \n End Class \n Friend Interface D \n End Inte
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAbsenceOfGenerateIntoInvokingTypeForConstraintList()
             TestActionCount(
 NewLines("Class EmployeeList(Of T As [|Employee|]) \n End Class"),
@@ -269,48 +270,48 @@ count:=3,
 parseOptions:=TestOptions.Regular)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestMissingOnImportsDirective()
             TestMissing(
 NewLines("Imports [|System|]"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub TestNoContainersInNewType()
-            TestAddDocument(
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestNoContainersInNewType() As Task
+            Await TestAddDocument(
 NewLines("Class Base \n Sub Main \n Dim p = New [|Derived|]() \n End Sub \n End Class"),
 NewLines("Friend Class Derived \n Public Sub New() \n End Sub \n End Class"),
 expectedContainers:=Array.Empty(Of String)(),
-expectedDocumentName:="Derived.vb")
-        End Sub
+expectedDocumentName:="Derived.vb").ConfigureAwait(True)
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNotOfferedInsideBinaryExpressions()
             TestMissing(
 NewLines("Class Base \n Sub Main \n Dim a = 1 + [|Foo|] \n End Sub \n End Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNotOfferedIfLeftSideOfDotIsNotAName()
             TestMissing(
 NewLines("Module Program \n Sub Main(args As String()) \n Call 1.[|T|] \n End Sub \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNotOfferedIfLeftFromDotIsNotAName()
             TestMissing(
 NewLines("Class C1 \n Sub Foo \n Me.[|Foo|] = 3 \n End Sub \n End Class"))
         End Sub
 
         <WorkItem(539786)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestMissingOnAssignedVariable()
             TestMissing(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n [|B|] = 10 \n End Sub \n End Module"))
         End Sub
 
         <WorkItem(539757)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestArrayInference1()
             Test(
 NewLines("Class Base \n Sub Main \n Dim p() As Base = New [|Derived|](10) {} \n End Sub \n End Class"),
@@ -319,7 +320,7 @@ index:=1)
         End Sub
 
         <WorkItem(539757)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestArrayInference2()
             Test(
 NewLines("Class Base \n Sub Main \n Dim p As Base() = New [|Derived|](10) {} \n End Sub \n End Class"),
@@ -328,7 +329,7 @@ index:=1)
         End Sub
 
         <WorkItem(539757)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestArrayInference3()
             Test(
 NewLines("Class Base \n Sub Main \n Dim p As Base = New [|Derived|](10) {} \n End Sub \n End Class"),
@@ -337,7 +338,7 @@ index:=1)
         End Sub
 
         <WorkItem(539749)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestMatchWithDifferentArity()
             Test(
 NewLines("Class Program \n Private Sub Main() \n Dim f As [|Foo(Of Integer)|] \n End Sub \n End Class \n Class Foo \n End Class"),
@@ -346,7 +347,7 @@ index:=1)
         End Sub
 
         <WorkItem(540504)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNoUnavailableTypeParameters1()
             Test(
 NewLines("Class C(Of T1, T2) \n Sub M(x As T1, y As T2) \n Dim a As Test = New [|Test|](x, y) \n End Sub \n End Class"),
@@ -355,7 +356,7 @@ index:=1)
         End Sub
 
         <WorkItem(540534)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestMultipleTypeParamsInConstructor1()
             Test(
 NewLines("Class C(Of T1, T2) \n Sub M(x As T1, y As T2) \n Dim a As Test(Of T1, T2) = New [|Test(Of T1, T2)|](x, y) \n End Sub \n End Class"),
@@ -364,7 +365,7 @@ index:=1)
         End Sub
 
         <WorkItem(540644)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateWithVoidArg()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n Dim x As C = New [|C|](M()) \n End Sub \n Sub M() \n End Sub \n End Module"),
@@ -373,7 +374,7 @@ index:=1)
         End Sub
 
         <WorkItem(539735)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestInAsClause()
             Test(
 NewLines("Class D \n Sub M() \n Dim x As New [|C|](4) \n End Sub \n End Class"),
@@ -381,14 +382,14 @@ NewLines("Class D \n Sub M() \n Dim x As New C(4) \n End Sub \n End Class \n Fri
 index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNotOnConstructorToActualType()
             TestMissing(
 NewLines("Class C \n Sub Test() \n Dim x As Integer = 1 \n Dim obj As New [|C|](x) \n End Sub \n End Class"))
         End Sub
 
         <WorkItem(540986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateAttribute1()
             Test(
 NewLines("<[|AttClass|]()> \n Class C \n End Class"),
@@ -397,7 +398,7 @@ index:=1)
         End Sub
 
         <WorkItem(540986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateAttribute2()
             Test(
 NewLines("Imports System \n <[|AttClass|]()> \n Class C \n End Class"),
@@ -406,14 +407,14 @@ index:=1)
         End Sub
 
         <WorkItem(541607)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNotOnDictionaryAccess()
             TestMissing(
 NewLines("Imports System \n Imports System.Collections \n Imports System.Collections.Generic \n Public Class A \n Public Sub Foo() \n Dim Table As Hashtable = New Hashtable() \n Table![|Orange|] = ""A fruit"" \n Table(""Broccoli"") = ""A vegetable"" \n Console.WriteLine(Table!Orange) \n End Sub \n End Class"))
         End Sub
 
         <WorkItem(542392)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityConstraint1()
             Test(
 NewLines("Imports System.Runtime.CompilerServices \n Module StringExtensions \n <Extension()> \n Public Sub Print(ByVal aString As String, x As [|C|]) \n Console.WriteLine(aString) \n End Sub \n End Module"),
@@ -422,7 +423,7 @@ index:=2)
         End Sub
 
         <WorkItem(542836)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNewLineAfterNestedType()
             Test(
 <Text>Class A
@@ -445,7 +446,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(543290)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNestedType()
             Test(
 NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n Dim i = 2 \n Dim r As New i.[|Extension|] \n End Sub \n Public Class i \n End Class \n End Module"),
@@ -453,14 +454,14 @@ NewLines("Option Explicit Off \n Module Program \n Sub Main(args As String()) \n
         End Sub
 
         <WorkItem(543397)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestNewModule()
             TestMissing(
 NewLines("Module Program \n Sub Main \n Dim f As New [|Program|] \n End Sub \n End Module"))
         End Sub
 
         <WorkItem(545363)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestInHiddenNamespace1()
             TestExactActionSetOffered(
 <text>
@@ -476,7 +477,7 @@ End Class
         End Sub
 
         <WorkItem(545363)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestInHiddenNamespace2()
             TestExactActionSetOffered(
 <text>
@@ -497,7 +498,7 @@ String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo"), FeaturesRe
         End Sub
 
         <WorkItem(545363)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestInHiddenNamespace3()
             Test(
 <text>
@@ -533,7 +534,7 @@ index:=1)
         End Sub
 
         <WorkItem(546852)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAnonymousMethodArgument()
             Test(
 NewLines("Module Program \n Sub Main() \n Dim c = New [|C|](Function() x) \n End Sub \n End Module"),
@@ -542,7 +543,7 @@ index:=1)
         End Sub
 
         <WorkItem(546851)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestOmittedArguments()
             Test(
 NewLines("Imports System \n Module Program \n Sub Main() \n Dim x = New [|C|](,) \n End Sub \n End Module"),
@@ -551,7 +552,7 @@ index:=1)
         End Sub
 
         <WorkItem(1003618)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeThatBindsToNamespace()
             Test(
 NewLines("Imports System \n [|<System>|] \n Module Program \n Sub Main() \n End Sub \n End Module"),
@@ -560,7 +561,7 @@ index:=1)
         End Sub
 
         <WorkItem(821277)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestTooFewTypeArgument()
             Test(
 <text>
@@ -591,7 +592,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(821277)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestTooMoreTypeArgument()
             Test(
 <text>
@@ -622,7 +623,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(942568)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeWithPreferIntrinsicPredefinedKeywordFalse()
             Test(
 <text>
@@ -653,7 +654,7 @@ options:=New Dictionary(Of OptionKey, Object) From {{New OptionKey(Simplificatio
         End Sub
 
         <WorkItem(869506)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeOutsideCurrentProject()
             Dim initial = <Workspace>
                               <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -689,7 +690,7 @@ End Namespace</Text>.NormalizedValue
         End Sub
 
         <WorkItem(940003)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithProperties1()
             Test(
 NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module"),
@@ -698,7 +699,7 @@ index:=1)
         End Sub
 
         <WorkItem(940003)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithProperties2()
             Test(
 NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Nothing, .Age = Date.Today} \n End Sub \n End Module"),
@@ -707,7 +708,7 @@ index:=1)
         End Sub
 
         <WorkItem(940003)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithProperties3()
             Test(
 NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Foo, .Age = Date.Today} \n End Sub \n End Module"),
@@ -716,7 +717,7 @@ index:=1)
         End Sub
 
         <WorkItem(1082031)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithProperties4()
             Test(
 NewLines("Imports System \n Module Program \n Sub Main() \n  Dim c As New [|Customer|] With {.Name = ""John"", .Age = Date.Today} \n End Sub \n End Module"),
@@ -725,7 +726,7 @@ index:=1)
         End Sub
 
         <WorkItem(1032176)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithNameOf()
             Test(
 NewLines("Imports System \n Module Program \n Sub Main() \n  Dim x = nameof([|Z|]) \n End Sub \n End Module"),
@@ -734,7 +735,7 @@ index:=1)
         End Sub
 
         <WorkItem(1032176)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithNameOf2()
             Test(
 NewLines("Imports System \n Class Program \n Sub Main() \n  Dim x = nameof([|Z|]) \n End Sub \n End Class"),
@@ -743,7 +744,7 @@ index:=2)
         End Sub
 
         <WorkItem(1032176)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestWithNameOf3()
             Test(
 NewLines("Imports System \n Class Program \n Sub Main() \n  Dim x = nameof([|Program.Z|]) \n End Sub \n End Class"),
@@ -752,7 +753,7 @@ index:=0)
         End Sub
 
         <WorkItem(1065647)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForNestedType()
             Test(
 NewLines("Public Interface I \n  Sub Foo(a As [|X.Y.Z|]) \n End Interface \n Public Class X \n End Class"),
@@ -761,7 +762,7 @@ index:=0)
         End Sub
 
         <WorkItem(1130905)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeInImports()
             Test(
 NewLines("Imports [|Fizz|]"),
@@ -769,7 +770,7 @@ NewLines("Friend Class Fizz\nEnd Class\n"))
         End Sub
 
         <WorkItem(1130905)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestGenerateTypeInImports2()
             Test(
 NewLines("Imports [|Fizz|]"),
@@ -778,7 +779,7 @@ index:=1)
         End Sub
 
         <WorkItem(1107929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForPublicFields()
             Test(
 NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
@@ -787,7 +788,7 @@ index:=0)
         End Sub
 
         <WorkItem(1107929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForPublicFields2()
             Test(
 NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
@@ -796,7 +797,7 @@ index:=1)
         End Sub
 
         <WorkItem(1107929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForPublicFields3()
             Test(
 NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
@@ -805,7 +806,7 @@ index:=2)
         End Sub
 
         <WorkItem(1107929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForPublicFields4()
             Test(
 NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
@@ -814,7 +815,7 @@ index:=0)
         End Sub
 
         <WorkItem(1107929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForPublicFields5()
             Test(
 NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
@@ -823,7 +824,7 @@ index:=1)
         End Sub
 
         <WorkItem(1107929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForPublicFields6()
             Test(
 NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
@@ -832,7 +833,7 @@ index:=2)
         End Sub
 
         <WorkItem(1107929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForPublicFields7()
             Test(
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
@@ -841,7 +842,7 @@ index:=0)
         End Sub
 
         <WorkItem(1107929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForPublicFields8()
             Test(
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
@@ -850,7 +851,7 @@ index:=1)
         End Sub
 
         <WorkItem(1107929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub TestAccessibilityForPublicFields9()
             Test(
 NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
@@ -872,7 +873,7 @@ index:=2)
             End Function
 
             <WorkItem(829970)>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
             Public Sub TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
                 Test(
 NewLines("Module Program \n <[|Extension|]> \n End Module"),

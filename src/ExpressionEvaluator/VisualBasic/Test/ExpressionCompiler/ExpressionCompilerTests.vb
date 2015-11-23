@@ -89,9 +89,9 @@ End Class
             Dim context = CreateMethodContext(runtime, "C.M")
 
             Dim errorMessage As String = Nothing
-            Dim result = context.CompileExpression("M(", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            Dim result = context.CompileExpression("M(", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Null(result)
-            Assert.Equal("(1) : error BC30201: Expression expected.", errorMessage)
+            Assert.Equal("error BC30201: Expression expected.", errorMessage)
         End Sub
 
         ''' <summary>
@@ -159,7 +159,7 @@ End Class
                 expr:="If(y, x)",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
         End Sub
 
         <Fact>
@@ -208,12 +208,12 @@ End Class
             ' Local reference.
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("F(y)", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal("(1) : error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Dim result = context.CompileExpression("F(y)", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal("error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             ' No local reference.
             testData = New CompilationTestData()
-            result = context.CompileExpression("F(x)", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("F(x)", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             ' Unlike C#, VB doesn't create a temp local to store the return value.
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -414,41 +414,41 @@ End Class
             CheckFormatSpecifiers(result)
 
             ' Format specifiers on expression.
-            result = context.CompileExpression("x,", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x,", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x,,", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x,,", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x y", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x y", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Equal("error BC37237: 'y' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x yy zz", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x yy zz", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Equal("error BC37237: 'yy' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x,,y", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x,,y", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x,yy,zz,ww", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x,yy,zz,ww", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             CheckFormatSpecifiers(result, "yy", "zz", "ww")
-            result = context.CompileExpression("x, y z", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x, y z", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Equal("error BC37237: 'z' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x, y  ,  z  ", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x, y  ,  z  ", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             CheckFormatSpecifiers(result, "y", "z")
-            result = context.CompileExpression("x, y, z,", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x, y, z,", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Equal("error BC37237: ',' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x,y,z;w", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x,y,z;w", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Equal("error BC37237: 'z;w' is not a valid format specifier", errorMessage)
-            result = context.CompileExpression("x, y;, z", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x, y;, z", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Equal("error BC37237: 'y;' is not a valid format specifier", errorMessage)
 
             ' Format specifiers after comment (ignored).
-            result = context.CompileExpression("x ' ,f", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("x ' ,f", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             CheckFormatSpecifiers(result)
 
             ' Format specifiers on assignment value.
-            result = context.CompileAssignment("x", "Nothing, y", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileAssignment("x", "Nothing, y", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
             Assert.Null(result)
-            Assert.Equal("(1) : error BC30035: Syntax error.", errorMessage)
+            Assert.Equal("error BC30035: Syntax error.", errorMessage)
 
             ' Format specifiers, no expression.
-            result = context.CompileExpression(",f", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal("(1) : error BC30201: Expression expected.", errorMessage)
+            result = context.CompileExpression(",f", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal("error BC30201: Expression expected.", errorMessage)
         End Sub
 
         Private Shared Sub CheckFormatSpecifiers(result As CompileResult, ParamArray formatSpecifiers As String())
@@ -1501,22 +1501,22 @@ End Class
 
             ' Note: flags are always None in error cases.
 
-            CheckResultProperties(context, "E", DkmClrCompilationResultFlags.None, "(1,2): error BC32022: 'Public Event E As C.EEventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.")
-            CheckResultProperties(context, "CE", DkmClrCompilationResultFlags.None, "(1,2): error BC32022: 'Public Event CE As Action' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.")
+            CheckResultProperties(context, "E", DkmClrCompilationResultFlags.None, "error BC32022: 'Public Event E As C.EEventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.")
+            CheckResultProperties(context, "CE", DkmClrCompilationResultFlags.None, "error BC32022: 'Public Event CE As Action' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.")
 
             CheckResultProperties(context, "RP", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "WP", DkmClrCompilationResultFlags.None, "(1,2): error BC30524: Property 'WP' is 'WriteOnly'.")
+            CheckResultProperties(context, "WP", DkmClrCompilationResultFlags.None, "error BC30524: Property 'WP' is 'WriteOnly'.")
             CheckResultProperties(context, "RWP", DkmClrCompilationResultFlags.None)
 
             CheckResultProperties(context, "RP(1)", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "WP(1)", DkmClrCompilationResultFlags.None, "(1,2): error BC30524: Property 'WP' is 'WriteOnly'.")
+            CheckResultProperties(context, "WP(1)", DkmClrCompilationResultFlags.None, "error BC30524: Property 'WP' is 'WriteOnly'.")
             CheckResultProperties(context, "RWP(1)", DkmClrCompilationResultFlags.None)
 
             CheckResultProperties(context, "M()", DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
 
             CheckResultProperties(context, "Nothing", DkmClrCompilationResultFlags.ReadOnlyResult)
             CheckResultProperties(context, "1", DkmClrCompilationResultFlags.ReadOnlyResult)
-            CheckResultProperties(context, "AddressOf M", DkmClrCompilationResultFlags.None, "(1,2): error BC30491: Expression does not produce a value.")
+            CheckResultProperties(context, "AddressOf M", DkmClrCompilationResultFlags.None, "error BC30491: Expression does not produce a value.")
             CheckResultProperties(context, "GetType(C)", DkmClrCompilationResultFlags.ReadOnlyResult)
             CheckResultProperties(context, "New C()", DkmClrCompilationResultFlags.ReadOnlyResult)
         End Sub
@@ -1624,7 +1624,7 @@ End Class
                 expr:="P",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30524: Property 'P' is 'WriteOnly'.", errorMessage)
+            Assert.Equal("error BC30524: Property 'P' is 'WriteOnly'.", errorMessage)
         End Sub
 
         ''' <summary>
@@ -1666,7 +1666,7 @@ End Class
                 expr:="AddressOf C.M",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30491: Expression does not produce a value.", errorMessage)
+            Assert.Equal("error BC30491: Expression does not produce a value.", errorMessage)
 
             Dim source = "
 Class C
@@ -1754,7 +1754,7 @@ End Class"
             Dim context = CreateMethodContext(runtime, "C.M")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("x.@a", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -1796,7 +1796,7 @@ End Class"
             Dim context = CreateMethodContext(runtime, "Root.C.M")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("x.@a", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -1845,7 +1845,7 @@ End Class"
             Dim context = CreateMethodContext(runtime, "C1.M") ' In Module1
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("x.@a", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            Dim result = context.CompileExpression("x.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -1928,7 +1928,7 @@ End Namespace
                 expr:="N",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30112: 'N' is a namespace and cannot be used as an expression.", errorMessage)
+            Assert.Equal("error BC30112: 'N' is a namespace and cannot be used as an expression.", errorMessage)
         End Sub
 
         <Fact>
@@ -1942,7 +1942,7 @@ End Namespace
                 expr:="C",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30109: 'C' is a class type and cannot be used as an expression.", errorMessage)
+            Assert.Equal("error BC30109: 'C' is a class type and cannot be used as an expression.", errorMessage)
         End Sub
 
         <WorkItem(986227)>
@@ -2326,8 +2326,8 @@ End Class"
             Dim testData = New CompilationTestData()
             context.CompileExpression("F(Function()
                         Return Nothing
-                    End Function)", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal(errorMessage, "(1) : error BC36675: Statement lambdas cannot be converted to expression trees.")
+                    End Function)", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal(errorMessage, "error BC36675: Statement lambdas cannot be converted to expression trees.")
         End Sub
 
         <WorkItem(1096605)>
@@ -2632,7 +2632,7 @@ End Class
                 expr:="MyBase",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC32027: 'MyBase' must be followed by '.' and an identifier.", errorMessage)
+            Assert.Equal("error BC32027: 'MyBase' must be followed by '.' and an identifier.", errorMessage)
         End Sub
 
         <Fact>
@@ -2883,7 +2883,7 @@ End Structure
                 expr:="MyBase.ToString()",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30044: 'MyBase' is not valid within a structure.", errorMessage)
+            Assert.Equal("error BC30044: 'MyBase' is not valid within a structure.", errorMessage)
         End Sub
 
         <Fact>
@@ -2903,7 +2903,7 @@ End Module
                 expr:="MyBase.ToString()",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC32001: 'MyBase' is not valid within a Module.", errorMessage)
+            Assert.Equal("error BC32001: 'MyBase' is not valid within a Module.", errorMessage)
         End Sub
 
         <WorkItem(1010922)>
@@ -2922,8 +2922,8 @@ End Class
 
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
-            context.CompileExpression("2147483647 + 1", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal("(1) : error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
+            context.CompileExpression("2147483647 + 1", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
 
             ' As in dev12, the global "unchecked" option is not respected at debug time.
             Dim uncheckedComp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll.WithOverflowChecks(False))
@@ -2931,8 +2931,8 @@ End Class
             context = CreateMethodContext(runtime, methodName:="C.M")
 
             errorMessage = Nothing
-            context.CompileExpression("2147483647 + 1", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal("(1) : error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
+            context.CompileExpression("2147483647 + 1", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
         End Sub
 
         <WorkItem(1012956)>
@@ -2950,8 +2950,8 @@ End Class
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
 
             Dim errorMessage As String = Nothing
-            context.CompileAssignment("u", "2147483647 + 1", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal("(1) : error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
+            context.CompileAssignment("u", "2147483647 + 1", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal("error BC30439: Constant expression not representable in type 'Integer'.", errorMessage)
         End Sub
 
         <WorkItem(1016530)>
@@ -2973,7 +2973,7 @@ End Class
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
 
-            Assert.Equal("(1) : error BC30201: Expression expected.", errorMessage)
+            Assert.Equal("error BC30201: Expression expected.", errorMessage)
         End Sub
 
         <WorkItem(1015887)>
@@ -3316,7 +3316,7 @@ End Class"
 
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            Dim result = context.CompileExpression("Me?.F()", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            Dim result = context.CompileExpression("Me?.F()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             Dim methodData = testData.GetMethodData("<>x.<>m0")
             Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
             methodData.VerifyIL(
@@ -3338,12 +3338,12 @@ End Class"
 }")
 
             testData = New CompilationTestData()
-            result = context.CompileExpression("(Me?.F())", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("(Me?.F())", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             methodData = testData.GetMethodData("<>x.<>m0")
             Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
 
             testData = New CompilationTestData()
-            result = context.CompileExpression("Me?.X.@a", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("Me?.X.@a", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             Assert.Null(errorMessage)
             methodData = testData.GetMethodData("<>x.<>m0")
             Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.SpecialType, SpecialType.System_String)
@@ -3366,17 +3366,17 @@ End Class"
 }")
 
             testData = New CompilationTestData()
-            result = context.CompileExpression("(New C())?.G()?.F()", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("(New C())?.G()?.F()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             methodData = testData.GetMethodData("<>x.<>m0")
             Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
 
             testData = New CompilationTestData()
-            result = context.CompileExpression("(New C())?.G().F()", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("(New C())?.G().F()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             methodData = testData.GetMethodData("<>x.<>m0")
             Assert.Equal(DirectCast(methodData.Method, MethodSymbol).ReturnType.ToDisplayString(), "Integer?")
 
             testData = New CompilationTestData()
-            result = context.CompileExpression("G()?.M()", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            result = context.CompileExpression("G()?.M()", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             methodData = testData.GetMethodData("<>x.<>m0")
             Assert.True(DirectCast(methodData.Method, MethodSymbol).IsSub)
             methodData.VerifyIL(
@@ -3395,8 +3395,8 @@ End Class"
 }")
 
             testData = New CompilationTestData()
-            result = context.CompileExpression("(G()?.M())", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal(errorMessage, "(1) : error BC30491: Expression does not produce a value.")
+            result = context.CompileExpression("(G()?.M())", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal(errorMessage, "error BC30491: Expression does not produce a value.")
         End Sub
 
         <WorkItem(1024137)>
@@ -3552,7 +3552,7 @@ End Class"
                 expr:="From c in ""ABC"" Select c",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC36593: Expression of type 'String' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.", errorMessage)
+            Assert.Equal("error BC36593: Expression of type 'String' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.", errorMessage)
         End Sub
 
         <WorkItem(1079762)>
@@ -3587,7 +3587,7 @@ End Class
 ")
             testData = New CompilationTestData()
             context.CompileExpression("y", errorMessage, testData)
-            Assert.Equal("(1,2): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
         End Sub
 
         <WorkItem(1014763)>
@@ -3736,8 +3736,8 @@ End Class
             Dim runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef), exeBytes, New SymReader(pdbBytes))
             Dim context = CreateMethodContext(runtime, "C.M")
 
-            Const expectedError1 = "(1,1): error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
-            Const expectedError2 = "(1,2): error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
+            Const expectedError1 = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
+            Const expectedError2 = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
             Dim expectedMissingAssemblyIdentity As New AssemblyIdentity("Lib")
 
             Dim resultProperties As ResultProperties = Nothing
@@ -3750,7 +3750,7 @@ End Class
                         expr,
                         DkmEvaluationFlags.TreatAsExpression,
                         NoAliases,
-                        DiagnosticFormatter.Instance,
+                        DebuggerDiagnosticFormatter.Instance,
                         resultProperties,
                         actualError,
                         actualMissingAssemblyIdentities,
@@ -3950,7 +3950,7 @@ End Class"
 End Sub)",
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,
@@ -3999,7 +3999,7 @@ End Class"
             ' (which is also not deducible from the mangled form).
             testData = New CompilationTestData()
             result = context.CompileExpression("GetType(U)", errorMessage, testData)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage)
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage)
 
             ' Sufficiently well-informed users can reference the type parameter using
             ' its mangled name.
@@ -4643,7 +4643,49 @@ End Class
                 expr:="Nameof(Me.X)",
                 resultProperties:=resultProperties,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30043: 'Me' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 'Me' is valid only within an instance method.", errorMessage)
+        End Sub
+
+        <Fact>
+        Public Sub ImportsInAsyncLambda()
+            Const source =
+"Imports System.Linq
+Class C
+    Shared Sub M()
+        Dim f As System.Action =
+            Async Sub()
+                Dim c = {1, 2, 3}
+                c.Select(Function(i) i)
+            End Sub
+    End Sub
+End Class"
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            Dim runtime = CreateRuntimeInstance(compilation0)
+            Dim context = CreateMethodContext(runtime, "C._Closure$__.VB$StateMachine___Lambda$__1-0.MoveNext")
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("c.Where(Function(n) n > 0)", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Exception V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C._Closure$__.VB$StateMachine___Lambda$__1-0.$VB$ResumableLocal_c$0 As Integer()""
+  IL_0006:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of Integer, Boolean)""
+  IL_000b:  brfalse.s  IL_0014
+  IL_000d:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of Integer, Boolean)""
+  IL_0012:  br.s       IL_002a
+  IL_0014:  ldsfld     ""<>x._Closure$__.$I As <>x._Closure$__""
+  IL_0019:  ldftn      ""Function <>x._Closure$__._Lambda$__0-0(Integer) As Boolean""
+  IL_001f:  newobj     ""Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)""
+  IL_0024:  dup
+  IL_0025:  stsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of Integer, Boolean)""
+  IL_002a:  call       ""Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)""
+  IL_002f:  ret
+}")
         End Sub
 
     End Class
