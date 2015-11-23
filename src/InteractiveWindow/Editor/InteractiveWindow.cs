@@ -579,12 +579,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal void Undo_TestOnly(int count)
         {
-            UIThread(uiOnly => uiOnly.UndoHistory_TestOnly.Undo(count));
+            UIThread(uiOnly => uiOnly.UndoHistory?.Undo(count));
         }
 
         internal void Redo_TestOnly(int count)
         {
-            UIThread(uiOnly => uiOnly.UndoHistory_TestOnly.Redo(count));
+            UIThread(uiOnly => uiOnly.UndoHistory?.Redo(count));
         }
 
         #endregion

@@ -41,14 +41,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private readonly ITextBufferUndoManagerProvider _textBufferUndoManagerProvider;
             private ITextBufferUndoManager _undoManager;
 
-            // this is exposed only for test purpose
-            public ITextUndoHistory UndoHistory_TestOnly
-            {
-                get
-                {
-                    return _undoManager.TextBufferUndoHistory;
-                }
-            }
+            /// <summary>
+            /// Returns `null` to indicate we don't record undo history for operations in standard-input buffer.
+            /// This is exposed only for test purpose.
+            /// </summary>
+            public ITextUndoHistory UndoHistory => 
+                ReadingStandardInput ? null :_undoManager.TextBufferUndoHistory;
 
             private readonly History _history = new History();
             private string _historySearch;
@@ -476,6 +474,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
+            /// <summary>Implements <see cref="IInteractiveWindowOperations2.TypeChar"/>.</summary>
             internal void TypeChar(char typedChar)
             {
                 InsertText(typedChar.ToString());
@@ -501,7 +500,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private void InsertText(string text)
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.TypeChar))
+                using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.TypeChar))
                 {
                     var selection = TextView.Selection;
                     var caretPosition = TextView.Caret.Position.BufferPosition;
@@ -535,11 +534,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     EditorOperations.InsertText(text);
 
-                    // don't record undo histroy for standard-input
-                    if (!ReadingStandardInput)
-                    { 
-                        transaction.Complete();
-                    }
+                    transaction?.Complete();
                 }
             }
 
@@ -2018,6 +2013,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>               
             private SnapshotPoint GetProjectionBufferPoint(SnapshotPoint sourceBufferPoint)
             {
+                Debug.Assert(sourceBufferPoint.Snapshot.TextBuffer != _projectionBuffer);
+
                 return TextView.BufferGraph.MapUpToBuffer(
                     sourceBufferPoint,
                     PointTrackingMode.Positive,
@@ -2127,13 +2124,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var selection = TextView.Selection;
 
                 // if the span is already selected select all text in the projection buffer:
-                if (span == null || selection.SelectedSpans.Count == 1 && selection.SelectedSpans[0] == span.Value)
+                if (span == null || 
+                    !selection.IsEmpty && selection.SelectedSpans.Count == 1 && selection.SelectedSpans[0] == span.Value)
                 {
                     var currentSnapshot = TextView.TextBuffer.CurrentSnapshot;
                     span = new SnapshotSpan(currentSnapshot, new Span(0, currentSnapshot.Length));
                 }
 
-                TextView.Selection.Select(span.Value, isReversed: false);
+                selection.Select(span.Value, isReversed: false);
+                // SelectAll always returns stream selection
+                selection.Mode = TextSelectionMode.Stream;
             }
 
             /// <summary>
@@ -2382,41 +2382,35 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Implements <see cref="IInteractiveWindowOperations.Backspace"/>.</summary>
             public bool Backspace()
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Backspace))
+                using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.Backspace))
                 {
 
                     if (DeleteHelper(isBackspace: true))
                     {
-                        // don't record undo histroy for standard-input
-                        if (!ReadingStandardInput)
-                        {
-                            transaction.Complete();
-                        }
+                        transaction?.Complete();
+                        return true;
                     }
                 }
-                // DeleteHelper handles deleteion completely, 
-                // so always return true to indicate the backspace is done.
-                return true;
+                return false;
             }
 
-            /// <summary>Implements <see cref="IInteractiveWindowOperations.Delete"/>.</summary>
+            /// <summary>
+            /// Implements <see cref="IInteractiveWindowOperations.Delete"/>.
+            /// `Delete` will not delete anything if any part of the selection is not in 
+            /// current submission (input or active prompts).
+            /// </summary>
             public bool Delete()
             {
                 _historySearch = null;
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Delete))
+                using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.Delete))
                 {
                     if (DeleteHelper(isBackspace: false))
                     {
-                        // don't record undo histroy for standard-input
-                        if (!ReadingStandardInput)
-                        {
-                            transaction.Complete();
-                        }
+                        transaction?.Complete();
+                        return true;
                     }
                 }
-                // DeleteHelper handles deleteion completely, 
-                // so always return true to indicate the delete is done.
-                return true;
+                return false;
             }
 
             private bool DeleteHelper(bool isBackspace)
@@ -2470,7 +2464,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                     return true;
                 }
-
             }
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations2.DeleteLine"/>.</summary>
@@ -2490,7 +2483,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Cut/Delete all selected lines, or the current line if no selection. </summary>                  
             private void CutLineOrDeleteLineHelper(bool isCut)
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction(isCut ? InteractiveWindowResources.CutLine : InteractiveWindowResources.DeleteLine))
+                using (var transaction = UndoHistory?.CreateTransaction(isCut ? InteractiveWindowResources.CutLine : InteractiveWindowResources.DeleteLine))
                 {
                     if (TextView.Selection.IsEmpty)
                     {
@@ -2523,11 +2516,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     MoveCaretToClosestEditableBuffer();
                     TextView.Caret.EnsureVisible();
 
-                    // don't record undo histroy for standard-input
-                    if (!ReadingStandardInput)
-                    {
-                        transaction.Complete();
-                    }
+                    transaction?.Complete();
                 }
             }
             
@@ -2668,14 +2657,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                 }
 
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Paste))
+                using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.Paste))
                 {
                     var selection = TextView.Selection;
 
                     // Delete selected text if there's any and adjust caret position
                     if (!selection.IsEmpty)
                     {
-                        // don not delete and paste anything if any part of selection is not in current submission
+                        // do not delete and paste anything if any part of selection is not in current submission
                         if (!IsSelectionInsideCurrentSubmission())
                         {
                             return false;
@@ -2733,19 +2722,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         InsertText(code);
                     }
 
-                    // don't record undo histroy for standard-input
-                    if (!ReadingStandardInput)
-                    {
-                        transaction.Complete();
-                    }
+                    transaction?.Complete();
                     return true;
                 }
             }
             
-            /// <summary>Implements <see cref="IInteractiveWindowOperations.Cut"/>.</summary>
+            /// <summary>
+            /// Implements <see cref="IInteractiveWindowOperations.Cut"/>.
+            /// Cut is logically expressed as a combination of Copy and Delete.
+            /// i.e. it always copies entire selection, but will not delete anything
+            /// if any part of the selection is not in current submission (input or active prompts)
+            /// /// </summary>
             public void Cut()
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Cut))
+                using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.Cut))
                 {
                     if (TextView.Selection.IsEmpty)
                     {
@@ -2777,11 +2767,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         TextView.Caret.EnsureVisible();
                     }
 
-                    // don't record undo histroy for standard-input
-                    if (!ReadingStandardInput)
-                    {
-                        transaction.Complete();
-                    }
+                    transaction?.Complete();
                 }
             }
 
@@ -3020,11 +3006,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return false;
                 }
 
-                var line = point.Value.GetContainingLine();
+                var pointValue = point.GetValueOrDefault();
+
+                var line = pointValue.GetContainingLine();
                 int characterSize;
-                if (line.End.Position == point.Value.Position)
+                if (line.End.Position == pointValue.Position)
                 {
-                    Debug.Assert(line.LineNumber != point.Value.Snapshot.LineCount);
+                    Debug.Assert(line.LineNumber != pointValue.Snapshot.LineCount);
                     characterSize = line.Snapshot.GetLineFromLineNumber(line.LineNumber).LineBreakLength;
                 }
                 else
@@ -3032,7 +3020,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     characterSize = 1;
                 }
 
-                point.Value.Snapshot.TextBuffer.Delete(new Span(point.Value.Position, characterSize));
+                pointValue.Snapshot.TextBuffer.Delete(new Span(pointValue.Position, characterSize));
 
                 ScrollToCaret();
                 return true;
@@ -3137,18 +3125,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>Implements <see cref="IInteractiveWindowOperations.BreakLine"/>.</summary>
             public bool BreakLine()
             {
-                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.BreakLine))
+                using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.BreakLine))
                 {
                     if (HandlePostServicesReturn(false))
                     {
-                        // don't record undo histroy for standard-input
-                        if (!ReadingStandardInput)
-                        {
-                            transaction.Complete();
-                        }
+                        transaction?.Complete();
+                        return true;
                     }
                 }
-                return true;
+                return false;
             }
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations.Return"/>.</summary>

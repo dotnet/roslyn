@@ -228,11 +228,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     //    break;
 
                     case VSConstants.VSStd2KCmdID.BACKSPACE:
-                        if (_window.Operations.Backspace())
-                        {
-                            return VSConstants.S_OK;
-                        }
-                        break;
+                        _window.Operations.Backspace();
+                        return VSConstants.S_OK;
 
                     case VSConstants.VSStd2KCmdID.UP:
 
@@ -293,7 +290,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                             }
                         }
                         break;
-
                 }
             }
             else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
@@ -325,11 +321,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                         break;
 
                     case VSConstants.VSStd97CmdID.Delete:
-                        if (_window.Operations.Delete())
-                        {
-                            return VSConstants.S_OK;
-                        }
-                        break;
+                        _window.Operations.Delete();
+                        return VSConstants.S_OK;
 
                     case VSConstants.VSStd97CmdID.SelectAll:
                         _window.Operations.SelectAll();
