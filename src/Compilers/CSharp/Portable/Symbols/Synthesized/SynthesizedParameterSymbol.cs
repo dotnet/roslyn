@@ -174,8 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var oldParam in sourceMethod.Parameters)
             {
                 //same properties as the old one, just change the owner
-                builder.Add(new SynthesizedParameterSymbol(destinationMethod, oldParam.Type, oldParam.Ordinal,
-                    oldParam.RefKind, oldParam.Name, oldParam.CustomModifiers, oldParam.CountOfCustomModifiersPrecedingByRef));
+                builder.Add(new SynthesizedParameterSymbol(destinationMethod, oldParam.Type.TypeSymbol, oldParam.Ordinal,
+                    oldParam.RefKind, oldParam.Name, oldParam.Type.CustomModifiers, oldParam.CountOfCustomModifiersPrecedingByRef));
             }
 
             return builder.ToImmutableAndFree();

@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var other = obj as SignatureOnlyParameterSymbol;
             return (object)other != null &&
-                _type == other._type &&
-                _customModifiers.Equals(other._customModifiers) &&
+                _type.TypeSymbol == other._type.TypeSymbol &&
+                _type.CustomModifiers.Equals(other._type.CustomModifiers) &&
                 _isParams == other._isParams &&
                 _refKind == other._refKind;
         }
@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             return Hash.Combine(
-                _type.GetHashCode(),
+                _type.TypeSymbol.GetHashCode(),
                 Hash.Combine(
-                    Hash.CombineValues(_customModifiers),
+                    Hash.CombineValues(_type.CustomModifiers),
                     Hash.Combine(
                         _isParams.GetHashCode(),
                         _refKind.GetHashCode())));
