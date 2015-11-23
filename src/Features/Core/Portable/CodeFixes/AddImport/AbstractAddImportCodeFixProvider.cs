@@ -178,7 +178,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.namespacesInScope = owner.GetNamespacesInScope(semanticModel, node, cancellationToken);
                 this.syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
-                var project = document.Project;
                 var viableMetadataReferences = await GetViableMetadataReferencesAsync().ConfigureAwait(false);
 
                 var matchingTypesNamespaces = await this.GetNamespacesForMatchingTypesAsync().ConfigureAwait(false);
