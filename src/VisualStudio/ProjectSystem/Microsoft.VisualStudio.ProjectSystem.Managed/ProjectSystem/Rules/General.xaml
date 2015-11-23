@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Rule
+	Name="ConfigurationGeneral"
+	DisplayName="General"
+	PageTemplate="generic"
+	Description="General"
+	xmlns="http://schemas.microsoft.com/build/2009/properties">
+    <Rule.Categories>
+        <Category Name="General" DisplayName="General" Description="General" />
+    </Rule.Categories>
+    <Rule.DataSource>
+        <DataSource Persistence="ProjectFile" Label="Configuration" />
+    </Rule.DataSource>
+    <StringProperty Name="ApplicationIcon" DisplayName="Application Icon" />
+    <StringListProperty Name="ProjectTypeGuids" Visible="False" />
+    <StringProperty Name="ProjectGuid" Visible="False">
+        <StringProperty.DataSource>
+            <DataSource Persistence="ProjectFile" Label="Globals" HasConfigurationCondition="False" />
+        </StringProperty.DataSource>
+    </StringProperty>
+    <DynamicEnumProperty Name="TargetFrameworkMoniker" DisplayName="Target Framework Moniker" EnumProvider="TargetFrameworkMoniker" />
+    <StringProperty Name="TargetFrameworkIdentifier" Visible="False" />
+    <StringProperty Name="TargetFrameworkVersion" Visible="False" />
+    <StringProperty Name="TargetFrameworkProfile" Visible="False" />
+
+    <StringProperty Name="TargetPath" />
+    <StringProperty Name="DocumentationFile" DisplayName="XML doc comments file" />
+    <StringProperty Name="AssemblyName" />
+    <StringProperty Name="Name" />
+    <StringProperty Name="RootNamespace" DisplayName="Root namespace">
+        <StringProperty.DataSource>
+            <DataSource Persistence="ProjectFile" Label="Configuration" HasConfigurationCondition="false" />
+        </StringProperty.DataSource>
+    </StringProperty>
+    <StringProperty Name="OutputName" />
+    <StringProperty Name="OutputPath" />
+    <EnumProperty Name="OutputType">
+        <EnumValue Name="Library" DisplayName="Class Library" />
+        <EnumValue Name="exe" DisplayName="Console Application" />
+        <EnumValue Name="winexe" DisplayName="Windows Application" />
+        <EnumValue Name="AppContainerExe" DisplayName="Windows Store app" />
+        <EnumValue Name="WinMDObj" DisplayName="WinMD" />
+    </EnumProperty>
+    <StringListProperty Name="AvailablePlatforms" Separator="," />
+    <BoolProperty Name="Optimize" Description="Should compiler optimize output?" />
+    <StringProperty Name="MSBuildProjectDirectory" Visible="false"/>
+    <StringProperty Name="DefaultPlatform" Visible="false" />
+    <StringProperty Name="PackageAction" Visible="false" Description="The MSBuild target to use when packaging a project." />
+    <StringProperty Name="DefaultContentType" Visible="false" Description="The default content type name to use when adding files." />
+    <StringProperty Name="VCInstallDir" Visible="false" />
+    <StringProperty Name="VSInstallDir" Visible="false" />
+    <StringProperty Name="Platform" Visible="false" />
+    <StringProperty Name="Configuration" Visible="false" />
+    <StringProperty Name="DebuggerSymbolsPath" Visible="false" />
+    <StringProperty Name="IntDir" Visible="false" />
+    <StringProperty Name="TargetPlatformWinMDLocation" Visible="false" />
+    <StringProperty Name="SDKReferenceDirectoryRoot" Visible="false" />
+    <StringProperty Name="SDKReferenceRegistryRoot" Visible="false" />
+    <StringProperty Name="SDKExtensionDirectoryRoot" Visible="false" />
+    <StringProperty Name="SDKIdentifier" Visible="false" />
+    <StringProperty Name="SDKVersion" Visible="false" />
+    <StringProperty Name="TargetPlatformIdentifier" Visible="false" />
+    <StringProperty Name="TargetPlatformVersion" Visible="false" />
+    <BoolProperty Name="WindowsAppContainer" Visible="false" />
+    <BoolProperty Name="WinMDAssembly" Visible="false" />
+    <EnumProperty Name="TargetRuntime" Visible="false">
+        <EnumValue Name="Managed" />
+        <EnumValue Name="Native" />
+        <EnumValue Name="AppHost" DisplayName="Windows app" />
+    </EnumProperty>
+    <StringProperty Name="AssemblySearchPaths" Visible="false" />
+    <StringProperty Name="WinRTReferenceTabs" Visible="false" />
+    <StringProperty Name="AssemblyReferenceTabs" Visible="false" />
+    <StringProperty Name="MinimumVisualStudioVersion" Visible="false" />
+    <BoolProperty Name="SuppressOutOfDateMessageOnBuild" Visible="false" Description="True to just build out-of-date projects without ever prompting the user to confirm." />
+    <BoolProperty Name="ShowAllFiles" Visible="False">
+        <BoolProperty.DataSource>
+            <DataSource Persistence="UserFile" HasConfigurationCondition="False" />
+        </BoolProperty.DataSource>
+    </BoolProperty>
+    <BoolProperty Name="AutoRefresh" Visible="False">
+        <BoolProperty.DataSource>
+            <DataSource Persistence="UserFile" HasConfigurationCondition="False" />
+        </BoolProperty.DataSource>
+    </BoolProperty>
+    <StringProperty Name="AddItemTemplatesGuid" Visible="False" />
+    <StringProperty Name="ProjectUISubcaption" Visible="False" />
+    <StringProperty Name="SharedItemContextSubProjectGuid" Visible="False">
+        <StringProperty.DataSource>
+            <DataSource Persistence="UserFile" HasConfigurationCondition="False" />
+        </StringProperty.DataSource>
+    </StringProperty>
+    <StringProperty Name="OneAppCapabilities" Visible="False" />
+    <StringProperty Name="SharedProjectAppliesTo" Visible="False" Description="Capability match expression that at a minimum tests for the language of the Shared Project; used to filter Add Shared Project Reference choices."/>
+    <BoolProperty Name="AlwaysUseNumericalSuffixInItemNames" Visible="False" Description="Indicates if names of newly added items should always be suffixed with a number." />
+    
+    <StringProperty Name="AppDesignerFolder" Visible="false">
+        <StringProperty.DataSource>
+            <DataSource Persistence="ProjectFile" Label="Configuration" HasConfigurationCondition="false" />
+        </StringProperty.DataSource>
+    </StringProperty>
+</Rule>
