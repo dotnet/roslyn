@@ -147,7 +147,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return BinderBuilder.CreateBinderForNamespace(_sourceModule, _tree, _sourceModule.RootNamespace)
 
                 Case NodeUsage.ImplicitClass
-                    Dim implicitType = DirectCast(containingBinder.ContainingNamespaceOrType.GetMembers(TypeSymbol.ImplicitTypeName).Single(), NamedTypeSymbol)
+                    Dim implicitType As NamedTypeSymbol
+                    If _tree.Options.Kind = SourceCodeKind.Regular Then
+                        implicitType = DirectCast(containingBinder.ContainingNamespaceOrType.GetMembers(TypeSymbol.ImplicitTypeName).Single(), NamedTypeSymbol)
+                    Else
+                        implicitType = _sourceModule.ContainingSourceAssembly.DeclaringCompilation.SourceScriptClass
+                    End If
                     Return New NamedTypeBinder(containingBinder, implicitType)
 
                 Case NodeUsage.ScriptCompilationUnit
@@ -534,7 +539,7 @@ lAgain:
             If node IsNot Nothing AndAlso (node.Kind = SyntaxKind.NamespaceBlock OrElse node.Kind = SyntaxKind.CompilationUnit) Then
                 Return DirectCast(
                     GetBinderForNodeAndUsage(node, NodeUsage.ImplicitClass,
-                                             containingBinder:=DirectCast(containingBinder, NamespaceBinder)), NamedTypeBinder)
+                                             containingBinder:=containingBinder), NamedTypeBinder)
             End If
 
             Return Nothing
