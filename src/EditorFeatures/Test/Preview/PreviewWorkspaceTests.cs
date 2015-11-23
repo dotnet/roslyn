@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/6968")]
         public async Task TestPreviewDiagnosticTagger()
         {
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync("class { }"))
