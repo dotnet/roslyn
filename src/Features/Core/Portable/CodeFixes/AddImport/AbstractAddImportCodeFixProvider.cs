@@ -81,7 +81,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         var matchingFieldsAndPropertiesAsync = await this.GetNamespacesForMatchingFieldsAndPropertiesAsync(project, diagnostic, node, semanticModel, namespacesInScope, syntaxFacts, cancellationToken).ConfigureAwait(false);
                         var queryPatternsNamespaces = await this.GetNamespacesForQueryPatternsAsync(project, diagnostic, node, semanticModel, namespacesInScope, cancellationToken).ConfigureAwait(false);
 
-                        if (matchingTypesNamespaces != null || matchingNamespaces != null || matchingExtensionMethodsNamespaces != null || matchingFieldsAndPropertiesAsync != null || queryPatternsNamespaces != null || matchingTypes != null)
+                        if (matchingTypesNamespaces != null ||
+                            matchingNamespaces != null ||
+                            matchingExtensionMethodsNamespaces != null ||
+                            matchingFieldsAndPropertiesAsync != null ||
+                            queryPatternsNamespaces != null ||
+                            matchingTypes != null)
                         {
                             matchingTypesNamespaces = matchingTypesNamespaces ?? SpecializedCollections.EmptyList<INamespaceSymbol>();
                             matchingNamespaces = matchingNamespaces ?? SpecializedCollections.EmptyList<INamespaceSymbol>();
