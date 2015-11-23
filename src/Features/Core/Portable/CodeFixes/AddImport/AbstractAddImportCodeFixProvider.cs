@@ -16,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
+    using SymbolReference = ValueTuple<INamespaceOrTypeSymbol, MetadataReference>;
+
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
     {
         protected abstract bool IgnoreCase { get; }
@@ -31,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         protected abstract string GetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root);
         protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
         protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
-        protected abstract IEnumerable<ITypeSymbol> GetProposedTypes(string name, List<ITypeSymbol> accessibleTypeSymbols, SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope);
         internal abstract bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
@@ -88,24 +89,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             queryPatternsNamespaces != null ||
                             matchingTypes != null)
                         {
-                            matchingTypesNamespaces = matchingTypesNamespaces ?? SpecializedCollections.EmptyList<INamespaceSymbol>();
-                            matchingNamespaces = matchingNamespaces ?? SpecializedCollections.EmptyList<INamespaceSymbol>();
-                            matchingExtensionMethodsNamespaces = matchingExtensionMethodsNamespaces ?? SpecializedCollections.EmptyList<INamespaceSymbol>();
-                            matchingFieldsAndPropertiesAsync = matchingFieldsAndPropertiesAsync ?? SpecializedCollections.EmptyList<INamespaceSymbol>();
-                            queryPatternsNamespaces = queryPatternsNamespaces ?? SpecializedCollections.EmptyList<INamespaceSymbol>();
-                            matchingTypes = matchingTypes ?? SpecializedCollections.EmptyList<ITypeSymbol>();
+                            matchingTypesNamespaces = matchingTypesNamespaces ?? SpecializedCollections.EmptyList<SymbolReference>();
+                            matchingNamespaces = matchingNamespaces ?? SpecializedCollections.EmptyList<SymbolReference>();
+                            matchingExtensionMethodsNamespaces = matchingExtensionMethodsNamespaces ?? SpecializedCollections.EmptyList<SymbolReference>();
+                            matchingFieldsAndPropertiesAsync = matchingFieldsAndPropertiesAsync ?? SpecializedCollections.EmptyList<SymbolReference>();
+                            queryPatternsNamespaces = queryPatternsNamespaces ?? SpecializedCollections.EmptyList<SymbolReference>();
+                            matchingTypes = matchingTypes ?? SpecializedCollections.EmptyList<SymbolReference>();
 
                             var proposedImports =
-                                matchingTypesNamespaces.Cast<INamespaceOrTypeSymbol>()
-                                           .Concat(matchingNamespaces.Cast<INamespaceOrTypeSymbol>())
-                                           .Concat(matchingExtensionMethodsNamespaces.Cast<INamespaceOrTypeSymbol>())
-                                           .Concat(matchingFieldsAndPropertiesAsync.Cast<INamespaceOrTypeSymbol>())
-                                           .Concat(queryPatternsNamespaces.Cast<INamespaceOrTypeSymbol>())
-                                           .Concat(matchingTypes.Cast<INamespaceOrTypeSymbol>())
+                                matchingTypesNamespaces
+                                           .Concat(matchingNamespaces)
+                                           .Concat(matchingExtensionMethodsNamespaces)
+                                           .Concat(matchingFieldsAndPropertiesAsync)
+                                           .Concat(queryPatternsNamespaces)
+                                           .Concat(matchingTypes)
                                            .Distinct()
                                            .Where(NotNull)
                                            .Where(NotGlobalNamespace)
-                                           .OrderBy(INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols)
+                                           .OrderBy(CompareReferences)
                                            .Take(8)
                                            .ToList();
 
@@ -113,8 +114,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                foreach (var import in proposedImports)
+                                foreach (var reference in proposedImports)
                                 {
+                                    var import = reference.Item1;
                                     var description = this.GetDescription(import, semanticModel, node);
                                     if (description != null)
                                     {
@@ -130,7 +132,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private async Task<IEnumerable<INamespaceSymbol>> GetNamespacesForMatchingTypesAsync(
+        private int CompareReferences(SymbolReference r1, SymbolReference r2)
+        {
+            // Always prefer references to our own project.
+            if (r1.Item2 == null && r2.Item2 != null)
+            {
+                return -1;
+            }
+
+            if (r1.Item2 != null && r2.Item2 == null)
+            {
+                return 1;
+            }
+
+            return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(r1.Item1, r2.Item1);
+        }
+
+        private async Task<IList<SymbolReference>> GetNamespacesForMatchingTypesAsync(
             Project project,
             Diagnostic diagnostic,
             SyntaxNode node,
@@ -158,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return GetNamespacesForMatchingTypesAsync(semanticModel, namespacesInScope, arity, inAttributeContext, hasIncompleteParentMember, symbols);
         }
 
-        private IEnumerable<INamespaceSymbol> GetNamespacesForMatchingTypesAsync(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, int arity, bool inAttributeContext, bool hasIncompleteParentMember, IEnumerable<ITypeSymbol> symbols)
+        private List<SymbolReference> GetNamespacesForMatchingTypesAsync(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, int arity, bool inAttributeContext, bool hasIncompleteParentMember, IEnumerable<ITypeSymbol> symbols)
         {
             var accessibleTypeSymbols = symbols
                 .Where(s => s.ContainingSymbol is INamespaceSymbol
@@ -173,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 namespacesInScope);
         }
 
-        private async Task<IEnumerable<ITypeSymbol>> GetMatchingTypesAsync(
+        private async Task<IList<SymbolReference>> GetMatchingTypesAsync(
             Project project,
             Diagnostic diagnostic,
             SyntaxNode node,
@@ -201,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return GetMatchingTypes(semanticModel, namespacesInScope, name, arity, inAttributeContext, symbols, hasIncompleteParentMember);
         }
 
-        private async Task<IEnumerable<INamespaceSymbol>> GetNamespacesForMatchingNamespacesAsync(
+        private async Task<IList<SymbolReference>> GetNamespacesForMatchingNamespacesAsync(
             Project project,
             Diagnostic diagnostic,
             SyntaxNode node,
@@ -233,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 namespacesInScope);
         }
 
-        private async Task<IEnumerable<INamespaceSymbol>> GetNamespacesForMatchingExtensionMethodsAsync(
+        private async Task<IList<SymbolReference>> GetNamespacesForMatchingExtensionMethodsAsync(
             Project project,
             Diagnostic diagnostic,
             SyntaxNode node,
@@ -249,14 +267,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             var expression = node.Parent;
 
-            var extensionMethods = SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
+            var extensionMethods = SpecializedCollections.EmptyEnumerable<SymbolReference>();
             var symbols = await GetSymbolsAsync(project, node, semanticModel, syntaxFacts, cancellationToken).ConfigureAwait(false);
             if (symbols != null)
             {
                 extensionMethods = FilterForExtensionMethods(semanticModel, namespacesInScope, syntaxFacts, expression, symbols, cancellationToken);
             }
 
-            var addMethods = SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
+            var addMethods = SpecializedCollections.EmptyEnumerable<SymbolReference>();
             var methodSymbols = await GetAddMethodsAsync(project, diagnostic, node, semanticModel, namespacesInScope, syntaxFacts, expression, cancellationToken).ConfigureAwait(false);
             if (methodSymbols != null)
             {
@@ -266,10 +284,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 namespacesInScope);
             }
 
-            return extensionMethods.Concat(addMethods);
+            return extensionMethods.Concat(addMethods).ToList();
         }
 
-        private async Task<IEnumerable<INamespaceSymbol>> GetNamespacesForMatchingFieldsAndPropertiesAsync(
+        private async Task<IList<SymbolReference>> GetNamespacesForMatchingFieldsAndPropertiesAsync(
             Project project,
             Diagnostic diagnostic,
             SyntaxNode node,
@@ -295,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return null;
         }
 
-        private IEnumerable<INamespaceSymbol> FilterForFieldsAndProperties(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, ISyntaxFactsService syntaxFacts, SyntaxNode expression, IEnumerable<ISymbol> symbols, CancellationToken cancellationToken)
+        private IList<SymbolReference> FilterForFieldsAndProperties(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, ISyntaxFactsService syntaxFacts, SyntaxNode expression, IEnumerable<ISymbol> symbols, CancellationToken cancellationToken)
         {
             var propertySymbols = symbols
                 .OfType<IPropertySymbol>()
@@ -372,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return SpecializedCollections.EmptyEnumerable<IMethodSymbol>();
         }
 
-        private IEnumerable<INamespaceSymbol> FilterForExtensionMethods(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, ISyntaxFactsService syntaxFacts, SyntaxNode expression, IEnumerable<ISymbol> symbols, CancellationToken cancellationToken)
+        private IEnumerable<SymbolReference> FilterForExtensionMethods(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, ISyntaxFactsService syntaxFacts, SyntaxNode expression, IEnumerable<ISymbol> symbols, CancellationToken cancellationToken)
         {
             var extensionMethodSymbols = symbols
                 .OfType<IMethodSymbol>()
@@ -387,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 namespacesInScope);
         }
 
-        private async Task<IEnumerable<INamespaceSymbol>> GetNamespacesForQueryPatternsAsync(
+        private async Task<IList<SymbolReference>> GetNamespacesForQueryPatternsAsync(
             Project project,
             Diagnostic diagnostic,
             SyntaxNode node,
@@ -469,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return symbols.OfType<ITypeSymbol>();
         }
 
-        private IEnumerable<ITypeSymbol> GetMatchingTypes(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, string name, int arity, bool inAttributeContext, IEnumerable<ITypeSymbol> symbols, bool hasIncompleteParentMember)
+        private List<SymbolReference> GetMatchingTypes(SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope, string name, int arity, bool inAttributeContext, IEnumerable<ITypeSymbol> symbols, bool hasIncompleteParentMember)
         {
             var accessibleTypeSymbols = symbols
                 .Where(s => ArityAccessibilityAndAttributeContextAreCorrect(
@@ -483,6 +501,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         semanticModel,
                         namespacesInScope);
         }
+        protected List<SymbolReference> GetProposedTypes(string name, List<ITypeSymbol> accessibleTypeSymbols, SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope)
+        {
+            List<SymbolReference> result = null;
+            if (accessibleTypeSymbols != null)
+            {
+                foreach (var typeSymbol in accessibleTypeSymbols)
+                {
+                    if (typeSymbol?.ContainingType != null)
+                    {
+                        result = result ?? new List<SymbolReference>();
+                        result.Add(new SymbolReference(typeSymbol.ContainingType, null));
+                    }
+                }
+            }
+
+            return result;
+        }
+
 
         private static void CalculateContext(SyntaxNode node, ISyntaxFactsService syntaxFacts, out string name, out int arity, out bool inAttributeContext, out bool hasIncompleteParentMember)
         {
@@ -507,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return symbolInfo.Symbol != null;
         }
 
-        protected IEnumerable<INamespaceSymbol> GetProposedNamespaces(
+        protected List<SymbolReference> GetProposedNamespaces(
             IEnumerable<INamespaceSymbol> namespaces,
             SemanticModel semanticModel,
             ISet<INamespaceSymbol> namespacesInScope)
@@ -516,17 +552,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return
                 namespaces.Where(n => !n.IsGlobalNamespace)
                           .Select(n => semanticModel.Compilation.GetCompilationNamespace(n) ?? n)
-                          .Where(n => n != null && !namespacesInScope.Contains(n));
+                          .Where(n => n != null && !namespacesInScope.Contains(n))
+                          .Select(n => new SymbolReference(n, null))
+                          .ToList();
         }
 
-        private static bool NotGlobalNamespace(INamespaceOrTypeSymbol symbol)
+        private static bool NotGlobalNamespace(SymbolReference reference)
         {
+            var symbol = reference.Item1;
             return symbol.IsNamespace ? !((INamespaceSymbol)symbol).IsGlobalNamespace : true;
         }
 
-        private static bool NotNull(INamespaceOrTypeSymbol symbol)
+        private static bool NotNull(SymbolReference reference)
         {
-            return symbol != null;
+            return reference.Item1 != null;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
