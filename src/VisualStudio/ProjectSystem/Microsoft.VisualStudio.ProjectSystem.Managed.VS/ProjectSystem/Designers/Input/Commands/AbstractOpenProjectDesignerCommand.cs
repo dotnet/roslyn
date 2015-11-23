@@ -2,10 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {

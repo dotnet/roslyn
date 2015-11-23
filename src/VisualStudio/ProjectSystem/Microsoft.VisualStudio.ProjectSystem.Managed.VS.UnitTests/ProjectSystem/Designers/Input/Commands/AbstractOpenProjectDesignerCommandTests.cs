@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.VisualStudio.Input;
 using Microsoft.VisualStudio.Testing;
 using Xunit;
-using Xunit.Extensions;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
