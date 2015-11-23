@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -58,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return;
             }
 
-            var placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(Microsoft.CodeAnalysis.Shared.Options.OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(
+                OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
             using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
             {
