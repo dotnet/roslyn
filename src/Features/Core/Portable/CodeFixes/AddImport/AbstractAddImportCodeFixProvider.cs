@@ -266,13 +266,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.node = node;
                 this.cancellationToken = cancellationToken;
 
-
-                this.containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
-                this.containingTypeOrAssembly = containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
-                this.namespacesInScope = owner.GetNamespacesInScope(semanticModel, node, cancellationToken);
-                this.syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-
-                this.project = document.Project;
+                containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+                containingTypeOrAssembly = containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
+                namespacesInScope = owner.GetNamespacesInScope(semanticModel, node, cancellationToken);
+                syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                project = document.Project;
             }
 
             internal async Task<List<SymbolReference>> DoAsync()
@@ -301,20 +299,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 queryPatternsNamespaces = queryPatternsNamespaces ?? SpecializedCollections.EmptyList<SymbolReference>();
                 matchingTypes = matchingTypes ?? SpecializedCollections.EmptyList<SymbolReference>();
 
-                var proposedImports =
-                    matchingTypesNamespaces
+                var allReferences = matchingTypesNamespaces
                                 .Concat(matchingNamespaces)
                                 .Concat(matchingExtensionMethodsNamespaces)
                                 .Concat(matchingFieldsAndPropertiesAsync)
                                 .Concat(queryPatternsNamespaces)
-                                .Concat(matchingTypes)
-                                .Distinct()
-                                .Where(NotNull)
-                                .Where(NotGlobalNamespace)
-                                .OrderBy(CompareReferences)
-                                .ToList();
+                                .Concat(matchingTypes);
 
-                return proposedImports;
+                return SortReferences(allReferences);
+            }
+
+            private List<SymbolReference> SortReferences(IEnumerable<SymbolReference> allReferences)
+            {
+                return allReferences
+                    .Distinct()
+                    .Where(NotNull)
+                    .Where(NotGlobalNamespace)
+                    .OrderBy(CompareReferences)
+                    .ToList();
             }
 
             private async Task<IList<SymbolReference>> GetNamespacesForMatchingTypesAsync()
