@@ -78,15 +78,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         var getter = new ProposedImportGetter(this, document, semanticModel, diagnostic, node, cancellationToken);
                         AddRange(allSymbolReferences, await getter.DoAsync(project, includeDirectReferences: true).ConfigureAwait(false));
 
-#if false
-                        // If we didn't find enough hits searching just in the project, then check 
-                        // in any unreferenced projects.
-                        if (allSymbolReferences.Count < MaxResults)
-                        {
-                            var viableProjectReferences = await GetViableProjectReferences(project, cancellationToken).ConfigureAwait(false);
-                            AddRange(allSymbolReferences, await getter.DoAsync().ConfigureAwait(false));
-                        }
+                        await FindResultsInUnreferencedProjects(project, allSymbolReferences, getter, cancellationToken).ConfigureAwait(false);
 
+#if false
                         // If we didn't find enough hits searching in the project and all other 
                         // projects, then check if any known metadata reference might help
                         if (allSymbolReferences.Count < MaxResults)
@@ -105,16 +99,64 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                         foreach (var reference in allSymbolReferences)
                         {
-                            var import = reference.Item1;
-                            var description = this.GetDescription(import, semanticModel, node);
+                            var description = this.GetDescription(reference.Item1, semanticModel, node);
                             if (description != null)
                             {
+                                if (reference.Item2.Id != project.Id)
+                                {
+                                    description = string.Format(FeaturesResources._0_reference_1, description, reference.Item2.Name);
+                                }
+
                                 var action = new MyCodeAction(description, c =>
-                                    this.AddImportAsync(node, import, document, placeSystemNamespaceFirst, c));
+                                    this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
                                 context.RegisterCodeFix(action, diagnostic);
                             }
                         }
                     }
+                }
+            }
+        }
+
+        private async Task<Solution> AddImportAndReferenceAsync(
+            SyntaxNode node, SymbolReference reference, Document document, bool placeSystemNamespaceFirst, CancellationToken c)
+        {
+            // Defer to the language to add the actual import/using.
+            var newDocument = await this.AddImportAsync(node, reference.Item1, document, placeSystemNamespaceFirst, c).ConfigureAwait(false);
+
+            // If this reference came from searching another project
+            if (reference.Item2.Id == document.Project.Id)
+            {
+                return newDocument.Project.Solution;
+            }
+
+            // Also need to add a project reference.
+            var newProject = newDocument.Project;
+            newProject = newProject.AddProjectReference(new ProjectReference(reference.Item2.Id));
+
+            return newProject.Solution;
+        }
+
+        private async Task FindResultsInUnreferencedProjects(
+            Project project, List<SymbolReference> allSymbolReferences, ProposedImportGetter getter, CancellationToken cancellationToken)
+        {
+            // If we didn't find enough hits searching just in the project, then check 
+            // in any unreferenced projects.
+            if (allSymbolReferences.Count >= MaxResults)
+            {
+                return;
+            }
+
+            var viableUnreferencedProjects = GetViableUnreferencedProjects(project);
+            foreach (var unreferencedProject in viableUnreferencedProjects)
+            {
+                // Search in this unreferenced project.  But don't search in any of its'
+                // direct references.  i.e. we don't want to search in its metadata references
+                // or in the projects it references itself. We'll be searching those entities
+                // individually.
+                AddRange(allSymbolReferences, await getter.DoAsync(unreferencedProject, includeDirectReferences: false).ConfigureAwait(false));
+                if (allSymbolReferences.Count >= MaxResults)
+                {
+                    return;
                 }
             }
         }
@@ -139,20 +181,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         int IEqualityComparer<PortableExecutableReference>.GetHashCode(PortableExecutableReference obj)
         {
             return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FilePath);
-        }
-
-        private async Task<ImmutableArray<MetadataReference>> GetViableProjectReferences(Project project, CancellationToken cancellationToken)
-        {
-            var viableProjects = GetViableUnreferencedProjects(project);
-
-            var viableProjectReferences = new List<MetadataReference>();
-            foreach (var viableUnreferencedProject in viableProjects)
-            {
-                var compilation = await viableUnreferencedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                viableProjectReferences.Add(compilation.ToMetadataReference());
-            }
-
-            return viableProjectReferences.ToImmutableArrayOrEmpty();
         }
 
         private static HashSet<Project> GetViableUnreferencedProjects(Project project)
@@ -231,10 +259,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             return reference.Item1 != null;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument, equivalenceKey: title)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
+                base(title, createChangedSolution, equivalenceKey: title)
             {
             }
         }

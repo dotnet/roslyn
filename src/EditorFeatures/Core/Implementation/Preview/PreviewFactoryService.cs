@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             leftWorkspace.OpenDocument(leftDocument.Id);
 
             var rightWorkspace = new PreviewWorkspace(
-                oldDocument.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
+                newDocument.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
             rightWorkspace.OpenDocument(newDocument.Id);
 
             return CreateChangedDocumentViewAsync(
