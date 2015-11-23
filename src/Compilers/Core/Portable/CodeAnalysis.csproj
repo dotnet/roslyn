@@ -41,7 +41,7 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>  
+  </PropertyGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -56,6 +56,9 @@
     <Compile Include="..\..\Shared\CoreClrShim.cs">
       <Link>CoreClrShim.cs</Link>
     </Compile>
+    <Compile Include="..\..\Shared\DesktopShim.cs">
+      <Link>DesktopShim.cs</Link>
+    </Compile>
     <Compile Include="AdditionalTextFile.cs" />
     <Compile Include="AssemblyUtilities.cs" />
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
@@ -69,6 +72,7 @@
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
+    <Compile Include="StrongName\CryptoBlobParser.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -188,7 +192,7 @@
     <Compile Include="Desktop\DesktopAssemblyIdentityComparer.Fx.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerFileReference.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerLoadFailureEventArgs.cs" />
-    <Compile Include="Desktop\DesktopStrongNameProvider.cs" />
+    <Compile Include="StrongName\DesktopStrongNameProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\IAnalyzerAssemblyLoader.cs" />
@@ -520,8 +524,8 @@
     <Compile Include="SpecialType.cs" />
     <Compile Include="SpecialTypeExtensions.cs" />
     <Compile Include="SpecialTypes.cs" />
-    <Compile Include="StrongNameKeys.cs" />
-    <Compile Include="StrongNameProvider.cs" />
+    <Compile Include="StrongName\StrongNameKeys.cs" />
+    <Compile Include="StrongName\StrongNameProvider.cs" />
     <Compile Include="SwitchConstantValueHelper.cs" />
     <Compile Include="SymbolDisplay\AbstractSymbolDisplayVisitor.cs" />
     <Compile Include="SymbolDisplay\AbstractSymbolDisplayVisitor_Minimal.cs" />
@@ -700,7 +704,7 @@
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CompilerServer" />
@@ -735,8 +739,8 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />

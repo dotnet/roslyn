@@ -72,6 +72,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         protected abstract Task CreateMonitorDisconnectTask(CancellationToken cancellationToken);
 
+        protected virtual void ValidateBuildRequest(BuildRequest request)
+        {
+
+        }
+
         /// <summary>
         /// Close the connection.  Can be called multiple times.
         /// </summary>
@@ -86,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     Log("Begin reading request.");
                     request = await BuildRequest.ReadAsync(_stream, cancellationToken).ConfigureAwait(false);
+                    ValidateBuildRequest(request);
                     Log("End reading request.");
                 }
                 catch (Exception e)

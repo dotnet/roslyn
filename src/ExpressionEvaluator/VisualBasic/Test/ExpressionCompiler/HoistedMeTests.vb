@@ -489,7 +489,7 @@ End Module
                 assemblyName:=GetUniqueName(),
                 references:=ImmutableArray.Create(MscorlibRef),
                 exeBytes:=ilBytes.ToArray(),
-                symReader:=SymReaderFactory.CreateReader(ilPdbBytes.ToArray()))
+                symReader:=New SymReader(ilPdbBytes.ToArray()))
 
             Dim context = CreateMethodContext(runtime, "C._Lambda$__1")
             VerifyNoMe(context)

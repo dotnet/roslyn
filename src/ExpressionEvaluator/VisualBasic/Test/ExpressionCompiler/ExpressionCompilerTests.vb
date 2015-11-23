@@ -263,7 +263,7 @@ End Class"
             Dim previous As VisualBasicMetadataContext = Nothing
             Dim startOffset = 0
             Dim endOffset = 0
-            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), references, exeBytes, New SymReader(pdbBytes))
             Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim moduleVersionId As Guid = Nothing
@@ -325,7 +325,7 @@ End Class"
             ' With different references.
             Dim fewerReferences = references.Remove(referenceA)
             Assert.Equal(fewerReferences.Length, references.Length - 1)
-            runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), fewerReferences, exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+            runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), fewerReferences, exeBytes, New SymReader(pdbBytes))
             methodBlocks = Nothing
             moduleVersionId = Nothing
             symReader = Nothing
@@ -1091,7 +1091,7 @@ End Class
                     assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                     references:=ImmutableArray.Create(MscorlibRef),
                     exeBytes:=exeBytes.ToArray(),
-                    symReader:=SymReaderFactory.CreateReader(pdbBytes))
+                    symReader:=New SymReader(pdbBytes.ToArray()))
 
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
             Dim errorMessage As String = Nothing
@@ -1144,7 +1144,7 @@ End Class
                     assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                     references:=ImmutableArray.Create(MscorlibRef),
                     exeBytes:=exeBytes.ToArray(),
-                    symReader:=SymReaderFactory.CreateReader(pdbBytes))
+                    symReader:=New SymReader(pdbBytes.ToArray()))
 
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
             Dim errorMessage As String = Nothing
@@ -1196,7 +1196,7 @@ End Class
                     assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                     references:=ImmutableArray.Create(MscorlibRef),
                     exeBytes:=exeBytes.ToArray(),
-                    symReader:=SymReaderFactory.CreateReader(pdbBytes))
+                    symReader:=New SymReader(pdbBytes.ToArray()))
 
             Dim context = CreateMethodContext(runtime, methodName:="C.M")
             Dim errorMessage As String = Nothing
@@ -1792,7 +1792,7 @@ End Class"
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 allReferences,
                 exeBytes,
-                SymReaderFactory.CreateReader(pdbBytes)) ' Need SymReader to find root namespace.
+                New SymReader(pdbBytes, exeBytes)) ' Need SymReader to find root namespace.
             Dim context = CreateMethodContext(runtime, "Root.C.M")
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
@@ -3095,7 +3095,7 @@ End Class
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                 references:=ImmutableArray.Create(MscorlibRef),
                 exeBytes:=exeBytes.ToArray(),
-                symReader:=SymReaderFactory.CreateReader(pdbBytes))
+                symReader:=New SymReader(pdbBytes.ToArray()))
 
             Dim context = CreateMethodContext(
                 runtime,
@@ -3683,7 +3683,7 @@ End Class"
                 includeLocalSignatures:=False)
 
             modulesBuilder.Add(corruptMetadata)
-            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes, SymReaderFactory.CreateReader(pdbBytes)))
+            modulesBuilder.Add(exeReference.ToModuleInstance(exeBytes, New SymReader(pdbBytes)))
             modulesBuilder.AddRange(references.Select(Function(r) r.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing)))
             Dim modules = modulesBuilder.ToImmutableAndFree()
 
@@ -3733,7 +3733,7 @@ End Class
             Dim result = comp.EmitAndGetReferences(exeBytes, pdbBytes, unusedReferences)
             Assert.True(result)
 
-            Dim runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef), exeBytes, SymReaderFactory.CreateReader(pdbBytes))
+            Dim runtime = CreateRuntimeInstance(GetUniqueName(), ImmutableArray.Create(MscorlibRef), exeBytes, New SymReader(pdbBytes))
             Dim context = CreateMethodContext(runtime, "C.M")
 
             Const expectedError1 = "error BC30652: Reference required to assembly 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Missing'. Add one to your project."
@@ -4116,8 +4116,10 @@ End Class
                 pdbStream2.Position = 0
                 peStream2.Position = 0
 
-                Dim symReader = SymReaderFactory.CreateReader(pdbStream1)
-                symReader.UpdateSymbolStore(pdbStream2)
+                ' Note: This SymReader will behave differently from the ISymUnmanagedReader
+                ' we receive during real debugging.  We're just using it as a rough
+                ' approximation of ISymUnmanagedReader3, which is unavailable here.
+                Dim symReader = New SymReader({pdbStream1, pdbStream2}, peStream2, Nothing)
 
                 Dim runtime = CreateRuntimeInstance(
                     GetUniqueName(),
