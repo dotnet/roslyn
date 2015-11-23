@@ -370,7 +370,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.IncompleteMember,
                      SyntaxKind.InheritsStatement,
                      SyntaxKind.ImplementsStatement,
-                     SyntaxKind.ImportsStatement
+                     SyntaxKind.ImportsStatement,
+                     SyntaxKind.EnumMemberDeclaration
                     Return False
 
                 Case Else
@@ -784,14 +785,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
             Dim summary = GetBoundNodeSummary(node)
+            Dim result As BoundNode
             Select Case options
                 Case GetOperationOptions.Highest
-                    Return TryCast(summary.HighestBoundNode, IOperation)
+                    result = summary.HighestBoundNode
                 Case GetOperationOptions.Parent
-                    Return TryCast(summary.LowestBoundNodeOfSyntacticParent, IOperation)
+                    result = summary.LowestBoundNodeOfSyntacticParent
                 Case Else
-                    Return TryCast(summary.LowestBoundNode, IOperation)
+                    result = summary.LowestBoundNode
             End Select
+
+            ' Screen out bound nodes that aren't appropriate as IOperations.
+            If result IsNot Nothing Then
+                If result.Kind = BoundKind.EqualsValue Then
+                    result = DirectCast(result, BoundEqualsValue).Value
+                End If
+
+                If result.Kind = BoundKind.FieldOrPropertyInitializer Then
+                    result = DirectCast(result, BoundFieldOrPropertyInitializer).InitialValue
+                End If
+            End If
+
+            Return TryCast(result, IOperation)
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo

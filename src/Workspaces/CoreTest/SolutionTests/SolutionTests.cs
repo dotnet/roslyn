@@ -309,8 +309,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = CreateSolutionWithProjectDependencyChain(projectCount);
             ProjectId[] projectIds = solution.ProjectIds.ToArray();
 
-            var compilation0 = solution.GetCompilationAsync(projectIds[0], CancellationToken.None).Result;
-            var compilation2 = solution.GetCompilationAsync(projectIds[2], CancellationToken.None).Result;
+            var compilation0 = solution.GetProject(projectIds[0]).GetCompilationAsync(CancellationToken.None).Result;
+            var compilation2 = solution.GetProject(projectIds[2]).GetCompilationAsync(CancellationToken.None).Result;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1016,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6409"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestRecoverableSyntaxTreeVisualBasic()
         {
             var pid = ProjectId.CreateNewId();
@@ -1361,6 +1361,71 @@ public class C : A {
             var newDoc = doc.WithSyntaxRoot(newRoot);
 
             Assert.Equal(Encoding.UTF32, newDoc.GetTextAsync().Result.Encoding);
+        }
+
+        [Fact]
+        public void TestProjectWithNoBrokenReferencesHasNoIncompleteReferences()
+        {
+            var workspace = new AdhocWorkspace();
+            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project2 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "VisualBasicProject",
+                    "VisualBasicProject",
+                    LanguageNames.VisualBasic,
+                    projectReferences: new[] { new ProjectReference(project1.Id) }));
+
+            // Nothing should have incomplete references, and everything should build
+            Assert.True(project1.HasCompleteReferencesAsync().Result);
+            Assert.True(project2.HasCompleteReferencesAsync().Result);
+            Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
+        }
+
+        [Fact]
+        public void TestProjectWithBrokenCrossLanguageReferenceHasIncompleteReferences()
+        {
+            var workspace = new AdhocWorkspace();
+            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            workspace.AddDocument(project1.Id, "Broken.cs", SourceText.From("class "));
+
+            var project2 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "VisualBasicProject",
+                    "VisualBasicProject",
+                    LanguageNames.VisualBasic,
+                    projectReferences: new[] { new ProjectReference(project1.Id) }));
+
+            Assert.True(project1.HasCompleteReferencesAsync().Result);
+            Assert.False(project2.HasCompleteReferencesAsync().Result);
+            Assert.Empty(project2.GetCompilationAsync().Result.ExternalReferences);
+        }
+
+        [Fact]
+        public void TestFrozenPartialProjectAlwaysIsIncomplete()
+        {
+            var workspace = new AdhocWorkspace();
+            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+
+            var project2 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "VisualBasicProject",
+                    "VisualBasicProject",
+                    LanguageNames.VisualBasic,
+                    projectReferences: new[] { new ProjectReference(project1.Id) }));
+
+            var document = workspace.AddDocument(project2.Id, "Test.cs", SourceText.From(""));
+
+            // Nothing should have incomplete references, and everything should build
+            var frozenSolution = document.WithFrozenPartialSemanticsAsync(CancellationToken.None).Result.Project.Solution;
+
+            Assert.True(frozenSolution.GetProject(project1.Id).HasCompleteReferencesAsync().Result);
+            Assert.True(frozenSolution.GetProject(project2.Id).HasCompleteReferencesAsync().Result);
         }
     }
 }

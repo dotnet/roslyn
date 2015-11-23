@@ -2,18 +2,18 @@
 
 Imports System.Reflection
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
+
     Friend NotInheritable Class VisualBasicScriptCompiler
         Inherits ScriptCompiler
 
         Public Shared ReadOnly Instance As ScriptCompiler = New VisualBasicScriptCompiler()
 
-        Private Shared ReadOnly s_defaultInteractive As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive)
-        Private Shared ReadOnly s_defaultScript As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
+        Private Shared ReadOnly s_defaultOptions As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
         Private Shared ReadOnly s_vbRuntimeReference As MetadataReference = MetadataReference.CreateFromAssemblyInternal(GetType(CompilerServices.NewLateBinding).GetTypeInfo().Assembly)
 
         Private Sub New()
@@ -37,19 +37,19 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
         End Function
 
         Public Overrides Function ParseSubmission(text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
-            Return SyntaxFactory.ParseSyntaxTree(text, s_defaultInteractive, cancellationToken:=cancellationToken)
+            Return SyntaxFactory.ParseSyntaxTree(text, s_defaultOptions, cancellationToken:=cancellationToken)
         End Function
 
         Private Shared Function GetGlobalImportsForCompilation(script As Script) As IEnumerable(Of GlobalImport)
             ' TODO: remember these per options instance so we don't need to reparse each submission
-            ' TODO: get imports out of compilation???
-            Return script.Options.Namespaces.Select(Function(n) GlobalImport.Parse(n))
+            ' TODO: get imports out of compilation??? https://github.com/dotnet/roslyn/issues/5854
+            Return script.Options.Imports.Select(Function(n) GlobalImport.Parse(n))
         End Function
 
         Public Overrides Function CreateSubmission(script As Script) As Compilation
-            Dim previousSubmission As Compilation = Nothing
+            Dim previousSubmission As VisualBasicCompilation = Nothing
             If script.Previous IsNot Nothing Then
-                previousSubmission = script.Previous.GetCompilation()
+                previousSubmission = DirectCast(script.Previous.GetCompilation(), VisualBasicCompilation)
             End If
 
             Dim diagnostics = DiagnosticBag.GetInstance()
@@ -59,8 +59,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             diagnostics.Free()
 
             ' parse:
-            Dim parseOptions = If(script.Options.IsInteractive, s_defaultInteractive, s_defaultScript)
-            Dim tree = VisualBasicSyntaxTree.ParseText(script.Code, parseOptions, script.Options.Path)
+            Dim tree = VisualBasicSyntaxTree.ParseText(script.Code, s_defaultOptions, script.Options.FilePath)
 
             ' create compilation:
             Dim assemblyName As String = Nothing
@@ -69,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
             Dim globalImports = GetGlobalImportsForCompilation(script)
 
-            Dim submission = VisualBasicCompilation.CreateSubmission(
+            Dim submission = VisualBasicCompilation.CreateScriptCompilation(
                 assemblyName,
                 tree,
                 references,
@@ -96,4 +95,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Return submission
         End Function
     End Class
+
 End Namespace

@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -58,11 +59,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             ITextBufferFactoryService bufferFactory,
             IProjectionBufferFactoryService projectionBufferFactory,
             IEditorOperationsFactoryService editorOperationsFactory,
+            ITextBufferUndoManagerProvider textBufferUndoManagerProvider,
             ITextEditorFactoryService editorFactory,
             IRtfBuilderService rtfBuilderService,
             IIntellisenseSessionStackMapService intellisenseSessionStackMap,
             ISmartIndentationService smartIndenterService,
-            IInteractiveEvaluator evaluator)
+            IInteractiveEvaluator evaluator,
+            IWaitIndicator waitIndicator)
         {
             if (evaluator == null)
             {
@@ -76,11 +79,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 bufferFactory,
                 projectionBufferFactory,
                 editorOperationsFactory,
+                textBufferUndoManagerProvider,
                 editorFactory,
                 rtfBuilderService,
                 intellisenseSessionStackMap,
                 smartIndenterService,
-                evaluator);
+                evaluator,
+                waitIndicator);
 
             evaluator.CurrentWindow = this;
 
@@ -551,6 +556,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         #region Testing
 
         internal event Action<State> StateChanged;
+
+        internal void Undo_TestOnly(int count)
+        {
+            UIThread(uiOnly => uiOnly.UndoHistory_TestOnly.Undo(count));
+        }
+
+        internal void Redo_TestOnly(int count)
+        {
+            UIThread(uiOnly => uiOnly.UndoHistory_TestOnly.Redo(count));
+        }
 
         #endregion
     }

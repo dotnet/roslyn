@@ -13,13 +13,13 @@
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    <Dependency Version="|VisualStudioSetup;GetBuildVersion|" DisplayName="Roslyn Language Services" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
-    <Dependency Version="|VisualStudioInteractiveWindow;GetBuildVersion|" DisplayName="VisualStudio Interactive Components" Id="1F42C6D0-F876-4AF0-8185-1BEB0A325BB2" />
+    <Dependency Version="[|VisualStudioSetup;GetBuildVersion|,]" DisplayName="Roslyn Language Services" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
+    <Dependency Version="[|VisualStudioInteractiveWindow;GetBuildVersion|,]" DisplayName="VisualStudio Interactive Components" Id="1F42C6D0-F876-4AF0-8185-1BEB0A325BB2" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.InteractiveEditorFeatures.dll" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="BindingPath.pkgdef" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" d:Source="Project" d:ProjectName="%CurrentProject%" />
   </Assets>
 </PackageManifest>

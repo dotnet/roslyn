@@ -2358,7 +2358,7 @@ Derived.set_Property",
         }
 
         [WorkItem(528172, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void TestHideWithInaccessibleVirtualMember()
         {
             // Tests:

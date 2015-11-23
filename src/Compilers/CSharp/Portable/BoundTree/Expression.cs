@@ -259,8 +259,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         ILocalSymbol ILocalReferenceExpression.Local => this.LocalSymbol;
         
-        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Local;
-       
         protected override OperationKind ExpressionKind => OperationKind.LocalReferenceExpression;
     }
 
@@ -269,8 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
        
         IFieldSymbol IFieldReferenceExpression.Field => this.FieldSymbol;
-       
-        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Field;
 
         protected override OperationKind ExpressionKind => OperationKind.FieldReferenceExpression;
     }
@@ -281,16 +277,12 @@ namespace Microsoft.CodeAnalysis.CSharp
        
         IExpression IMemberReferenceExpression.Instance => this.ReceiverOpt;
        
-        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Property;
-
         protected override OperationKind ExpressionKind => OperationKind.PropertyReferenceExpression;
     }
 
     partial class BoundParameter : IParameterReferenceExpression
     {
         IParameterSymbol IParameterReferenceExpression.Parameter => this.ParameterSymbol;
-
-        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Parameter;
 
         protected override OperationKind ExpressionKind => OperationKind.ParameterReferenceExpression;
     }
@@ -544,9 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IInstanceReferenceExpression.IsExplicit => true;
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
-
-        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Parameter;
-
+        
         protected override OperationKind ExpressionKind => OperationKind.BaseClassInstanceReferenceExpression;
     }
 
@@ -555,8 +545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IInstanceReferenceExpression.IsExplicit => true;
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
-
-        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Parameter;
 
         protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
     }
@@ -702,18 +690,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression IArrayElementReferenceExpression.ArrayReference => this.Expression;
 
         ImmutableArray<IExpression> IArrayElementReferenceExpression.Indices => this.Indices.As<IExpression>();
-
-        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.ArrayElement;
-
+        
         protected override OperationKind ExpressionKind => OperationKind.ArrayElementReferenceExpression;
     }
 
     partial class BoundPointerIndirectionOperator : IPointerIndirectionReferenceExpression
     {
         IExpression IPointerIndirectionReferenceExpression.Pointer => this.Operand;
-
-        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.PointerIndirection;
-
+        
         protected override OperationKind ExpressionKind => OperationKind.PointerIndirectionReferenceExpression;
     }
 
@@ -729,8 +713,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool IInstanceReferenceExpression.IsExplicit => false;
 
         IParameterSymbol IParameterReferenceExpression.Parameter => (IParameterSymbol)this.ExpressionSymbol;
-
-        ReferenceKind IReferenceExpression.ReferenceKind => ReferenceKind.Parameter;
 
         protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
     }

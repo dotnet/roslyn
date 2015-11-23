@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -51,6 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// </summary>
         protected abstract void FormatAndApply(Document document, int position, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// special cases where we do not want to do line completion but just fall back to line break and formatting.
+        /// </summary>
+        protected abstract bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken);
+
         public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextHandler)
         {
             return CommandState.Available;
@@ -93,10 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         return;
                     }
 
-                    // try to move the caret to the end of the line on which the caret is
                     var subjectLineWhereCaretIsOn = position.Value.GetContainingLine();
-                    args.TextView.TryMoveCaretToAndEnsureVisible(subjectLineWhereCaretIsOn.End);
-
                     var insertionPoint = GetInsertionPoint(document, subjectLineWhereCaretIsOn, w.CancellationToken);
                     if (!insertionPoint.HasValue)
                     {
@@ -104,8 +105,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         return;
                     }
 
+                    // special cases where we treat this command simply as Return.
+                    if (TreatAsReturn(document, position.Value.Position, w.CancellationToken))
+                    {
+                        // leave it to the VS editor to handle this command.
+                        // VS editor's default implementation of SmartBreakLine is simply BreakLine, which inserts
+                        // a new line and positions the caret with smart indent.
+                        nextHandler();
+                        return;
+                    }
+
                     using (var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.AutomaticLineEnder, _undoRegistry, _editorOperationsFactoryService))
                     {
+                        // try to move the caret to the end of the line on which the caret is
+                        args.TextView.TryMoveCaretToAndEnsureVisible(subjectLineWhereCaretIsOn.End);
+
                         // okay, now insert ending if we need to
                         var newDocument = InsertEndingIfRequired(document, insertionPoint.Value, position.Value, w.CancellationToken);
 

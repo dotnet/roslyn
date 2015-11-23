@@ -12,12 +12,10 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Metadata.dll" />
@@ -158,6 +156,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />

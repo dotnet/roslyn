@@ -96,20 +96,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Function
 #End Region
 
-        <Fact>
+        <WpfFact>
         Public Sub TestEmptyFile()
             TestMissing(<text>
 $$
   </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestTokenKind0()
             TestMissing(<text>'$$</text>)
         End Sub
 
 #Region "Top-Level Statements"
-        <Fact>
+        <WpfFact>
         Public Sub TopLevel()
             TestMissing(<text>Option $$Explicit</text>)
             TestMissing(<text>Imports $$Foo</text>)
@@ -127,7 +127,7 @@ $$
             TestMissing(<text>Namespace E : End $$Namespace</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CustomProperties1()
             TestMissing(<text>
 Class C
@@ -141,7 +141,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CustomProperties2()
             TestMissing(<text>
 Class C
@@ -155,7 +155,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CustomEvents1()
             TestMissing(<text>
 Class C
@@ -171,7 +171,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CustomEvents2()
             TestMissing(<text>
 Class C
@@ -190,7 +190,7 @@ End Class
 #End Region
 
 #Region "Methods, Constructors, Operators, Accessors"
-        <Fact>
+        <WpfFact>
         Public Sub Sub_Header()
             TestSpan(<text>
 Class C
@@ -200,7 +200,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Sub_Header_WithAttributes()
             TestSpan("
 Class C
@@ -210,7 +210,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Sub_Header_WithImplementsClause()
             TestSpan("
 Class C
@@ -220,7 +220,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Sub_End()
             TestSpan(<text>
 Class C
@@ -230,7 +230,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SubNew()
             TestSpan(<text>
 Class C
@@ -240,7 +240,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SubNew_WithAttributes()
             TestSpan("
 Class C
@@ -250,7 +250,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Function1()
             TestSpan(<text>
 Class C
@@ -260,7 +260,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Function2()
             TestSpan(<text>
 Class C
@@ -270,7 +270,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Function_WithAttributes()
             TestSpan("
 Class C
@@ -280,7 +280,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Function_WithImplementsClause()
             TestSpan("
 Class C
@@ -290,7 +290,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Operator1()
             TestSpan(<text>
 Class C
@@ -300,7 +300,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Operator2()
             TestSpan(<text>
 Class C
@@ -310,7 +310,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Operator_WithAttributes()
             TestSpan("
 Class C
@@ -320,7 +320,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Get1()
             TestSpan(<text>
 Class C
@@ -334,7 +334,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Get2()
             TestSpan(<text>
 Class C
@@ -348,7 +348,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Get_WithAttributes()
             TestSpan("
 Class C
@@ -362,7 +362,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Set1()
             TestSpan(<text>
 Class C
@@ -376,7 +376,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Set2()
             TestSpan(<text>
 Class C
@@ -390,7 +390,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Set_WithAttributes()
             TestSpan("
 Class C
@@ -404,7 +404,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AddHandler1()
             TestSpan(<text>
 Class C
@@ -420,7 +420,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AddHandler2()
             TestSpan(<text>
 Class C
@@ -436,7 +436,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AddHandler_WithAttributes()
             TestSpan("
 Class C
@@ -452,7 +452,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub RemoveHandler1()
             TestSpan(<text>
 Class C
@@ -468,7 +468,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub RemoveHandler2()
             TestSpan(<text>
 Class C
@@ -484,7 +484,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub RemoveHandler_WithAttributes()
             TestSpan("
 Class C
@@ -500,7 +500,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub RaiseEvent1()
             TestSpan(<text>
 Class C
@@ -516,7 +516,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub RaiseEvent2()
             TestSpan(<text>
 Class C
@@ -532,7 +532,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub RaiseEvent_WithAttributes()
             TestSpan("
 Class C
@@ -551,7 +551,7 @@ End Class
 #End Region
 
 #Region "Auto-Properties"
-        <Fact>
+        <WpfFact>
         Public Sub AutoProperty_NoInitializer1()
             TestMissing(<text>
 Class C
@@ -559,7 +559,7 @@ Class C
 End Class
 </text>)
         End Sub
-        <Fact>
+        <WpfFact>
         Public Sub AutoProperty_NoInitializer2()
             TestMissing(<text>
 Class C
@@ -568,7 +568,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AutoProperty_Initializer1()
             TestSpan(<text>
 Class C
@@ -577,7 +577,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AutoProperty_Initializer2()
             TestSpan(<text>
 Class C
@@ -586,7 +586,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AutoProperty_Initializer3()
             TestSpan(<text>
 Class C
@@ -595,7 +595,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AutoProperty_Initializer4()
             TestSpan(<text>
 Class C
@@ -604,7 +604,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AutoProperty_AsNewInitializer1()
             TestSpan(<text>
 Class C
@@ -616,7 +616,7 @@ End Class
 
 #Region "Fields"
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_NoInitializer1()
             TestMissing(<text>
 Class C
@@ -625,7 +625,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_NoInitializer2()
             TestMissing(<text>
 Class C
@@ -634,7 +634,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_NoInitializer3()
             TestMissing(<text>
 Class C
@@ -643,7 +643,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_NoInitializer4()
             TestSpan(<text>
 Class C
@@ -652,7 +652,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_NoInitializer5()
             TestSpan(<text>
 Class C
@@ -661,7 +661,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_NoInitializer6()
             TestSpan(<text>
 Class C
@@ -670,7 +670,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_NoInitializer7()
             TestSpan(<text>
 Class C
@@ -679,7 +679,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_NoInitializer8()
             TestSpan(<text>
 Class C
@@ -688,7 +688,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Const1()
             TestMissing(<text>
 Class C
@@ -697,7 +697,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Const2()
             TestMissing(<text>
 Class C
@@ -706,7 +706,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Const3()
             TestMissing(<text>
 Class C
@@ -715,7 +715,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_Untyped1()
             TestSpan(<text>
 Class C
@@ -724,7 +724,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_Untyped2()
             TestSpan(<text>
 Class C
@@ -733,7 +733,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_Untyped3()
             TestSpan(<text>
 Class C
@@ -742,7 +742,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_Untyped4()
             TestSpan(<text>
 Class C
@@ -751,7 +751,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_Untyped5()
             TestSpan(<text>
 Class C
@@ -760,7 +760,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_Untyped1()
             TestSpan(<text>
 Class C
@@ -769,7 +769,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_Untyped2()
             TestSpan(<text>
 Class C
@@ -778,7 +778,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_Untyped3()
             TestSpan(<text>
 Class C
@@ -787,7 +787,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_Untyped4()
             TestSpan(<text>
 Class C
@@ -796,7 +796,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_Untyped5()
             TestSpan(<text>
 Class C
@@ -805,7 +805,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_Untyped6()
             TestSpan(<text>
 Class C
@@ -814,7 +814,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_Typed1()
             TestSpan(<text>
 Class C
@@ -823,7 +823,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_Typed2()
             TestSpan(<text>
 Class C
@@ -832,7 +832,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_Typed3()
             TestSpan(<text>
 Class C
@@ -841,7 +841,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_Typed()
             ' syntax error, so it doesn't really matter what we do as long as it's not totally off
             TestSpan(<text>
@@ -851,7 +851,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_AsNew1()
             TestSpan(<text>
 Class C
@@ -860,7 +860,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_AsNew2()
             TestSpan(<text>
 Class C
@@ -869,7 +869,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_AsNew3()
             TestSpan(<text>
 Class C
@@ -878,7 +878,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_AsNew4()
             TestSpan(<text>
 Class C
@@ -887,7 +887,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_AsNew1()
             TestSpan(<text>
 Class C
@@ -896,7 +896,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_AsNew2()
             TestSpan(<text>
 Class C
@@ -905,7 +905,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_AsNew3()
             TestSpan(<text>
 Class C
@@ -914,7 +914,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_AsNew4()
             TestSpan(<text>
 Class C
@@ -923,7 +923,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_AsNew5()
             TestSpan(<text>
 Class C
@@ -932,7 +932,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_AsNew6()
             TestSpan(<text>
 Class C
@@ -941,7 +941,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_ArrayInitialized_Untyped1()
             TestSpan(<text>
 Class C
@@ -950,7 +950,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_ArrayInitialized_Untyped2()
             TestSpan(<text>
 Class C
@@ -959,7 +959,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_ArrayInitialized_Untyped3()
             TestSpan(<text>
 Class C
@@ -968,7 +968,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_ArrayInitialized_Typed1()
             TestSpan(<text>
 Class C
@@ -977,7 +977,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_ArrayInitialized_Typed2()
             TestSpan(<text>
 Class C
@@ -986,7 +986,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Single_ArrayInitialized_Typed3()
             TestSpan(<text>
 Class C
@@ -995,7 +995,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_ArrayInitializedAndInitializerMix1()
             TestSpan(<text>
 Class C
@@ -1004,7 +1004,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_ArrayInitializedAndInitializerMix2()
             TestSpan(<text>
 Class C
@@ -1013,7 +1013,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_ArrayInitializedAndInitializerMix3()
             TestSpan(<text>
 Class C
@@ -1022,7 +1022,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_ArrayInitializedAndInitializerMix4()
             TestSpan(<text>
 Class C
@@ -1031,7 +1031,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_ArrayInitializedAndInitializerMix5()
             TestSpan(<text>
 Class C
@@ -1040,7 +1040,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_MixAll1()
             TestSpan(<text>
 Class C
@@ -1049,7 +1049,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_MixAll2()
             TestSpan(<text>
 Class C
@@ -1058,7 +1058,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_MixAll3()
             TestSpan(<text>
 Class C
@@ -1067,7 +1067,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_MixAll4()
             TestSpan(<text>
 Class C
@@ -1076,7 +1076,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_MixAll5()
             TestSpan(<text>
 Class C
@@ -1085,7 +1085,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Field_Multiple_MixAll6()
             TestSpan(<text>
 Class C
@@ -1097,7 +1097,7 @@ End Class
 #End Region
 
 #Region "Local Variable Declaration"
-        <Fact>
+        <WpfFact>
         Public Sub Local_NoInitializer1()
             TestMissing(<text>
 Class C
@@ -1108,7 +1108,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_NoInitializer2()
             TestMissing(<text>
 Class C
@@ -1119,7 +1119,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_NoInitializer3()
             TestMissing(<text>
 Class C
@@ -1130,7 +1130,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_NoInitializer4()
             TestSpan(<text>
 Class C
@@ -1141,7 +1141,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_NoInitializer5()
             TestSpan(<text>
 Class C
@@ -1152,7 +1152,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_NoInitializer6()
             TestSpan(<text>
 Class C
@@ -1163,7 +1163,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_NoInitializer7()
             TestSpan(<text>
 Class C
@@ -1174,7 +1174,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_NoInitializer8()
             TestSpan(<text>
 Class C
@@ -1185,7 +1185,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Const1()
             TestMissing(<text>
 Class C
@@ -1196,7 +1196,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Const2()
             TestMissing(<text>
 Class C
@@ -1207,7 +1207,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Const3()
             TestMissing(<text>
 Class C
@@ -1218,7 +1218,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_Untyped1()
             TestSpan(<text>
 Class C
@@ -1229,7 +1229,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_Untyped2()
             TestSpan(<text>
 Class C
@@ -1240,7 +1240,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_Untyped3()
             TestSpan(<text>
 Class C
@@ -1251,7 +1251,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_Untyped4()
             TestSpan(<text>
 Class C
@@ -1262,7 +1262,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_Untyped5()
             TestSpan(<text>
 Class C
@@ -1273,7 +1273,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_Untyped1()
             TestSpan(<text>
 Class C
@@ -1284,7 +1284,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_Untyped2()
             TestSpan(<text>
 Class C
@@ -1295,7 +1295,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_Untyped3()
             TestSpan(<text>
 Class C
@@ -1306,7 +1306,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_Untyped4()
             TestSpan(<text>
 Class C
@@ -1317,7 +1317,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_Untyped5()
             TestSpan(<text>
 Class C
@@ -1328,7 +1328,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_Untyped6()
             TestSpan(<text>
 Class C
@@ -1339,7 +1339,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_Typed1()
             TestSpan(<text>
 Class C
@@ -1350,7 +1350,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_Typed2()
             TestSpan(<text>
 Class C
@@ -1361,7 +1361,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_Typed3()
             TestSpan(<text>
 Class C
@@ -1372,7 +1372,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_Typed()
             ' syntax error, so it doesn't really matter what we do as long as it's not totally off
             TestSpan(<text>
@@ -1384,7 +1384,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_AsNew1()
             TestSpan(<text>
 Class C
@@ -1395,7 +1395,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_AsNew2()
             TestSpan(<text>
 Class C
@@ -1406,7 +1406,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_AsNew3()
             TestSpan(<text>
 Class C
@@ -1417,7 +1417,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_AsNew4()
             TestSpan(<text>
 Class C
@@ -1428,7 +1428,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_AsNew1()
             TestSpan(<text>
 Class C
@@ -1439,7 +1439,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_AsNew2()
             TestSpan(<text>
 Class C
@@ -1450,7 +1450,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_AsNew3()
             TestSpan(<text>
 Class C
@@ -1461,7 +1461,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_AsNew4()
             TestSpan(<text>
 Class C
@@ -1472,7 +1472,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_AsNew5()
             TestSpan(<text>
 Class C
@@ -1483,7 +1483,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_AsNew6()
             TestSpan(<text>
 Class C
@@ -1494,7 +1494,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Static()
             TestSpan(<text>
 Class C
@@ -1505,7 +1505,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_ArrayInitialized_Untyped1()
             TestSpan(<text>
 Class C
@@ -1516,7 +1516,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_ArrayInitialized_Untyped2()
             TestSpan(<text>
 Class C
@@ -1527,7 +1527,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_ArrayInitialized_Untyped3()
             TestSpan(<text>
 Class C
@@ -1538,7 +1538,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_ArrayInitialized_Typed1()
             TestSpan(<text>
 Class C
@@ -1549,7 +1549,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_ArrayInitialized_Typed2()
             TestSpan(<text>
 Class C
@@ -1560,7 +1560,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Single_ArrayInitialized_Typed3()
             TestSpan(<text>
 Class C
@@ -1571,7 +1571,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_ArrayInitializedAndInitializerMix1()
             TestSpan(<text>
 Class C
@@ -1582,7 +1582,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_ArrayInitializedAndInitializerMix2()
             TestSpan(<text>
 Class C
@@ -1593,7 +1593,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_ArrayInitializedAndInitializerMix3()
             TestSpan(<text>
 Class C
@@ -1604,7 +1604,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_ArrayInitializedAndInitializerMix4()
             TestSpan(<text>
 Class C
@@ -1615,7 +1615,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_ArrayInitializedAndInitializerMix5()
             TestSpan(<text>
 Class C
@@ -1626,7 +1626,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_MixAll1()
             TestSpan(<text>
 Class C
@@ -1637,7 +1637,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_MixAll2()
             TestSpan(<text>
 Class C
@@ -1648,7 +1648,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_MixAll3()
             TestSpan(<text>
 Class C
@@ -1659,7 +1659,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_MixAll4()
             TestSpan(<text>
 Class C
@@ -1670,7 +1670,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_MixAll5()
             TestSpan(<text>
 Class C
@@ -1681,7 +1681,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Local_Multiple_MixAll6()
             TestSpan(<text>
 Class C
@@ -1695,7 +1695,7 @@ End Class
 
 #Region "Method Body Statements"
         <WorkItem(538820)>
-        <Fact>
+        <WpfFact>
         Public Sub TestEndOfStatement()
             TestSpan(<text>
 class C
@@ -1705,7 +1705,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub If1()
             TestSpan(<text>
 Class C
@@ -1717,7 +1717,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Else1()
             TestSpan(<text>
 Class C
@@ -1730,7 +1730,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ElseIf1()
             TestSpan(<text>
 Class C
@@ -1743,7 +1743,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub EndIf1()
             TestSpan(<text>
 Class C
@@ -1755,7 +1755,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineIf1()
             TestSpan(<text>
 Class C
@@ -1766,7 +1766,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineIf2()
             TestSpan(<text>
 Class C
@@ -1777,7 +1777,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineIf3()
             TestSpan(<text>
 Class C
@@ -1788,7 +1788,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineIf4()
             TestSpan(<text>
 Class C
@@ -1799,7 +1799,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Using1()
             TestSpan(<text>
 Class C
@@ -1811,7 +1811,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub EndUsing1()
             TestSpan(<text>
 Class C
@@ -1823,7 +1823,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock1()
             TestSpan(<text>
 Class C
@@ -1835,7 +1835,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub EndSyncLock1()
             TestSpan(<text>
 Class C
@@ -1847,7 +1847,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub With1()
             TestSpan(<text>
 Class C
@@ -1859,7 +1859,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub EndWith1()
             TestSpan(<text>
 Class C
@@ -1871,7 +1871,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Do1()
             TestSpan(<text>
 Class C
@@ -1883,7 +1883,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Loop1()
             TestSpan(<text>
 Class C
@@ -1895,7 +1895,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub While1()
             TestSpan(<text>
 Class C
@@ -1907,7 +1907,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub EndWhile1()
             TestSpan(<text>
 Class C
@@ -1919,7 +1919,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub For1()
             TestSpan(<text>
 Class C
@@ -1931,7 +1931,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach1()
             TestSpan(<text>
 Class C
@@ -1943,7 +1943,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Next1()
             TestSpan(<text>
 Class C
@@ -1955,7 +1955,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Select1()
             TestSpan(<text>
 Class C
@@ -1969,7 +1969,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Case1()
             TestSpan(<text>
 Class C
@@ -1983,7 +1983,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Case2()
             TestSpan(<text>
 Class C
@@ -1997,7 +1997,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CaseElse1()
             TestSpan(<text>
 Class C
@@ -2011,7 +2011,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub EndSelect1()
             TestSpan(<text>
 Class C
@@ -2025,7 +2025,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try1()
             TestSpan(<text>
 Class C
@@ -2038,7 +2038,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Catch1()
             TestSpan(<text>
 Class C
@@ -2051,7 +2051,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchWhen1()
             TestSpan(<text>
 Class C
@@ -2064,7 +2064,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Finally1()
             TestSpan(<text>
 Class C
@@ -2077,7 +2077,7 @@ End Class
 </text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub EndTry1()
             TestSpan(<text>
 Class C
@@ -2093,7 +2093,7 @@ End Class
 #End Region
 
 #Region "Lambdas"
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_SingleLine_Header1()
             TestSpan(<text>
 Class C
@@ -2103,7 +2103,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_SingleLine_Header2()
             TestSpan(<text>
 Class C
@@ -2113,7 +2113,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_SingleLine_Header3()
             TestSpan(<text>
 Class C
@@ -2123,7 +2123,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_SingleLine_Header4()
             TestSpan(<text>
 Class C
@@ -2133,7 +2133,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_SingleLine_Body1()
             TestSpan(<text>
 Class C
@@ -2143,7 +2143,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_SingleLine_Body2()
             TestSpan(<text>
 Class C
@@ -2153,7 +2153,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_SingleLine_Body3()
             TestSpan(<text>
 Class C
@@ -2163,7 +2163,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_SingleLine_Body4()
             TestSpan(<text>
 Class C
@@ -2174,7 +2174,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_SingleLine_Body5()
             TestSpan(<text>
 Class C
@@ -2184,7 +2184,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_MultiLine_Header1()
             TestSpan(<text>
 Class C
@@ -2196,7 +2196,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_MultiLine_Header2()
             TestSpan(<text>
 Class C
@@ -2208,7 +2208,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_MultiLine_Header3()
             TestSpan(<text>
 Class C
@@ -2219,7 +2219,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_MultiLine_Header4()
             TestSpan(<text>
 Class C
@@ -2231,7 +2231,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_MultiLine_Body1()
             TestSpan(<text>
 Class C
@@ -2243,7 +2243,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_MultiLine_Footer1()
             TestSpan(<text>
 Class C
@@ -2255,7 +2255,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambda_MultiLine_Footer2()
             TestSpan(<text>
 Class C
@@ -2269,7 +2269,7 @@ End Class</text>)
 
 #Region "Queries"
 
-        <Fact>
+        <WpfFact>
         Public Sub TestFromClause1()
             TestSpan(<text>
 class C
@@ -2280,7 +2280,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestFromClause2()
             TestSpan(<text>
 class C
@@ -2291,7 +2291,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestFromClause3()
             TestSpan(<text>
 class C
@@ -2303,7 +2303,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestFromInQueryContinuation1()
             TestSpan(<text>
 Class C
@@ -2318,7 +2318,7 @@ End Class</text>)
         End Sub
 
         <WorkItem(544959)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBeforeFromInQueryContinuation1()
             TestSpan(<text>
 Class C
@@ -2333,7 +2333,7 @@ End Class</text>)
         End Sub
 
         <WorkItem(544959)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBeforeFromInQueryContinuation2()
             TestSpan(<text>
 Class C
@@ -2348,7 +2348,7 @@ End Class</text>)
         End Sub
 
         <WorkItem(544959)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBeforeFromInQueryContinuation3()
             TestSpan(<text>
 Class C
@@ -2362,7 +2362,7 @@ Class C
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestJoin1()
             TestSpan(<text>
 class C
@@ -2374,7 +2374,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestJoin2()
             TestSpan(<text>
 class C
@@ -2386,7 +2386,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestJoin3()
             TestSpan(<text>
 class C
@@ -2398,7 +2398,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestLet1()
             TestSpan(<text>
 class C
@@ -2410,7 +2410,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestLet2()
             TestSpan(<text>
 class C
@@ -2422,7 +2422,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestLet3()
             TestSpan(<text>
 class C
@@ -2434,7 +2434,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestLet4()
             TestSpan(<text>
 class C
@@ -2446,7 +2446,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestLet5()
             TestSpan(<text>
 class C
@@ -2458,7 +2458,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestLet6()
             TestSpan(<text>
 class C
@@ -2470,7 +2470,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestLet7()
             TestSpan(<text>
 class C
@@ -2482,7 +2482,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestSelect1()
             TestSpan(<text>
 class C
@@ -2494,7 +2494,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestSelect2()
             TestSpan(<text>
 class C
@@ -2506,7 +2506,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestSelect3()
             TestSpan(<text>
 class C
@@ -2519,7 +2519,7 @@ end class</text>)
         End Sub
 
         <WorkItem(544960)>
-        <Fact>
+        <WpfFact>
         Public Sub TestSelect4()
             TestSpan(<text>
 Class A
@@ -2532,7 +2532,7 @@ End Class</text>)
         End Sub
 
         <WorkItem(544963)>
-        <Fact>
+        <WpfFact>
         Public Sub TestSelect5()
             TestSpan(<text>
 Class A
@@ -2547,7 +2547,7 @@ Class A
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestSelect6()
             TestSpan(<text>
 class C
@@ -2560,7 +2560,7 @@ end class</text>)
         End Sub
 
         <WorkItem(544964)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBeforeSelectClause()
             TestSpan(<text>
 Class A
@@ -2572,7 +2572,7 @@ Class A
 End Class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestWhereClauseExpression()
             TestSpan(<text>
 class C
@@ -2585,7 +2585,7 @@ end class</text>)
         End Sub
 
         <WorkItem(544965)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBeforeWhereClause()
             TestSpan(<text>
 class C
@@ -2597,7 +2597,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestTakeWhile1()
             TestSpan(<text>
 class C
@@ -2610,7 +2610,7 @@ end class</text>)
         End Sub
 
         <WorkItem(544966)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBeforeTakeWhile()
             TestSpan(<text>
 class C
@@ -2622,7 +2622,7 @@ $$            Take While [|x + 1 > 0|]
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestSkipWhile1()
             TestSpan(<text>
 class C
@@ -2635,7 +2635,7 @@ end class</text>)
         End Sub
 
         <WorkItem(544966)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBeforeSkipWhile()
             TestSpan(<text>
 class C
@@ -2647,7 +2647,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestOrderBy1()
             TestSpan(<text>
 class C
@@ -2659,7 +2659,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestOrderBy2()
             TestSpan(<text>
 class C
@@ -2671,7 +2671,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestOrderBy3()
             TestSpan(<text>
 class C
@@ -2684,7 +2684,7 @@ end class</text>)
         End Sub
 
         <WorkItem(544967)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBeforeOrderBy()
             TestSpan(<text>
 class C
@@ -2696,7 +2696,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestThenBy1()
             TestSpan(<text>
 class C
@@ -2710,7 +2710,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestThenBy2()
             TestSpan(<text>
 class C
@@ -2724,7 +2724,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestThenBy3()
             TestSpan(<text>
 class C
@@ -2739,7 +2739,7 @@ end class</text>)
         End Sub
 
         <WorkItem(544968)>
-        <Fact>
+        <WpfFact>
         Public Sub TestThenBy4()
             TestSpan(<text>
 class C
@@ -2754,7 +2754,7 @@ end class</text>)
         End Sub
 
         <WorkItem(544967)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBeforeOrderByAndThenBy()
             TestSpan(<text>
 class C
@@ -2768,7 +2768,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestFunctionAggregation1()
             TestSpan(<text>
 class C
@@ -2781,7 +2781,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy1a()
             TestSpan(<text>
 class C
@@ -2794,7 +2794,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy1b()
             TestSpan(<text>
 class C
@@ -2807,7 +2807,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy1c()
             TestSpan(<text>
 class C
@@ -2820,7 +2820,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy2()
             TestSpan(<text>
 class C
@@ -2833,7 +2833,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy3()
             TestSpan(<text>
 class C
@@ -2846,7 +2846,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy4()
             TestSpan(<text>
 class C
@@ -2859,7 +2859,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy5a()
             TestSpan(<text>
 class C
@@ -2872,7 +2872,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy5b()
             TestSpan(<text>
 class C
@@ -2885,7 +2885,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy5c()
             TestSpan(<text>
 class C
@@ -2899,7 +2899,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy5d()
             TestSpan(<text>
 class C
@@ -2913,7 +2913,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy5f()
             TestSpan(<text>
 class C
@@ -2927,7 +2927,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy6a()
             TestSpan(<text>
 class C
@@ -2940,7 +2940,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy6b()
             TestSpan(<text>
 class C
@@ -2953,7 +2953,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy7a()
             TestSpan(<text>
 class C
@@ -2966,7 +2966,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy7b()
             TestSpan(<text>
 class C
@@ -2979,7 +2979,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy8()
             TestSpan(<text>
 class C
@@ -2993,7 +2993,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy9()
             TestSpan(<text>
 class C
@@ -3007,7 +3007,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy10()
             TestSpan(<text>
 class C
@@ -3021,7 +3021,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy11()
             TestSpan(<text>
 class C
@@ -3035,7 +3035,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy12()
             TestSpan(<text>
 class C
@@ -3049,7 +3049,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy13()
             TestSpan(<text>
 class C
@@ -3063,7 +3063,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub GroupBy14()
             TestSpan(<text>
 class C
@@ -3077,7 +3077,7 @@ class C
 end class</text>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestGroupByNested()
             TestSpan(<text>
 Imports System.Linq

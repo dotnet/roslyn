@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.EditorUtilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
             return Tuple.Create(buffer.CurrentSnapshot, text);
         }
 
-        [Fact]
+        [WpfFact]
         public void Basic1()
         {
             var tuple = Create("foo", "bar");
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
             Assert.Equal(tuple.Item1.GetText(), text.ToString());
         }
 
-        [Fact]
+        [WpfFact]
         public void GetLineFromLineNumber1()
         {
             var tuple = Create("foo", "bar");
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
             Assert.Equal("foo", line1.ToString());
         }
 
-        [Fact]
+        [WpfFact]
         public void GetLineFromLineNumber2()
         {
             var tuple = Create("foo", "bar");
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
             Assert.Equal("bar", line1.ToString());
         }
 
-        [Fact]
+        [WpfFact]
         public void Lines1()
         {
             var tuple = Create("foo", "bar");

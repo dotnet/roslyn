@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "CSharp tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_IntToInt()
             Dim input =
 <Workspace>
@@ -38,7 +38,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_ByteToInt()
             Dim input =
 <Workspace>
@@ -70,7 +70,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_ByteToVar()
             Dim input =
 <Workspace>
@@ -102,7 +102,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_UncheckedByteToInt()
             Dim input =
 <Workspace>
@@ -134,7 +134,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_UncheckedByteToVar()
             Dim input =
 <Workspace>
@@ -166,7 +166,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_UncheckedByteToIntToVar()
             Dim input =
 <Workspace>
@@ -198,7 +198,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_IntToObjectInInvocation()
             Dim input =
 <Workspace>
@@ -234,7 +234,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_IntToObject_Overloads1()
             Dim input =
 <Workspace>
@@ -272,7 +272,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_IntToObject_Overloads2()
             Dim input =
 <Workspace>
@@ -310,7 +310,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_IntToDouble1()
             Dim input =
 <Workspace>
@@ -342,7 +342,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_LambdaToDelegateType1()
             Dim input =
 <Workspace>
@@ -374,7 +374,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_LambdaToDelegateType2()
             Dim input =
 <Workspace>
@@ -408,7 +408,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_LambdaToDelegateTypeInInvocation1()
             Dim input =
 <Workspace>
@@ -444,7 +444,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_LambdaToDelegateTypeInInvocation2()
             Dim input =
 <Workspace>
@@ -480,7 +480,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_LambdaToDelegateTypeWithVar()
             Dim input =
 <Workspace>
@@ -512,7 +512,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_LambdaToDelegateTypeWhenInvoked()
             Dim input =
 <Workspace>
@@ -544,7 +544,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_MethodGroupToDelegateTypeWhenInvoked()
             Dim input =
 <Workspace>
@@ -576,7 +576,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_AnonymousFunctionToDelegateTypeInNullCoalescingExpression()
             Dim input =
 <Workspace>
@@ -608,7 +608,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_MethodGroupToDelegateTypeInDelegateCombineExpression1()
             Dim input =
 <Workspace>
@@ -646,7 +646,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_MethodGroupToDelegateTypeInDelegateCombineExpression2()
             Dim input =
 <Workspace>
@@ -684,7 +684,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_NullLiteralToStringInInvocation()
             Dim input =
 <Workspace>
@@ -718,7 +718,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529816)>
         Public Sub CSharp_DoNotRemove_QuerySelectMethodChanges()
             Dim input =
@@ -760,7 +760,7 @@ class A
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529816)>
         Public Sub CSharp_DoNotRemove_QueryOrderingMethodChanges()
             Dim input =
@@ -818,7 +818,7 @@ public class A
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529816)>
         Public Sub CSharp_DoNotRemove_QueryClauseChanges()
             Dim input =
@@ -868,7 +868,7 @@ class A
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529842)>
         Public Sub CSharp_DoNotRemove_CastInTernary()
             Dim input =
@@ -920,7 +920,7 @@ class X
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529855)>
         Public Sub CSharp_Remove_CastInIsExpression()
             Dim input =
@@ -962,7 +962,7 @@ static class A
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529843)>
         Public Sub CSharp_Remove_CastToObjectTypeInReferenceComparison()
             Dim input =
@@ -1000,7 +1000,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529914)>
         Public Sub CSharp_Remove_TypeParameterToEffectiveBaseType()
             Dim input =
@@ -1040,7 +1040,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529917)>
         Public Sub CSharp_Remove_NullableTypeToInterfaceTypeInNullComparison()
             Dim input =
@@ -1080,7 +1080,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530745)>
         Public Sub CSharp_DoNotRemove_RequiredExplicitNullableCast1()
             Dim input =
@@ -1120,7 +1120,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(531431)>
         Public Sub CSharp_DoNotRemove_RequiredExplicitNullableCast2()
             Dim input =
@@ -1158,7 +1158,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(531431)>
         Public Sub CSharp_Remove_UnnecessaryExplicitNullableCast()
             Dim input =
@@ -1196,7 +1196,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(531431)>
         Public Sub CSharp_DoNotRemove_RequiredExplicitNullableCast_And_Remove_UnnecessaryExplicitNullableCast()
             Dim input =
@@ -1234,7 +1234,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530248)>
         Public Sub CSharp_DoNotRemove_NecessaryCastInTernaryExpression()
             Dim input =
@@ -1276,7 +1276,7 @@ class Test
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530248)>
         Public Sub CSharp_DoNotRemove_NecessaryCastInTernaryExpression2()
             Dim input =
@@ -1318,7 +1318,7 @@ class Test
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530085)>
         Public Sub CSharp_DoNotRemove_NecessaryCastInTernaryExpression3()
             Dim input =
@@ -1356,7 +1356,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529985)>
         Public Sub CSharp_DoNotRemove_NecessaryCastInMemberAccessExpression()
             Dim input =
@@ -1406,7 +1406,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529956)>
         Public Sub CSharp_DoNotRemove_NecessaryCastInForEachExpression()
             Dim input =
@@ -1462,7 +1462,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529956)>
         Public Sub CSharp_DoNotRemove_NecessaryCastInForEachExpressionInsideLambda()
             Dim input =
@@ -1524,7 +1524,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529844)>
         Public Sub CSharp_DoNotRemove_NecessaryCastInNumericConversion()
             Dim input =
@@ -1574,7 +1574,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(662196)>
         Public Sub CSharp_DoNotRemove_NecessaryCastInDynamicInvocation()
             Dim input =
@@ -1614,7 +1614,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529962)>
         Public Sub CSharp_Remove_UnnecessaryCastInIsExpression()
             Dim input =
@@ -1656,7 +1656,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(662196)>
         Public Sub CSharp_Remove_UnnecessaryCastInAsExpression()
             Dim input =
@@ -1698,7 +1698,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529973)>
         Public Sub CSharp_DoNotRemove_NecessaryCastToDelegateInIsExpression()
             Dim input =
@@ -1736,7 +1736,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529973)>
         Public Sub CSharp_DoNotRemove_NecessaryCastToDelegateInAsExpression()
             Dim input =
@@ -1774,7 +1774,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529968)>
         Public Sub CSharp_DoNotRemove_NecessaryCastForParamsArgument()
             Dim input =
@@ -1832,7 +1832,7 @@ class A
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529968)>
         Public Sub CSharp_Remove_UnnecessaryCastsForParamsArguments()
             Dim input =
@@ -1891,7 +1891,7 @@ class A
         End Sub
 
         <WorkItem(530083)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_InsideThrowStatement()
             Dim input =
 <Workspace>
@@ -1930,7 +1930,7 @@ class C
         End Sub
 
         <WorkItem(530083)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_InsideThrowStatement()
             Dim input =
 <Workspace>
@@ -1970,7 +1970,7 @@ class C
 
         <WorkItem(530083)>
         <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_InsideThrowStatement2()
             ' We can't remove cast from base to derived, as we cannot be sure that the cast will succeed at runtime.
             Dim input =
@@ -2010,7 +2010,7 @@ class C
         End Sub
 
         <WorkItem(529919)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_Remove_DelegateVarianceConversions()
             Dim input =
 <Workspace>
@@ -2054,7 +2054,7 @@ class Program
 
         <WorkItem(529884)>
         <WorkItem(1043494, "DevDiv")>
-        <Fact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_DoNotRemove_ParamDefaultValueNegativeZero()
             Dim input =
 <Workspace>
@@ -2112,7 +2112,7 @@ sealed class C : I
 
         <WorkItem(529884)>
         <WorkItem(1043494, "DevDiv")>
-        <Fact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_DoNotRemove_ParamDefaultValueNegativeZero2()
             Dim input =
 <Workspace>
@@ -2169,7 +2169,7 @@ sealed class C : I
         End Sub
 
         <WorkItem(529884)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_Remove_ParamDefaultValueZero()
             Dim input =
 <Workspace>
@@ -2226,7 +2226,7 @@ sealed class C : I
         End Sub
 
         <WorkItem(529791)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_Remove_UnnecessaryImplicitNullableCast()
             Dim input =
 <Workspace>
@@ -2263,7 +2263,7 @@ class X
         End Sub
 
         <WorkItem(530744)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_Remove_UnnecessaryImplicitEnumerationCast()
             Dim input =
 <Workspace>
@@ -2302,7 +2302,7 @@ class Program
         End Sub
 
         <WorkItem(529831)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_Remove_UnnecessaryInterfaceCast()
             Dim input =
 <Workspace>
@@ -2411,7 +2411,7 @@ static class Program
         End Sub
 
         <WorkItem(529877)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub Csharp_Remove_UnnecessarySealedClassToInterfaceCast()
             Dim input =
 <Workspace>
@@ -2461,7 +2461,7 @@ sealed class D : C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529887)>
         Public Sub Csharp_Remove_UnnecessaryReadOnlyValueTypeToInterfaceCast()
             Dim input =
@@ -2528,7 +2528,7 @@ struct S : IIncrementable
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529888)>
         Public Sub Csharp_Remove_UnnecessaryObjectCreationToInterfaceCast()
             Dim input =
@@ -2583,7 +2583,7 @@ class X : IDisposable
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529912)>
         Public Sub Csharp_Remove_UnnecessaryEffectivelySealedClassToInterfaceCast()
             Dim input =
@@ -2632,7 +2632,7 @@ class C : IDisposable
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529912)>
         Public Sub Csharp_Remove_UnnecessaryEffectivelySealedClassToInterfaceCast2()
             Dim input =
@@ -2701,7 +2701,7 @@ class E: C, IDisposable
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529912)>
         Public Sub Csharp_Remove_UnnecessaryEffectivelySealedClassToInterfaceCast3()
             Dim input =
@@ -2774,7 +2774,7 @@ class E: C, IDisposable
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529913)>
         Public Sub Csharp_Remove_UnnecessaryEffectivelySealedClassToInterface4()
             Dim input =
@@ -2825,7 +2825,7 @@ class A
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529913)>
         Public Sub Csharp_Remove_UnnecessaryEffectivelySealedClassToInterfaceCast5()
             Dim input =
@@ -2896,7 +2896,7 @@ class E: C, IDisposable
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529912)>
         Public Sub Csharp_DoNotRemove_NecessaryClassToInterfaceCast()
             Dim input =
@@ -2965,7 +2965,7 @@ struct D : IDisposable
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529913)>
         Public Sub Csharp_DoNotRemove_NecessaryClassToInterfaceCast2()
             Dim input =
@@ -3036,7 +3036,7 @@ struct D : IDisposable
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529889)>
         Public Sub Csharp_Remove_UnnecessaryCastFromImmutableValueTypeToInterface()
             Dim input =
@@ -3077,7 +3077,7 @@ class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub Csharp_DoNotRemove_NecessaryCastInDelegateCreationExpression()
             ' Note: Removing the cast changes the lambda parameter type and invocation method symbol.
@@ -3124,7 +3124,7 @@ static class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub Csharp_DoNotRemove_NecessaryCastInDelegateCreationExpression2()
             ' Note: Removing the cast changes the lambda parameter type and invocation method symbol.
@@ -3171,7 +3171,7 @@ static class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub Csharp_Remove_UnnecessaryCastInDelegateCreationExpression3()
             ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
@@ -3218,7 +3218,7 @@ static class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub Csharp_Remove_UnnecessaryCastInDelegateCreationExpression4()
             ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
@@ -3265,7 +3265,7 @@ static class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub Csharp_DoNotRemove_NecessaryCastInDelegateCreationExpression5()
             ' Note: Removing the cast changes the lambda parameter type and hence changes the inferred type of lambda local "x".
@@ -3312,7 +3312,7 @@ static class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub Csharp_DoNotRemove_NecessaryCastInDelegateCreationExpression6()
             ' Note: Removing the cast changes the parameter type of lambda parameter "z"
@@ -3360,7 +3360,7 @@ static class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub Csharp_Remove_UnnecessaryCastInDelegateCreationExpression7()
             ' Note: Removing the cast changes the parameter type of lambda parameter "z"
@@ -3408,7 +3408,7 @@ static class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub Csharp_DoNotRemove_NecessaryCastInDelegateCreationExpression8()
             ' Note: Removing the cast changes the parameter type of lambda parameter "y"
@@ -3450,7 +3450,7 @@ static class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub Csharp_DoNotRemove_NecessaryCastInDelegateCreationExpression9()
             ' Note: Removing the cast changes the parameter type of lambda parameter "y"
@@ -3502,7 +3502,7 @@ static class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529982)>
         Public Sub Csharp_Remove_UnnecessaryExplicitCastForLambdaExpression()
             Dim input =
@@ -3541,7 +3541,7 @@ class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835671)>
         Public Sub Csharp_DoNotRemove_NecessaryCastInUnaryExpression()
             Dim input =
@@ -3578,7 +3578,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(838107)>
         Public Sub Csharp_DoNotRemove_NecessaryCastInPointerExpression()
             Dim input =
@@ -3613,7 +3613,7 @@ unsafe class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537)>
         Public Sub Csharp_DoNotRemove_NecessaryExplicitCastInReferenceComparison()
             Dim input =
@@ -3649,7 +3649,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537)>
         Public Sub Csharp_DoNotRemove_NecessaryExplicitCastInReferenceComparison2()
             Dim input =
@@ -3685,7 +3685,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537)>
         Public Sub Csharp_Remove_UnnecessaryExplicitCastInReferenceComparison()
             Dim input =
@@ -3722,7 +3722,7 @@ class Program
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537), WorkItem(902508)>
         Public Sub Csharp_Remove_UnnecessaryExplicitCastInReferenceComparison2()
             Dim input =
@@ -3762,7 +3762,7 @@ public class Class1
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529858)>
         Public Sub Csharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType()
             Dim input =
@@ -3803,7 +3803,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(889341)>
         Public Sub CSharp_DoNotRemove_CastInErroneousCode()
             Dim input =
@@ -3839,7 +3839,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(870550)>
         Public Sub CSharp_Remove_CastThatBreaksParentSyntaxUnlessParenthesized()
             Dim input =
@@ -3883,7 +3883,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529787)>
         Public Sub CSharp_DoNotRemove_RequiredCastInCollectionInitializer()
             Dim input =
@@ -3929,7 +3929,7 @@ class X : List<int>
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(923296)>
         Public Sub CSharp_DoNotRemove_RequiredCastInIfCondition()
             Dim input =
@@ -3989,7 +3989,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(995855)>
         Public Sub CSharp_DoNotRemove_RequiredCastInConditionalExpression()
             Dim input =
@@ -4029,7 +4029,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(995855)>
         Public Sub CSharp_DoNotRemove_RequiredCastInConversion()
             Dim input =
@@ -4067,7 +4067,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(1007371)>
         Public Sub CSharp_Remove_UnnecessaryCastAndParens()
             Dim input =
@@ -4101,7 +4101,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(1067214)>
         Public Sub CSharp_Remove_UnnecessaryCastInExpressionBody_Property()
             Dim input =
@@ -4129,7 +4129,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(1067214)>
         Public Sub CSharp_Remove_UnnecessaryCastInExpressionBody_Method()
             Dim input =
@@ -4157,7 +4157,7 @@ class Program
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(253, "https://github.com/dotnet/roslyn/issues/253")>
         Public Sub CSharp_DoNotRemove_NecessaryCastInConditionAccess()
             Dim input =
@@ -4203,7 +4203,7 @@ class B
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_NecessaryCastInConditionalExpression()
             Dim input =
 <Workspace>
@@ -4257,7 +4257,7 @@ public struct Subject<T>
         End Sub
 
         <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_NecessaryCastFromShortToUShort()
             Dim input =
 <Workspace>
@@ -4291,7 +4291,7 @@ class C
         End Sub
 
         <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_NecessaryCastFromSByteToByte()
             Dim input =
 <Workspace>
@@ -4325,7 +4325,7 @@ class C
         End Sub
 
         <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DoNotRemove_NecessaryCastFromIntToUInt()
             Dim input =
 <Workspace>
@@ -4359,7 +4359,7 @@ class C
         End Sub
 
         <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_UnnecessaryCastFromSByteToShort()
             Dim input =
 <Workspace>
@@ -4393,7 +4393,7 @@ class C
         End Sub
 
         <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_UnnecessaryCastFromByteToUShort()
             Dim input =
 <Workspace>
@@ -4427,7 +4427,7 @@ class C
         End Sub
 
         <WorkItem(4531, "https://github.com/dotnet/roslyn/issues/4531")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Remove_UnnecessaryCastFromUShortToUInt()
             Dim input =
 <Workspace>
@@ -4782,11 +4782,51 @@ class C
             Test(input, expected)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(6490, "https://github.com/dotnet/roslyn/issues/6490")>
+        Public Sub CSharp_DontRemove_NecessaryCastOfLambdaToDelegateWithDynamic()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+using System.Dynamic;
+class C
+{
+    void M() 
+    {
+        dynamic d = new ExpandoObject();
+        d.MyFunc = {|Simplify:(Func<int>)(() => 0)|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+using System.Dynamic;
+class C
+{
+    void M() 
+    {
+        dynamic d = new ExpandoObject();
+        d.MyFunc = (Func<int>)(() => 0);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
 #End Region
 
 #Region "Visual Basic tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemove_IntToObj_Overloads1()
             Dim input =
 <Workspace>
@@ -4824,7 +4864,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemove_IntToLng_Overloads2()
             Dim input =
 <Workspace>
@@ -4862,7 +4902,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_IntToByte()
             Dim input =
 <Workspace>
@@ -4890,7 +4930,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_IntToByteToInferred()
             Dim input =
 <Workspace>
@@ -4919,7 +4959,7 @@ End Class
         End Sub
 
         <WorkItem(530080)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_ForEachExpression()
             ' Cast removal will change the GetEnumerator method being invoked.
 
@@ -4958,7 +4998,7 @@ End Class
         End Sub
 
         <WorkItem(529954)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_InsideCollectionInitializer()
             Dim input =
 <Workspace>
@@ -4991,7 +5031,7 @@ End Class
         End Sub
 
         <WorkItem(530083)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_InsideThrowStatement()
             Dim input =
 <Workspace>
@@ -5024,7 +5064,7 @@ End Class
         End Sub
 
         <WorkItem(530083)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_InsideThrowStatement()
             Dim input =
 <Workspace>
@@ -5058,7 +5098,7 @@ End Class
 
         <WorkItem(530083)>
         <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemove_InsideThrowStatement2()
             ' We can't remove cast from base to derived, as we cannot be sure that the cast will succeed at runtime.
             Dim input =
@@ -5092,7 +5132,7 @@ End Class
         End Sub
 
         <WorkItem(530931)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_InsideLateBoundInvocation()
             Dim input =
 <Workspace>
@@ -5143,7 +5183,7 @@ End Module
         End Sub
 
         <WorkItem(604316)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_RequiredDefaultValueConversionToDate()
             Dim input =
 <Workspace>
@@ -5184,7 +5224,7 @@ End Class
         End Sub
 
         <WorkItem(604316)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_RequiredDefaultValueConversionToNumericType()
             Dim input =
 <Workspace>
@@ -5225,7 +5265,7 @@ End Class
         End Sub
 
         <WorkItem(604316)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_RequiredDefaultValueConversionToBooleanType()
             Dim input =
 <Workspace>
@@ -5268,7 +5308,7 @@ End Class
         End Sub
 
         <WorkItem(604316)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_UnnecessaryDefaultValueConversionToDate()
             Dim input =
 <Workspace>
@@ -5309,7 +5349,7 @@ End Class
         End Sub
 
         <WorkItem(604316)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_UnnecessaryDefaultValueConversionToNumericType()
             Dim input =
 <Workspace>
@@ -5350,7 +5390,7 @@ End Class
         End Sub
 
         <WorkItem(604316)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_UnnecessaryDefaultValueConversionToBooleanType()
             Dim input =
 <Workspace>
@@ -5393,7 +5433,7 @@ End Class
         End Sub
 
         <WorkItem(529956)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInForEachExpression()
             Dim input =
 <Workspace>
@@ -5437,7 +5477,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529968)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastForParamsArgument()
             Dim input =
@@ -5487,7 +5527,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529968)>
         Public Sub VisualBasic_Remove_UnnecessaryCastsForParamsArguments()
             Dim input =
@@ -5537,7 +5577,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529985)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInMemberAccessExpression()
             Dim input =
@@ -5579,7 +5619,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529844)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInNumericConversion()
             Dim input =
@@ -5625,7 +5665,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529851)>
         Public Sub VisualBasic_Remove_TryCast()
             Dim input =
@@ -5670,7 +5710,7 @@ End Module
         End Sub
 
         <WorkItem(529919)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_DelegateVarianceConversions()
             Dim input =
 <Workspace>
@@ -5709,7 +5749,7 @@ End Class
         End Sub
 
         <WorkItem(529884)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_ParamDefaultValueNegativeZero()
             Dim input =
 <Workspace>
@@ -5762,7 +5802,7 @@ End Class
         End Sub
 
         <WorkItem(529884)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_ParamDefaultValueNegativeZero2()
             Dim input =
 <Workspace>
@@ -5815,7 +5855,7 @@ End Class
         End Sub
 
         <WorkItem(529884), WorkItem(529927)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_ParamDefaultValueZero()
             Dim input =
 <Workspace>
@@ -5868,7 +5908,7 @@ End Class
         End Sub
 
         <WorkItem(529791)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_UnnecessaryImplicitNullableCast()
             Dim input =
 <Workspace>
@@ -5901,7 +5941,7 @@ End Class
         End Sub
 
         <WorkItem(529963)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInQueryForCollectionRangeVariable()
             Dim input =
 <Workspace>
@@ -5948,7 +5988,7 @@ End Module
         End Sub
 
         <WorkItem(530072)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInQueryForSelectMethod()
             Dim input =
 <Workspace>
@@ -6001,7 +6041,7 @@ End Class
         End Sub
 
         <WorkItem(529831)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_UnnecessaryInterfaceCast()
             Dim input =
 <Workspace>
@@ -6138,7 +6178,7 @@ End Class
         End Sub
 
         <WorkItem(529877)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_Remove_UnnecessarySealedClassToInterfaceCast()
             Dim input =
 <Workspace>
@@ -6188,7 +6228,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529887)>
         Public Sub VisualBasic_Remove_UnnecessaryReadOnlyValueTypeToInterfaceCast()
             Dim input =
@@ -6271,7 +6311,7 @@ End Structure
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529888)>
         Public Sub VisualBasic_Remove_UnnecessaryObjectCreationToInterfaceCast()
             Dim input =
@@ -6327,7 +6367,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529912)>
         Public Sub VisualBasic_Remove_UnnecessaryEffectivelySealedClassToInterfaceCast()
             Dim input =
@@ -6378,7 +6418,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529912)>
         Public Sub VisualBasic_Remove_UnnecessaryEffectivelySealedClassToInterfaceCast2()
             Dim input =
@@ -6455,7 +6495,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529912)>
         Public Sub VisualBasic_Remove_UnnecessaryEffectivelySealedClassToInterfaceCast3()
             Dim input =
@@ -6538,7 +6578,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529913)>
         Public Sub VisualBasic_Remove_UnnecessaryEffectivelySealedClassToInterface4()
             Dim input =
@@ -6587,7 +6627,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529913)>
         Public Sub VisualBasic_Remove_UnnecessaryEffectivelySealedClassToInterfaceCast5()
             Dim input =
@@ -6662,7 +6702,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529912)>
         Public Sub VisualBasic_DoNotRemove_NecessaryClassToInterfaceCast()
             Dim input =
@@ -6739,7 +6779,7 @@ End Structure
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529913)>
         Public Sub VisualBasic_DoNotRemove_NecessaryClassToInterfaceCast2()
             Dim input =
@@ -6810,7 +6850,7 @@ End Structure
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529889)>
         Public Sub VisualBasic_Remove_UnnecessaryCastFromImmutableValueTypeToInterface()
             Dim input =
@@ -6847,7 +6887,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529927)>
         Public Sub VisualBasic_Remove_UnnecessaryCastFromImplementingClassToInterface()
             Dim input =
@@ -6892,7 +6932,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInDelegateCreationExpression()
             ' Note: Removing the cast changes the lambda parameter type and invocation method symbol.
@@ -6951,7 +6991,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInDelegateCreationExpression2()
             ' Note: Removing the cast changes the lambda parameter type and invocation method symbol.
@@ -7014,7 +7054,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub VisualBasic_Remove_UnnecessaryCastInDelegateCreationExpression3()
             ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
@@ -7073,7 +7113,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub VisualBasic_Remove_UnnecessaryCastInDelegateCreationExpression4()
             ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
@@ -7136,7 +7176,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInDelegateCreationExpression5()
             ' Note: Removing the cast changes the lambda parameter type and hence changes the inferred type of lambda local "x".
@@ -7201,7 +7241,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInDelegateCreationExpression6()
             ' Note: Removing the cast changes the parameter type of lambda parameter "z"
@@ -7265,7 +7305,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub VisualBasic_Remove_UnnecessaryCastInDelegateCreationExpression7()
             ' Note: Removing the cast changes the parameter type of lambda parameter "z"
@@ -7331,7 +7371,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub VisualBasic_Remove_UnnecessaryCastInDelegateCreationExpression8()
             ' Note: Removing the cast changes the parameter type of lambda parameter "y"
@@ -7375,7 +7415,7 @@ End Module
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInDelegateCreationExpression9()
             ' Note: Removing the cast changes the parameter type of lambda parameter "y"
@@ -7445,7 +7485,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529982)>
         Public Sub VisualBasic_Remove_UnnecessaryExplicitCastForLambdaExpression_DirectCast()
             Dim input =
@@ -7486,7 +7526,7 @@ End Module
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529982)>
         Public Sub VisualBasic_Remove_UnnecessaryExplicitCastForLambdaExpression_TryCast()
             Dim input =
@@ -7527,7 +7567,7 @@ End Module
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(680657)>
         Public Sub VisualBasic_Remove_UnnecessaryCastWithinAsNewExpression()
             Dim input =
@@ -7568,7 +7608,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835671)>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInUnaryExpression()
             Dim input =
@@ -7601,7 +7641,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(889341)>
         Public Sub VisualBasic_DoNotRemove_CastInErroneousCode()
             Dim input =
@@ -7633,7 +7673,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529787)>
         Public Sub VisualBasic_DoNotRemove_RequiredCastInCollectionInitializer()
             Dim input =
@@ -7685,9 +7725,9 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(995855)>
-        Public Sub VisualBasic_Remove_UnnecessaryCastInTernaryExpression()
+        Public Sub VisualBasic_DontRemove_NecessaryCastInTernaryExpression1()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -7696,7 +7736,75 @@ Class C
     Private Shared Sub Main(args As String())
         Dim s As Byte = 0
         Dim i As Integer = 0
-        s += If(i = 0, {|Simplify:CByte(0)|}, {|Simplify:CByte(0)|})
+        s += If(i = 0, CByte(0), {|Simplify:CByte(0)|})
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, CByte(0), CByte(0))
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(995855)>
+        Public Sub VisualBasic_DontRemove_NecessaryCastInTernaryExpression2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, {|Simplify:CByte(0)|}, CByte(0))
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, CByte(0), CByte(0))
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(995855)>
+        Public Sub VisualBasic_Remove_UnnecessaryCastInTernaryExpression1()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, 0, {|Simplify:CByte(0)|})
     End Sub
 End Class
 ]]>
@@ -7719,7 +7827,41 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(995855)>
+        Public Sub VisualBasic_Remove_UnnecessaryCastInTernaryExpression2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, {|Simplify:CByte(0)|}, 0)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, 0, 0)
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(1031406)>
         Public Sub VisualBasic_DoNotRemove_NecessaryTryCast()
             Dim input =
@@ -7751,7 +7893,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(253, "https://github.com/dotnet/roslyn/issues/253")>
         Public Sub VisualBasic_DoNotRemove_NecessaryCastInConditionAccess()
             Dim input =
@@ -8201,6 +8343,165 @@ Class C
     End Sub
 End Class
 ]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_Remove_IntegerToByte_OptionStrictOff()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict Off
+Class C
+    Sub M()
+        Dim b As Byte
+        b += {|Simplify:CByte(1)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict Off
+Class C
+    Sub M()
+        Dim b As Byte
+        b += 1
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemove_IntegerToByte_OptionStrictOn1()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        b += {|Simplify:CByte(1)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        b += CByte(1)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemove_IntegerToByte_OptionStrictOn2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        Const x = 1
+        b += {|Simplify:CByte(x)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        Const x = 1
+        b += CByte(x)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemove_IntegerToByte_OptionStrictOn3()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        Dim x As Integer = 1
+        b += {|Simplify:CByte(x)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        Dim x As Integer = 1
+        b += CByte(x)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemove_IntegerToByte_OptionStrictOn4()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        b = b + {|Simplify:CByte(1)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        b = b + CByte(1)
+    End Sub
+End Class
 </code>
 
             Test(input, expected)

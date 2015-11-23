@@ -3,7 +3,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
-    <Import Project="..\Shared\TestUtilities.projitems" Label="Shared" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -41,6 +40,41 @@
       <Name>CompilerTestResources</Name>
     </ProjectReference>
   </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' ">
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Any CPU' ">
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <NoWarn>1591</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <NoWarn>1591</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -56,6 +90,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.PerformanceTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Semantic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Symbol.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Syntax.UnitTests" />
@@ -64,6 +99,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.PerformanceTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Symbol.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Syntax.UnitTests" />
@@ -75,15 +111,16 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />  
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">

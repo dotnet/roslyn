@@ -852,8 +852,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
             }
 
+            var name = node.Identifier.ValueText;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(lookupResult, node.Identifier.ValueText, arity: arity, useSiteDiagnostics: ref useSiteDiagnostics, options: options);
+            this.LookupSymbolsWithFallback(lookupResult, name, arity: arity, useSiteDiagnostics: ref useSiteDiagnostics, options: options);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if (lookupResult.Kind != LookupResultKind.Empty)
@@ -862,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError = false;
                 bool wasError;
                 var members = ArrayBuilder<Symbol>.GetInstance();
-                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, node.Identifier.ValueText, node.Arity, members, diagnostics, out wasError);  // reports diagnostics in result.
+                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out wasError);  // reports diagnostics in result.
 
                 isError |= wasError;
 
@@ -876,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArgumentList,
                         typeArguments.IsDefault ? default(ImmutableArray<TypeSymbol>) : typeArguments.SelectAsArray(TypeMap.AsTypeSymbol),
                         receiver,
-                        node.Identifier.ValueText,
+                        name,
                         members,
                         lookupResult,
                         receiver != null ? BoundMethodGroupFlags.HasImplicitReceiver : BoundMethodGroupFlags.None,
@@ -919,15 +920,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (IsJoinRangeVariableInLeftKey(node))
                 {
-                    Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, node.Identifier.ValueText);
+                    Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, name);
                 }
                 else if (IsInJoinRightKey(node))
                 {
-                    Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, node.Identifier.ValueText);
+                    Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, name);
                 }
                 else
                 {
-                    Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, node.Identifier.ValueText);
+                    Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, name);
                 }
             }
 
@@ -4753,7 +4754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArguments.IsDefault ? default(ImmutableArray<TypeSymbol>) : typeArguments.SelectAsArray(TypeMap.AsTypeSymbol),
                         boundLeft,
                         rightName,
-                        ImmutableArray<MethodSymbol>.Empty,
+                        lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
                         lookupResult,
                         flags);
                 }

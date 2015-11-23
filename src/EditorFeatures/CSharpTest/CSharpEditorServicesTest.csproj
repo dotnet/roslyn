@@ -5,10 +5,8 @@
   </ImportGroup>
   <PropertyGroup>
     <StartupObject />
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.VisualStudio.Composition, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -186,7 +184,9 @@
     <Compile Include="CodeActions\Preview\PreviewExceptionTests.cs" />
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
+    <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
     <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
+    <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.cs" />
     <Compile Include="CommentSelection\CSharpCommentSelectionTests.cs" />
     <Compile Include="Completion\CompletionProviders\AbstractCSharpCompletionProviderTests.cs" />
@@ -210,6 +210,7 @@
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
     <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
     <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
+    <Compile Include="CSharpGoToAdjacentMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_ExtensionMethods.cs" />
@@ -352,135 +353,6 @@
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoSourceTests.cs" />
-    <Compile Include="Recommendations\AbstractKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AddKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AliasKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AscendingKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AsKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AssemblyKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AsyncKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AwaitKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\BaseKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\BoolKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\BreakKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ByKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ByteKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\CaseKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\CatchKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\CharKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\CheckedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ChecksumKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ClassKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ConstKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ContinueKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DecimalKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DefaultKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DefineKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DelegateKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DescendingKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DisableKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DoKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DoubleKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DynamicKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ElifKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ElseKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EndIfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EndRegionKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EnumKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EqualsKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ErrorKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EventKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ExplicitKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ExternKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FalseKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FieldKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FinallyKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FixedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FloatKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ForEachKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ForKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FromKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\GetKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\GlobalKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\GotoKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\GroupKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\HiddenKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\IfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ImplicitKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\InKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\InterfaceKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\InternalKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\IntKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\IntoKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\IsKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\JoinKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\KeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\LetKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\LineKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\LockKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\LongKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\MethodKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ModuleKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\NamespaceKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\NewKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\NullKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ObjectKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OnKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OperatorKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OrderByKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OutKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OverrideKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ParamKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ParamsKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PartialKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PragmaKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PrivateKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PropertyKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ProtectedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PublicKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ReadOnlyKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RecommenderTests.cs" />
-    <Compile Include="Recommendations\ReferenceKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RefKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RegionKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RemoveKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RestoreKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ReturnKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SByteKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SealedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SelectKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SetKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ShortKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SizeOfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\StackAllocKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\StaticKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\StringKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\StructKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SwitchKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ThisKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ThrowKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TrueKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TryKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TypeKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\NameOfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TypeOfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TypeVarKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UIntKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ULongKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UncheckedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UndefKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UnsafeKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UShortKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UsingKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\VarKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\VirtualKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\VoidKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\VolatileKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\WarningKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\WhenKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\WhereKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\WhileKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\YieldKeywordRecommenderTests.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTests.cs" />
     <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProviderTests.cs" />
     <Compile Include="SignatureHelp\AttributeSignatureHelpProviderTests.cs" />
@@ -652,6 +524,9 @@
     <Content Include="PerfTests\Sources\CSharpVenusPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

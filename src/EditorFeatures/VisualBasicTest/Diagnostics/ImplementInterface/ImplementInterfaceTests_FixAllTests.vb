@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Implem
     Partial Public Class ImplementInterfaceTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInDocument()
@@ -122,7 +122,7 @@ End Class]]>
             Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInProject()
@@ -245,7 +245,7 @@ End Class]]>
             Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInSolution()
@@ -376,7 +376,7 @@ End Class]]>
             Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInSolution_DifferentAssemblyWithSameTypeName()

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             return CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestCurlies()
         {
             TestBraceHighlighting("public class C$$ {\r\n} ");
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             TestBraceHighlighting("public class C [|{|]\r\n[|}|]$$ ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestTouchingItems()
         {
             TestBraceHighlighting("public class C $$[|{|]\r\n  public void Foo(){}\r\n[|}|] ");
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             TestBraceHighlighting("public class C {\r\n  public void Foo()[|{|][|}|]$$\r\n} ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestAngles()
         {
             TestBraceHighlighting("/// $$<summary>Foo</summary>");
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             TestBraceHighlighting("class C { void Foo() { bool a = b < c; bool d = e >$$ f; } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestSwitch()
         {
             TestBraceHighlighting(@"
@@ -172,7 +172,7 @@ class C
 } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
         public void TestEOF()
         {
             TestBraceHighlighting("public class C [|{|]\r\n[|}|]$$");

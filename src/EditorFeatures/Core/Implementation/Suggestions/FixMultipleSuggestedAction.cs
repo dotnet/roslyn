@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -24,10 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal FixMultipleSuggestedAction(
             Workspace workspace,
             ICodeActionEditHandlerService editHandler,
+            IWaitIndicator waitIndicator,
             FixMultipleCodeAction codeAction,
             FixAllProvider provider,
             ITextBuffer subjectBufferOpt = null)
-            : base(workspace, subjectBufferOpt, editHandler, codeAction, provider, originalFixedDiagnostic: codeAction.GetTriggerDiagnostic())
+            : base(workspace, subjectBufferOpt, editHandler, waitIndicator, codeAction, provider, originalFixedDiagnostic: codeAction.GetTriggerDiagnostic())
         {
             _triggerDocumentOpt = codeAction.FixAllContext.Document;
 
@@ -70,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
             extensionManager.PerformAction(Provider, () =>
             {
-                newSolution = CodeAction.GetChangedSolutionInternalAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                // We don't need to post process changes here as the inner code action created for Fix multiple code fix already executes.
+                newSolution = CodeAction.GetChangedSolutionInternalAsync(postProcessChanges: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             });
 
             return newSolution;
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 else
                 {
                     Func<Document> getDocument = () => _triggerDocumentOpt;
-                    base.InvokeCore(getDocument, cancellationToken);
+                    InvokeCore(getDocument, cancellationToken);
                 }
             }
         }

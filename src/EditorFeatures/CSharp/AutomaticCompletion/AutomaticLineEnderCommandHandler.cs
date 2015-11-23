@@ -41,6 +41,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             editorOperation.InsertNewLine();
         }
 
+        protected override bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken)
+        {
+            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+            var endToken = root.FindToken(position);
+            if (endToken.IsMissing)
+            {
+                return false;
+            }
+
+            var tokenToLeft = root.FindTokenOnLeftOfPosition(position);
+            var startToken = endToken.GetPreviousToken();
+
+            // case 1:
+            //      Consider code like so: try {|}
+            //      With auto brace completion on, user types `{` and `Return` in a hurry.
+            //      During typing, it is possible that shift was still down and not released after typing `{`.
+            //      So we've got an unintentional `shift + enter` and also we have nothing to complete this, 
+            //      so we put in a newline,
+            //      which generates code like so : try { } 
+            //                                     |
+            //      which is not useful as : try {
+            //                                  |
+            //                               }
+            //      To support this, we treat `shift + enter` like `enter` here.
+            var afterOpenBrace = startToken.Kind() == SyntaxKind.OpenBraceToken
+                              && endToken.Kind() == SyntaxKind.CloseBraceToken
+                              && tokenToLeft == startToken
+                              && endToken.Parent.IsKind(SyntaxKind.Block)
+                              && FormattingRangeHelper.AreTwoTokensOnSameLine(startToken, endToken);
+
+            return afterOpenBrace;
+        }
+
         protected override void FormatAndApply(Document document, int position, CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);

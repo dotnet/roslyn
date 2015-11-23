@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable 436 // The type 'RelativePathResolver' comflicts with imported type
+#pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -67,13 +68,18 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         private int RunInteractiveCore(ErrorLogger errorLogger)
         {
-            Debug.Assert(_compiler.Arguments.IsInteractive);
+            Debug.Assert(_compiler.Arguments.IsScriptRunner);
 
             var sourceFiles = _compiler.Arguments.SourceFiles;
 
             if (sourceFiles.IsEmpty && _compiler.Arguments.DisplayLogo)
             {
                 _compiler.PrintLogo(_console.Out);
+
+                if (!_compiler.Arguments.DisplayHelp)
+                {
+                    _console.Out.WriteLine(ScriptingResources.HelpPrompt);
+                }
             }
 
             if (_compiler.Arguments.DisplayHelp)
@@ -83,48 +89,63 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             SourceText code = null;
-            IEnumerable<Diagnostic> errors = _compiler.Arguments.Errors;
+
+            var diagnosticsInfos = new List<DiagnosticInfo>();
+
             if (!sourceFiles.IsEmpty)
             {
                 if (sourceFiles.Length > 1 || !sourceFiles[0].IsScript)
                 {
-                    errors = errors.Concat(new[] { Diagnostic.Create(_compiler.MessageProvider, _compiler.MessageProvider.ERR_ExpectedSingleScript) });
+                    diagnosticsInfos.Add(new DiagnosticInfo(_compiler.MessageProvider, _compiler.MessageProvider.ERR_ExpectedSingleScript));
                 }
                 else
                 {
-                    var diagnostics = new List<DiagnosticInfo>();
-                    code = _compiler.ReadFileContent(sourceFiles[0], diagnostics);
-                    errors = errors.Concat(diagnostics.Select(Diagnostic.Create));
+                    code = _compiler.ReadFileContent(sourceFiles[0], diagnosticsInfos);
                 }
             }
 
+            var scriptPathOpt = sourceFiles.IsEmpty ? null : sourceFiles[0].Path;
+            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos);
+
+            var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
             if (_compiler.ReportErrors(errors, _console.Out, errorLogger))
             {
                 return CommonCompiler.Failed;
             }
 
             var cancellationToken = new CancellationToken();
-            
-            var scriptOptions = GetScriptOptions(_compiler.Arguments);
 
-            if (sourceFiles.IsEmpty)
+            if (_compiler.Arguments.InteractiveMode)
             {
-                RunInteractiveLoop(scriptOptions, cancellationToken);
+                RunInteractiveLoop(scriptOptions, code?.ToString(), cancellationToken);
                 return CommonCompiler.Succeeded;
             }
             else
             {
-                return RunScript(scriptOptions, code.ToString(), sourceFiles[0].Path, errorLogger, cancellationToken);
+                return RunScript(scriptOptions, code.ToString(), errorLogger, cancellationToken);
             }
         }
 
-        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments)
+        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics)
         {
-            // TODO: reference paths, usings from arguments (https://github.com/dotnet/roslyn/issues/5277)
-            // TODO: auto -add facades
-            return ScriptOptions.Default.
-                AddReferences("System", "System.Core", "System.Runtime", "System.IO.FileSystem", "System.IO.FileSystem.Primitives", "System.Collections").
-                AddNamespaces("System", "System.IO", "System.Threading.Tasks", "System.Linq");
+            var touchedFilesLoggerOpt = (arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
+
+            var metadataResolver = GetMetadataReferenceResolver(arguments, touchedFilesLoggerOpt);
+            var sourceResolver = GetSourceReferenceResolver(arguments, touchedFilesLoggerOpt);
+
+            var resolvedReferences = new List<MetadataReference>();
+            if (!arguments.ResolveMetadataReferences(metadataResolver, diagnostics, messageProvider, resolvedReferences))
+            {
+                // can't resolve some references
+                return null;
+            }
+
+            return new ScriptOptions(
+                filePath: scriptPathOpt ?? "", 
+                references: ImmutableArray.CreateRange(resolvedReferences),
+                namespaces: CommandLineHelpers.GetImports(arguments),
+                metadataResolver: metadataResolver,
+                sourceResolver: sourceResolver);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
@@ -136,23 +157,24 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
-                    return MetadataReference.CreateFromFile(path);
+                    return MetadataReference.CreateFromFile(path, properties);
                 });
         }
 
-        private int RunScript(ScriptOptions options, string code, string scriptPath, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
+        {
+            return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, ImmutableArray<KeyValuePair<string, string>>.Empty, loggerOpt);
+        }
+
+        private int RunScript(ScriptOptions options, string code, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            options = options.WithPath(scriptPath).WithIsInteractive(false);
-            var script = Script.CreateInitialScript<object>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
+            var script = Script.CreateInitialScript<int>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
-                script.RunAsync(globals, cancellationToken).Wait();
-
-                // TODO: use the return value of the script https://github.com/dotnet/roslyn/issues/5773
-                return CommonCompiler.Succeeded;
+                return script.RunAsync(globals, cancellationToken).Result.ReturnValue;
             }
             catch (CompilationErrorException e)
             {
@@ -161,12 +183,18 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private void RunInteractiveLoop(ScriptOptions options, CancellationToken cancellationToken)
+        private void RunInteractiveLoop(ScriptOptions options, string initialScriptCodeOpt, CancellationToken cancellationToken)
         {
             var globals = new InteractiveScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            ScriptState <object> state = null;
+            ScriptState<object> state = null;
+
+            if (initialScriptCodeOpt != null)
+            {
+                var script = Script.CreateInitialScript<object>(_scriptCompiler, initialScriptCodeOpt, options, globals.GetType(), assemblyLoaderOpt: null);
+                TryBuildAndRun(script, globals, ref state, ref options, cancellationToken);
+            }
 
             while (true)
             {
@@ -207,6 +235,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 string code = input.ToString();
 
+                if (IsHelpCommand(code))
+                {
+                    DisplayHelpText();
+                    continue;
+                }
+
                 Script<object> newScript;
                 if (state == null)
                 {
@@ -217,54 +251,78 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     newScript = state.Script.ContinueWith(code, options);
                 }
 
-                var newCompilation = newScript.GetCompilation();
-
-                try
+                if (!TryBuildAndRun(newScript, globals, ref state, ref options, cancellationToken))
                 {
-                    newScript.Build(cancellationToken);
-
-                    // display warnings:
-                    DisplayDiagnostics(newCompilation.GetDiagnostics(cancellationToken).Where(d => d.Severity == DiagnosticSeverity.Warning));
-                }
-                catch (CompilationErrorException e)
-                {
-                    DisplayDiagnostics(e.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning));
                     continue;
                 }
 
-                try
+                if (newScript.HasReturnValue())
                 {
-                    var task = (state == null) ?
-                        newScript.RunAsync(globals, cancellationToken) :
-                        newScript.ContinueAsync(state, cancellationToken);
-
-                    state = task.GetAwaiter().GetResult();
-                }
-                catch (Exception e)
-                {
-                    DisplayException(e);
-                    continue;
-                }
-
-                bool hasValue;
-                ITypeSymbol resultType = newCompilation.GetSubmissionResultType(out hasValue);
-                if (hasValue)
-                {
-                    if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
-                    {
-                        _console.Out.WriteLine(_objectFormatter.VoidDisplayString);
-                    }
-                    else
-                    {
-                        globals.Print(state.ReturnValue);
-                    }
+                    globals.Print(state.ReturnValue);
                 }
             }
         }
 
+        private bool TryBuildAndRun(Script<object> newScript, InteractiveScriptGlobals globals, ref ScriptState<object> state, ref ScriptOptions options, CancellationToken cancellationToken)
+        {
+            var diagnostics = newScript.Compile(cancellationToken);
+            DisplayDiagnostics(diagnostics);
+            if (diagnostics.HasAnyErrors())
+            {
+                return false;
+            }
+
+            try
+            {
+                var task = (state == null) ?
+                    newScript.RunAsync(globals, cancellationToken) :
+                    newScript.ContinueAsync(state, cancellationToken);
+
+                state = task.GetAwaiter().GetResult();
+            }
+            catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+            {
+                _console.ForegroundColor = ConsoleColor.Red;
+                _console.Out.WriteLine(e.InnerException.Message);
+                _console.ResetColor();
+
+                return false;
+            }
+            catch (Exception e)
+            {
+                DisplayException(e);
+                return false;
+            }
+
+            options = UpdateOptions(options, globals);
+
+            return true;
+        }
+
+        private static ScriptOptions UpdateOptions(ScriptOptions options, InteractiveScriptGlobals globals)
+        {
+            var currentMetadataResolver = (RuntimeMetadataReferenceResolver)options.MetadataResolver;
+            var currentSourceResolver = (CommonCompiler.LoggingSourceFileResolver)options.SourceResolver;
+
+            string newWorkingDirectory = Directory.GetCurrentDirectory();
+            var newReferenceSearchPaths = ImmutableArray.CreateRange(globals.ReferencePaths);
+            var newSourceSearchPaths = ImmutableArray.CreateRange(globals.SourcePaths);
+
+            // remove references and imports from the options, they have been applied and will be inherited from now on:
+            return options.
+                RemoveImportsAndReferences().
+                WithMetadataResolver(currentMetadataResolver.
+                    WithRelativePathResolver(
+                        currentMetadataResolver.PathResolver.
+                            WithBaseDirectory(newWorkingDirectory).
+                            WithSearchPaths(newReferenceSearchPaths))).
+                WithSourceResolver(currentSourceResolver.
+                        WithBaseDirectory(newWorkingDirectory).
+                        WithSearchPaths(newSourceSearchPaths));
+        }
+
         private void DisplayException(Exception e)
         {
-            var oldColor = _console.ForegroundColor;
             try
             {
                 _console.ForegroundColor = ConsoleColor.Red;
@@ -309,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             finally
             {
-                _console.ForegroundColor = oldColor;
+                _console.ResetColor();
             }
         }
 
@@ -329,6 +387,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return false;
         }
 
+        private static bool IsHelpCommand(string text)
+        {
+            const string helpCommand = "#help";
+            Debug.Assert(text != null);
+            return text.Trim() == helpCommand;
+        }
+
+        private void DisplayHelpText()
+        {
+            _console.Out.Write(ScriptingResources.HelpText);
+            _console.Out.WriteLine();
+        }
+
         private void DisplayDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
             const int MaxDisplayCount = 5;
@@ -342,7 +413,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return (delta != 0) ? delta : d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start;
             });
 
-            var oldColor = _console.ForegroundColor;
             try
             {
                 foreach (var diagnostic in ordered.Take(MaxDisplayCount))
@@ -360,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             finally
             {
-                _console.ForegroundColor = oldColor;
+                _console.ResetColor();
             }
         }
     }

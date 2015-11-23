@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
                 End Function
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestPragmaWarningDirective()
                     Dim source = <![CDATA[
 Imports System
@@ -96,7 +96,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestMultilineStatementPragmaWarningDirective1()
                     Dim source = <![CDATA[
 Imports System
@@ -135,7 +135,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestMultilineStatementPragmaWarningDirective2()
                     Dim source = <![CDATA[
 Imports System
@@ -180,7 +180,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestMultilineStatementPragmaWarningDirective3()
                     Dim source = <![CDATA[
 Imports System
@@ -225,7 +225,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestMultilineStatementPragmaWarningDirective4()
                     Dim source = <![CDATA[
 Imports System
@@ -264,7 +264,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestMultilineStatementPragmaWarningDirective5()
                     Dim source = <![CDATA[
 Imports System
@@ -303,7 +303,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestMultilineStatementPragmaWarningDirective6()
                     Dim source = <![CDATA[
 Imports System
@@ -345,7 +345,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestMultilineStatementPragmaWarningDirective7()
                     Dim source = <![CDATA[
 Imports System
@@ -387,7 +387,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestPragmaWarningDirectiveWithExistingTrivia()
                     Dim source = <![CDATA[
 Imports System
@@ -429,7 +429,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(970129)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionAroundSingleToken()
                     Dim source = <![CDATA[
 Imports System
@@ -477,7 +477,7 @@ End Module]]>
                 End Sub
 
                 <WorkItem(1066576)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestPragmaWarningDirectiveAroundTrivia1()
                     Dim source = <![CDATA[
 Class C
@@ -523,7 +523,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(1066576)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestPragmaWarningDirectiveAroundTrivia2()
                     Dim source = <![CDATA['''[|<summary></summary>|]]]>
                     Dim expected = <![CDATA[#Disable Warning BC42312
@@ -534,7 +534,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(1066576)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestPragmaWarningDirectiveAroundTrivia3()
                     Dim source = <![CDATA[   '''[|<summary></summary>|]   ]]>
                     Dim expected = <![CDATA[#Disable Warning BC42312
@@ -545,7 +545,7 @@ End Class]]>
                 End Sub
 
                 <WorkItem(1066576)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestPragmaWarningDirectiveAroundTrivia4()
                     Dim source = <![CDATA[
 
@@ -566,7 +566,7 @@ Class C : End Class
                 End Sub
 
                 <WorkItem(1066576)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestPragmaWarningDirectiveAroundTrivia5()
                     Dim source = <![CDATA[class C1 : End Class
 '''<summary><see [|cref="abc"|]/></summary>
@@ -583,7 +583,7 @@ Class C3 : End Class]]>
                 End Sub
 
                 <WorkItem(1066576)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestPragmaWarningDirectiveAroundTrivia6()
                     Dim source = <![CDATA[class C1 : End Class
 Class C2 : End Class [|'''|]
@@ -605,7 +605,7 @@ Class C3 : End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestHiddenDiagnosticCannotBeSuppressed()
                     Dim source = <![CDATA[
 Imports System
@@ -648,9 +648,11 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
+                
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestInfoDiagnosticSuppressed()
+
                     Dim source = <![CDATA[
 Imports System
 
@@ -720,9 +722,11 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
+                
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestDiagnosticWithBadIdSuppressed()
+
                     ' Diagnostics with bad/invalid ID are not reported.
                     Dim source = <![CDATA[
 Imports System
@@ -764,7 +768,7 @@ End Class]]>
                 End Function
 
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestWarningDiagnosticWithNameMatchingKeywordSuppressed()
                     Dim source = <![CDATA[
 Imports System
@@ -827,7 +831,7 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestErrorDiagnosticCanBeSuppressed()
                     Dim source = <![CDATA[
 Imports System
@@ -882,9 +886,11 @@ End Class]]>
                     Return Tuple.Create(Of DiagnosticAnalyzer, ISuppressionFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
+                
                 <WorkItem(730770)>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestCompilerDiagnosticsCannotBeSuppressed()
+
                     Dim source = <![CDATA[
 Class Class1
     Sub Method()
@@ -902,7 +908,7 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestHiddenDiagnosticsCannotBeSuppressed()
                     Dim source = <![CDATA[
 Imports System
@@ -972,7 +978,7 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, ISuppressionFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnSimpleType()
                     Dim source = <![CDATA[
 Imports System
@@ -1007,7 +1013,7 @@ End Class"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnNamespace()
                     Dim source = <![CDATA[
 Imports System
@@ -1047,7 +1053,7 @@ End Namespace"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnTypeInsideNamespace()
                     Dim source = <![CDATA[
 Imports System
@@ -1091,7 +1097,7 @@ End Namespace"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnNestedType()
                     Dim source = <![CDATA[
 Imports System
@@ -1135,7 +1141,7 @@ End Namespace"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnMethod()
                     Dim source = <![CDATA[
 Imports System
@@ -1179,7 +1185,7 @@ End Namespace"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnOverloadedMethod()
                     Dim source = <![CDATA[
 Imports System
@@ -1231,7 +1237,7 @@ End Namespace"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnGenericMethod()
                     Dim source = <![CDATA[
 Imports System
@@ -1283,7 +1289,7 @@ End Namespace"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnProperty()
                     Dim source = <![CDATA[
 Imports System
@@ -1331,7 +1337,7 @@ End Namespace"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnField()
                     Dim source = <![CDATA[
 Imports System
@@ -1363,7 +1369,7 @@ End Class"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionOnEvent()
                     Dim source = <![CDATA[
 Imports System
@@ -1443,7 +1449,7 @@ End Class"
                     TestMissing(fixedSource)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionWithExistingGlobalSuppressionsDocument()
                     Dim source =
                     <Workspace>
@@ -1476,13 +1482,13 @@ End Class]]>
 ' a specific target and scoped to a namespace, type, member, etc.
 
 <Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
                     Test(source.ToString(), expected)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionWithExistingGlobalSuppressionsDocument2()
                     ' Own custom file named GlobalSuppressions.cs
                     Dim source =
@@ -1512,13 +1518,13 @@ End Class
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
                     Test(source.ToString(), expected)
                 End Sub
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Sub TestSuppressionWithExistingGlobalSuppressionsDocument3()
                     ' Own custom file named GlobalSuppressions.vb + existing GlobalSuppressions2.vb with global suppressions
                     Dim source =
@@ -1558,7 +1564,7 @@ End Class
 ' a specific target and scoped to a namespace, type, member, etc.
 
 <Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
 "
 
                     Test(source.ToString(), expected)

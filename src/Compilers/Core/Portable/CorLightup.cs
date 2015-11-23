@@ -49,6 +49,18 @@ namespace Roslyn.Utilities
                 }
             }
 
+            private static class _RuntimeEnvironment
+            {
+                internal static readonly Type TypeOpt = ReflectionUtilities.TryGetType("System.Runtime.InteropServices.RuntimeEnvironment, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+
+                internal static readonly Func<string> GetRuntimeDirectoryOpt = TypeOpt?
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("GetRuntimeDirectory", SpecializedCollections.EmptyArray<Type>())?
+                    .CreateDelegate<Func<string>>();
+            }
+
+            internal static string TryGetRuntimeDirectory() => _RuntimeEnvironment.GetRuntimeDirectoryOpt?.Invoke();
+
             private static class _Assembly
             {
                 internal static readonly Type Type = typeof(Assembly);
@@ -72,6 +84,16 @@ namespace Roslyn.Utilities
                     .GetTypeInfo()
                     .GetDeclaredMethod("get_GlobalAssemblyCache")
                     .CreateDelegate<Func<Assembly, bool>>();
+            }
+
+            private static class _Module
+            {
+                internal static readonly Type Type = typeof(Module);
+
+                internal static readonly Func<Module, Guid> get_ModuleVersionId = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("get_ModuleVersionId")
+                    .CreateDelegate<Func<Module, Guid>>();
             }
 
             private static class _ResolveEventArgs
@@ -133,6 +155,11 @@ namespace Roslyn.Utilities
                 }
 
                 return _Assembly.get_Location(assembly);
+            }
+
+            internal static Guid GetModuleVersionId(Module module)
+            {
+                return _Module.get_ModuleVersionId(module);
             }
 
             internal static bool IsAssemblyFromGlobalAssemblyCache(Assembly assembly)

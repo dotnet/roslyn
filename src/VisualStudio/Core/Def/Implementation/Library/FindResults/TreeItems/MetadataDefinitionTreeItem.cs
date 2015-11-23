@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             if (symbol != null && referencingProject != null)
             {
                 var navigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-                return navigationService.TryNavigateToSymbol(symbol, referencingProject, CancellationToken.None)
+                return navigationService.TryNavigateToSymbol(symbol, referencingProject, cancellationToken: CancellationToken.None)
                     ? VSConstants.S_OK
                     : VSConstants.E_FAIL;
             }
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 
         private ISymbol ResolveSymbolInCurrentSolution()
         {
-            return _symbolKey.Resolve(_workspace.CurrentSolution.GetCompilationAsync(_referencingProjectId, CancellationToken.None).Result).Symbol;
+            return _symbolKey.Resolve(_workspace.CurrentSolution.GetProject(_referencingProjectId).GetCompilationAsync(CancellationToken.None).Result).Symbol;
         }
 
         internal override void SetReferenceCount(int referenceCount)

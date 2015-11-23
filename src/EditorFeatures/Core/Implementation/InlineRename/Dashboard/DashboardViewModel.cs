@@ -3,19 +3,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class DashboardViewModel : INotifyPropertyChanged, IDisposable
     {
-        private const int SymbolDescriptionTextLength = 15;
         private readonly Visibility _renameOverloadsVisibility;
 
         private DashboardSeverity _severity = DashboardSeverity.None;
@@ -87,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _errorText = string.IsNullOrEmpty(session.ReplacementText)
                     ? null
-                    : string.Format(EditorFeaturesResources.IsNotAValidIdentifier, GetTruncatedName(session.ReplacementText));
+                    : EditorFeaturesResources.TheNewNameIsNotAValidIdentifier;
             }
 
             UpdateSeverity();
@@ -106,11 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void NotifyPropertyChanged([CallerMemberName] string name = null)
         {
-            var handler = this.PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(name));
-            }
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
         private void AllPropertiesChanged()
@@ -167,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             get
             {
-                return string.Format(EditorFeaturesResources.Rename1, GetTruncatedName(Session.OriginalSymbolName));
+                return string.Format(EditorFeaturesResources.Rename1, Session.OriginalSymbolName);
             }
         }
 
@@ -175,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             get
             {
-                return string.Format(EditorFeaturesResources.NewName1, GetTruncatedName(Session.ReplacementText));
+                return string.Format(EditorFeaturesResources.NewName1, Session.ReplacementText);
             }
         }
 
@@ -193,14 +186,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 return !ShouldShowInstructions;
             }
-        }
-
-
-        private static string GetTruncatedName(string fullName)
-        {
-            return fullName.Length < SymbolDescriptionTextLength
-                ? fullName
-                : fullName.Substring(0, SymbolDescriptionTextLength) + "...";
         }
 
         public string SearchText

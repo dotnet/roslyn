@@ -10201,7 +10201,7 @@ class Test
         }
 
         [WorkItem(528183, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void TestExternWithoutDLLImport()
         {
             string source = @"
@@ -14696,6 +14696,135 @@ class Program
   IL_0034:  ret
 }
 ");
+        }
+
+        [WorkItem(5880, "https://github.com/dotnet/roslyn/issues/5880")]
+        [Fact]
+        public void StuctCtorArgTernary()
+        {
+            string source = @"
+   using System.Collections.Generic;
+   using System;
+
+   class Program
+    {
+        struct TextSpan
+        {
+            private int start;
+            private int length;
+
+            public int Start => start;
+            public int End => start + length;
+            public int Length => length;
+
+            public TextSpan(int start, int length)
+            {
+                this.start = start;
+                this.length = length;
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            int length = 123;
+            int start = 5;
+
+            var list = new List<TextSpan>(10);
+            list.Add(new TextSpan(0, 10));
+            list.Add(new TextSpan(0, 10));
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var span = list[i];
+                if (span.End < start)
+                {
+                    continue;
+                }
+
+                var newStart = Math.Min(Math.Max(span.Start + 10, 0), length);
+                var newSpan = new TextSpan(newStart, newStart >= length ? 0 : span.Length);
+
+                list[i] = newSpan;
+            }
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size      135 (0x87)
+  .maxstack  4
+  .locals init (int V_0, //length
+                int V_1, //start
+                System.Collections.Generic.List<Program.TextSpan> V_2, //list
+                int V_3, //i
+                Program.TextSpan V_4, //span
+                int V_5, //newStart
+                Program.TextSpan V_6) //newSpan
+  IL_0000:  ldc.i4.s   123
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.5
+  IL_0004:  stloc.1
+  IL_0005:  ldc.i4.s   10
+  IL_0007:  newobj     ""System.Collections.Generic.List<Program.TextSpan>..ctor(int)""
+  IL_000c:  stloc.2
+  IL_000d:  ldloc.2
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.s   10
+  IL_0011:  newobj     ""Program.TextSpan..ctor(int, int)""
+  IL_0016:  callvirt   ""void System.Collections.Generic.List<Program.TextSpan>.Add(Program.TextSpan)""
+  IL_001b:  ldloc.2
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldc.i4.s   10
+  IL_001f:  newobj     ""Program.TextSpan..ctor(int, int)""
+  IL_0024:  callvirt   ""void System.Collections.Generic.List<Program.TextSpan>.Add(Program.TextSpan)""
+  IL_0029:  ldc.i4.0
+  IL_002a:  stloc.3
+  IL_002b:  br.s       IL_007d
+  IL_002d:  ldloc.2
+  IL_002e:  ldloc.3
+  IL_002f:  callvirt   ""Program.TextSpan System.Collections.Generic.List<Program.TextSpan>.this[int].get""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloca.s   V_4
+  IL_0038:  call       ""int Program.TextSpan.End.get""
+  IL_003d:  ldloc.1
+  IL_003e:  blt.s      IL_0079
+  IL_0040:  ldloca.s   V_4
+  IL_0042:  call       ""int Program.TextSpan.Start.get""
+  IL_0047:  ldc.i4.s   10
+  IL_0049:  add
+  IL_004a:  ldc.i4.0
+  IL_004b:  call       ""int System.Math.Max(int, int)""
+  IL_0050:  ldloc.0
+  IL_0051:  call       ""int System.Math.Min(int, int)""
+  IL_0056:  stloc.s    V_5
+  IL_0058:  ldloca.s   V_6
+  IL_005a:  ldloc.s    V_5
+  IL_005c:  ldloc.s    V_5
+  IL_005e:  ldloc.0
+  IL_005f:  bge.s      IL_006a
+  IL_0061:  ldloca.s   V_4
+  IL_0063:  call       ""int Program.TextSpan.Length.get""
+  IL_0068:  br.s       IL_006b
+  IL_006a:  ldc.i4.0
+  IL_006b:  call       ""Program.TextSpan..ctor(int, int)""
+  IL_0070:  ldloc.2
+  IL_0071:  ldloc.3
+  IL_0072:  ldloc.s    V_6
+  IL_0074:  callvirt   ""void System.Collections.Generic.List<Program.TextSpan>.this[int].set""
+  IL_0079:  ldloc.3
+  IL_007a:  ldc.i4.1
+  IL_007b:  add
+  IL_007c:  stloc.3
+  IL_007d:  ldloc.3
+  IL_007e:  ldloc.2
+  IL_007f:  callvirt   ""int System.Collections.Generic.List<Program.TextSpan>.Count.get""
+  IL_0084:  blt.s      IL_002d
+  IL_0086:  ret
+}");
         }
 
     }

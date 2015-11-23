@@ -4,6 +4,8 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -52,6 +54,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static Symbol GetOverriddenMember(Symbol substitutedOverridingMember, Symbol overriddenByDefinitionMember)
+        {
+            Debug.Assert(!substitutedOverridingMember.IsDefinition);
+
+            if ((object)overriddenByDefinitionMember != null)
+            {
+                NamedTypeSymbol overriddenByDefinitionContaining = overriddenByDefinitionMember.ContainingType;
+                NamedTypeSymbol overriddenByDefinitionContainingTypeDefinition = overriddenByDefinitionContaining.OriginalDefinition;
+                for (NamedTypeSymbol baseType = substitutedOverridingMember.ContainingType.BaseTypeNoUseSiteDiagnostics; 
+                    (object)baseType != null; 
+                    baseType = baseType.BaseTypeNoUseSiteDiagnostics)
+                {
+                    if (baseType.OriginalDefinition == overriddenByDefinitionContainingTypeDefinition)
+                    {
+                        if (baseType == overriddenByDefinitionContaining)
+                        {
+                            return overriddenByDefinitionMember;
+                        }
+
+                        return overriddenByDefinitionMember.OriginalDefinition.SymbolAsMember(baseType);
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// It is not suitable to call this method on a <see cref="OverriddenOrHiddenMembersResult"/> object
+        /// associated with a member within substituted type, <see cref="GetOverriddenMember(Symbol, Symbol)"/>
+        /// should be used instead.
+        /// </summary>
         internal Symbol GetOverriddenMember()
         {
             foreach (var overriddenMember in _overriddenMembers)

@@ -177,30 +177,30 @@ Next
         Public Sub ChainingAnonymousTypeTemplates()
             Dim references = LatestVbReferences
 
-            Dim s0 = VisualBasicCompilation.CreateSubmission("s0.dll",
+            Dim s0 = VisualBasicCompilation.CreateScriptCompilation("s0.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                      "Dim x = New With {.a = 1}", options:=TestOptions.Interactive),
+                                                      "Dim x = New With {.a = 1}", options:=TestOptions.Script),
                                                   references:=references,
                                                   returnType:=GetType(Object))
 
-            Dim s__ = VisualBasicCompilation.CreateSubmission("s__.dll",
+            Dim s__ = VisualBasicCompilation.CreateScriptCompilation("s__.dll",
                                                    syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                       "Dim y = New With {.b = 1}", options:=TestOptions.Interactive),
-                                                   previousSubmission:=s0,
+                                                       "Dim y = New With {.b = 1}", options:=TestOptions.Script),
+                                                   previousScriptCompilation:=s0,
                                                    references:=references,
                                                    returnType:=GetType(Object))
 
-            Dim s1 = VisualBasicCompilation.CreateSubmission("s1.dll",
+            Dim s1 = VisualBasicCompilation.CreateScriptCompilation("s1.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                      "Dim y = New With {.a = New With {.b = 1} }", options:=TestOptions.Interactive),
-                                                  previousSubmission:=s0,
+                                                      "Dim y = New With {.a = New With {.b = 1} }", options:=TestOptions.Script),
+                                                  previousScriptCompilation:=s0,
                                                   references:=references,
                                                   returnType:=GetType(Object))
 
-            Dim s2 = VisualBasicCompilation.CreateSubmission("s2.dll",
+            Dim s2 = VisualBasicCompilation.CreateScriptCompilation("s2.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                      "? x.GetType() Is y.GetType()", options:=TestOptions.Interactive),
-                                                  previousSubmission:=s1,
+                                                      "? x.GetType() Is y.GetType()", options:=TestOptions.Script),
+                                                  previousScriptCompilation:=s1,
                                                   references:=references,
                                                   returnType:=GetType(Object))
 
@@ -256,7 +256,7 @@ Next
         Public Sub LabelLookup()
             Const source = "Imports System : 1"
             Dim tree = Parse(source, options:=TestOptions.Script)
-            Dim submission = VisualBasicCompilation.CreateSubmission("sub1", tree, {MscorlibRef})
+            Dim submission = VisualBasicCompilation.CreateScriptCompilation("sub1", tree, {MscorlibRef})
             Dim model = submission.GetSemanticModel(tree)
             Assert.Empty(model.LookupLabels(source.Length - 1))
         End Sub
@@ -264,7 +264,7 @@ Next
         <WorkItem(3795, "https:'github.com/dotnet/roslyn/issues/3795")>
         <Fact>
         Public Sub ErrorInUsing()
-            Dim submission = VisualBasicCompilation.CreateSubmission("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})
+            Dim submission = VisualBasicCompilation.CreateScriptCompilation("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})
 
             Dim expectedErrors = <errors><![CDATA[
 BC40056: Namespace or type specified in the Imports 'Unknown' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
@@ -345,14 +345,14 @@ System.Console.Write("complete")
         End Sub
 
         <Fact>
-        Public Sub InteractiveEntryPoint()
-            Dim parseOptions = TestOptions.Interactive
+        Public Sub SubmissionEntryPoint()
+            Dim parseOptions = TestOptions.Script
             Dim references = {MscorlibRef_v4_0_30316_17626, SystemCoreRef, MsvbRef}
             Dim source0 = <![CDATA[
 System.Threading.Tasks.Task.Delay(100)
 System.Console.Write("complete")
 ]]>
-            Dim s0 = VisualBasicCompilation.CreateSubmission(
+            Dim s0 = VisualBasicCompilation.CreateScriptCompilation(
                 "s0.dll",
                 syntaxTree:=Parse(source0.Value, parseOptions),
                 references:=references)
@@ -396,6 +396,20 @@ System.Console.Write("complete")
   IL_0006:  callvirt   ""Function Script.<Initialize>() As System.Threading.Tasks.Task(Of Object)""
   IL_000b:  ret
 }")
+        End Sub
+
+        <Fact>
+        Public Sub ScriptEntryPoint_MissingMethods()
+            Dim comp = CreateCompilationWithMscorlib(
+                <compilation>
+                    <file name="a.vbx"><![CDATA[
+System.Console.WriteLine(1)
+]]></file>
+                </compilation>,
+                parseOptions:=TestOptions.Script,
+                options:=TestOptions.DebugExe)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper).WithArguments("Task.GetAwaiter").WithLocation(1, 1))
         End Sub
 
     End Class

@@ -56,7 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static readonly SymbolDisplayFormat s_fullNameFormat =
+        private static readonly SymbolDisplayFormat s_externalNameFormat =
+            new SymbolDisplayFormat(
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
+        private static readonly SymbolDisplayFormat s_externalFullNameFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
@@ -412,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         /// </summary>
         /// <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
         /// <param name="includeSelf">If true, the container is returned as well.</param>
-        /// <param name="recursive">If true, members are recursed to return descendent members as well
+        /// <param name="recursive">If true, members are recursed to return descendant members as well
         /// as immediate children. For example, a namespace would return the namespaces and types within.
         /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
         /// also be returned.</param>
@@ -816,7 +820,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return ((EventDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
                         ((EventDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.Parameter:
-                    return ((ParameterSyntax)node).Identifier.ToString();
+                    return GetParameterName(node);
                 case SyntaxKind.NamespaceDeclaration:
                     return ((NamespaceDeclarationSyntax)node).Name.ToString();
                 case SyntaxKind.OperatorDeclaration:
@@ -943,17 +947,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 ? semanticModel.GetTypeInfo(node).Type
                 : semanticModel.GetDeclaredSymbol(node);
 
-            return GetFullName(symbol);
-        }
-
-        public override string GetFullName(ISymbol symbol)
-        {
-            if (symbol == null)
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
-            return symbol.ToDisplayString(s_fullNameFormat);
+            return GetExternalSymbolFullName(symbol);
         }
 
         public override string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel)
@@ -978,6 +972,46 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             return name;
+        }
+
+        public override bool IsValidExternalSymbol(ISymbol symbol)
+        {
+            var methodSymbol = symbol as IMethodSymbol;
+            if (methodSymbol != null)
+            {
+                if (methodSymbol.MethodKind == MethodKind.PropertyGet ||
+                    methodSymbol.MethodKind == MethodKind.PropertySet ||
+                    methodSymbol.MethodKind == MethodKind.EventAdd ||
+                    methodSymbol.MethodKind == MethodKind.EventRemove ||
+                    methodSymbol.MethodKind == MethodKind.EventRaise)
+                {
+                    return false;
+                }
+            }
+
+            return symbol.DeclaredAccessibility == Accessibility.Public
+                || symbol.DeclaredAccessibility == Accessibility.Protected
+                || symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
+        }
+
+        public override string GetExternalSymbolName(ISymbol symbol)
+        {
+            if (symbol == null)
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
+            return symbol.ToDisplayString(s_externalNameFormat);
+        }
+
+        public override string GetExternalSymbolFullName(ISymbol symbol)
+        {
+            if (symbol == null)
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
+            return symbol.ToDisplayString(s_externalFullNameFormat);
         }
 
         public override EnvDTE.vsCMAccess GetAccess(ISymbol symbol)

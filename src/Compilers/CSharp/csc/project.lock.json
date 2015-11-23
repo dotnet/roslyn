@@ -3,7 +3,7 @@
   "version": 1,
   "targets": {
     ".NETFramework,Version=v4.5": {
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
+      "Microsoft.DiaSymReader.Native/1.3.3": {},
       "System.Collections/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -78,7 +78,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00015": {
+      "System.Reflection.Metadata/1.1.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -96,10 +96,175 @@
           "System.Threading": "[4.0.0, )"
         },
         "compile": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "System.Reflection.Primitives/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Resources.ResourceManager/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime.InteropServices/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Text.Encoding/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Text.Encoding.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Threading/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.5/ubuntu.14.04": {
+      "Microsoft.DiaSymReader.Native/1.3.3": {},
+      "System.Collections/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.37": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.Globalization": "[4.0.0, )",
+          "System.Linq": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Diagnostics.Debug/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Globalization/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.IO/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Linq/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.1.0": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Collections.Immutable": "[1.1.37, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Text.Encoding.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.0": {
@@ -168,7 +333,7 @@
       }
     },
     ".NETFramework,Version=v4.5/ubuntu.14.04-anycpu": {
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
+      "Microsoft.DiaSymReader.Native/1.3.3": {},
       "System.Collections/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -243,7 +408,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00015": {
+      "System.Reflection.Metadata/1.1.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -261,10 +426,175 @@
           "System.Threading": "[4.0.0, )"
         },
         "compile": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "System.Reflection.Primitives/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Resources.ResourceManager/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime.InteropServices/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Text.Encoding/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Text.Encoding.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Threading/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.5/win7": {
+      "Microsoft.DiaSymReader.Native/1.3.3": {},
+      "System.Collections/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.37": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.Globalization": "[4.0.0, )",
+          "System.Linq": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Diagnostics.Debug/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Globalization/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.IO/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Linq/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.1.0": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Collections.Immutable": "[1.1.37, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Text.Encoding.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.0": {
@@ -333,7 +663,7 @@
       }
     },
     ".NETFramework,Version=v4.5/win7-anycpu": {
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
+      "Microsoft.DiaSymReader.Native/1.3.3": {},
       "System.Collections/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -408,7 +738,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00015": {
+      "System.Reflection.Metadata/1.1.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -426,10 +756,10 @@
           "System.Threading": "[4.0.0, )"
         },
         "compile": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.0": {
@@ -499,14 +829,15 @@
     }
   },
   "libraries": {
-    "Microsoft.DiaSymReader.Native/1.2.0-rc": {
-      "sha512": "dSk3ln9b2MMOFnXVB47HVbdjl3r7EcikC2qTCmVrfGDJiMyLt2F3kumxICbRTuQhEGNvPnVH9p9lWKIQlNjd+w==",
+    "Microsoft.DiaSymReader.Native/1.3.3": {
+      "sha512": "mjATkm+L2UlP35gO/ExNutLDfgX4iiwz1l/8sYVoeGHp5WnkEDu0NfIEsC4Oy/pCYeRw0/6SGB+kArJVNNvENQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
+        "build/Microsoft.DiaSymReader.Native.props",
         "Microsoft.DiaSymReader.Native.nuspec",
-        "package/services/metadata/core-properties/9e1fb86d21eb4b64b48d73be0a3ac9f7.psmdcp",
+        "package/services/metadata/core-properties/fdc58d35421849398d4c224d791a4bc4.psmdcp",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll",
@@ -841,17 +1172,17 @@
         "System.Reflection.Extensions.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.1.0-alpha-00015": {
-      "sha512": "80TohRwPpEugHMssnSC1lGL9RdgTkB8AaZ4F3VqTao+Gm1JKh/aPCKj1h+XNWlQcKgR/ITrxv1zi+S5OPCTylg==",
+    "System.Reflection.Metadata/1.1.0": {
+      "sha512": "a8VsRm/B0Ik1o5FumSMWmpwbG7cvIIajAYhzTTy9VB9XItByJDQHGZkQTIAdsvVJ6MI5O3uH/lb0izgQDlDIWA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "lib/dotnet/System.Reflection.Metadata.dll",
-        "lib/dotnet/System.Reflection.Metadata.xml",
+        "lib/dotnet5.2/System.Reflection.Metadata.dll",
+        "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/7861ec343fe44de4be93046f2fd089b0.psmdcp",
+        "package/services/metadata/core-properties/644d6c945e3d43e2806bf6892201a6ef.psmdcp",
         "System.Reflection.Metadata.nuspec"
       ]
     },
@@ -1217,7 +1548,9 @@
     }
   },
   "projectFileDependencyGroups": {
-    "": [],
+    "": [
+      "Microsoft.DiaSymReader.Native >= 1.3.3"
+    ],
     ".NETFramework,Version=v4.5": []
   }
 }

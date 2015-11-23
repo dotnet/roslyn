@@ -234,6 +234,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t create a metadata reference to an assembly without location..
+        /// </summary>
+        internal static string CantCreateReferenceToAssemblyWithoutLocation {
+            get {
+                return ResourceManager.GetString("CantCreateReferenceToAssemblyWithoutLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t create a metadata reference to a dynamic assembly..
         /// </summary>
         internal static string CantCreateReferenceToDynamicAssembly {
@@ -366,6 +375,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string DuplicateAnalyzerInstances {
             get {
                 return ResourceManager.GetString("DuplicateAnalyzerInstances", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A key in the pathMap is empty..
+        /// </summary>
+        internal static string EmptyKeyInPathMap {
+            get {
+                return ResourceManager.GetString("EmptyKeyInPathMap", resourceCulture);
             }
         }
         
@@ -703,6 +721,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A key in the pathMap ends with a path separator..
+        /// </summary>
+        internal static string KeyInPathMapEndsWithSeparator {
+            get {
+                return ResourceManager.GetString("KeyInPathMapEndsWithSeparator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string Method {
@@ -834,6 +861,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string NotWritableException {
             get {
                 return ResourceManager.GetString("NotWritableException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A value in the pathMap is null..
+        /// </summary>
+        internal static string NullValueInPathMap {
+            get {
+                return ResourceManager.GetString("NullValueInPathMap", resourceCulture);
             }
         }
         

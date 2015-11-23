@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// we create an instance of this async tagger provider for each diagnostic source
         /// we hear about for a particular buffer.  Each async tagger is then responsible
         /// for asynchronous producing tags for that diagnostic source.  This allows each 
-        /// individual async tagger to collect diagnostics, diff them against hte last set
+        /// individual async tagger to collect diagnostics, diff them against the last set
         /// produced by that diagnostic source, and then notify any interested parties about
         /// what changed.
         /// </summary>
@@ -137,12 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     _latestSourceText = sourceText;
                     _latestEditorSnapshot = editorSnapshot;
                 }
-
-                var changed = this.Changed;
-                if (changed != null)
-                {
-                    changed(this, new TaggerEventArgs(TaggerDelay.Medium));
-                }
+                this.Changed?.Invoke(this, new TaggerEventArgs(TaggerDelay.Medium));
             }
         }
     }

@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return Function(syntaxTree, expr) TreeNodePair.Create(syntaxTree, digger(expr))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestXmlDocument1()
             Dim actualRegion = GetXmlExpressionRegion({"<?xml version=""1.0""?>",
                                                       "<foo>",
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestXmlDocument2()
             Dim actualRegion = GetXmlExpressionRegion({"<?xml version=""1.0""?><foo>",
                                                       "</foo>"})
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestXmlLiteral()
             Dim actualRegion = GetXmlExpressionRegion({"<foo>",
                                                       "</foo>"})
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestNestedXmlLiteral()
             Dim digger = GetXmlExpressionDigger(Function(expr)
                                                     Dim xmlElement = DirectCast(expr, XmlElementSyntax)
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestXmlProcessingInstruction()
             Dim actualRegion = GetXmlExpressionRegion({"<?foo",
                                                        "bar=""baz""?>"})
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestXmlComment()
             Dim actualRegion = GetXmlExpressionRegion({"<!-- Foo",
                                                        "Bar -->"})
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestXmlCData()
             Dim actualRegion = GetXmlExpressionRegion({"<![CDATA[",
                                                        "Foo]]>"})
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestXmlEmbeddedExpression()
             Dim digger = GetXmlExpressionDigger(Function(expr As XmlNodeSyntax) As XmlNodeSyntax
                                                     Dim xmlElement = DirectCast(expr, XmlElementSyntax)
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestDocumentationCommentIsNotOutlined()
             Dim syntaxTree = ParseLines("''' <summary>",
                                   "''' Foo",

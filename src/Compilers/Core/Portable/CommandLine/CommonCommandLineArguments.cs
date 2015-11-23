@@ -21,7 +21,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class CommandLineArguments
     {
-        internal bool IsInteractive { get; set; }
+        internal bool IsScriptRunner { get; set; }
+
+        /// <summary>
+        /// Drop to an interactive loop. If a script is specified in <see cref="SourceFiles"/> executes the script first.
+        /// </summary>
+        public bool InteractiveMode { get; internal set; }
 
         /// <summary>
         /// Directory used to resolve relative paths stored in the arguments.
@@ -33,11 +38,27 @@ namespace Microsoft.CodeAnalysis
         /// command line were resolved against.
         /// </remarks>
         public string BaseDirectory { get; internal set; }
+        
+        /// <summary>
+        /// A list of pairs of paths. This stores the value of the command-line compiler
+        /// option /pathMap:X1=Y1;X2=Y2... which causes a prefix of X1 followed by a path
+        /// separator to be replaced by Y1 followed by a path separator, and so on for each following pair.
+        /// </summary>
+        /// <remarks>
+        /// This option is used to help get build-to-build determinism even when the build
+        /// directory is different from one build to the next.  The prefix matching is case sensitive.
+        /// </remarks>
+        public ImmutableArray<KeyValuePair<string, string>> PathMap { get; internal set; }
 
         /// <summary>
         /// Sequence of absolute paths used to search for references.
         /// </summary>
         public ImmutableArray<string> ReferencePaths { get; internal set; }
+
+        /// <summary>
+        /// Sequence of absolute paths used to search for sources specified as #load directives.
+        /// </summary>
+        public ImmutableArray<string> SourcePaths { get; internal set; }
 
         /// <summary>
         /// Sequence of absolute paths used to search for key files.
@@ -171,7 +192,7 @@ namespace Microsoft.CodeAnalysis
         public SourceHashAlgorithm ChecksumAlgorithm { get; internal set; }
 
         /// <summary>
-        /// Arguments following script argument separator "--" or null if <see cref="IsInteractive"/> is false.
+        /// Arguments following a script file or separator "--". Null if the command line parser is not interactive.
         /// </summary>
         public ImmutableArray<string> ScriptArguments { get; internal set; }
 

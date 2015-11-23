@@ -3,7 +3,7 @@
   "version": 1,
   "targets": {
     ".NETFramework,Version=v4.5.2": {
-      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.1.0-beta1-20150824-02": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
         "compile": {
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         },
@@ -35,7 +35,7 @@
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         }
       },
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
+      "Microsoft.DiaSymReader.Native/1.3.3": {},
       "System.Collections/4.0.0": {
         "compile": {
           "ref/net45/_._": {}
@@ -110,7 +110,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00015": {
+      "System.Reflection.Metadata/1.1.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -128,10 +128,10 @@
           "System.Threading": "[4.0.0, )"
         },
         "compile": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.0": {
@@ -198,37 +198,317 @@
           "lib/net45/_._": {}
         }
       },
-      "xunit/1.9.2": {
-        "compile": {
-          "lib/net20/xunit.dll": {}
-        },
-        "runtime": {
-          "lib/net20/xunit.dll": {}
+      "xunit/2.1.0": {
+        "dependencies": {
+          "xunit.assert": "[2.1.0, 2.1.0]",
+          "xunit.core": "[2.1.0, 2.1.0]"
         }
       },
-      "xunit.extensions/1.9.2": {
-        "dependencies": {
-          "xunit": "[1.9.2, 1.9.2]"
-        },
+      "xunit.abstractions/2.0.0": {
         "compile": {
-          "lib/net20/xunit.extensions.dll": {}
+          "lib/net35/xunit.abstractions.dll": {}
         },
         "runtime": {
-          "lib/net20/xunit.extensions.dll": {}
+          "lib/net35/xunit.abstractions.dll": {}
         }
-      }
+      },
+      "xunit.assert/2.1.0": {
+        "compile": {
+          "lib/dotnet/xunit.assert.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/xunit.assert.dll": {}
+        }
+      },
+      "xunit.core/2.1.0": {
+        "dependencies": {
+          "xunit.extensibility.core": "[2.1.0, 2.1.0]",
+          "xunit.extensibility.execution": "[2.1.0, 2.1.0]"
+        }
+      },
+      "xunit.extensibility.core/2.1.0": {
+        "dependencies": {
+          "xunit.abstractions": "[2.0.0, 2.0.0]"
+        },
+        "compile": {
+          "lib/dotnet/xunit.core.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/xunit.core.dll": {}
+        }
+      },
+      "xunit.extensibility.execution/2.1.0": {
+        "dependencies": {
+          "xunit.extensibility.core": "[2.1.0, 2.1.0]"
+        },
+        "compile": {
+          "lib/net45/xunit.execution.desktop.dll": {}
+        },
+        "runtime": {
+          "lib/net45/xunit.execution.desktop.dll": {}
+        }
+      },
+      "xunit.runner.console/2.1.0": {}
+    },
+    ".NETFramework,Version=v4.5.2/win7": {
+      "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+        "compile": {
+          "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
+        }
+      },
+      "Microsoft.Composition/1.0.27": {
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.AttributedModel.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Convention.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Hosting.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.Runtime.dll": {},
+          "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
+        }
+      },
+      "Microsoft.DiaSymReader/1.0.6": {
+        "compile": {
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
+        },
+        "runtime": {
+          "lib/net20/Microsoft.DiaSymReader.dll": {}
+        }
+      },
+      "Microsoft.DiaSymReader.Native/1.3.3": {},
+      "System.Collections/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.37": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.Globalization": "[4.0.0, )",
+          "System.Linq": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Diagnostics.Debug/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Globalization/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.IO/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Linq/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.1.0": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Collections.Immutable": "[1.1.37, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Text.Encoding.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "System.Reflection.Primitives/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Resources.ResourceManager/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime.InteropServices/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Text.Encoding/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Text.Encoding.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Threading/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "xunit/2.1.0": {
+        "dependencies": {
+          "xunit.assert": "[2.1.0, 2.1.0]",
+          "xunit.core": "[2.1.0, 2.1.0]"
+        }
+      },
+      "xunit.abstractions/2.0.0": {
+        "compile": {
+          "lib/net35/xunit.abstractions.dll": {}
+        },
+        "runtime": {
+          "lib/net35/xunit.abstractions.dll": {}
+        }
+      },
+      "xunit.assert/2.1.0": {
+        "compile": {
+          "lib/dotnet/xunit.assert.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/xunit.assert.dll": {}
+        }
+      },
+      "xunit.core/2.1.0": {
+        "dependencies": {
+          "xunit.extensibility.core": "[2.1.0, 2.1.0]",
+          "xunit.extensibility.execution": "[2.1.0, 2.1.0]"
+        }
+      },
+      "xunit.extensibility.core/2.1.0": {
+        "dependencies": {
+          "xunit.abstractions": "[2.0.0, 2.0.0]"
+        },
+        "compile": {
+          "lib/dotnet/xunit.core.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/xunit.core.dll": {}
+        }
+      },
+      "xunit.extensibility.execution/2.1.0": {
+        "dependencies": {
+          "xunit.extensibility.core": "[2.1.0, 2.1.0]"
+        },
+        "compile": {
+          "lib/net45/xunit.execution.desktop.dll": {}
+        },
+        "runtime": {
+          "lib/net45/xunit.execution.desktop.dll": {}
+        }
+      },
+      "xunit.runner.console/2.1.0": {}
     }
   },
   "libraries": {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.1.0-beta1-20150824-02": {
-      "sha512": "mQa72JIzSdIC7wOcW8vl1izgZ+GSeTRrYYpbPKPvrX/PeygTd4SRxord7PL+fTb1q3YjlwMBSqgJsDXVa99fUA==",
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary/1.2.0-beta-20151016-11": {
+      "sha512": "zsE8FvVez0iaoyWutVewackGkJsJXjavomMMdme5NZTXS2/5aG6gdLuaFvGeslq/XMsh4CqIgdvMOOFr5TmpFQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll",
         "Microsoft.CodeAnalysis.Test.Resources.Proprietary.nuspec",
-        "package/services/metadata/core-properties/58b0e57bbbed434fb2c05b7ef3a926cc.psmdcp"
+        "package/services/metadata/core-properties/f64bfc9a6f91426492917a4c8a1b955e.psmdcp"
       ]
     },
     "Microsoft.Composition/1.0.27": {
@@ -266,14 +546,15 @@
         "package/services/metadata/core-properties/ead7dc5d4bf24fbe8708f348725a9b02.psmdcp"
       ]
     },
-    "Microsoft.DiaSymReader.Native/1.2.0-rc": {
-      "sha512": "dSk3ln9b2MMOFnXVB47HVbdjl3r7EcikC2qTCmVrfGDJiMyLt2F3kumxICbRTuQhEGNvPnVH9p9lWKIQlNjd+w==",
+    "Microsoft.DiaSymReader.Native/1.3.3": {
+      "sha512": "mjATkm+L2UlP35gO/ExNutLDfgX4iiwz1l/8sYVoeGHp5WnkEDu0NfIEsC4Oy/pCYeRw0/6SGB+kArJVNNvENQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
+        "build/Microsoft.DiaSymReader.Native.props",
         "Microsoft.DiaSymReader.Native.nuspec",
-        "package/services/metadata/core-properties/9e1fb86d21eb4b64b48d73be0a3ac9f7.psmdcp",
+        "package/services/metadata/core-properties/fdc58d35421849398d4c224d791a4bc4.psmdcp",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll",
@@ -608,17 +889,17 @@
         "System.Reflection.Extensions.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.1.0-alpha-00015": {
-      "sha512": "80TohRwPpEugHMssnSC1lGL9RdgTkB8AaZ4F3VqTao+Gm1JKh/aPCKj1h+XNWlQcKgR/ITrxv1zi+S5OPCTylg==",
+    "System.Reflection.Metadata/1.1.0": {
+      "sha512": "a8VsRm/B0Ik1o5FumSMWmpwbG7cvIIajAYhzTTy9VB9XItByJDQHGZkQTIAdsvVJ6MI5O3uH/lb0izgQDlDIWA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "lib/dotnet/System.Reflection.Metadata.dll",
-        "lib/dotnet/System.Reflection.Metadata.xml",
+        "lib/dotnet5.2/System.Reflection.Metadata.dll",
+        "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/7861ec343fe44de4be93046f2fd089b0.psmdcp",
+        "package/services/metadata/core-properties/644d6c945e3d43e2806bf6892201a6ef.psmdcp",
         "System.Reflection.Metadata.nuspec"
       ]
     },
@@ -982,38 +1263,153 @@
         "System.Threading.nuspec"
       ]
     },
-    "xunit/1.9.2": {
-      "sha512": "c1wppJtYPUGPHVP9U1wjmfii4553MuQSXkAt8rudkXW+eUFJxOOfDvhBJ6S0YHHDMFEJwiMN770AT4Lno8EBpw==",
+    "xunit/2.1.0": {
+      "sha512": "u/7VQSOSXa7kSG4iK6Lcn7RqKZQ3hk7cnyMNVMpXHSP0RI5VQEtc44hvkG3LyWOVsx1dhUDD3rPAHAxyOUDQJw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "lib/net20/xunit.dll",
-        "lib/net20/xunit.dll.tdnet",
-        "lib/net20/xunit.runner.msbuild.dll",
-        "lib/net20/xunit.runner.tdnet.dll",
-        "lib/net20/xunit.runner.utility.dll",
-        "lib/net20/xunit.xml",
-        "package/services/metadata/core-properties/cb77589bcde944baab7b67d60ca583c7.psmdcp",
+        "package/services/metadata/core-properties/645916a897f44189a642f33e571d5b90.psmdcp",
         "xunit.nuspec"
       ]
     },
-    "xunit.extensions/1.9.2": {
-      "sha512": "DJqVmnziilQrW47PW9QMVyrc5hUlIiI3+2cHoAG6pE/bb/dr+IAewUD+rgIUZqwVcMmB+1KfPLHm7TLUB6dtJQ==",
+    "xunit.abstractions/2.0.0": {
+      "sha512": "NAdxKQRzuLnCZ0g++x6i87/8rMBpQoRiRlRNLAqfODm2zJPbteHRoSER3DXfxnqrHXyBJT8rFaZ8uveBeQyaMA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "lib/net20/xunit.extensions.dll",
-        "lib/net20/xunit.extensions.xml",
-        "package/services/metadata/core-properties/61bd1c5b04844965915b4c071be67794.psmdcp",
-        "xunit.extensions.nuspec"
+        "lib/net35/xunit.abstractions.dll",
+        "lib/net35/xunit.abstractions.xml",
+        "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.dll",
+        "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.xml",
+        "package/services/metadata/core-properties/24083640fee244bf9de77f4c35d40a72.psmdcp",
+        "xunit.abstractions.nuspec"
+      ]
+    },
+    "xunit.assert/2.1.0": {
+      "sha512": "Hhhw+YaTe+BGhbr57dxVE+6VJk8BfThqFFii1XIsSZ4qx+SSCixprJC10JkiLRVSTfWyT8W/4nAf6NQgIrmBxA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/xunit.assert.dll",
+        "lib/dotnet/xunit.assert.pdb",
+        "lib/dotnet/xunit.assert.xml",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.assert.dll",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.assert.pdb",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.assert.xml",
+        "package/services/metadata/core-properties/4f538d979dfc48ed9b4c20e5a69d87b1.psmdcp",
+        "xunit.assert.nuspec"
+      ]
+    },
+    "xunit.core/2.1.0": {
+      "sha512": "jlbYdPbnkPIRwJllcT/tQZCNsSElVDEymdpJfH79uTUrPARkELVYw9o/zhAjKZXmeikGqGK5C2Yny4gTNoEu0Q==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "build/_desktop/xunit.execution.desktop.dll",
+        "build/dnx451/_._",
+        "build/monoandroid/_._",
+        "build/monotouch/_._",
+        "build/net45/_._",
+        "build/portable-net45+win8+wp8+wpa81/xunit.core.props",
+        "build/win8/_._",
+        "build/win81/xunit.core.props",
+        "build/wp8/_._",
+        "build/wpa81/xunit.core.props",
+        "build/xamarinios/_._",
+        "package/services/metadata/core-properties/cce23a490b7f4272adfe9aa57c4e1ca3.psmdcp",
+        "xunit.core.nuspec"
+      ]
+    },
+    "xunit.extensibility.core/2.1.0": {
+      "sha512": "ANWM3WxeaeHjACLRlmrv+xOc0WAcr3cvIiJE+gqbdzTv1NCH4p1VDyT+8WmmdCc9db0WFiJLaDy4YTYsL1wWXw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/xunit.core.dll",
+        "lib/dotnet/xunit.core.dll.tdnet",
+        "lib/dotnet/xunit.core.pdb",
+        "lib/dotnet/xunit.core.xml",
+        "lib/dotnet/xunit.runner.tdnet.dll",
+        "lib/dotnet/xunit.runner.utility.desktop.dll",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.core.dll",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.core.dll.tdnet",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.core.pdb",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.core.xml",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.runner.tdnet.dll",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.runner.utility.desktop.dll",
+        "package/services/metadata/core-properties/5218831c5b01422bb82b23cafd6488b3.psmdcp",
+        "xunit.extensibility.core.nuspec"
+      ]
+    },
+    "xunit.extensibility.execution/2.1.0": {
+      "sha512": "tAoNafoVknKa3sZJPMvtZRnhOSk3gasEGeceSm7w/gyGwsR/OXFxndWJB1xSHeoy33d3Z6jFqn4A3j+pWCF0Ew==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dnx451/xunit.execution.dotnet.dll",
+        "lib/dnx451/xunit.execution.dotnet.pdb",
+        "lib/dnx451/xunit.execution.dotnet.xml",
+        "lib/dotnet/xunit.execution.dotnet.dll",
+        "lib/dotnet/xunit.execution.dotnet.pdb",
+        "lib/dotnet/xunit.execution.dotnet.xml",
+        "lib/monoandroid/xunit.execution.dotnet.dll",
+        "lib/monoandroid/xunit.execution.dotnet.pdb",
+        "lib/monoandroid/xunit.execution.dotnet.xml",
+        "lib/monotouch/xunit.execution.dotnet.dll",
+        "lib/monotouch/xunit.execution.dotnet.pdb",
+        "lib/monotouch/xunit.execution.dotnet.xml",
+        "lib/net45/xunit.execution.desktop.dll",
+        "lib/net45/xunit.execution.desktop.pdb",
+        "lib/net45/xunit.execution.desktop.xml",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.execution.dotnet.dll",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.execution.dotnet.pdb",
+        "lib/portable-net45+win8+wp8+wpa81/xunit.execution.dotnet.xml",
+        "lib/win8/xunit.execution.dotnet.dll",
+        "lib/win8/xunit.execution.dotnet.pdb",
+        "lib/win8/xunit.execution.dotnet.xml",
+        "lib/wp8/xunit.execution.dotnet.dll",
+        "lib/wp8/xunit.execution.dotnet.pdb",
+        "lib/wp8/xunit.execution.dotnet.xml",
+        "lib/wpa81/xunit.execution.dotnet.dll",
+        "lib/wpa81/xunit.execution.dotnet.pdb",
+        "lib/wpa81/xunit.execution.dotnet.xml",
+        "lib/xamarinios/xunit.execution.dotnet.dll",
+        "lib/xamarinios/xunit.execution.dotnet.pdb",
+        "lib/xamarinios/xunit.execution.dotnet.xml",
+        "package/services/metadata/core-properties/9f5f1211ea9a4e748cecce63d1c73e30.psmdcp",
+        "xunit.extensibility.execution.nuspec"
+      ]
+    },
+    "xunit.runner.console/2.1.0": {
+      "sha512": "dryP6nBDWD2aH6OUidwoPQLebelnfA6DDKUs9PxJ6iPDbT9t5eSKyjqLSas/nQFEJZwXXWVnbImrgK/IgiyOdQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/3ff6ecc00c3b4e6c93baf7de3f0b9697.psmdcp",
+        "tools/HTML.xslt",
+        "tools/NUnitXml.xslt",
+        "tools/xunit.abstractions.dll",
+        "tools/xunit.console.exe",
+        "tools/xunit.console.exe.config",
+        "tools/xunit.console.x86.exe",
+        "tools/xunit.console.x86.exe.config",
+        "tools/xunit.runner.reporters.desktop.dll",
+        "tools/xunit.runner.utility.desktop.dll",
+        "tools/xUnit1.xslt",
+        "xunit.runner.console.nuspec"
       ]
     }
   },
   "projectFileDependencyGroups": {
     "": [
-      "xunit.extensions >= 1.9.2"
+      "xunit.runner.console >= 2.1.0"
     ],
     ".NETFramework,Version=v4.5.2": []
   }

@@ -103,7 +103,7 @@ Bar::NS.Foo d = new Bar::NS.Foo();
         {
             var src = "extern alias Bar;";
 
-            var comp = CSharpCompilation.CreateSubmission(
+            var comp = CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(src, options: TestOptions.Script),
                 references: new MetadataReference[] { MscorlibRef, ExternAliasTests.Foo1, ExternAliasTests.Foo2 });

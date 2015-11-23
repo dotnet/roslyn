@@ -12,14 +12,13 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <RestorePackages>true</RestorePackages>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
@@ -34,6 +33,7 @@
     <Compile Include="AssemblyReaders.cs" />
     <Compile Include="AssemblyReference.cs" />
     <Compile Include="CustomTypeInfo.cs" />
+    <Compile Include="DebuggerDiagnosticFormatter.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfo_Factory.cs" />
     <Compile Include="Placeholders.cs" />

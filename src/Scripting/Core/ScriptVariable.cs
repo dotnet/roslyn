@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.Scripting
         public Type Type => _field.FieldType;
 
         /// <summary>
+        /// True if the variable can't be written to (it's declared as readonly or a constant).
+        /// </summary>
+        public bool IsReadOnly => _field.IsInitOnly || _field.IsLiteral;
+
+        /// <summary>
         /// The value of the variable after running the script.
         /// </summary>
         /// <exception cref="InvalidOperationException">Variable is read-only or a constant.</exception>

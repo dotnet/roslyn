@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\Version.props" />
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
@@ -11,10 +10,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.InteractiveWindow</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.InteractiveWindow</AssemblyName>
-    <!-- TODO -->
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -23,8 +19,10 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2"/>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VsInteractiveWindow" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -41,6 +39,9 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
@@ -71,6 +72,7 @@
     <Compile Include="Commands\CommandClassifier.cs" />
     <Compile Include="Commands\CommandClassifierProvider.cs" />
     <Compile Include="Commands\PredefinedInteractiveCommandsContentTypes.cs" />
+    <Compile Include="Commands\InteractiveCommandsFactory.cs" />
     <Compile Include="Commands\InteractiveWindowCommandExtensions.cs" />
     <Compile Include="Commands\InteractiveWindowCommands.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
@@ -87,20 +89,17 @@
     <Compile Include="IInteractiveWindow.cs" />
     <Compile Include="IInteractiveWindowEditorFactoryService.cs" />
     <Compile Include="IInteractiveWindowFactoryService.cs" />
-    <Compile Include="Commands\InteractiveCommandsFactory.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />
     <Compile Include="IInteractiveWindowOperations2.cs" />
+    <Compile Include="InteractiveContentTypeDefinitions.cs" />
     <Compile Include="InteractiveWindowClipboard.cs" />
     <Compile Include="InteractiveWindow.SpanRangeEdit.cs" />
     <Compile Include="InteractiveWindow.SystemClipboard.cs" />
-    <Compile Include="ProjectionBufferExtensions.cs" />
     <Compile Include="InteractiveWindow.PendingSubmission.cs" />
     <Compile Include="InteractiveWindow.ReplSpanKind.cs" />
     <Compile Include="InteractiveWindow.EditResolver.cs" />
     <Compile Include="InteractiveWindow.State.cs" />
     <Compile Include="InteractiveWindow.UIThreadOnly.cs" />
-    <Compile Include="PredefinedInteractiveContentTypes.cs" />
-    <Compile Include="InteractiveContentTypeDefinitions.cs" />
     <Compile Include="InteractiveWindow.cs" />
     <Compile Include="InteractiveWindowExtensions.cs" />
     <Compile Include="InteractiveWindowOptions.cs" />
@@ -117,7 +116,9 @@
     <Compile Include="Output\ResizingAdorner.cs" />
     <Compile Include="Output\SortedSpans.cs" />
     <Compile Include="Output\ZoomableInlineAdornment.cs" />
+    <Compile Include="PredefinedInteractiveContentTypes.cs" />
     <Compile Include="PredefinedInteractiveTextViewRoles.cs" />
+    <Compile Include="ProjectionBufferExtensions.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenter.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenterProvider.cs" />
     <Compile Include="SmartUpDownOption.cs" />
@@ -139,6 +140,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

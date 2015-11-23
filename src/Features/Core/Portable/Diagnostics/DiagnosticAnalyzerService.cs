@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
             : this(diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(),
+                diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
                 hostDiagnosticUpdateSource,
                 registrationService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService))
         {
@@ -39,10 +40,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // protected for testing purposes.
         protected DiagnosticAnalyzerService(
             IEnumerable<HostDiagnosticAnalyzerPackage> workspaceAnalyzerPackages,
+            IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener listener = null)
-            : this(new HostAnalyzerManager(workspaceAnalyzerPackages, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, registrationService, listener)
+            : this(new HostAnalyzerManager(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, registrationService, listener)
         {
         }
 
@@ -117,14 +119,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _hostAnalyzerManager.IsAnalyzerSuppressed(analyzer, project);
         }
 
-        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
+        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
         {
             BaseDiagnosticIncrementalAnalyzer analyzer;
 
             var service = workspace.Services.GetService<ISolutionCrawlerService>();
             if (service != null && _map.TryGetValue(workspace, out analyzer))
             {
-                service.Reanalyze(workspace, analyzer, projectIds, documentIds);
+                service.Reanalyze(workspace, analyzer, projectIds, documentIds, highPriority);
             }
         }
 

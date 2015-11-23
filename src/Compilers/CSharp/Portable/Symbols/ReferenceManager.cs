@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -307,18 +308,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             private bool CreateAndSetSourceAssemblyFullBind(CSharpCompilation compilation)
             {
                 var resolutionDiagnostics = DiagnosticBag.GetInstance();
+                var assemblyReferencesBySimpleName = PooledDictionary<string, List<ReferencedAssemblyIdentity>>.GetInstance();
+                bool supersedeLowerVersions = compilation.IsSubmission;
 
                 try
                 {
-                    IDictionary<string, MetadataReference> boundReferenceDirectiveMap;
+                    IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectiveMap;
                     ImmutableArray<MetadataReference> boundReferenceDirectives;
                     ImmutableArray<AssemblyData> referencedAssemblies;
                     ImmutableArray<PEModule> modules; // To make sure the modules are not collected ahead of time.
-                    ImmutableArray<MetadataReference> references;
+                    ImmutableArray<MetadataReference> explicitReferences;
 
                     ImmutableArray<ResolvedReference> referenceMap = ResolveMetadataReferences(
                         compilation,
-                        out references,
+                        assemblyReferencesBySimpleName,
+                        out explicitReferences,
                         out boundReferenceDirectiveMap,
                         out boundReferenceDirectives,
                         out referencedAssemblies,
@@ -336,9 +340,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<AssemblyData> allAssemblyData;
 
                     BoundInputAssembly[] bindingResult = Bind(
+                        compilation,
                         explicitAssemblyData,
+                        modules,
+                        explicitReferences,
+                        referenceMap,
                         compilation.Options.MetadataReferenceResolver,
                         compilation.Options.MetadataImportOptions,
+                        supersedeLowerVersions,
+                        assemblyReferencesBySimpleName,
                         out allAssemblyData,
                         out implicitlyResolvedReferences,
                         out implicitlyResolvedReferenceMap,
@@ -348,15 +358,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(bindingResult.Length == allAssemblyData.Length);
 
-                    references = references.AddRange(implicitlyResolvedReferences);
+                    var references = explicitReferences.AddRange(implicitlyResolvedReferences);
                     referenceMap = referenceMap.AddRange(implicitlyResolvedReferenceMap);
 
                     Dictionary<MetadataReference, int> referencedAssembliesMap, referencedModulesMap;
                     ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies;
                     BuildReferencedAssembliesAndModulesMaps(
+                        bindingResult,
                         references,
                         referenceMap,
                         modules.Length,
+                        referencedAssemblies.Length,
+                        assemblyReferencesBySimpleName,
+                        supersedeLowerVersions,
                         out referencedAssembliesMap,
                         out referencedModulesMap,
                         out aliasesOfReferencedAssemblies);
@@ -444,6 +458,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     referencedModulesMap,
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
+                                    explicitReferences,
+                                    implicitlyResolvedReferences,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
                                     ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,
@@ -469,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finally
                 {
                     resolutionDiagnostics.Free();
+                    assemblyReferencesBySimpleName.Free();
                 }
             }
 

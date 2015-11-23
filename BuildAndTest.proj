@@ -14,13 +14,13 @@
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
-    <XunitVersion>1.9.2</XunitVersion>
+    <XunitVersion>2.1.0</XunitVersion>
   </PropertyGroup>
 
   <Target Name="Build">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true;DeployExtension=false"
              Targets="Build"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
@@ -32,7 +32,7 @@
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false"
+             Properties="RestorePackages=false;DeployExtension=false"
              Targets="Clean"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
@@ -44,7 +44,7 @@
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true;DeployExtension=false"
              Targets="Rebuild"/>
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
@@ -56,7 +56,7 @@
   <Target Name="Test">
     <ItemGroup>
       <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(XunitVersion)\*.dll
-        ;$(NuGetPackageRoot)\xunit.assert\2.1.0-beta4-build3109\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
+        ;$(NuGetPackageRoot)\xunit.assert\$(XunitVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
     </ItemGroup>
     <!-- Copy xunit stuff to output directory -->
     <Copy SourceFiles="@(AssembliesToCopyLocal)"
@@ -65,10 +65,18 @@
           UseHardlinksIfPossible="true" />
 
     <ItemGroup>
-      <TestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)" />
+
+      <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
+      <TestAssemblies Condition="'$(Test64)' != 'true'" 
+                      Include="$(OutputDirectory)\**\$(IncludePattern)"
+                      Exclude="$(OutputDirectory)\**\MakeConst*" />
+
+      <TestAssemblies Condition="'$(Test64)' == 'true'" 
+                      Include="$(OutputDirectory)\**\$(IncludePattern)" 
+                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*;$(OutputDirectory)\**\MakeConst*" />
     </ItemGroup>
 
-    <Exec Command="$(OutputDirectory)\RunTests.exe $(NuGetPackageRoot)\xunit.runners\2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 

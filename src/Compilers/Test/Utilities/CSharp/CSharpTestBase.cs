@@ -493,6 +493,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return c;
         }
 
+        public static CSharpCompilation CreateSubmissionWithExactReferences(
+           string code,
+           IEnumerable<MetadataReference> references = null,
+           CSharpCompilationOptions options = null,
+           CSharpParseOptions parseOptions = null,
+           CSharpCompilation previous = null,
+           Type returnType = null,
+           Type hostObjectType = null)
+        {
+            return CSharpCompilation.CreateScriptCompilation(
+                GetUniqueName(),
+                references: references,
+                options: options,
+                syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
+                previousScriptCompilation: previous,
+                returnType: returnType,
+                globalsType: hostObjectType);
+        }
+
         public static CSharpCompilation CreateSubmission(
            string code,
            IEnumerable<MetadataReference> references = null,
@@ -502,14 +521,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
            Type returnType = null,
            Type hostObjectType = null)
         {
-            return CSharpCompilation.CreateSubmission(
+            return CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 references: (references != null) ? new[] { MscorlibRef_v4_0_30316_17626 }.Concat(references) : new[] { MscorlibRef_v4_0_30316_17626 },
                 options: options,
-                syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Interactive),
-                previousSubmission: previous,
+                syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
+                previousScriptCompilation: previous,
                 returnType: returnType,
-                hostObjectType: hostObjectType);
+                globalsType: hostObjectType);
         }
 
         public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null)
@@ -534,10 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             var compilation = CreateCompilationWithMscorlib(cSharpSource, new[] { reference }, compilationOptions);
-            if (compilationVerifier != null)
-            {
-                compilationVerifier(compilation);
-            }
+            compilationVerifier?.Invoke(compilation);
 
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }

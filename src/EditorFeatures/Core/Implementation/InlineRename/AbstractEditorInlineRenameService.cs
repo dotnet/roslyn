@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (syntaxFactsService.IsTypeNamedVarInVariableOrFieldDeclaration(triggerToken, triggerToken.Parent))
             {
-                // To check if va in this context is a real type, or the keyword, we need to 
+                // To check if var in this context is a real type, or the keyword, we need to 
                 // speculatively bind the identifier "var". If it returns a symbol, it's a real type,
                 // if not, it's the keyword.
                 // see bugs 659683 (compiler API) and 659705 (rename/workspace api) for examples

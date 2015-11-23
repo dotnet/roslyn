@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return new RegionHighlighter();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_1()
         {
             Test(
@@ -26,7 +26,7 @@ static void Main() {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_2()
         {
             Test(
@@ -39,7 +39,7 @@ static void Main() {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_1()
         {
             Test(
@@ -54,7 +54,7 @@ static void Main() {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_2()
         {
             Test(
@@ -69,7 +69,7 @@ static void Main() {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_3()
         {
             Test(
@@ -84,7 +84,7 @@ static void Main() {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_4()
         {
             Test(

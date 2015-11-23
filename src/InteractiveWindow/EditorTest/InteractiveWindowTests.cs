@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -21,6 +22,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         private InteractiveWindowTestHost _testHost;
         private List<InteractiveWindow.State> _states;
         private readonly TestClipboard _testClipboard; 
+        private readonly TaskFactory _factory = new TaskFactory(TaskScheduler.Default);
 
         public InteractiveWindowTests()
         {
@@ -36,6 +38,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         private IInteractiveWindow Window => _testHost.Window;                                                                                                                                       
+
+        private Task TaskRun(Action action)
+        {
+            return _factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+        }
 
         private static IEnumerable<IInteractiveWindowCommand> MockCommands(params string[] commandNames)
         {
@@ -60,7 +67,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         #endregion
 
-        [Fact]
+        [WpfFact]
         public void InteractiveWindow__CommandParsing()
         {
             var commandList = MockCommands("foo", "bar", "bz", "command1").ToArray();
@@ -157,7 +164,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(15, argsSpan.End);
         }
 
-        [Fact]
+        [WpfFact]
         public void InteractiveWindow_GetCommands()
         {
             var interactiveCommands = new InteractiveCommandsFactory(null, null).CreateInteractiveCommands(
@@ -175,10 +182,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [WorkItem(3970, "https://github.com/dotnet/roslyn/issues/3970")]
-        [Fact]
-        public void ResetStateTransitions()
+        [WpfFact]
+        public async Task ResetStateTransitions()
         {
-            Window.Operations.ResetAsync().PumpingWait();
+            await Window.Operations.ResetAsync().ConfigureAwait(true);
             Assert.Equal(_states, new[]
             {
                 InteractiveWindow.State.Initializing,
@@ -188,21 +195,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             });
         }
 
-        [Fact]
-        public void DoubleInitialize()
+        [WpfFact]
+        public async Task DoubleInitialize()
         {
             try
             {
-                Window.InitializeAsync().PumpingWait();
+                await Window.InitializeAsync().ConfigureAwait(true);
                 Assert.True(false);
             }
-            catch (AggregateException e)
+            catch (InvalidOperationException)
             {
-                Assert.IsType<InvalidOperationException>(e.InnerExceptions.Single());
+
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AccessPropertiesOnUIThread()
         {
             foreach (var property in typeof(IInteractiveWindow).GetProperties())
@@ -214,13 +221,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Empty(typeof(IInteractiveWindowOperations).GetProperties());
         }
 
-        [Fact]
-        public void AccessPropertiesOnNonUIThread()
+        [WpfFact]
+        public async Task AccessPropertiesOnNonUIThread()
         {
             foreach (var property in typeof(IInteractiveWindow).GetProperties())
             {
                 Assert.Null(property.SetMethod);
-                Task.Run(() => property.GetMethod.Invoke(Window, Array.Empty<object>())).PumpingWait();
+                await TaskRun(() => property.GetMethod.Invoke(Window, Array.Empty<object>())).ConfigureAwait(true);
             }
 
             Assert.Empty(typeof(IInteractiveWindowOperations).GetProperties());
@@ -229,131 +236,131 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         /// <remarks>
         /// Confirm that we are, in fact, running on a non-UI thread.
         /// </remarks>
-        [Fact]
-        public void NonUIThread()
+        [WpfFact]
+        public async Task NonUIThread()
         {
-            Task.Run(() => Assert.False(((InteractiveWindow)Window).OnUIThread())).PumpingWait();
+            await TaskRun(() => Assert.False(((InteractiveWindow)Window).OnUIThread())).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallCloseOnNonUIThread()
+        [WpfFact]
+        public async Task CallCloseOnNonUIThread()
         {
-            Task.Run(() => Window.Close()).PumpingWait();
+            await TaskRun(() => Window.Close()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallInsertCodeOnNonUIThread()
+        [WpfFact]
+        public async Task CallInsertCodeOnNonUIThread()
         {
-            Task.Run(() => Window.InsertCode("1")).PumpingWait();
+            await TaskRun(() => Window.InsertCode("1")).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallSubmitAsyncOnNonUIThread()
+        [WpfFact]
+        public async Task CallSubmitAsyncOnNonUIThread()
         {
-            Task.Run(() => Window.SubmitAsync(Array.Empty<string>()).GetAwaiter().GetResult()).PumpingWait();
+            await TaskRun(() => Window.SubmitAsync(Array.Empty<string>()).GetAwaiter().GetResult()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallWriteOnNonUIThread()
+        [WpfFact]
+        public async Task CallWriteOnNonUIThread()
         {
-            Task.Run(() => Window.WriteLine("1")).PumpingWait();
-            Task.Run(() => Window.Write("1")).PumpingWait();
-            Task.Run(() => Window.WriteErrorLine("1")).PumpingWait();
-            Task.Run(() => Window.WriteError("1")).PumpingWait();
+            await TaskRun(() => Window.WriteLine("1")).ConfigureAwait(true);
+            await TaskRun(() => Window.Write("1")).ConfigureAwait(true);
+            await TaskRun(() => Window.WriteErrorLine("1")).ConfigureAwait(true);
+            await TaskRun(() => Window.WriteError("1")).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallFlushOutputOnNonUIThread()
+        [WpfFact]
+        public async Task CallFlushOutputOnNonUIThread()
         {
             Window.Write("1"); // Something to flush.
-            Task.Run(() => Window.FlushOutput()).PumpingWait();
+            await TaskRun(() => Window.FlushOutput()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallAddInputOnNonUIThread()
+        [WpfFact]
+        public async Task CallAddInputOnNonUIThread()
         {
-            Task.Run(() => Window.AddInput("1")).PumpingWait();
+            await TaskRun(() => Window.AddInput("1")).ConfigureAwait(true);
         }
 
         /// <remarks>
         /// Call is blocking, so we can't write a simple non-failing test.
         /// </remarks>
-        [Fact]
+        [WpfFact]
         public void CallReadStandardInputOnUIThread()
         {
             Assert.Throws<InvalidOperationException>(() => Window.ReadStandardInput());
         }
 
-        [Fact]
-        public void CallBackspaceOnNonUIThread()
+        [WpfFact]
+        public async Task CallBackspaceOnNonUIThread()
         {
             Window.InsertCode("1"); // Something to backspace.
-            Task.Run(() => Window.Operations.Backspace()).PumpingWait();
+            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallBreakLineOnNonUIThread()
+        [WpfFact]
+        public async Task CallBreakLineOnNonUIThread()
         {
-            Task.Run(() => Window.Operations.BreakLine()).PumpingWait();
+            await TaskRun(() => Window.Operations.BreakLine()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallClearHistoryOnNonUIThread()
+        [WpfFact]
+        public async Task CallClearHistoryOnNonUIThread()
         {
             Window.AddInput("1"); // Need a history entry.
-            Task.Run(() => Window.Operations.ClearHistory()).PumpingWait();
+            await TaskRun(() => Window.Operations.ClearHistory()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallClearViewOnNonUIThread()
+        [WpfFact]
+        public async Task CallClearViewOnNonUIThread()
         {
             Window.InsertCode("1"); // Something to clear.
-            Task.Run(() => Window.Operations.ClearView()).PumpingWait();
+            await TaskRun(() => Window.Operations.ClearView()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallHistoryNextOnNonUIThread()
+        [WpfFact]
+        public async Task CallHistoryNextOnNonUIThread()
         {
             Window.AddInput("1"); // Need a history entry.
-            Task.Run(() => Window.Operations.HistoryNext()).PumpingWait();
+            await TaskRun(() => Window.Operations.HistoryNext()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallHistoryPreviousOnNonUIThread()
+        [WpfFact]
+        public async Task CallHistoryPreviousOnNonUIThread()
         {
             Window.AddInput("1"); // Need a history entry.
-            Task.Run(() => Window.Operations.HistoryPrevious()).PumpingWait();
+            await TaskRun(() => Window.Operations.HistoryPrevious()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallHistorySearchNextOnNonUIThread()
+        [WpfFact]
+        public async Task CallHistorySearchNextOnNonUIThread()
         {
             Window.AddInput("1"); // Need a history entry.
-            Task.Run(() => Window.Operations.HistorySearchNext()).PumpingWait();
+            await TaskRun(() => Window.Operations.HistorySearchNext()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallHistorySearchPreviousOnNonUIThread()
+        [WpfFact]
+        public async Task CallHistorySearchPreviousOnNonUIThread()
         {
             Window.AddInput("1"); // Need a history entry.
-            Task.Run(() => Window.Operations.HistorySearchPrevious()).PumpingWait();
+            await TaskRun(() => Window.Operations.HistorySearchPrevious()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallHomeOnNonUIThread()
+        [WpfFact]
+        public async Task CallHomeOnNonUIThread()
         {
             Window.Operations.BreakLine(); // Distinguish Home from End.
-            Task.Run(() => Window.Operations.Home(true)).PumpingWait();
+            await TaskRun(() => Window.Operations.Home(true)).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallEndOnNonUIThread()
+        [WpfFact]
+        public async Task CallEndOnNonUIThread()
         {
             Window.Operations.BreakLine(); // Distinguish Home from End.
-            Task.Run(() => Window.Operations.End(true)).PumpingWait();
+            await TaskRun(() => Window.Operations.End(true)).ConfigureAwait(true);
         }
 
-        [Fact]
+        [WpfFact]
         public void ScrollToCursorOnHomeAndEndOnNonUIThread()
         {
             Window.InsertCode(new string('1', 512));    // a long input string 
@@ -368,84 +375,84 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                                                                      textView.Caret.Position.Affinity));
         }
 
-        [Fact]
-        public void CallSelectAllOnNonUIThread()
+        [WpfFact]
+        public async Task CallSelectAllOnNonUIThread()
         {
             Window.InsertCode("1"); // Something to select.
-            Task.Run(() => Window.Operations.SelectAll()).PumpingWait();
+            await TaskRun(() => Window.Operations.SelectAll()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallPasteOnNonUIThread()
+        [WpfFact]
+        public async Task CallPasteOnNonUIThread()
         {
-            Task.Run(() => Window.Operations.Paste()).PumpingWait();
+            await TaskRun(() => Window.Operations.Paste()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallCutOnNonUIThread()
+        [WpfFact]
+        public async Task CallCutOnNonUIThread()
         {
-            Task.Run(() => Window.Operations.Cut()).PumpingWait();
+            await TaskRun(() => Window.Operations.Cut()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallDeleteOnNonUIThread()
+        [WpfFact]
+        public async Task CallDeleteOnNonUIThread()
         {
-            Task.Run(() => Window.Operations.Delete()).PumpingWait();
+            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallReturnOnNonUIThread()
+        [WpfFact]
+        public async Task CallReturnOnNonUIThread()
         {
-            Task.Run(() => Window.Operations.Return()).PumpingWait();
+            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallTrySubmitStandardInputOnNonUIThread()
+        [WpfFact]
+        public async Task CallTrySubmitStandardInputOnNonUIThread()
         {
-            Task.Run(() => Window.Operations.TrySubmitStandardInput()).PumpingWait();
+            await TaskRun(() => Window.Operations.TrySubmitStandardInput()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallResetAsyncOnNonUIThread()
+        [WpfFact]
+        public async Task CallResetAsyncOnNonUIThread()
         {
-            Task.Run(() => Window.Operations.ResetAsync()).PumpingWait();
-        }
-        
-        [Fact]
-        public void CallExecuteInputOnNonUIThread()
-        {
-            Task.Run(() => Window.Operations.ExecuteInput()).PumpingWait();
+            await TaskRun(() => Window.Operations.ResetAsync()).ConfigureAwait(true);
         }
 
-        [Fact]
-        public void CallCancelOnNonUIThread()
+        [WpfFact]
+        public async Task CallExecuteInputOnNonUIThread()
         {
-            Task.Run(() => Window.Operations.Cancel()).PumpingWait();
+            await TaskRun(() => Window.Operations.ExecuteInput()).ConfigureAwait(true);
+        }
+
+        [WpfFact]
+        public async Task CallCancelOnNonUIThread()
+        {
+            await TaskRun(() => Window.Operations.Cancel()).ConfigureAwait(true);
         }
 
         [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
-        [Fact]
+        [WpfFact]
         public void TestIndentation1()
         {
             TestIndentation(indentSize: 1);
         }
 
         [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
-        [Fact]
+        [WpfFact]
         public void TestIndentation2()
         {
             TestIndentation(indentSize: 2);
         }
 
         [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
-        [Fact]
+        [WpfFact]
         public void TestIndentation3()
         {
             TestIndentation(indentSize: 3);
         }
 
         [WorkItem(4235, "https://github.com/dotnet/roslyn/issues/4235")]
-        [Fact]
+        [WpfFact]
         public void TestIndentation4()
         {
             TestIndentation(indentSize: 4);
@@ -481,8 +488,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(expectedLine, actualLine.LineNumber);
             Assert.Equal(expectedColumn, actualColumn);
         }
-
-        [Fact]
+		
+        [WpfFact]
         public void ResetCommandArgumentParsing_Success()
         {
             bool initialize;
@@ -505,7 +512,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.False(initialize);
         }
 
-        [Fact]
+        [WpfFact]
         public void ResetCommandArgumentParsing_Failure()
         {
             bool initialize;
@@ -518,7 +525,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.False(ResetCommand.TryParseArguments("nOcOnfIg", out initialize));
         }
 
-        [Fact]
+        [WpfFact]
         public void ResetCommandNoConfigClassification()
         {
             Assert.Empty(ResetCommand.GetNoConfigPositions(""));
@@ -543,7 +550,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [WorkItem(4755, "https://github.com/dotnet/roslyn/issues/4755")]
-        [Fact]
+        [WpfFact]
         public void ReformatBraces()
         {
             var buffer = Window.CurrentLanguageBuffer;
@@ -582,7 +589,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 new Span(23, 2));
         }
 
-        [Fact]
+        [WpfFact]
         public void CopyWithinInput()
         {
             _testClipboard.Clear();
@@ -601,18 +608,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             VerifyClipboardData(" + ", " + ", @"[{""content"":"" + "",""kind"":2}]");
         }
 
-        [Fact]
-        public void CopyInputAndOutput()
+        [WpfFact]
+        public async Task CopyInputAndOutput()
         {
             _testClipboard.Clear();
 
-            Submit(
+            await Submit(
 @"foreach (var o in new[] { 1, 2, 3 })
 System.Console.WriteLine();",
 @"1
 2
 3
-");
+").ConfigureAwait(true);
             var caret = Window.TextView.Caret;
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
@@ -644,7 +651,7 @@ System.Console.WriteLine();",
 @"[{""content"":""oreach (var o in new[] { 1, 2, 3 })\u000d\u000a"",""kind"":2},{""content"":""> "",""kind"":0},{""content"":""System.Console.WriteLine();\u000d\u000a"",""kind"":2},{""content"":""1\u000d\u000a2\u000d\u000a3"",""kind"":1}]");
         }
 
-        [Fact]
+        [WpfFact]
         public void CutWithinInput()
         {
             _testClipboard.Clear();
@@ -672,18 +679,18 @@ System.Console.WriteLine()",
                 expectedRepl: null);
         }
 
-        [Fact]
-        public void CutInputAndOutput()
+        [WpfFact]
+        public async Task CutInputAndOutput()
         {
             _testClipboard.Clear();
 
-            Submit(
+            await Submit(
 @"foreach (var o in new[] { 1, 2, 3 })
 System.Console.WriteLine();",
 @"1
 2
 3
-");
+").ConfigureAwait(true);
             var caret = Window.TextView.Caret;
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
@@ -698,16 +705,16 @@ System.Console.WriteLine();",
         /// When there is no selection, copy
         /// should copy the current line.
         /// </summary>
-        [Fact]
-        public void CopyNoSelection()
+        [WpfFact]
+        public async Task CopyNoSelection()
         {
-            Submit(
+            await Submit(
 @"s +
 
  t",
 @" 1
 
-2 ");
+2 ").ConfigureAwait(true);
             CopyNoSelectionAndVerify(0, 7, "> s +\r\n", @"> s +\par ", @"[{""content"":""> "",""kind"":0},{""content"":""s +\u000d\u000a"",""kind"":2}]");
             CopyNoSelectionAndVerify(7, 11, "> \r\n", @"> \par ", @"[{""content"":""> "",""kind"":0},{""content"":""\u000d\u000a"",""kind"":2}]");
             CopyNoSelectionAndVerify(11, 17, ">  t\r\n", @">  t\par ", @"[{""content"":""> "",""kind"":0},{""content"":"" t\u000d\u000a"",""kind"":2}]");
@@ -729,7 +736,7 @@ System.Console.WriteLine();",
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Paste()
         {
             var blocks = new[]
@@ -756,26 +763,7 @@ System.Console.WriteLine();",
             Assert.Equal("> a\r\n> bc123", GetTextFromCurrentSnapshot());
         }
 
-        private void CopyToClipboard(BufferBlock[] blocks, bool includeRepl)
-        {
-            _testClipboard.Clear();
-            var data = new DataObject();
-            var builder = new StringBuilder();
-            foreach (var block in blocks)
-            {
-                builder.Append(block.Content);
-            }
-            var text = builder.ToString();
-            data.SetData(DataFormats.UnicodeText, text);
-            data.SetData(DataFormats.StringFormat, text);
-            if (includeRepl)
-            {
-                data.SetData(InteractiveWindow.ClipboardFormat, BufferBlock.Serialize(blocks));
-            }
-            _testClipboard.SetDataObject(data, false);
-        }
-
-        [Fact]
+        [WpfFact]
         public void JsonSerialization()
         {
             var expectedContent = new []
@@ -800,8 +788,8 @@ System.Console.WriteLine();",
             }
         }
 
-        [Fact]
-        public void CancelMultiLineInput()
+        [WpfFact]
+        public async Task CancelMultiLineInput()
         {
             ApplyChanges(
                 Window.CurrentLanguageBuffer,
@@ -812,14 +800,14 @@ System.Console.WriteLine();",
             var snapshot = buffer.CurrentSnapshot;
             Assert.Equal("> {\r\n>     {\r\n>     }\r\n> }", snapshot.GetText());
 
-            Task.Run(() => Window.Operations.Cancel()).PumpingWait();
+            await TaskRun(() => Window.Operations.Cancel()).ConfigureAwait(true);
 
             // Text after cancel.
             snapshot = buffer.CurrentSnapshot;
             Assert.Equal("> ", snapshot.GetText());
         }
 
-        [Fact]
+        [WpfFact]
         public void SelectAllInHeader()
         {
             Window.WriteLine("Header");
@@ -834,13 +822,13 @@ System.Console.WriteLine();",
             Assert.Equal(new Span(0, fullText.Length), Window.TextView.Selection.SelectedSpans.Single().Span);
         }
 
-        [Fact]
-        public void DeleteWithOutSelectionInReadOnlyArea()
+        [WpfFact]
+        public async Task DeleteWithOutSelectionInReadOnlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             Window.InsertCode("2");                                              
 
             var caret = Window.TextView.Caret;
@@ -855,24 +843,24 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
             AssertCaretVirtualPosition(1, 1);
 
-            Window.Operations.Delete();
+            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
             AssertCaretVirtualPosition(1, 1);
 
             // Delete() with caret in active prompt, move caret to 
             // closest editable buffer
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
-            Window.Operations.Delete();
+            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
             AssertCaretVirtualPosition(2, 2);
         }
         
-        [Fact]
-        public void DeleteWithSelectionInReadonlyArea()
+        [WpfFact]
+        public async Task DeleteWithSelectionInReadonlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             Window.InsertCode("23");
 
             var caret = Window.TextView.Caret;                                   
@@ -888,7 +876,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Window.Operations.Delete();
+            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection in active prompt, no-op
@@ -900,7 +888,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Delete();
+            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection overlaps with editable buffer, 
@@ -915,18 +903,18 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Delete();
+            await TaskRun(() => Window.Operations.Delete()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 3", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
         }
 
-        [Fact]
-        public void BackspaceWithOutSelectionInReadOnlyArea()
+        [WpfFact]
+        public async Task BackspaceWithOutSelectionInReadOnlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             Window.InsertCode("int x");
             Window.Operations.BreakLine();
             Window.InsertCode(";");
@@ -945,30 +933,30 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();  
             AssertCaretVirtualPosition(1, 1);
 
-            Window.Operations.Backspace();
+            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
             AssertCaretVirtualPosition(1, 1);
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with caret in 2nd active prompt, move caret to 
-            // closest editable buffer then delete prvious characer (breakline)        
+            // closest editable buffer then delete previous character (breakline)        
             caret.MoveToNextCaretPosition();
             Window.Operations.End(false);
             caret.MoveToNextCaretPosition();
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(3, 1);
 
-            Window.Operations.Backspace();
+            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
             AssertCaretVirtualPosition(2, 7);
             Assert.Equal("> 1\r\n1\r\n> int x;", GetTextFromCurrentSnapshot());
         }
 
-        [Fact]
-        public void BackspaceWithSelectionInReadonlyArea()
+        [WpfFact]
+        public async Task BackspaceWithSelectionInReadonlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             Window.InsertCode("int x");
             Window.Operations.BreakLine();
             Window.InsertCode(";");
@@ -990,7 +978,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Window.Operations.Backspace();
+            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with selection in active prompt, no-op
@@ -1002,7 +990,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Backspace();
+            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with selection overlaps with editable buffer
@@ -1016,18 +1004,18 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Backspace();
+            await TaskRun(() => Window.Operations.Backspace()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> int x;", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 7);
         }
 
-        [Fact]
-        public void ReturnWithOutSelectionInReadOnlyArea()
+        [WpfFact]
+        public async Task ReturnWithOutSelectionInReadOnlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             var caret = Window.TextView.Caret;      
 
             // Return() with caret in readonly area, no-op       
@@ -1036,7 +1024,7 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();   
             AssertCaretVirtualPosition(1, 1);
 
-            Window.Operations.Return();
+            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
             AssertCaretVirtualPosition(1, 1);
 
             // Return() with caret in active prompt, move caret to 
@@ -1044,17 +1032,17 @@ System.Console.WriteLine();",
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
 
-            Window.Operations.Return();
+            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
             AssertCaretVirtualPosition(3, 2);
         }
 
-        [Fact]
-        public void ReturnWithSelectionInReadonlyArea()
+        [WpfFact]
+        public async Task ReturnWithSelectionInReadonlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             Window.InsertCode("23");
 
             var caret = Window.TextView.Caret;
@@ -1070,7 +1058,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Window.Operations.Return();
+            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Return() with selection in active prompt, no-op
@@ -1082,7 +1070,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Return();
+            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
 
             // Delete() with selection overlaps with editable buffer, 
@@ -1097,18 +1085,18 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Return();
+            await TaskRun(() => Window.Operations.Return()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> \r\n> 3", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(3, 2);
         }
 
-        [Fact]
-        public void CutWithOutSelectionInReadOnlyArea()
+        [WpfFact]
+        public async Task CutWithOutSelectionInReadOnlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             Window.InsertCode("2");
 
             var caret = Window.TextView.Caret;
@@ -1121,7 +1109,7 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
             AssertCaretVirtualPosition(1, 1);
 
-            Window.Operations.Cut();
+            await TaskRun(() => Window.Operations.Cut()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 2", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(1, 1);
 
@@ -1130,20 +1118,20 @@ System.Console.WriteLine();",
             // Cut() with caret in active prompt
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);
-            Window.Operations.Cut();
+            await TaskRun(() => Window.Operations.Cut()).ConfigureAwait(true);
 
             Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
             VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
-        [Fact]
-        public void CutWithSelectionInReadonlyArea()
+        [WpfFact]
+        public async Task CutWithSelectionInReadonlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             Window.InsertCode("23");
 
             var caret = Window.TextView.Caret;
@@ -1160,7 +1148,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Window.Operations.Cut();
+            await TaskRun(() => Window.Operations.Cut()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
             VerifyClipboardData(null, null, null);
 
@@ -1173,7 +1161,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Cut();
+            await TaskRun(() => Window.Operations.Cut()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());
             VerifyClipboardData(null, null, null);
 
@@ -1189,19 +1177,19 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Cut();
+            await TaskRun(() => Window.Operations.Cut()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 3", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
             VerifyClipboardData("2", expectedRtf: null, expectedRepl: null);
         }
 
-        [Fact]
-        public void PasteWithOutSelectionInReadOnlyArea()
+        [WpfFact]
+        public async Task PasteWithOutSelectionInReadOnlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             Window.InsertCode("2");
 
             var caret = Window.TextView.Caret;
@@ -1218,26 +1206,26 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();  
             AssertCaretVirtualPosition(1, 1);
 
-            Window.Operations.Paste();
+            await TaskRun(() => Window.Operations.Paste()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 2", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(1, 1);
 
             // Paste() with caret in active prompt
             caret.MoveToNextCaretPosition();
             AssertCaretVirtualPosition(2, 0);                                                                                                                     
-            Window.Operations.Paste();
+            await TaskRun(() => Window.Operations.Paste()).ConfigureAwait(true);
 
             Assert.Equal("> 1\r\n1\r\n> 22", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 3);            
         }
 
-        [Fact]    
-        public void PasteWithSelectionInReadonlyArea()
+        [WpfFact]    
+        public async Task PasteWithSelectionInReadonlyArea()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             Window.InsertCode("23");
 
             var caret = Window.TextView.Caret;
@@ -1257,7 +1245,7 @@ System.Console.WriteLine();",
 
             Window.Operations.SelectAll();
 
-            Window.Operations.Paste();
+            await TaskRun(() => Window.Operations.Paste()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot());  
 
             // Paste() with selection in active prompt, no-op
@@ -1269,7 +1257,7 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Paste();
+            await TaskRun(() => Window.Operations.Paste()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 23", GetTextFromCurrentSnapshot()); 
 
             // Paste() with selection overlaps with editable buffer, 
@@ -1284,18 +1272,18 @@ System.Console.WriteLine();",
 
             selection.Select(start, end);
 
-            Window.Operations.Paste();
+            await TaskRun(() => Window.Operations.Paste()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> 233", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 4);
         }
 
-        [Fact]
-        public void DeleteLineWithOutSelection()
+        [WpfFact]
+        public async Task DeleteLineWithOutSelection()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");                                                                                                                        
+").ConfigureAwait(true);                                                                                                                        
             var caret = Window.TextView.Caret;                               
 
             // DeleteLine with caret in readonly area
@@ -1333,13 +1321,13 @@ System.Console.WriteLine();",
             AssertCaretVirtualPosition(2, 2);
         }
 
-        [Fact]
-        public void DeleteLineWithSelection()
+        [WpfFact]
+        public async Task DeleteLineWithSelection()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
 
@@ -1347,8 +1335,8 @@ System.Console.WriteLine();",
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
             caret.MoveToPreviousCaretPosition();
-            Window.Operations.SelectAll();
-            Window.Operations.DeleteLine();
+            await TaskRun(() => Window.Operations.SelectAll()).ConfigureAwait(true);
+            await TaskRun(() => Window.Operations.DeleteLine()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> ", GetTextFromCurrentSnapshot());
 
             // DeleteLine with selection in active prompt
@@ -1365,7 +1353,7 @@ System.Console.WriteLine();",
             }
 
             selection.Select(caret.MoveToNextCaretPosition().VirtualBufferPosition, caret.MoveToNextCaretPosition().VirtualBufferPosition);
-            Window.Operations.DeleteLine();
+            await TaskRun(() => Window.Operations.DeleteLine()).ConfigureAwait(true);
             Assert.Equal("> 1\r\n1\r\n> ;", GetTextFromCurrentSnapshot());
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
@@ -1390,13 +1378,13 @@ System.Console.WriteLine();",
             Assert.True(selection.IsEmpty);
         }
 
-        [Fact]
-        public void CutLineWithOutSelection()
+        [WpfFact]
+        public async Task CutLineWithOutSelection()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             var caret = Window.TextView.Caret;
             _testClipboard.Clear();
 
@@ -1438,13 +1426,13 @@ System.Console.WriteLine();",
             VerifyClipboardData(";", null, null);
         }
 
-        [Fact]
-        public void CutLineWithSelection()
+        [WpfFact]
+        public async Task CutLineWithSelection()
         {
-            Submit(
+            await Submit(
 @"1",
 @"1
-");
+").ConfigureAwait(true);
             var caret = Window.TextView.Caret;
             var selection = Window.TextView.Selection;
             _testClipboard.Clear();
@@ -1500,14 +1488,114 @@ System.Console.WriteLine();",
             VerifyClipboardData("int x\r\n;", null, null);
         }
 
+        [WpfFact]
+        public async Task SubmitAsyncNone()
+        {
+            await SubmitAsync().ConfigureAwait(true);
+        }
+
+        [WpfFact]
+        public async Task SubmitAsyncSingle()
+        {
+            await SubmitAsync("1").ConfigureAwait(true);
+        }
+
+        [WorkItem(5964)]
+        [WpfFact]
+        public async Task SubmitAsyncMultiple()
+        {
+            await SubmitAsync("1", "2", "1 + 2").ConfigureAwait(true);
+        }
+
+        [WorkItem(6054, "https://github.com/dotnet/roslyn/issues/6054")]
+        [WpfFact]
+        public void UndoMultiLinePaste()
+        {
+            CopyToClipboard(
+@"1
+2
+3");
+
+            // paste multi-line text
+            Window.Operations.Paste();
+            Assert.Equal("> 1\r\n> 2\r\n> 3", GetTextFromCurrentSnapshot());
+
+            // undo paste
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
+            Assert.Equal("> ", GetTextFromCurrentSnapshot());
+
+            // redo paste
+            ((InteractiveWindow)Window).Redo_TestOnly(1);
+            Assert.Equal("> 1\r\n> 2\r\n> 3", GetTextFromCurrentSnapshot());
+
+
+            CopyToClipboard(
+@"4
+5
+6");
+            // replace current text 
+            Window.Operations.SelectAll();
+            Window.Operations.Paste();
+            Assert.Equal("> 4\r\n> 5\r\n> 6", GetTextFromCurrentSnapshot());
+
+            // undo replace
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
+            Assert.Equal("> 1\r\n> 2\r\n> 3", GetTextFromCurrentSnapshot());
+
+            // undo paste
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
+            Assert.Equal("> ", GetTextFromCurrentSnapshot());
+        }
+
+        private void CopyToClipboard(string text)
+        {
+            _testClipboard.Clear();
+            var data = new DataObject();
+            data.SetData(DataFormats.UnicodeText, text);
+            data.SetData(DataFormats.StringFormat, text);
+            _testClipboard.SetDataObject(data, false);
+        }
+
+        private void CopyToClipboard(BufferBlock[] blocks, bool includeRepl)
+        {
+            _testClipboard.Clear();
+            var data = new DataObject();
+            var builder = new StringBuilder();
+            foreach (var block in blocks)
+            {
+                builder.Append(block.Content);
+            }
+            var text = builder.ToString();
+            data.SetData(DataFormats.UnicodeText, text);
+            data.SetData(DataFormats.StringFormat, text);
+            if (includeRepl)
+            {
+                data.SetData(InteractiveWindow.ClipboardFormat, BufferBlock.Serialize(blocks));
+            }
+            _testClipboard.SetDataObject(data, false);
+        }
+
+        private async Task SubmitAsync(params string[] submissions)
+        {
+            var actualSubmissions = new List<string>();
+            var evaluator = _testHost.Evaluator;
+            EventHandler<string> onExecute = (_, s) => actualSubmissions.Add(s.TrimEnd());
+
+            evaluator.OnExecute += onExecute;
+            await TaskRun(() => Window.SubmitAsync(submissions)).ConfigureAwait(true);
+            evaluator.OnExecute -= onExecute;
+
+            AssertEx.Equal(submissions, actualSubmissions);
+        }
+
         private string GetTextFromCurrentSnapshot()
         {
             return Window.TextView.TextBuffer.CurrentSnapshot.GetText();
         }    
 
-        private void Submit(string submission, string output)
+        private async Task Submit(string submission, string output)
         {
-            Task.Run(() => Window.SubmitAsync(new[] { submission })).PumpingWait();
+            await TaskRun(() => Window.SubmitAsync(new[] { submission })).ConfigureAwait(true);
             // TestInteractiveEngine.ExecuteCodeAsync() simply returns
             // success rather than executing the submission, so add the
             // expected output to the output buffer.

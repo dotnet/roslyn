@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    public abstract class InteractiveEvaluator : IInteractiveEvaluator, ICurrentWorkingDirectoryDiscoveryService
+    internal abstract class InteractiveEvaluator : IInteractiveEvaluator, ICurrentWorkingDirectoryDiscoveryService
     {
         // full path or null
         private readonly string _responseFilePath;
@@ -40,12 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly InteractiveHost _interactiveHost;
 
         private string _initialWorkingDirectory;
-        private ImmutableArray<CommandLineSourceFile> _rspSourceFiles;
+        private string _initialScriptFileOpt;
 
         private readonly IContentType _contentType;
         private readonly InteractiveWorkspace _workspace;
         private IInteractiveWindow _currentWindow;
-        private ImmutableHashSet<MetadataReference> _references;
+        private ImmutableArray<MetadataReference> _rspReferences;
+        private ImmutableArray<string> _rspImports;
         private MetadataReferenceResolver _metadataReferenceResolver;
         private SourceReferenceResolver _sourceReferenceResolver;
 
@@ -90,11 +91,17 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            var hostPath = interactiveHostPath;
-            _interactiveHost = new InteractiveHost(replType, hostPath, initialWorkingDirectory);
-            _interactiveHost.ProcessStarting += ProcessStarting;
-
+            // The following settings will apply when the REPL starts without .rsp file.
+            // They are discarded once the REPL is reset.
+            ReferenceSearchPaths = ImmutableArray<string>.Empty;
+            SourceSearchPaths = ImmutableArray<string>.Empty;
             WorkingDirectory = initialWorkingDirectory;
+            var metadataService = _workspace.CurrentSolution.Services.MetadataService;
+            _metadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, _initialWorkingDirectory);
+            _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, _initialWorkingDirectory);
+
+            _interactiveHost = new InteractiveHost(replType, interactiveHostPath, initialWorkingDirectory);
+            _interactiveHost.ProcessStarting += ProcessStarting;
         }
 
         public IContentType ContentType
@@ -139,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         protected abstract string LanguageName { get; }
-        protected abstract CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver);
+        protected abstract CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver, ImmutableArray<string> imports);
         protected abstract ParseOptions ParseOptions { get; }
         protected abstract CommandLineParser CommandLineParser { get; }
 
@@ -197,40 +204,38 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _previousSubmissionProjectId = null;
 
             var metadataService = _workspace.CurrentSolution.Services.MetadataService;
+            var mscorlibRef = metadataService.GetReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly);
+            var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, Script.HostAssemblyReferenceProperties);
 
-            ReferenceSearchPaths = ImmutableArray.Create(FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
-            SourceSearchPaths = ImmutableArray.Create(FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
+            _rspReferences = ImmutableArray.Create<MetadataReference>(mscorlibRef, interactiveHostObjectRef);
+            _rspImports = ImmutableArray<string>.Empty;
+            _initialScriptFileOpt = null;
+            ReferenceSearchPaths = ImmutableArray<string>.Empty;
+            SourceSearchPaths = ImmutableArray<string>.Empty;
 
             if (initialize && File.Exists(_responseFilePath))
             {
                 // The base directory for relative paths is the directory that contains the .rsp file.
                 // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                var rspArguments = this.CommandLineParser.Parse(new[] { "@" + _responseFilePath }, Path.GetDirectoryName(_responseFilePath), RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: pass a valid value*/);
-                ReferenceSearchPaths = ReferenceSearchPaths.AddRange(rspArguments.ReferencePaths);
+                var rspDirectory = Path.GetDirectoryName(_responseFilePath);
+                var args = this.CommandLineParser.Parse(new[] { "@" + _responseFilePath }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
 
-                // the base directory for references specified in the .rsp file is the .rsp file directory:
-                var rspMetadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, rspArguments.BaseDirectory);
+                if (args.Errors.Length == 0)
+                {
+                    var metadataResolver = CreateMetadataReferenceResolver(metadataService, args.ReferencePaths, rspDirectory);
+                    var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, rspDirectory);
 
-                // ignore unresolved references, they will be reported in the interactive window:
-                var rspReferences = rspArguments.ResolveMetadataReferences(rspMetadataReferenceResolver)
-                    .Where(r => !(r is UnresolvedMetadataReference));
+                    // ignore unresolved references, they will be reported in the interactive window:
+                    var rspReferences = args.ResolveMetadataReferences(metadataResolver).Where(r => !(r is UnresolvedMetadataReference));
 
-                var interactiveHelpersRef = metadataService.GetReference(typeof(Script).Assembly.Location, MetadataReferenceProperties.Assembly);
-                var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, MetadataReferenceProperties.Assembly);
+                    _initialScriptFileOpt = args.SourceFiles.IsEmpty ? null : args.SourceFiles[0].Path;
 
-                _references = ImmutableHashSet.Create<MetadataReference>(
-                    interactiveHelpersRef,
-                    interactiveHostObjectRef)
-                    .Union(rspReferences);
+                    ReferenceSearchPaths = args.ReferencePaths;
+                    SourceSearchPaths = args.SourcePaths;
 
-                // we need to create projects for these:
-                _rspSourceFiles = rspArguments.SourceFiles;
-            }
-            else
-            {
-                var mscorlibRef = metadataService.GetReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly);
-                _references = ImmutableHashSet.Create<MetadataReference>(mscorlibRef);
-                _rspSourceFiles = ImmutableArray.Create<CommandLineSourceFile>();
+                    _rspReferences = _rspReferences.AddRange(rspReferences);
+                    _rspImports = CommandLineHelpers.GetImports(args);
+                }
             }
 
             _metadataReferenceResolver = CreateMetadataReferenceResolver(metadataService, ReferenceSearchPaths, _initialWorkingDirectory);
@@ -324,23 +329,34 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             var solution = _workspace.CurrentSolution;
             Project project;
+            ImmutableArray<string> imports;
+            ImmutableArray<MetadataReference> references;
 
-            if (_previousSubmissionProjectId == null)
+            if (_previousSubmissionProjectId != null)
             {
-                // insert projects for initialization files listed in .rsp:
-                // If we have separate files, then those are implicitly #loaded. For this, we'll
-                // create a submission chain
-                foreach (var file in _rspSourceFiles)
-                {
-                    project = CreateSubmissionProject(solution, languageName);
-                    var documentId = DocumentId.CreateNewId(project.Id, debugName: file.Path);
-                    solution = project.Solution.AddDocument(documentId, Path.GetFileName(file.Path), new FileTextLoader(file.Path, defaultEncoding: null));
-                    _previousSubmissionProjectId = project.Id;
-                }
+                // only the first project needs imports and references
+                imports = ImmutableArray<string>.Empty;
+                references = ImmutableArray<MetadataReference>.Empty;
+            }
+            else if (_initialScriptFileOpt != null)
+            {
+                // insert a project for initialization script listed in .rsp:
+                project = CreateSubmissionProject(solution, languageName, _rspImports, _rspReferences);
+                var documentId = DocumentId.CreateNewId(project.Id, debugName: _initialScriptFileOpt);
+                solution = project.Solution.AddDocument(documentId, Path.GetFileName(_initialScriptFileOpt), new FileTextLoader(_initialScriptFileOpt, defaultEncoding: null));
+                _previousSubmissionProjectId = project.Id;
+
+                imports = ImmutableArray<string>.Empty;
+                references = ImmutableArray<MetadataReference>.Empty;
+            }
+            else
+            {
+                imports = _rspImports;
+                references = _rspReferences;
             }
 
             // project for the new submission:
-            project = CreateSubmissionProject(solution, languageName);
+            project = CreateSubmissionProject(solution, languageName, imports, references);
 
             // Keep track of this buffer so we can freeze the classifications for it in the future.
             var viewAndBuffer = ValueTuple.Create(textView, subjectBuffer);
@@ -365,17 +381,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _currentTextView = textView;
         }
 
-        private Project CreateSubmissionProject(Solution solution, string languageName)
+        private Project CreateSubmissionProject(Solution solution, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
         {
             var name = "Submission#" + (_submissionCount++);
 
             // Grab a local copy so we aren't closing over the field that might change. The
             // collection itself is an immutable collection.
-            var localReferences = _references;
-
-            // TODO (tomat): needs implementation in InteractiveHostService as well
-            // var localCompilationOptions = (rspArguments != null) ? rspArguments.CompilationOptions : CompilationOptions.Default;
-            var localCompilationOptions = GetSubmissionCompilationOptions(name, _metadataReferenceResolver, _sourceReferenceResolver);
+            var localCompilationOptions = GetSubmissionCompilationOptions(name, _metadataReferenceResolver, _sourceReferenceResolver, imports);
 
             var localParseOptions = ParseOptions;
 
@@ -392,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     parseOptions: localParseOptions,
                     documents: null,
                     projectReferences: null,
-                    metadataReferences: localReferences,
+                    metadataReferences: references,
                     hostObjectType: typeof(InteractiveScriptGlobals),
                     isSubmission: true));
 
@@ -446,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         public Task<ExecutionResult> ResetAsync(bool initialize = true)
         {
             GetInteractiveWindow().AddInput(_interactiveCommands.CommandPrefix + "reset");
-            GetInteractiveWindow().WriteLine("Resetting execution engine.");
+            GetInteractiveWindow().WriteLine(InteractiveEditorFeaturesResources.ResettingExecutionEngine);
             GetInteractiveWindow().FlushOutput();
 
             return ResetAsyncWorker(initialize);
@@ -500,10 +512,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     // ignore it's id so we don't reference it in the next submission.
                     _previousSubmissionProjectId = _currentSubmissionProjectId;
 
-                    // Grab any directive references from it
-                    var compilation = await _workspace.CurrentSolution.GetProject(_previousSubmissionProjectId).GetCompilationAsync().ConfigureAwait(false);
-                    _references = _references.Union(compilation.DirectiveReferences);
-
                     // update local search paths - remote paths has already been updated
                     UpdateResolvers(result);
                 }
@@ -553,9 +561,18 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 WorkingDirectory = changedWorkingDirectory;
             }
 
-            if (!changedReferenceSearchPaths.IsDefault || changedWorkingDirectory != null)
+            if (!changedReferenceSearchPaths.IsDefault)
             {
                 ReferenceSearchPaths = changedReferenceSearchPaths;
+            }
+
+            if (!changedSourceSearchPaths.IsDefault)
+            {
+                SourceSearchPaths = changedSourceSearchPaths;
+            }
+
+            if (!changedReferenceSearchPaths.IsDefault || changedWorkingDirectory != null)
+            {
                 _metadataReferenceResolver = CreateMetadataReferenceResolver(_workspace.CurrentSolution.Services.MetadataService, ReferenceSearchPaths, WorkingDirectory);
 
                 if (optionsOpt != null)
@@ -566,7 +583,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             if (!changedSourceSearchPaths.IsDefault || changedWorkingDirectory != null)
             {
-                SourceSearchPaths = changedSourceSearchPaths;
                 _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory);
 
                 if (optionsOpt != null)

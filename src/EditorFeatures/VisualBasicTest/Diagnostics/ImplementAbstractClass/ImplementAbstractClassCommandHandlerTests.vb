@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Implem
     Public Class ImplementAbstractClassCommandHandlerTests
 
         <WorkItem(530553)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Sub TestSimpleCases()
             Dim code = <text>
 Imports System
@@ -44,7 +44,7 @@ End Class</text>
         End Sub
 
         <WorkItem(530553)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Sub TestInvocationAfterWhitespaceTrivia()
             Dim code = <text>
 Imports System
@@ -68,7 +68,7 @@ End Class
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Sub TestInvocationAfterCommentTrivia()
             Dim code = <text>
 Imports System
@@ -92,7 +92,7 @@ End Class
                  Sub(x, y) AssertEx.AssertContainsToleratingWhitespaceDifferences(x, y))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Sub TestNoMembersToImplement()
             Dim code = <text>
 Imports System
@@ -123,7 +123,7 @@ End Class</text>
         End Sub
 
         <WorkItem(544412)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Sub TestEnterNotOnSameLine()
             Dim code = <text>
 MustInherit Class Base
@@ -156,7 +156,7 @@ End Class</text>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Sub TestWithEndBlockMissing()
             Dim code = <text>
 Imports System

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return enumStatement
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub NoCommentsOrAttributes()
             Dim code =
 <code><![CDATA[
@@ -38,7 +38,7 @@ End Enum
             Assert.Empty(GetRegions(enumStatement))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithAttributes()
             Dim code =
 <code><![CDATA[
@@ -61,7 +61,7 @@ End Enum
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithCommentsAndAttributes()
             Dim code =
 <code><![CDATA[
@@ -86,7 +86,7 @@ End Enum
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithCommentsAttributesAndModifiers()
             Dim code =
 <code><![CDATA[

@@ -15366,7 +15366,7 @@ namespace ConsoleApplication1
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType));
         }
 
-        [Fact]
+        [Fact, WorkItem(6186, "https://github.com/dotnet/roslyn/issues/6186")]
         public void CS1770ERR_NoConversionForNubDefaultParam()
         {
             var text = @"using System;
@@ -15378,12 +15378,22 @@ class MyClass
     public void Foo1(int? x = default(int)) { }
     public void Foo2(E? x = default(E)) { }
     public void Foo3(DateTime? x = default(DateTime?)) { }
+    public void Foo4(DateTime? x = new DateTime?()) { }
 
     // Error:
-    public void Foo(DateTime? x = default(DateTime)) { }
+    public void Foo11(DateTime? x = default(DateTime)) { }
+    public void Foo12(DateTime? x = new DateTime()) { }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = 1770, Line = 12, Column = 31 });
+            var comp = CreateCompilationWithMscorlib(text);
+
+            comp.VerifyDiagnostics(
+    // (13,33): error CS1770: A value of type 'DateTime' cannot be used as default parameter for nullable parameter 'x' because 'DateTime' is not a simple type
+    //     public void Foo11(DateTime? x = default(DateTime)) { }
+    Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "x").WithArguments("System.DateTime", "x").WithLocation(13, 33),
+    // (14,33): error CS1770: A value of type 'DateTime' cannot be used as default parameter for nullable parameter 'x' because 'DateTime' is not a simple type
+    //     public void Foo12(DateTime? x = new DateTime()) { }
+    Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "x").WithArguments("System.DateTime", "x").WithLocation(14, 33)
+                );
         }
 
         [Fact]
@@ -15628,7 +15638,6 @@ namespace N1
             };
 
             CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Interactive) }).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -19171,7 +19180,7 @@ internal abstract event System.EventHandler E;";
 @"internal abstract void M();
 internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
-            var submission = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Interactive), new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
+            var submission = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script), new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
             submission.VerifyDiagnostics(
                 // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
                 // internal abstract void M();

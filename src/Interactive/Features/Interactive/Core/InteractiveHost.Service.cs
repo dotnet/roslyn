@@ -440,6 +440,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // successful if compiled
                         success = true;
 
+                        // remove references and imports from the options, they have been applied and will be inherited from now on:
+                        state = state.WithOptions(state.ScriptOptions.RemoveImportsAndReferences());
+
                         var newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt).ConfigureAwait(false);
                         if (newScriptState != null)
                         {
@@ -462,18 +465,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private void DisplaySubmissionResult(ScriptState<object> state)
             {
-                bool hasValue;
-                var resultType = state.Script.GetCompilation().GetSubmissionResultType(out hasValue);
-                if (hasValue)
+                if (state.Script.HasReturnValue())
                 {
-                    if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
-                    {
-                        Console.Out.WriteLine(_replServiceProvider.ObjectFormatter.VoidDisplayString);
-                    }
-                    else
-                    {
-                        _globals.Print(state.ReturnValue);
-                    }
+                    _globals.Print(state.ReturnValue);
                 }
             }
 
@@ -500,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var currentWorkingDirectory = Directory.GetCurrentDirectory();
 
                 var changedSourcePaths = currentSourcePaths.SequenceEqual(state.SourceSearchPaths) ? null : currentSourcePaths;
-                var changedReferencePaths = currentSourcePaths.SequenceEqual(state.ReferenceSearchPaths) ? null : currentReferencePaths;
+                var changedReferencePaths = currentReferencePaths.SequenceEqual(state.ReferenceSearchPaths) ? null : currentReferencePaths;
                 var changedWorkingDirectory = currentWorkingDirectory == state.WorkingDirectory ? null : currentWorkingDirectory;
 
                 operation.Completed(new RemoteExecutionResult(success, changedSourcePaths, changedReferencePaths, changedWorkingDirectory));
@@ -518,12 +512,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 ScriptOptions newOptions = state.ScriptOptions;
                 if (changedReferencePaths != null || changedWorkingDirectory != null)
                 {
-                    newOptions = newOptions.WithCustomMetadataResolution(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
+                    newOptions = newOptions.WithMetadataResolver(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
                 }
 
                 if (changedSourcePaths != null || changedWorkingDirectory != null)
                 {
-                    newOptions = newOptions.WithCustomSourceResolution(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
+                    newOptions = newOptions.WithSourceResolver(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
                 }
 
                 return new EvaluationState(
@@ -601,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // The base directory for relative paths is the directory that contains the .rsp file.
                         // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
                         var rspDirectory = Path.GetDirectoryName(initializationFileOpt);
-                        var args = parser.Parse(new[] { "@" + initializationFileOpt }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: pass a valid value*/);
+                        var args = parser.Parse(new[] { "@" + initializationFileOpt }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
 
                         foreach (var error in args.Errors)
                         {
@@ -611,16 +605,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                         if (args.Errors.Length == 0)
                         {
-                            // TODO (tomat): other arguments
-                            // TODO (tomat): parse options
-
                             var metadataResolver = CreateMetadataReferenceResolver(args.ReferencePaths, rspDirectory);
-
-                            _globals.ReferencePaths.Clear();
-                            _globals.ReferencePaths.AddRange(args.ReferencePaths);
-
-                            _globals.SourcePaths.Clear();
-
+                            var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, rspDirectory);
+                            
                             var metadataReferences = new List<PortableExecutableReference>();
                             foreach (CommandLineReference cmdLineReference in args.MetadataReferences)
                             {
@@ -634,37 +621,41 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 }
                             }
 
-                            // only search for scripts next to the .rsp file:
-                            var sourceSearchPaths = ImmutableArray<string>.Empty;
+                            var scriptPathOpt = args.SourceFiles.IsEmpty ? null : args.SourceFiles[0].Path;
 
                             var rspState = new EvaluationState(
                                 state.ScriptStateOpt,
-                                state.ScriptOptions.AddReferences(metadataReferences),
-                                sourceSearchPaths,
+                                state.ScriptOptions.
+                                    WithFilePath(scriptPathOpt).
+                                    WithReferences(metadataReferences).
+                                    WithImports(CommandLineHelpers.GetImports(args)).
+                                    WithMetadataResolver(metadataResolver).
+                                    WithSourceResolver(sourceResolver),
+                                args.SourcePaths,
                                 args.ReferencePaths,
                                 rspDirectory);
 
-                            foreach (CommandLineSourceFile file in args.SourceFiles)
-                            {
-                                // execute all files as scripts (matches csi/vbi semantics)
+                            _globals.ReferencePaths.Clear();
+                            _globals.ReferencePaths.AddRange(args.ReferencePaths);
 
-                                string fullPath = ResolveRelativePath(file.Path, rspDirectory, sourceSearchPaths, displayPath: true);
-                                if (fullPath != null)
+                            _globals.SourcePaths.Clear();
+                            _globals.SourcePaths.AddRange(args.SourcePaths);
+
+                            _globals.Args.AddRange(args.ScriptArguments);
+
+                            if (scriptPathOpt != null)
+                            {
+                                var newScriptState = await ExecuteFileAsync(rspState, scriptPathOpt).ConfigureAwait(false);
+                                if (newScriptState != null)
                                 {
-                                    var newScriptState = await ExecuteFileAsync(rspState, fullPath).ConfigureAwait(false);
-                                    if (newScriptState != null)
-                                    {
-                                        rspState = rspState.WithScriptState(newScriptState);
-                                    }
+                                    // remove references and imports from the options, they have been applied and will be inherited from now on:
+                                    rspState = rspState.
+                                        WithScriptState(newScriptState).
+                                        WithOptions(rspState.ScriptOptions.RemoveImportsAndReferences());
                                 }
                             }
 
-                            state = new EvaluationState(
-                                rspState.ScriptStateOpt,
-                                rspState.ScriptOptions,
-                                ImmutableArray<string>.Empty,
-                                args.ReferencePaths,
-                                state.WorkingDirectory);
+                            state = rspState;
                         }
                     }
 
@@ -715,42 +706,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return fullPath;
             }
 
-            private void LoadReference(PortableExecutableReference resolvedReference, bool suppressWarnings)
-            {
-                AssemblyLoadResult result;
-                try
-                {
-                    result = _assemblyLoader.LoadFromPath(resolvedReference.FilePath);
-                }
-                catch (FileNotFoundException e)
-                {
-                    Console.Error.WriteLine(e.Message);
-                    return;
-                }
-                catch (ArgumentException e)
-                {
-                    Console.Error.WriteLine((e.InnerException ?? e).Message);
-                    return;
-                }
-                catch (TargetInvocationException e)
-                {
-                    // The user might have hooked AssemblyResolve event, which might have thrown an exception.
-                    // Display stack trace in this case.
-                    Console.Error.WriteLine(e.InnerException.ToString());
-                    return;
-                }
-
-                if (!result.IsSuccessful && !suppressWarnings)
-                {
-                    Console.Out.WriteLine(string.Format(CultureInfo.CurrentCulture, FeaturesResources.RequestedAssemblyAlreadyLoaded, result.OriginalPath));
-                }
-            }
-
             private Script<object> TryCompile(Script previousScript, string code, string path, ScriptOptions options)
             {
                 Script script;
 
-                var scriptOptions = options.WithPath(path).WithIsInteractive(path == null);
+                var scriptOptions = options.WithFilePath(path);
 
                 if (previousScript != null)
                 {
@@ -761,24 +721,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                     script = _replServiceProvider.CreateScript<object>(code, scriptOptions, _globals.GetType(), _assemblyLoader);
                 }
 
-                // force build so exception is thrown now if errors are found.
-                try
+                var diagnostics = script.Compile();
+                if (diagnostics.HasAnyErrors())
                 {
-                    script.Build();
-                }
-                catch (CompilationErrorException e)
-                {
-                    DisplayInteractiveErrors(e.Diagnostics, Console.Error);
+                    DisplayInteractiveErrors(diagnostics, Console.Error);
                     return null;
                 }
-
-                // TODO: Do we want to do this? 
-                // Pros: immediate feedback for assemblies that can't be loaded.
-                // Cons: maybe we won't need them  
-                //foreach (PortableExecutableReference reference in script.GetCompilation().DirectiveReferences)
-                //{
-                //    LoadReference(reference, suppressWarnings: false);
-                //}
 
                 return (Script<object>)script;
             }
@@ -876,6 +824,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                             script.ContinueAsync(stateOpt, CancellationToken.None);
 
                         return await task.ConfigureAwait(false);
+                    }
+                    catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+                    {
+                        Console.Error.WriteLine(e.InnerException.Message);
+                        return null;
                     }
                     catch (Exception e)
                     {

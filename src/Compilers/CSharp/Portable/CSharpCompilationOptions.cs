@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
         public CSharpCompilationOptions(
             OutputKind outputKind,
+            bool reportSuppressedDiagnostics = false,
             string moduleName = null,
             string mainTypeName = null,
             string scriptClassName = null,
@@ -52,9 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceReferenceResolver sourceReferenceResolver = null,
             MetadataReferenceResolver metadataReferenceResolver = null,
             AssemblyIdentityComparer assemblyIdentityComparer = null,
-            StrongNameProvider strongNameProvider = null)
-            : this(outputKind, false, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
-                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
+            StrongNameProvider strongNameProvider = null,
+            bool publicSign = false)
+            : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
+                   usings, optimizationLevel, checkOverflow, allowUnsafe,
+                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform,
+                   generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, concurrentBuild, deterministic,
                    extendedCustomDebugInformation: true,
                    debugPlusMode: false,
@@ -63,89 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    metadataReferenceResolver: metadataReferenceResolver,
                    assemblyIdentityComparer: assemblyIdentityComparer,
                    strongNameProvider: strongNameProvider,
-                   metadataImportOptions: MetadataImportOptions.Public)
-        {
-        }
-
-        // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
-        // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
-        public CSharpCompilationOptions(
-            OutputKind outputKind,
-            string moduleName,
-            string mainTypeName,
-            string scriptClassName,
-            IEnumerable<string> usings,
-            OptimizationLevel optimizationLevel,
-            bool checkOverflow,
-            bool allowUnsafe,
-            string cryptoKeyContainer,
-            string cryptoKeyFile,
-            ImmutableArray<byte> cryptoPublicKey,
-            bool? delaySign,
-            Platform platform,
-            ReportDiagnostic generalDiagnosticOption,
-            int warningLevel,
-            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
-            bool concurrentBuild,
-            XmlReferenceResolver xmlReferenceResolver,
-            SourceReferenceResolver sourceReferenceResolver,
-            MetadataReferenceResolver metadataReferenceResolver,
-            AssemblyIdentityComparer assemblyIdentityComparer,
-            StrongNameProvider strongNameProvider)
-            : this(outputKind, false, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
-                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
-                   specificDiagnosticOptions, concurrentBuild,
-                   deterministic: false, 
-                   extendedCustomDebugInformation: true,
-                   debugPlusMode: false,
-                   xmlReferenceResolver: xmlReferenceResolver,
-                   sourceReferenceResolver: sourceReferenceResolver,
-                   metadataReferenceResolver: metadataReferenceResolver,
-                   assemblyIdentityComparer: assemblyIdentityComparer,
-                   strongNameProvider: strongNameProvider,
-                   metadataImportOptions: MetadataImportOptions.Public)
-        {
-        }
-
-        // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
-        // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
-        public CSharpCompilationOptions(
-            OutputKind outputKind,
-            bool reportSuppressedDiagnostics,
-            string moduleName = null,
-            string mainTypeName = null,
-            string scriptClassName = null,
-            IEnumerable<string> usings = null,
-            OptimizationLevel optimizationLevel = OptimizationLevel.Debug,
-            bool checkOverflow = false,
-            bool allowUnsafe = false,
-            string cryptoKeyContainer = null,
-            string cryptoKeyFile = null,
-            ImmutableArray<byte> cryptoPublicKey = default(ImmutableArray<byte>),
-            bool? delaySign = null,
-            Platform platform = Platform.AnyCpu,
-            ReportDiagnostic generalDiagnosticOption = ReportDiagnostic.Default,
-            int warningLevel = 4,
-            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null,
-            bool concurrentBuild = true,
-            bool deterministic = true,
-            XmlReferenceResolver xmlReferenceResolver = null,
-            SourceReferenceResolver sourceReferenceResolver = null,
-            MetadataReferenceResolver metadataReferenceResolver = null,
-            AssemblyIdentityComparer assemblyIdentityComparer = null,
-            StrongNameProvider strongNameProvider = null)
-            : this(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
-                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
-                   specificDiagnosticOptions, concurrentBuild,
-                   deterministic: deterministic,
-                   extendedCustomDebugInformation: true,
-                   debugPlusMode: false,
-                   xmlReferenceResolver: xmlReferenceResolver,
-                   sourceReferenceResolver: sourceReferenceResolver,
-                   metadataReferenceResolver: metadataReferenceResolver,
-                   assemblyIdentityComparer: assemblyIdentityComparer,
-                   strongNameProvider: strongNameProvider,
-                   metadataImportOptions: MetadataImportOptions.Public)
+                   metadataImportOptions: MetadataImportOptions.Public,
+                   publicSign: publicSign)
         {
         }
 
@@ -177,10 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MetadataReferenceResolver metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions)
-            : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, optimizationLevel, checkOverflow,
+            MetadataImportOptions metadataImportOptions,
+            bool publicSign)
+            : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
+                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
-                   concurrentBuild, deterministic, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
+                   concurrentBuild, deterministic, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver,
+                   sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
                    strongNameProvider, metadataImportOptions)
         {
             this.Usings = usings.AsImmutableOrEmpty();
@@ -214,9 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             assemblyIdentityComparer: other.AssemblyIdentityComparer,
             strongNameProvider: other.StrongNameProvider,
             metadataImportOptions: other.MetadataImportOptions,
-            reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics)
+            reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
+            publicSign: other.PublicSign)
         {
         }
+
+        internal override ImmutableArray<string> GetImports() => Usings;
 
         public new CSharpCompilationOptions WithOutputKind(OutputKind kind)
         {
@@ -313,15 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { Usings = usings };
         }
 
-        public CSharpCompilationOptions WithUsings(IEnumerable<string> usings)
-        {
-            return new CSharpCompilationOptions(this) { Usings = usings.AsImmutableOrEmpty() };
-        }
+        public CSharpCompilationOptions WithUsings(IEnumerable<string> usings) =>
+            new CSharpCompilationOptions(this) { Usings = usings.AsImmutableOrEmpty() };
 
-        public CSharpCompilationOptions WithUsings(params string[] usings)
-        {
-            return WithUsings((IEnumerable<string>)usings);
-        }
+        public CSharpCompilationOptions WithUsings(params string[] usings) => WithUsings((IEnumerable<string>)usings);
 
         public new CSharpCompilationOptions WithOptimizationLevel(OptimizationLevel value)
         {
@@ -363,25 +287,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { Platform = platform };
         }
 
-        protected override CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value)
+        public new CSharpCompilationOptions WithPublicSign(bool publicSign)
         {
-            return this.WithGeneralDiagnosticOption(value);
+            if (this.PublicSign == publicSign)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { PublicSign = publicSign };
         }
 
-        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
-        {
-            return this.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
-        }
+        protected override CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic value) => WithGeneralDiagnosticOption(value);
 
-        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions)
-        {
-            return this.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
-        }
+        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions) =>
+            WithSpecificDiagnosticOptions(specificDiagnosticOptions);
 
-        protected override CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics)
-        {
-            return this.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics);
-        }
+        protected override CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions) =>
+            WithSpecificDiagnosticOptions(specificDiagnosticOptions);
+
+        protected override CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics) =>
+            WithReportSuppressedDiagnostics(reportSuppressedDiagnostics);
 
         public new CSharpCompilationOptions WithGeneralDiagnosticOption(ReportDiagnostic value)
         {
@@ -408,10 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values };
         }
 
-        public new CSharpCompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> values)
-        {
-            return new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values.ToImmutableDictionaryOrEmpty() };
-        }
+        public new CSharpCompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> values) =>
+            new CSharpCompilationOptions(this) { SpecificDiagnosticOptions = values.ToImmutableDictionaryOrEmpty() };
 
         public new CSharpCompilationOptions WithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics)
         {
@@ -443,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { ConcurrentBuild = concurrentBuild };
         }
 
-        public CSharpCompilationOptions WithDeterministic(bool deterministic)
+        public new CSharpCompilationOptions WithDeterministic(bool deterministic)
         {
             if (deterministic == this.Deterministic)
             {
@@ -535,45 +458,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
         }
 
-        protected override CompilationOptions CommonWithOutputKind(OutputKind kind)
-        {
-            return WithOutputKind(kind);
-        }
+        protected override CompilationOptions CommonWithDeterministic(bool deterministic) => WithDeterministic(deterministic);
 
-        protected override CompilationOptions CommonWithPlatform(Platform platform)
-        {
-            return WithPlatform(platform);
-        }
+        protected override CompilationOptions CommonWithOutputKind(OutputKind kind) => WithOutputKind(kind);
 
-        protected override CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value)
-        {
-            return WithOptimizationLevel(value);
-        }
+        protected override CompilationOptions CommonWithPlatform(Platform platform) => WithPlatform(platform);
 
-        protected override CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer)
-        {
-            return WithAssemblyIdentityComparer(comparer);
-        }
+        protected override CompilationOptions CommonWithPublicSign(bool publicSign) => WithPublicSign(publicSign);
 
-        protected override CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver resolver)
-        {
-            return WithXmlReferenceResolver(resolver);
-        }
+        protected override CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value) => WithOptimizationLevel(value);
 
-        protected override CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver resolver)
-        {
-            return WithSourceReferenceResolver(resolver);
-        }
+        protected override CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer) =>
+            WithAssemblyIdentityComparer(comparer);
 
-        protected override CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver)
-        {
-            return WithMetadataReferenceResolver(resolver);
-        }
+        protected override CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver resolver) =>
+            WithXmlReferenceResolver(resolver);
 
-        protected override CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider)
-        {
-            return WithStrongNameProvider(provider);
-        }
+        protected override CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver resolver) =>
+            WithSourceReferenceResolver(resolver);
+
+        protected override CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver) =>
+            WithMetadataReferenceResolver(resolver);
+
+        protected override CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider) =>
+            WithStrongNameProvider(provider);
 
         [Obsolete]
         protected override CompilationOptions CommonWithFeatures(ImmutableArray<string> features)
@@ -690,6 +598,128 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
         {
             return CSharpDiagnosticFilter.Filter(diagnostic, WarningLevel, GeneralDiagnosticOption, SpecificDiagnosticOptions);
+        }
+
+        // 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public CSharpCompilationOptions(
+            OutputKind outputKind,
+            string moduleName,
+            string mainTypeName,
+            string scriptClassName,
+            IEnumerable<string> usings,
+            OptimizationLevel optimizationLevel,
+            bool checkOverflow,
+            bool allowUnsafe,
+            string cryptoKeyContainer,
+            string cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
+            bool? delaySign,
+            Platform platform,
+            ReportDiagnostic generalDiagnosticOption,
+            int warningLevel,
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
+            bool concurrentBuild,
+            bool deterministic,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
+            AssemblyIdentityComparer assemblyIdentityComparer,
+            StrongNameProvider strongNameProvider)
+            : this(outputKind, false, moduleName, mainTypeName, scriptClassName, usings,
+                   optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile,
+                   cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
+                   specificDiagnosticOptions, concurrentBuild, deterministic,
+                   xmlReferenceResolver: xmlReferenceResolver,
+                   sourceReferenceResolver: sourceReferenceResolver,
+                   metadataReferenceResolver: metadataReferenceResolver,
+                   assemblyIdentityComparer: assemblyIdentityComparer,
+                   strongNameProvider: strongNameProvider,
+                   publicSign: false)
+        {
+        }
+
+
+        // 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public CSharpCompilationOptions(
+            OutputKind outputKind,
+            string moduleName,
+            string mainTypeName,
+            string scriptClassName,
+            IEnumerable<string> usings,
+            OptimizationLevel optimizationLevel,
+            bool checkOverflow,
+            bool allowUnsafe,
+            string cryptoKeyContainer,
+            string cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
+            bool? delaySign,
+            Platform platform,
+            ReportDiagnostic generalDiagnosticOption,
+            int warningLevel,
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
+            bool concurrentBuild,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
+            AssemblyIdentityComparer assemblyIdentityComparer,
+            StrongNameProvider strongNameProvider)
+            : this(outputKind, moduleName, mainTypeName, scriptClassName, usings,
+                   optimizationLevel, checkOverflow, allowUnsafe,
+                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
+                   platform, generalDiagnosticOption, warningLevel,
+                   specificDiagnosticOptions, concurrentBuild,
+                   deterministic: false, 
+                   xmlReferenceResolver: xmlReferenceResolver,
+                   sourceReferenceResolver: sourceReferenceResolver,
+                   metadataReferenceResolver: metadataReferenceResolver,
+                   assemblyIdentityComparer: assemblyIdentityComparer,
+                   strongNameProvider: strongNameProvider)
+        {
+        }
+
+        // Bad constructor -- DO NOT USE
+        // Violates the rules for optional parameter overloads detailed at
+        // https://github.com/dotnet/roslyn/blob/e8fdb391703dcb5712ff6a5b83d768d784cba4cf/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md
+        public CSharpCompilationOptions(
+            OutputKind outputKind,
+            bool reportSuppressedDiagnostics,
+            string moduleName,
+            string mainTypeName,
+            string scriptClassName,
+            IEnumerable<string> usings,
+            OptimizationLevel optimizationLevel,
+            bool checkOverflow,
+            bool allowUnsafe,
+            string cryptoKeyContainer,
+            string cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
+            bool? delaySign,
+            Platform platform,
+            ReportDiagnostic generalDiagnosticOption,
+            int warningLevel,
+            IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions,
+            bool concurrentBuild,
+            bool deterministic,
+            XmlReferenceResolver xmlReferenceResolver,
+            SourceReferenceResolver sourceReferenceResolver,
+            MetadataReferenceResolver metadataReferenceResolver,
+            AssemblyIdentityComparer assemblyIdentityComparer,
+            StrongNameProvider strongNameProvider)
+            : this(outputKind, false, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel,
+                   checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey,
+                   delaySign, platform, generalDiagnosticOption, warningLevel,
+                   specificDiagnosticOptions, concurrentBuild,
+                   deterministic: deterministic,
+                   extendedCustomDebugInformation: true,
+                   debugPlusMode: false,
+                   xmlReferenceResolver: xmlReferenceResolver,
+                   sourceReferenceResolver: sourceReferenceResolver,
+                   metadataReferenceResolver: metadataReferenceResolver,
+                   assemblyIdentityComparer: assemblyIdentityComparer,
+                   strongNameProvider: strongNameProvider,
+                   metadataImportOptions: MetadataImportOptions.Public,
+                   publicSign: false)
+        {
         }
     }
 }

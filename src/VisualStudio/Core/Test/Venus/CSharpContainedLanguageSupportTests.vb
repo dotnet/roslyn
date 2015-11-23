@@ -18,37 +18,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
 #Region "IsValidId Tests"
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub IsValidId_1()
             AssertValidId("field")
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub IsValidId_Escaped()
             AssertValidId("@field")
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub IsValidId_EscapedKeyword()
             AssertValidId("@class")
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub IsValidId_ContainsNumbers()
             AssertValidId("abc123")
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub IsValidId_Keyword()
             AssertNotValidId("class")
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub IsValidId_StartsWithNumber()
             AssertNotValidId("123abc")
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub IsValidId_Punctuation()
             AssertNotValidId("abc.abc")
         End Sub
@@ -58,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
 #Region "GetBaseClassName Tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetBaseClassName_NonexistingClass()
             Dim code As String = "class C { }"
             Using workspace = GetWorkspace(code)
@@ -70,7 +70,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetBaseClassName_DerivedFromObject()
             Dim code As String = "class C { }"
             Using workspace = GetWorkspace(code)
@@ -82,7 +82,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetBaseClassName_DerivedFromFrameworkType()
             Dim code As String = "class C : Exception { }"
             Using workspace = GetWorkspace(code)
@@ -94,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetBaseClassName_DerivedFromUserDefinedType()
             Dim code As String = "class B { } class C : B { }"
             Using workspace = GetWorkspace(code)
@@ -106,7 +106,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetBaseClassName_FullyQualifiedNames()
             Dim code As String = "namespace N { class B { } class C : B { } }"
             Using workspace = GetWorkspace(code)
@@ -118,7 +118,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetBaseClassName_MinimallyQualifiedNames()
             Dim code As String = "namespace N { class B { } class C : B { } }"
             Using workspace = GetWorkspace(code)
@@ -130,7 +130,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetBaseClassName_EscapedKeyword()
             Dim code As String = "class @class { } class Derived : @class { }"
             Using workspace = GetWorkspace(code)
@@ -145,7 +145,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
 #Region "CreateUniqueEventName Tests"
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub CreateUniqueEventName_ButtonClick()
             Dim code As String = <text>
 public partial class _Default : System.Web.UI.Page
@@ -169,7 +169,7 @@ public partial class _Default : System.Web.UI.Page
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub CreateUniqueEventName_NameCollisionWithEventHandler()
             Dim code As String = <text>
 public class _Default : System.Web.UI.Page
@@ -198,7 +198,7 @@ public class _Default : System.Web.UI.Page
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub CreateUniqueEventName_NameCollisionWithOtherMembers()
             Dim code As String = <text>
 public class _Default : System.Web.UI.Page
@@ -224,7 +224,7 @@ public class _Default : System.Web.UI.Page
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub CreateUniqueEventName_NameCollisionFromPartialClass()
             Dim code As String = <text>
 public partial class _Default : System.Web.UI.Page
@@ -252,7 +252,7 @@ public partial class _Default
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub CreateUniqueEventName_NameCollisionFromBaseClass()
             Dim code As String = <text>
 public class _Default : MyBaseClass
@@ -286,7 +286,7 @@ public class MyBaseClass
 
 #Region "GetCompatibleEventHandlers"
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetCompatibleEventHandlers_EventDoesntExist()
             Dim code As String = <text>
 using System;
@@ -318,7 +318,7 @@ public class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetCompatibleEventHandlers_ObjTypeNameIsWrong()
             Dim code As String = <text>
 using System;
@@ -354,7 +354,7 @@ namespace Test
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetCompatibleEventHandlers_MatchExists()
             Dim code As String = <text>
 using System;
@@ -388,7 +388,7 @@ public class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetCompatibleEventHandlers_MatchesExist()
             Dim code As String = <text>
 using System;
@@ -431,7 +431,7 @@ public class _Default
 
 #Region "GetEventHandlerMemberId"
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetEventHandlerMemberId_HandlerExists()
             Dim code As String = <text>
 using System;
@@ -469,7 +469,7 @@ public class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetEventHandlerMemberId_CantFindHandler()
             Dim code As String = <text>
 using System;
@@ -501,8 +501,8 @@ public class _Default
 
 #Region "EnsureEventHandler"
 
-        ' To Do : log a bug, kevin doesnt use uint itemidInsertionPoint thats sent in.
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        ' TODO: log a bug, Kevin doesn't use uint itemidInsertionPoint thats sent in.
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub EnsureEventHandler_HandlerExists()
             Dim code As String = <text>
 using System;
@@ -549,7 +549,7 @@ public class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub EnsureEventHandler_GenerateNewHandler()
             Dim code As String = <text>
 using System;
@@ -599,7 +599,7 @@ protected void Button1_Click(object sender, EventArgs e)
 #End Region
 
 #Region "GetMemberNavigationPoint"
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetMemberNavigationPoint()
             Dim code As String = <text>
 using System;
@@ -654,7 +654,7 @@ public class _Default
 #End Region
 
 #Region "GetMembers"
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetMembers_EventHandlersWrongParamType()
             Dim code As String = <text>
 using System;
@@ -678,7 +678,7 @@ public partial class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetMembers_EventHandlersWrongParamCount()
             Dim code As String = <text>
 using System;
@@ -702,7 +702,7 @@ public partial class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetMembers_EventHandlersWrongReturnType()
             Dim code As String = <text>
 using System;
@@ -726,7 +726,7 @@ public partial class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetMembers_EventHandlers()
             Dim code As String = <text>
 using System;
@@ -755,7 +755,7 @@ public partial class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetMembers_UserFunctions()
             Dim code As String = <text>
 using System;
@@ -783,7 +783,7 @@ public partial class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetMembers_Events()
             Dim code As String = <text>
 using System;
@@ -811,7 +811,7 @@ public class Button
 
 #Region "OnRenamed (TryRenameElement)"
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TryRenameElement_ResolvableMembers()
             Dim code As String = <text>
 using System;
@@ -837,8 +837,8 @@ public partial class _Default
             End Using
         End Sub
 
-        ' To Do: Who tests the fully qualified names and their absence?
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        ' TODO: Who tests the fully qualified names and their absence?
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TryRenameElement_UnresolvableMembers()
             Dim code As String = <text>
 using System;
@@ -864,7 +864,7 @@ public partial class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TryRenameElement_ResolvableClass()
             Dim code As String = <text>public partial class Foo { }</text>.Value
 
@@ -882,7 +882,7 @@ public partial class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TryRenameElement_ResolvableNamespace()
             Dim code As String = <text>namespace Foo { }</text>.Value
 
@@ -900,7 +900,7 @@ public partial class _Default
             End Using
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TryRenameElement_Button()
             Dim code As String = <text>
 using System;

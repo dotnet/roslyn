@@ -1998,10 +1998,7 @@ namespace CrashTest
             comp.VerifyDiagnostics(
     // (2,30): warning CS0612: 'Class2' is obsolete
     // using static CrashTest.Crash<CrashTest.Class2>; 
-    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "CrashTest.Class2").WithArguments("CrashTest.Class2").WithLocation(2, 30),
-    // (13,18): warning CS0612: 'Crash<T>' is obsolete
-    //         where T: Crash<T>.AbstractClass 
-    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Crash<T>").WithArguments("CrashTest.Crash<T>").WithLocation(13, 18)
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "CrashTest.Class2").WithArguments("CrashTest.Class2").WithLocation(2, 30)
                 );
         }
 

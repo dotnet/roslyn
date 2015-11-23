@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         /// The internal method <see cref="AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(Diagnostic)"/> does
         /// essentially this, but due to linked files between projects, this project cannot have internals visible
         /// access to the Microsoft.CodeAnalysis project without the cascading effect of many extern aliases, so it
-        /// is re-implemented here in a way that is potentially overly agressive with the knowledge that if this method
+        /// is re-implemented here in a way that is potentially overly aggressive with the knowledge that if this method
         /// starts failing on non-analyzer exception diagnostics, it can be appropriately tuned or re-evaluated.
         /// </summary>
         private void AssertNoAnalyzerExceptionDiagnostics(IEnumerable<Diagnostic> diagnostics)

@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 #Region "CSharp SymbolDescription Tests"
 
-        <Fact>
+        <WpfFact>
         Public Sub TestCSharpDynamic()
             Dim workspace =
 <Workspace>
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(543912)>
-        <Fact>
+        <WpfFact>
         Public Sub TestCSharpLocalConstant()
             Dim workspace =
 <Workspace>
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 #Region "Basic SymbolDescription Tests"
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNamedTypeKindClass()
             Dim workspace = WrapCodeInWorkspace("class Program",
                                                 "Dim p as Prog$$ram",
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         ''' C# / VB Quick Info consistency
         ''' </summary>
         ''' <remarks></remarks>
-        <Fact>
+        <WpfFact>
         Public Sub TestGenericClass()
             Dim workspace =
 <Workspace>
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         StringFromLines("Sub List(Of String).New()"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestGenericClassFromSource()
             Dim workspace =
 <Workspace>
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         StringFromLines("Sub Outer(Of Integer).New()"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestClassNestedWithinAGenericClass()
             Dim workspace =
 <Workspace>
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                       StringFromLines("Sub Outer(Of Integer).Inner.New()"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestTypeParameter()
             Dim workspace =
 <Workspace>
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, $"T {FeaturesResources.In} Foo(Of T)")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestTypeParameterFromNestedClass()
             Dim workspace =
 <Workspace>
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, $"T {FeaturesResources.In} Outer(Of T)")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestShadowedTypeParameter()
             Dim workspace =
 <Workspace>
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, $"T {FeaturesResources.In} Outer(Of T)")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNullableOfInt()
             Dim workspace =
 <Workspace>
@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                       $"T {FeaturesResources.Is} Integer"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestDictionaryOfIntAndString()
             Dim workspace =
 <Workspace>
@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         StringFromLines("Sub Dictionary(Of Integer, String).New()"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNamedTypeKindStructure()
             Dim workspace =
 <Workspace>
@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Structure Program")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNamedTypeKindStructureBuiltIn()
             Dim workspace =
 <Workspace>
@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Structure System.Int32")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNamedTypeKindEnum()
             Dim workspace =
 <Workspace>
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Enum Program")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNamedTypeKindDelegate()
             Dim workspace =
 <Workspace>
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Delegate Sub DelegateType()")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNamedTypeKindInterface()
             Dim workspace =
 <Workspace>
@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Interface Foo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNamedTypeKindModule()
             Dim workspace =
 <Workspace>
@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Module M1")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNamespace()
             Dim workspace =
 <Workspace>
@@ -401,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Namespace System")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNamespace2()
             Dim workspace =
 <Workspace>
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Namespace System.Collections.Generic")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestField()
             Dim workspace =
 <Workspace>
@@ -432,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, $"({FeaturesResources.Field}) Foo.field As Integer")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestLocal()
             Dim workspace =
 <Workspace>
@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, $"({FeaturesResources.LocalVariable}) x As String")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestStringLiteral()
             Dim workspace =
 <Workspace>
@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Class System.String")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestIntegerLiteral()
             Dim workspace =
 <Workspace>
@@ -484,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Structure System.Int32")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestDateLiteral()
             Dim workspace =
 <Workspace>
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         ''' Design change from Dev10
-        <Fact>
+        <WpfFact>
         Public Sub TestNothingLiteral()
             Dim workspace =
 <Workspace>
@@ -520,7 +520,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestTrueKeyword()
             Dim workspace =
 <Workspace>
@@ -538,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(538732)>
-        <Fact>
+        <WpfFact>
         Public Sub TestMethod()
             Dim workspace =
 <Workspace>
@@ -564,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         ''' </summary>
         ''' <remarks></remarks>
         <WorkItem(538732)>
-        <Fact>
+        <WpfFact>
         Public Sub TestPEMethod()
             Dim workspace =
 <Workspace>
@@ -586,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         ''' This is what C# does. We are modifying VB to follow this model.
         ''' </summary>
         ''' <remarks></remarks>
-        <Fact>
+        <WpfFact>
         Public Sub TestFormalParameter()
             Dim workspace =
 <Workspace>
@@ -605,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, $"({FeaturesResources.Parameter}) x As String")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestOptionalParameter()
             Dim workspace =
 <Workspace>
@@ -624,7 +624,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Sub Foo.Method(x As Short, [y As Integer = 10])")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestOverloadedMethod()
             Dim workspace =
 <Workspace>
@@ -647,7 +647,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Sub Foo.Method(x As String)")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestOverloadedMethods()
             Dim workspace =
 <Workspace>
@@ -674,7 +674,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(527639)>
-        <Fact>
+        <WpfFact>
         Public Sub TestInterfaceConstraintOnClass()
             Dim workspace = WrapCodeInWorkspace("Imports System.Collections.Generic",
                                                 "Class CC(Of T$$ As IEnumerable(Of Integer))",
@@ -685,7 +685,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(527639)>
-        <Fact>
+        <WpfFact>
         Public Sub TestInterfaceConstraintOnInterface()
             Dim workspace = WrapCodeInWorkspace("Imports System.Collections.Generic",
                                                 "Interface IMyInterface(Of T$$ As IEnumerable(Of Integer))",
@@ -696,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(527639)>
-        <Fact>
+        <WpfFact>
         Public Sub TestReferenceTypeConstraintOnClass()
             Dim workspace = WrapCodeInWorkspace("Class CC(Of T$$ As Class)",
                                                 "End Class")
@@ -706,7 +706,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(527639)>
-        <Fact>
+        <WpfFact>
         Public Sub TestValueTypeConstraintOnClass()
             Dim workspace = WrapCodeInWorkspace("Class CC(Of T$$ As Structure)",
                                                 "End Class")
@@ -716,7 +716,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(527639)>
-        <Fact>
+        <WpfFact>
         Public Sub TestValueTypeConstraintOnStructure()
             Dim workspace = WrapCodeInWorkspace("Structure S(Of T$$ As Class)",
                                                 "End Structure")
@@ -726,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(527639)>
-        <Fact>
+        <WpfFact>
         Public Sub TestMultipleConstraintsOnClass()
             Dim workspace = WrapCodeInWorkspace("Public Class CC(Of T$$ As {IComparable, IDisposable, Class, New})",
                                                 "End Class")
@@ -736,7 +736,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         ''' TO DO: Add test for Ref Arg
-        <Fact>
+        <WpfFact>
         Public Sub TestOutArguments()
             Dim workspace = WrapCodeInWorkspace("Imports System.Collections.Generic",
                                                 "Class CC(Of T As IEnum$$erable(Of Integer))",
@@ -748,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(527655)>
-        <Fact>
+        <WpfFact>
         Public Sub TestMinimalDisplayName()
             Dim workspace = WrapCodeInWorkspace("Imports System",
                                                 "Imports System.Collections.Generic",
@@ -760,7 +760,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, expectedDescription)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestOverridableMethod()
             Dim workspace =
     <Workspace>
@@ -790,7 +790,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Sub A.G()")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestOverriddenMethod2()
             Dim workspace =
     <Workspace>
@@ -820,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Sub A.G()")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestGenericMethod()
             Dim workspace =
     <Workspace>
@@ -845,7 +845,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestBasic(workspace, "Sub Outer(Of Integer).Inner.F(x As Integer)")
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestAutoImplementedProperty()
             Dim workspace =
     <Workspace>
@@ -862,7 +862,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(538806)>
-        <Fact>
+        <WpfFact>
         Public Sub TestField1()
             Dim workspace =
 <Workspace>
@@ -882,7 +882,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(538806)>
-        <Fact>
+        <WpfFact>
         Public Sub TestProperty1()
             Dim workspace =
 <Workspace>
@@ -902,7 +902,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <WorkItem(543911)>
-        <Fact>
+        <WpfFact>
         Public Sub TestVBLocalConstant()
             Dim workspace =
 <Workspace>

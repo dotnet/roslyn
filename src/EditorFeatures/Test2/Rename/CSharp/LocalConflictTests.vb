@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class LocalConflictTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(539939)>
         Public Sub ConflictingLocalWithLocal()
@@ -29,7 +29,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(539939)>
         Public Sub ConflictingLocalWithParameter()
@@ -53,7 +53,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithForEachRangeVariable()
             Using result = RenameEngineResult.Create(
@@ -78,7 +78,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithForLoopVariable()
             Using result = RenameEngineResult.Create(
@@ -103,7 +103,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithUsingBlockVariable()
             Using result = RenameEngineResult.Create(
@@ -128,7 +128,7 @@ class Program : IDisposable
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithSimpleLambdaParameter()
             Using result = RenameEngineResult.Create(
@@ -154,7 +154,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingLocalWithParenthesizedLambdaParameter()
             Using result = RenameEngineResult.Create(
@@ -180,7 +180,7 @@ class Program
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictingFromClauseWithLetClause()
             Using result = RenameEngineResult.Create(
@@ -211,7 +211,7 @@ class C
         End Sub
 
 
-        <Fact>
+        <WpfFact>
         <WorkItem(543407)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelsInSameMethod()
@@ -239,7 +239,7 @@ public class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(543407)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelInMethodAndLambda()
@@ -267,7 +267,7 @@ public class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(543407)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabelsInLambda()
@@ -294,7 +294,7 @@ public class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(543407)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenLabelsInTwoNonNestedLambdas()
@@ -320,7 +320,7 @@ public class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(545468)>
         Public Sub NoConflictsWithCatchBlockWithoutExceptionVariable()
@@ -349,7 +349,7 @@ class Test
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1081066)>
         Public Sub NoConflictsBetweenCatchClauses()
@@ -374,7 +374,7 @@ class Test
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(1081066)>
         Public Sub ConflictsWithinCatchClause()
@@ -400,7 +400,7 @@ class Test
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(546163)>
         Public Sub NoConflictsWithCatchExceptionWithoutDeclaration()
@@ -429,7 +429,7 @@ class Test
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(992721)>
         Public Sub ConflictingLocalWithFieldWithExtensionMethodInvolved()

@@ -409,9 +409,7 @@ End Class]]>.Value)
     <Fact>
     Public Sub ParseAwaitInScriptingAndInteractive()
 
-        For Each mode In {SourceCodeKind.Script, SourceCodeKind.Interactive}
-
-            Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim source = "
 Dim i = Await T + Await(T)      ' Yes, Yes
 
 Dim l = Sub()
@@ -429,18 +427,16 @@ End Sub
 
 Async Function F()
     Return Await(T)             ' Yes
-End Function]]>.Value,
-                options:=VisualBasicParseOptions.Default.WithKind(mode))
+End Function"
 
-            Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax).ToArray()
+        Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
 
-            Assert.Equal(5, awaitExpressions.Count)
+        Dim awaitExpressions = tree.GetRoot().DescendantNodes.OfType(Of AwaitExpressionSyntax).ToArray()
 
-            Dim awaitParsedAsIdentifier = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax).Where(Function(id) id.Identifier.ValueText.Equals("Await")).ToArray()
+        Assert.Equal(5, awaitExpressions.Count)
 
-            Assert.Equal(2, awaitParsedAsIdentifier.Count)
-        Next
+        Dim awaitParsedAsIdentifier = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax).Where(Function(id) id.Identifier.ValueText.Equals("Await")).ToArray()
 
+        Assert.Equal(2, awaitParsedAsIdentifier.Count)
     End Sub
-
 End Class

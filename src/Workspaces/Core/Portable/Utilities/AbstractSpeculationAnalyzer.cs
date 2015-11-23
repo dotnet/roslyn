@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         /// <summary>
         /// Determines whether performing the given syntax replacement will change the semantics of any parenting expressions
-        /// by performing a bottom up walk from the <see cref="OriginalExpression"/> upto <see cref="SemanticRootOfOriginalExpression"/>
+        /// by performing a bottom up walk from the <see cref="OriginalExpression"/> up to <see cref="SemanticRootOfOriginalExpression"/>
         /// in the original tree and simultaneously walking bottom up from <see cref="ReplacedExpression"/> up to <see cref="SemanticRootOfReplacedExpression"/>
         /// in the speculated syntax tree and performing appropriate semantic comparisons.
         /// </summary>
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        protected bool ReplacementBreaksCompoundAssignExpression(
+        protected bool ReplacementBreaksCompoundAssignment(
             TExpressionSyntax originalLeft,
             TExpressionSyntax originalRight,
             TExpressionSyntax newLeft,

@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class FinallyKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyNotInMethodBody()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Finally")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyInTryBlock()
             VerifyRecommendationsContain(<MethodBody>
@@ -24,7 +24,7 @@ Try
 End Try</MethodBody>, "Finally")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyInCatchBlock()
             VerifyRecommendationsContain(<MethodBody>
@@ -34,7 +34,7 @@ Catch ex As Exception
 End Try</MethodBody>, "Finally")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyNotBeforeCatchBlock()
             VerifyRecommendationsMissing(<MethodBody>
@@ -44,7 +44,7 @@ Catch ex As Exception
 End Try</MethodBody>, "Finally")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyNotInFinallyBlock()
             VerifyRecommendationsMissing(<MethodBody>
@@ -54,7 +54,7 @@ Finally
 End Try</MethodBody>, "Finally")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyInTryNestedInCatch1()
             VerifyRecommendationsContain(<MethodBody>
@@ -66,7 +66,7 @@ End Try</MethodBody>, "Finally")
             End Try</MethodBody>, "Finally")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub FinallyInTryNestedInCatch2()
             VerifyRecommendationsContain(<MethodBody>

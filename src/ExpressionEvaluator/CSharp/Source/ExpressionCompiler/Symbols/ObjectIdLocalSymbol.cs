@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     method.Name,
                     m => method.TypeParameters.SelectAsArray(t => (TypeParameterSymbol)new SimpleTypeParameterSymbol(m, t.Ordinal, t.Name)),
                     m => m.TypeParameters[0], // return type is <>T&
-                    m => method.Parameters.SelectAsArray(p => (ParameterSymbol)new SynthesizedParameterSymbol(m, p.Type.TypeSymbol, p.Ordinal, p.RefKind, p.Name, p.Type.CustomModifiers)));
+                    m => method.Parameters.SelectAsArray(p => (ParameterSymbol)new SynthesizedParameterSymbol(m, p.Type.TypeSymbol, p.Ordinal, p.RefKind, p.Name, p.Type.CustomModifiers, p.CountOfCustomModifiersPrecedingByRef)));
                 var local = variable.LocalSymbol;
                 return InvokeGetMethod(method.Construct(local.Type.TypeSymbol), variable.Syntax, local.Name);
             }

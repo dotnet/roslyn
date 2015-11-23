@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" InitialTargets="RestoreToolsetPackagesWrapper" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
 
   <PropertyGroup>
     <ProjectDir>$(MSBuildThisFileDirectory)..\..\</ProjectDir>
@@ -11,47 +11,19 @@
                                  '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages</NuGetPackageRoot>
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
+
+    <!-- Turn on hard-linking on Windows to reduce copy time and disk space -->
+    <CreateHardLinksForCopyLocalIfPossible Condition="'$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyLocalIfPossible>
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.1.0-beta1-20150727-01\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.1.0-rc1-20151014-05\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
 
-  <!-- Wrap the RestoreToolsetPackages target to prevent the output from being
-      referenced by other targets -->
-  <Target Name="RestoreToolsetPackagesWrapper" DependsOnTargets="RestoreToolsetPackages" />
-
-  <Target Name="RestoreToolsetPackages"
-          Inputs="$(ProjectDir)build\ToolsetPackages\project.json"
-          Outputs="$(ToolsetPackagesSemaphore);
-                   $(ToolsetCompilerPropsFilePath);
-                   $(RoslynDiagnosticsPropsFilePath)"
-          Condition="'$(OS)' == 'Windows_NT'">
-    <Message Importance="High" Text="Restoring toolset packages..." />
-
-    <!-- Run restore -->
-    <Exec Command="$(NuGetToolPath) restore $(ToolsetPackagesDir)project.json" />
-
-    <Error Text="Toolset compilers were not restored correctly. Could not find: $(ToolsetCompilerPropsFilePath)"
-           Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
-    <Error Text="RoslynDiagnostics package was not restored correctly. Could not find: $(RoslynDiagnosticsPropsFilePath)"
-           Condition="!Exists('$(RoslynDiagnosticsPropsFilePath)')" />
-
-    <Touch Files="$(ToolsetCompilerPropsFilePath);$(RoslynDiagnosticsPropsFilePath)"
-           ContinueOnError="WarnAndContinue"
-           ForceTouch="true" />
-
-    <!-- Touch semaphore to indicate we're up to date -->
-    <Touch Files="$(ToolsetPackagesSemaphore)"
-           ContinueOnError="WarnAndContinue"
-           AlwaysCreate="true"
-           ForceTouch="true" />
-
-  </Target>
   <!-- This file is imported by all projects at the beginning of the project files -->
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />
@@ -97,17 +69,17 @@
     <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.37</SystemCollectionsImmutableAssemblyVersion>
     <NuGetCommandLineAssemblyVersion Condition="'$(NuGetCommandLineAssemblyVersion)' == ''">2.8.5</NuGetCommandLineAssemblyVersion>
     <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
-    <MicrosoftCodeAnalysisAnalyzersAssemblyVersion Condition="'$(MicrosoftCodeAnalysisAnalyzersAssemblyVersion)' == ''">1.0.0</MicrosoftCodeAnalysisAnalyzersAssemblyVersion>
-    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-alpha-00015</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.2.0-rc</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.3.3</MicrosoftDiaSymReaderNativeVersion>
     <NuGetCommandLineVersion>$(NuGetCommandLineAssemblyVersion)</NuGetCommandLineVersion>
     <MicrosoftCompositionVersion>$(MicrosoftCompositionAssemblyVersion)</MicrosoftCompositionVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersAssemblyVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersionStable Condition="'$(MicrosoftCodeAnalysisAnalyzersVersionStable)' == ''">1.0.0</MicrosoftCodeAnalysisAnalyzersVersionStable>
+    <MicrosoftCodeAnalysisAnalyzersVersionNext Condition="'$(MicrosoftCodeAnalysisAnalyzersVersionNext)' == ''">1.2.0</MicrosoftCodeAnalysisAnalyzersVersionNext>
 
-    <!-- If we still have Roslyn installed, our VSIX-producing packages are not going to install, so let's not even try.
-         OpenSourceDebug overrides this by simple virtue that it's property setting is after the include of this file -->
-    <DeployExtension Condition="Exists('$(DevEnvDir)\CommonExtensions\Microsoft\Roslyn\Language Services\extension.vsixmanifest')">false</DeployExtension>
+    <!-- If we're on Visual Studio 2015 RTM and  we still have Roslyn installed, our VSIX-producing packages are not going to install, so let's not even try.
+         Update 1 supports this, so we'll use csi.exe's existence as a simple proxy for whether we have Update 1 installed or not. -->
+    <DeployExtension Condition="'$(DeployExtension)' == '' AND Exists('$(DevEnvDir)\CommonExtensions\Microsoft\Roslyn\Language Services\extension.vsixmanifest') AND !Exists('$(MSBuildBinPath)\csi.exe')">false</DeployExtension>
   </PropertyGroup>
 
   <Choose>
@@ -154,9 +126,9 @@
 
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
-    <CscToolExe>csc.exe</CscToolExe>
+    <CscToolExe>csc.cmd</CscToolExe>
     <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
-    <VbcToolExe>vbc.exe</VbcToolExe>
+    <VbcToolExe>vbc.cmd</VbcToolExe>
   </PropertyGroup>
 
   <!-- Common project settings -->
@@ -347,7 +319,7 @@
     </BuildNumberPart2>
 
     <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
-    <NuGetPreReleaseVersion>$(NuGetReleaseVersion)-beta1</NuGetPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(NuGetReleaseVersion)-beta</NuGetPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
   </PropertyGroup>
 

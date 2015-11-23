@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             return new EncapsulateFieldRefactoringProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void PrivateFieldToPropertyIgnoringReferences()
         {
             var text = @"
@@ -56,7 +56,7 @@ class foo
             Test(text, expected, compareTokens: false, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void PrivateFieldToPropertyUpdatingReferences()
         {
             var text = @"
@@ -98,7 +98,7 @@ class foo
             Test(text, expected, compareTokens: false, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void PublicFieldIntoPublicPropertyIgnoringReferences()
         {
             var text = @"
@@ -140,7 +140,7 @@ class foo
             Test(text, expected, compareTokens: false, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void PublicFieldIntoPublicPropertyUpdatingReferences()
         {
             var text = @"
@@ -182,7 +182,7 @@ class foo
             Test(text, expected, compareTokens: false, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void StaticPreserved()
         {
             var text = @"class Program
@@ -210,7 +210,7 @@ class foo
             Test(text, expected, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void UniqueNameGenerated()
         {
             var text = @"
@@ -242,7 +242,7 @@ class Program
             Test(text, expected, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void GenericField()
         {
             var text = @"
@@ -272,7 +272,7 @@ class C<T>
             Test(text, expected, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void NewFieldNameIsUnique()
         {
             var text = @"
@@ -304,7 +304,7 @@ class foo
             Test(text, expected, compareTokens: false, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void RespectReadonly()
         {
             var text = @"
@@ -329,7 +329,7 @@ class foo
             Test(text, expected, compareTokens: false, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void PreserveNewAndConsiderBaseMemberNames()
         {
             var text = @"
@@ -373,7 +373,7 @@ class d : c
             Test(text, expected, compareTokens: false, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateMultiplePrivateFields()
         {
             var text = @"
@@ -428,7 +428,7 @@ class foo
             Test(text, expected, compareTokens: false, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateMultiplePrivateFields2()
         {
             var text = @"
@@ -485,7 +485,7 @@ class foo
             Test(text, expected, compareTokens: false, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateSinglePublicFieldInMultipleVariableDeclarationAndUpdateReferences()
         {
             var text = @"
@@ -529,7 +529,7 @@ class foo
         }
 
         [WorkItem(694057)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void ConstFieldNoGetter()
         {
             var text = @"
@@ -557,7 +557,7 @@ class Program
         }
 
         [WorkItem(694276)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateFieldNamedValue()
         {
             var text = @"
@@ -585,7 +585,7 @@ class Program
         }
 
         [WorkItem(694276)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void PublicFieldNamed__()
         {
             var text = @"
@@ -618,7 +618,7 @@ class Program
         }
 
         [WorkItem(695046)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void AvailableNotJustOnVariableName()
         {
             var text = @"
@@ -632,7 +632,7 @@ class Program
         }
 
         [WorkItem(705898)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void CopyFieldAccessibility()
         {
             var text = @"
@@ -659,7 +659,7 @@ class Program
             Test(text, expected, compareTokens: false, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void UpdateReferencesCrossProject()
         {
             var text = @"
@@ -728,7 +728,7 @@ public class D
         }
 
         [WorkItem(713269)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void PreserveUnsafe()
         {
             var text = @"
@@ -761,7 +761,7 @@ class C
         }
 
         [WorkItem(713240)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void ConsiderReturnTypeAccessibility()
         {
             var text = @"
@@ -804,7 +804,7 @@ internal enum State
         }
 
         [WorkItem(713191)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void DoNotReferToReadOnlyPropertyInConstructor()
         {
             var text = @"
@@ -840,7 +840,7 @@ class Program
         }
 
         [WorkItem(713191)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void DoNotReferToStaticReadOnlyPropertyInConstructor()
         {
             var text = @"
@@ -876,7 +876,7 @@ class Program
         }
 
         [WorkItem(765959)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void GenerateInTheCorrectPart()
         {
             var text = @"
@@ -909,7 +909,7 @@ partial class Program {
         }
 
         [WorkItem(829178)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void ErrorTolerance()
         {
             var text = @"class Program 
@@ -925,7 +925,7 @@ partial class Program {
         }
 
         [WorkItem(834072)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void DuplicateFieldErrorTolerance()
         {
             var text = @"
@@ -944,7 +944,7 @@ class Program
         }
 
         [WorkItem(862517)]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void Trivia()
         {
             var text = @"
@@ -985,7 +985,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")]
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void DoNotEncapsulateOutsideTypeDeclaration()
         {
             TestMissing(@"
@@ -1002,6 +1002,166 @@ enum E
 {
     [|x|] = 1;
 }");
+        }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishDottedI()
+        {
+            using (new CultureContext("tr-TR"))
+            {
+                Test(@"
+class C
+{
+    int [|iyi|];
+}
+", @"
+class C
+{
+    int iyi;
+
+    public int Iyi
+    {
+        get
+        {
+            return iyi;
+        }
+        set
+        {
+            iyi = value;
+        }
+    }
+}
+");
+            }
+        }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishUndottedI()
+        {
+            using (new CultureContext("tr-TR"))
+            {
+                Test(@"
+class C
+{
+    int [|ırak|];
+}
+", @"
+class C
+{
+    int ırak;
+
+    public int Irak
+    {
+        get
+        {
+            return ırak;
+        }
+        set
+        {
+            ırak = value;
+        }
+    }
+}
+");
+            }
+        }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_Arabic()
+        {
+            using (new CultureContext("ar-EG"))
+            {
+                Test(@"
+class C
+{
+    int [|بيت|];
+}
+", @"
+class C
+{
+    int بيت;
+
+    public int بيت1
+    {
+        get
+        {
+            return بيت;
+        }
+        set
+        {
+            بيت = value;
+        }
+    }
+}
+");
+            }
+        }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_Spanish()
+        {
+            using (new CultureContext("es-ES"))
+            {
+                Test(@"
+class C
+{
+    int [|árbol|];
+}
+", @"
+class C
+{
+    int árbol;
+
+    public int Árbol
+    {
+        get
+        {
+            return árbol;
+        }
+        set
+        {
+            árbol = value;
+        }
+    }
+}
+");
+            }
+        }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_Greek()
+        {
+            using (new CultureContext("el-GR"))
+            {
+                Test(@"
+class C
+{
+    int [|σκύλος|];
+}
+", @"
+class C
+{
+    int σκύλος;
+
+    public int Σκύλος
+    {
+        get
+        {
+            return σκύλος;
+        }
+        set
+        {
+            σκύλος = value;
+        }
+    }
+}
+");
+            }
         }
     }
 }

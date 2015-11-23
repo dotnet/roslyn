@@ -2,14 +2,14 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 {
-    public class TestInteractiveEngine : IInteractiveEvaluator
+    public sealed class TestInteractiveEngine : IInteractiveEvaluator
     {
+        internal event EventHandler<string> OnExecute;
+
         private readonly IContentType _contentType;
         private IInteractiveWindow _currentWindow;
 
@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         public Task<ExecutionResult> ExecuteCodeAsync(string text)
         {
+            OnExecute?.Invoke(this, text);
             return Task.FromResult(ExecutionResult.Success);
         }
 

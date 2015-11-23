@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref DeclarationTable declTable)
         {
             var sourceCodeKind = tree.Options.Kind;
-            if (sourceCodeKind == SourceCodeKind.Interactive || sourceCodeKind == SourceCodeKind.Script)
+            if (sourceCodeKind == SourceCodeKind.Script)
             {
                 AppendAllLoadedSyntaxTrees(treesBuilder, tree, scriptClassName, resolver, messageProvider, isSubmission, ordinalMapBuilder, loadDirectiveMapBuilder, loadedSyntaxTreeMapBuilder, declMapBuilder, ref declTable);
             }
@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var path = (string)fileToken.Value;
                 if (path == null)
                 {
-                    // If there is no path, the parser should have some Diagnostics to report.
-                    Debug.Assert(tree.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
+                    // If there is no path, the parser should have some Diagnostics to report (if we're in an active region).
+                    Debug.Assert(!directive.IsActive || tree.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
                     continue;
                 }
 
@@ -383,8 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!loadDirectives.IsEmpty);
                         foreach (var directive in loadDirectives)
                         {
-                            var loadedTree = loadedSyntaxTreeMap[directive.ResolvedPath];
-                            if (removeSet.Contains(loadedTree))
+                            SyntaxTree loadedTree;
+                            if (TryGetLoadedSyntaxTree(loadedSyntaxTreeMap, directive, out loadedTree))
                             {
                                 removeSet.Remove(loadedTree);
                             }
@@ -404,15 +404,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (directive.ResolvedPath != null)
                 {
-                    var loadedTree = loadedSyntaxTreeMap[directive.ResolvedPath];
-                    ImmutableArray<LoadDirective> nestedLoadDirectives;
-                    if (loadDirectiveMap.TryGetValue(loadedTree, out nestedLoadDirectives))
+                    SyntaxTree loadedTree;
+                    if (TryGetLoadedSyntaxTree(loadedSyntaxTreeMap, directive, out loadedTree) && removeSet.Add(loadedTree))
                     {
-                        Debug.Assert(!nestedLoadDirectives.IsEmpty);
-                        GetRemoveSetForLoadedTrees(nestedLoadDirectives, loadDirectiveMap, loadedSyntaxTreeMap, removeSet);
+                        ImmutableArray<LoadDirective> nestedLoadDirectives;
+                        if (loadDirectiveMap.TryGetValue(loadedTree, out nestedLoadDirectives))
+                        {
+                            Debug.Assert(!nestedLoadDirectives.IsEmpty);
+                            GetRemoveSetForLoadedTrees(nestedLoadDirectives, loadDirectiveMap, loadedSyntaxTreeMap, removeSet);
+                        }
                     }
-
-                    removeSet.Add(loadedTree);
                 }
             }
         }
@@ -576,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap)
         {
             var sourceCodeKind = tree.Options.Kind;
-            if (sourceCodeKind == SourceCodeKind.Interactive || sourceCodeKind == SourceCodeKind.Script)
+            if (sourceCodeKind == SourceCodeKind.Script)
             {
                 ImmutableArray<LoadDirective> loadDirectives;
                 if (loadDirectiveMap.TryGetValue(tree, out loadDirectives))
@@ -586,9 +587,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var resolvedPath = directive.ResolvedPath;
                         Debug.Assert((resolvedPath != null) || !directive.Diagnostics.IsEmpty);
-                        if (resolvedPath != null)
+                        if (resolvedPath == null)
                         {
-                            var loadedTree = loadedSyntaxTreeMap[directive.ResolvedPath];
+                            continue;
+                        }
+
+                        SyntaxTree loadedTree;
+                        if (TryGetLoadedSyntaxTree(loadedSyntaxTreeMap, directive, out loadedTree))
+                        {
                             UpdateSyntaxTreesAndOrdinalMapOnly(
                                 treesBuilder,
                                 loadedTree,
@@ -596,10 +602,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 loadDirectiveMap,
                                 loadedSyntaxTreeMap);
                         }
-
-                        treesBuilder.Add(tree);
-
-                        ordinalMapBuilder.Add(tree, ordinalMapBuilder.Count);
                     }
                 }
             }
@@ -619,6 +621,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return state.DeclarationTable.ReferenceDirectives.Any();
+        }
+
+        private static bool TryGetLoadedSyntaxTree(ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap, LoadDirective directive, out SyntaxTree loadedTree)
+        {
+            if (loadedSyntaxTreeMap.TryGetValue(directive.ResolvedPath, out loadedTree))
+            {
+                return true;
+            }
+
+            // If we don't have a tree for this directive, there should be errors.
+            Debug.Assert(directive.Diagnostics.HasAnyErrors());
+
+            return false;
         }
     }
 }

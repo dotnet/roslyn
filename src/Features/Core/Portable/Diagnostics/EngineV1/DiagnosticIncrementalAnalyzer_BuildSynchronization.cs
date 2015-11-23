@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                     var mergedDiagnostics = MergeDiagnostics(liveDiagnostics, GetExistingDiagnostics(existingDiagnostics));
                     await state.PersistAsync(project, new AnalysisData(projectTextVersion, semanticVersion, mergedDiagnostics), CancellationToken.None).ConfigureAwait(false);
-                    RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), mergedDiagnostics);
+                    RaiseDiagnosticsCreated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), mergedDiagnostics);
                 }
             }
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             if (PreferLiveErrorsOnOpenedFiles(workspace) && workspace.IsDocumentOpen(document.Id))
             {
                 // enqueue re-analysis of open documents.
-                this.Owner.Reanalyze(workspace, documentIds: SpecializedCollections.SingletonEnumerable(document.Id));
+                this.Owner.Reanalyze(workspace, documentIds: SpecializedCollections.SingletonEnumerable(document.Id), highPriority: true);
                 return;
             }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             var mergedDiagnostics = MergeDiagnostics(diagnostics, GetExistingDiagnostics(existingDiagnostics));
             await state.PersistAsync(document, new AnalysisData(textVersion, semanticVersion, mergedDiagnostics), CancellationToken.None).ConfigureAwait(false);
-            RaiseDiagnosticsUpdated(stateType, document.Id, stateSet, new SolutionArgument(document), mergedDiagnostics);
+            RaiseDiagnosticsCreated(stateType, document.Id, stateSet, new SolutionArgument(document), mergedDiagnostics);
         }
 
         private static ImmutableArray<DiagnosticData> GetExistingDiagnostics(AnalysisData analysisData)
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 // make sure we don't report same id to multiple different analyzers
                 if (!seen.Add(descriptor.Id))
                 {
-                    // TODO: once we have information where diagnostic came from, we probably doesnt need this.
+                    // TODO: once we have information where diagnostic came from, we probably don't need this.
                     continue;
                 }
 

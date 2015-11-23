@@ -80,21 +80,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal abstract Script WithOptionsInternal(ScriptOptions options);
 
         /// <summary>
-        /// Creates a new version of this script with the source code specified.
-        /// </summary>
-        /// <param name="code">The source code of the script.</param>
-        public Script WithCode(string code) => WithCodeInternal(code);
-        internal abstract Script WithCodeInternal(string code);
-
-        /// <summary>
-        /// Creates a new version of this script with the specified globals type. 
-        /// The members of this type can be accessed by the script as global variables.
-        /// </summary>
-        /// <param name="globalsType">The type that defines members that can be accessed by the script.</param>
-        public Script WithGlobalsType(Type globalsType) => WithGlobalsTypeInternal(globalsType);
-        internal abstract Script WithGlobalsTypeInternal(Type globalsType);
-
-        /// <summary>
         /// Continues the script with given code snippet.
         /// </summary>
         public Script<object> ContinueWith(string code, ScriptOptions options = null) =>
@@ -104,7 +89,15 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Continues the script with given code snippet.
         /// </summary>
         public Script<TResult> ContinueWith<TResult>(string code, ScriptOptions options = null) =>
-            new Script<TResult>(Compiler, Builder, code ?? "", options ?? Options, GlobalsType, this);
+            new Script<TResult>(Compiler, Builder, code ?? "", options ?? InheritOptions(Options), GlobalsType, this);
+
+        private static ScriptOptions InheritOptions(ScriptOptions previous)
+        {
+            // don't inherit references or imports, they have already been applied:
+            return previous.
+                WithReferences(ImmutableArray<MetadataReference>.Empty).
+                WithImports(ImmutableArray<string>.Empty);
+        }
 
         /// <summary>
         /// Get's the <see cref="Compilation"/> that represents the semantics of the script.
@@ -129,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The result of the last code snippet.</returns>
-        public Task<object> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
+        internal Task<object> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
             CommonEvaluateAsync(globals, cancellationToken);
 
         internal abstract Task<object> CommonEvaluateAsync(object globals, CancellationToken cancellationToken);
@@ -156,20 +149,24 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
-        public Task<ScriptState> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken)) =>
+        internal Task<ScriptState> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken)) =>
             CommonContinueAsync(previousState, cancellationToken);
 
         internal abstract Task<ScriptState> CommonContinueAsync(ScriptState previousState, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Forces the script through the build step.
-        /// If not called directly, the build step will occur on the first call to Run.
+        /// Forces the script through the compilation step.
+        /// If not called directly, the compilation step will occur on the first call to Run.
         /// </summary>
-        public void Build(CancellationToken cancellationToken = default(CancellationToken)) =>
-            CommonBuild(cancellationToken);
+        public ImmutableArray<Diagnostic> Compile(CancellationToken cancellationToken = default(CancellationToken)) =>
+            CommonCompile(cancellationToken);
 
-        internal abstract void CommonBuild(CancellationToken cancellationToken);
+        internal abstract ImmutableArray<Diagnostic> CommonCompile(CancellationToken cancellationToken);
         internal abstract Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken);
+
+        // Apply recursive alias <host> to the host assembly reference, so that we hide its namespaces and global types behind it.
+        internal static readonly MetadataReferenceProperties HostAssemblyReferenceProperties = 
+            MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<host>")).WithRecursiveAliases(true);
 
         /// <summary>
         /// Gets the references that need to be assigned to the compilation.
@@ -184,27 +181,21 @@ namespace Microsoft.CodeAnalysis.Scripting
             var references = ArrayBuilder<MetadataReference>.GetInstance();
             try
             {
-                var previous = Previous;
-                if (previous != null)
-                {
-                    // TODO: this should be done in reference manager
-                    references.AddRange(previous.GetCompilation().References);
-                }
-                else
+                if (Previous == null)
                 {
                     var corLib = MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly);
                     references.Add(corLib);
 
                     if (GlobalsType != null)
                     {
-                        var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly);
-                        references.Add(globalsTypeAssembly);
+                        var globalsAssembly = GlobalsType.GetTypeInfo().Assembly;
 
-                        // TODO: remove
-                        var systemRuntimeFacade = MetadataReference.CreateFromAssemblyInternal(
-                            Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")));
-
-                        references.Add(systemRuntimeFacade);
+                        // If the assembly doesn't have metadata (it's an in-memory or dynamic assembly),
+                        // the host has to add reference to the metadata where globals type is located explicitly.
+                        if (MetadataReference.HasMetadata(globalsAssembly))
+                        {
+                            references.Add(MetadataReference.CreateFromAssemblyInternal(globalsAssembly, HostAssemblyReferenceProperties));
+                        }
                     }
 
                     if (languageRuntimeReferenceOpt != null)
@@ -213,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                     }
                 }
 
+                // add new references:
                 foreach (var reference in Options.MetadataReferences)
                 {
                     var unresolved = reference as UnresolvedMetadataReference;
@@ -239,8 +231,13 @@ namespace Microsoft.CodeAnalysis.Scripting
             finally
             {
                 references.Free();
-
             }
+        }
+
+        // TODO: remove
+        internal bool HasReturnValue()
+        {
+            return GetCompilation().HasSubmissionResult();
         }
     }
 
@@ -261,26 +258,22 @@ namespace Microsoft.CodeAnalysis.Scripting
             return (options == Options) ? this : new Script<T>(Compiler, Builder, Code, options, GlobalsType, Previous);
         }
 
-        public new Script<T> WithCode(string code)
-        {
-            code = code ?? "";
-            return (code == Code) ? this : new Script<T>(Compiler, Builder, code, Options, GlobalsType, Previous);
-        }
-
-        public new Script<T> WithGlobalsType(Type globalsType)
-        {
-            return (globalsType == GlobalsType) ? this : new Script<T>(Compiler, Builder, Code, Options, globalsType, Previous);
-        }
-
         internal override Script WithOptionsInternal(ScriptOptions options) => WithOptions(options);
-        internal override Script WithCodeInternal(string code) => WithCode(code);
-        internal override Script WithGlobalsTypeInternal(Type globalsType) => WithGlobalsType(globalsType);
-
-        /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
-        internal override void CommonBuild(CancellationToken cancellationToken)
+        
+        internal override ImmutableArray<Diagnostic> CommonCompile(CancellationToken cancellationToken)
         {
-            GetPrecedingExecutors(cancellationToken);
-            GetExecutor(cancellationToken);
+            // TODO: avoid throwing exception, report all diagnostics https://github.com/dotnet/roslyn/issues/5949
+            try
+            {
+                GetPrecedingExecutors(cancellationToken);
+                GetExecutor(cancellationToken);
+
+                return ImmutableArray.CreateRange(GetCompilation().GetDiagnostics(cancellationToken).Where(d => d.Severity == DiagnosticSeverity.Warning));
+            }
+            catch (CompilationErrorException e)
+            {
+                return ImmutableArray.CreateRange(e.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning));
+            }
         }
 
         internal override Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken)
@@ -363,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The result of the last code snippet.</returns>
-        public new Task<T> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
+        internal new Task<T> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
             RunAsync(globals, cancellationToken).GetEvaluationResultAsync();
 
         /// <summary>
@@ -379,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException">The type of <paramref name="globals"/> doesn't match <see cref="Script.GlobalsType"/>.</exception>
         public new Task<ScriptState<T>> RunAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             ValidateGlobals(globals, GlobalsType);
@@ -420,9 +413,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="previousState"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="previousState"/> is not a previous execution state of this script.</exception>
-        public new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
+        internal new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             if (previousState == null)

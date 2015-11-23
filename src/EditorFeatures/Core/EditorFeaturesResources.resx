@@ -492,8 +492,8 @@
   <data name="HighlightedDefinition" xml:space="preserve">
     <value>Highlighted Definition</value>
   </data>
-  <data name="IsNotAValidIdentifier" xml:space="preserve">
-    <value>'{0}' is not a valid identifier</value>
+  <data name="TheNewNameIsNotAValidIdentifier" xml:space="preserve">
+    <value>The new name is not a valid identifier.</value>
   </data>
   <data name="InlineRenameFixup" xml:space="preserve">
     <value>Inline Rename Fixup</value>
@@ -538,7 +538,7 @@
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
   </data>
   <data name="Rename1" xml:space="preserve">
-    <value>Rename: '{0}'</value>
+    <value>Rename: {0}</value>
   </data>
   <data name="LightBulbSessionIsAlreadyDismissed" xml:space="preserve">
     <value>Light bulb session is already dismissed.</value>
@@ -744,5 +744,11 @@ Do you want to proceed?</value>
   </data>
   <data name="InlineRenameInstructions" xml:space="preserve">
     <value>Modify any highlighted location to begin renaming.</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="Navigating" xml:space="preserve">
+    <value>Navigating...</value>
   </data>
 </root>

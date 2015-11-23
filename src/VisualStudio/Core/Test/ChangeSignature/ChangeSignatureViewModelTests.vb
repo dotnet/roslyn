@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
     Public Class ReorderParametersViewModelTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_MethodWithTwoNormalParameters_UpDownArrowsNotOfferedWhenNoSelection()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -46,7 +46,7 @@ class MyClass
             monitor.Detach()
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_MethodWithTwoNormalParameters_OkButtonNotOfferedAfterPermutationsResultingInOriginalOrdering()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -73,7 +73,7 @@ class MyClass
                 canMoveDown:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_MethodWithTwoNormalParameters_MoveFirstParameterDown()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -108,7 +108,7 @@ class MyClass
             monitor.Detach()
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderParameters_MethodWithTwoNormalParameters_MoveSecondParameterUp()
             Dim markup = <Text><![CDATA[
 class MyClass
@@ -151,7 +151,7 @@ class MyClass
             monitor.Detach()
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_ParameterDisplay_MultidimensionalArray()
             Dim markup = <Text><![CDATA[
 class MyClass

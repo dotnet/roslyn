@@ -31,11 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public void TestMethodWithArrowBody()
         {
             Test(
 @"class C { int [||]GetFoo() => 0; }",
-@"class C { int Foo { get; } => 0; }");
+@"class C { int Foo => 0; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -408,6 +409,15 @@ index: 0);
             Test(
 @"partial class C { int [||]GetFoo() { } } partial class C { void SetFoo(int i) { } }",
 @"partial class C { int Foo { get { } set { } } } partial class C { }",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public void TestUpdateGetSetCaseInsensitive()
+        {
+            Test(
+@"using System; class C { int [||]getFoo() { } void setFoo(int i) { } }",
+@"using System; class C { int Foo { get { } set { } } }",
 index: 1);
         }
     }

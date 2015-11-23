@@ -1,28 +1,38 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias PortableTestUtils;
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
+using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 
 #pragma warning disable RS0003 // Do not directly await a Task
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
+    using static TestCompilationFactory;
+    using DiagnosticExtensions = PortableTestUtils::Microsoft.CodeAnalysis.DiagnosticExtensions;
+
     public class InteractiveSessionTests : TestBase
     {
         [Fact]
         public async Task CompilationChain_GlobalImportsRebinding()
         {
-            var options = ScriptOptions.Default.AddNamespaces("System.Diagnostics");
+            var options = ScriptOptions.Default.AddImports("System.Diagnostics");
 
             var s0 = await CSharpScript.RunAsync("", options);
 
@@ -100,7 +110,7 @@ Process.GetCurrentProcess()");
         [Fact]
         public void SearchPaths1()
         {
-            var options = ScriptOptions.Default.WithDefaultMetadataResolution(RuntimeEnvironment.GetRuntimeDirectory());
+            var options = ScriptOptions.Default.WithMetadataResolver(ScriptMetadataResolver.Default.WithSearchPaths(RuntimeEnvironment.GetRuntimeDirectory()));
 
             var result = CSharpScript.EvaluateAsync($@"
 #r ""System.Data.dll""
@@ -143,7 +153,7 @@ new System.Data.DataSet()
         public async Task SearchPaths_BaseDirectory()
         {
             var options = ScriptOptions.Default.
-                WithCustomMetadataResolution(new TestMetadataReferenceResolver(
+                WithMetadataResolver(new TestMetadataReferenceResolver(
                     pathResolver: new VirtualizedRelativePathResolver(existingFullPaths: new[] { @"C:\dir\x.dll" }, baseDirectory: @"C:\foo\bar"),
                     files: new Dictionary<string, PortableExecutableReference> { { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef } }));
 
@@ -152,14 +162,14 @@ new System.Data.DataSet()
 using System.Linq;
 
 var x = from a in new[] { 1, 2 ,3 } select a + 1;
-", options.WithPath(@"C:\dir\a.csx").WithIsInteractive(false));
+", options.WithFilePath(@"C:\dir\a.csx"));
 
-            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithPath(null).WithIsInteractive(true));
+            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithFilePath(null));
 
             AssertEx.Equal(new[] { 2, 3, 4 }, state.ReturnValue);
         }
 
-        [Fact]
+        [Fact(Skip = "xunit2")]
         public async Task References1()
         {
             var options0 = ScriptOptions.Default.AddReferences(
@@ -206,7 +216,7 @@ new System.Windows.Forms.Form()
         public void References2()
         {
             var options = ScriptOptions.Default.
-                WithDefaultMetadataResolution(RuntimeEnvironment.GetRuntimeDirectory()).
+                WithMetadataResolver(ScriptMetadataResolver.Default.WithSearchPaths(RuntimeEnvironment.GetRuntimeDirectory())).
                 AddReferences("System.Core", "System.dll").
                 AddReferences(typeof(System.Data.DataSet).Assembly);
 
@@ -220,31 +230,206 @@ System.Diagnostics.Process.GetCurrentProcess()
             Assert.NotNull(process);
         }
 
-        [Fact]
-        public void MissingDependency()
+        private static Lazy<bool> IsSystemV2AndV4Available = new Lazy<bool>(() =>
         {
-            var source = @"
-#r ""WindowsBase""
-#r ""PresentationCore""
-#r ""PresentationFramework""
+            string path;
+            return GlobalAssemblyCache.ResolvePartialName("System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null &&
+                   GlobalAssemblyCache.ResolvePartialName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", out path) != null;
+        });
 
-using System.Windows;
-System.Collections.IEnumerable w = new Window();
-";
+        [Fact]
+        public void References_Versioning_FxUnification1()
+        {
+            if (!IsSystemV2AndV4Available.Value) return;
 
-            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync(source),
-                // (7,36): error CS0012: The type 'System.ComponentModel.ISupportInitialize' is defined in an assembly that is not referenced. You must add a reference to assembly 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Window()").WithArguments("System.ComponentModel.ISupportInitialize", "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (7,36): error CS0012: The type 'System.Windows.Markup.IQueryAmbient' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Window()").WithArguments("System.Windows.Markup.IQueryAmbient", "System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (7,36): error CS0266: Cannot implicitly convert type 'System.Windows.Window' to 'System.Collections.IEnumerable'. An explicit conversion exists (are you missing a cast?)
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new Window()").WithArguments("System.Windows.Window", "System.Collections.IEnumerable"));
+            var script = CSharpScript.Create($@"
+#r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+#r ""System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+
+System.Diagnostics.Process.GetCurrentProcess()
+");
+            script.GetCompilation().VerifyAssemblyVersionsAndAliases(
+                "System, Version=2.0.0.0: <superseded>",
+                "System, Version=4.0.0.0",
+                "mscorlib, Version=4.0.0.0",
+                "System.Configuration, Version=4.0.0.0: <implicit>,global",
+                "System.Xml, Version=4.0.0.0: <implicit>,global",
+                "System.Data.SqlXml, Version=4.0.0.0: <implicit>,global",
+                "System.Security, Version=4.0.0.0: <implicit>,global",
+                "System.Core, Version=4.0.0.0: <implicit>,global",
+                "System.Numerics, Version=4.0.0.0: <implicit>,global",
+                "System.Configuration, Version=2.0.0.0: <superseded>",
+                "System.Xml, Version=2.0.0.0: <superseded>",
+                "System.Data.SqlXml, Version=2.0.0.0: <superseded>",
+                "System.Security, Version=2.0.0.0: <superseded>");
+
+            Assert.NotNull(script.RunAsync().Result.ReturnValue);
         }
 
-        [WorkItem(529637)]
+        [Fact]
+        public void References_Versioning_FxUnification2()
+        {
+            if (!IsSystemV2AndV4Available.Value) return;
+
+            var script0 = CSharpScript.Create($@"
+#r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+");
+            var script1 = script0.ContinueWith($@"
+#r ""System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+");
+            var script2 = script1.ContinueWith(@"
+System.Diagnostics.Process.GetCurrentProcess()
+");
+            script0.GetCompilation().VerifyAssemblyVersionsAndAliases(
+                "System, Version=2.0.0.0",
+                "mscorlib, Version=4.0.0.0",
+                "System.Configuration, Version=2.0.0.0: <implicit>,global",
+                "System.Xml, Version=2.0.0.0: <implicit>,global",
+                "System.Data.SqlXml, Version=2.0.0.0: <implicit>,global",
+                "System.Security, Version=2.0.0.0: <implicit>,global");
+
+            // TODO (https://github.com/dotnet/roslyn/issues/6456): 
+            // This is not correct. "global" alias should be recursively applied on all 
+            // dependencies of System, V4. The problem is in ResolveReferencedAssembly which considers
+            // System, V2 equivalent to System, V4 and immediately returns, instead of checking if a better match exists.
+            // This is not a problem in csc since it can't have both System, V2 and System, V4 among definitions.
+            script1.GetCompilation().VerifyAssemblyVersionsAndAliases(
+                "System, Version=4.0.0.0",
+                "System, Version=2.0.0.0: <superseded>",
+                "mscorlib, Version=4.0.0.0",
+                "System.Configuration, Version=2.0.0.0: <superseded>",
+                "System.Xml, Version=2.0.0.0: <superseded>",
+                "System.Data.SqlXml, Version=2.0.0.0: <superseded>",
+                "System.Security, Version=2.0.0.0: <superseded>",
+                "System.Configuration, Version=4.0.0.0: <implicit>",
+                "System.Xml, Version=4.0.0.0: <implicit>",
+                "System.Data.SqlXml, Version=4.0.0.0: <implicit>",
+                "System.Security, Version=4.0.0.0: <implicit>",
+                "System.Core, Version=4.0.0.0: <implicit>",
+                "System.Numerics, Version=4.0.0.0: <implicit>");
+
+            // TODO (https://github.com/dotnet/roslyn/issues/6456): 
+            // "global" alias should be recursively applied on all 
+            script2.GetCompilation().VerifyAssemblyVersionsAndAliases(
+                "System, Version=4.0.0.0",
+                "System, Version=2.0.0.0: <superseded>",
+                "mscorlib, Version=4.0.0.0",
+                "System.Configuration, Version=2.0.0.0: <superseded>",
+                "System.Xml, Version=2.0.0.0: <superseded>",
+                "System.Data.SqlXml, Version=2.0.0.0: <superseded>",
+                "System.Security, Version=2.0.0.0: <superseded>",
+                "System.Configuration, Version=4.0.0.0: <implicit>",
+                "System.Xml, Version=4.0.0.0: <implicit>",
+                "System.Data.SqlXml, Version=4.0.0.0: <implicit>",
+                "System.Security, Version=4.0.0.0: <implicit>",
+                "System.Core, Version=4.0.0.0: <implicit>",
+                "System.Numerics, Version=4.0.0.0: <implicit>");
+
+            Assert.NotNull(script2.EvaluateAsync().Result);
+        }
+
+        [Fact]
+        public void References_Versioning_StrongNames1()
+        {
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C1);
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C2);
+
+            var result = CSharpScript.EvaluateAsync($@"
+#r ""{c1.Path}""
+#r ""{c2.Path}""
+
+new C()
+").Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void References_Versioning_StrongNames2()
+        {
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C1);
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C2);
+
+            var result = CSharpScript.Create($@"
+#r ""{c1.Path}""
+").ContinueWith($@"
+#r ""{c2.Path}""
+").ContinueWith(@"
+new C()
+").EvaluateAsync().Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void References_Versioning_WeakNames1()
+        {
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+
+            var result = CSharpScript.EvaluateAsync($@"
+#r ""{c1.Path}""
+#r ""{c2.Path}""
+
+new C()
+").Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void References_Versioning_WeakNames2()
+        {
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+
+            var result = CSharpScript.Create($@"
+#r ""{c1.Path}""
+").ContinueWith($@"
+#r ""{c2.Path}""
+").ContinueWith(@"
+new C()
+").EvaluateAsync().Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void References_Versioning_WeakNames3()
+        {
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+
+            var script0 = CSharpScript.Create($@"
+#r ""{c1.Path}""
+var c1 = new C();
+");
+            script0.GetCompilation().VerifyAssemblyVersionsAndAliases(
+            "C, Version=1.0.0.0",
+            "mscorlib, Version=4.0.0.0");
+
+            var script1 = script0.ContinueWith($@"
+#r ""{c2.Path}""
+var c2 = new C();
+");
+            script1.GetCompilation().VerifyAssemblyVersionsAndAliases(
+                "C, Version=2.0.0.0",
+                "C, Version=1.0.0.0: <superseded>",
+                "mscorlib, Version=4.0.0.0");
+
+            var script2 = script1.ContinueWith(@"
+c1 = c2;
+");
+            script2.GetCompilation().VerifyAssemblyVersionsAndAliases(
+                "C, Version=2.0.0.0",
+                "C, Version=1.0.0.0: <superseded>",
+                "mscorlib, Version=4.0.0.0");
+
+            DiagnosticExtensions.VerifyEmitDiagnostics(script2.GetCompilation(),
+                // (2,6): error CS0029: Cannot implicitly convert type 'C [{c2.Path}]' to 'C [{c1.Path}]'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c2").WithArguments($"C [{c2.Path}]", $"C [{c1.Path}]"));
+        }
+
         [Fact]
         public void AssemblyResolution()
         {
@@ -277,7 +462,7 @@ System.Collections.IEnumerable w = new Window();
 
                 // we shouldn't throw while compiling:
                 var script = CSharpScript.Create("new S1()", options);
-                script.Build();
+                script.Compile();
 
                 Assert.Throws<TypeLoadException>(() => script.EvaluateAsync().GetAwaiter().GetResult());
             }
@@ -296,16 +481,16 @@ System.Collections.IEnumerable w = new Window();
                 AddReferences(typeof(C).Assembly, typeof(C).Assembly);
 
             var s0 = await CSharpScript.RunAsync<int>("x", options, new C());
+            var c0 = s0.Script.GetCompilation();
 
             // includes corlib, host type assembly by default:
             AssertEx.Equal(new[] 
             {
                 typeof(object).GetTypeInfo().Assembly.Location,
                 typeof(C).Assembly.Location,
-                Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")).Location, // TODO: remove
                 typeof(C).Assembly.Location,
                 typeof(C).Assembly.Location,
-            }, s0.Script.GetCompilation().ExternalReferences.SelectAsArray(m => m.Display));
+            }, c0.ExternalReferences.SelectAsArray(m => m.Display));
 
             Assert.Equal(1, s0.ReturnValue);
 
@@ -315,6 +500,74 @@ System.Collections.IEnumerable w = new Window();
 x            
 ");
             Assert.Equal(1, s1.ReturnValue);
+        }
+
+        [Fact]
+        public async Task MissingRefrencesAutoResolution()  
+        {
+            var portableLib = CSharpCompilation.Create(
+                "PortableLib",                                                
+                new[] { SyntaxFactory.ParseSyntaxTree("public class C {}") }, 
+                new[] { SystemRuntimePP7Ref },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var portableLibRef = portableLib.ToMetadataReference();
+
+            var loader = new InteractiveAssemblyLoader();
+            loader.RegisterDependency(Assembly.Load(portableLib.EmitToArray().ToArray()));
+
+            var s0 = await CSharpScript.Create("new C()", options: ScriptOptions.Default.AddReferences(portableLibRef), assemblyLoader: loader).RunAsync();
+            var c0 = s0.Script.GetCompilation();
+
+            // includes corlib, host type assembly by default:
+            AssertEx.Equal(new[]
+            {
+                typeof(object).GetTypeInfo().Assembly.Location,
+                "PortableLib"
+            }, c0.ExternalReferences.SelectAsArray(m => m.Display));
+
+            // System.Runtime, 4.0.0.0 depends on all the assemblies below:
+            AssertEx.Equal(new[]
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "PortableLib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Data.SqlXml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+            }, c0.GetBoundReferenceManager().GetReferencedAssemblies().Select(a => a.Value.Identity.GetDisplayName()));
+        }
+
+        // https://github.com/dotnet/roslyn/issues/2246
+        [Fact]
+        public void HostObjectInInMemoryAssembly()
+        {
+            var lib = CreateCompilationWithMscorlib("public class C { public int X = 1, Y = 2; }", "HostLib");
+            var libImage = lib.EmitToArray();
+            var libRef = MetadataImageReference.CreateFromImage(libImage);
+
+            var libAssembly = Assembly.Load(libImage.ToArray());
+            var globalsType = libAssembly.GetType("C");
+            var globals = Activator.CreateInstance(globalsType);
+
+            using (var loader = new InteractiveAssemblyLoader())
+            {
+                loader.RegisterDependency(libAssembly);
+
+                var script = CSharpScript.Create<int>(
+                    "X+Y", 
+                    ScriptOptions.Default.WithReferences(libRef), 
+                    globalsType: globalsType,
+                    assemblyLoader: loader);
+
+                int result = script.RunAsync(globals).Result.ReturnValue;
+                Assert.Equal(3, result);
+            }
         }
     }
 }

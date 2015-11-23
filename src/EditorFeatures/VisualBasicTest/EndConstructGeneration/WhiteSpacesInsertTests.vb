@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class WhiteSpacesInsertTests
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInsertWhiteSpace()
             VerifyStatementEndConstructApplied(
                 before:={"Class X",
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={2, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInsertTabSpace()
             VerifyStatementEndConstructApplied(
                 before:={"Class X",
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={2, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInsertDoubleWideWhiteSpace()
             VerifyStatementEndConstructApplied(
                 before:={"Class X",

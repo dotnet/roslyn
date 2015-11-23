@@ -117,7 +117,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsOverride)
                 {
-                    return (EventSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    if (IsDefinition)
+                    {
+                        return (EventSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    }
+
+                    return (EventSymbol)OverriddenOrHiddenMembersResult.GetOverriddenMember(this, OriginalDefinition.OverriddenEvent);
                 }
                 return null;
             }

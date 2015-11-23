@@ -12,8 +12,6 @@
     <RootNamespace>Roslyn.InteractiveWindow.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.InteractiveWindow.UnitTests</AssemblyName>
     <PlatformTarget>x86</PlatformTarget>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
@@ -21,6 +19,10 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
+      <Name>ServicesTestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
@@ -72,14 +74,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\EditorFeatures\TestUtilities\Async\WaitHelper.cs">
-      <Link>WaitHelper.cs</Link>
-    </Compile>
     <Compile Include="InteractiveWindowEditorsFactoryService.cs" />
     <Compile Include="InteractiveWindowTestHost.cs" />
     <Compile Include="HistoryTests.cs" />
     <Compile Include="InteractiveWindowHistoryTests.cs" />
     <Compile Include="InteractiveWindowTests.cs" />
+    <Compile Include="SortedSpansTests.cs" />
     <Compile Include="TestClipboard.cs" />
     <Compile Include="TestContentTypeDefinition.cs" />
     <Compile Include="TestInteractiveEngine.cs" />
@@ -87,6 +87,7 @@
     <Compile Include="TestWaitIndicator.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

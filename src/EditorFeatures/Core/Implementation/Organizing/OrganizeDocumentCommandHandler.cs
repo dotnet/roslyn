@@ -5,11 +5,12 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 return !needsSemantics;
             }
 
-            return workspace.Services.GetService<IDocumentSupportsSuggestionService>().SupportsRefactorings(document);
+            return workspace.Services.GetService<IDocumentSupportsFeatureService>().SupportsRefactorings(document);
         }
 
         public void ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, Action nextHandler)
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
-                var newDocument = RemoveUnnecessaryImportsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {
                     ApplyTextChange(document, newDocument);
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
-                var newDocument = RemoveUnnecessaryImportsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
                 newDocument = OrganizeImportsService.OrganizeImportsAsync(newDocument, subjectBuffer.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst), cancellationToken).WaitAndGetResult(cancellationToken);
                 if (document != newDocument)
                 {

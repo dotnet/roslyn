@@ -74,7 +74,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
-            this._scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+            _scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+        }
+
+        public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterOperationBlockStartAction(this._analyzer, action);
+        }
+
+        public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterOperationBlockAction(this._analyzer, action);
         }
     }
 
@@ -127,9 +139,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _scope.RegisterSyntaxNodeAction(_analyzer, action, syntaxKinds);
         }
+
+        public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
+        {
+            _scope.RegisterOperationBlockStartAction(_analyzer, action);
+        }
+
+        public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterOperationBlockAction(this._analyzer, action);
+        }
+
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
-            this._scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+            _scope.RegisterOperationAction(this._analyzer, action, operationKinds);
         }
     }
 
@@ -162,6 +186,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
             _scope.RegisterSyntaxNodeAction(_analyzer, action, syntaxKinds);
+        }
+    }
+
+    /// <summary>
+    /// Scope for setting up analyzers for an operation block, automatically associating actions with analyzers.
+    /// </summary>
+    internal sealed class AnalyzerOperationBlockStartAnalysisContext : OperationBlockStartAnalysisContext
+    {
+        private readonly DiagnosticAnalyzer _analyzer;
+        private readonly HostOperationBlockStartAnalysisScope _scope;
+
+        internal AnalyzerOperationBlockStartAnalysisContext(DiagnosticAnalyzer analyzer,
+                                                            HostOperationBlockStartAnalysisScope scope,
+                                                            ImmutableArray<IOperation> operationBlocks,
+                                                            ISymbol owningSymbol,
+                                                            AnalyzerOptions options,
+                                                            CancellationToken cancellationToken)
+            : base(operationBlocks, owningSymbol, options, cancellationToken)
+        {
+            _analyzer = analyzer;
+            _scope = scope;
+        }
+
+        public override void RegisterOperationBlockEndAction(Action<OperationBlockAnalysisContext> action)
+        {
+            _scope.RegisterOperationBlockEndAction(_analyzer, action);
+        }
+
+        public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
     }
 
@@ -316,6 +371,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
     }
 
+    internal sealed class HostOperationBlockStartAnalysisScope
+    {
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+        private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
+
+        public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockEndActions => _operationBlockEndActions;
+
+        public ImmutableArray<OperationAnalyzerAction> OperationActions => _operationActions;
+
+        internal HostOperationBlockStartAnalysisScope()
+        {
+        }
+
+        public void RegisterOperationBlockEndAction(DiagnosticAnalyzer analyzer, Action<OperationBlockAnalysisContext> action)
+        {
+            _operationBlockEndActions = _operationBlockEndActions.Add(new OperationBlockAnalyzerAction(action, analyzer));
+        }
+
+        public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            _operationActions = _operationActions.Add(new OperationAnalyzerAction(action, operationKinds, analyzer));
+        }
+    }
+
     internal abstract class HostAnalysisScope
     {
         private ImmutableArray<CompilationAnalyzerAction> _compilationActions = ImmutableArray<CompilationAnalyzerAction>.Empty;
@@ -327,6 +406,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockStartAnalyzerAction> _operationBlockStartActions = ImmutableArray<OperationBlockStartAnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
         private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
         private readonly Dictionary<DiagnosticAnalyzer, AnalyzerActions> _analyzerActions = new Dictionary<DiagnosticAnalyzer, AnalyzerActions>();
 
@@ -465,6 +547,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _syntaxNodeActions = _syntaxNodeActions.Add(analyzerAction);
         }
 
+        public void RegisterOperationBlockStartAction(DiagnosticAnalyzer analyzer, Action<OperationBlockStartAnalysisContext> action)
+        {
+            OperationBlockStartAnalyzerAction analyzerAction = new OperationBlockStartAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).AddOperationBlockStartAction(analyzerAction);
+            _operationBlockStartActions = _operationBlockStartActions.Add(analyzerAction);
+        }
+
+        public void RegisterOperationBlockEndAction(DiagnosticAnalyzer analyzer, Action<OperationBlockAnalysisContext> action)
+        {
+            OperationBlockAnalyzerAction analyzerAction = new OperationBlockAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).AddOperationBlockEndAction(analyzerAction);
+            _operationBlockEndActions = _operationBlockEndActions.Add(analyzerAction);
+        }
+
+        public void RegisterOperationBlockAction(DiagnosticAnalyzer analyzer, Action<OperationBlockAnalysisContext> action)
+        {
+            OperationBlockAnalyzerAction analyzerAction = new OperationBlockAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).AddOperationBlockAction(analyzerAction);
+            _operationBlockActions = _operationBlockActions.Add(analyzerAction);
+        }
         public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             OperationAnalyzerAction analyzerAction = new OperationAnalyzerAction(action, operationKinds, analyzer);
@@ -503,6 +605,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<AnalyzerAction> _codeBlockStartActions = ImmutableArray<AnalyzerAction>.Empty;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockStartAnalyzerAction> _operationBlockStartActions = ImmutableArray<OperationBlockStartAnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
         private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
 
@@ -574,6 +679,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
         }
 
+        internal ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions
+        {
+            get { return _operationBlockActions; }
+        }
+
+        internal ImmutableArray<OperationBlockAnalyzerAction> OperationBlockEndActions
+        {
+            get { return _operationBlockEndActions; }
+        }
+
+        internal ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions
+        {
+            get { return _operationBlockStartActions; }
+        }
+
         internal ImmutableArray<OperationAnalyzerAction> OperationActions
         {
             get { return this._operationActions; }
@@ -629,6 +749,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _syntaxNodeActions = _syntaxNodeActions.Add(action);
         }
 
+        internal void AddOperationBlockStartAction(OperationBlockStartAnalyzerAction action)
+        {
+            _operationBlockStartActions = _operationBlockStartActions.Add(action);
+        }
+
+        internal void AddOperationBlockAction(OperationBlockAnalyzerAction action)
+        {
+            _operationBlockActions = _operationBlockActions.Add(action);
+        }
+
+        internal void AddOperationBlockEndAction(OperationBlockAnalyzerAction action)
+        {
+            _operationBlockEndActions = _operationBlockEndActions.Add(action);
+        }
+
         internal void AddOperationAction(OperationAnalyzerAction action)
         {
             this._operationActions = this._operationActions.Add(action);
@@ -657,6 +792,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             actions._codeBlockActions = _codeBlockActions.AddRange(otherActions._codeBlockActions);
             actions._syntaxNodeActions = _syntaxNodeActions.AddRange(otherActions._syntaxNodeActions);
             actions._operationActions = _operationActions.AddRange(otherActions._operationActions);
+            actions._operationBlockStartActions = _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions);
+            actions._operationBlockEndActions = _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions);
+            actions._operationBlockActions = _operationBlockActions.AddRange(otherActions._operationBlockActions);
 
             return actions;
         }

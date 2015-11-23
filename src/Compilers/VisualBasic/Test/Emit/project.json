@@ -1,10 +1,13 @@
 ﻿{
   "dependencies": {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.1.0-beta1-20150824-02",
     "Microsoft.DiaSymReader": "1.0.6",
-    "xunit": "1.9.2"
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.1.0"
   },
   "frameworks": {
     "net45": {}
+  },
+  "runtimes": {
+    "win7": { }
   }
 }

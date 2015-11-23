@@ -10,11 +10,14 @@ usage()
     echo "  --os <os>           OS to run (Linux / Darwin)"
 }
 
-XUNIT_VERSION=2.0.0-alpha-build2576
+XUNIT_VERSION=2.1.0
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
 MONO_ARGS='--debug=mdb-optimizations --attach=disable'
+MSBUILD_ADDITIONALARGS='/v:m  /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal'
+
+export MONO_THREADS_PER_CPU=50
 
 # There are some stability issues that are causing Jenkins builds to fail at an 
 # unacceptable rate.  To temporarily work around that we are going to retry the 
@@ -58,13 +61,12 @@ done
 
 restore_nuget()
 {
-
-    local package_name="nuget.19.zip"
+    local package_name="nuget.33.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
-            echo "Already installed"
+            echo "Nuget already installed"
             return
         fi
     fi
@@ -89,7 +91,7 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /p:SignAssembly=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break
@@ -127,18 +129,24 @@ run_nuget()
 # Run the compilation.  Can pass additional build arguments as parameters
 compile_toolset()
 {
+    mkdir -p 'Binaries'
     echo Compiling the toolset compilers
     echo -e "Compiling the C# compiler"
-    run_msbuild src/Compilers/CSharp/CscCore/CscCore.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild src/Compilers/CSharp/CscCore/CscCore.csproj /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Bootstrap_CscCore.log
     echo -e "Compiling the VB compiler"
-    run_msbuild src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Bootstrap_VbcCore.log
 }
 
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
 save_toolset()
 {
-    mkdir Binaries/Bootstrap
-    cp Binaries/$BUILD_CONFIGURATION/core-clr/* Binaries/Bootstrap
+    local vbcTarget=Binaries/Bootstrap/vbccore
+    local cscTarget=Binaries/Bootstrap/csccore
+
+    mkdir -p $vbcTarget
+    mkdir -p $cscTarget
+    cp Binaries/$BUILD_CONFIGURATION/csccore/* $cscTarget
+    cp Binaries/$BUILD_CONFIGURATION/vbccore/* $vbcTarget
 }
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces
@@ -146,7 +154,7 @@ save_toolset()
 clean_roslyn()
 {
     echo Cleaning the enlistment
-    mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
+    mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/BootstrapClean.log
     rm -rf Binaries/$BUILD_CONFIGURATION
 }
 
@@ -155,12 +163,12 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-      bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
+        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap/csccore /p:CscToolExe=csc \
+/p:VbcToolPath=$(pwd)/Binaries/Bootstrap/vbccore /p:VbcToolExe=vbc"
     fi
 
     echo Building CrossPlatform.sln
-    run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Build.log
 }
 
 # Install the specified Mono toolset from our Azure blob storage.
@@ -171,7 +179,7 @@ install_mono_toolset()
 
     if [ -d $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
-            echo "Already installed"
+            echo "Mono already installed"
             return
         fi
     fi
@@ -206,9 +214,9 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.3
+        MONO_TOOLSET_NAME=mono.mac.5
     elif [ "$OS_NAME" = "Linux" ]; then
-        MONO_TOOLSET_NAME=mono.linux.3
+        MONO_TOOLSET_NAME=mono.linux.4
     else
         echo "Error: Unsupported OS $OS_NAME"
         exit 1
@@ -218,9 +226,15 @@ set_mono_path()
     PATH=/tmp/$MONO_TOOLSET_NAME/bin:$PATH
 }
 
+check_mono()
+{
+    local mono_path=$(which mono)
+    echo "Mono path $mono_path"
+}
+
 test_roslyn()
 {
-    local xunit_runner=~/.nuget/packages/xunit.runners/$XUNIT_VERSION/tools/xunit.console.x86.exe
+    local xunit_runner=~/.nuget/packages/xunit.runner.console/$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
         Roslyn.Compilers.CSharp.Syntax.UnitTests
@@ -229,9 +243,14 @@ test_roslyn()
         Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
     local any_failed=false
 
+    # Need to copy over the execution dependencies.  This isn't being done correctly
+    # by msbuild at the moment. 
+    cp ~/.nuget/packages/xunit.extensibility.execution/$XUNIT_VERSION/lib/net45/xunit.execution.desktop.* Binaries/$BUILD_CONFIGURATION
+
     for i in "${test_binaries[@]}"
     do
-        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/$i.TestResults.xml -noshadow
+        mkdir -p Binaries/$BUILD_CONFIGURATION/xUnitResults/
+        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/xUnitResults/$i.dll.xml -noshadow
         if [ $? -ne 0 ]; then
             any_failed=true
         fi
@@ -248,7 +267,7 @@ git clean -dxf .
 
 restore_nuget
 set_mono_path
-which mono
+check_mono
 compile_toolset
 save_toolset
 clean_roslyn

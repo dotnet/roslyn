@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public SnapshotPoint? CaretPosition { get; }
 
         /// <summary>
-        /// The text that has changed between the last successfull tagging and this new request to
+        /// The text that has changed between the last successful tagging and this new request to
         /// produce tags.  In order to be passed this value, <see cref="TaggerTextChangeBehavior.TrackTextChanges"/> 
         /// must be specified in <see cref="AbstractAsynchronousTaggerProvider{TTag}.TextChangeBehavior"/>.
         /// </summary>

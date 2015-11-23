@@ -10,56 +10,56 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New TypeBlockHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestClass1()
             Test(<Text>
 {|Cursor:[|Class|]|} C1
 [|End Class|]</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestClass2()
             Test(<Text>
 [|Class|] C1
 {|Cursor:[|End Class|]|}</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestModule1()
             Test(<Text>
 {|Cursor:[|Module|]|} M1
 [|End Module|]</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestModule2()
             Test(<Text>
 [|Module|] M1
 {|Cursor:[|End Module|]|}</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestStructure1()
             Test(<Text>
 {|Cursor:[|Structure|]|} S1
 [|End Structure|]</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestStructure2()
             Test(<Text>
 [|Structure|] S1
 {|Cursor:[|End Structure|]|}</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestInterface1()
             Test(<Text>
 {|Cursor:[|Interface|]|} I1
 [|End Interface|]</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestInterface2()
             Test(<Text>
 [|Interface|] I1

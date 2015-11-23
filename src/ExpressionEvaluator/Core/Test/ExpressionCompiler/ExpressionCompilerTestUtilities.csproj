@@ -14,9 +14,8 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System" />
@@ -77,6 +76,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="project.json" />
     <None Include="Resources\Empty.dll" />
     <None Include="Resources\LibraryA.winmd" />

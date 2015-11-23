@@ -471,7 +471,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
+            // If we're public signing, we don't need a strong name provider, just 
+            // the file containing the public key
+            if (DeclaringCompilation.Options.PublicSign && keyFile != null)
+            {
+                return StrongNameKeys.Create(keyFile, MessageProvider.Instance);
+            }
+            else
+            {
+                return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
+            }
         }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name
@@ -545,6 +554,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_DelaySignButNoKey, NoLocation.Singleton);
             }
 
+            if (DeclaringCompilation.Options.PublicSign && !Identity.HasPublicKey)
+            {
+                diagnostics.Add(ErrorCode.ERR_PublicSignButNoKey, NoLocation.Singleton);
+            }
+
             // If the options and attributes applied on the compilation imply real signing,
             // but we have no private key to sign it with report an error.
             // Note that if public key is set and delay sign is off we do OSS signing, which doesn't require private key.
@@ -554,6 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.Options.CryptoPublicKey.IsEmpty &&
                 Identity.HasPublicKey &&
                 !IsDelaySigned &&
+                !DeclaringCompilation.Options.PublicSign &&
                 !StrongNameKeys.CanSign &&
                 StrongNameKeys.DiagnosticOpt == null)
             {
@@ -707,6 +722,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (DeclaringCompilation.Options.DelaySign.Value != (assemblyDelaySignAttributeSetting == ThreeState.True)))
             {
                 diagnostics.Add(ErrorCode.WRN_CmdOptionConflictsSource, NoLocation.Singleton, "DelaySign", AttributeDescription.AssemblyDelaySignAttribute.FullName);
+            }
+
+            if (_compilation.Options.PublicSign && assemblyDelaySignAttributeSetting == ThreeState.True)
+            {
+                diagnostics.Add(ErrorCode.WRN_CmdOptionConflictsSource, NoLocation.Singleton,
+                    nameof(_compilation.Options.PublicSign),
+                    AttributeDescription.AssemblyDelaySignAttribute.FullName);
             }
 
             if (!String.IsNullOrEmpty(_compilation.Options.CryptoKeyContainer))

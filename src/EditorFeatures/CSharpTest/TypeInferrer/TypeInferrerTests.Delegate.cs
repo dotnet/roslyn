@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             Assert.Equal(expectedType, delegateType.ToNameDisplayString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestDeclaration1()
         {
             var text =
@@ -44,7 +44,7 @@ class C
             TestDelegate(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestAssignment1()
         {
             var text =
@@ -61,7 +61,7 @@ class C
             TestDelegate(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestArgument1()
         {
             var text =
@@ -79,7 +79,7 @@ class C
             TestDelegate(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestConstructor1()
         {
             var text =
@@ -97,7 +97,7 @@ class C
             TestDelegate(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestDelegateConstructor1()
         {
             var text =
@@ -113,7 +113,7 @@ class C
             TestDelegate(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCastExpression1()
         {
             var text =
@@ -129,7 +129,7 @@ class C
             TestDelegate(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCastExpression2()
         {
             var text =
@@ -145,7 +145,7 @@ class C
             TestDelegate(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestReturnFromMethod()
         {
             var text =
@@ -161,7 +161,7 @@ class C
             TestDelegate(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestInsideLambda1()
         {
             var text =

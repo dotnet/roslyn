@@ -82,7 +82,7 @@ namespace Microsoft.Cci
             }
         }
 
-        internal ContentId ContentIdFromLog()
+        internal byte[] GetLogHash()
         {
             Debug.Assert(_logData != null);
 
@@ -104,7 +104,7 @@ namespace Microsoft.Cci
             Debug.Assert(remaining == 0);
 
             _logData.Clear();
-            return ContentId.FromHash(_hashAlgorithm.Hash.ToImmutableArray());
+            return _hashAlgorithm.Hash;
         }
 
         internal void Close()
@@ -813,13 +813,12 @@ namespace Microsoft.Cci
 
                 if (_deterministic)
                 {
-                    var deterministicSymWriter = symWriter as ISymUnmanagedWriter6;
-                    if (deterministicSymWriter == null)
+                    if (!(symWriter is ISymUnmanagedWriter7 || symWriter is ISymUnmanagedWriter100))
                     {
                         throw new NotSupportedException(CodeAnalysisResources.SymWriterNotDeterministic);
                     }
 
-                    deterministicSymWriter.InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
+                    ((ISymUnmanagedWriter6)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
                 }
                 else
                 {
@@ -839,20 +838,32 @@ namespace Microsoft.Cci
         {
             if (_deterministic)
             {
-                // Call to GetDebugInfo fails for SymWriter initialized using InitializeDeterministic.
-                // We already have all the info we need though.
-                var id = _callLogger.ContentIdFromLog();
+                // rewrite GUID and timestamp in the PDB with hash of a has of the log content:
+                byte[] hash = _callLogger.GetLogHash();
+
                 try
                 {
-                    Debug.Assert(BitConverter.IsLittleEndian);
-                    ((ISymUnmanagedWriter6)_symWriter).SetSignature(BitConverter.ToUInt32(id.Stamp, 0), new Guid(id.Guid));
+                    // TODO: remove once we can rely on the presence of ISymUnmanagedWriter7
+                    var writer100 = _symWriter as ISymUnmanagedWriter100;
+                    if (writer100 != null)
+                    {
+                        var id = ContentId.FromHash(ImmutableArray.CreateRange(hash));
+
+                        Debug.Assert(BitConverter.IsLittleEndian);
+                        writer100.SetSignature(BitConverter.ToUInt32(id.Stamp, 0), new Guid(id.Guid));
+
+                        return id;
+                    }
+                    
+                    fixed (byte* hashPtr = &hash[0])
+                    {
+                        ((ISymUnmanagedWriter7)_symWriter).UpdateSignatureByHashingContent(hashPtr, hash.Length);
+                    }
                 }
                 catch (Exception ex)
                 {
                     throw new PdbWritingException(ex);
                 }
-
-                return id;
             }
 
             // See symwrite.cpp - the data byte[] doesn't depend on the content of metadata tables or IL.

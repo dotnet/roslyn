@@ -15,29 +15,27 @@ namespace Microsoft.DiaSymReader.PortablePdb
         internal sealed class ByHandleComparer : IComparer<ISymUnmanagedMethod>
         {
             public static readonly ByHandleComparer Default = new ByHandleComparer();
-            public int Compare(ISymUnmanagedMethod x, ISymUnmanagedMethod y) => HandleComparer.Default.Compare(((SymMethod)x).BodyHandle, ((SymMethod)y).BodyHandle);
+            public int Compare(ISymUnmanagedMethod x, ISymUnmanagedMethod y) => HandleComparer.Default.Compare(((SymMethod)x).DebugHandle, ((SymMethod)y).DebugHandle);
         }
 
-        internal MethodBodyHandle BodyHandle { get; }
-        internal MethodDefinitionHandle DefinitionHandle => BodyHandle.ToMethodDefinitionHandle();
+        internal MethodDebugInformationHandle DebugHandle { get; }
+        internal MethodDefinitionHandle DefinitionHandle => DebugHandle.ToDefinitionHandle();
         internal SymReader SymReader { get; }
         private RootScopeData _lazyRootScopeData;
         private AsyncMethodData _lazyAsyncMethodData;
 
         internal MetadataReader MetadataReader => SymReader.MetadataReader;
 
-        internal SymMethod(SymReader symReader, MethodBodyHandle handle)
+        internal SymMethod(SymReader symReader, MethodDebugInformationHandle handle)
         {
             Debug.Assert(symReader != null);
             SymReader = symReader;
-            BodyHandle = handle;
+            DebugHandle = handle;
         }
 
-        private SequencePointBlobReader GetSequencePointsReader()
+        private SequencePointCollection.Enumerator GetSequencePointEnumerator()
         {
-            var mdReader = SymReader.MetadataReader;
-            var body = mdReader.GetMethodBody(BodyHandle);
-            return mdReader.GetSequencePointsReader(body.SequencePoints);
+            return SymReader.MetadataReader.GetMethodDebugInformation(DebugHandle).GetSequencePoints().GetEnumerator();
         }
 
         private RootScopeData GetRootScopeData()
@@ -60,7 +58,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetNamespace([MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedNamespace @namespace)
         {
-            // SymReader doesn't support namspaces
+            // SymReader doesn't support namespaces
             @namespace = null;
             return HResult.E_NOTIMPL;
         }
@@ -82,10 +80,10 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_INVALIDARG;
             }
 
-            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods
+            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared across multiple methods
             // and for lines outside of the current method.
 
-            var spReader = GetSequencePointsReader();
+            var spReader = GetSequencePointEnumerator();
             var documentHandle = symDocument.Handle;
 
             while (spReader.MoveNext())
@@ -139,9 +137,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_INVALIDARG;
             }
 
-            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods.
+            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared across multiple methods.
 
-            var spReader = GetSequencePointsReader();
+            var spReader = GetSequencePointEnumerator();
             var documentHandle = symDocument.Handle;
 
             bool setEndOffset = false;
@@ -195,7 +193,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetSequencePointCount(out int count)
         {
-            var spReader = GetSequencePointsReader();
+            var spReader = GetSequencePointEnumerator();
 
             int i = 0;
             while (spReader.MoveNext())
@@ -218,7 +216,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] endColumns)
         {
             SymDocument currentDocument = null;
-            var spReader = GetSequencePointsReader();
+            var spReader = GetSequencePointEnumerator();
 
             int i = 0;
             while (spReader.MoveNext())
@@ -309,7 +307,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private AsyncMethodData ReadAsyncMethodData()
         {
             var reader = MetadataReader;
-            var body = reader.GetMethodBody(BodyHandle);
+            var body = reader.GetMethodDebugInformation(DebugHandle);
             var kickoffMethod = body.GetStateMachineKickoffMethod();
 
             if (kickoffMethod.IsNil)
@@ -455,7 +453,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         #region ISymEncUnmanagedMethod
 
         /// <summary>
-        /// Get the file name for the line associated with speficied offset.
+        /// Get the file name for the line associated with specified offset.
         /// </summary>
         public int GetFileNameFromOffset(
             int offset,

@@ -4910,9 +4910,6 @@
   <data name="IDS_TheSystemCannotFindThePathSpecified" xml:space="preserve">
     <value>The system cannot find the path specified</value>
   </data>
-  <data name="CompilationDoesNotRepresentInteractiveSubmission" xml:space="preserve">
-    <value>This compilation doesn't represent an interactive submission.</value>
-  </data>
   <data name="IDS_UnrecognizedFileFormat" xml:space="preserve">
     <value>Unrecognized file format.</value>
   </data>
@@ -5051,7 +5048,10 @@
 /removeintchecks[+|-]             Remove integer checks. Default off.
 /debug[+|-]                       Emit debugging information.
 /debug:full                       Emit full debugging information (default).
+/debug:portable                   Emit debugging information in the portable format.
 /debug:pdbonly                    Emit PDB file only.
+/deterministic                    Produce a deterministic assembly
+                                  (including module version GUID and timestamp)
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.
@@ -5065,6 +5065,7 @@
 /reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
                                   - LANGUAGE -
+
 /define:&lt;symbol_list&gt;             Declare global conditional compilation 
                                   symbol(s). symbol_list:name=value,... 
                                   (Short form: /d)
@@ -5122,6 +5123,9 @@
 /netcf                            Target the .NET Compact Framework.
 /nostdlib                         Do not reference standard libraries 
                                   (system.dll and VBC.RSP file).
+/pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                                  Specify a mapping for source path names output by
+                                  the compiler.
 /platform:&lt;string&gt;                Limit which platforms this code can run on; 
                                   must be x86, x64, Itanium, arm,
                                   AnyCPU32BitPreferred or anycpu (default).
@@ -5336,5 +5340,8 @@
   </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
+  </data>
+  <data name="ERR_InvalidPathMap" xml:space="preserve">
+    <value>The pathmap option was incorrectly formatted.</value>
   </data>
 </root>

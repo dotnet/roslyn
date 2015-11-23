@@ -13,8 +13,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Symbol.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -189,6 +187,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

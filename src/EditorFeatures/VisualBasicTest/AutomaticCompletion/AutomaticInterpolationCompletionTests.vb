@@ -10,14 +10,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletio
     Public Class AutomaticInterpolationCompletionTests
         Inherits AbstractAutomaticBraceCompletionTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub Creation()
             Using session = CreateSession("$$")
                 Assert.NotNull(session)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub InvalidLocation_String()
             Dim code = <code>Class C
     Dim s As String = "$$
@@ -28,7 +28,7 @@ End Class</code>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub InvalidLocation_Comment()
             Dim code = <code>Class C
     ' $$
@@ -39,7 +39,7 @@ End Class</code>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub InvalidLocation_DocComment()
             Dim code = <code>Class C
     ''' $$
@@ -50,7 +50,7 @@ End Class</code>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub StartOfInterpolatedStringExpression()
             Dim code = <code>Class C
     Sub M()
@@ -64,7 +64,7 @@ End Class</code>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub AfterInterpolatedStringExpressionText()
             Dim code = <code>Class C
     Sub M()
@@ -78,7 +78,7 @@ End Class</code>
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
         Public Sub AfterInterpolation()
             Dim code = <code>Class C
     Sub M()

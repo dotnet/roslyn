@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -15,40 +17,6 @@ namespace Roslyn.Test.Utilities
         {
             Action action = delegate { };
             new FrameworkElement().Dispatcher.Invoke(action, priority);
-        }
-
-        public static void PumpingWait(this Task task)
-        {
-            PumpingWaitAll(new[] { task });
-        }
-
-        public static T PumpingWaitResult<T>(this Task<T> task)
-        {
-            PumpingWait(task);
-            return task.Result;
-        }
-
-        public static void PumpingWaitAll(this IEnumerable<Task> tasks)
-        {
-            var smallTimeout = TimeSpan.FromMilliseconds(10);
-            var taskArray = tasks.ToArray();
-            var done = false;
-            while (!done)
-            {
-                done = Task.WaitAll(taskArray, smallTimeout);
-                if (!done)
-                {
-                    WaitForDispatchedOperationsToComplete(DispatcherPriority.ApplicationIdle);
-                }
-            }
-
-            foreach (var task in tasks)
-            {
-                if (task.Exception != null)
-                {
-                    throw task.Exception;
-                }
-            }
         }
     }
 }

@@ -902,7 +902,7 @@ lReportErrorOnTwoTokens:
 
             ' Wrap constraints binder in a location-specific binder to
             ' avoid checking constraints when binding type names.
-            binder = New LocationSpecificBinder(BindingLocation.GenericConstraintsClause, binder)
+            binder = New LocationSpecificBinder(BindingLocation.GenericConstraintsClause, Me, binder)
             Return binder.BindTypeParameterConstraintClause(Me, syntax.TypeParameterConstraintClause, diagnostics)
         End Function
 
@@ -2086,6 +2086,7 @@ lReportErrorOnTwoTokens:
                                                                             isOverrides:=True))
                 End If
 
+                Debug.Assert(IsDefinition)
                 Dim overridden = overriddenMembers.OverriddenMember
 
                 If overridden IsNot Nothing Then

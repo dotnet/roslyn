@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
@@ -50,18 +49,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public void ClearDiagnostics(DebuggingSession session, Workspace workspace, object errorId, ProjectId projectId, DocumentId documentId)
         {
-            RaiseDiagnosticsUpdated(MakeArgs(session, workspace, errorId, projectId, documentId, ImmutableArray.Create<DiagnosticData>()));
+            RaiseDiagnosticsUpdated(MakeRemovedArgs(session, workspace, errorId, projectId, documentId));
         }
 
         public ImmutableArray<DocumentId> ReportDiagnostics(DebuggingSession session, object errorId, ProjectId projectId, Solution solution, IEnumerable<Diagnostic> diagnostics)
         {
             var argsByDocument = ImmutableArray.CreateRange(
                 from diagnostic in diagnostics
-                let document = solution.GetDocument(diagnostic.Location.SourceTree)
+                let document = solution.GetDocument(diagnostic.Location.SourceTree, projectId)
                 where document != null
                 let item = MakeDiagnosticData(projectId, document, solution, diagnostic)
                 group item by document.Id into itemsByDocumentId
-                select MakeArgs(session, errorId, solution.Workspace, solution, projectId, itemsByDocumentId.Key, ImmutableArray.CreateRange(itemsByDocumentId)));
+                select MakeCreatedArgs(session, errorId, solution.Workspace, solution, projectId, itemsByDocumentId.Key, ImmutableArray.CreateRange(itemsByDocumentId)));
 
             foreach (var args in argsByDocument)
             {
@@ -85,31 +84,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
         }
 
-        private DiagnosticsUpdatedArgs MakeArgs(
+        private DiagnosticsUpdatedArgs MakeCreatedArgs(
             DebuggingSession session, Workspace workspace, object errorId, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
         {
-            return MakeArgs(session, errorId, workspace, solution: null, projectId: projectId, documentId: documentId, items: items);
+            return MakeCreatedArgs(session, errorId, workspace, solution: null, projectId: projectId, documentId: documentId, items: items);
         }
 
-        private DiagnosticsUpdatedArgs MakeArgs(
+        private DiagnosticsUpdatedArgs MakeRemovedArgs(
+            DebuggingSession session, Workspace workspace, object errorId, ProjectId projectId, DocumentId documentId)
+        {
+            return MakeRemovedArgs(session, errorId, workspace, solution: null, projectId: projectId, documentId: documentId);
+        }
+
+        private DiagnosticsUpdatedArgs MakeCreatedArgs(
             DebuggingSession session, object errorId, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
         {
-            return new DiagnosticsUpdatedArgs(
-                id: new EnCId(session, errorId),
-                workspace: workspace,
-                solution: solution,
-                projectId: projectId,
-                documentId: documentId,
-                diagnostics: items);
+            return DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                CreateId(session, errorId), workspace, solution, projectId, documentId, items);
         }
+
+        private DiagnosticsUpdatedArgs MakeRemovedArgs(
+            DebuggingSession session, object errorId, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId)
+        {
+            return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                CreateId(session, errorId), workspace, solution, projectId, documentId);
+        }
+
+        private static EnCId CreateId(DebuggingSession session, object errorId) => new EnCId(session, errorId);
 
         private void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
-            var updated = this.DiagnosticsUpdated;
-            if (updated != null)
-            {
-                updated(this, args);
-            }
+            this.DiagnosticsUpdated?.Invoke(this, args);
         }
 
         private class EnCId : BuildToolId.Base<DebuggingSession, object>

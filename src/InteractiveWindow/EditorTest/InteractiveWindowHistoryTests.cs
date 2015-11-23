@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -39,24 +40,24 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
         }
 
-        private void InsertAndExecuteInputs(params string[] inputs)
+        private async Task InsertAndExecuteInputs(params string[] inputs)
         {
             foreach (var input in inputs)
             {
-                InsertAndExecuteInput(input);
+                await InsertAndExecuteInput(input).ConfigureAwait(true);
             }
         }
 
-        private void InsertAndExecuteInput(string input)
+        private async Task InsertAndExecuteInput(string input)
         {
             _window.InsertCode(input);
             AssertCurrentSubmission(input);
-            ExecuteInput();
+            await ExecuteInput().ConfigureAwait(true);
         }
 
-        private void ExecuteInput()
+        private async Task ExecuteInput()
         {
-            ((InteractiveWindow)_window).ExecuteInputAsync().PumpingWait();
+            await ((InteractiveWindow)_window).ExecuteInputAsync().ConfigureAwait(true);
         }
 
         private void AssertCurrentSubmission(string expected)
@@ -66,23 +67,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         #endregion Helpers
 
-        [Fact]
-        public void CheckHistoryPrevious()
+        [WpfFact]
+        public async Task CheckHistoryPrevious()
         {
             const string inputString = "1 ";
-            InsertAndExecuteInput(inputString);
+            await InsertAndExecuteInput(inputString).ConfigureAwait(true);
             _operations.HistoryPrevious();
             AssertCurrentSubmission(inputString);
         }
 
-        [Fact]
-        public void CheckHistoryPreviousNotCircular()
+        [WpfFact]
+        public async Task CheckHistoryPreviousNotCircular()
         {
             //submit, submit, up, up, up
             const string inputString1 = "1 ";
             const string inputString2 = "2 ";
-            InsertAndExecuteInput(inputString1);
-            InsertAndExecuteInput(inputString2);
+            await InsertAndExecuteInput(inputString1).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString2).ConfigureAwait(true);
 
             _operations.HistoryPrevious();
             AssertCurrentSubmission(inputString2);
@@ -93,17 +94,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString1);
         }
 
-        [Fact]
-        public void CheckHistoryPreviousAfterSubmittingEntryFromHistory()
+        [WpfFact]
+        public async Task CheckHistoryPreviousAfterSubmittingEntryFromHistory()
         {
             //submit, submit, submit, up, up, submit, up, up, up
             const string inputString1 = "1 ";
             const string inputString2 = "2 ";
             const string inputString3 = "3 ";
 
-            InsertAndExecuteInput(inputString1);
-            InsertAndExecuteInput(inputString2);
-            InsertAndExecuteInput(inputString3);
+            await InsertAndExecuteInput(inputString1).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString2).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString3).ConfigureAwait(true);
 
             _operations.HistoryPrevious();
             AssertCurrentSubmission(inputString3);
@@ -111,7 +112,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryPrevious();
             AssertCurrentSubmission(inputString2);
 
-            ExecuteInput();
+            await ExecuteInput().ConfigureAwait(true);
 
             //history navigation should start from the last history pointer
             _operations.HistoryPrevious();
@@ -125,16 +126,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString1);
         }
 
-        [Fact]
-        public void CheckHistoryPreviousAfterSubmittingNewEntryWhileNavigatingHistory()
+        [WpfFact]
+        public async Task CheckHistoryPreviousAfterSubmittingNewEntryWhileNavigatingHistory()
         {
             //submit, submit, up, up, submit new, up, up, up
             const string inputString1 = "1 ";
             const string inputString2 = "2 ";
             const string inputString3 = "3 ";
 
-            InsertAndExecuteInput(inputString1);
-            InsertAndExecuteInput(inputString2);
+            await InsertAndExecuteInput(inputString1).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString2).ConfigureAwait(true);
 
             _operations.HistoryPrevious();
             AssertCurrentSubmission(inputString2);
@@ -144,7 +145,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             SetActiveCode(inputString3);
             AssertCurrentSubmission(inputString3);
-            ExecuteInput();
+            await ExecuteInput().ConfigureAwait(true);
 
             //History pointer should be reset. Previous should now bring up last entry
             _operations.HistoryPrevious();
@@ -161,15 +162,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString1);
         }
 
-        [Fact]
-        public void CheckHistoryNextNotCircular()
+        [WpfFact]
+        public async Task CheckHistoryNextNotCircular()
         {
             //submit, submit, down, up, down, down
             const string inputString1 = "1 ";
             const string inputString2 = "2 ";
             const string empty = "";
-            InsertAndExecuteInput(inputString1);
-            InsertAndExecuteInput(inputString2);
+            await InsertAndExecuteInput(inputString1).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString2).ConfigureAwait(true);
 
             //Next should do nothing as history pointer is uninitialized and there is
             //no next entry. Buffer should be empty
@@ -185,26 +186,26 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext();
             AssertCurrentSubmission(inputString2);
 
-            //Next should again do nothing as it is the last item, bufer should have the same value
+            //Next should again do nothing as it is the last item, buffer should have the same value
             _operations.HistoryNext();
             AssertCurrentSubmission(inputString2);
 
             //This is to make sure the window doesn't crash
-            ExecuteInput();
+            await ExecuteInput().ConfigureAwait(true);
             AssertCurrentSubmission(empty);
         }
 
-        [Fact]
-        public void CheckHistoryNextAfterSubmittingEntryFromHistory()
+        [WpfFact]
+        public async Task CheckHistoryNextAfterSubmittingEntryFromHistory()
         {
             //submit, submit, submit, up, up, submit, down, down, down
             const string inputString1 = "1 ";
             const string inputString2 = "2 ";
             const string inputString3 = "3 ";
 
-            InsertAndExecuteInput(inputString1);
-            InsertAndExecuteInput(inputString2);
-            InsertAndExecuteInput(inputString3);
+            await InsertAndExecuteInput(inputString1).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString2).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString3).ConfigureAwait(true);
 
             _operations.HistoryPrevious();
             AssertCurrentSubmission(inputString3);
@@ -213,7 +214,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString2);
 
             //submit inputString2 again. Should be added at the end of history
-            ExecuteInput();
+            await ExecuteInput().ConfigureAwait(true);
 
             //history navigation should start from the last history pointer
             _operations.HistoryNext();
@@ -228,8 +229,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString2);
         }
 
-        [Fact]
-        public void CheckHistoryNextAfterSubmittingNewEntryWhileNavigatingHistory()
+        [WpfFact]
+        public async Task CheckHistoryNextAfterSubmittingNewEntryWhileNavigatingHistory()
         {
             //submit, submit, up, up, submit new, down, up
             const string inputString1 = "1 ";
@@ -237,8 +238,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             const string inputString3 = "3 ";
             const string empty = "";
 
-            InsertAndExecuteInput(inputString1);
-            InsertAndExecuteInput(inputString2);
+            await InsertAndExecuteInput(inputString1).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString2).ConfigureAwait(true);
 
             _operations.HistoryPrevious();
             AssertCurrentSubmission(inputString2);
@@ -248,7 +249,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
             SetActiveCode(inputString3);
             AssertCurrentSubmission(inputString3);
-            ExecuteInput();
+            await ExecuteInput().ConfigureAwait(true);
 
             //History pointer should be reset. next should do nothing
             _operations.HistoryNext();
@@ -258,16 +259,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString3);
         }
 
-        [Fact]
-        public void CheckUncommittedInputAfterNavigatingHistory()
+        [WpfFact]
+        public async Task CheckUncommittedInputAfterNavigatingHistory()
         {
             //submit, submit, up, up, submit new, down, up
             const string inputString1 = "1 ";
             const string inputString2 = "2 ";
             const string uncommittedInput = "uncommittedInput";
 
-            InsertAndExecuteInput(inputString1);
-            InsertAndExecuteInput(inputString2);
+            await InsertAndExecuteInput(inputString1).ConfigureAwait(true);
+            await InsertAndExecuteInput(inputString2).ConfigureAwait(true);
             //Add uncommitted input
             SetActiveCode(uncommittedInput);
             //Navigate history. This should save uncommitted input
@@ -278,22 +279,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(uncommittedInput);
         }
 
-        [Fact]
-        public void CheckHistoryPreviousAfterReset()
+        [WpfFact]
+        public async Task CheckHistoryPreviousAfterReset()
         {
             const string resetCommand1 = "#reset";
             const string resetCommand2 = "#reset  ";
-            InsertAndExecuteInput(resetCommand1);
-            InsertAndExecuteInput(resetCommand2);
+            await InsertAndExecuteInput(resetCommand1).ConfigureAwait(true);
+            await InsertAndExecuteInput(resetCommand2).ConfigureAwait(true);
             _operations.HistoryPrevious();  AssertCurrentSubmission(resetCommand2);
             _operations.HistoryPrevious();  AssertCurrentSubmission(resetCommand1);
             _operations.HistoryPrevious();  AssertCurrentSubmission(resetCommand1);
         }
 
-        [Fact]
-        public void TestHistoryPrevious()
+        [WpfFact]
+        public async Task TestHistoryPrevious()
         {
-            InsertAndExecuteInputs("1", "2", "3");
+            await InsertAndExecuteInputs("1", "2", "3").ConfigureAwait(true);
 
             _operations.HistoryPrevious();  AssertCurrentSubmission("3");
             _operations.HistoryPrevious();  AssertCurrentSubmission("2");
@@ -302,10 +303,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryPrevious();  AssertCurrentSubmission("1");
         }
 
-        [Fact]
-        public void TestHistoryNext()
+        [WpfFact]
+        public async Task TestHistoryNext()
         {
-            InsertAndExecuteInputs("1", "2", "3");
+            await InsertAndExecuteInputs("1", "2", "3").ConfigureAwait(true);
 
             SetActiveCode("4");
 
@@ -321,49 +322,49 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext();      AssertCurrentSubmission("4");
         }
 
-        [Fact]
-        public void TestHistoryPreviousWithPattern_NoMatch()
+        [WpfFact]
+        public async Task TestHistoryPreviousWithPattern_NoMatch()
         {
-            InsertAndExecuteInputs("123", "12", "1");
+            await InsertAndExecuteInputs("123", "12", "1").ConfigureAwait(true);
 
             _operations.HistoryPrevious("4");   AssertCurrentSubmission("");
             _operations.HistoryPrevious("4");   AssertCurrentSubmission("");
         }
 
-        [Fact]
-        public void TestHistoryPreviousWithPattern_PatternMaintained()
+        [WpfFact]
+        public async Task TestHistoryPreviousWithPattern_PatternMaintained()
         {
-            InsertAndExecuteInputs("123", "12", "1");
+            await InsertAndExecuteInputs("123", "12", "1").ConfigureAwait(true);
 
             _operations.HistoryPrevious("12");  AssertCurrentSubmission("12"); // Skip over non-matching entry.
             _operations.HistoryPrevious("12");  AssertCurrentSubmission("123");
             _operations.HistoryPrevious("12");  AssertCurrentSubmission("123");
         }
 
-        [Fact]
-        public void TestHistoryPreviousWithPattern_PatternDropped()
+        [WpfFact]
+        public async Task TestHistoryPreviousWithPattern_PatternDropped()
         {
-            InsertAndExecuteInputs("1", "2", "3");
+            await InsertAndExecuteInputs("1", "2", "3").ConfigureAwait(true);
 
             _operations.HistoryPrevious("2");   AssertCurrentSubmission("2"); // Skip over non-matching entry.
             _operations.HistoryPrevious(null);  AssertCurrentSubmission("1"); // Pattern isn't passed, so return to normal iteration.
             _operations.HistoryPrevious(null);  AssertCurrentSubmission("1");
         }
 
-        [Fact]
-        public void TestHistoryPreviousWithPattern_PatternChanged()
+        [WpfFact]
+        public async Task TestHistoryPreviousWithPattern_PatternChanged()
         {
-            InsertAndExecuteInputs("10", "20", "15", "25");
+            await InsertAndExecuteInputs("10", "20", "15", "25").ConfigureAwait(true);
 
             _operations.HistoryPrevious("1");   AssertCurrentSubmission("15"); // Skip over non-matching entry.
             _operations.HistoryPrevious("2");   AssertCurrentSubmission("20"); // Skip over non-matching entry.
             _operations.HistoryPrevious("2");   AssertCurrentSubmission("20");
         }
 
-        [Fact]
-        public void TestHistoryNextWithPattern_NoMatch()
+        [WpfFact]
+        public async Task TestHistoryNextWithPattern_NoMatch()
         {
-            InsertAndExecuteInputs("start", "1", "12", "123");
+            await InsertAndExecuteInputs("start", "1", "12", "123").ConfigureAwait(true);
             SetActiveCode("end");
 
             _operations.HistoryPrevious();  AssertCurrentSubmission("123");
@@ -375,10 +376,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext("4");   AssertCurrentSubmission("end");
         }
 
-        [Fact]
-        public void TestHistoryNextWithPattern_PatternMaintained()
+        [WpfFact]
+        public async Task TestHistoryNextWithPattern_PatternMaintained()
         {
-            InsertAndExecuteInputs("start", "1", "12", "123");
+            await InsertAndExecuteInputs("start", "1", "12", "123").ConfigureAwait(true);
             SetActiveCode("end");
 
             _operations.HistoryPrevious();  AssertCurrentSubmission("123");
@@ -391,10 +392,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext("12");  AssertCurrentSubmission("end");
         }
 
-        [Fact]
-        public void TestHistoryNextWithPattern_PatternDropped()
+        [WpfFact]
+        public async Task TestHistoryNextWithPattern_PatternDropped()
         {
-            InsertAndExecuteInputs("start", "3", "2", "1");
+            await InsertAndExecuteInputs("start", "3", "2", "1").ConfigureAwait(true);
             SetActiveCode("end");
 
             _operations.HistoryPrevious();  AssertCurrentSubmission("1");
@@ -407,10 +408,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext(null);  AssertCurrentSubmission("end");
         }
 
-        [Fact]
-        public void TestHistoryNextWithPattern_PatternChanged()
+        [WpfFact]
+        public async Task TestHistoryNextWithPattern_PatternChanged()
         {
-            InsertAndExecuteInputs("start", "25", "15", "20", "10");
+            await InsertAndExecuteInputs("start", "25", "15", "20", "10").ConfigureAwait(true);
             SetActiveCode("end");
 
             _operations.HistoryPrevious();  AssertCurrentSubmission("10");
@@ -424,10 +425,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext("2");   AssertCurrentSubmission("end");
         }
 
-        [Fact]
-        public void TestHistorySearchPrevious()
+        [WpfFact]
+        public async Task TestHistorySearchPrevious()
         {
-            InsertAndExecuteInputs("123", "12", "1");
+            await InsertAndExecuteInputs("123", "12", "1").ConfigureAwait(true);
 
             // Default search string is empty.
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("1"); // Pattern is captured before this step.
@@ -436,10 +437,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("123");
         }
 
-        [Fact]
-        public void TestHistorySearchPreviousWithPattern()
+        [WpfFact]
+        public async Task TestHistorySearchPreviousWithPattern()
         {
-            InsertAndExecuteInputs("123", "12", "1");
+            await InsertAndExecuteInputs("123", "12", "1").ConfigureAwait(true);
             SetActiveCode("12");
 
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("12"); // Pattern is captured before this step.
@@ -447,10 +448,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("123");
         }
 
-        [Fact]
-        public void TestHistorySearchNextWithPattern()
+        [WpfFact]
+        public async Task TestHistorySearchNextWithPattern()
         {
-            InsertAndExecuteInputs("12", "123", "12", "1");
+            await InsertAndExecuteInputs("12", "123", "12", "1").ConfigureAwait(true);
             SetActiveCode("end");
 
             _operations.HistoryPrevious();  AssertCurrentSubmission("1");
@@ -463,10 +464,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchNext();    AssertCurrentSubmission("end");
         }
 
-        [Fact]
-        public void TestHistoryPreviousAndSearchPrevious()
+        [WpfFact]
+        public async Task TestHistoryPreviousAndSearchPrevious()
         {
-            InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1");
+            await InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1").ConfigureAwait(true);
 
             _operations.HistoryPrevious();          AssertCurrentSubmission("1");
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("10"); // Pattern is captured before this step.
@@ -477,10 +478,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("200"); // No-op results in non-matching history entry after SearchPrevious.
         }
 
-        [Fact]
-        public void TestHistoryPreviousAndSearchPrevious_ExplicitPattern()
+        [WpfFact]
+        public async Task TestHistoryPreviousAndSearchPrevious_ExplicitPattern()
         {
-            InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1");
+            await InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1").ConfigureAwait(true);
 
             _operations.HistoryPrevious();          AssertCurrentSubmission("1");
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("10"); // Pattern is captured before this step.
@@ -491,10 +492,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("200"); // No-op results in non-matching history entry after SearchPrevious.
         }
 
-        [Fact]
-        public void TestHistoryNextAndSearchNext()
+        [WpfFact]
+        public async Task TestHistoryNextAndSearchNext()
         {
-            InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200");
+            await InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200").ConfigureAwait(true);
             SetActiveCode("4");
 
             _operations.HistoryPrevious();  AssertCurrentSubmission("200");
@@ -512,10 +513,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext();          AssertCurrentSubmission("4");
         }
 
-        [Fact]
-        public void TestHistoryNextAndSearchNext_ExplicitPattern()
+        [WpfFact]
+        public async Task TestHistoryNextAndSearchNext_ExplicitPattern()
         {
-            InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200");
+            await InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200").ConfigureAwait(true);
             SetActiveCode("4");
 
             _operations.HistoryPrevious();  AssertCurrentSubmission("200");

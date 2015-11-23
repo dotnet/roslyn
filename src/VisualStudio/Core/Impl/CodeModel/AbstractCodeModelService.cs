@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         /// <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
         /// <param name="includeSelf">If true, the container is returned as well.</param>
-        /// <param name="recursive">If true, members are recursed to return descendent members as well
+        /// <param name="recursive">If true, members are recursed to return descendant members as well
         /// as immediate children. For example, a namespace would return the namespaces and types within.
         /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
         /// also be returned.</param>
@@ -260,7 +260,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     }
 
                 case SymbolKind.Property:
-                    return (EnvDTE.CodeElement)ExternalCodeProperty.Create(state, projectId, (IPropertySymbol)symbol);
+                    var propertySymbol = (IPropertySymbol)symbol;
+                    return propertySymbol.IsWithEvents
+                        ? (EnvDTE.CodeElement)ExternalCodeVariable.Create(state, projectId, propertySymbol)
+                        : (EnvDTE.CodeElement)ExternalCodeProperty.Create(state, projectId, (IPropertySymbol)symbol);
                 default:
                     throw Exceptions.ThrowEFail();
             }
@@ -519,7 +522,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract SyntaxNode SetName(SyntaxNode node, string name);
 
         public abstract string GetFullName(SyntaxNode node, SemanticModel semanticModel);
-        public abstract string GetFullName(ISymbol symbol);
 
         public abstract string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
@@ -567,6 +569,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // Update the node keys.
             nodeKeyValidation.RestoreKeys();
         }
+
+        public abstract bool IsValidExternalSymbol(ISymbol symbol);
+        public abstract string GetExternalSymbolName(ISymbol symbol);
+        public abstract string GetExternalSymbolFullName(ISymbol symbol);
 
         public VirtualTreePoint? GetStartPoint(SyntaxNode node, EnvDTE.vsCMPart? part)
         {
@@ -1361,28 +1367,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public virtual IList<string> GetHandledEventNames(SyntaxNode method, SemanticModel semanticModel)
         {
-            // descendents may override (particularly VB).
+            // descendants may override (particularly VB).
 
             return SpecializedCollections.EmptyList<string>();
         }
 
         public virtual bool HandlesEvent(string eventName, SyntaxNode method, SemanticModel semanticModel)
         {
-            // descendents may override (particularly VB).
+            // descendants may override (particularly VB).
 
             return false;
         }
 
         public virtual Document AddHandlesClause(Document document, string eventName, SyntaxNode method, CancellationToken cancellationToken)
         {
-            // descendents may override (particularly VB).
+            // descendants may override (particularly VB).
 
             return document;
         }
 
         public virtual Document RemoveHandlesClause(Document document, string eventName, SyntaxNode method, CancellationToken cancellationToken)
         {
-            // descendents may override (particularly VB).
+            // descendants may override (particularly VB).
 
             return document;
         }

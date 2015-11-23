@@ -1041,7 +1041,7 @@ struct S
         }
 
         [WorkItem(528571, "DevDiv")]
-        [Fact(Skip = "528571")]
+        [Fact]
         public void ConstraintsWithinStruct()
         {
             var source =
@@ -6627,6 +6627,56 @@ class B : A<ValueType>, I<ValueType>
     void I<ValueType>.M<T>() { }
 }";
             CompileAndVerify(source);
+        }
+
+        [WorkItem(4097, "https://github.com/dotnet/roslyn/issues/4097")]
+        [Fact]
+        public void ObsoleteTypeInConstraints()
+        {
+            var source =
+@"
+[System.Obsolete]
+class Class1<T> where T : Class2
+{
+}
+
+[System.Obsolete]
+class Class2
+{
+}
+
+class Class3<T> where T : Class2
+{
+    [System.Obsolete]
+    void M1<S>() where S : Class2
+    {}   
+
+    void M2<S>() where S : Class2
+    {}   
+}
+
+partial class Class4
+{
+    [System.Obsolete]
+    partial void M3<S>() where S : Class2;
+}
+
+partial class Class4
+{
+    partial void M4<S>() where S : Class2;
+}
+";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+    // (12,27): warning CS0612: 'Class2' is obsolete
+    // class Class3<T> where T : Class2
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Class2").WithArguments("Class2").WithLocation(12, 27),
+    // (18,28): warning CS0612: 'Class2' is obsolete
+    //     void M2<S>() where S : Class2
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Class2").WithArguments("Class2").WithLocation(18, 28),
+    // (30,36): warning CS0612: 'Class2' is obsolete
+    //     partial void M4<S>() where S : Class2;
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Class2").WithArguments("Class2").WithLocation(30, 36)
+                );
         }
     }
 }

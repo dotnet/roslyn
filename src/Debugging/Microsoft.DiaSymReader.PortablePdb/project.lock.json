@@ -19,7 +19,7 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00015": {
+      "System.Reflection.Metadata/1.1.0": {
         "dependencies": {
           "System.Collections.Immutable": "[1.1.37, )"
         },
@@ -61,17 +61,17 @@
         "System.Collections.Immutable.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.1.0-alpha-00015": {
-      "sha512": "80TohRwPpEugHMssnSC1lGL9RdgTkB8AaZ4F3VqTao+Gm1JKh/aPCKj1h+XNWlQcKgR/ITrxv1zi+S5OPCTylg==",
+    "System.Reflection.Metadata/1.1.0": {
+      "sha512": "a8VsRm/B0Ik1o5FumSMWmpwbG7cvIIajAYhzTTy9VB9XItByJDQHGZkQTIAdsvVJ6MI5O3uH/lb0izgQDlDIWA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "lib/dotnet/System.Reflection.Metadata.dll",
-        "lib/dotnet/System.Reflection.Metadata.xml",
+        "lib/dotnet5.2/System.Reflection.Metadata.dll",
+        "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/7861ec343fe44de4be93046f2fd089b0.psmdcp",
+        "package/services/metadata/core-properties/644d6c945e3d43e2806bf6892201a6ef.psmdcp",
         "System.Reflection.Metadata.nuspec"
       ]
     }
@@ -80,7 +80,7 @@
     "": [
       "Microsoft.DiaSymReader >= 1.0.6",
       "System.Collections.Immutable >= 1.1.37",
-      "System.Reflection.Metadata >= 1.1.0-alpha-00015"
+      "System.Reflection.Metadata >= 1.1.0"
     ],
     ".NETPortable,Version=v4.5,Profile=Profile7": []
   }

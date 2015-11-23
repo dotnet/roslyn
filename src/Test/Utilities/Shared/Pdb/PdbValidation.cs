@@ -224,15 +224,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     options |= PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError;
                     actual = PdbToXmlConverter.ToXml(pdbbits, exebits, options, methodName: qualifiedMethodName);
-                }
 
-                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb", portable, compilation.IsEmitDeterministic);
+                    ValidateDebugDirectory(exebits, portable ? pdbbits : null, compilation.AssemblyName + ".pdb", compilation.IsEmitDeterministic);
+                }
             }
 
             return actual;
         }
 
-        public static void ValidateDebugDirectory(Stream peStream, string pdbPath, bool isPortable, bool isDeterministic)
+        public static void ValidateDebugDirectory(Stream peStream, Stream portablePdbStreamOpt, string pdbPath, bool isDeterministic)
         {
             peStream.Seek(0, SeekOrigin.Begin);
             PEReader peReader = new PEReader(peStream);
@@ -241,24 +241,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             int position;
             Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(debugDirectory, out position));
-            Assert.Equal(0x1c, debugDirectory.Size);
+            int entries = debugDirectory.Size / 0x1c;
+            Assert.Equal(0, debugDirectory.Size % 0x1c);
+            Assert.True(entries == 1 || entries == 2);
+            bool hasDebug = entries == 2;
 
             byte[] buffer = new byte[debugDirectory.Size];
-            peStream.Read(buffer, 0, buffer.Length);
+            peStream.Read(buffer, 0, buffer.Length); // TODO: this is not guaranteed to read buffer.Length of data
 
             peStream.Position = position;
             var reader = new BinaryReader(peStream);
 
+            // first the IMAGE_DEBUG_TYPE_CODEVIEW entry
             int characteristics = reader.ReadInt32();
             Assert.Equal(0, characteristics);
 
-            uint timeDateStamp = reader.ReadUInt32();
+            byte[] stamp = reader.ReadBytes(sizeof(int));
 
             uint version = reader.ReadUInt32();
-            Assert.Equal(isPortable ? 0x504d0001u : 0, version);
+            Assert.Equal((portablePdbStreamOpt != null) ? 0x504d0100u : 0, version);
 
             int type = reader.ReadInt32();
-            Assert.Equal(2, type);
+            Assert.Equal(2, type); // IMAGE_DEBUG_TYPE_CODEVIEW
 
             int sizeOfData = reader.ReadInt32();
             int rvaOfRawData = reader.ReadInt32();
@@ -269,6 +273,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int pointerToRawData = reader.ReadInt32();
             Assert.Equal(pointerToRawData, sectionHeader.PointerToRawData + rvaOfRawData - sectionHeader.VirtualAddress);
 
+            // optionally a IMAGE_DEBUG_TYPE_NO_TIMESTAMP entry indicating that timestamps are deterministic
+            if (hasDebug)
+            {
+                int characteristics2 = reader.ReadInt32();
+                Assert.Equal(0, characteristics2);
+
+                byte[] stamp2 = reader.ReadBytes(sizeof(int));
+
+                int version2 = reader.ReadInt32();
+                Assert.Equal(0, version2);
+
+                int type2 = reader.ReadInt32();
+                Assert.Equal(16, type2); // IMAGE_DEBUG_TYPE_NO_TIMESTAMP
+
+                int sizeOfData2 = reader.ReadInt32();
+                int rvaOfRawData2 = reader.ReadInt32();
+                int pointerToRawData2 = reader.ReadInt32();
+                Assert.Equal(0, sizeOfData2 | rvaOfRawData2 | pointerToRawData2);
+            }
+
+            // Now verify the data pointed to by the IMAGE_DEBUG_TYPE_CODEVIEW entry
             peStream.Position = pointerToRawData;
 
             Assert.Equal((byte)'R', reader.ReadByte());
@@ -303,6 +328,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var actualPath = Encoding.UTF8.GetString(pathBlob, 0, terminator);
             Assert.Equal(pdbPath, actualPath);
+
+            if (portablePdbStreamOpt != null)
+            {
+                ValidatePortablePdbId(portablePdbStreamOpt, stamp, guidBlob);
+            }
+        }
+
+        private unsafe static void ValidatePortablePdbId(Stream pdbStream, byte[] stampInDebugDirectory, byte[] guidInDebugDirectory)
+        {
+            var expectedId = ImmutableArray.CreateRange(guidInDebugDirectory.Concat(stampInDebugDirectory));
+
+            pdbStream.Position = 0;
+            var buffer = new byte[pdbStream.Length];
+            var bytesRead = pdbStream.TryReadAll(buffer, 0, buffer.Length);
+
+            Assert.Equal(buffer.Length, bytesRead);
+
+            fixed (byte* bufferPtr = buffer)
+            {
+                var id = new MetadataReader(bufferPtr, buffer.Length).DebugMetadataHeader.Id;
+                Assert.Equal(id.ToArray(), expectedId);
+            }
         }
 
         public static void VerifyMetadataEqualModuloMvid(Stream peStream1, Stream peStream2)

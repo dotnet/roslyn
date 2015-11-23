@@ -52,12 +52,13 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IReadOnlyDictionary<string, string> _features;
 
+        public ScriptCompilationInfo ScriptCompilationInfo => CommonScriptCompilationInfo;
+        internal abstract ScriptCompilationInfo CommonScriptCompilationInfo { get; }
+
         internal Compilation(
             string name,
             ImmutableArray<MetadataReference> references,
             IReadOnlyDictionary<string, string> features,
-            Type submissionReturnType,
-            Type hostObjectType,
             bool isSubmission,
             AsyncQueue<CompilationEvent> eventQueue)
         {
@@ -68,17 +69,7 @@ namespace Microsoft.CodeAnalysis
             this.ExternalReferences = references;
             this.EventQueue = eventQueue;
 
-            if (isSubmission)
-            {
-                _lazySubmissionSlotIndex = SubmissionSlotIndexToBeAllocated;
-                this.SubmissionReturnType = submissionReturnType ?? typeof(object);
-                this.HostObjectType = hostObjectType;
-            }
-            else
-            {
-                _lazySubmissionSlotIndex = SubmissionSlotIndexNotApplicable;
-            }
-
+            _lazySubmissionSlotIndex = isSubmission ? SubmissionSlotIndexToBeAllocated : SubmissionSlotIndexNotApplicable;
             _features = features;
         }
 
@@ -118,11 +109,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string Language { get; }
 
-        internal static void ValidateSubmissionParameters(Compilation previousSubmission, Type returnType, ref Type hostObjectType)
+        internal static void ValidateScriptCompilationParameters(Compilation previousScriptCompilation, Type returnType, ref Type globalsType)
         {
-            if (hostObjectType != null && !IsValidHostObjectType(hostObjectType))
+            if (globalsType != null && !IsValidHostObjectType(globalsType))
             {
-                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeValuePointerbyRefOrOpen, nameof(hostObjectType));
+                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeValuePointerbyRefOrOpen, nameof(globalsType));
             }
 
             if (returnType != null && !IsValidSubmissionReturnType(returnType))
@@ -130,19 +121,19 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeVoidByRefOrOpen, nameof(returnType));
             }
 
-            if (previousSubmission != null)
+            if (previousScriptCompilation != null)
             {
-                if (hostObjectType == null)
+                if (globalsType == null)
                 {
-                    hostObjectType = previousSubmission.HostObjectType;
+                    globalsType = previousScriptCompilation.HostObjectType;
                 }
-                else if (hostObjectType != previousSubmission.HostObjectType)
+                else if (globalsType != previousScriptCompilation.HostObjectType)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.TypeMustBeSameAsHostObjectTypeOfPreviousSubmission, nameof(hostObjectType));
+                    throw new ArgumentException(CodeAnalysisResources.TypeMustBeSameAsHostObjectTypeOfPreviousSubmission, nameof(globalsType));
                 }
 
                 // Force the previous submission to be analyzed. This is required for anonymous types unification.
-                if (previousSubmission.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (previousScriptCompilation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 {
                     throw new InvalidOperationException(CodeAnalysisResources.PreviousSubmissionHasErrors);
                 }
@@ -165,7 +156,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.InvalidOutputKindForSubmission, nameof(options));
             }
 
-            if (options.CryptoKeyContainer != null || options.CryptoKeyFile != null || options.DelaySign != null || !options.CryptoPublicKey.IsEmpty)
+            if (options.CryptoKeyContainer != null ||
+                options.CryptoKeyFile != null ||
+                options.DelaySign != null ||
+                !options.CryptoPublicKey.IsEmpty ||
+                (options.DelaySign == true && options.PublicSign))
             {
                 throw new ArgumentException(CodeAnalysisResources.InvalidCompilationOptions, nameof(options));
             }
@@ -314,7 +309,7 @@ namespace Microsoft.CodeAnalysis
             if (_lazySubmissionSlotIndex == SubmissionSlotIndexToBeAllocated)
             {
                 // TODO (tomat): remove recursion
-                int lastSlotIndex = PreviousSubmission?.GetSubmissionSlotIndex() ?? 0;
+                int lastSlotIndex = ScriptCompilationInfo.PreviousScriptCompilation?.GetSubmissionSlotIndex() ?? 0;
                 _lazySubmissionSlotIndex = HasCodeToEmit() ? lastSlotIndex + 1 : lastSlotIndex;
             }
 
@@ -332,7 +327,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The type object that represents the type of submission result the host requested.
         /// </summary>
-        internal Type SubmissionReturnType { get; }
+        internal Type SubmissionReturnType => ScriptCompilationInfo?.ReturnType;
 
         internal static bool IsValidSubmissionReturnType(Type type)
         {
@@ -340,9 +335,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The type of the host object or null if not specified for this compilation.
+        /// The type of the globals object or null if not specified for this compilation.
         /// </summary>
-        internal Type HostObjectType { get; }
+        internal Type HostObjectType => ScriptCompilationInfo?.GlobalsType;
 
         internal static bool IsValidHostObjectType(Type type)
         {
@@ -350,58 +345,10 @@ namespace Microsoft.CodeAnalysis
             return !(info.IsValueType || info.IsPointer || info.IsByRef || info.ContainsGenericParameters);
         }
 
-        /// <summary>
-        /// Returns the type of the submission return value.
-        /// </summary>
-        /// <param name="hasValue">
-        /// True if the submission has a return value, i.e. if the submission
-        /// ends with an expression statement.
-        /// </param>
-        /// <exception cref="InvalidOperationException">
-        /// The compilation doesn't represent a submission
-        /// (<see cref="IsSubmission"/> return false).
-        /// </exception>
-        /// <returns>
-        /// Null if the type of the last expression is unknown, 
-        /// <see cref="void"/> if the type of the last expression statement is
-        /// void or if the submission is not an expression statement, or
-        /// otherwise the type of the last expression.
-        /// </returns>
-        /// <remarks>
-        /// Note that the return type is <see cref="void"/> if the last
-        /// statement is a non-expression statement e.g.,
-        /// <code>System.Console.WriteLine();</code>
-        /// and if the statement is an expression statement of type void e.g,
-        /// <code>System.Console.WriteLine()</code>. However,
-        /// <paramref name="hasValue"/> is false in the former case and true
-        /// in the latter.
-        /// </remarks>
-        public ITypeSymbol GetSubmissionResultType(out bool hasValue)
-        {
-            return CommonGetSubmissionResultType(out hasValue);
-        }
+        internal abstract bool HasSubmissionResult();
 
-        protected abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
-
-        /// <summary>
-        /// The previous submission compilation, or null if either this
-        /// compilation doesn't represent a submission or the submission is the
-        /// first submission in a submission chain.
-        /// </summary>
-        public Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
-
-        protected abstract Compilation CommonPreviousSubmission { get; }
-
-        /// <summary>
-        /// Returns a new compilation with the given compilation set as the
-        /// previous submission.
-        /// </summary>
-        public Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
-        {
-            return CommonWithPreviousSubmission(newPreviousSubmission);
-        }
-
-        protected abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
+        public Compilation WithScriptCompilationInfo(ScriptCompilationInfo info) => CommonWithScriptCompilationInfo(info);
+        protected abstract Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo info);
 
         #endregion
 
@@ -552,7 +499,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps values of #r references to resolved metadata references.
         /// </summary>
-        internal abstract IDictionary<string, MetadataReference> ReferenceDirectiveMap { get; }
+        internal abstract IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap { get; }
 
         /// <summary>
         /// All metadata references -- references passed to the compilation
@@ -1357,6 +1304,7 @@ namespace Microsoft.CodeAnalysis
                 // alink would sign the assembly. So rather than give an error we just don't sign when outputting a module.
 
                 return !IsDelaySigned
+                    && !Options.PublicSign
                     && Options.OutputKind != OutputKind.NetModule
                     && StrongNameKeys.CanSign;
             }
@@ -1416,6 +1364,8 @@ namespace Microsoft.CodeAnalysis
 
         internal void EnsureAnonymousTypeTemplates(CancellationToken cancellationToken)
         {
+            Debug.Assert(IsSubmission);
+
             if (this.GetSubmissionSlotIndex() >= 0 && HasCodeToEmit())
             {
                 if (!this.CommonAnonymousTypeManager.AreTemplatesSealed)
@@ -1449,7 +1399,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                this.PreviousSubmission?.EnsureAnonymousTypeTemplates(cancellationToken);
+                this.ScriptCompilationInfo.PreviousScriptCompilation?.EnsureAnonymousTypeTemplates(cancellationToken);
             }
         }
 

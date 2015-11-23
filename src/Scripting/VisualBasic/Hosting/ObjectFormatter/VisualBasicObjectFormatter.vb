@@ -2,14 +2,14 @@
 
 Imports System.Reflection
 Imports System.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.Scripting.Hosting
 
-Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
     Public NotInheritable Class VisualBasicObjectFormatter
         Inherits ObjectFormatter
 
-        Public Shared ReadOnly Instance As VisualBasicObjectFormatter = New VisualBasicObjectFormatter()
+        Public Shared ReadOnly Property Instance As VisualBasicObjectFormatter = New VisualBasicObjectFormatter()
 
         Private Sub New()
         End Sub
@@ -244,5 +244,6 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
             Return False
         End Function
     End Class
+
 End Namespace
 

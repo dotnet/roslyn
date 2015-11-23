@@ -21,53 +21,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTypeOrInstanceInitializers(syntax, boundInitializers.SelectAsArray(RewriteInitializersAsStatements));
         }
 
-        internal static BoundTypeOrInstanceInitializers RewriteScriptInitializer(ImmutableArray<BoundInitializer> boundInitializers, SynthesizedInteractiveInitializerMethod method)
+        internal static BoundTypeOrInstanceInitializers RewriteScriptInitializer(ImmutableArray<BoundInitializer> boundInitializers, SynthesizedInteractiveInitializerMethod method, out bool hasTrailingExpression)
         {
             Debug.Assert(!boundInitializers.IsDefault);
 
             var boundStatements = ArrayBuilder<BoundStatement>.GetInstance(boundInitializers.Length);
             var submissionResultType = method.ResultType;
-            BoundExpression submissionResult = null;
+            var hasSubmissionResultType = (object)submissionResultType != null;
+            BoundStatement lastStatement = null;
+            BoundExpression trailingExpression = null;
 
             foreach (var initializer in boundInitializers)
             {
-                // The value of the last expression statement (if any) is returned from the submission initializer.
-                if (((object)submissionResultType != null) &&
+                // The value of the last expression statement (if any) is returned from the submission initializer,
+                // unless this is a #load'ed tree.  I the #load'ed tree case, we'll execute the trailing expression
+                // but discard its result.
+                if (hasSubmissionResultType &&
                     (initializer == boundInitializers.Last()) &&
-                    (initializer.Kind == BoundKind.GlobalStatementInitializer))
+                    (initializer.Kind == BoundKind.GlobalStatementInitializer) &&
+                    method.DeclaringCompilation.IsSubmissionSyntaxTree(initializer.SyntaxTree))
                 {
-                    var expr = GetTrailingScriptExpression(((BoundGlobalStatementInitializer)initializer).Statement);
-                    if (expr != null &&
-                        (object)expr.Type != null &&
-                        expr.Type.SpecialType != SpecialType.System_Void)
+                    lastStatement = ((BoundGlobalStatementInitializer)initializer).Statement;
+                    var expression = GetTrailingScriptExpression(lastStatement);
+                    if (expression != null &&
+                        (object)expression.Type != null &&
+                        expression.Type.SpecialType != SpecialType.System_Void)
                     {
-                        submissionResult = expr;
+                        trailingExpression = expression;
                         continue;
                     }
                 }
+
                 boundStatements.Add(RewriteInitializersAsStatements(initializer));
             }
 
-            var syntax = method.GetNonNullSyntaxNode();
-            if ((object)submissionResultType != null)
+            if (hasSubmissionResultType && (trailingExpression != null))
             {
-                if (submissionResult == null)
-                {
-                    // Return default(T) if submission does not have a trailing expression.
-                    submissionResult = new BoundDefaultOperator(syntax, submissionResultType);
-                }
-                Debug.Assert(submissionResult.Type.SpecialType != SpecialType.System_Void);
+                Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
 
-                // The expression is converted to the submission result type when the initializer is bound.
-                boundStatements.Add(new BoundReturnStatement(submissionResult.Syntax, submissionResult));
+                // Note: The trailing expression was already converted to the submission result type in Binder.BindGlobalStatement.
+                boundStatements.Add(new BoundReturnStatement(lastStatement.Syntax, trailingExpression));
+                hasTrailingExpression = true;
             }
-
-            return new BoundTypeOrInstanceInitializers(syntax, boundStatements.ToImmutableAndFree());
+            else
+            {
+                hasTrailingExpression = false;
+            }
+    
+            return new BoundTypeOrInstanceInitializers(method.GetNonNullSyntaxNode(), boundStatements.ToImmutableAndFree());
         }
 
         /// <summary>
-        /// Returns the expression if the statement is actually an
-        /// expression (ExpressionStatementSyntax with no trailing semicolon).
+        /// Returns the expression if the statement is actually an expression (ExpressionStatementSyntax with no trailing semicolon).
         /// </summary>
         internal static BoundExpression GetTrailingScriptExpression(BoundStatement statement)
         {

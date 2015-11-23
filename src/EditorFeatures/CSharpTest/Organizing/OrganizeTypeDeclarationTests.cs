@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
     public class OrganizeTypeDeclarationTests : AbstractOrganizerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestFieldsWithoutInitializers1()
         {
             var initial =
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestFieldsWithoutInitializers2()
         {
             var initial =
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestFieldsWithInitializers1()
         {
             var initial =
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestFieldsWithInitializers2()
         {
             var initial =
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestEventFieldDeclaration()
         {
             var initial =
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestEventDeclaration()
         {
             var initial =
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestOperator()
         {
             var initial =
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestIndexer()
         {
             var initial =
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestConstructorAndDestructors()
         {
             var initial =
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestInterface()
         {
             var initial =
@@ -236,7 +236,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestStaticInstance()
         {
             var initial =
@@ -257,7 +257,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestAccessibility()
         {
             var initial =
@@ -282,7 +282,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestStaticAccessibility()
         {
             var initial =
@@ -315,7 +315,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestGenerics()
         {
             var initial =
@@ -340,7 +340,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestInsidePPRegion()
         {
             var initial =
@@ -363,7 +363,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestInsidePPRegion2()
         {
             var initial =
@@ -396,7 +396,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestInsidePPRegion3()
         {
             var initial =
@@ -425,7 +425,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestInsidePPRegion4()
         {
             var initial =
@@ -454,7 +454,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestInsidePPRegion5()
         {
             var initial =
@@ -485,7 +485,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestInsidePPRegion6()
         {
             var initial =
@@ -526,7 +526,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestPinned()
         {
             var initial =
@@ -571,7 +571,7 @@ interface I
             Check(initial, final);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void TestSensitivity()
         {
             var initial =
@@ -664,7 +664,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestWhitespaceBetweenMethods1()
         {
             var initial =
@@ -694,7 +694,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestWhitespaceBetweenMethods2()
         {
             var initial =
@@ -726,7 +726,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestWhitespaceBetweenMethods3()
         {
             var initial =
@@ -758,7 +758,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestWhitespaceBetweenMethods4()
         {
             var initial =
@@ -792,7 +792,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestWhitespaceBetweenMethods5()
         {
             var initial =
@@ -828,7 +828,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestWhitespaceBetweenMethods6()
         {
             var initial =
@@ -866,7 +866,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestMoveComments1()
         {
             var initial =
@@ -898,7 +898,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestMoveComments2()
         {
             var initial =
@@ -932,7 +932,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestMoveDocComments1()
         {
             var initial =
@@ -964,7 +964,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestMoveDocComments2()
         {
             var initial =
@@ -998,7 +998,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestDontMoveBanner()
         {
             var initial =
@@ -1032,7 +1032,7 @@ interface I
         }
 
         [WorkItem(537614)]
-        [Fact]
+        [WpfFact]
         public void TestDontMoveBanner2()
         {
             var initial =
@@ -1071,13 +1071,13 @@ interface I
             Check(initial, final);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Organizing)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void OrganizingCommandsDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsCodeFixService)));
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
                 <Workspace>

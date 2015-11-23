@@ -47,6 +47,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
@@ -318,6 +319,8 @@
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceField.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceLocal.cs" />
     <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceQueryLocal.cs" />
+    <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessAnalyzer.cs" />
+    <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessCodeFixProvider.cs" />
     <Compile Include="LanguageServices\CSharpAnonymousTypeDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDisplayService.SymbolDescriptionBuilder.cs" />

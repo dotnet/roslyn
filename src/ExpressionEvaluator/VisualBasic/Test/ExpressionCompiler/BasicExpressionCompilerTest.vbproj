@@ -10,11 +10,8 @@
     <ProjectGuid>{AC5E3515-482C-4C6A-92D9-D0CEA687DFC2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Xml.Linq" />
@@ -113,6 +110,7 @@
     <Compile Include="WinMdTests.vb" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

@@ -11,8 +11,6 @@
     <ProjectGuid>{BDA5D613-596D-4B61-837C-63554151C8F5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Symbol.UnitTests</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -173,6 +171,7 @@
     <Compile Include="SymbolsTests\XmlLiteralsTests_UseSiteErrors.vb" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="SymbolsTests\Metadata\MscorlibNamespacesAndTypes.bsl" />
   </ItemGroup>

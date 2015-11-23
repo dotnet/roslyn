@@ -17,24 +17,19 @@ namespace Microsoft.CodeAnalysis
     public abstract class CommandLineParser
     {
         private readonly CommonMessageProvider _messageProvider;
-        private readonly bool _isInteractive;
+        internal readonly bool IsScriptRunner;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
 
-        internal CommandLineParser(CommonMessageProvider messageProvider, bool isInteractive)
+        internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptRunner)
         {
             Debug.Assert(messageProvider != null);
             _messageProvider = messageProvider;
-            _isInteractive = isInteractive;
+            IsScriptRunner = isScriptRunner;
         }
 
         internal CommonMessageProvider MessageProvider
         {
             get { return _messageProvider; }
-        }
-
-        public bool IsInteractive
-        {
-            get { return _isInteractive; }
         }
 
         protected abstract string RegularFileExtension { get; }
@@ -76,9 +71,14 @@ namespace Microsoft.CodeAnalysis
             return CommonParse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
+        private static bool IsOption(string arg)
+        {
+            return !string.IsNullOrEmpty(arg) && (arg[0] == '/' || arg[0] == '-');
+        }
+
         internal static bool TryParseOption(string arg, out string name, out string value)
         {
-            if (string.IsNullOrEmpty(arg) || (arg[0] != '/' && arg[0] != '-'))
+            if (!IsOption(arg))
             {
                 name = null;
                 value = null;
@@ -188,6 +188,38 @@ namespace Microsoft.CodeAnalysis
             return string.Empty;
         }
 
+        protected ImmutableArray<KeyValuePair<string, string>> ParsePathMap(string pathMap, IList<Diagnostic> errors)
+        {
+            var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance();
+            if (pathMap.IsEmpty())
+            {
+                return pathMapBuilder.ToImmutableAndFree();
+            }
+
+            foreach (var kEqualsV in pathMap.Split(','))
+            {
+                var kv = kEqualsV.Split('=');
+                if (kv.Length != 2)
+                {
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
+                    continue;
+                }
+                var from = PathUtilities.TrimTrailingSeparators(kv[0]);
+                var to = PathUtilities.TrimTrailingSeparators(kv[1]);
+
+                if (from.Length == 0 || (to.Length == 0 && kv[1] != "/"))
+                {
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
+                }
+                else
+                {
+                    pathMapBuilder.Add(new KeyValuePair<string, string>(from, to));
+                }
+            }
+
+            return pathMapBuilder.ToImmutableAndFree();
+        }
+
         internal void ParseOutputFile(
             string value,
             IList<Diagnostic> errors,
@@ -266,27 +298,55 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<string> rawArguments,
             IList<Diagnostic> diagnostics,
             List<string> processedArgs,
-            List<string> scriptArgs,
+            List<string> scriptArgsOpt,
             string baseDirectory,
             List<string> responsePaths = null)
         {
             bool parsingScriptArgs = false;
+            bool sourceFileSeen = false;
+            bool optionsEnded = false;
 
-            Stack<string> args = new Stack<string>(rawArguments.Reverse());
+            var args = new Stack<string>(rawArguments.Reverse());
             while (args.Count > 0)
             {
-                //EDMAURER trim off whitespace. Otherwise behavioral differences arise
-                //when the strings which represent args are constructed by cmd or users.
-                //cmd won't produce args with whitespace at the end.
+                // EDMAURER trim off whitespace. Otherwise behavioral differences arise
+                // when the strings which represent args are constructed by cmd or users.
+                // cmd won't produce args with whitespace at the end.
                 string arg = args.Pop().TrimEnd();
 
                 if (parsingScriptArgs)
                 {
-                    scriptArgs.Add(arg);
+                    scriptArgsOpt.Add(arg);
                     continue;
                 }
 
-                if (arg.StartsWith("@", StringComparison.Ordinal))
+                if (scriptArgsOpt != null)
+                {
+                    // The order of the following two checks matters.
+                    //
+                    // Command line:               Script:    Script args:
+                    //   csi -- script.csx a b c   script.csx      ["a", "b", "c"]
+                    //   csi script.csx -- a b c   script.csx      ["--", "a", "b", "c"]
+                    //   csi -- @script.csx a b c  @script.csx     ["a", "b", "c"]
+                    //
+                    if (sourceFileSeen)
+                    {
+                        // csi/vbi: at most one script can be specified on command line, anything else is a script arg:
+                        parsingScriptArgs = true;
+                        scriptArgsOpt.Add(arg);
+                        continue;
+                    }
+
+                    if (!optionsEnded && arg == "--")
+                    {
+                        // csi/vbi: no argument past "--" should be treated as an option/response file
+                        optionsEnded = true;
+                        processedArgs.Add(arg);
+                        continue;
+                    }
+                }
+
+                if (!optionsEnded && arg.StartsWith("@", StringComparison.Ordinal))
                 {
                     // response file:
                     string path = RemoveQuotesAndSlashes(arg.Substring(1)).TrimEnd(null);
@@ -316,13 +376,10 @@ namespace Microsoft.CodeAnalysis
                         diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InputFileNameTooLong, path));
                     }
                 }
-                else if (arg == "--" && scriptArgs != null)
-                {
-                    parsingScriptArgs = true;
-                }
                 else
                 {
                     processedArgs.Add(arg);
+                    sourceFileSeen |= optionsEnded || !IsOption(arg);
                 }
             }
         }
@@ -830,7 +887,7 @@ namespace Microsoft.CodeAnalysis
             string extension = PathUtilities.GetExtension(resolvedPath);
 
             bool isScriptFile;
-            if (IsInteractive)
+            if (IsScriptRunner)
             {
                 isScriptFile = !string.Equals(extension, RegularFileExtension, StringComparison.OrdinalIgnoreCase);
             }
@@ -846,7 +903,7 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<CommandLineSourceFile> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
-            Debug.Assert(!arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
+            Debug.Assert(IsScriptRunner || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
 
             // We remove all doubles quotes from a file name. So that, for example:
             //   "Path With Spaces"\foo.cs

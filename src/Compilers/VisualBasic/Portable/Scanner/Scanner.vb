@@ -127,13 +127,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 s_wslTablePool.Free(_wslTable)
                 s_wsTablePool.Free(_wsTable)
 
-                For Each p As Page In Me._pages
+                For Each p As Page In _pages
                     If p IsNot Nothing Then
                         p.Free()
                     End If
                 Next
 
-                Array.Clear(Me._pages, 0, Me._pages.Length)
+                Array.Clear(_pages, 0, _pages.Length)
             End If
         End Sub
         Friend ReadOnly Property Options As VisualBasicParseOptions
@@ -165,8 +165,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If token IsNot Nothing Then
                     AdvanceChar(quickToken.Length)
                     If quickToken.TerminatorLength <> 0 Then
-                        Me._endOfTerminatorTrivia = Me._lineBufferOffset
-                        Me._lineBufferOffset -= quickToken.TerminatorLength
+                        _endOfTerminatorTrivia = _lineBufferOffset
+                        _lineBufferOffset -= quickToken.TerminatorLength
                     End If
 
                     Return token
@@ -720,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Sub ScanSingleLineTrivia(tList As SyntaxListBuilder)
-            If Me.IsScanningXmlDoc Then
+            If IsScanningXmlDoc Then
                 ScanSingleLineTriviaInXmlDoc(tList)
             Else
                 ScanWhitespaceAndLineContinuations(tList)
@@ -1380,7 +1380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ch = Peek(len)
 
                 Dim code = Convert.ToUInt16(ch)
-                If code < 128 AndAlso IsNarrowIdentifierCharacter(code) OrElse
+                If code < 128US AndAlso IsNarrowIdentifierCharacter(code) OrElse
                     IsWideIdentifierCharacter(ch) Then
 
                     len += 1
@@ -1940,14 +1940,14 @@ FullWidthRepeat2:
                     If TypeCharacter = TypeCharacter.Single OrElse TypeCharacter = TypeCharacter.SingleLiteral Then
                         ' // Attempt to convert to single
                         Dim SingleValue As Single
-                        If Not Single.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, SingleValue) Then
+                        If Not RealParser.TryParseFloat(LiteralSpelling, SingleValue) Then
                             Overflows = True
                         Else
                             FloatingValue = SingleValue
                         End If
                     Else
                         ' // Attempt to convert to double.
-                        If Not Double.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, FloatingValue) Then
+                        If Not RealParser.TryParseDouble(LiteralSpelling, FloatingValue) Then
                             Overflows = True
                         End If
                     End If
@@ -2435,7 +2435,7 @@ baddate:
                     Return result
 
                 ElseIf IsNewLine(ch) Then
-                    If Me._isScanningDirective Then
+                    If _isScanningDirective Then
                         Exit While
                     End If
 

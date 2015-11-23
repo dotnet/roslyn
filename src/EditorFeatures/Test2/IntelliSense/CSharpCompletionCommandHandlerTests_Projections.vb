@@ -6,8 +6,8 @@ Imports Microsoft.VisualStudio.Text.Projection
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpCompletionCommandHandlerTests_Projections
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TestSimpleWithJustSubjectBuffer()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSimpleWithJustSubjectBuffer() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -26,14 +26,15 @@ public override void Execute() {
 }]]></Document>)
 
                 state.SendTypeChars(".Curr")
-                state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain").ConfigureAwait(True)
                 state.SendTab()
                 Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TestAfterDot()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAfterDot() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
 {|S2:
@@ -63,15 +64,16 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(".", view, buffer)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
-                state.AssertSelectedCompletionItem(displayText:="Console")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem(displayText:="Console").ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TestInObjectCreationExpression()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInObjectCreationExpression() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
 {|S2:
@@ -101,13 +103,14 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
-                state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True).ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(771761)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TestRegionCompletionCommitFormatting()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRegionCompletionCommitFormatting() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
 {|S2:
@@ -137,9 +140,10 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer("#reg", view, buffer)
-                state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True).ConfigureAwait(True)
 
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

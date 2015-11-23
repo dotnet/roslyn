@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -216,9 +216,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var documentSupportsRefactoringService = _workspace.Services.GetService<IDocumentSupportsSuggestionService>();
+            var documentSupportsFeatureService = _workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
-            if (!_openTextBuffers.ContainsKey(buffer) && documents.All(d => documentSupportsRefactoringService.SupportsRename(d)))
+            if (!_openTextBuffers.ContainsKey(buffer) && documents.All(d => documentSupportsFeatureService.SupportsRename(d)))
             {
                 _openTextBuffers[buffer] = new OpenTextBufferManager(this, buffer, _workspace, documents, _textBufferFactoryService);
                 return true;
@@ -345,12 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             SetReferenceLocations(locations);
-
-            var sessionSpansUpdated = ReferenceLocationsChanged;
-            if (sessionSpansUpdated != null)
-            {
-                sessionSpansUpdated(this, locations);
-            }
+            ReferenceLocationsChanged?.Invoke(this, locations);
         }
 
         private void SetReferenceLocations(IEnumerable<InlineRenameLocation> locations)
@@ -485,12 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void RaiseReplacementsComputed(IInlineRenameReplacementInfo resolution)
         {
             AssertIsForeground();
-
-            var conflictsComputed = ReplacementsComputed;
-            if (conflictsComputed != null)
-            {
-                conflictsComputed(this, resolution);
-            }
+            ReplacementsComputed?.Invoke(this, resolution);
         }
 
         private void LogRenameSession(RenameLogMessage.UserActionOutcome outcome, bool previewChanges)

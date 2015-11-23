@@ -94,9 +94,9 @@ class EntryPoint
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (22,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<TLong, TInt>.Method(TLong, int)' and 'Base<TLong, TInt>.Method(long, TInt)'
+                // (22,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<TLong, TInt>.Method(long, TInt)' and 'Base<TLong, TInt>.Method(TLong, int)'
                 //         new Derived2().Method(1L, 2); //CS0121
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<TLong, TInt>.Method(TLong, int)", "Base<TLong, TInt>.Method(long, TInt)"));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<TLong, TInt>.Method(long, TInt)", "Base<TLong, TInt>.Method(TLong, int)"));
         }
 
         [Fact]

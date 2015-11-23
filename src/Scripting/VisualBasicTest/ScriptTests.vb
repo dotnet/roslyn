@@ -1,12 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Scripting
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
 #Disable Warning RS0003 ' Do not directly await a Task
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
     Public Class ScriptTests
         Inherits TestBase
@@ -64,9 +65,10 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
         Public Sub TestDefaultNamespaces()
             ' If this ever changes, it is important to ensure that the 
             ' IDE is also updated with the same default namespaces.
-            Assert.Empty(ScriptOptions.Default.Namespaces)
+            Assert.Empty(ScriptOptions.Default.Imports)
         End Sub
 
         ' TODO: port C# tests
     End Class
+
 End Namespace
