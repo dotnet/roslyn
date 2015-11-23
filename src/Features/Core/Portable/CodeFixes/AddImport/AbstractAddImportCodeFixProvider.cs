@@ -19,8 +19,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     using System.Collections.Immutable;
     using SymbolReference = ValueTuple<INamespaceOrTypeSymbol, MetadataReference>;
 
-    internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
+    internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
     {
+        private const int MaxResults = 8;
+
         protected abstract bool IgnoreCase { get; }
 
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
@@ -70,26 +72,122 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     if (this.CanAddImport(node, cancellationToken))
                     {
                         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                        var allSymbolReferences = new List<SymbolReference>();
+
                         var getter = new ProposedImportGetter(this, document, semanticModel, diagnostic, node, cancellationToken);
-                        var proposedImports = await getter.DoAsync().ConfigureAwait(false);
+                        AddRange(allSymbolReferences, await getter.DoAsync().ConfigureAwait(false));
 
-                        if (proposedImports?.Count > 0)
+#if false
+                        // If we didn't find enough hits searching just in the project, then check 
+                        // in any unreferenced projects.
+                        if (allSymbolReferences.Count < MaxResults)
                         {
-                            cancellationToken.ThrowIfCancellationRequested();
+                            var viableProjectReferences = await GetViableProjectReferences(project, cancellationToken).ConfigureAwait(false);
+                            AddRange(allSymbolReferences, await getter.DoAsync().ConfigureAwait(false));
+                        }
 
-                            foreach (var reference in proposedImports)
+                        // If we didn't find enough hits searching in the project and all other 
+                        // projects, then check if any known metadata reference might help
+                        if (allSymbolReferences.Count < MaxResults)
+                        {
+                            var viableMetadataReference = GetViablePortableExecutionReferences(project);
+                            AddRange(allSymbolReferences, await getter.DoAsync().ConfigureAwait(false));
+                        }
+#endif
+
+                        if (allSymbolReferences.Count == 0)
+                        {
+                            return;
+                        }
+
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        foreach (var reference in allSymbolReferences)
+                        {
+                            var import = reference.Item1;
+                            var description = this.GetDescription(import, semanticModel, node);
+                            if (description != null)
                             {
-                                var import = reference.Item1;
-                                var description = this.GetDescription(import, semanticModel, node);
-                                if (description != null)
-                                {
-                                    var action = new MyCodeAction(description, c =>
-                                        this.AddImportAsync(node, import, document, placeSystemNamespaceFirst, c));
-                                    context.RegisterCodeFix(action, diagnostic);
-                                }
+                                var action = new MyCodeAction(description, c =>
+                                    this.AddImportAsync(node, import, document, placeSystemNamespaceFirst, c));
+                                context.RegisterCodeFix(action, diagnostic);
                             }
                         }
                     }
+                }
+            }
+        }
+
+        private ImmutableArray<PortableExecutableReference> GetViablePortableExecutionReferences(Project project)
+        {
+            var references = project.Solution.Projects.SelectMany(p => p.MetadataReferences)
+                                             .OfType<PortableExecutableReference>()
+                                             .Distinct(this)
+                                             .ToSet(this);
+
+            references.RemoveAll(project.MetadataReferences.OfType<PortableExecutableReference>());
+
+            return references.ToImmutableArray();
+        }
+
+        bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
+        {
+            return StringComparer.OrdinalIgnoreCase.Equals(x.FilePath, y.FilePath);
+        }
+
+        int IEqualityComparer<PortableExecutableReference>.GetHashCode(PortableExecutableReference obj)
+        {
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FilePath);
+        }
+
+        private async Task<ImmutableArray<MetadataReference>> GetViableProjectReferences(Project project, CancellationToken cancellationToken)
+        {
+            var viableProjects = GetViableUnreferencedProjects(project);
+
+            var viableProjectReferences = new List<MetadataReference>();
+            foreach (var viableUnreferencedProject in viableProjects)
+            {
+                var compilation = await viableUnreferencedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                viableProjectReferences.Add(compilation.ToMetadataReference());
+            }
+
+            return viableProjectReferences.ToImmutableArrayOrEmpty();
+        }
+
+        private static HashSet<Project> GetViableUnreferencedProjects(Project project)
+        {
+            var solution = project.Solution;
+            var viableProjects = new HashSet<Project>(solution.Projects);
+
+            // Clearly we can't reference ourselves.
+            viableProjects.Remove(project);
+
+            // We can't reference any project that transitively depends on on us.  Doing so would
+            // cause a circular reference between projects.
+            var dependencyGraph = solution.GetProjectDependencyGraph();
+            var projectsThatTransitivelyDependOnThisProject = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id);
+
+            viableProjects.RemoveAll(projectsThatTransitivelyDependOnThisProject.Select(id =>
+                solution.GetProject(id)));
+
+            // We also aren't interested in any projects we're already directly referencing.
+            viableProjects.RemoveAll(project.ProjectReferences.Select(r => solution.GetProject(r.ProjectId)));
+            return viableProjects;
+        }
+
+        private void AddRange(List<SymbolReference> allSymbolReferences, List<SymbolReference> proposedReferences)
+        {
+            if (proposedReferences != null)
+            {
+                foreach (var reference in proposedReferences)
+                {
+                    if (allSymbolReferences.Count >= MaxResults)
+                    {
+                        return;
+                    }
+
+                    allSymbolReferences.Add(reference);
                 }
             }
         }
@@ -141,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private class ProposedImportGetter
+        private class ProposedImportGetter 
         {
             private readonly CancellationToken cancellationToken;
             private readonly Diagnostic diagnostic;
@@ -156,7 +254,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private ISet<INamespaceSymbol> namespacesInScope;
             private ISyntaxFactsService syntaxFacts;
             private readonly AbstractAddImportCodeFixProvider owner;
-            private ImmutableArray<MetadataReference> viableMetadataReferences;
 
             public ProposedImportGetter(
                 AbstractAddImportCodeFixProvider owner,
@@ -169,17 +266,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.node = node;
                 this.cancellationToken = cancellationToken;
 
+
+                this.containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+                this.containingTypeOrAssembly = containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
+                this.namespacesInScope = owner.GetNamespacesInScope(semanticModel, node, cancellationToken);
+                this.syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+
                 this.project = document.Project;
             }
 
             internal async Task<List<SymbolReference>> DoAsync()
             {
-                this.containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
-                this.containingTypeOrAssembly = containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
-                this.namespacesInScope = owner.GetNamespacesInScope(semanticModel, node, cancellationToken);
-                this.syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                this.viableMetadataReferences = await GetViableMetadataReferencesAsync().ConfigureAwait(false);
-
                 var matchingTypesNamespaces = await this.GetNamespacesForMatchingTypesAsync().ConfigureAwait(false);
                 var matchingTypes = await this.GetMatchingTypesAsync().ConfigureAwait(false);
                 var matchingNamespaces = await this.GetNamespacesForMatchingNamespacesAsync().ConfigureAwait(false);
@@ -215,7 +312,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                                 .Where(NotNull)
                                 .Where(NotGlobalNamespace)
                                 .OrderBy(CompareReferences)
-                                .Take(8)
                                 .ToList();
 
                 return proposedImports;
@@ -395,11 +491,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 return GetProposedNamespaces(
                     extensionMethodSymbols.Select(s => s.ContainingNamespace));
-            }
-
-            private Task<ImmutableArray<MetadataReference>> GetViableMetadataReferencesAsync()
-            {
-                return SpecializedTasks.EmptyImmutableArray<MetadataReference>();
             }
 
             private int CompareReferences(SymbolReference r1, SymbolReference r2)
