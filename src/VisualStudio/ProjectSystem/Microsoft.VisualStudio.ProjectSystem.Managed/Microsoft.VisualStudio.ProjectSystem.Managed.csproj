@@ -38,7 +38,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.Build, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />     
+    <Reference Include="Microsoft.Build, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
@@ -47,7 +47,7 @@
     <Compile Include="ProjectSystem\Designers\Imaging\ProjectImageProviderAggregator.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectRootImageProjectTreeModifier.cs" />
     <Compile Include="ProjectSystem\Designers\Input\GetCommandStatusResult.cs" />
-    <Compile Include="ProjectSystem\Designers\Input\SingeNodeProjectCommandBase.cs" />
+    <Compile Include="ProjectSystem\Designers\Input\SingleNodeProjectCommandBase.cs" />
     <Compile Include="ProjectSystem\Designers\Input\ProjectCommandBase.cs" />
     <Compile Include="ProjectSystem\Designers\Input\ProjectCommandAttribute.cs" />
     <Compile Include="ProjectSystem\Designers\ProjectTreeModifierBase.cs" />
