@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Testing;
 using Xunit;
 
@@ -21,7 +22,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
         }
 
         [Fact]
-        public async void GetCommandStatusAsync_UnrecognizedCommandIdAsCommandId_ReturnsUnhandled()
+        public async Task GetCommandStatusAsync_UnrecognizedCommandIdAsCommandId_ReturnsUnhandled()
         {
             var command = CreateInstance();
 
@@ -40,7 +41,7 @@ Root (capabilities: {ProjectRoot})
         }
 
         [Fact]
-        public async void TryHandleCommandAsync_UnrecognizedCommandIdAsCommandId_ReturnsFalse()
+        public async Task TryHandleCommandAsync_UnrecognizedCommandIdAsCommandId_ReturnsFalse()
         {
             var command = CreateInstance();
 
@@ -59,7 +60,7 @@ Root (capabilities: {ProjectRoot})
         }
 
         [Fact]
-        public async void GetCommandStatusAsync_MoreThanOneNodeAsNodes_ReturnsUnhandled()
+        public async Task GetCommandStatusAsync_MoreThanOneNodeAsNodes_ReturnsUnhandled()
         {
             var command = CreateInstance();
 
@@ -79,7 +80,7 @@ Root (capabilities: {ProjectRoot})
 
 
         [Fact]
-        public async void TryHandleCommandAsync_MoreThanOneNodeAsNodes_ReturnsFalse()
+        public async Task TryHandleCommandAsync_MoreThanOneNodeAsNodes_ReturnsFalse()
         {
             var command = CreateInstance();
 
@@ -98,7 +99,7 @@ Root (capabilities: {ProjectRoot})
         }
 
         [Fact]
-        public async void GetCommandStatusAsync_NonAppDesignerFolderAsNodes_ReturnsUnhandled()
+        public async Task GetCommandStatusAsync_NonAppDesignerFolderAsNodes_ReturnsUnhandled()
         {
             var command = CreateInstance();
 
@@ -117,7 +118,7 @@ Root (capabilities: {ProjectRoot})
         }
 
         [Fact]
-        public async void TryHandleCommandAsync_NonAppDesignerFolderAsNodes_ReturnsFalse()
+        public async Task TryHandleCommandAsync_NonAppDesignerFolderAsNodes_ReturnsFalse()
         {
             var command = CreateInstance();
 
@@ -136,7 +137,7 @@ Root (capabilities: {ProjectRoot})
         }
 
         [Fact]
-        public async void GetCommandStatusAsync_AppDesignerFolderAsNodes_ReturnsHandled()
+        public async Task GetCommandStatusAsync_AppDesignerFolderAsNodes_ReturnsHandled()
         {
             var command = CreateInstance();
 
@@ -157,7 +158,7 @@ Root (capabilities: {ProjectRoot})
         }
 
         [Fact]
-        public async void TryHandleCommandAsync_AppDesignerFolderAsNodes_ReturnsTrue()
+        public async Task TryHandleCommandAsync_AppDesignerFolderAsNodes_ReturnsTrue()
         {
             var command = CreateInstance();
 
@@ -176,7 +177,7 @@ Root (capabilities: {ProjectRoot})
         }
 
         [Fact]
-        public async void TryHandleCommandAsync_AppDesignerFolderAsNodes_CallsShowProjectDesignerAsync()
+        public async Task TryHandleCommandAsync_AppDesignerFolderAsNodes_CallsShowProjectDesignerAsync()
         {
             int callCount = 0;
             var designerService = IProjectDesignerServiceFactory.ImplementShowProjectDesignerAsync(() => { callCount++; });
