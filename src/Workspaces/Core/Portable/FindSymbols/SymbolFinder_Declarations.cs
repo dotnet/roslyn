@@ -18,13 +18,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindDeclarationsAsync(project, name, ignoreCase, SymbolFilter.All, cancellationToken);
+            return FindDeclarationsAsync(project, name, ignoreCase, includeDirectReferences: true, cancellationToken: cancellationToken);
+        }
+
+        internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            Project project, string name, bool ignoreCase, bool includeDirectReferences, CancellationToken cancellationToken)
+        {
+            return FindDeclarationsAsync(project, name, ignoreCase, SymbolFilter.All, includeDirectReferences, cancellationToken);
         }
 
         /// <summary>
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FindDeclarationsAsync(project, name, ignoreCase, filter, includeDirectReferences: true, cancellationToken: cancellationToken);
+        }
+
+        internal static Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            Project project, string name, bool ignoreCase, SymbolFilter filter, bool includeDirectReferences, CancellationToken cancellationToken)
         {
             if (project == null)
             {
@@ -43,12 +55,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_FindDeclarationsAsync, cancellationToken))
             {
-                return FindDeclarationsAsyncImpl(project, name, ignoreCase, filter, cancellationToken);
+                return FindDeclarationsAsyncImpl(project, name, ignoreCase, filter, includeDirectReferences, cancellationToken);
             }
         }
 
         private static async Task<IEnumerable<ISymbol>> FindDeclarationsAsyncImpl(
-            Project project, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
+            Project project, string name, bool ignoreCase, SymbolFilter criteria, bool includeDirectReferences, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -58,16 +70,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             await AddDeclarationsAsync(project, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
 
             // get declarations from directly referenced projects and metadata
-            foreach (var assembly in compilation.GetReferencedAssemblySymbols())
+            if (includeDirectReferences)
             {
-                var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
-                if (assemblyProject != null)
+                foreach (var assembly in compilation.GetReferencedAssemblySymbols())
                 {
-                    await AddDeclarationsAsync(assemblyProject, compilation, assembly, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(compilation.GetMetadataReference(assembly)), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
+                    var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
+                    if (assemblyProject != null)
+                    {
+                        await AddDeclarationsAsync(assemblyProject, compilation, assembly, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await AddDeclarationsAsync(project.Solution, assembly, GetMetadataReferenceFilePath(compilation.GetMetadataReference(assembly)), name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
 
