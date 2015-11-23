@@ -30,13 +30,11 @@ namespace RunTests
             }
         }
 
-        private readonly string _xunitConsolePath;
-        private readonly bool _useHtml;
+        private readonly Options _options;
 
-        internal TestRunner(string xunitConsolePath, bool useHtml)
+        internal TestRunner(Options options)
         {
-            _xunitConsolePath = xunitConsolePath;
-            _useHtml = useHtml;
+            this._options = options;
         }
 
         internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
@@ -120,12 +118,12 @@ namespace RunTests
             try
             { 
                 var assemblyName = Path.GetFileName(assemblyPath);
-                var extension = _useHtml ? "html" : "xml";
-                var resultsFile = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{extension}");
-                var resultsPath = Path.GetDirectoryName(resultsFile);
+                var resultsFile = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{(_options.UseHtml ? "html" : "xml")}");
+                var resultsDir = Path.GetDirectoryName(resultsFile);
+                var outputLogPath = Path.Combine(resultsDir, $"{assemblyName}.out.log");
 
                 // NOTE: xUnit doesn't always create the log directory
-                Directory.CreateDirectory(resultsPath);
+                Directory.CreateDirectory(resultsDir);
 
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.
@@ -133,13 +131,31 @@ namespace RunTests
 
                 var builder = new StringBuilder();
                 builder.AppendFormat(@"""{0}""", assemblyPath);
-                builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsFile);
-                builder.Append(" -noshadow");
+                builder.AppendFormat(@" -{0} ""{1}""", _options.UseHtml ? "html" : "xml", resultsFile);
+                builder.Append(" -noshadow -verbose");
+
+                if (!string.IsNullOrWhiteSpace(_options.Trait))
+                {
+                    var traits = _options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var trait in traits)
+                    {
+                        builder.AppendFormat(" -trait {0}", trait);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(_options.NoTrait))
+                {
+                    var traits = _options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var trait in traits)
+                    {
+                        builder.AppendFormat(" -notrait {0}", trait);
+                    }
+                }
 
                 var errorOutput = new StringBuilder();
                 var start = DateTime.UtcNow;
 
-                var xunitPath = _xunitConsolePath;
+                var xunitPath = _options.XunitPath;
                 var processOutput = await ProcessRunner.RunProcessAsync(
                     xunitPath,
                     builder.ToString(),
@@ -151,31 +167,30 @@ namespace RunTests
 
                 if (processOutput.ExitCode != 0)
                 {
+                    File.WriteAllLines(outputLogPath, processOutput.OutputLines);
+
                     // On occasion we get a non-0 output but no actual data in the result file.  The could happen
                     // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
                     // To avoid losing information, write the process output to the console.  In addition, delete the results
                     // file to avoid issues with any tool attempting to interpret the (potentially malformed) text.
-                    var all = string.Empty;
+                    var resultData = string.Empty;
                     try
                     {
-                        all = File.ReadAllText(resultsFile).Trim();
+                        resultData = File.ReadAllText(resultsFile).Trim();
                     }
                     catch
                     {
                         // Happens if xunit didn't produce a log file
                     }
 
-                    bool noResultsData = (all.Length == 0);
-                    if (noResultsData)
+                    if (resultData.Length == 0)
                     {
-                        var output = processOutput.OutputLines.Concat(processOutput.ErrorLines);
-                        Console.Write(string.Join(Environment.NewLine, output));
-
                         // Delete the output file.
                         File.Delete(resultsFile);
                     }
 
-                    errorOutput.AppendLine($"Command: {_xunitConsolePath} {builder}");
+                    errorOutput.AppendLine($"Command: {_options.XunitPath} {builder}");
+                    errorOutput.AppendLine($"xUnit output: {outputLogPath}");
 
                     if (processOutput.ErrorLines.Any())
                     {
@@ -191,7 +206,7 @@ namespace RunTests
 
                     // If the results are html, use Process.Start to open in the browser.
 
-                    if (_useHtml && !noResultsData)
+                    if (_options.UseHtml && resultData.Length > 0)
                     {
                         Process.Start(resultsFile);
                     }
@@ -201,7 +216,7 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {assemblyPath} with {_xunitConsolePath}. {ex}");
+                throw new Exception($"Unable to run {assemblyPath} with {_options.XunitPath}. {ex}");
             }
         }
 

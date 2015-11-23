@@ -2,11 +2,12 @@
 
 Imports System.Reflection
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
+
     Friend NotInheritable Class VisualBasicScriptCompiler
         Inherits ScriptCompiler
 
@@ -94,4 +95,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Return submission
         End Function
     End Class
+
 End Namespace

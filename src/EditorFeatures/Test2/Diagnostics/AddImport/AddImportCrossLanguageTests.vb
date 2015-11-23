@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Sub Test_CSharpToVisualBasic1()
+        Public Async Function Test_CSharpToVisualBasic1() As Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>
@@ -60,11 +61,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                             }
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Sub Test_VisualBasicToCSharp1()
+        Public Async Function Test_VisualBasicToCSharp1() As Task
             Dim input =
                 <Workspace>
                     <Project Language='Visual Basic' AssemblyName='VBAssembly1' CommonReferences='true'>
@@ -100,12 +101,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
                             End Class
                 </text>.Value.Trim()
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WorkItem(1083419)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Sub TestExtensionMethods1()
+        Public Async Function TestExtensionMethods1() As Task
             Dim input =
                 <Workspace>
                     <Project Language='Visual Basic' AssemblyName='VBAssembly1' CommonReferences='true'>
@@ -158,12 +159,12 @@ namespace CSAssembly1
 }
                 </text>.Value.Trim()
 
-            Test(input, expected, codeActionIndex:=1)
-        End Sub
+            Await TestAsync(input, expected, codeActionIndex:=1)
+        End Function
 
         <WorkItem(1083419)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Sub TestExtensionMethods2()
+        Public Async Function TestExtensionMethods2() As Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
@@ -212,7 +213,7 @@ Namespace VBAssembly1
 End Namespace
                 </text>.Value.Trim()
 
-            Test(input, expected, codeActionIndex:=0)
-        End Sub
+            Await TestAsync(input, expected, codeActionIndex:=0)
+        End Function
     End Class
 End Namespace

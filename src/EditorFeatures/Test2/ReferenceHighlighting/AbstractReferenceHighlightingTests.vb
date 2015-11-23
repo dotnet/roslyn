@@ -21,8 +21,8 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
     Public MustInherit Class AbstractReferenceHighlightingTests
-        Protected Sub VerifyHighlights(test As XElement, Optional optionIsEnabled As Boolean = True)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+        Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(test)
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
@@ -57,6 +57,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
                 AssertEx.Equal(expectedTags, producedTags)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

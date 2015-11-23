@@ -360,7 +360,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, deterministic, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions);
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions,
+                publicSign: false);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver

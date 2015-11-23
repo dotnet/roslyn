@@ -5,11 +5,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
     Public Class InteractiveSessionTests
         Inherits TestBase
 
         ' TODO: port tests from C#
     End Class
+
 End Namespace

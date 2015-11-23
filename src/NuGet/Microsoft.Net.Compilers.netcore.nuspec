@@ -25,11 +25,15 @@
                 <dependency id="System.Diagnostics.Debug" version="4.0.11-beta-23428" />
                 <dependency id="System.Diagnostics.FileVersionInfo" version="4.0.0-beta-23428" />
                 <dependency id="System.Diagnostics.Process" version="4.1.0-beta-23428" />
+                <dependency id="System.Diagnostics.StackTrace" version="4.0.1-beta-23428" />
                 <dependency id="System.Diagnostics.Tools" version="4.0.1-beta-23428" />
                 <dependency id="System.Dynamic.Runtime" version="4.0.11-beta-23428" />
                 <dependency id="System.IO.FileSystem" version="4.0.1-beta-23428" />
+                <dependency id="System.IO.FileSystem.Watcher" version="4.0.0-beta-23428" />
                 <dependency id="System.IO.Pipes" version="4.0.0-beta-23428" />
                 <dependency id="System.Linq" version="4.0.1-beta-23428" />
+                <dependency id="System.Net.NameResolution" version="4.0.0-beta-23428" />
+                <dependency id="System.Net.Sockets" version="4.1.0-beta-23428" />
                 <dependency id="System.Private.Uri" version="4.0.1-beta-23428" />
                 <dependency id="System.Reflection" version="4.1.0-beta-23428" />
                 <dependency id="System.Reflection.Primitives" version="4.0.1-beta-23428" />
@@ -42,6 +46,8 @@
                 <dependency id="System.Runtime.Numerics" version="4.0.1-beta-23428" />
                 <dependency id="System.Runtime.Serialization.Json" version="4.0.1-beta-23428" />
                 <dependency id="System.Security.Cryptography.Algorithms" version="4.0.0-beta-23428" />
+                <dependency id="System.Security.Cryptography.Encoding" version="4.0.0-beta-23428" />
+                <dependency id="System.Security.Cryptography.X509Certificates" version="4.0.0-beta-23428" />
                 <dependency id="System.Text.Encoding" version="4.0.11-beta-23428" />
                 <dependency id="System.Text.Encoding.CodePages" version="4.0.1-beta-23428" />
                 <dependency id="System.Text.Encoding.Extensions" version="4.0.11-beta-23428" />
@@ -51,11 +57,12 @@
                 <dependency id="System.Threading.Thread" version="4.0.0-beta-23428" />
                 <dependency id="System.Xml.XDocument" version="4.0.11-beta-23428" />
                 <dependency id="System.Xml.XmlDocument" version="4.0.1-beta-23428" />
+                <dependency id="System.Xml.XPath.XDocument" version="4.0.1-beta-23428" />
             </group>
         </dependencies>
     </metadata>
     <files>
-        <file src="csc.exe" target="runtimes/any/native" />
-        <file src="vbc.exe" target="runtimes/any/native" />
+        <file src="csccore/csc.exe" target="runtimes/any/native" />
+        <file src="vbccore/vbc.exe" target="runtimes/any/native" />
     </files>
 </package>

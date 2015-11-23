@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 
             foreach (var typeSymbol in accessibleTypeSymbols)
             {
-                if ((typeSymbol != null) && (typeSymbol.ContainingType != null) && typeSymbol.ContainingType.IsStatic)
+                if (typeSymbol?.ContainingType != null)
                 {
                     yield return typeSymbol.ContainingType;
                 }

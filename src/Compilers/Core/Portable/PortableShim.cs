@@ -76,6 +76,7 @@ namespace Roslyn.Utilities
         {
             internal const string System_Diagnostics_FileVersionInfo = "System.Diagnostics.FileVersionInfo, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Diagnostics_StackTrace = "System.Diagnostics.StackTrace, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            internal const string System_Diagnostics_Process = "System.Diagnostics.Process, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_IO_FileSystem = "System.IO.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_IO_FileSystem_Primitives = "System.IO.FileSystem.Primitives, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             internal const string System_Reflection = "System.Reflection, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
@@ -390,6 +391,30 @@ namespace Roslyn.Utilities
             internal static readonly PropertyInfo CurrentUICulture = Type
                 .GetTypeInfo()
                 .GetDeclaredProperty(nameof(CurrentUICulture));
+
+            internal static readonly PropertyInfo ManagedThreadId = Type
+                .GetTypeInfo()
+                .GetDeclaredProperty(nameof(ManagedThreadId));
+        }
+
+        internal static class Process
+        {
+            internal const string TypeName = "System.Diagnostics.Process";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Diagnostics_Process}",
+                desktopName: TypeName);
+
+            internal static readonly PropertyInfo Id = Type
+                .GetTypeInfo()
+                .GetDeclaredProperty(nameof(Id));
+
+            internal static readonly Func<object> GetCurrentProcess = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(GetCurrentProcess), paramTypes: new Type[] { })
+                .CreateDelegate<Func<object>>();
+
+
         }
 
         internal static class RuntimeHelpers
@@ -456,7 +481,7 @@ namespace Roslyn.Utilities
                 internal const string TypeName = "System.Xml.XPath.Extensions";
 
                 internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
-                    contractName: $"{TypeName}, {CoreNames.System_Runtime}",
+                    contractName: $"{TypeName}, {CoreNames.System_Xml_XPath_XDocument}",
                     desktopName: $"{TypeName}, {DesktopNames.System_Xml_Linq}");
 
                 internal static readonly Func<XNode, string, IEnumerable<XElement>> XPathSelectElements = Type

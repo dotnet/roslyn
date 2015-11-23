@@ -50,6 +50,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             {
                 var mock = new Mock<IInteractiveWindowCommand>();
                 mock.Setup(m => m.Names).Returns(new[] { name });
+                mock.Setup(m => m.Description).Returns(string.Format("Description of {0} command.", name));
                 yield return mock.Object;
             }
         }
@@ -179,6 +180,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(2, commands.Where(n => n.Names.Last() == "clear").Count());
             Assert.NotNull(commands.Where(n => n.Names.First() == "help").SingleOrDefault());
             Assert.NotNull(commands.Where(n => n.Names.First() == "reset").SingleOrDefault());
+        }
+
+        [WorkItem(6625, "https://github.com/dotnet/roslyn/issues/6625")]
+        [WpfFact]
+        public void InteractiveWindow_DisplayCommandsHelp()
+        {            
+            var commandList = MockCommands("foo").ToArray();
+            var commands = new Commands.Commands(null, "&", commandList);
+
+            Assert.Equal(new string[] { "&foo  Description of foo command."}, commands.Help().ToArray());
         }
 
         [WorkItem(3970, "https://github.com/dotnet/roslyn/issues/3970")]

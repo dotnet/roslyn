@@ -13,8 +13,10 @@ usage()
 XUNIT_VERSION=2.1.0
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
+CLEAN_RUN=true
 USE_CACHE=true
 MONO_ARGS='--debug=mdb-optimizations --attach=disable'
+MSBUILD_ADDITIONALARGS='/v:m /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal'
 
 export MONO_THREADS_PER_CPU=50
 
@@ -51,6 +53,10 @@ do
         USE_CACHE=false
         shift 1
         ;;
+        --noclean)
+        CLEAN_RUN=false
+        shift 1
+        ;;
         *)
         usage 
         exit 1
@@ -58,14 +64,26 @@ do
     esac
 done
 
+set_msbuild_info()
+{
+    if [ "$OS_NAME" == "Linux" ]; then
+        MSBUILD_ADDITIONALARGS="$MSBUILD_ADDITIONALARGS /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04"
+    elif [ "$OS_NAME" == "Darwin" ]; then
+        MSBUILD_ADDITIONALARGS="$MSBUILD_ADDITIONALARGS /p:BaseNuGetRuntimeIdentifier=osx.10.10"
+    else
+        echo Unrecognized OS $OS_NAME
+        exit 1
+    fi
+}
+
 restore_nuget()
 {
-    local package_name="nuget.29.zip"
+    local package_name="nuget.35.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
-            echo "Already installed"
+            echo "Nuget already installed"
             return
         fi
     fi
@@ -90,7 +108,7 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /p:SignAssembly=false /p:DebugSymbols=false "$@"
+        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /p:SignAssembly=false /p:DebugSymbols=false "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break
@@ -128,40 +146,53 @@ run_nuget()
 # Run the compilation.  Can pass additional build arguments as parameters
 compile_toolset()
 {
+    mkdir -p 'Binaries'
     echo Compiling the toolset compilers
     echo -e "Compiling the C# compiler"
-    run_msbuild src/Compilers/CSharp/CscCore/CscCore.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild src/Compilers/CSharp/CscCore/CscCore.csproj /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Bootstrap_CscCore.log
     echo -e "Compiling the VB compiler"
-    run_msbuild src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Bootstrap_VbcCore.log
 }
 
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
 save_toolset()
 {
-    mkdir Binaries/Bootstrap
-    cp Binaries/$BUILD_CONFIGURATION/core-clr/* Binaries/Bootstrap
+    local vbcTarget=Binaries/Bootstrap/vbccore
+    local cscTarget=Binaries/Bootstrap/csccore
+
+    mkdir -p $vbcTarget
+    mkdir -p $cscTarget
+    cp Binaries/$BUILD_CONFIGURATION/csccore/* $cscTarget
+    cp Binaries/$BUILD_CONFIGURATION/vbccore/* $vbcTarget
 }
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces
 # a rebuild instead of picking up older binaries.
-clean_roslyn()
+clean_toolset()
 {
     echo Cleaning the enlistment
-    mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
+    mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/BootstrapClean.log
     rm -rf Binaries/$BUILD_CONFIGURATION
+}
+
+set_toolset()
+{
+    if [ "$CLEAN_RUN" == "false" ]; then
+        return
+    fi
+    
+    compile_toolset
+    save_toolset
+    clean_toolset
 }
 
 build_roslyn()
 {    
-    local bootstrapArg=""
-
-    if [ "$OS_NAME" == "Linux" ]; then
-        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
-    fi
+    local bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap/csccore /p:CscToolExe=csc \
+/p:VbcToolPath=$(pwd)/Binaries/Bootstrap/vbccore /p:VbcToolExe=vbc"
 
     echo Building CrossPlatform.sln
-    run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
+    run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Build.log
 }
 
 # Install the specified Mono toolset from our Azure blob storage.
@@ -172,7 +203,7 @@ install_mono_toolset()
 
     if [ -d $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
-            echo "Already installed"
+            echo "Mono already installed"
             return
         fi
     fi
@@ -207,7 +238,7 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.4
+        MONO_TOOLSET_NAME=mono.mac.5
     elif [ "$OS_NAME" = "Linux" ]; then
         MONO_TOOLSET_NAME=mono.linux.4
     else
@@ -217,6 +248,12 @@ set_mono_path()
 
     install_mono_toolset $MONO_TOOLSET_NAME
     PATH=/tmp/$MONO_TOOLSET_NAME/bin:$PATH
+}
+
+check_mono()
+{
+    local mono_path=$(which mono)
+    echo "Mono path $mono_path"
 }
 
 test_roslyn()
@@ -249,15 +286,16 @@ test_roslyn()
     fi
 }
 
-echo Clean out the enlistment
-git clean -dxf . 
+if [ "$CLEAN_RUN" == "true" ]; then
+    echo Clean out the enlistment
+    git clean -dxf . 
+fi
 
+set_msbuild_info
 restore_nuget
 set_mono_path
-which mono
-compile_toolset
-save_toolset
-clean_roslyn
+check_mono
+set_toolset
 build_roslyn
 test_roslyn
 

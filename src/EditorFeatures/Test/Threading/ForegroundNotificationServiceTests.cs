@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             _service.RegisterNotification(() => { /* do nothing */ }, asyncToken, CancellationToken.None);
             _service.RegisterNotification(() => { ran = true; _done = true; }, asyncToken, CancellationToken.None);
 
-            await PumpWait().ConfigureAwait(true);
+            await PumpWait();
 
             Assert.True(_done);
             Assert.True(ran);
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
                 _service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
 
                 waitEvent.Set();
-                await PumpWait().ConfigureAwait(true);
+                await PumpWait();
 
                 Assert.False(ran);
                 Assert.True(Empty(_service));
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
                 _done = true;
             }, 50, asyncToken, CancellationToken.None);
 
-            await PumpWait().ConfigureAwait(true);
+            await PumpWait();
 
             Assert.True(set.Subtract(now).TotalMilliseconds > 50);
             Assert.True(Empty(_service));
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         {
             while (!_done)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(1)).ConfigureAwait(true);
+                await Task.Delay(TimeSpan.FromMilliseconds(1));
             }
         }
 

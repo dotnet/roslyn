@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -59,14 +60,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             _newSolution = solution;
         }
 
-        internal void RemoveAllRenameAnnotations(IEnumerable<DocumentId> documentWithRenameAnnotations, AnnotationTable<RenameAnnotation> annotationSet, CancellationToken cancellationToken)
+        internal async Task RemoveAllRenameAnnotationsAsync(IEnumerable<DocumentId> documentWithRenameAnnotations, AnnotationTable<RenameAnnotation> annotationSet, CancellationToken cancellationToken)
         {
             foreach (var documentId in documentWithRenameAnnotations)
             {
                 if (_renamedSpansTracker.IsDocumentChanged(documentId))
                 {
                     var document = _newSolution.GetDocument(documentId);
-                    var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     // For the computeReplacementToken and computeReplacementNode functions, use 
                     // the "updated" node to maintain any annotation removals from descendants.

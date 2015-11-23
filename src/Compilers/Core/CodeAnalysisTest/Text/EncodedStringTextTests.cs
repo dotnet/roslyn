@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             byte[] bytes = writeEncoding.GetBytesWithPreamble(text);
 
+            return CreateMemoryStreamBasedEncodedText(bytes, readEncodingOpt, algorithm);
+        }
+
+        private static SourceText CreateMemoryStreamBasedEncodedText(byte[] bytes, Encoding readEncodingOpt, SourceHashAlgorithm algorithm = SourceHashAlgorithm.Sha1)
+        {
             // For testing purposes, create a bigger buffer so that we verify 
             // that the implementation only uses the part that's covered by the stream and not the entire array.
             byte[] buffer = new byte[bytes.Length + 10];
@@ -25,6 +30,42 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 return EncodedStringText.Create(stream, readEncodingOpt, algorithm);
             }
+        }
+
+        private static SourceText CreateMemoryStreamBasedEncodedText(byte[] bytes, 
+            Func<Encoding> getEncoding,
+            Encoding readEncodingOpt = null,
+            SourceHashAlgorithm algorithm = SourceHashAlgorithm.Sha1)
+        {
+            // For testing purposes, create a bigger buffer so that we verify 
+            // that the implementation only uses the part that's covered by the stream and not the entire array.
+            byte[] buffer = new byte[bytes.Length + 10];
+            bytes.CopyTo(buffer, 0);
+
+            using (var stream = new MemoryStream(buffer, 0, bytes.Length, writable: true, publiclyVisible: true))
+            {
+                return EncodedStringText.Create(stream, getEncoding, readEncodingOpt, algorithm);
+            }
+        }
+
+        [Fact]
+        public void ShiftJisGetEncoding()
+        {
+            var sjis = Encoding.GetEncoding(932);
+            var data = CreateMemoryStreamBasedEncodedText(TestResources.General.ShiftJisSource, () => sjis);
+
+            Assert.Equal(932, data.Encoding?.WindowsCodePage);
+            Assert.Equal(sjis.GetString(TestResources.General.ShiftJisSource), data.ToString());
+        }
+
+        [Fact]
+        public void ShiftJisFile()
+        {
+            var sjis = Encoding.GetEncoding(932);
+            var data = CreateMemoryStreamBasedEncodedText(TestResources.General.ShiftJisSource, sjis);
+
+            Assert.Equal(932, data.Encoding?.WindowsCodePage);
+            Assert.Equal(sjis.GetString(TestResources.General.ShiftJisSource), data.ToString());
         }
 
         [Fact]
@@ -92,7 +133,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("f1945cd6 c19e56b3 c1c78943 ef5ec181 16907a4c a1efc40a 57d48ab1 db7adfc5", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void Decode_NonUtf8()
         {
             // Unicode text with extended characters that map to interesting code points in CodePage 1252.
@@ -281,7 +323,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact, WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
+        [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void HorizontalEllipsis()
         {
             // Character 0x85 in CodePage 1252 is a horizontal ellipsis.

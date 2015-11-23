@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly string _computingFixWaitDialogMessage;
 
         internal FixMultipleCodeAction(FixMultipleContext fixMultipleContext, FixAllProvider fixAllProvider, string title, string computingFixWaitDialogMessage, bool showPreviewChangesDialog)
-            : base (fixMultipleContext, fixAllProvider, showPreviewChangesDialog)
+            : base(fixMultipleContext, fixAllProvider, showPreviewChangesDialog)
         {
             _title = title;
             _computingFixWaitDialogMessage = computingFixWaitDialogMessage;
@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public override string Title => _title;
-        protected override string FixAllWaitDialogAndPreviewChangesTitle => _title;
-        protected override string ComputingFixAllWaitDialogMessage => _computingFixWaitDialogMessage;
+        internal override string Message => _computingFixWaitDialogMessage;
     }
 }

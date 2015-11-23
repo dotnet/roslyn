@@ -107,7 +107,6 @@ namespace CSharpSyntaxGenerator
                 {
                     outFile.Write(text);
                 }
-                Console.WriteLine("Wrote {0}", outputFile);
             }
             catch (UnauthorizedAccessException)
             {

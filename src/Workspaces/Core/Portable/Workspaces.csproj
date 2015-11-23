@@ -118,6 +118,12 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs">
       <Link>InternalUtilities\ReferenceEqualityComparer.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
+      <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimFactory.cs">
+      <Link>InternalUtilities\SemaphoreSlimFactory.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
     </Compile>
@@ -410,6 +416,7 @@
     <Compile Include="Shared\Utilities\XmlFragmentParser.cs" />
     <Compile Include="Simplification\SimplificationOptionProvider.cs" />
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
+    <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
@@ -787,7 +794,6 @@
     <Compile Include="Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="Utilities\AnnotationTable.cs" />
     <Compile Include="Utilities\AsyncLazy`1.cs" />
-    <Compile Include="Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="Utilities\BidirectionalMap.cs" />
     <Compile Include="Utilities\CancellableLazy.cs" />
     <Compile Include="Utilities\CancellableLazy`1.cs" />
@@ -806,7 +812,6 @@
     <Compile Include="Utilities\LazyInitialization.cs" />
     <Compile Include="Utilities\ObjectPools\Extensions.cs" />
     <Compile Include="Utilities\ObjectPools\SharedPools.cs" />
-    <Compile Include="Utilities\SemaphoreSlimExtensions.cs" />
     <Compile Include="Utilities\SerializableBytes.cs" />
     <Compile Include="Utilities\SimpleTaskQueue.cs" />
     <Compile Include="Utilities\SpecializedTasks.cs" />

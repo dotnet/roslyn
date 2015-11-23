@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -64,12 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void ReportChangedSpan(SnapshotSpan changeSpan)
             {
                 _batchChangeNotifier.AssertIsForeground();
-
-                var tagsChanged = TagsChanged;
-                if (tagsChanged != null)
-                {
-                    tagsChanged(this, new SnapshotSpanEventArgs(changeSpan));
-                }
+                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(changeSpan));
             }
 
             private void OnPaused(object sender, EventArgs e)

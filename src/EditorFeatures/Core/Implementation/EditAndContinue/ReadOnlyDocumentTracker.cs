@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
@@ -92,10 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             if (isEdit && isReadOnly)
             {
-                if (_onReadOnlyDocumentEditAttempt != null)
-                {
-                    _onReadOnlyDocumentEditAttempt(documentId, sessionReason, projectReason);
-                }
+                _onReadOnlyDocumentEditAttempt?.Invoke(documentId, sessionReason, projectReason);
             }
 
             return isReadOnly;

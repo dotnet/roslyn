@@ -57,10 +57,10 @@ namespace ConvertToAutoPropertyCS
 
         public override SyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax field)
         {
-            // Retrieve the symbol for the field
+            // Retrieve the symbol for the field's variable
             if (field.Declaration.Variables.Count == 1)
             {
-                if (object.Equals(semanticModel.GetDeclaredSymbol(field), backingField))
+                if (object.Equals(semanticModel.GetDeclaredSymbol(field.Declaration.Variables.First()), backingField))
                 {
                     return null;
                 }

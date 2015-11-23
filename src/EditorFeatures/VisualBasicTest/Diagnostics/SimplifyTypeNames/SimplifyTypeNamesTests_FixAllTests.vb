@@ -1,6 +1,7 @@
+Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
@@ -9,10 +10,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
     Public Class SimplifyTypeNamesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInDocument()
+        Public Async Function TestFixAllInDocument() As Task
             Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32")
 
             Dim input = <Workspace>
@@ -97,13 +98,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInProject()
+        Public Async Function TestFixAllInProject() As Task
             Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32")
 
             Dim input = <Workspace>
@@ -188,13 +189,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInSolution()
+        Public Async Function TestFixAllInSolution() As Task
             Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32")
 
             Dim input = <Workspace>
@@ -279,13 +280,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInSolution_RemoveMe()
+        Public Async Function TestFixAllInSolution_RemoveMe() As Task
             Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId, Nothing)
 
             Dim input = <Workspace>
@@ -486,13 +487,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+        End Function
 
-        <WpfFact>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInSolution_SimplifyMemberAccess()
+        Public Async Function TestFixAllInSolution_SimplifyMemberAccess() As Task
             Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, "System.Console")
 
             Dim input = <Workspace>
@@ -717,7 +718,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+        End Function
     End Class
 End Namespace

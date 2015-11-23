@@ -19,5 +19,6 @@
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="BasicResultProvider.Portable" Path="|BasicResultProvider.Portable;VsdConfigOutputGroup|" />
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpExpressionCompiler" Path="|CSharpExpressionCompiler;VsdConfigOutputGroup|" />
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpResultProvider.Portable" Path="|CSharpResultProvider.Portable;VsdConfigOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
   </Assets>
 </PackageManifest>

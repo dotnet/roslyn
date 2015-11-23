@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldIEnumerableReturnNull()
+        public async Task TestAddYieldIEnumerableReturnNull()
         {
             var initial =
 @"using System;
@@ -30,11 +31,11 @@ class Program
         [|return null|];
     }
 }";
-            TestMissing(initial);
+            await TestMissingAsync(initial);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldIEnumerableReturnObject()
+        public async Task TestAddYieldIEnumerableReturnObject()
         {
             var initial =
 @"using System;
@@ -58,11 +59,11 @@ class Program
         yield return new object();
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldIEnumeratorReturnObject()
+        public async Task TestAddYieldIEnumeratorReturnObject()
         {
             var initial =
 @"using System;
@@ -86,11 +87,11 @@ class Program
         yield return new object();
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldIEnumeratorReturnGenericList()
+        public async Task TestAddYieldIEnumeratorReturnGenericList()
         {
             var initial =
 @"using System;
@@ -116,11 +117,11 @@ class Program
         yield return new List<T>();
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldGenericIEnumeratorReturnObject()
+        public async Task TestAddYieldGenericIEnumeratorReturnObject()
         {
             var initial =
 @"using System;
@@ -146,11 +147,11 @@ class Program
         yield return new object();
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldGenericIEnumerableReturnObject()
+        public async Task TestAddYieldGenericIEnumerableReturnObject()
         {
             var initial =
 @"using System;
@@ -176,11 +177,11 @@ class Program
         yield return new object();
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldIEnumerableReturnGenericList()
+        public async Task TestAddYieldIEnumerableReturnGenericList()
         {
             var initial =
 @"using System;
@@ -194,11 +195,11 @@ class Program
         [|return new List<T>()|];
     }
 }";
-            TestMissing(initial);
+            await TestMissingAsync(initial);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldGenericIEnumeratorReturnDefault()
+        public async Task TestAddYieldGenericIEnumeratorReturnDefault()
         {
             var initial =
 @"using System;
@@ -224,11 +225,11 @@ class Program
         yield return default(T);
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldGenericIEnumerableReturnConvertibleToObject()
+        public async Task TestAddYieldGenericIEnumerableReturnConvertibleToObject()
         {
             var initial =
 @"using System;
@@ -254,11 +255,11 @@ class Program
         yield return 0;
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldGenericIEnumerableReturnConvertibleToFloat()
+        public async Task TestAddYieldGenericIEnumerableReturnConvertibleToFloat()
         {
             var initial =
 @"using System;
@@ -284,11 +285,11 @@ class Program
         yield return 0;
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldGenericIEnumeratorNonConvertableType()
+        public async Task TestAddYieldGenericIEnumeratorNonConvertableType()
         {
             var initial =
 @"using System;
@@ -302,11 +303,11 @@ class Program
         [|return new List<int>()|];
     }
 }";
-            TestMissing(initial);
+            await TestMissingAsync(initial);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldGenericIEnumeratorConvertableTypeDateTime()
+        public async Task TestAddYieldGenericIEnumeratorConvertableTypeDateTime()
         {
             var initial =
 @"using System;
@@ -332,11 +333,11 @@ class Program
         yield return new List<DateTime>();
     }
 }";
-            Test(initial, expected);
+            await TestAsync(initial, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldNoTypeArguments()
+        public async Task TestAddYieldNoTypeArguments()
         {
             var initial =
 @"using System;
@@ -385,7 +386,7 @@ public class A<Z> where Z : new()
     }
 }
 ";
-            TestMissing(initial);
+            await TestMissingAsync(initial);
         }
     }
 }

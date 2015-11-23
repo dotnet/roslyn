@@ -81,7 +81,7 @@
     </PropertyGroup>
 
     <Exec
-      Command='$(SyntaxGenerator) @(SyntaxGetTextDefinition) $(GeneratedSyntaxModelGetText) /gettext'
+      Command='$(SyntaxGenerator) &quot;@(SyntaxGetTextDefinition)&quot; &quot;$(GeneratedSyntaxModelGetText)&quot; /gettext'
       Outputs="$(GeneratedSyntaxModelGetText)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -113,7 +113,7 @@
     </PropertyGroup>
 
     <Exec
-      Command='$(SyntaxGenerator) @(SyntaxTestDefinition) $(GeneratedSyntaxModelTests) /test'
+      Command='$(SyntaxGenerator) &quot;@(SyntaxTestDefinition)&quot; &quot;$(GeneratedSyntaxModelTests)&quot; /test'
       Outputs="$(GeneratedSyntaxModelTests)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />

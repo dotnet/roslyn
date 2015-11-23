@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
@@ -21,34 +22,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void IsCommitCharacterTest()
+        public async Task IsCommitCharacterTest()
         {
-            VerifyCommonCommitCharacters("$$", textTypedSoFar: "");
+            await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar: "");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void IsTextualTriggerCharacterTest()
+        public async Task IsTextualTriggerCharacterTest()
         {
-            TestCommonIsTextualTriggerCharacter();
+            await TestCommonIsTextualTriggerCharacterAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void SendEnterThroughToEditorTest()
+        public async Task SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync("$$", "class", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEnterAsync("$$", "class", sendThroughEnterEnabled: true, expected: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InEmptyFile()
+        public async Task InEmptyFile()
         {
             var markup = "$$";
 
-            VerifyAnyItemExists(markup);
+            await VerifyAnyItemExistsAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInInactiveCode()
+        public async Task NotInInactiveCode()
         {
             var markup = @"class C
 {
@@ -57,11 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 #if false
 $$
 ";
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInCharLiteral()
+        public async Task NotInCharLiteral()
         {
             var markup = @"class C
 {
@@ -70,11 +71,11 @@ $$
         var c = '$$';
 ";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUnterminatedCharLiteral()
+        public async Task NotInUnterminatedCharLiteral()
         {
             var markup = @"class C
 {
@@ -82,11 +83,11 @@ $$
     {
         var c = '$$   ";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUnterminatedCharLiteralAtEndOfFile()
+        public async Task NotInUnterminatedCharLiteralAtEndOfFile()
         {
             var markup = @"class C
 {
@@ -94,11 +95,11 @@ $$
     {
         var c = '$$";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInString()
+        public async Task NotInString()
         {
             var markup = @"class C
 {
@@ -107,19 +108,19 @@ $$
         var s = ""$$"";
 ";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInStringInDirective()
+        public async Task NotInStringInDirective()
         {
             var markup = "#r \"$$\"";
 
-            VerifyNoItemsExist(markup, SourceCodeKind.Script);
+            await VerifyNoItemsExistAsync(markup, SourceCodeKind.Script);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUnterminatedString()
+        public async Task NotInUnterminatedString()
         {
             var markup = @"class C
 {
@@ -127,19 +128,19 @@ $$
     {
         var s = ""$$   ";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUnterminatedStringInDirective()
+        public async Task NotInUnterminatedStringInDirective()
         {
             var markup = "#r \"$$\"";
 
-            VerifyNoItemsExist(markup, SourceCodeKind.Script);
+            await VerifyNoItemsExistAsync(markup, SourceCodeKind.Script);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUnterminatedStringAtEndOfFile()
+        public async Task NotInUnterminatedStringAtEndOfFile()
         {
             var markup = @"class C
 {
@@ -147,11 +148,11 @@ $$
     {
         var s = ""$$";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInVerbatimString()
+        public async Task NotInVerbatimString()
         {
             var markup = @"class C
 {
@@ -162,11 +163,11 @@ $$
 "";
 ";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUnterminatedVerbatimString()
+        public async Task NotInUnterminatedVerbatimString()
         {
             var markup = @"class C
 {
@@ -176,11 +177,11 @@ $$
 $$
 ";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInUnterminatedVerbatimStringAtEndOfFile()
+        public async Task NotInUnterminatedVerbatimStringAtEndOfFile()
         {
             var markup = @"class C
 {
@@ -188,11 +189,11 @@ $$
     {
         var s = @""$$";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInSingleLineComment()
+        public async Task NotInSingleLineComment()
         {
             var markup = @"class C
 {
@@ -201,21 +202,21 @@ $$
         // $$
 ";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInSingleLineCommentAtEndOfFile()
+        public async Task NotInSingleLineCommentAtEndOfFile()
         {
             var markup = @"namespace A
 {
 }// $$";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInMutliLineComment()
+        public async Task NotInMutliLineComment()
         {
             var markup = @"class C
 {
@@ -226,12 +227,12 @@ $$
 */
 ";
 
-            VerifyNoItemsExist(markup);
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WorkItem(968256)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void UnionOfItemsFromBothContexts()
+        public async Task UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
@@ -255,8 +256,8 @@ $$
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            VerifyItemInLinkedFiles(markup, "public", null);
-            VerifyItemInLinkedFiles(markup, "for", null);
+            await VerifyItemInLinkedFilesAsync(markup, "public", null);
+            await VerifyItemInLinkedFilesAsync(markup, "for", null);
         }
     }
 }

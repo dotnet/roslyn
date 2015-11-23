@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
@@ -11,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestSyncLockBlock1()
-            Test(<Text>
+        Public Async Function TestSyncLockBlock1() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 {|Cursor:[|SyncLock|]|} Me
@@ -20,11 +21,11 @@ Sub M()
 [|End SyncLock|]
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestSyncLockBlock2()
-            Test(<Text>
+        Public Async Function TestSyncLockBlock2() As Task
+            Await TestAsync(<Text>
 Class C
 Sub M()
 [|SyncLock|] Me
@@ -32,6 +33,6 @@ Sub M()
 {|Cursor:[|End SyncLock|]|}
 End Sub
 End Class</Text>)
-        End Sub
+        End Function
     End Class
 End Namespace

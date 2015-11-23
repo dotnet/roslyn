@@ -54,19 +54,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         // If we can suppress either in source or in suppression file, we enable suppress context menu.
         public bool CanSuppressSelectedEntries => CanSuppressSelectedEntriesInSource || CanSuppressSelectedEntriesInSuppressionFiles;
 
-        // If only suppressed items are selected, we enable remove suppressions.
-        public bool CanRemoveSuppressionsSelectedEntries => _selectedActiveItems == 0 && _selectedSuppressedItems > 0;
+        // If at least one suppressed item is selected, we enable remove suppressions.
+        public bool CanRemoveSuppressionsSelectedEntries => _selectedSuppressedItems > 0;
 
-        // If only Roslyn active items are selected, we enable suppress in source.
+        // If at least one Roslyn active item with location is selected, we enable suppress in source.
+        // Note that we do not support suppress in source when mix of Roslyn and non-Roslyn items are selected as in-source suppression has different meaning and implementation for these.
         public bool CanSuppressSelectedEntriesInSource => _selectedActiveItems > 0 &&
-            _selectedSuppressedItems == 0 &&
             _selectedRoslynItems == _selectedActiveItems &&
             (_selectedRoslynItems - _selectedNoLocationDiagnosticItems) > 0;
 
-        // If only active items are selected, and there is at least one Roslyn item, we enable suppress in suppression file.
+        // If at least one Roslyn active item is selected, we enable suppress in suppression file.
         // Also, compiler diagnostics cannot be suppressed in suppression file, so there must be at least one non-compiler item.
         public bool CanSuppressSelectedEntriesInSuppressionFiles => _selectedActiveItems > 0 &&
-            _selectedSuppressedItems == 0 &&
             (_selectedRoslynItems - _selectedCompilerDiagnosticItems) > 0;
 
         private void ClearState()

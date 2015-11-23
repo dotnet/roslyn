@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
             get { return ImmutableArray.Create(CS0103, CS1061, CS0117, CS0122, CS0539, CS1501, CS1503, CS0305, CS0308, CS1660, CS1739, CS7036); }
         }
 
-        protected override bool IsCandidate(SyntaxNode node)
+        protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
         {
             return node.IsKind(SyntaxKind.IdentifierName) ||
                    node.IsKind(SyntaxKind.MethodDeclaration) ||

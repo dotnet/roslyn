@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceSingleLiterals_LessThan8Digits()
+        public async Task ReduceSingleLiterals_LessThan8Digits()
         {
             var code = @"[|
 Module Program
@@ -100,13 +101,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceSingleLiterals_LessThan8Digits_WithTypeCharacterSingle()
+        public async Task ReduceSingleLiterals_LessThan8Digits_WithTypeCharacterSingle()
         {
             var code = @"[|
 Module Program
@@ -185,13 +186,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceSingleLiterals_8Digits()
+        public async Task ReduceSingleLiterals_8Digits()
         {
             var code = @"[|
 Module Program
@@ -256,13 +257,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceSingleLiterals_8Digits_WithTypeCharacterSingle()
+        public async Task ReduceSingleLiterals_8Digits_WithTypeCharacterSingle()
         {
             var code = @"[|
 Module Program
@@ -327,13 +328,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceSingleLiterals_GreaterThan8Digits()
+        public async Task ReduceSingleLiterals_GreaterThan8Digits()
         {
             var code = @"[|
 Module Program
@@ -422,13 +423,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceSingleLiterals_GreaterThan8Digits_WithTypeCharacterSingle()
+        public async Task ReduceSingleLiterals_GreaterThan8Digits_WithTypeCharacterSingle()
         {
             var code = @"[|
 Module Program
@@ -517,13 +518,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDoubleLiterals_LessThan16Digits()
+        public async Task ReduceDoubleLiterals_LessThan16Digits()
         {
             var code = @"[|
 Module Program
@@ -602,13 +603,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDoubleLiterals_LessThan16Digits_WithTypeCharacter()
+        public async Task ReduceDoubleLiterals_LessThan16Digits_WithTypeCharacter()
         {
             var code = @"[|
 Module Program
@@ -687,13 +688,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDoubleLiterals_16Digits()
+        public async Task ReduceDoubleLiterals_16Digits()
         {
             var code = @"[|
 Module Program
@@ -766,13 +767,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDoubleLiterals_16Digits_WithTypeCharacter()
+        public async Task ReduceDoubleLiterals_16Digits_WithTypeCharacter()
         {
             var code = @"[|
 Module Program
@@ -845,13 +846,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDoubleLiterals_GreaterThan16Digits()
+        public async Task ReduceDoubleLiterals_GreaterThan16Digits()
         {
             var code = @"[|
 Module Program
@@ -976,13 +977,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDoubleLiterals_GreaterThan16Digits_WithTypeCharacter()
+        public async Task ReduceDoubleLiterals_GreaterThan16Digits_WithTypeCharacter()
         {
             var code = @"[|
 Module Program
@@ -1107,13 +1108,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDecimalLiterals_LessThan30Digits()
+        public async Task ReduceDecimalLiterals_LessThan30Digits()
         {
             var code = @"[|
 Module Program
@@ -1192,13 +1193,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDecimalLiterals_LessThan30Digits_WithTypeCharacterDecimal()
+        public async Task ReduceDecimalLiterals_LessThan30Digits_WithTypeCharacterDecimal()
         {
             var code = @"[|
 Module Program
@@ -1277,13 +1278,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDecimalLiterals_30Digits()
+        public async Task ReduceDecimalLiterals_30Digits()
         {
             var code = @"[|
 Module Program
@@ -1334,13 +1335,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDecimalLiterals_30Digits_WithTypeCharacterDecimal()
+        public async Task ReduceDecimalLiterals_30Digits_WithTypeCharacterDecimal()
         {
             var code = @"[|
 Module Program
@@ -1391,13 +1392,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDecimalLiterals_GreaterThan30Digits()
+        public async Task ReduceDecimalLiterals_GreaterThan30Digits()
         {
             var code = @"[|
 Module Program
@@ -1448,13 +1449,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceFloatLiteralsWithNegativeExponents()
+        public async Task ReduceFloatLiteralsWithNegativeExponents()
         {
             var code = @"[|
 Module Program
@@ -1547,13 +1548,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceSingleLiteralsWithTrailingZeros()
+        public async Task ReduceSingleLiteralsWithTrailingZeros()
         {
             var code = @"[|
 Module Program
@@ -1614,13 +1615,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDoubleLiteralsWithTrailingZeros()
+        public async Task ReduceDoubleLiteralsWithTrailingZeros()
         {
             var code = @"[|
 Module Program
@@ -1681,13 +1682,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(5529, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceDecimalLiteralsWithTrailingZeros()
+        public async Task ReduceDecimalLiteralsWithTrailingZeros()
         {
             var code = @"[|
 Module Program
@@ -1748,13 +1749,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [WorkItem(623319, "DevDiv")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
+        public async Task ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
         {
             var savedCulture = System.Threading.Thread.CurrentThread.CurrentCulture;
 
@@ -1780,7 +1781,7 @@ Module Program
         Dim x = 1.0
     End Sub
 End Module";
-                Verify(code, expected);
+                await VerifyAsync(code, expected);
             }
             finally
             {
@@ -1790,7 +1791,7 @@ End Module";
 
         [Fact]
         [WorkItem(652147, "DevDiv")]
-        public void ReduceFloatingAndDecimalLiteralsWithInvariantCultureNegatives()
+        public async Task ReduceFloatingAndDecimalLiteralsWithInvariantCultureNegatives()
         {
             var oldCulture = Thread.CurrentThread.CurrentCulture;
             try
@@ -1815,7 +1816,7 @@ Module Program
         Dim x = -0.00000000001
     End Sub
 End Module";
-                Verify(code, expected);
+                await VerifyAsync(code, expected);
             }
             finally
             {
@@ -1825,7 +1826,7 @@ End Module";
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceIntegerLiteralWithLeadingZeros()
+        public async Task ReduceIntegerLiteralWithLeadingZeros()
         {
             var code = @"[|
 Module Program
@@ -1870,12 +1871,12 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature,Traits.Features.ReduceTokens)]
-        public void ReduceIntegerLiteralWithNegativeHexOrOctalValue()
+        public async Task ReduceIntegerLiteralWithNegativeHexOrOctalValue()
         {
             var code = @"[|
 Module Program
@@ -1914,13 +1915,13 @@ Module Program
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
 
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public void ReduceIntegerLiteralWithOverflow()
+        public async Task ReduceIntegerLiteralWithOverflow()
         {
             var code = @"[|
 Module Module1
@@ -1951,10 +1952,10 @@ Module Module1
     End Sub
 End Module
 ";
-            Verify(code, expected);
+            await VerifyAsync(code, expected);
         }
 
-        private static void Verify(string codeWithMarker, string expectedResult)
+        private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
             var codeWithoutMarker = default(string);
             var textSpans = (IList<TextSpan>)new List<TextSpan>();
@@ -1963,9 +1964,9 @@ End Module
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(p => p.Name == PredefinedCodeCleanupProviderNames.ReduceTokens || p.Name == PredefinedCodeCleanupProviderNames.CaseCorrection || p.Name == PredefinedCodeCleanupProviderNames.Format);
 
-            var cleanDocument = CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups).Result;
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 
-            Assert.Equal(expectedResult, cleanDocument.GetSyntaxRootAsync().Result.ToFullString());
+            Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
         }
 
         private static Document CreateDocument(string code, string language)

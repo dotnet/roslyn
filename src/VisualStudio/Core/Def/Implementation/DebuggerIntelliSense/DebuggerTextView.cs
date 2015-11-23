@@ -320,11 +320,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             // DebuggerTextView is no longer in use.
             if (this.IsImmediateWindow)
             {
-                var handler = this.ClosedInternal;
-                if (handler != null)
-                {
-                    handler(this, EventArgs.Empty);
-                }
+                this.ClosedInternal?.Invoke(this, EventArgs.Empty);
             }
         }
 
