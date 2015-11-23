@@ -275,42 +275,41 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             internal async Task<List<SymbolReference>> DoAsync()
             {
-                var matchingTypesNamespaces = await this.GetNamespacesForMatchingTypesAsync().ConfigureAwait(false);
-                var matchingTypes = await this.GetMatchingTypesAsync().ConfigureAwait(false);
-                var matchingNamespaces = await this.GetNamespacesForMatchingNamespacesAsync().ConfigureAwait(false);
-                var matchingExtensionMethodsNamespaces = await this.GetNamespacesForMatchingExtensionMethodsAsync().ConfigureAwait(false);
-                var matchingFieldsAndPropertiesAsync = await this.GetNamespacesForMatchingFieldsAndPropertiesAsync().ConfigureAwait(false);
-                var queryPatternsNamespaces = await this.GetNamespacesForQueryPatternsAsync().ConfigureAwait(false);
+                // Spin off tasks to do all our searching.
+                var tasks = new[]
+                {
+                    this.GetNamespacesForMatchingTypesAsync(),
+                    this.GetMatchingTypesAsync(),
+                    this.GetNamespacesForMatchingNamespacesAsync(),
+                    this.GetNamespacesForMatchingExtensionMethodsAsync(),
+                    this.GetNamespacesForMatchingFieldsAndPropertiesAsync(),
+                    this.GetNamespacesForQueryPatternsAsync()
+                };
 
-                if (matchingTypesNamespaces == null &&
-                    matchingNamespaces == null &&
-                    matchingExtensionMethodsNamespaces == null &&
-                    matchingFieldsAndPropertiesAsync == null &&
-                    queryPatternsNamespaces == null &&
-                    matchingTypes == null)
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                List<SymbolReference> allReferences = null;
+                foreach (var task in tasks)
+                {
+                    var taskResult = task.Result;
+                    if (taskResult?.Count > 0)
+                    {
+                        allReferences = allReferences ?? new List<SymbolReference>();
+                        allReferences.AddRange(taskResult);
+                    }
+                }
+
+                return DeDupeAndSortReferences(allReferences);
+            }
+
+            private List<SymbolReference> DeDupeAndSortReferences(List<SymbolReference> allReferences)
+            {
+                if (allReferences == null)
                 {
                     return null;
                 }
 
-                matchingTypesNamespaces = matchingTypesNamespaces ?? SpecializedCollections.EmptyList<SymbolReference>();
-                matchingNamespaces = matchingNamespaces ?? SpecializedCollections.EmptyList<SymbolReference>();
-                matchingExtensionMethodsNamespaces = matchingExtensionMethodsNamespaces ?? SpecializedCollections.EmptyList<SymbolReference>();
-                matchingFieldsAndPropertiesAsync = matchingFieldsAndPropertiesAsync ?? SpecializedCollections.EmptyList<SymbolReference>();
-                queryPatternsNamespaces = queryPatternsNamespaces ?? SpecializedCollections.EmptyList<SymbolReference>();
-                matchingTypes = matchingTypes ?? SpecializedCollections.EmptyList<SymbolReference>();
-
-                var allReferences = matchingTypesNamespaces
-                                .Concat(matchingNamespaces)
-                                .Concat(matchingExtensionMethodsNamespaces)
-                                .Concat(matchingFieldsAndPropertiesAsync)
-                                .Concat(queryPatternsNamespaces)
-                                .Concat(matchingTypes);
-
-                return SortReferences(allReferences);
-            }
-
-            private List<SymbolReference> SortReferences(IEnumerable<SymbolReference> allReferences)
-            {
                 return allReferences
                     .Distinct()
                     .Where(NotNull)
