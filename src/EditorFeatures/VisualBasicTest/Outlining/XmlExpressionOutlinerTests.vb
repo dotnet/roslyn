@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,9 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New XmlExpressionOutliner()
         End Function
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestXmlDocument1()
+        Public Async Function TestXmlDocument1() As Task
             Dim code = "
 Class C
     Dim x = {|span:$$<?xml version=""1.0""?>
@@ -23,12 +23,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "<?xml version=""1.0""?> ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestXmlDocument2()
+        Public Async Function TestXmlDocument2() As Task
             Dim code = "
 Class C
     Dim x = {|span:$$<?xml version=""1.0""?><foo>
@@ -36,12 +36,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "<?xml version=""1.0""?><foo> ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestXmlLiteral()
+        Public Async Function TestXmlLiteral() As Task
             Dim code = "
 Class C
     Dim x = {|span:$$<foo>
@@ -49,12 +49,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "<foo> ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestNestedXmlLiteral()
+        Public Async Function TestNestedXmlLiteral() As Task
             Dim code = "
 Class C
     Dim x = <foo>
@@ -64,12 +64,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "<bar> ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestXmlProcessingInstruction()
+        Public Async Function TestXmlProcessingInstruction() As Task
             Dim code = "
 Class C
     Dim x = {|span:$$<?foo
@@ -77,12 +77,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "<?foo ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestXmlComment()
+        Public Async Function TestXmlComment() As Task
             Dim code = "
 Class C
     Dim x = {|span:$$<!-- Foo
@@ -90,12 +90,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "<!-- Foo ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestXmlCData()
+        Public Async Function TestXmlCData() As Task
             Dim code = "
 Class C
     Dim x = {|span:$$<![CDATA[
@@ -103,12 +103,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "<![CDATA[ ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestXmlEmbeddedExpression()
+        Public Async Function TestXmlEmbeddedExpression() As Task
             Dim code = "
 Class C
     Dim x = <foo>
@@ -119,12 +119,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "<%= ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestDocumentationCommentIsNotOutlined()
+        Public Async Function TestDocumentationCommentIsNotOutlined() As Task
             Dim code = "
 ''' $$<summary>
 ''' Foo
@@ -133,8 +133,8 @@ Class C
 End Class
 "
 
-            NoRegions(code)
-        End Sub
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
     End Class
 End Namespace

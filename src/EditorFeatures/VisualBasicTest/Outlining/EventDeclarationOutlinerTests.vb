@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,18 +14,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestEvent()
+        Public Async Function TestEvent() As Task
             Const code = "
 Class C1
     Event $$AnEvent(ByVal EventNumber As Integer)
 End Class
 "
 
-            NoRegions(code)
-        End Sub
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestEventWithComments()
+        Public Async Function TestEventWithComments() As Task
             Const code = "
 Class C1
     {|span:'My
@@ -33,12 +34,12 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "' My ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestCustomEvent()
+        Public Async Function TestCustomEvent() As Task
             Const code = "
 Class C1
     {|span:Custom Event $$eventName As EventHandler
@@ -52,12 +53,12 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Custom Event eventName As EventHandler ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestPrivateCustomEvent()
+        Public Async Function TestPrivateCustomEvent() As Task
             Const code = "
 Class C1
     {|span:Private Custom Event $$eventName As EventHandler
@@ -71,12 +72,12 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Private Custom Event eventName As EventHandler ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestCustomEventWithComments()
+        Public Async Function TestCustomEventWithComments() As Task
             Const code = "
 Class C1
     {|span1:'My
@@ -92,10 +93,10 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "Custom Event eventName As EventHandler ...", autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSub()
+        Public Async Function TestSub() As Task
             Const code = "
 Class C
     {|span:Sub $$Foo()
@@ -21,12 +22,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub Foo() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSubWithGenericTypeParameter()
+        Public Async Function TestSubWithGenericTypeParameter() As Task
             Const code = "
 Class C
     {|span:Sub $$Foo(Of T)()
@@ -34,12 +35,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub Foo(Of T)() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSubWithGenericTypeParameterAndSingleConstraint()
+        Public Async Function TestSubWithGenericTypeParameterAndSingleConstraint() As Task
             Const code = "
 Class C
     {|span:Sub $$Foo(Of T As Class)()
@@ -47,12 +48,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub Foo(Of T As Class)() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSubWithGenericTypeParameterAndMultipleConstraint()
+        Public Async Function TestSubWithGenericTypeParameterAndMultipleConstraint() As Task
             Const code = "
 Class C
     {|span:Sub $$Foo(Of T As {Class, New})()
@@ -60,12 +61,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub Foo(Of T As {Class, New})() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestPrivateSub()
+        Public Async Function TestPrivateSub() As Task
             Const code = "
 Class C
     {|span:Private Sub $$Foo()
@@ -73,12 +74,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Private Sub Foo() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSubWithByRefParameter()
+        Public Async Function TestSubWithByRefParameter() As Task
             Const code = "
 Class C
     {|span:Sub $$Foo(ByRef i As Integer)
@@ -86,12 +87,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub Foo(ByRef i As Integer) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSubWithByValParameter()
+        Public Async Function TestSubWithByValParameter() As Task
             Const code = "
 Class C
     {|span:Sub $$Foo(ByVal i As Integer)
@@ -99,12 +100,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub Foo(i As Integer) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSubWithOptionalParameter()
+        Public Async Function TestSubWithOptionalParameter() As Task
             Const code = "
 Class C
     {|span:Sub $$Foo(Optional i As Integer = 1)
@@ -112,12 +113,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub Foo(Optional i As Integer = 1) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSubWithHandlesClause()
+        Public Async Function TestSubWithHandlesClause() As Task
             Const code = "
 Class C
     {|span:Sub $$Foo() Handles Bar.Baz
@@ -125,12 +126,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub Foo() Handles Bar.Baz ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSubWithImplementsClause()
+        Public Async Function TestSubWithImplementsClause() As Task
             Const code = "
 Class C
     {|span:Sub $$Foo() Implements Bar.Baz
@@ -138,12 +139,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub Foo() Implements Bar.Baz ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestSubWithComments()
+        Public Async Function TestSubWithComments() As Task
             Const code = "
 Class C
     {|span1:'My
@@ -153,10 +154,10 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "Sub Foo() Implements Bar.Baz ...", autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace

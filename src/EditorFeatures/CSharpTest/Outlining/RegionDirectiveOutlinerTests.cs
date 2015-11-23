@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
@@ -13,28 +14,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         internal override AbstractSyntaxOutliner CreateOutliner() => new RegionDirectiveOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void BrokenRegion()
+        public async Task BrokenRegion()
         {
             const string code = @"
 $$#region Foo";
 
-            NoRegions(code);
+            await VerifyNoRegionsAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void SimpleRegion()
+        public async Task SimpleRegion()
         {
             const string code = @"
 {|span:$$#region Foo
 #endregion|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", "Foo", autoCollapse: true, isDefaultCollapsed: true));
         }
 
         [WorkItem(539361)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void RegressionFor5284()
+        public async Task RegressionFor5284()
         {
             const string code = @"
 namespace BasicGenerateFromUsage
@@ -64,13 +65,13 @@ namespace BasicGenerateFromUsage
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", "TaoRegion", autoCollapse: true, isDefaultCollapsed: true));
         }
 
         [WorkItem(953668)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void RegionsShouldBeCollapsedByDefault()
+        public async Task RegionsShouldBeCollapsedByDefault()
         {
             const string code = @"
 class C
@@ -82,13 +83,13 @@ class C
     #endregion|}
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", "Region", autoCollapse: true, isDefaultCollapsed: true));
         }
 
         [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void SpacesBetweenPoundAndRegionShouldNotAffectBanner()
+        public async Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
         {
             const string code = @"
 class C
@@ -100,7 +101,7 @@ class C
 #  endregion|}
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", "Region", autoCollapse: true, isDefaultCollapsed: true));
         }
     }

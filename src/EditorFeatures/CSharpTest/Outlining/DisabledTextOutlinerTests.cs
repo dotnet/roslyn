@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Roslyn.Test.Utilities;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         internal override AbstractSyntaxOutliner CreateOutliner() => new DisabledTextTriviaOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestDisabledIf()
+        public async Task TestDisabledIf()
         {
             const string code = @"
 #if false
@@ -22,12 +23,12 @@ Blah|}
 #endif
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestDisabledElse()
+        public async Task TestDisabledElse()
         {
             const string code = @"
 #if true
@@ -38,12 +39,12 @@ Blah|}
 #endif
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestDisabledElIf()
+        public async Task TestDisabledElIf()
         {
             const string code = @"
 #if true
@@ -54,13 +55,13 @@ Blah|}
 #endif
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WorkItem(531360)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
+        public async Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
 class P {
@@ -75,13 +76,13 @@ class P {
     }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WorkItem(531360)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
+        public async Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
         {
             const string code = @"
 class P {
@@ -96,12 +97,12 @@ class P {
     }
 ";
 
-            NoRegions(code);
+            await VerifyNoRegionsAsync(code);
         }
 
         [WorkItem(1070677)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
+        public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
         {
             const string code = @"
 class P {
@@ -116,13 +117,13 @@ class P {
     }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WorkItem(1070677)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
+        public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
         {
             const string code = @"
 class P {
@@ -138,13 +139,13 @@ class P {
     }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WorkItem(1070677)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
+        public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
         {
             const string code = @"
 class P {
@@ -159,13 +160,13 @@ class P {
     }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WorkItem(1070677)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
+        public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
         {
             const string code = @"
 class P {
@@ -189,13 +190,13 @@ class P {
     }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WorkItem(1100600)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void PreprocessorDirectivesInTrailingTrivia()
+        public async Task PreprocessorDirectivesInTrailingTrivia()
         {
             const string code = @"
 class P {
@@ -219,7 +220,7 @@ class P {
     }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
     }

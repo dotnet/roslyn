@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
@@ -13,19 +14,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         internal override AbstractSyntaxOutliner CreateOutliner() => new TypeDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestClass()
+        public async Task TestClass()
         {
             const string code = @"
 {|hint:$$class C{|collapse:
 {
 }|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestClassWithLeadingComments()
+        public async Task TestClassWithLeadingComments()
         {
             const string code = @"
 {|span1:// Foo
@@ -34,13 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
 }|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestClassWithNestedComments()
+        public async Task TestClassWithNestedComments()
         {
             const string code = @"
 {|hint1:$$class C{|collapse1:
@@ -49,25 +50,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     // Bar|}
 }|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: false),
                 Region("span2", "// Foo ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestInterface()
+        public async Task TestInterface()
         {
             const string code = @"
 {|hint:$$interface I{|collapse:
 {
 }|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestInterfaceWithLeadingComments()
+        public async Task TestInterfaceWithLeadingComments()
         {
             const string code = @"
 {|span1:// Foo
@@ -76,13 +77,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
 }|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestInterfaceWithNestedComments()
+        public async Task TestInterfaceWithNestedComments()
         {
             const string code = @"
 {|hint1:$$interface I{|collapse1:
@@ -91,25 +92,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     // Bar|}
 }|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: false),
                 Region("span2", "// Foo ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestStruct()
+        public async Task TestStruct()
         {
             const string code = @"
 {|hint:$$struct S{|collapse:
 {
 }|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestStructWithLeadingComments()
+        public async Task TestStructWithLeadingComments()
         {
             const string code = @"
 {|span1:// Foo
@@ -118,13 +119,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
 }|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestStructWithNestedComments()
+        public async Task TestStructWithNestedComments()
         {
             const string code = @"
 {|hint1:$$struct S{|collapse1:
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
     // Bar|}
 }|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: false),
                 Region("span2", "// Foo ...", autoCollapse: true));
         }

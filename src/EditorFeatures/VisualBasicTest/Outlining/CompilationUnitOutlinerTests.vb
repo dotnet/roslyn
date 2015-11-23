@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -14,31 +15,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestImports()
+        Public Async Function TestImports() As Task
             Const code = "
 {|span:$$Imports System
 Imports System.Linq|}
 Class C1
 End Class
 "
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Imports ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestImportsAliases()
+        Public Async Function TestImportsAliases() As Task
             Const code = "
 {|span:$$Imports System
 Imports linq = System.Linq|}
 Class C1
 End Class
 "
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Imports ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestComments()
+        Public Async Function TestComments() As Task
             Const code = "
 {|span1:$$'Top
 'Of
@@ -49,13 +50,13 @@ End Class
 'Of
 'File|}
 "
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' Top ...", autoCollapse:=True),
                 Region("span2", "' Bottom ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestImportsAndComments()
+        Public Async Function TestImportsAndComments() As Task
             Const code = "
 {|span1:$$'Top
 'Of
@@ -66,11 +67,11 @@ Imports System.Linq|}
 'Of
 'File|}
 "
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' Top ...", autoCollapse:=True),
                 Region("span2", "Imports ...", autoCollapse:=True),
                 Region("span3", "' Bottom ...", autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace

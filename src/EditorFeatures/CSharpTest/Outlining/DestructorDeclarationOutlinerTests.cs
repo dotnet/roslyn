@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         internal override AbstractSyntaxOutliner CreateOutliner() => new DestructorDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestDestructor()
+        public async Task TestDestructor()
         {
             const string code = @"
 class C
@@ -23,12 +24,12 @@ class C
     }|}|}
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestDestructorWithComments()
+        public async Task TestDestructorWithComments()
         {
             const string code = @"
 class C
@@ -40,13 +41,13 @@ class C
     }|}|}
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestDestructorMissingCloseParenAndBody()
+        public async Task TestDestructorMissingCloseParenAndBody()
         {
             // Expected behavior is that the class should be outlined, but the destructor should not.
 
@@ -56,7 +57,7 @@ class C
     $$~C(
 }";
 
-            NoRegions(code);
+            await VerifyNoRegionsAsync(code);
         }
     }
 }

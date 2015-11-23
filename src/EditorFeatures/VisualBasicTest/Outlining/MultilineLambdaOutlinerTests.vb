@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestInClassScope()
+        Public Async Function TestInClassScope() As Task
             Const code = "
 Class C
     Dim r = {|span:$$Sub()
@@ -21,12 +22,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub() ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestInMethodScope()
+        Public Async Function TestInMethodScope() As Task
             Const code = "
 Class C
     Sub M()
@@ -36,12 +37,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub() ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestFunction()
+        Public Async Function TestFunction() As Task
             Const code = "
 Class C
     Dim r = {|span:$$Function(x As Integer, y As List(Of String)) As Func(Of Integer, Func(Of String, Integer))
@@ -49,12 +50,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Function(x As Integer, y As List(Of String)) As Func(Of Integer, Func(Of String, Integer)) ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestInArgumentContext()
+        Public Async Function TestInArgumentContext() As Task
             Const code = "
 Class C
     Sub M()
@@ -65,12 +66,12 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Function(x As Integer, y As List(Of String)) As List(Of List(Of String)) ...", autoCollapse:=False))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestLambdaWithReturnType()
+        Public Async Function TestLambdaWithReturnType() As Task
             Const code = "
 Class C
     Sub M()
@@ -81,9 +82,9 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Function(x) As Integer ...", autoCollapse:=False))
-        End Sub
+        End Function
 
     End Class
 End Namespace

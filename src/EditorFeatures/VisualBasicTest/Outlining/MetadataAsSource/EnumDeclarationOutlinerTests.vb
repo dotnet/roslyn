@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports MaSOutliners = Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining.MetadataAsSource
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
     Public Class EnumDeclarationOutlinerTests
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub NoCommentsOrAttributes()
+        Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Enum $$Foo
     Bar
@@ -28,11 +29,11 @@ Enum $$Foo
 End Enum
 "
 
-            NoRegions(code)
-        End Sub
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithAttributes()
+        Public Async Function WithAttributes() As Task
             Dim code = "
 {|hint:{|collapse:<Foo>
 |}Enum $$Foo|}
@@ -41,12 +42,12 @@ End Enum
 End Enum
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCommentsAndAttributes()
+        Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 {|hint:{|collapse:' Summary:
 '     This is a summary.
@@ -57,12 +58,12 @@ End Enum
 End Enum
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCommentsAttributesAndModifiers()
+        Public Async Function WithCommentsAttributesAndModifiers() As Task
             Dim code = "
 {|hint:{|collapse:' Summary:
 '     This is a summary.
@@ -73,9 +74,9 @@ End Enum
 End Enum
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace

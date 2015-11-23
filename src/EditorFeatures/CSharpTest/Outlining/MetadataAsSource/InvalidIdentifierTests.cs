@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         protected override string LanguageName => LanguageNames.CSharp;
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
 
-        internal override OutliningSpan[] GetRegions(Document document, int position)
+        internal override async Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
         {
             var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
 
-            return outliningService
-                .GetOutliningSpansAsync(document, CancellationToken.None).Result.WhereNotNull().ToArray();
+            return (await outliningService.GetOutliningSpansAsync(document, CancellationToken.None))
+                .WhereNotNull().ToArray();
         }
 
         [WorkItem(1174405)]
@@ -38,7 +38,7 @@ $$class C
     public void $Invoke();
 }";
 
-            NoRegions(code);
+            await VerifyNoRegionsAsync(code);
         }
 
         [WorkItem(1174405)]
@@ -51,7 +51,7 @@ $$class C
     public void !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`();
 }";
 
-            NoRegions(code);
+            await VerifyNoRegionsAsync(code);
         }
 
         [WorkItem(1174405)]
@@ -64,7 +64,7 @@ $$class C
     public void } } public class CodeInjection{ } /* now everything is commented ();
 }";
 
-            NoRegions(code);
+            await VerifyNoRegionsAsync(code);
         }
     }
 }

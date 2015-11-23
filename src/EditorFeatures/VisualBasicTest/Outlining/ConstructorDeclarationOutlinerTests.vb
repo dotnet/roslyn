@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,55 +14,55 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestConstructor1()
+        Public Async Function TestConstructor1() As Task
             Const code = "
 Class C1
     {|span:Sub $$New()
     End Sub|}
 End Class
 "
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub New() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestConstructor2()
+        Public Async Function TestConstructor2() As Task
             Const code = "
 Class C1
     {|span:Sub $$New()
     End Sub|}                     
 End Class
 "
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub New() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestConstructor3()
+        Public Async Function TestConstructor3() As Task
             Const code = "
 Class C1
     {|span:Sub $$New()
     End Sub|} ' .ctor
 End Class
 "
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Sub New() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestPrivateConstructor()
+        Public Async Function TestPrivateConstructor() As Task
             Const code = "
 Class C1
     {|span:Private Sub $$New()
     End Sub|}
 End Class
 "
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Private Sub New() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestConstructorWithComments()
+        Public Async Function TestConstructorWithComments() As Task
             Const code = "
 Class C1
     {|span1:'My
@@ -70,10 +71,10 @@ Class C1
     End Sub|}
 End Class
 "
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "Sub New() ...", autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace

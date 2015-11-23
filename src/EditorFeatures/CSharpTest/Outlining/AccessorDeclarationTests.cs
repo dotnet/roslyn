@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         internal override AbstractSyntaxOutliner CreateOutliner() => new AccessorDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetter1()
+        public async Task TestPropertyGetter1()
         {
             const string code = @"
 class C
@@ -26,12 +27,12 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetterWithSingleLineComments1()
+        public async Task TestPropertyGetterWithSingleLineComments1()
         {
             const string code = @"
 class C
@@ -47,13 +48,13 @@ class C
 }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetterWithMultiLineComments1()
+        public async Task TestPropertyGetterWithMultiLineComments1()
         {
             const string code = @"
 class C
@@ -69,13 +70,13 @@ class C
 }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "/* My ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetter2()
+        public async Task TestPropertyGetter2()
         {
             const string code = @"
 class C
@@ -91,12 +92,12 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetterWithSingleLineComments2()
+        public async Task TestPropertyGetterWithSingleLineComments2()
         {
             const string code = @"
 class C
@@ -115,13 +116,13 @@ class C
 }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyGetterWithMultiLineComments2()
+        public async Task TestPropertyGetterWithMultiLineComments2()
         {
             const string code = @"
 class C
@@ -140,13 +141,13 @@ class C
 }
 ";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "/* My ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetter1()
+        public async Task TestPropertySetter1()
         {
             const string code = @"
 class C
@@ -159,12 +160,12 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetterWithSingleLineComments1()
+        public async Task TestPropertySetterWithSingleLineComments1()
         {
             const string code = @"
 class C
@@ -179,13 +180,13 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetterWithMultiLineComments1()
+        public async Task TestPropertySetterWithMultiLineComments1()
         {
             const string code = @"
 class C
@@ -200,13 +201,13 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "/* My ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetter2()
+        public async Task TestPropertySetter2()
         {
             const string code = @"
 class C
@@ -222,12 +223,12 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetterWithSingleLineComments2()
+        public async Task TestPropertySetterWithSingleLineComments2()
         {
             const string code = @"
 class C
@@ -245,13 +246,13 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// My ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertySetterWithMultiLineComments2()
+        public async Task TestPropertySetterWithMultiLineComments2()
         {
             const string code = @"
 class C
@@ -269,7 +270,7 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "/* My ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
@@ -13,18 +14,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         internal override AbstractSyntaxOutliner CreateOutliner() => new CompilationUnitOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestUsings()
+        public async Task TestUsings()
         {
             const string code = @"
 $${|hint:using {|collapse:System;
 using System.Core;|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestUsingAliases()
+        public async Task TestUsingAliases()
         {
             const string code = @"
 $${|hint:using {|collapse:System;
@@ -32,23 +33,23 @@ using System.Core;
 using text = System.Text;
 using linq = System.Linq;|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestExternAliases()
+        public async Task TestExternAliases()
         {
             const string code = @"
 $${|hint:extern {|collapse:alias Foo;
 extern alias Bar;|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestExternAliasesAndUsings()
+        public async Task TestExternAliasesAndUsings()
         {
             const string code = @"
 $${|hint:extern {|collapse:alias Foo;
@@ -56,12 +57,12 @@ extern alias Bar;
 using System;
 using System.Core;|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
+        public async Task TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
         {
             const string code = @"
 $${|span1:// Foo
@@ -75,14 +76,14 @@ using System.Core;|}|}
 {|span3:// Foo
 // Bar|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true),
                 Region("span3", "// Foo ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestUsingsWithComments()
+        public async Task TestUsingsWithComments()
         {
             const string code = @"
 $${|span1:// Foo
@@ -90,13 +91,13 @@ $${|span1:// Foo
 {|hint2:using {|collapse2:System;
 using System.Core;|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestExternAliasesWithComments()
+        public async Task TestExternAliasesWithComments()
         {
             const string code = @"
 $${|span1:// Foo
@@ -104,43 +105,43 @@ $${|span1:// Foo
 {|hint2:extern {|collapse2:alias Foo;
 extern alias Bar;|}|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestWithComments()
+        public async Task TestWithComments()
         {
             const string code = @"
 $${|span1:// Foo
 // Bar|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestWithCommentsAtEnd()
+        public async Task TestWithCommentsAtEnd()
         {
             const string code = @"
 $${|hint1:using {|collapse1:System;|}|}
 {|span2:// Foo
 // Bar|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: true),
                 Region("span2", "// Foo ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         [WorkItem(539359)]
-        public void TestUsingKeywordWithSpace()
+        public async Task TestUsingKeywordWithSpace()
         {
             const string code = @"
 $${|hint:using|} {|collapse:|}";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
     }

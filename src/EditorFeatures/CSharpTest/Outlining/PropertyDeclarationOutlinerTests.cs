@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         internal override AbstractSyntaxOutliner CreateOutliner() => new PropertyDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestProperty()
+        public async Task TestProperty()
         {
             const string code = @"
 class C
@@ -25,12 +26,12 @@ class C
     }|}|}
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyWithLeadingComments()
+        public async Task TestPropertyWithLeadingComments()
         {
             const string code = @"
 class C
@@ -44,13 +45,13 @@ class C
     }|}|}
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyWithWithExpressionBodyAndComments()
+        public async Task TestPropertyWithWithExpressionBodyAndComments()
         {
             const string code = @"
 class C
@@ -60,12 +61,12 @@ class C
     $$public int Foo => 0;
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span", "// Foo ...", autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestPropertyWithSpaceAfterIdentifier()
+        public async Task TestPropertyWithSpaceAfterIdentifier()
         {
             const string code = @"
 class C
@@ -77,7 +78,7 @@ class C
     }|}|}
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
     }

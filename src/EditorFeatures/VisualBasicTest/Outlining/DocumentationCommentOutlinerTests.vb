@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestDocumentationCommentWithoutSummaryTag1()
+        Public Async Function TestDocumentationCommentWithoutSummaryTag1() As Task
             Const code = "
 {|span:''' $$XML doc comment
 ''' some description
@@ -23,24 +24,24 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' XML doc comment ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestDocumentationCommentWithoutSummaryTag2()
+        Public Async Function TestDocumentationCommentWithoutSummaryTag2() As Task
             Const code = "
 {|span:''' $$<param name=""syntaxTree""></param>|}
 Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' <param name=""syntaxTree""></param> ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestDocumentationComment()
+        Public Async Function TestDocumentationComment() As Task
             Const code = "
 {|span:''' $$<summary>
 ''' Hello VB!
@@ -49,12 +50,12 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestDocumentationCommentWithLongBannerText()
+        Public Async Function TestDocumentationCommentWithLongBannerText() As Task
             Dim code = "
 {|span:''' $$<summary>
 ''' " & New String("x"c, 240) & "
@@ -63,12 +64,12 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' <summary> " & New String("x"c, 106) & " ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestIndentedDocumentationComment()
+        Public Async Function TestIndentedDocumentationComment() As Task
             Const code = "
     {|span:''' $$<summary>
     ''' Hello VB!
@@ -77,36 +78,36 @@ End Class
     End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestDocumentationCommentOnASingleLine()
+        Public Async Function TestDocumentationCommentOnASingleLine() As Task
             Const code = "
 {|span:''' $$<summary>Hello VB!</summary>|}
 Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestIndentedDocumentationCommentOnASingleLine()
+        Public Async Function TestIndentedDocumentationCommentOnASingleLine() As Task
             Const code = "
     {|span:''' $$<summary>Hello VB!</summary>|}
     Class C1
     End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestMultilineSummaryInDocumentationComment1()
+        Public Async Function TestMultilineSummaryInDocumentationComment1() As Task
             Const code = "
 {|span:''' $$<summary>
 ''' Hello
@@ -116,12 +117,12 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestMultilineSummaryInDocumentationComment2()
+        Public Async Function TestMultilineSummaryInDocumentationComment2() As Task
             Const code = "
 {|span:''' $$<summary>
 ''' Hello
@@ -132,13 +133,13 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' <summary> Hello VB!", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub CrefInSummary()
+        Public Async Function CrefInSummary() As Task
             Const code = "
 Class C
     {|span:''' $$<summary>
@@ -150,8 +151,8 @@ Class C
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "''' <summary> Summary with SeeClass , SeeAlsoClass , Nothing , T , t , and not-supported .", autoCollapse:=True))
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         internal override AbstractSyntaxOutliner CreateOutliner() => new AnonymousMethodExpressionOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestAnonymousMethod()
+        public async Task TestAnonymousMethod()
         {
             const string code = @"
 class C
@@ -26,12 +27,12 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestAnonymousMethodInForLoop()
+        public async Task TestAnonymousMethodInForLoop()
         {
             const string code = @"
 class C
@@ -42,11 +43,11 @@ class C
     }
 }";
 
-            NoRegions(code);
+            await VerifyNoRegionsAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestAnonymousMethodInMethodCall1()
+        public async Task TestAnonymousMethodInMethodCall1()
         {
             const string code = @"
 class C
@@ -59,12 +60,12 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestAnonymousMethodInMethodCall2()
+        public async Task TestAnonymousMethodInMethodCall2()
         {
             const string code = @"
 class C
@@ -77,7 +78,7 @@ class C
     }
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
     }

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Roslyn.Utilities;
 
@@ -12,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
     {
         internal abstract AbstractSyntaxOutliner CreateOutliner();
 
-        internal sealed override OutliningSpan[] GetRegions(Document document, int position)
+        internal sealed override async Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
         {
-            var root = document.GetSyntaxRootAsync(CancellationToken.None).Result;
+            var root = await document.GetSyntaxRootAsync(CancellationToken.None);
             var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
             var outliner = CreateOutliner();

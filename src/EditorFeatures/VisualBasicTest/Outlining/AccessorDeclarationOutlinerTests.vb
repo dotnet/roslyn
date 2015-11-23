@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestReadOnlyPropertyGet()
+        Public Async Function TestReadOnlyPropertyGet() As Task
             Const code = "
 Class C1
     ReadOnly Property P1 As Integer
@@ -24,12 +25,12 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Get ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestReadOnlyPropertyGetWithComments()
+        Public Async Function TestReadOnlyPropertyGetWithComments() As Task
             Const code = "
 Class C1
     ReadOnly Property P1 As Integer
@@ -42,13 +43,13 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "Get ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestPropertyGet()
+        Public Async Function TestPropertyGet() As Task
             Const code = "
 Class C1
     Property P1 As Integer
@@ -61,12 +62,12 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Get ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestPropertyGetWithComments()
+        Public Async Function TestPropertyGetWithComments() As Task
             Const code = "
 Class C1
     Property P1 As Integer
@@ -81,13 +82,13 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "Get ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestWriteOnlyPropertySet()
+        Public Async Function TestWriteOnlyPropertySet() As Task
             Const code = "
 Class C1
     WriteOnly Property P1 As Integer
@@ -98,12 +99,12 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Set(value As Integer) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestWriteOnlyPropertySetWithComments()
+        Public Async Function TestWriteOnlyPropertySetWithComments() As Task
             Const code = "
 Class C1
     WriteOnly Property P1 As Integer
@@ -116,13 +117,13 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "Set(value As Integer) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestPropertySet()
+        Public Async Function TestPropertySet() As Task
             Const code = "
 Class C1
     Property P1 As Integer
@@ -135,12 +136,12 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Set(value As Integer) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestPropertySetWithPrivateModifier()
+        Public Async Function TestPropertySetWithPrivateModifier() As Task
             Const code = "
 Class C1
     Property P1 As Integer
@@ -153,12 +154,12 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Private Set(value As Integer) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestPropertySetWithComments()
+        Public Async Function TestPropertySetWithComments() As Task
             Const code = "
 Class C1
     Property P1 As Integer
@@ -173,13 +174,13 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "Private Set(value As Integer) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestCustomEventAddHandler()
+        Public Async Function TestCustomEventAddHandler() As Task
             Const code = "
 Class C1
     Custom Event event As EventHandler
@@ -193,12 +194,12 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "AddHandler(value As EventHandler) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestCustomEventAddHandlerWithComments()
+        Public Async Function TestCustomEventAddHandlerWithComments() As Task
             Const code = "
 Class C1
     Custom Event event As EventHandler
@@ -214,13 +215,13 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "AddHandler(value As EventHandler) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestCustomEventRemoveHandler()
+        Public Async Function TestCustomEventRemoveHandler() As Task
             Const code = "
 Class C1
     Custom Event event As EventHandler
@@ -234,12 +235,12 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "RemoveHandler(value As EventHandler) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestCustomEventRemoveHandlerWithComments()
+        Public Async Function TestCustomEventRemoveHandlerWithComments() As Task
             Const code = "
 Class C1
     Custom Event event As EventHandler
@@ -255,13 +256,13 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "RemoveHandler(value As EventHandler) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestCustomEventRaiseHandler()
+        Public Async Function TestCustomEventRaiseHandler() As Task
             Const code = "
 Class C1
     Custom Event event As EventHandler
@@ -275,12 +276,12 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "RaiseEvent(sender As Object, e As EventArgs) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestCustomEventRaiseHandlerWithComments()
+        Public Async Function TestCustomEventRaiseHandlerWithComments() As Task
             Const code = "
 Class C1
     Custom Event event As EventHandler
@@ -296,10 +297,10 @@ Class C1
 EndClass
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' My ...", autoCollapse:=True),
                 Region("span2", "RaiseEvent(sender As Object, e As EventArgs) ...", autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace

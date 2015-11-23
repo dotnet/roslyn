@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,18 +14,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestEnum()
+        Public Async Function TestEnum() As Task
             Const code = "
 {|span:Enum $$E1
 End Enum|} ' Foo
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "Enum E1 ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestEnumWithLeadingComments()
+        Public Async Function TestEnumWithLeadingComments() As Task
             Const code = "
 {|span1:'Hello
 'World!|}
@@ -32,13 +33,13 @@ End Enum|} ' Foo
 End Enum|} ' Foo
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "' Hello ...", autoCollapse:=True),
                 Region("span2", "Enum E1 ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestEnumWithNestedComments()
+        Public Async Function TestEnumWithNestedComments() As Task
             Const code = "
 {|span1:Enum $$E1
 {|span2:'Hello
@@ -46,10 +47,10 @@ End Enum|} ' Foo
 End Enum|} ' Foo
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span1", "Enum E1 ...", autoCollapse:=True),
                 Region("span2", "' Hello ...", autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace

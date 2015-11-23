@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
         internal override AbstractSyntaxOutliner CreateOutliner() => new ConstructorDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructor1()
+        public async Task TestConstructor1()
         {
             const string code = @"
 class C
@@ -23,12 +24,12 @@ class C
     }|}|}
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructor2()
+        public async Task TestConstructor2()
         {
             const string code = @"
 class C
@@ -38,12 +39,12 @@ class C
     }                 |}|}
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructor3()
+        public async Task TestConstructor3()
         {
             const string code = @"
 class C
@@ -53,12 +54,12 @@ class C
     }|}|} // .ctor
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructor4()
+        public async Task TestConstructor4()
         {
             const string code = @"
 class C
@@ -68,12 +69,12 @@ class C
     }|}|} /* .ctor */
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructor5()
+        public async Task TestConstructor5()
         {
             const string code = @"
 class C
@@ -83,12 +84,12 @@ class C
     }|}|} // .ctor
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructor6()
+        public async Task TestConstructor6()
         {
             const string code = @"
 class C
@@ -98,12 +99,12 @@ class C
     }|}|} // .ctor
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructor7()
+        public async Task TestConstructor7()
         {
             const string code = @"
 class C
@@ -114,12 +115,12 @@ class C
     }|}|} // .ctor
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructor8()
+        public async Task TestConstructor8()
         {
             const string code = @"
 class C
@@ -130,12 +131,12 @@ class C
     }|}|} // .ctor
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructorWithComments()
+        public async Task TestConstructorWithComments()
         {
             const string code = @"
 class C
@@ -147,13 +148,13 @@ class C
     }|}|} // .ctor
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
                 Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestConstructorMissingCloseParenAndBody()
+        public async Task TestConstructorMissingCloseParenAndBody()
         {
             // Expected behavior is that the class should be outlined, but the constructor should not.
 
@@ -163,7 +164,7 @@ class C
     $$C(
 }";
 
-            NoRegions(code);
+            await VerifyNoRegionsAsync(code);
         }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -16,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
         protected virtual string WorkspaceKind => TestWorkspace.WorkspaceName;
 
-        internal abstract OutliningSpan[] GetRegions(Document document, int position);
+        internal abstract Task<OutliningSpan[]> GetRegionsAsync(Document document, int position);
 
-        protected void Regions(string markupCode, params Tuple<string, string, string, bool, bool>[] expectedRegionData)
+        protected async Task VerifyRegionsAsync(string markupCode, params Tuple<string, string, string, bool, bool>[] expectedRegionData)
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, files: new[] { markupCode }))
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: new[] { markupCode }))
             {
                 var hostDocument = workspace.Documents.Single();
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
                 var expectedRegions = expectedRegionData.Select(data => CreateOutliningSpan(data, hostDocument.AnnotatedSpans)).ToArray();
 
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var actualRegions = GetRegions(document, position);
+                var actualRegions = await GetRegionsAsync(document, position);
 
                 Assert.True(expectedRegions.Length == actualRegions.Length, $"Expected {expectedRegions.Length} regions but there were {actualRegions.Length}");
 
@@ -40,16 +41,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             }
         }
 
-        protected void NoRegions(string markupCode)
+        protected async Task VerifyNoRegionsAsync(string markupCode)
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromFiles(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, files: new[] { markupCode }))
+            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: new[] { markupCode }))
             {
                 var hostDocument = workspace.Documents.Single();
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
                 var position = hostDocument.CursorPosition.Value;
 
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var actualRegions = GetRegions(document, position);
+                var actualRegions = await GetRegionsAsync(document, position);
 
                 Assert.True(actualRegions.Length == 0, $"Expected no regions but found {actualRegions.Length}.");
             }

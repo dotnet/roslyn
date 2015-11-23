@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         internal override AbstractSyntaxOutliner CreateOutliner() => new MaSOutliners.EnumDeclarationOutliner();
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void NoCommentsOrAttributes()
+        public async Task NoCommentsOrAttributes()
         {
             const string code = @"
 enum $$E
@@ -24,11 +25,11 @@ enum $$E
     B
 }";
 
-            NoRegions(code);
+            await VerifyNoRegionsAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void WithAttributes()
+        public async Task WithAttributes()
         {
             const string code = @"
 {|hint:{|collapse:[Bar]
@@ -38,12 +39,12 @@ enum $$E
     B
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void WithCommentsAndAttributes()
+        public async Task WithCommentsAndAttributes()
         {
             const string code = @"
 {|hint:{|collapse:// Summary:
@@ -55,12 +56,12 @@ enum $$E
     B
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void WithCommentsAttributesAndModifiers()
+        public async Task WithCommentsAttributesAndModifiers()
         {
             const string code = @"
 {|hint:{|collapse:// Summary:
@@ -72,7 +73,7 @@ enum $$E
     B
 }";
 
-            Regions(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
     }

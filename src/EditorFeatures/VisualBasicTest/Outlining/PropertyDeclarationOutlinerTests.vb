@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestReadOnlyProperty()
+        Public Async Function TestReadOnlyProperty() As Task
             Const code = "
 Class C1
     {|span:ReadOnly Property P1$$ As Integer
@@ -24,12 +25,12 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "ReadOnly Property P1 As Integer ...", autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Public Sub TestWriteOnlyProperty()
+        Public Async Function TestWriteOnlyProperty() As Task
             Const code = "
 Class C1
     {|span:WriteOnly Property $$P1 As Integer
@@ -39,9 +40,9 @@ Class C1
 End Class
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("span", "WriteOnly Property P1 As Integer ...", autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace

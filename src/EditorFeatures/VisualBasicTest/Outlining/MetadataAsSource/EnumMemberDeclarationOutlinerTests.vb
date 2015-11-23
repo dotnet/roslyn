@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub NoCommentsOrAttributes()
+        Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Enum E
     $$Foo
@@ -28,11 +29,11 @@ Enum E
 End Enum
 "
 
-            NoRegions(code)
-        End Sub
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithAttributes()
+        Public Async Function WithAttributes() As Task
             Dim code = "
 Enum E
     {|hint:{|collapse:<Blah>
@@ -41,12 +42,12 @@ Enum E
 End Enum
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCommentsAndAttributes()
+        Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 Enum E
     {|hint:{|collapse:' Summary:
@@ -57,9 +58,9 @@ Enum E
 End Enum
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace

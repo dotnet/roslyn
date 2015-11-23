@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,29 +21,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub NoCommentsOrAttributes()
+        Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Delegate Sub $$Bar()
 "
 
-            NoRegions(code)
-        End Sub
+            Await VerifyNoRegionsAsync(code)
+        End Function
 
         Public Delegate Sub Bar(x As Int16)
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithAttributes()
+        Public Async Function WithAttributes() As Task
             Dim code = "
 {|hint:{|collapse:<Foo>
 |}Delegate Sub $$Bar()|}
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCommentsAndAttributes()
+        Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 {|hint:{|collapse:' Summary:
 '     This is a summary.
@@ -50,12 +51,12 @@ Delegate Sub $$Bar()
 |}Delegate Sub $$Bar()|}
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
-        Public Sub WithCommentsAttributesAndModifiers()
+        Public Async Function WithCommentsAttributesAndModifiers() As Task
             Dim code = "
 {|hint:{|collapse:' Summary:
 '     This is a summary.
@@ -63,9 +64,9 @@ Delegate Sub $$Bar()
 |}Public Delegate Sub $$Bar()|}
 "
 
-            Regions(code,
+            Await VerifyRegionsAsync(code,
                 Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
-        End Sub
+        End Function
 
     End Class
 End Namespace
