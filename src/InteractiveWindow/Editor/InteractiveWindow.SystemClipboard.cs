@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             internal override string GetText() => Clipboard.GetText();
 
             internal override void SetDataObject(object data, bool copy) => Clipboard.SetDataObject(data, copy);
+
+            internal override IDataObject GetDataObject() => Clipboard.GetDataObject();
         }
     }
 }
