@@ -62,15 +62,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} (reference {1}).
-        /// </summary>
-        internal static string _0_reference_1 {
-            get {
-                return ResourceManager.GetString("_0_reference_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Accessing captured variable &apos;{0}&apos; that hasn&apos;t been accessed before in {1} will prevent the debug session from continuing..
         /// </summary>
         internal static string AccessingCapturedVariableInLambda {

@@ -102,11 +102,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             var description = this.GetDescription(reference.Item1, semanticModel, node);
                             if (description != null)
                             {
-                                if (reference.Item2.Id != project.Id)
-                                {
-                                    description = string.Format(FeaturesResources._0_reference_1, description, reference.Item2.Name);
-                                }
-
                                 var action = new MyCodeAction(description, c =>
                                     this.AddImportAndReferenceAsync(node, reference, document, placeSystemNamespaceFirst, c));
                                 context.RegisterCodeFix(action, diagnostic);
