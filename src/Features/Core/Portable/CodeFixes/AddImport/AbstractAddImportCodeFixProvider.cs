@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private ISet<INamespaceSymbol> namespacesInScope;
             private ISyntaxFactsService syntaxFacts;
             private readonly AbstractAddImportCodeFixProvider owner;
+            private ImmutableArray<MetadataReference> viableMetadataReferences;
 
             public ProposedImportGetter(
                 AbstractAddImportCodeFixProvider owner,
@@ -177,8 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.containingTypeOrAssembly = containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
                 this.namespacesInScope = owner.GetNamespacesInScope(semanticModel, node, cancellationToken);
                 this.syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-
-                var viableMetadataReferences = await GetViableMetadataReferencesAsync().ConfigureAwait(false);
+                this.viableMetadataReferences = await GetViableMetadataReferencesAsync().ConfigureAwait(false);
 
                 var matchingTypesNamespaces = await this.GetNamespacesForMatchingTypesAsync().ConfigureAwait(false);
                 var matchingTypes = await this.GetMatchingTypesAsync().ConfigureAwait(false);
