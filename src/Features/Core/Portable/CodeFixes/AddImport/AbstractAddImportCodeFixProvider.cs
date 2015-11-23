@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                                     var description = this.GetDescription(import, semanticModel, node);
                                     if (description != null)
                                     {
-                                        var action = new MyCodeAction(description, (c) =>
-                                            this.AddImportAsync(node, import, document, placeSystemNamespaceFirst, cancellationToken));
+                                        var action = new MyCodeAction(description, c =>
+                                            this.AddImportAsync(node, import, document, placeSystemNamespaceFirst, c));
                                         context.RegisterCodeFix(action, diagnostic);
                                     }
                                 }
