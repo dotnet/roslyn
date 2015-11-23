@@ -2,13 +2,18 @@
 <RuleSet Name="Common diagnostic rules for all non-shipping projects" Description="Enables/disable rules specific to all non-shipping projects." ToolsVersion="14.0">
   <Include Path=".\roslyn.ruleset" Action="Default" />
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.CSharp" RuleNamespace="Roslyn.Diagnostics.Analyzers.CSharp">
+    <!-- For tests, the ConfigureAwait(true) is good enough. Either they are already running on a thread pool
+         thread where ConfigureAwait(false) does nothing, or we're running the workload from an STA thread
+         where we want to marshal the continuations back to it. -->
+    <Rule Id="RS0003" Action="None" />
     <Rule Id="RS0007" Action="None" />
   </Rules>
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.MetaAnalyzers" RuleNamespace="Roslyn.Diagnostics.Analyzers.MetaAnalyzers">
     <Rule Id="RS1001" Action="None" />
   </Rules>
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.VisualBasic" RuleNamespace="Roslyn.Diagnostics.Analyzers.VisualBasic">
-    <Rule Id="RS0007" Action="None" />
+    <!-- See above comment under CSharp -->
     <Rule Id="RS0003" Action="None" />
+    <Rule Id="RS0007" Action="None" />
   </Rules>
 </RuleSet>
