@@ -479,6 +479,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 using (var transaction = UndoHistory?.CreateTransaction(InteractiveWindowResources.TypeChar))
                 {
+                    if (transaction != null)
+                    {
+                        var mergeDirections = TextTransactionMergeDirections.Forward | TextTransactionMergeDirections.Backward;
+                        // replacing selected text should be an atomic undo operation).
+                        if ((!TextView.Selection.IsEmpty && !IsEmptyBoxSelection()))
+                        {
+                            mergeDirections = TextTransactionMergeDirections.Forward;
+                        }
+                        transaction.MergePolicy = new TextTransactionMergePolicy(mergeDirections);
+                    }
+
                     if (InsertText(typedChar.ToString()))
                     {
                         transaction?.Complete();
