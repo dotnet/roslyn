@@ -84,9 +84,7 @@
     <Compile Include="CodeCleanup\AddMissingTokensTests.cs" />
     <Compile Include="CodeCleanup\CodeCleanupTests.cs" />
     <Compile Include="CodeCleanup\Extensions.cs" />
-    <Compile Include="CodeCleanup\FixIncorrectTokenTests.cs" />
     <Compile Include="CodeCleanup\NormalizeModifiersOrOperatorsTests.cs" />
-    <Compile Include="CodeCleanup\ReduceTokenTests.cs" />
     <Compile Include="CodeCleanup\RemoveUnnecessaryLineContinuationTests.cs" />
     <Compile Include="UtilityTest\FilePathUtilitiesTests.cs" />
     <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
