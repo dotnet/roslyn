@@ -894,6 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case Accessibility.Internal:
                 case Accessibility.Private:
+                case Accessibility.ProtectedAndInternal:
                     break;
                 case Accessibility.Public:
                 case Accessibility.ProtectedOrInternal:

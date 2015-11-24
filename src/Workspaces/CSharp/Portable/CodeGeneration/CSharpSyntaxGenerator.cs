@@ -1696,6 +1696,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     list = list.Add(SyntaxFactory.Token(SyntaxKind.InternalKeyword))
                                .Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
                     break;
+                case Accessibility.ProtectedAndInternal:
+                    list = list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                               .Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword));
+                    break;
                 case Accessibility.NotApplicable:
                     break;
             }
@@ -1779,7 +1783,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.PrivateKeyword:
-                        accessibility = Accessibility.Private;
+                        if (accessibility == Accessibility.Protected)
+                        {
+                            accessibility = Accessibility.ProtectedAndInternal;
+                        }
+                        else
+                        {
+                            accessibility = Accessibility.Private;
+                        }
                         break;
 
                     case SyntaxKind.InternalKeyword:
@@ -1795,11 +1806,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         break;
 
                     case SyntaxKind.ProtectedKeyword:
-                        if (accessibility == Accessibility.Internal)
+                        if (accessibility == Accessibility.Private)
+                        {
+                            accessibility = Accessibility.ProtectedAndInternal;
+                        }
+                        else if (accessibility == Accessibility.Internal)
                         {
                             accessibility = Accessibility.ProtectedOrInternal;
                         }
-                        else
+
                         {
                             accessibility = Accessibility.Protected;
                         }
