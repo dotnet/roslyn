@@ -532,5 +532,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxEquivalence.AreEquivalent(oldList.Node, newList.Node, ignoreChildNode, topLevel:=False)
         End Function
 
+        ''' <summary>
+        ''' Determites if a submission is complete.
+        ''' Returns false if the syntax is valid but incomplete.
+        ''' Returns true if the syntax is invalid or complete.
+        ''' </summary>
+        ''' <param name="tree">Syntax tree.</param>
+        Public Shared Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
+            ' TODO: https://github.com/dotnet/roslyn/issues/5235
+            Dim options As VisualBasicParseOptions = DirectCast(tree.Options, VisualBasicParseOptions)
+            Dim languageVersion As LanguageVersion = options.LanguageVersion
+
+            If (tree Is Nothing) Then
+                Throw New ArgumentNullException(NameOf(tree))
+            End If
+
+            If (Not tree.HasCompilationUnitRoot) Then
+                Return False
+            End If
+
+            Dim compilation As CompilationUnitSyntax = DirectCast(tree.GetRoot(), CompilationUnitSyntax)
+            If Not compilation.HasErrors Then
+                Return True
+            End If
+
+            For Each err In compilation.GetDiagnostics()
+                Select Case DirectCast(err.Code, ERRID)
+                    Case ERRID.ERR_LbExpectedEndIf,
+                         ERRID.ERR_ExpectedEndRegion
+                        Return False
+                End Select
+            Next
+
+            Dim lastNode = compilation.ChildNodes().LastOrDefault()
+            If lastNode Is Nothing Then
+                Return True
+            End If
+
+            Dim lastToken = lastNode.GetLastToken(includeZeroWidth:=True, includeSkipped:=True)
+            If lastToken.IsMissing Then
+                Return False
+            End If
+
+            For Each err In lastToken.GetDiagnostics()
+                Select Case DirectCast(err.Code, ERRID)
+                    Case ERRID.ERR_UnterminatedStringLiteral
+                        If languageVersion = LanguageVersion.VisualBasic14 Then
+                            Return False
+                        End If
+                End Select
+            Next
+
+            Return True
+        End Function
     End Class
 End Namespace
