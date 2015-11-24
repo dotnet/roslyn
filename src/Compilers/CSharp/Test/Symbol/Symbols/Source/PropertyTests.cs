@@ -1742,7 +1742,7 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(Parse(text));
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
 
             var globalNamespace = comp.GlobalNamespace;
 
@@ -2875,7 +2875,7 @@ unsafe class Test
     }
     ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,17): error CS8080: Properties with by-reference returns must have a get accessor.
                 //         ref int P { set { } }
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "P").WithArguments("C.P").WithLocation(4, 17));
@@ -2892,7 +2892,7 @@ unsafe class Test
     }
     ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (5,47): error CS8081: Properties with by-reference returns cannot have set accessors.
                 //         ref int P { get { return ref field; } set { } } 
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.P.set").WithLocation(5, 47));

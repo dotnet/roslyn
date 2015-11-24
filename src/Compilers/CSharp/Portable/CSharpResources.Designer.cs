@@ -9639,6 +9639,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to byref locals and returns.
+        /// </summary>
+        internal static string IDS_FeatureRefLocalsReturns {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRefLocalsReturns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to static classes.
         /// </summary>
         internal static string IDS_FeatureStaticClasses {
