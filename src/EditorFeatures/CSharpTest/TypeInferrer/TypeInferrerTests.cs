@@ -1765,7 +1765,7 @@ public class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
-        public void TestDefaultStatement1()
+        public async void TestDefaultStatement1()
         {
             var text =
     @"class C
@@ -1775,12 +1775,12 @@ public class C
         System.ConsoleModifiers c = default([||])
     }
 }";
-            Test(text, "global::System.ConsoleModifiers", testNode:false);
+            await TestAsync(text, "global::System.ConsoleModifiers", testNode:false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
-        public void TestDefaultStatement2()
+        public async void TestDefaultStatement2()
         {
             var text =
     @"class C
@@ -1790,7 +1790,7 @@ public class C
         Foo(default([||])
     }
 }";
-            Test(text, "global::System.ConsoleModifiers", testNode: false);
+            await TestAsync(text, "global::System.ConsoleModifiers", testNode: false);
         }
     }
 }
