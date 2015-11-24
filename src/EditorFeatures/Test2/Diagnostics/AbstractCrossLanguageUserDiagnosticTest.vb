@@ -19,11 +19,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
 
+        Protected Async Function TestMissing(definition As XElement) As Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
+                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
+                Assert.Null(diagnosticAndFix)
+            End Using
+        End Function
+
         Protected Async Function TestAsync(definition As XElement,
                            Optional expected As String = Nothing,
                            Optional codeActionIndex As Integer = 0,
                            Optional verifyTokens As Boolean = True,
-                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing) As Task
+                           Optional fileNameToExpected As Dictionary(Of String, String) = Nothing,
+                           Optional verifySolutions As Action(Of Solution, Solution) = Nothing) As Task
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Dim codeAction = diagnosticAndFix.Item2.Fixes.ElementAt(codeActionIndex).Action
@@ -32,6 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 Dim oldSolution = workspace.CurrentSolution
                 Dim updatedSolution = edit.ChangedSolution
+
+                verifySolutions?.Invoke(oldSolution, updatedSolution)
 
                 If fileNameToExpected Is Nothing Then
                     Dim updatedDocument = SolutionUtilities.GetSingleChangedDocument(oldSolution, updatedSolution)
