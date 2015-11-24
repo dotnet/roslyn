@@ -762,5 +762,77 @@ End Class
             Await TestAsync(definition, expected)
         End Function
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Async Function TestVBLocalDeclarations_DirectCast() As Task
+            Dim definition =
+    <Workspace>
+        <Project Language="Visual Basic" CommonReferences="true">
+            <CompilationOptions RootNamespace="ClassLibrary1"/>
+            <Document>
+Public Class C
+    $$Sub M()
+        Dim s = DirectCast("Text", String)
+    End Sub
+End Class
+        </Document>
+        </Project>
+    </Workspace>
+
+            Dim expected =
+<Block><Local line="3">
+    <Type>System.String</Type>
+    <Name>s</Name>
+    <Expression>
+        <Cast directcast="yes">
+            <Type>System.String</Type>
+            <Expression>
+                <Literal>
+                    <String>Text</String>
+                </Literal>
+            </Expression>
+        </Cast>
+    </Expression>
+    </Local>
+</Block>
+
+            Await TestAsync(definition, expected)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Async Function TestVBLocalDeclarations_TryCast() As Task
+            Dim definition =
+    <Workspace>
+        <Project Language="Visual Basic" CommonReferences="true">
+            <CompilationOptions RootNamespace="ClassLibrary1"/>
+            <Document>
+Public Class C
+    $$Sub M()
+        Dim s = TryCast("Text", String)
+    End Sub
+End Class
+        </Document>
+        </Project>
+    </Workspace>
+
+            Dim expected =
+<Block><Local line="3">
+    <Type>System.String</Type>
+    <Name>s</Name>
+    <Expression>
+        <Cast trycast="yes">
+            <Type>System.String</Type>
+            <Expression>
+                <Literal>
+                    <String>Text</String>
+                </Literal>
+            </Expression>
+        </Cast>
+    </Expression>
+    </Local>
+</Block>
+
+            Await TestAsync(definition, expected)
+        End Function
+
     End Class
 End Namespace
