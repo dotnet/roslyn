@@ -215,6 +215,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             {
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
+                    case VSConstants.VSStd2KCmdID.TYPECHAR:
+                        // No-op since character was inserted in pre-language service filter below
+                        return VSConstants.S_OK;
+
                     case VSConstants.VSStd2KCmdID.RETURN:
                         if (_window.Operations.Return())
                         {
@@ -423,9 +427,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                             {
                                 char typedChar = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
                                 operations.TypeChar(typedChar);
-                                return VSConstants.S_OK;
                             }
-                            _window.Operations.Delete();
+                            else
+                            {
+                                _window.Operations.Delete();
+                            }
                             break;
                         }
 

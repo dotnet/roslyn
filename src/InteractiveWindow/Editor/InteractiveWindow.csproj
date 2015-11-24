@@ -20,7 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2"/>
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VsInteractiveWindow" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
@@ -137,6 +137,7 @@
     <EmbeddedResource Include="InteractiveWindowResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>InteractiveWindowResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
