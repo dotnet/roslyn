@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case NodeUsage.ImplicitClass
                     Dim implicitType As NamedTypeSymbol
-                    If _tree.Options.Kind = SourceCodeKind.Regular Then
+                    If node.Kind <> SyntaxKind.CompilationUnit OrElse _tree.Options.Kind = SourceCodeKind.Regular Then
                         implicitType = DirectCast(containingBinder.ContainingNamespaceOrType.GetMembers(TypeSymbol.ImplicitTypeName).Single(), NamedTypeSymbol)
                     Else
                         implicitType = _sourceModule.ContainingSourceAssembly.DeclaringCompilation.SourceScriptClass
