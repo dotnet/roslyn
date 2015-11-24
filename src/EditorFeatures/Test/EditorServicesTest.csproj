@@ -251,6 +251,9 @@
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
     <Compile Include="Diagnostics\TestHostDiagnosticUpdateSource.cs" />
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
+    <Compile Include="Outlining\AbstractSyntaxNodeOutlinerTests.cs" />
+    <Compile Include="Outlining\AbstractSyntaxOutlinerTests.cs" />
+    <Compile Include="Outlining\AbstractSyntaxTriviaOutlinerTests.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />

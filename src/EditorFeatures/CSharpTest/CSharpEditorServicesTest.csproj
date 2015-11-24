@@ -310,8 +310,8 @@
     <Compile Include="Organizing\OrganizeModifiersTests.cs" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.cs" />
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
-    <Compile Include="Outlining\AbstractOutlinerTests.cs" />
-    <Compile Include="Outlining\AbstractOutlinerTests`1.cs" />
+    <Compile Include="Outlining\AbstractCSharpSyntaxNodeOutlinerTests.cs" />
+    <Compile Include="Outlining\AbstractCSharpSyntaxTriviaOutlinerTests.cs" />
     <Compile Include="Outlining\AccessorDeclarationTests.cs" />
     <Compile Include="Outlining\AnonymousMethodExpressionTests.cs" />
     <Compile Include="Outlining\CommentTests.cs" />
