@@ -158,7 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_DuplicateSpecifier)
                 ElseIf (currentModifier And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
-                       Not ((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Friend) Then
+                       Not ((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Friend) AndAlso
+                       Not (((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Private) AndAlso Me.Compilation.Feature("privateProtected") <> Nothing) Then
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_DuplicateAccessCategoryUsed)
                 ElseIf (currentModifier And SourceMemberFlags.AllOverrideModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllOverrideModifiers) <> 0 Then
@@ -206,6 +207,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 access = Accessibility.Public
             ElseIf (foundModifiers And (SourceMemberFlags.Friend Or SourceMemberFlags.Protected)) = (SourceMemberFlags.Friend Or SourceMemberFlags.Protected) Then
                 access = Accessibility.ProtectedOrFriend
+            ElseIf (foundModifiers And (SourceMemberFlags.Private Or SourceMemberFlags.Protected)) = (SourceMemberFlags.Private Or SourceMemberFlags.Protected) Then
+                access = Accessibility.ProtectedAndFriend
             ElseIf (foundModifiers And SourceMemberFlags.Friend) <> 0 Then
                 access = Accessibility.Friend
             ElseIf (foundModifiers And SourceMemberFlags.Protected) <> 0 Then
@@ -1518,6 +1521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         AccessibilityProtected = CUShort(Accessibility.Protected)
         AccessibilityFriend = CUShort(Accessibility.Friend)
         AccessibilityProtectedFriend = CUShort(Accessibility.ProtectedOrFriend)
+        AccessibilityPrivateProtected = CUShort(Accessibility.ProtectedAndFriend)
         AccessibilityPublic = CUShort(Accessibility.Public)
         AccessibilityMask = &H7
 

@@ -1387,6 +1387,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return symbol.DeclaredAccessibility = Accessibility.Public OrElse
                    symbol.DeclaredAccessibility = Accessibility.Protected OrElse
                    symbol.DeclaredAccessibility = Accessibility.ProtectedOrFriend OrElse
+                   symbol.DeclaredAccessibility = Accessibility.ProtectedAndFriend OrElse
                    symbol.DeclaredAccessibility = Accessibility.Friend
         End Function
 
@@ -1420,6 +1421,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessProject
                 Case Accessibility.ProtectedOrInternal, Accessibility.ProtectedOrFriend
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected
+                Case Accessibility.ProtectedAndInternal, Accessibility.ProtectedAndFriend
+                    ' TODO: there is no appropriate value to map it to. We approximate it with "Friend" access.
+                    access = access Or EnvDTE.vsCMAccess.vsCMAccessProject
                 Case Accessibility.Public
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessPublic
                 Case Else

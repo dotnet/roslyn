@@ -1017,7 +1017,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsInaccessibleBecauseOfConstruction(NamedTypeSymbol type, NamedTypeSymbol context)
         {
             // NOTE: Dev11 (incorrectly) only checks whether "type" is protected - it ignores container accessibility.
-            bool sawProtected = type.DeclaredAccessibility == Accessibility.Protected || type.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
+            bool sawProtected =
+                type.DeclaredAccessibility == Accessibility.Protected ||
+                type.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
+                type.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
             bool sawGeneric = false; // Generic "type" doesn't count.
             Dictionary<NamedTypeSymbol, NamedTypeSymbol> containingTypes = null; // maps definition to constructed
             {
@@ -1029,7 +1032,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         containingTypes = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>();
                     }
 
-                    sawProtected = sawProtected || containingType.DeclaredAccessibility == Accessibility.Protected || containingType.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
+                    sawProtected = sawProtected ||
+                        containingType.DeclaredAccessibility == Accessibility.Protected ||
+                        containingType.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
+                        containingType.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
                     sawGeneric = sawGeneric || containingType.Arity > 0;
 
                     containingTypes.Add(containingType.OriginalDefinition, containingType);

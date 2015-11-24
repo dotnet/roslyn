@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxx|wwwww|
+            // |  |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxxx|wwwww|
             // 
             // w = method kind.  5 bits.
             //
-            // x = modifiers.  21 bits.
+            // x = modifiers.  22 bits.
             //
             // y = returnsVoid. 1 bit.
             //
@@ -37,16 +37,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // s = isMetadataVirtualLocked. 1 bit.
 
             private const int MethodKindOffset = 0;
-            private const int DeclarationModifiersOffset = 5;
+            private const int MethodKindSize = 5;
+            private const int MethodKindMask = (1 << MethodKindSize) - 1;
 
-            private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x1FFFFF;
+            private const int DeclarationModifiersOffset = MethodKindOffset + MethodKindSize;
+            private const int DeclarationModifiersSize = 22;
+            private const int DeclarationModifiersMask = (1 << DeclarationModifiersSize) - 1;
 
-            private const int ReturnsVoidBit = 1 << 26;
-            private const int IsExtensionMethodBit = 1 << 27;
-            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 28;
-            private const int IsMetadataVirtualBit = 1 << 29;
-            private const int IsMetadataVirtualLockedBit = 1 << 30;
+            private const int ReturnsVoidOffset = DeclarationModifiersOffset + DeclarationModifiersSize;
+            private const int ReturnsVoidBit = 1 << ReturnsVoidOffset;
+
+            private const int IsExtensionMethodOffset = ReturnsVoidOffset + 1;
+            private const int IsExtensionMethodBit = 1 << IsExtensionMethodOffset;
+
+            private const int IsMetadataVirtualIgnoringInterfaceChangesOffset = IsExtensionMethodOffset + 1;
+            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << IsMetadataVirtualIgnoringInterfaceChangesOffset;
+
+            private const int IsMetadataVirtualOffset = IsMetadataVirtualIgnoringInterfaceChangesOffset + 1;
+            private const int IsMetadataVirtualBit = 1 << IsMetadataVirtualOffset;
+
+            private const int IsMetadataVirtualLockedOffset = IsMetadataVirtualOffset + 1;
+            private const int IsMetadataVirtualLockedBit = 1 << IsMetadataVirtualLockedOffset;
 
             private int _flags;
 

@@ -27,21 +27,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // First int:
             //
-            // |  |d|yy|xxxxxxxxxxxxxxxxxxxxx|wwwwww|
+            // | |d|yy|xxxxxxxxxxxxxxxxxxxxxx|wwwwww|
             //
             // w = special type.  6 bits.
-            // x = modifiers.  21 bits.
+            // x = modifiers.  22 bits.
             // y = IsManagedType.  2 bits.
             // d = FieldDefinitionsNoted. 1 bit
             private const int SpecialTypeOffset = 0;
-            private const int DeclarationModifiersOffset = 6;
-            private const int IsManagedTypeOffset = 26;
+            private const int SpecialTypeSize = 6;
 
-            private const int SpecialTypeMask = 0x3F;
-            private const int DeclarationModifiersMask = 0x1FFFFF;
-            private const int IsManagedTypeMask = 0x3;
+            private const int DeclarationModifiersOffset = SpecialTypeSize;
+            private const int DeclarationModifiersSize = 22;
 
-            private const int FieldDefinitionsNotedBit = 1 << 28;
+            private const int IsManagedTypeOffset = DeclarationModifiersOffset + DeclarationModifiersSize;
+            private const int IsManagedTypeSize = 2;
+
+            private const int FieldDefinitionsNotedOffset = IsManagedTypeOffset + IsManagedTypeSize;
+            private const int FieldDefinitionsNotedSize = 1;
+
+            private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
+            private const int DeclarationModifiersMask = (1 << DeclarationModifiersSize) - 1;
+            private const int IsManagedTypeMask = (1 << IsManagedTypeSize) - 1;
+
+            private const int FieldDefinitionsNotedBit = 1 << FieldDefinitionsNotedOffset;
 
             private int _flags;
 
@@ -1815,7 +1823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (member.DeclaredAccessibility == Accessibility.Protected || member.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
+                    if (member.DeclaredAccessibility == Accessibility.Protected || member.DeclaredAccessibility == Accessibility.ProtectedOrInternal || member.DeclaredAccessibility == Accessibility.ProtectedAndInternal)
                     {
                         if (member.Kind != SymbolKind.Method || ((MethodSymbol)member).MethodKind != MethodKind.Destructor)
                         {

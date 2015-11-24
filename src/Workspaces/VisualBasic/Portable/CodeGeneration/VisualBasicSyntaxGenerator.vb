@@ -2659,6 +2659,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                 Case Accessibility.ProtectedOrInternal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
+                Case Accessibility.ProtectedAndInternal
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                 Case Accessibility.NotApplicable
                 Case Else
                     Throw New NotSupportedException(String.Format("Accessibility '{0}' not supported.", accessibility))
@@ -2745,7 +2747,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.PublicKeyword
                         accessibility = Accessibility.Public
                     Case SyntaxKind.PrivateKeyword
-                        accessibility = Accessibility.Private
+                        If accessibility = Accessibility.Protected Then
+                            accessibility = Accessibility.ProtectedAndFriend
+                        Else
+                            accessibility = Accessibility.Private
+                        End If
                     Case SyntaxKind.FriendKeyword
                         If accessibility = Accessibility.Protected Then
                             accessibility = Accessibility.ProtectedOrFriend
@@ -2755,6 +2761,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.ProtectedKeyword
                         If accessibility = Accessibility.Friend Then
                             accessibility = Accessibility.ProtectedOrFriend
+                        ElseIf accessibility = Accessibility.Private
+                            accessibility = Accessibility.ProtectedAndFriend
                         Else
                             accessibility = Accessibility.Protected
                         End If

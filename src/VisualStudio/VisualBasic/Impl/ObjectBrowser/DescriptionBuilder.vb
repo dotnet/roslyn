@@ -296,6 +296,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                     AddText("Protected ")
                 Case Accessibility.ProtectedOrFriend
                     AddText("Protected Friend ")
+                Case Accessibility.ProtectedAndFriend
+                    AddText("Private Protected ")
                 Case Else
                     AddText("Friend ")
             End Select
