@@ -288,7 +288,7 @@ public interface A {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
@@ -471,7 +471,7 @@ namespace N1.N2  {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(new[] { text, text1, text2 });
+            var comp = CreateExperimentalCompilationWithMscorlib45(new[] { text, text1, text2 });
             Assert.Equal(0, comp.GetDiagnostics().Count());
             var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
             var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
@@ -642,16 +642,16 @@ namespace N1.N2  {
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(text);
+            var comp1 = CreateExperimentalCompilationWithMscorlib45(text);
             var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
+            var comp2 = CreateExperimentalCompilationWithMscorlib45(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
             //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
             //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
             //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilationWithMscorlib(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
+            var comp = CreateExperimentalCompilationWithMscorlib45(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
             //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });
@@ -1638,7 +1638,7 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(Parse(text));
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
 
             var globalNamespace = comp.GlobalNamespace;
 
@@ -2066,7 +2066,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,12): error CS8088: Void-returning methods cannot return by reference
                 //     static ref void M() { }
                 Diagnostic(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, "ref").WithLocation(4, 12));
@@ -2082,7 +2082,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,18): error CS1519: Invalid token 'ref' in class, struct, or interface member declaration
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "ref").WithArguments("ref").WithLocation(4, 18),

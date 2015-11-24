@@ -2101,7 +2101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return CanStartMember(this.CurrentToken.Kind);
         }
 
-        private static bool CanStartMember(SyntaxKind kind)
+        private bool CanStartMember(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -2148,8 +2148,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OpenBracketToken:
                 case SyntaxKind.ImplicitKeyword:
                 case SyntaxKind.ExplicitKeyword:
-                case SyntaxKind.RefKeyword:
                     return true;
+
+                case SyntaxKind.RefKeyword:
+                    return IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns);
 
                 default:
                     return false;
@@ -2435,7 +2437,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void) or the ref keyword. Parse one.
                 SyntaxToken refKeyword = null;
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
                 {
                     refKeyword = this.EatToken();
                 }
@@ -3406,7 +3409,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var arrowToken = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
 
             var refKeyword = default(SyntaxToken);
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
             {
                 refKeyword = this.EatToken();
             }
@@ -4788,7 +4792,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var equals = this.EatToken();
 
                     SyntaxToken refKeyword = null;
-                    if (isLocal && !isConst && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                    if (isLocal && !isConst && 
+                        this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                        IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
                     {
                         refKeyword = this.EatToken();
                     }
@@ -4948,7 +4954,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var delegateToken = this.EatToken(SyntaxKind.DelegateKeyword);
 
             SyntaxToken refKeyword = null;
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
             {
                 refKeyword = this.EatToken();
             }            
@@ -7063,8 +7070,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
                 case SyntaxKind.VolatileKeyword:
-                case SyntaxKind.RefKeyword:
                     return true;
+                case SyntaxKind.RefKeyword:
+                    return IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns);
                 case SyntaxKind.IdentifierToken:
                     return IsTrueIdentifier();
                 case SyntaxKind.CatchKeyword:
@@ -7441,7 +7449,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxToken refKeyword = null;
                 VariableDeclarationSyntax decl = null;
                 bool isDeclaration = false;
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
                 {
                     refKeyword = this.EatToken();
                     isDeclaration = true;
@@ -7668,7 +7677,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ExpressionSyntax arg = null;
             if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
                 {
                     refKeyword = this.EatToken();
                 }
@@ -7991,7 +8001,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.ParseDeclarationModifiers(mods);
 
                 SyntaxToken refKeyword = null;
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns)) 
                 {
                     refKeyword = this.EatToken();
                 }
@@ -8138,7 +8149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NewKeyword:
                 case SyntaxKind.DelegateKeyword:
                 case SyntaxKind.ColonColonToken: // bad aliased name
-                case SyntaxKind.RefKeyword: // ref local declaration expression
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
@@ -9987,7 +9997,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                    if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                        IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
                     {
                         refKeyword = this.EatToken();
                     }
@@ -10010,7 +10021,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                    if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                        IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
                     {
                         refKeyword = this.EatToken();
                     }

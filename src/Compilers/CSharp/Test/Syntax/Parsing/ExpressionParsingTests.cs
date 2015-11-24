@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private ExpressionSyntax ParseExpressionExperimental(string text)
         {
-            var experimentalFeatures = new SmallDictionary<string, string>(); // no experimental features to enable
+            var experimentalFeatures = TestOptions.s_experimentalFeatures;
             return SyntaxFactory.ParseExpression(text, options: CSharpParseOptions.Default.WithFeatures(experimentalFeatures));
         }
 
@@ -1181,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSimpleLambdaWithRefReturn()
         {
             var text = "a => ref b";
-            var expr = this.ParseExpression(text);
+            var expr = this.ParseExpressionExperimental(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.SimpleLambdaExpression, expr.Kind());
@@ -1240,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithNoParametersAndRefReturn()
         {
             var text = "() => ref b";
-            var expr = this.ParseExpression(text);
+            var expr = this.ParseExpressionExperimental(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());

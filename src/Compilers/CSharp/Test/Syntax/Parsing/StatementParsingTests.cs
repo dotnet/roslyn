@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseStatement(text, offset, options);
         }
 
+        private StatementSyntax ParseStatementExperimental(string text)
+        {
+            var experimentalFeatures = TestOptions.s_experimentalFeatures;
+            return ParseStatement(text, offset: 0, options: CSharpParseOptions.Default.WithFeatures(experimentalFeatures));
+        }
+
         [Fact]
         public void TestName()
         {
@@ -657,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatement()
         {
             var text = "ref T a;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatementExperimental(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -684,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithInitializer()
         {
             var text = "ref T a = ref b;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatementExperimental(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -717,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithMultipleInitializers()
         {
             var text = "ref T a = ref b, c = ref d;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatementExperimental(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -1558,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithRefVariableDeclaration()
         {
             var text = "for(ref T a = ref b, c = ref d;;) { }";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatementExperimental(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());

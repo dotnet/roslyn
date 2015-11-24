@@ -486,7 +486,7 @@ class C
         [Fact]
         public void RefReturningExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateExperimentalCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;

@@ -2375,7 +2375,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2400,7 +2400,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2429,7 +2429,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2458,7 +2458,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(1078958, "DevDiv")]

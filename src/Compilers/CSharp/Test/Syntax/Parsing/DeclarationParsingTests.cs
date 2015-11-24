@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
         }
 
+        private CompilationUnitSyntax ParseFileExperimental(string text)
+        {
+            var experimentalFeatures = TestOptions.s_experimentalFeatures;
+            return ParseFile(text, parseOptions: CSharpParseOptions.Default.WithFeatures(experimentalFeatures));
+        }
+
         [Fact]
         public void TestExternAlias()
         {
@@ -1955,7 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithRefReturnType()
         {
             var text = "delegate ref a b();";
-            var file = this.ParseFile(text);
+            var file = this.ParseFileExperimental(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2427,7 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRefReturn()
         {
             var text = "class a { ref b X() { } }";
-            var file = this.ParseFile(text);
+            var file = this.ParseFileExperimental(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3764,7 +3770,7 @@ class Class1<T>{
         public void TestClassPropertyWithRefReturn()
         {
             var text = "class a { ref b c { get; set; } }";
-            var file = this.ParseFile(text);
+            var file = this.ParseFileExperimental(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4640,7 +4646,7 @@ class Class1<T>{
         public void TestClassIndexerWithRefReturn()
         {
             var text = "class a { ref b this[c d] { get; set; } }";
-            var file = this.ParseFile(text);
+            var file = this.ParseFileExperimental(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
