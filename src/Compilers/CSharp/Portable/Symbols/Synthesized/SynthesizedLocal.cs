@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #else
         internal SynthesizedLocal(
             MethodSymbol containingMethodOpt,
-            TypeSymbol type,
+            TypeSymbolWithAnnotations type,
             SynthesizedLocalKind kind,
             SyntaxNode syntaxOpt = null,
             bool isPinned = false,
