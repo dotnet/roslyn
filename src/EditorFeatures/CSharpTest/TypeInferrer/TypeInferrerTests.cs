@@ -1765,7 +1765,7 @@ public class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
-        public async void TestDefaultStatement1()
+        public async Task TestDefaultStatement1()
         {
             var text =
     @"class C
@@ -1780,7 +1780,7 @@ public class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [WorkItem(6765, "https://github.com/dotnet/roslyn/issues/6765")]
-        public async void TestDefaultStatement2()
+        public async Task TestDefaultStatement2()
         {
             var text =
     @"class C
