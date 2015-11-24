@@ -107,6 +107,14 @@
     <OverwriteReadOnlyFiles Condition="'$(OverwriteReadOnlyFiles)' == ''">true</OverwriteReadOnlyFiles>
   </PropertyGroup>
 
+  <!-- Don't validate our .vsixmanifests for correct schemas. Right now our build machines are on Visual Studio 2015 RTM, but we want to set a property
+       (Experimental) that was added in Update 1. Since the schema is pulled from the box, you can't build with RTM unless we either disable schema
+       validation or otherwise copy the schemas in and then point the target to those. Since schema changes happen fairly rarely, I'll just disable
+       schema validation and turn it on as soon as we're on update 1 only. -->
+  <PropertyGroup>
+    <BypassVsixValidation>true</BypassVsixValidation>
+  </PropertyGroup>
+
   <!-- Project language -->
   <PropertyGroup Condition="'$(ProjectLanguage)' == ''">
     <ProjectLanguage Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#'">CSharp</ProjectLanguage>
