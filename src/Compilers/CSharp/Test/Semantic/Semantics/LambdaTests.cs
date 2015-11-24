@@ -1119,7 +1119,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
 
@@ -1141,7 +1141,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1169,7 +1169,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1192,7 +1192,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (11,22): error CS8083: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(11, 22),
@@ -1222,7 +1222,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (9,33): error CS8083: By-reference returns may only be used in by-reference returning methods.
                 //         var e = new E(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(9, 33),
@@ -1267,7 +1267,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (18,13): error CS8084: By-value returns may only be used in by-value returning methods.
                 //             return i;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(18, 13),

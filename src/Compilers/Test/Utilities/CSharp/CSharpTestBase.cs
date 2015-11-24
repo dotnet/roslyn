@@ -126,9 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Action<PEAssembly> assemblyValidator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
+            CSharpCompilationOptions options = null,
             bool verify = true)
         {
-            var options = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
+            options = options ??
+                ((expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
 
             var compilation = CreateExperimentalCompilationWithMscorlib45(source, additionalRefs, options);
 
@@ -400,6 +402,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
             refs.Add(MscorlibRef_v4_0_30316_17626);
             return CreateCompilation(new[] { Parse(text, sourceFileName, TestOptions.ExperimentalParseOptions) }, refs, options, assemblyName);
+        }
+
+        public static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
+            string[] texts,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            string assemblyName = "",
+            string sourceFileName = "")
+        {
+            var refs = new List<MetadataReference>();
+            if (references != null)
+            {
+                refs.AddRange(references);
+            }
+            refs.Add(MscorlibRef_v4_0_30316_17626);
+            return CreateCompilation((from text in texts select Parse(text, sourceFileName, TestOptions.ExperimentalParseOptions)).ToArray(), refs, options, assemblyName);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(

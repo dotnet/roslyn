@@ -25,7 +25,7 @@ class Test
         ref int x;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (6,17): error CS8935: A declaration of a by-reference variable must have an initializer
     //         ref int x;
@@ -49,7 +49,7 @@ class Test
         var y = x;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (7,17): error CS8933: Cannot initialize a by-reference variable with a value
     //         ref int x = a;
@@ -70,7 +70,7 @@ class Test
         var y = ref x;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (8,13): error CS8932: Cannot initialize a by-value variable with a reference
     //         var y = ref x;
@@ -114,7 +114,7 @@ class Test
     }
 
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (6,20): error CS8910: An expression cannot be used in this context because it may not be returned by reference
     //         return ref 2 + 2;
@@ -155,7 +155,7 @@ class Test
     void VoidMethod(){}
     int P1 {get{return 1;} set{}}
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (9,27): error CS8910: An expression cannot be used in this context because it may not be returned by reference
     //         D1 d1 = () => ref 2 + 2;
@@ -228,7 +228,7 @@ public class Test
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (18,24): error CS8924: Cannot return local 'l' by reference because it is not a ref local
     //             return ref l;
@@ -283,7 +283,7 @@ public class Test
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (13,30): error CS1657: Cannot use 'ro' as a ref or out value because it is a 'foreach iteration variable'
     //             ref char r = ref ro;
@@ -325,7 +325,7 @@ public class Test
     }
 
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text, references: new[] { MscorlibRef, SystemCoreRef });
             comp.VerifyDiagnostics(
     // (16,34): error CS8913: Cannot return the range variable 'ch' by reference
     //             select(D1)(() => ref ch);
@@ -376,7 +376,7 @@ public class Test
     }
 
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text, references: new[] { MscorlibRef, SystemCoreRef });
             comp.VerifyDiagnostics(
     // (14,26): error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'
     //         ref char r = ref M;
@@ -493,7 +493,7 @@ public class Test
     }
 
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (33,33): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
     //             ref char temp = ref s1;
@@ -586,7 +586,7 @@ public class Test
   
 
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (10,24): error CS8927: Struct members cannot return 'this' or other instance members by reference
     //             return ref this;
@@ -690,7 +690,7 @@ public class Test
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (18,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref r;
@@ -774,7 +774,7 @@ public class Test
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateExperimentalCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics(
     // (19,24): error CS8911: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
     //             return ref r;   //1
