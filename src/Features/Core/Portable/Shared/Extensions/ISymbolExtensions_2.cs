@@ -154,12 +154,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     break;
 
                 case Accessibility.Protected:
-                case Accessibility.ProtectedAndInternal:
                 case Accessibility.ProtectedOrInternal:
                     publicIcon += Glyph.ClassProtected - Glyph.ClassPublic;
                     break;
 
                 case Accessibility.Internal:
+                case Accessibility.ProtectedAndInternal:
                     publicIcon += Glyph.ClassInternal - Glyph.ClassPublic;
                     break;
             }

@@ -327,6 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Protected,
             ProtectedInternal,
             Internal,
+            PrivateProtected,
             Private
         }
 
@@ -341,6 +342,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (ContainsToken(modifiers, SyntaxKind.InternalKeyword))
                 {
                     return (int)Accessibility.ProtectedInternal;
+                }
+
+                if (ContainsToken(modifiers, SyntaxKind.PrivateKeyword))
+                {
+                    return (int)Accessibility.PrivateProtected;
                 }
 
                 return (int)Accessibility.Protected;
