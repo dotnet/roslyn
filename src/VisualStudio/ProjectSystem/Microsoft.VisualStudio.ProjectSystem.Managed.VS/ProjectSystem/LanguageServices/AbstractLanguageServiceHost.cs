@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
     /// <summary>
     ///     Provides the base <see langword="abstract"/> for language service hosts that integrate the language service with the project system.
     /// </summary>
-    internal abstract class LanguageServiceHostBase :
+    internal abstract class AbstractLanguageServiceHost :
         IVsIntellisenseProjectHost,
         IDisposable,
         ICodeModelProvider,
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.LanguageServices
 
         private readonly IUnconfiguredProjectVsServices _projectVsServices;
 
-        protected LanguageServiceHostBase(IUnconfiguredProjectVsServices projectVsServices)
+        protected AbstractLanguageServiceHost(IUnconfiguredProjectVsServices projectVsServices)
         {
             Requires.NotNull(projectVsServices, nameof(projectVsServices));
 

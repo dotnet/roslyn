@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     /// </summary>
     [Export(typeof(IProjectTreeModifier))]
     [AppliesTo(ProjectCapability.VisualBasic)]
-    internal class MyProjectFolderProjectTreeModifier : AppDesignerFolderProjectTreeModifierBase
+    internal class MyProjectFolderProjectTreeModifier : AbstractAppDesignerFolderProjectTreeModifier
     {
         [ImportingConstructor]
         public MyProjectFolderProjectTreeModifier([Import(typeof(ProjectImageProviderAggregator))]IProjectImageProvider imageProvider, IUnconfiguredProjectCommonServices projectServices, IProjectDesignerService designerService)

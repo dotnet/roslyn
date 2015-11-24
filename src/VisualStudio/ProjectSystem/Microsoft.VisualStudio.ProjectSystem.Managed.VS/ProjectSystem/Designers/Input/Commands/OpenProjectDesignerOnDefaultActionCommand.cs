@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
     [ProjectCommand(CommandGroup.UIHierarchyWindow, UIHierarchyWindowCommandId.DoubleClick, UIHierarchyWindowCommandId.EnterKey)]
     [AppliesTo(ProjectCapability.CSharpOrVisualBasic)]
     [OrderPrecedence(1000)] 
-    internal class OpenProjectDesignerOnDefaultActionCommand : OpenProjectDesignerCommandBase
+    internal class OpenProjectDesignerOnDefaultActionCommand : AbstractOpenProjectDesignerCommand
     {
         [ImportingConstructor]
         public OpenProjectDesignerOnDefaultActionCommand(IProjectDesignerService designerService)

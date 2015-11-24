@@ -6,7 +6,7 @@ using System.ComponentModel.Composition;
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input
 {
     /// <summary>
-    ///     Specifies the command group and ID of a given <see cref="ProjectCommandBase"/>.
+    ///     Specifies the command group and ID of a given <see cref="AbstractProjectCommand"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Interface, AllowMultiple = false)]
     [MetadataAttribute]

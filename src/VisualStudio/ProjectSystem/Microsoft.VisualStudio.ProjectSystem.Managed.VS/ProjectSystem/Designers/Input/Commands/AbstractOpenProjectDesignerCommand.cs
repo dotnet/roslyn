@@ -2,18 +2,15 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.ProjectSystem.Utilities;
 using Microsoft.VisualStudio.ProjectSystem.Utilities.Designers;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.ProjectSystem.Designers.Input.Commands
 {
-    internal abstract class OpenProjectDesignerCommandBase : SingleNodeProjectCommandBase
+    internal abstract class AbstractOpenProjectDesignerCommand : AbstractSingleNodeProjectCommand
     {
         private readonly IProjectDesignerService _designerService;
 
-        protected OpenProjectDesignerCommandBase(IProjectDesignerService designerService)
+        protected AbstractOpenProjectDesignerCommand(IProjectDesignerService designerService)
         {
             Requires.NotNull(designerService, nameof(designerService));
 

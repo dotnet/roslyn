@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     /// <summary>
     ///     Provides the base class for tree modifiers that handle the AppDesigner folder, called "Properties" in C# and "My Project" in Visual Basic.
     /// </summary>
-    internal abstract class AppDesignerFolderProjectTreeModifierBase : SpecialItemProjectTreeModifierBase
+    internal abstract class AbstractAppDesignerFolderProjectTreeModifier : AbstractSpecialItemProjectTreeModifier
     {
         /// <summary>
         /// A common set of project tree capabilities with the case-insensitive comparer.
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
         private readonly IUnconfiguredProjectCommonServices _projectServices;
         private readonly IProjectDesignerService _designerService;
 
-        protected AppDesignerFolderProjectTreeModifierBase(IProjectImageProvider imageProvider, IUnconfiguredProjectCommonServices projectServices, IProjectDesignerService designerService)
+        protected AbstractAppDesignerFolderProjectTreeModifier(IProjectImageProvider imageProvider, IUnconfiguredProjectCommonServices projectServices, IProjectDesignerService designerService)
             : base(imageProvider)
         {
             Requires.NotNull(projectServices, nameof(projectServices));

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.ProjectSystem
 {
-    [UnitTestTrait]
+    [ProjectSystemTrait]
     public class UnconfiguredProjectVsServicesTests
     {
         [Fact]

@@ -7,11 +7,11 @@ using Microsoft.VisualStudio.ProjectSystem.Designers.Imaging;
 namespace Microsoft.VisualStudio.ProjectSystem.Designers
 {
     /// <summary>
-    ///     Provides the base class for tree modifiers that handle the project root.
+    ///     Modifies the Solution Explorer tree image for the project root.
     /// </summary>
     [Export(typeof(IProjectTreeModifier))]
     [AppliesTo(ProjectCapability.CSharpOrVisualBasic)]
-    internal class ProjectRootImageProjectTreeModifier : ProjectTreeModifierBase
+    internal class ProjectRootImageProjectTreeModifier : AbstractProjectTreeModifier
     {
         private readonly IProjectImageProvider _imageProvider;
 

@@ -5,9 +5,9 @@ namespace Microsoft.VisualStudio.ProjectSystem.Designers
     /// <summary>
     ///     Provides a base class for all project tree modifiers.
     /// </summary>
-    internal abstract class ProjectTreeModifierBase : IProjectTreeModifier, IProjectTreeModifier2
+    internal abstract class AbstractProjectTreeModifier : IProjectTreeModifier, IProjectTreeModifier2
     {
-        protected ProjectTreeModifierBase()
+        protected AbstractProjectTreeModifier()
         {
         }
 
