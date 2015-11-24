@@ -218,7 +218,7 @@ End Namespace
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        Public Async Function TestAddProjectReference() As Task
+        Public Async Function TestAddProjectReference_CSharpToCSharp() As Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
@@ -260,6 +260,44 @@ namespace CSAssembly2
                 </text>.Value.Trim()
 
             Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="CSAssembly1")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Async Function TestAddProjectReference_VBToVB() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='Visual Basic' AssemblyName='VBAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.vb'>
+Namespace VBAssembly1
+    Public Class Class1
+    End Class
+End Namespace
+                        </Document>
+                    </Project>
+                    <Project Language='Visual Basic' AssemblyName='VBAssembly2' CommonReferences='true'>
+                        <CompilationOptions></CompilationOptions>
+                        <Document FilePath="Test2.vb">
+Namespace VBAssembly2
+    Public Class Class2
+        dim c As $$Class1
+    End Class
+End Namespace
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+Imports VBAssembly1
+
+Namespace VBAssembly2
+    Public Class Class2
+        Dim c As Class1
+    End Class
+End Namespace
+                </text>.Value.Trim()
+
+            Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="VBAssembly1")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
