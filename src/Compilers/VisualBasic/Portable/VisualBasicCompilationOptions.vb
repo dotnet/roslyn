@@ -253,14 +253,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function GetImports() As ImmutableArray(Of String)
             ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
-            Return ImmutableArray.CreateRange(GetImportList())
-            Throw ExceptionUtilities.Unreachable
-        End Function
-
-        Private Iterator Function GetImportList() As IEnumerable(Of String)
-            For Each import In GlobalImports
-                Yield import.Name
-            Next
+            Dim importNames As New ArrayBuilder(Of String)(GlobalImports.Length)
+            importNames.AddRange(GlobalImports.Select(Function(go) go.Name))
+            Return importNames.ToImmutableAndFree()
         End Function
 
         ''' <summary>

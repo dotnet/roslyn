@@ -401,10 +401,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsScriptRunner Then
                     Select Case name
                         Case "i", "i+"
+                            If value IsNot Nothing Then Exit Select
                             interactiveMode = True
                             Continue For
 
                         Case "i-"
+                            If value IsNot Nothing Then Exit Select
                             interactiveMode = False
                             Continue For
                         Case "loadpath", "loadpaths"
