@@ -101,7 +101,7 @@ Currently, everything you select and copy in the Interactive Window will be past
 Use ```Ctrl+C``` and ```Ctrl+V``` to copy snippets from the Interactive Window and paste to another program. See [Selecting](#select) for related tips.
 
 #### <a name="multiline"></a>Multi-line Support
-The Interactive Window supports multi-line submissions. Multi-line mode should automatically be triggered after a bracket is typed. To force a new-line, press ```Shift-Enter``` and to force an expression to be evaluated, press ```Ctrl+Enter```. 
+The Interactive Window supports multi-line submissions. Any incomplete statement, declaration, or expression will be treated as part of a multi-line submission. To force an expression to be evaluated, press ```Ctrl+Enter``` and to force a new-line, without completing the submission, press ```Shift-Enter```. 
 
 You can also press ```Ctrl+Enter``` within a previous submission to append the previous submission to the current submission.
 
@@ -149,7 +149,7 @@ Use ```Ctrl+F``` / ```Ctrl+H``` to Find/Replace inside the Interactive Window.
 > **Note:** The Interactive Window doesn't currently support ```#r```'ing NuGet packages. As a temporary workaround, reference the NuGet DLL. 
 
 #### <a name="load"></a>#load
-```#load``` is used to reference another script file. Essentially, ```#load``` is copy/pasting the contents of the loaded script at the top of the new script. Variables from the loaded script will shadow previously defined script variables in the new script.
+```#load``` is used to execute a script file. Variables from the loaded script will shadow previously defined script variables in the new script.
 *Example*: ```#load "myScriptContext.csx"```
 
 #### <a name="clear"></a>#clear or #cls
