@@ -1672,6 +1672,32 @@ class C
         }
 
         [Fact]
+        public void CS0106ERR_BadMemberFlag05()
+        {
+            var text = @"
+struct Foo
+{
+    public abstract void Bar();
+}
+";
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 26 });
+        }
+
+        [Fact]
+        public void CS0106ERR_BadMemberFlag06()
+        {
+            var text = @"
+struct Foo
+{
+    public virtual void Bar() { }
+}
+";
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 25 });
+        }
+
+        [Fact]
         public void CS0111ERR_MemberAlreadyExists01()
         {
             var text = @"class A
