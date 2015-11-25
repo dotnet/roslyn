@@ -673,6 +673,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading immediate window.
+        /// </summary>
+        internal static string Loading_immediate_window {
+            get {
+                return ResourceManager.GetString("Loading_immediate_window", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location:.
         /// </summary>
         internal static string Location {

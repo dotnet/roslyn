@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,9 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             this.SetCurrentSolution(solution);
         }
 
-        public void OpenDocument(DocumentId documentId, SourceTextContainer textContainer)
+        public Task OpenDocumentAsync(DocumentId documentId, SourceTextContainer textContainer)
         {
-            this.OnDocumentOpened(documentId, textContainer);
+            return this.OnDocumentOpenedAsync(documentId, textContainer);
         }
     }
 }

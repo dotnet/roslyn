@@ -49,12 +49,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public AbstractCommandHandlerTestState(
             XElement workspaceElement,
             ExportProvider exportProvider,
-            string workspaceKind)
-        {
-            this.Workspace = TestWorkspaceFactory.CreateWorkspace(
+            string workspaceKind) : this(TestWorkspaceFactory.CreateWorkspace(
                 workspaceElement,
                 exportProvider: exportProvider,
-                workspaceKind: workspaceKind);
+                workspaceKind: workspaceKind))
+        {
+        }
+
+        public AbstractCommandHandlerTestState(
+            TestWorkspace workspace)
+        {
+            this.Workspace = workspace;
 
             var cursorDocument = this.Workspace.Documents.First(d => d.CursorPosition.HasValue);
             _textView = cursorDocument.GetTextView();

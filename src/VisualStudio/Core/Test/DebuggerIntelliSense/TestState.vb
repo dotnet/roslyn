@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -41,22 +42,63 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         Friend Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession Implements IIntelliSenseTestState.CurrentSignatureHelpPresenterSession
         Friend Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
 
-        Private Sub New(workspaceElement As XElement,
+        Private Shared Async Function CreateAsync(
+                        workspaceElement As XElement,
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)),
                         extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
-                        isImmediateWindow As Boolean)
-
-            MyBase.New(
+                        isImmediateWindow As Boolean) As Task(Of TestState)
+            Dim workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(
                 workspaceElement,
                 exportProvider:=MinimalTestExportProvider.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog.WithParts(
                             GetType(CompletionWaiter),
                             GetType(SignatureHelpWaiter))),
                 workspaceKind:=WorkspaceKind.Debugger)
 
-            Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
+            Dim languageServices = workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
-            Dim completionProviders = GetExports(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)() _
+            languageServices.GetService(Of ICompletionService).ClearMRUCache()
+
+            Dim spanDocument = workspace.Documents.First(Function(x) x.SelectedSpans.Any())
+            Dim statementSpan = spanDocument.SelectedSpans.First()
+            Dim span = New Interop.TextSpan() {statementSpan.ToSnapshotSpan(spanDocument.GetTextBuffer().CurrentSnapshot).ToVsTextSpan()}
+
+            Dim componentModel = New MockComponentModel(workspace.ExportProvider)
+
+            Dim context As AbstractDebuggerIntelliSenseContext
+            If language = LanguageNames.CSharp Then
+                context = New CSharpDebuggerIntelliSenseContext(
+                    workspace.Projects.First().Documents.First().GetTextView(),
+                    workspace.Projects.First().Documents.Last().GetTextBuffer(),
+                    span,
+                    componentModel,
+                    isImmediateWindow)
+            Else
+                ' VB
+                context = New VisualBasicDebuggerIntelliSenseContext(
+                    workspace.Projects.First().Documents.First().GetTextView(),
+                    workspace.Projects.First().Documents.Last().GetTextBuffer(),
+                    span,
+                    componentModel,
+                    isImmediateWindow)
+            End If
+
+            Await context.TryInitializeAsync()
+            Return New TestState(workspace, extraCompletionProviders, extraSignatureHelpProviders, context)
+        End Function
+
+        Private Sub New(workspace As TestWorkspace,
+                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)),
+                        extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
+                        context As AbstractDebuggerIntelliSenseContext)
+            MyBase.New(workspace)
+
+            Me._context = context
+
+            Dim languageServices = workspace.CurrentSolution.Projects.First().LanguageServices
+            Dim language = languageServices.Language
+
+            Dim completionProviders = workspace.ExportProvider.GetExports(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)() _
                 .Where(Function(f) f.Metadata.Language = language) _
                 .Concat(extraCompletionProviders) _
                 .ToList()
@@ -79,33 +121,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
-
-            languageServices.GetService(Of ICompletionService).ClearMRUCache()
-
-            Dim spanDocument = Workspace.Documents.First(Function(x) x.SelectedSpans.Any())
-            Dim statementSpan = spanDocument.SelectedSpans.First()
-            Dim span = New Interop.TextSpan() {statementSpan.ToSnapshotSpan(spanDocument.GetTextBuffer().CurrentSnapshot).ToVsTextSpan()}
-
-            Dim componentModel = New MockComponentModel(Workspace.ExportProvider)
-
-            If language = LanguageNames.CSharp Then
-                _context = New CSharpDebuggerIntelliSenseContext(
-                    Workspace.Projects.First().Documents.First().GetTextView(),
-                    Workspace.Projects.First().Documents.Last().GetTextBuffer(),
-                    span,
-                    componentModel,
-                    isImmediateWindow)
-            Else
-                ' VB
-                _context = New VisualBasicDebuggerIntelliSenseContext(
-                    Workspace.Projects.First().Documents.First().GetTextView(),
-                    Workspace.Projects.First().Documents.Last().GetTextBuffer(),
-                    span,
-                    componentModel,
-                    isImmediateWindow)
-            End If
-
-            _context.TryInitialize()
         End Sub
 
         Public Overrides ReadOnly Property TextView As ITextView
@@ -126,25 +141,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Get
         End Property
 
-        Public Shared Function CreateVisualBasicTestState(
+        Public Shared Function CreateVisualBasicTestStateAsync(
                 documentElement As XElement,
                 isImmediateWindow As Boolean,
                 Optional extraCompletionProviders As CompletionListProvider() = Nothing,
-                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As TestState
+                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As Task(Of TestState)
 
-            Return New TestState(documentElement,
+            Return TestState.CreateAsync(documentElement,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
                 isImmediateWindow)
         End Function
 
-        Public Shared Function CreateCSharpTestState(
+        Public Shared Function CreateCSharpTestStateAsync(
                 workspaceElement As XElement,
                 isImmediateWindow As Boolean,
                 Optional extraCompletionProviders As CompletionListProvider() = Nothing,
-                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As TestState
+                Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing) As Task(Of TestState)
 
-            Return New TestState(
+            Return TestState.CreateAsync(
                 workspaceElement,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.CSharp),

@@ -3,13 +3,16 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -68,7 +71,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         int IVsImmediateStatementCompletion2.SetCompletionContext(string filePath,
             IVsTextLines buffer,
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] currentStatementSpan,
+            TextSpan[] currentStatementSpan,
+            object punkContext,
+            IVsTextView textView)
+        {
+            var waitIndicator = this.Package.ComponentModel.GetService<IWaitIndicator>();
+            waitIndicator.Wait(ServicesVSResources.Debugger, ServicesVSResources.Loading_immediate_window,
+                allowCancel: false,
+                action: waitContext =>
+                {
+                    var bufferAndContext = GetCompletionContextAsync(filePath, buffer, currentStatementSpan, punkContext, textView).WaitAndGetResult(waitContext.CancellationToken);
+                    if (bufferAndContext.Item1 != null)
+                    {
+                        if (bufferAndContext.Item2 != null)
+                        {
+                            this.filters[textView].SetContext(bufferAndContext.Item2);
+                        }
+                        else
+                        {
+                            this.filters[textView].RemoveContext();
+                        }
+                    }
+                });
+
+            return VSConstants.S_OK;
+        }
+
+        private async Task<ValueTuple<IVsTextLines, AbstractDebuggerIntelliSenseContext>> GetCompletionContextAsync(
+            string filePath,
+            IVsTextLines buffer,
+            TextSpan[] currentStatementSpan,
             object punkContext,
             IVsTextView textView)
         {
@@ -79,24 +111,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             Marshal.ThrowExceptionForHR(textView.GetBuffer(out debuggerBuffer));
 
             var view = EditorAdaptersFactoryService.GetWpfTextView(textView);
+            AbstractDebuggerIntelliSenseContext context = null;
 
             // Sometimes, they give us a null context buffer. In that case, there's probably not any
             // work to do.
             if (buffer != null)
             {
                 var contextBuffer = EditorAdaptersFactoryService.GetDataBuffer(buffer);
-                var context = CreateContext(view, textView, debuggerBuffer, contextBuffer, currentStatementSpan);
-                if (context.TryInitialize())
+                context = CreateContext(view, textView, debuggerBuffer, contextBuffer, currentStatementSpan);
+                if (!await context.TryInitializeAsync().ConfigureAwait(false))
                 {
-                    this.filters[textView].SetContext(context);
-                }
-                else
-                {
-                    this.filters[textView].RemoveContext();
+                    context = null;
                 }
             }
 
-            return VSConstants.S_OK;
+            return ValueTuple.Create(buffer, context);
         }
 
         // Let our deriving language services build up an appropriate context.
