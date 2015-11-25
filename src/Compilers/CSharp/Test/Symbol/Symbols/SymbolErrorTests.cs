@@ -1677,78 +1677,51 @@ class C
             var text = @"
 struct Foo
 {
-    public abstract void Bar();
-}
-";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 26 });
-        }
-
-        [Fact]
-        public void CS0106ERR_BadMemberFlag06()
-        {
-            var text = @"
-struct Foo
-{
-    public virtual void Bar() { }
-}
-";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 25 });
-        }
-
-        [Fact]
-        public void CS0106ERR_BadMemberFlag07()
-        {
-            var text = @"
-struct Foo
-{
-    public virtual int Bar { get;set; }
-}
-";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 24 });
-        }
-
-        [Fact]
-        public void CS0106ERR_BadMemberFlag08()
-        {
-            var text = @"
-struct Foo
-{
-    public abstract int Bar { get;set; }
-}
-";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 25 });
-        }
-
-        [Fact]
-        public void CS0106ERR_BadMemberFlag09()
-        {
-            var text = @"
-struct Foo
-{
-    public abstract event System.EventHandler Bar;
-}
-";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 47 });
-        }
-
-        [Fact]
-        public void CS0106ERR_BadMemberFlag10()
-        {
-            var text = @"
-struct Foo
-{
-    public virtual event System.EventHandler Baz;
+    public abstract void Bar1();
+    public virtual void Bar2() { }
+    public virtual int Bar3 { get;set; }
+    public abstract int Bar4 { get;set; }
+    public abstract event System.EventHandler Bar5;
+    public virtual event System.EventHandler Bar6;
     // prevent warning for test
-    void OnBaz() { Baz?.Invoke(null, null); }
+    void OnBar() { Bar6?.Invoke(null, null); }
+    public virtual int this[int x] { get; set; }
+    // use long for to prevent signature clash
+    public abstract int this[long x] { get; set; }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 46 });
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (6,24): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual int Bar3 { get;set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar3").WithArguments("virtual").WithLocation(6, 24),
+                // (7,25): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract int Bar4 { get;set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar4").WithArguments("abstract").WithLocation(7, 25),
+                // (12,24): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual int this[int x] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("virtual").WithLocation(12, 24),
+                // (12,38): error CS0501: 'Foo.this[int].get' must declare a body because it is not marked abstract, extern, or partial
+                //     public virtual int this[int x] { get; set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("Foo.this[int].get").WithLocation(12, 38),
+                // (12,43): error CS0501: 'Foo.this[int].set' must declare a body because it is not marked abstract, extern, or partial
+                //     public virtual int this[int x] { get; set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("Foo.this[int].set").WithLocation(12, 43),
+                // (14,25): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract int this[long x] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(14, 25),
+                // (5,25): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual void Bar2() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar2").WithArguments("virtual").WithLocation(5, 25),
+                // (4,26): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract void Bar1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar1").WithArguments("abstract").WithLocation(4, 26),
+                // (8,47): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract event System.EventHandler Bar5;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar5").WithArguments("abstract").WithLocation(8, 47),
+                // (9,46): error CS0106: The modifier 'virtual' is not valid for this item
+                //     public virtual event System.EventHandler Bar6;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar6").WithArguments("virtual").WithLocation(9, 46)
+                );
         }
 
         [Fact]
