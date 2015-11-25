@@ -390,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return Me.MethodKind = MethodKind.Constructor
+                Return MethodKind = MethodKind.Constructor
             End Get
         End Property
 

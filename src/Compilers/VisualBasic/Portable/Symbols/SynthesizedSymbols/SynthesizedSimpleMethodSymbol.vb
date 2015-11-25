@@ -27,29 +27,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        Optional isOverloads As Boolean = False)
 
             MyBase.New(VisualBasicSyntaxTree.Dummy.GetRoot(), container, name)
-            Me._returnType = returnType
-            Me._overriddenMethod = overriddenMethod
-            Me._isOverloads = isOverloads
-            Me._interfaceMethods = If(interfaceMethod Is Nothing,
+            _returnType = returnType
+            _overriddenMethod = overriddenMethod
+            _isOverloads = isOverloads
+            _interfaceMethods = If(interfaceMethod Is Nothing,
                                       ImmutableArray(Of MethodSymbol).Empty,
                                       ImmutableArray.Create(Of MethodSymbol)(interfaceMethod))
         End Sub
 
         Public Overrides ReadOnly Property IsOverloads As Boolean
             Get
-                Return Me._isOverloads
+                Return _isOverloads
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Return Me._overriddenMethod IsNot Nothing
+                Return _overriddenMethod IsNot Nothing
             End Get
         End Property
 
         Public Overrides ReadOnly Property OverriddenMethod As MethodSymbol
             Get
-                Return Me._overriddenMethod
+                Return _overriddenMethod
             End Get
         End Property
 
@@ -61,19 +61,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                Return Me._interfaceMethods
+                Return _interfaceMethods
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
-                Return Me._returnType.IsVoidType
+                Return _returnType.IsVoidType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return Me._returnType
+                Return _returnType
             End Get
         End Property
 
@@ -87,18 +87,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not parameters.IsDefault)
             Debug.Assert(_parameters.IsDefault)
 
-            Me._parameters = parameters
+            _parameters = parameters
         End Sub
 
         Friend Overrides ReadOnly Property ParameterCount As Integer
             Get
-                Return Me._parameters.Length
+                Return _parameters.Length
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return Me._parameters
+                Return _parameters
             End Get
         End Property
 

@@ -47,15 +47,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
             Get
-                Return If(TypeOf Me.ContainingSymbol Is MethodSymbol,
-                          TypeParameterKind.Method,
-                          TypeParameterKind.Type)
+                Return If(TypeOf ContainingSymbol Is MethodSymbol, TypeParameterKind.Method, TypeParameterKind.Type)
             End Get
         End Property
 
         Private ReadOnly Property TypeMap As TypeSubstitution
             Get
-                Return _typeMapFactory(Me._container)
+                Return _typeMapFactory(_container)
             End Get
         End Property
 

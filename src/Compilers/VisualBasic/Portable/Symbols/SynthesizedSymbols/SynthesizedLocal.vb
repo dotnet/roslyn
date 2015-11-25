@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             builder.Append(_kind.ToString())
             builder.Append(" ")
-            builder.Append(Me.Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            builder.Append(Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             Return builder.ToString()
         End Function

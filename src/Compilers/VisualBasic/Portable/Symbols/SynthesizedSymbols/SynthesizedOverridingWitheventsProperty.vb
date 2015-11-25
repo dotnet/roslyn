@@ -50,8 +50,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _setter As SynthesizedWithEventsAccessorSymbol
 
         Friend Sub New(baseProperty As PropertySymbol, container As SourceNamedTypeSymbol)
-            Me._baseProperty = baseProperty
-            Me._containingType = container
+            _baseProperty = baseProperty
+            _containingType = container
 
             _getter = New SynthesizedWithEventsGetAccessorSymbol(
                 container,
