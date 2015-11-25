@@ -17,7 +17,7 @@ Where there is code available, the answer to the question has one or more tags s
     * [Can you just open a Connect bug for me](#can-you-just-open-a-connect-bug-for-me)
 * [GitHub Site](#github-site)
     * [Why are there two solution files?](#why-are-there-two-solution-files)
-    * [What components can I dogfood in Visual Studio?](#what-components-can-i-dogfood-in-visual-studio)
+    * [What components can I run locally in Visual Studio?](#what-components-can-i-run-locally-in-visual-studio)
 * [Getting Information Questions](#getting-information-questions)
     * [How do I get type info for a variable in a declaration, with inferred ('var') or explicit variable type](#how-do-i-get-type-info-for-a-variable-in-a-declaration-with-inferred-var-or-explicit-variable-type)
     * [How do I get all variables declared of a specified type that are available at a given code locations](#how-do-i-get-all-variables-declared-of-a-specified-type-that-are-available-at-a-given-code-locations)
@@ -117,14 +117,8 @@ In order to mitigate this we placed two solutions in the repo:
 - RoslynLight.sln: Represents the source code buildable in the latest public release.
 - Roslyn.sln: Represents all of the source code. 
 
-We are working hard to break this dependency so all of Roslyn can be built by customers at all times.  But this work is going to take some time to complete and until then we will maintain the two solutions. 
-
-### What components can I dogfood in Visual Studio?
-Unfortanately at this time only the code up to the Workspaces layer can be deployed to the Roslyn experimental hive in Visual Studio.  We understand this is a decidedly bad place to be and it’s one that we are working hard to remedy.  The solution will hopefully come in the VS 2015 Update 1 time frame.  
-
-The underlying issue is that it’s not possible to override MEF components that ship in the Visual Studio box with a MEF component in a developer hive.  Visual Studio will always prefer the in the box component.  Virtually everything above Workspaces layer is a MEF component and can’t be dogfooded by customers.  
-
-Fixing this though is unfortunately something Roslyn does not directly control.    It involves work from a number of teams and it’s unlikely it will all be done in time for RTM.  
+### What components can I run locally in Visual Studio?
+Starting with Update 1, all parts of Roslyn can be ran inside Visual Studio. Read our instructions for [Building on Windows](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building, Debugging, and Testing on Windows.md) for more information.
 
 ## Getting Information Questions
 
