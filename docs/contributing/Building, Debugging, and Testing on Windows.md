@@ -18,6 +18,14 @@ Tests cannot be run via Test Explorer due to some Visual Studio limitations.
 1. Run the "Developer Command Prompt for VS2015" from your start menu.
 2. Run `msbuild /v:m /m BuildAndTest.proj` in the command prompt.
 
+To debug through tests, you can right click the test project that contains your
+tests and choose **Set as Startup Project**. Then press F5. This will run the
+tests under the command line runner.  Some members of the team have been
+working on a GUI runner that allows selection of individual tests, etc.  Grab
+the source from
+[xunit.runner.wpf](https://github.com/pilchie/xunit.runner.wpf), build it and
+give it a try.
+
 # Trying Your Changes in Visual Studio
 
 Starting with Update 1, it is now possible to run your changes inside Visual
