@@ -88,7 +88,7 @@ The Roslyn previews target Visual Studio 2013 RTM, and they do not install for o
 Roslyn does not provide a plug-in architecture throughout the compiler pipeline so that at each stage you can affect syntax parsed, semantic analysis, optimization algorithms, code emission, etc.  However, you can use a pre-build rule to analyze and generate different code that MSBuild then feeds to csc.exe or vbc.exe.  You can use Roslyn to parse code and semantically analyze it, and then rewrite the trees, change references, etc.  Then compile the result as a new compilation.
 
 ### Can I redistribute the Roslyn DLLs? 
-For sample code or learning purposes, the recommended way to redistribute the Roslyn DLLs is with the Roslyn NuGet package: [url:Microsoft.CodeAnalysis|http://www.nuget.org/packages/Microsoft.CodeAnalysis].
+For sample code or learning purposes, the recommended way to redistribute the Roslyn DLLs is with the [Roslyn NuGet package](http://www.nuget.org/packages/Microsoft.CodeAnalysis).
 
 ### How do the Roslyn APIs relate to the VS Code Model and CodeDom?
 The CodeDom targets programmatic code generation and compilation scenarios in ASP.NET on the server.  It was later co-opted for some tooling uses, adding modeling of existing code to the code generation functionality.
