@@ -267,7 +267,7 @@ Note, there may be multiple workspaces active in Visual Studio at any time if th
 * There is a workspace modeling solution and projects for any miscellaneous .csx files open in VS.
 * There is a workspace which models the submission chain in the Interactive window.
 
-Because the Roslyn language service features (completion, code Issues, refactoring support, etc.) operate on an IWorkspace, the features work in all of the above workspace contexts.
+Because the Roslyn language service features (completion, code Issues, refactoring support, etc.) operate on an Workspace, the features work in all of the above workspace contexts.
 
 ### How do I change the name of a symbol at the declaration site and all reference sites?
 See the sample code answer tagged “FAQ(28)” ([installed location information|faq#codefiles]) to see a renaming example.  Note, this sample doesn’t handle generic names, and depending on the type of thing you are renaming, you might create the SyntaxRewriter differently (for example, not visiting class declarations or constructor declarations).
