@@ -357,9 +357,7 @@ See next question, [#How can I capture IL, debug info, and doc comment outputs f
 See the sample code answer tagged “FAQ(34)” ([installed location information|faq#codefiles]).  This sample includes an Execute() method definition, which compiles and executes a binary.
 
 ### How do you use a VS extension written using Roslyn project?
-The Visual Studio instances that run when you are debugging your Roslyn VS extension projects are launched under what we call the Roslyn "hive" (or registry hierarchy where VS finds extensions).  If you want to do so, you can launch this instance of Visual Studio from the command-line by typing "devenv.exe /rootsuffix Roslyn".
-
-Roslyn VS extensions need to access the Roslyn Language Services, so in order to use your extension in the main Visual Studio "hive", you need to have the Roslyn End User Preview installed.
+The Visual Studio instances that run when you are debugging your Roslyn VS extension projects are launched under what we call the Roslyn "hive" (or registry hierarchy where VS finds extensions).  If you want to do so, you can launch this instance of Visual Studio from the command-line by typing "devenv.exe /rootsuffix RoslynDev".
 
 ### Is there an object model chart or type inheritance diagram of Roslyn types?
 You can create a type inheritance diagram that you can zoom and search within.  You need Visual Studio 2010 Ultimate, and the instructions for creating the diagram are in this [post](http://social.msdn.microsoft.com/Forums/en-US/roslyn/thread/705b090b-58ac-4a94-b7b5-d1408205bc90).
