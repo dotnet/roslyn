@@ -108,7 +108,7 @@ The Roslyn GitHub site includes code for the compilers, workspaces and Visual St
 The main solution, Roslyn.sln, contains the entire codebase and all layers. The Compilers.sln solution contains only the compiler layer (and nothing above it.) The CrossPlatform.sln solution contains the projects that currently support building on Linux.
 
 ### What components can I run locally in Visual Studio?
-Starting with Update 1, all parts of Roslyn can be ran inside Visual Studio. Read our instructions for [Building on Windows](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building, Debugging, and Testing on Windows.md) for more information.
+Starting with Visual Studio 2015 Update 1, all parts of Roslyn can be ran inside Visual Studio. Read our instructions for [Building on Windows](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building, Debugging, and Testing on Windows.md) for more information.
 
 ## Getting Information Questions
 
@@ -296,7 +296,7 @@ See the sample code answers tagged “FAQ(32)” and “FAQ(33)” ([installed l
 ## Scripting, REPL, and Executing Code Questions
 
 ### What happened to the REPL and hosting scripting APIs?
-The C# Interactive Window is back in Update 1. Enjoy!
+The C# Interactive Window is back in Visual Studio Update 1. Enjoy!
 
 ### How do the Roslyn APIs relate to LINQ Expression Trees or Expression Trees v2?  Is one better for meta-programming or implementing DSLs?
 Expression Trees v2 are a semantic model with some shapes resembling syntax.  They do support some control flow, assignment statements, recursion, etc.  However, they do not model many things that the C# and VB languages have, for example, type definitions.  The Roslyn APIs will have full fidelity with C# and VB for syntax, semantic binding, code emission, etc.
