@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -43,6 +44,36 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override SymbolReference CreateReference(INamespaceOrTypeSymbol symbol)
             {
                 return new ProjectSymbolReference(symbol, project.Id);
+            }
+        }
+
+        private class MetadataSearchScope : SearchScope
+        {
+            private readonly IAssemblySymbol assembly;
+            private readonly PortableExecutableReference metadataReference;
+            private readonly Solution solution;
+
+            public MetadataSearchScope(
+                Solution solution,
+                IAssemblySymbol assembly,
+                PortableExecutableReference metadataReference,
+                bool ignoreCase,
+                CancellationToken cancellationToken)
+                : base(ignoreCase, cancellationToken)
+            {
+                this.solution = solution;
+                this.assembly = assembly;
+                this.metadataReference = metadataReference;
+            }
+
+            public override SymbolReference CreateReference(INamespaceOrTypeSymbol symbol)
+            {
+                return new MetadataSymbolReference(symbol, metadataReference);
+            }
+
+            public override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter)
+            {
+                return SymbolFinder.FindDeclarationsAsync(solution, assembly, metadataReference.FilePath, name, ignoreCase, filter, cancellationToken);
             }
         }
     }

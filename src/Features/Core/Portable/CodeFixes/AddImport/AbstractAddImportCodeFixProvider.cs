@@ -71,20 +71,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                         var allSymbolReferences = new List<SymbolReference>();
 
-                        var getter = new ProposedImportGetter(this, document, semanticModel, diagnostic, node, cancellationToken);
-                        AddRange(allSymbolReferences, await getter.DoAsync(project, includeDirectReferences: true).ConfigureAwait(false));
+                        var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnostic, node, cancellationToken);
 
-                        await FindResultsInUnreferencedProjects(project, allSymbolReferences, getter, cancellationToken).ConfigureAwait(false);
-
-#if false
-                        // If we didn't find enough hits searching in the project and all other 
-                        // projects, then check if any known metadata reference might help
-                        if (allSymbolReferences.Count < MaxResults)
-                        {
-                            var viableMetadataReference = GetViablePortableExecutionReferences(project);
-                            AddRange(allSymbolReferences, await getter.DoAsync().ConfigureAwait(false));
-                        }
-#endif
+                        await FindResultsInCurrentProject(project, allSymbolReferences, finder).ConfigureAwait(false);
+                        await FindResultsInUnreferencedProjects(project, allSymbolReferences, finder, cancellationToken).ConfigureAwait(false);
+                        await FindResultsInUnreferencedMetadataReferences(project, allSymbolReferences, finder, cancellationToken).ConfigureAwait(false);
 
                         if (allSymbolReferences.Count == 0)
                         {
@@ -108,6 +99,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
+        private async Task FindResultsInCurrentProject(Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder)
+        {
+            AddRange(allSymbolReferences, await finder.FindInProjectAsync(project, includeDirectReferences: true).ConfigureAwait(false));
+        }
+
         private async Task<Solution> AddImportAndReferenceAsync(
             SyntaxNode node, SymbolReference reference, Document document, bool placeSystemNamespaceFirst, CancellationToken c)
         {
@@ -118,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task FindResultsInUnreferencedProjects(
-            Project project, List<SymbolReference> allSymbolReferences, ProposedImportGetter getter, CancellationToken cancellationToken)
+            Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, CancellationToken cancellationToken)
         {
             // If we didn't find enough hits searching just in the project, then check 
             // in any unreferenced projects.
@@ -134,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // direct references.  i.e. we don't want to search in its metadata references
                 // or in the projects it references itself. We'll be searching those entities
                 // individually.
-                AddRange(allSymbolReferences, await getter.DoAsync(unreferencedProject, includeDirectReferences: false).ConfigureAwait(false));
+                AddRange(allSymbolReferences, await finder.FindInProjectAsync(unreferencedProject, includeDirectReferences: false).ConfigureAwait(false));
                 if (allSymbolReferences.Count >= MaxResults)
                 {
                     return;
@@ -142,26 +138,86 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private ImmutableArray<PortableExecutableReference> GetViablePortableExecutionReferences(Project project)
+        private async Task FindResultsInUnreferencedMetadataReferences(Project project, List<SymbolReference> allSymbolReferences, SymbolReferenceFinder finder, CancellationToken cancellationToken)
         {
-            var references = project.Solution.Projects.SelectMany(p => p.MetadataReferences)
-                                             .OfType<PortableExecutableReference>()
-                                             .Distinct(this)
-                                             .ToSet(this);
+            if (allSymbolReferences.Count > 0)
+            {
+                // Only do this if none of the project searches produced any results.  We may have
+                // a lot of metadata to search through, and it would be good to avoid that if we
+                // can.
+                return;
+            }
 
-            references.RemoveAll(project.MetadataReferences.OfType<PortableExecutableReference>());
+            // Keep track of the references we've seen (so that we don't process them multiple times
+            // across many sibling projects).  Prepopulate it with our own metadata references since
+            // we know we don't need to search in that.
+            var seenReferences = new HashSet<PortableExecutableReference>(comparer: this);
+            seenReferences.AddAll(project.MetadataReferences.OfType<PortableExecutableReference>());
 
-            return references.ToImmutableArray();
+            // Check all the other projects in the system so see if they have a metadata reference
+            // with a potential result.
+            foreach (var otherProject in project.Solution.Projects)
+            {
+                if (otherProject == project)
+                {
+                    continue;
+                }
+
+                await FindResultsInMetadataReferences(
+                    otherProject, allSymbolReferences, finder, seenReferences, cancellationToken).ConfigureAwait(false);
+                if (allSymbolReferences.Count >= MaxResults)
+                {
+                    break;
+                }
+            }
+        }
+
+        private async Task FindResultsInMetadataReferences(
+            Project otherProject,
+            List<SymbolReference> allSymbolReferences,
+            SymbolReferenceFinder finder,
+            HashSet<PortableExecutableReference> seenReferences,
+            CancellationToken cancellationToken)
+        {
+            // See if this project has a metadata reference we haven't already looked at.
+            var newMetadataReferences = otherProject.MetadataReferences.OfType<PortableExecutableReference>();
+
+            Compilation compilation = null;
+            foreach (var reference in seenReferences)
+            {
+                // Make sure we don't check the same metadata reference multiple times from 
+                // different projects.
+                if (seenReferences.Add(reference))
+                {
+                    // Defer making the compilation until necessary.
+                    compilation = compilation ?? await otherProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Ignore netmodules.  First, they're incredibly esoteric and barely used.
+                    // Second, the SymbolFinder api doesn't even support searching them. 
+                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
+                    if (assembly != null)
+                    {
+                        AddRange(allSymbolReferences, await finder.FindInMetadataAsync(otherProject.Solution, assembly, reference).ConfigureAwait(false));
+                    }
+                }
+
+                if (allSymbolReferences.Count >= MaxResults)
+                {
+                    break;
+                }
+            }
         }
 
         bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
         {
-            return StringComparer.OrdinalIgnoreCase.Equals(x.FilePath, y.FilePath);
+            return StringComparer.OrdinalIgnoreCase.Equals(
+                x.FilePath ?? x.Display,
+                y.FilePath ?? y.Display);
         }
 
         int IEqualityComparer<PortableExecutableReference>.GetHashCode(PortableExecutableReference obj)
         {
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FilePath);
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FilePath ?? obj.Display);
         }
 
         private static HashSet<Project> GetViableUnreferencedProjects(Project project)
@@ -240,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
         }
 
-        private class ProposedImportGetter 
+        private class SymbolReferenceFinder 
         {
             private readonly CancellationToken cancellationToken;
             private readonly Diagnostic diagnostic;
@@ -255,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private SyntaxNode node;
 
-            public ProposedImportGetter(
+            public SymbolReferenceFinder(
                 AbstractAddImportCodeFixProvider owner,
                 Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
             {
@@ -272,10 +328,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             }
 
-            internal async Task<List<SymbolReference>> DoAsync(Project project, bool includeDirectReferences)
+            internal Task<List<SymbolReference>> FindInProjectAsync(Project project, bool includeDirectReferences)
             {
                 var searchScope = new ProjectSearchScope(project, includeDirectReferences, owner.IgnoreCase, cancellationToken);
+                return DoAsync(searchScope);
+            }
 
+            internal Task<List<SymbolReference>> FindInMetadataAsync(Solution solution, IAssemblySymbol assembly, PortableExecutableReference metadataReference)
+            {
+                var searchScope = new MetadataSearchScope(solution, assembly, metadataReference, owner.IgnoreCase, cancellationToken);
+                return DoAsync(searchScope);
+            }
+
+            private async Task<List<SymbolReference>> DoAsync(SearchScope searchScope)
+            {
                 // Spin off tasks to do all our searching.
                 var tasks = new[]
                 {

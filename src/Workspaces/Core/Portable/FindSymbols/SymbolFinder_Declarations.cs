@@ -145,6 +145,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        internal static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
+            Solution solution, IAssemblySymbol assembly, string filePath, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            var result = new List<ISymbol>();
+            await AddDeclarationsAsync(solution, assembly, filePath, name, ignoreCase, filter, result, cancellationToken).ConfigureAwait(false);
+            return result;
+        }
+
         private static async Task AddDeclarationsAsync(
             Solution solution, IAssemblySymbol assembly, string filePath, string name, bool ignoreCase, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
