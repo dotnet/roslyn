@@ -13,8 +13,6 @@ Where there is code available, the answer to the question has one or more tags s
     * [How do SxS Installations Work?](#how-do-sxs-installations-work)
     * [Can I rewrite source code within the compiler pipeline](#can-i-rewrite-source-code-within-the-compiler-pipeline)
     * [Can I redistribute the Roslyn DLLs with my samples or code on my blog](#can-i-redistribute-the-roslyn-dlls-with-my-samples-or-code-on-my-blog)
-    * [Can I use the End User Preview or SDK for my production code?  Does it have a "go-live" EULA](#can-i-use-the-end-user-preview-or-sdk-for-my-production-code--does-it-have-a-go-live-eula)
-    * [Where can I see the Roslyn EULA after installation or without committing to install Roslyn](#where-can-i-see-the-roslyn-eula-after-installation-or-without-committing-to-install-roslyn)
     * [How do the Roslyn APIs relate to the VS Code Model and CodeDom](#how-do-the-roslyn-apis-relate-to-the-vs-code-model-and-codedom)
     * [Can you just open a Connect bug for me](#can-you-just-open-a-connect-bug-for-me)
 * [GitHub Site](#github-site)
@@ -91,16 +89,6 @@ Roslyn does not provide a plug-in architecture throughout the compiler pipeline 
 
 ### Can I redistribute the Roslyn DLLs? 
 For sample code or learning purposes, the recommended way to redistribute the Roslyn DLLs is with the Roslyn NuGet package: [url:Microsoft.CodeAnalysis|http://www.nuget.org/packages/Microsoft.CodeAnalysis].
-
-### Can I use the End User Preview or SDK for my production code?  Does it have a "go-live" EULA?
-The End User CTP is pre-release software.  For the exact terms and license conditions under which you can use it, please read the EULA that's shown when you install the CTP.  If you already installed the CTP, you can re-run the installer to re-read the terms, and then just click Cancel.
-
-The Tooling SDK zip file contains its own EULA.  The various Roslyn NuGet packages also have their own EULAs.  You can read them after installing the tooling SDK by using the Manage NuGet References command from the main menus in Visual Studio and choosing the "License" link.
-
-You can go to roslyn.codeplex.com, take the source code, and do what the Apache 2.0 license there allows.
-
-### Where can I see the Roslyn EULA after installation or without committing to install Roslyn?
-See [this section](#can-i-use-the-end-user-preview-or-sdk-for-my-production-code--does-it-have-a-go-live-eula) for details, but you can only see the EULAs by starting to install or re-install, then cancelling installation after reading the EULA.
 
 ### How do the Roslyn APIs relate to the VS Code Model and CodeDom?
 The CodeDom targets programmatic code generation and compilation scenarios in ASP.NET on the server.  It was later co-opted for some tooling uses, adding modeling of existing code to the code generation functionality.
