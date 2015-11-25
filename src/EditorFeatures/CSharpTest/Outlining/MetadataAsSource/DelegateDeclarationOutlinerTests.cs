@@ -25,18 +25,18 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void WithAttributes()
+        public async Task WithAttributes()
         {
             const string code = @"
 {|hint:{|collapse:[Foo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
-            VerifyRegionsAsync(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void WithCommentsAndAttributes()
+        public async Task WithCommentsAndAttributes()
         {
             const string code = @"
 {|hint:{|collapse:// Summary:
@@ -44,12 +44,12 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
 [Foo]
 |}delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
-            VerifyRegionsAsync(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public void WithCommentsAttributesAndModifiers()
+        public async Task WithCommentsAttributesAndModifiers()
         {
             const string code = @"
 {|hint:{|collapse:// Summary:
@@ -57,7 +57,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
 [Foo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
-            VerifyRegionsAsync(code,
+            await VerifyRegionsAsync(code,
                 Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
     }
