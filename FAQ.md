@@ -297,7 +297,7 @@ See the sample code answers tagged “FAQ(32)” and “FAQ(33)” ([installed l
 ## Scripting, REPL, and Executing Code Questions
 
 ### What happened to the REPL and hosting scripting APIs?
-The team is reviewing the designs of these components that you saw in previous CTPs, before re-introducing the components again.  Currently the team is working on completing the language semantics of interactive/script code.
+The C# Interactive Window is back in Update 1. Enjoy!
 
 ### How do the Roslyn APIs relate to LINQ Expression Trees or Expression Trees v2?  Is one better for meta-programming or implementing DSLs?
 Expression Trees v2 are a semantic model with some shapes resembling syntax.  They do support some control flow, assignment statements, recursion, etc.  However, they do not model many things that the C# and VB languages have, for example, type definitions.  The Roslyn APIs will have full fidelity with C# and VB for syntax, semantic binding, code emission, etc.
