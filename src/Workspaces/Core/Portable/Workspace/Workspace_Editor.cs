@@ -395,26 +395,39 @@ namespace Microsoft.CodeAnalysis
             return openDocs;
         }
 
-        internal Task OnDocumentOpenedAsync(
-            DocumentId documentId, SourceTextContainer textContainer,
-            bool isCurrentContext = true)
-        {
-            OnDocumentOpened(documentId, textContainer, isCurrentContext);
-            return SpecializedTasks.EmptyTask;
-        }
-
         protected internal void OnDocumentOpened(
             DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext = true)
         {
+            OnDocumentOpenedAsync(documentId, textContainer, isCurrentContext, wait: true).Wait(CancellationToken.None);
+        }
+
+        internal Task OnDocumentOpenedAsync(
+            DocumentId documentId, SourceTextContainer textContainer,
+            bool isCurrentContext = true)
+        {
+            return OnDocumentOpenedAsync(documentId, textContainer, isCurrentContext, wait: false);
+        }
+
+        private async Task OnDocumentOpenedAsync(
+            DocumentId documentId, SourceTextContainer textContainer, 
+            bool isCurrentContext,
+            bool wait)
+        {
             CheckDocumentIsInCurrentSolution(documentId);
             CheckDocumentIsClosed(documentId);
 
-            using (_serializationLock.DisposableWait())
+            var disposable = wait
+                ? _serializationLock.DisposableWait()
+                : await _serializationLock.DisposableWaitAsync().ConfigureAwait(false);
+
+            try
             {
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
-                var oldText = oldDocument.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                var oldText = wait
+                    ? oldDocument.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
+                    : await oldDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
 
                 AddToOpenDocumentMap(documentId);
 
@@ -425,7 +438,9 @@ namespace Microsoft.CodeAnalysis
                 if (oldText == newText || oldText.ContentEquals(newText))
                 {
                     // if the supplied text is the same as the previous text, then also use same version
-                    var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    var version = wait
+                        ? oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
+                        : await oldDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
                     var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
                     currentSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
                 }
@@ -444,8 +459,11 @@ namespace Microsoft.CodeAnalysis
                 var ignore1 = RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
                 var ignore2 = this.RaiseDocumentOpenedEventAsync(newDoc); // don't await this
             }
+            finally
+            {
+                disposable.Dispose();
+            }
 
-            // register outside of lock since it may call user code.
             this.RegisterText(textContainer);
         }
 
@@ -508,7 +526,6 @@ namespace Microsoft.CodeAnalysis
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
 
-            // register outside of lock since it may call user code.
             this.RegisterText(textContainer);
         }
 
