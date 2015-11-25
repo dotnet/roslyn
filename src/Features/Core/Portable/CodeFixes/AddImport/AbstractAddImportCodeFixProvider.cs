@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,8 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    using System.Collections.Immutable;
-    using SymbolReference = ValueTuple<INamespaceOrTypeSymbol, Project>;
+    using SymbolReference = ValueTuple<INamespaceOrTypeSymbol, ProjectId>;
 
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
     {
@@ -118,15 +117,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // Defer to the language to add the actual import/using.
             var newDocument = await this.AddImportAsync(node, reference.Item1, document, placeSystemNamespaceFirst, c).ConfigureAwait(false);
 
-            // If this reference came from searching another project
-            if (reference.Item2.Id == document.Project.Id)
+            if (reference.Item2 == document.Project.Id)
             {
                 return newDocument.Project.Solution;
             }
 
-            // Also need to add a project reference.
+            // If this reference came from searching another project, then add a project reference
+            // as well.
             var newProject = newDocument.Project;
-            newProject = newProject.AddProjectReference(new ProjectReference(reference.Item2.Id));
+            newProject = newProject.AddProjectReference(new ProjectReference(reference.Item2));
 
             return newProject.Solution;
         }
@@ -203,15 +202,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             if (proposedReferences != null)
             {
-                foreach (var reference in proposedReferences)
-                {
-                    if (allSymbolReferences.Count >= MaxResults)
-                    {
-                        return;
-                    }
-
-                    allSymbolReferences.Add(reference);
-                }
+                allSymbolReferences.AddRange(proposedReferences.Take(MaxResults - allSymbolReferences.Count));
             }
         }
 
@@ -566,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     namespaces.Where(n => !n.IsGlobalNamespace)
                               .Select(n => semanticModel.Compilation.GetCompilationNamespace(n) ?? n)
                               .Where(n => n != null && !namespacesInScope.Contains(n))
-                              .Select(n => new SymbolReference(n, project))
+                              .Select(n => new SymbolReference(n, project.Id))
                               .ToList();
             }
 
@@ -580,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                         if (typeSymbol?.ContainingType != null)
                         {
                             result = result ?? new List<SymbolReference>();
-                            result.Add(new SymbolReference(typeSymbol.ContainingType, project));
+                            result.Add(new SymbolReference(typeSymbol.ContainingType, project.Id));
                         }
                     }
                 }
