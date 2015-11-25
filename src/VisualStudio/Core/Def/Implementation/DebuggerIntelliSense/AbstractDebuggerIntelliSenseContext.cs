@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
@@ -179,6 +180,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 forkedSolution = forkedSolution.WithDocumentText(link, _projectionBuffer.CurrentSnapshot.AsText(), PreservationMode.PreserveIdentity);
             }
 
+            _textView.TextBuffer.ChangeContentType(_contentType, null);
+            var bufferGraph = _bufferGraphFactoryService.CreateBufferGraph(_projectionBuffer);
+            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, this.InImmediateWindow);
+
             // Put it into a new workspace, and open it and its related documents
             // with the projection buffer as the text.
             _workspace = new DebuggerIntelliSenseWorkspace(forkedSolution);
@@ -189,13 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
 
             // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
-            document.Project.GetCompilationAsync(System.Threading.CancellationToken.None);
-
-            _textView.TextBuffer.ChangeContentType(_contentType, null);
-
-            var bufferGraph = _bufferGraphFactoryService.CreateBufferGraph(_projectionBuffer);
-
-            _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, this.InImmediateWindow);
+            document.Project.GetCompilationAsync(CancellationToken.None);
             return true;
         }
 
