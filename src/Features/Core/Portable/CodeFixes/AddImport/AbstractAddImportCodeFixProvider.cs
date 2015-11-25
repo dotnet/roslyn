@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,65 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal struct SymbolReference : IComparable<SymbolReference>
-    {
-        public readonly INamespaceOrTypeSymbol Symbol;
-        public readonly ProjectId ProjectId;
-
-        public SymbolReference(INamespaceOrTypeSymbol symbol, ProjectId projectId)
-        {
-            Symbol = symbol;
-            ProjectId = projectId;
-        }
-
-        public int CompareTo(SymbolReference other)
-        {
-           return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(this.Symbol, other.Symbol);
-        }
-    }
-
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
     {
-        private abstract class SearchScope
-        {
-            protected readonly bool ignoreCase;
-            protected readonly CancellationToken cancellationToken;
-
-            protected SearchScope(bool ignoreCase, CancellationToken cancellationToken)
-            {
-                this.ignoreCase = ignoreCase;
-                this.cancellationToken = cancellationToken;
-            }
-
-            public abstract Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter);
-            public abstract SymbolReference CreateReference(INamespaceOrTypeSymbol symbol);
-        }
-
-        private class ProjectSearchScope : SearchScope
-        {
-            private readonly bool includeDirectReferences;
-            private readonly Project project;
-
-            public ProjectSearchScope(Project project, bool includeDirectReferences, bool ignoreCase, CancellationToken cancellationToken)
-                : base(ignoreCase, cancellationToken)
-            {
-                this.project = project;
-                this.includeDirectReferences = includeDirectReferences;
-            }
-
-            public override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter)
-            {
-                return SymbolFinder.FindDeclarationsAsync(
-                    project, name, ignoreCase, filter, includeDirectReferences, cancellationToken);
-            }
-
-            public override SymbolReference CreateReference(INamespaceOrTypeSymbol symbol)
-            {
-                return new SymbolReference(symbol, project.Id);
-            }
-        }
-
-        private const int MaxResults = 8;
+        private const int MaxResults = 3;
 
         protected abstract bool IgnoreCase { get; }
 

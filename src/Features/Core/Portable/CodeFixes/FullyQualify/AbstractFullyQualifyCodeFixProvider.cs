@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 {
     internal abstract partial class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
     {
+        private const int MaxResults = 3;
+
         protected AbstractFullyQualifyCodeFixProvider()
         {
         }
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                         var proposedContainers =
                             matchingTypeContainers.Concat(matchingNamespaceContainers)
                                               .Distinct()
-                                              .Take(8);
+                                              .Take(MaxResults);
 
                         var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
 
