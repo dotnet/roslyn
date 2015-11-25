@@ -114,17 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // Defer to the language to add the actual import/using.
             var newDocument = await this.AddImportAsync(node, reference.Symbol, document, placeSystemNamespaceFirst, c).ConfigureAwait(false);
 
-            if (reference.ProjectId == document.Project.Id)
-            {
-                return newDocument.Project.Solution;
-            }
-
-            // If this reference came from searching another project, then add a project reference
-            // as well.
-            var newProject = newDocument.Project;
-            newProject = newProject.AddProjectReference(new ProjectReference(reference.ProjectId));
-
-            return newProject.Solution;
+            return reference.UpdateSolution(newDocument);
         }
 
         private async Task FindResultsInUnreferencedProjects(
