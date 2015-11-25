@@ -15,7 +15,7 @@ Where there is code available, the answer to the question has one or more tags s
     * [How do the Roslyn APIs relate to the VS Code Model and CodeDom](#how-do-the-roslyn-apis-relate-to-the-vs-code-model-and-codedom)
     * [Can you just open a Connect bug for me](#can-you-just-open-a-connect-bug-for-me)
 * [GitHub Site](#github-site)
-    * [Why are there two solution files?](#why-are-there-two-solution-files)
+    * [Why are there several solution files?](#why-are-there-several-solution-files)
     * [What components can I run locally in Visual Studio?](#what-components-can-i-run-locally-in-visual-studio)
 * [Getting Information Questions](#getting-information-questions)
     * [How do I get type info for a variable in a declaration, with inferred ('var') or explicit variable type](#how-do-i-get-type-info-for-a-variable-in-a-declaration-with-inferred-var-or-explicit-variable-type)
@@ -103,15 +103,10 @@ When an employee logs the Connect issue for you, any updates cause Connect to se
 We do want to make it super easy for customers who have given us feedback to log that feedback though, so we tend to offer to log the issue for you.  However, if you want to get update mail and track the bug, we ask you to log the Connect bug.  There is a [url:VS Feedback|http://visualstudiogallery.msdn.microsoft.com/f8a5aac8-0418-4f88-9d34-bdbe2c4cfe72] tool that is designed to make it even easier to report Connect issues.
 
 ## GitHub Site
-### Why are there two solution files?
-The Roslyn GitHub site includes code for the compilers, workspaces and Visual Studio layers.  In order to build the layers which rely on Visual Studio a compatable version of the VS SDK must be available.  The VS SDK itself depends on Visual Studio.  Hence this means both Visual Studio and the VS SDK are required to build Roslyn.
+### Why are there several solution files?
+The Roslyn GitHub site includes code for the compilers, workspaces and Visual Studio layers.  In order to build the layers which rely on Visual Studio a compatible version of the VS SDK must be available.  The VS SDK itself depends on Visual Studio.  Hence this means both Visual Studio and the VS SDK are required to build Roslyn.
 
-The VS SDK, and Roslyn's dependency on it, are constantly moving forward.  Typically at a much faster pace than our CTPs.  This means Roslyn is very often depending on APIs which are not yet released in a public build of Visual Studio.  This makes it impossible for customers to build all of the sources on GitHub.  
-
-In order to mitigate this we placed two solutions in the repo:
-
-- RoslynLight.sln: Represents the source code buildable in the latest public release.
-- Roslyn.sln: Represents all of the source code. 
+The main solution, Roslyn.sln, contains the entire codebase and all layers. The Compilers.sln solution contains only the compiler layer (and nothing above it.) The CrossPlatform.sln solution contains the projects that currently support building on Linux.
 
 ### What components can I run locally in Visual Studio?
 Starting with Update 1, all parts of Roslyn can be ran inside Visual Studio. Read our instructions for [Building on Windows](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building, Debugging, and Testing on Windows.md) for more information.
