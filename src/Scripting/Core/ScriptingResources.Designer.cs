@@ -203,8 +203,8 @@ namespace Microsoft.CodeAnalysis.Scripting {
         ///  UpArrow       Replace the current submission with a previous submission.
         ///  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
         ///REPL commands:
-        ///  #help         Display help on available commands and key bindings.
-        ///  #references   Display a list of referenced as [rest of string was truncated]&quot;;.
+        ///  #files        Display a list of loaded files.
+        ///  #help         Display help on available commands and key bindings. [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string HelpText {
             get {

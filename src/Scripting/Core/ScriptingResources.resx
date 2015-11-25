@@ -156,7 +156,9 @@
   UpArrow       Replace the current submission with a previous submission.
   DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
 REPL commands:
+  #files        Display a list of loaded files.
   #help         Display help on available commands and key bindings.
+  #imports      Display a list of imported namespaces and types.
   #references   Display a list of referenced assemblies.
 Script directives:
   #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".
