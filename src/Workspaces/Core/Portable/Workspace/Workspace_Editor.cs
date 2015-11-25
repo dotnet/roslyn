@@ -395,25 +395,26 @@ namespace Microsoft.CodeAnalysis
             return openDocs;
         }
 
-        protected internal void OnDocumentOpened(
+        internal Task OnDocumentOpenedAsync(
             DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext = true)
         {
-            OnDocumentOpenedAsync(documentId, textContainer, isCurrentContext).Wait(CancellationToken.None);
+            OnDocumentOpened(documentId, textContainer, isCurrentContext);
+            return SpecializedTasks.EmptyTask;
         }
 
-        internal async Task OnDocumentOpenedAsync(
-            DocumentId documentId, SourceTextContainer textContainer, 
+        protected internal void OnDocumentOpened(
+            DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext = true)
         {
             CheckDocumentIsInCurrentSolution(documentId);
             CheckDocumentIsClosed(documentId);
 
-            using (await _serializationLock.DisposableWaitAsync().ConfigureAwait(false))
+            using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
-                var oldText = await oldDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                var oldText = oldDocument.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
                 AddToOpenDocumentMap(documentId);
 
@@ -424,7 +425,7 @@ namespace Microsoft.CodeAnalysis
                 if (oldText == newText || oldText.ContentEquals(newText))
                 {
                     // if the supplied text is the same as the previous text, then also use same version
-                    var version = await oldDocument.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(false);
+                    var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
                     var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
                     currentSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
                 }
