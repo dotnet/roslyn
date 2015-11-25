@@ -48,7 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim node = context.TargetToken.Parent
-            If context.IsRightOfNameSeparator Then
+            If context.IsGlobalStatementContext Then
+                Return GetSymbolsForGlobalStatementContext(context, cancellationToken)
+            ElseIf context.IsRightOfNameSeparator Then
                 If node.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                     Return GetSymbolsForMemberAccessExpression(context, DirectCast(node, MemberAccessExpressionSyntax), cancellationToken)
                 ElseIf node.Kind = SyntaxKind.QualifiedName Then
@@ -69,6 +71,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
+        End Function
+
+        Private Function GetSymbolsForGlobalStatementContext(
+            context As VisualBasicSyntaxContext,
+            cancellationToken As CancellationToken
+        ) As IEnumerable(Of ISymbol)
+            Dim symbols = context.SemanticModel.LookupSymbols(context.TargetToken.Span.End)
+            Return symbols
         End Function
 
         Private Function GetUnqualifiedSymbolsForQueryIntoContext(

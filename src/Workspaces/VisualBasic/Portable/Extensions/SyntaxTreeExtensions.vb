@@ -145,6 +145,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return trivia.IsKind(SyntaxKind.SkippedTokensTrivia)
         End Function
 
+        <Extension()>
+        Public Function IsInteractiveOrScript(syntaxTree As SyntaxTree) As Boolean
+            Return syntaxTree.Options.Kind <> SourceCodeKind.Regular
+        End Function
+
+        <Extension()>
+        Public Function IsGlobalStatementContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            If Not IsInteractiveOrScript(syntaxTree) Then
+                Return False
+            End If
+
+            Dim token As SyntaxToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position)
+
+            If token.IsKind(SyntaxKind.None) Then
+                Dim compilationUnit = TryCast(syntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
+                Return compilationUnit Is Nothing OrElse compilationUnit.Imports.Count = 0
+            End If
+
+            Return token.IsGlobalStatementContext(position)
+        End Function
+
         ''' <summary>
         ''' If the position is inside of token, return that token; otherwise, return the token to right.
         ''' </summary>
