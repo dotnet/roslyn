@@ -3,10 +3,6 @@
 
 This FAQ has good learning or getting-started questions in addition to frequent questions, all inspired by the great questions and answers from previous Roslyn CTPs.  In several cases, the community was helping each other without the team chiming in, so great job everyone!  You will find many good pointers by searching for keywords or phrases on this page.
 
-Many answers have code snippets associated with them.  The code exists as samples/tests that the team releases in the [SDK Preview](http://go.microsoft.com/fwlink/?LinkId=394641) 
-
-> `#%installdir%\{CSharp|VisualBasic}\APISampleUnitTests{CS|VB}\faq.{cs|vb}".*`  
-
 Where there is code available, the answer to the question has one or more tags such as "FAQ(27)" in the text.  You can open the code files just named and search for the tag.  By not listing all the code in this document, the document is less likely to diverge from working code.  The samples/test project is always up to date with any API changes.
 
 
