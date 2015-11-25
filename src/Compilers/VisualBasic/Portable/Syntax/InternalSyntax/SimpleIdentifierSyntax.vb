@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend Overrides ReadOnly Property IdentifierText As String
             Get
-                Return Me.Text
+                Return Text
             End Get
         End Property
 
