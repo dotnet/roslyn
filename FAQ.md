@@ -10,7 +10,6 @@ Where there is code available, the answer to the question has one or more tags s
 
 * [Project / Cross-cutting Questions](#project-/-cross-cutting-questions)
     * [What docs are available on Roslyn](#what-docs-are-available-on-roslyn)
-    * [How do SxS Installations Work?](#how-do-sxs-installations-work)
     * [Can I rewrite source code within the compiler pipeline](#can-i-rewrite-source-code-within-the-compiler-pipeline)
     * [Can I redistribute the Roslyn DLLs with my samples or code on my blog](#can-i-redistribute-the-roslyn-dlls-with-my-samples-or-code-on-my-blog)
     * [How do the Roslyn APIs relate to the VS Code Model and CodeDom](#how-do-the-roslyn-apis-relate-to-the-vs-code-model-and-codedom)
@@ -80,9 +79,6 @@ Where there is code available, the answer to the question has one or more tags s
 
 ## What docs are available on Roslyn?
 There are a few specs for features, design notes for language feature discussions, and full coverage of doc comments.  However, the team does not have current API docs.  See [Documentation].
-
-### How do SxS installations work?
-The Roslyn previews target Visual Studio 2013 RTM, and they do not install for older versions of VS; including Visual Studio 2012.
 
 ### Can I rewrite source code within the compiler pipeline?
 Roslyn does not provide a plug-in architecture throughout the compiler pipeline so that at each stage you can affect syntax parsed, semantic analysis, optimization algorithms, code emission, etc.  However, you can use a pre-build rule to analyze and generate different code that MSBuild then feeds to csc.exe or vbc.exe.  You can use Roslyn to parse code and semantically analyze it, and then rewrite the trees, change references, etc.  Then compile the result as a new compilation.
