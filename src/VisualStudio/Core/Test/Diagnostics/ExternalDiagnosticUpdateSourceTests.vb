@@ -115,17 +115,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <WpfFact>
-        Public Sub TestExternalBuildErrorProperties()
-            Assert.Equal(1, ProjectExternalErrorReporter.Properties.Count)
+        Public Async Function TestExternalBuildErrorProperties() As Task
+            Assert.Equal(1, DiagnosticData.PropertiesForBuildDiagnostic.Count)
 
             Dim value As String = Nothing
-            Assert.True(ProjectExternalErrorReporter.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, value))
+            Assert.True(DiagnosticData.PropertiesForBuildDiagnostic.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, value))
             Assert.Equal(WellKnownDiagnosticTags.Build, value)
-        End Sub
 
-        Private Function GetDiagnosticData(workspace As Workspace, projectId As ProjectId) As DiagnosticData
+            Using workspace = Await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(String.Empty)
+                Dim project = workspace.CurrentSolution.Projects.First()
+
+                Dim diagnostic = GetDiagnosticData(workspace, project.Id, isBuildDiagnostic:=True)
+                Assert.True(diagnostic.IsBuildDiagnostic())
+
+                diagnostic = GetDiagnosticData(workspace, project.Id, isBuildDiagnostic:=False)
+                Assert.False(diagnostic.IsBuildDiagnostic())
+            End Using
+        End Function
+
+        Private Function GetDiagnosticData(workspace As Workspace, projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False) As DiagnosticData
+            Dim properties = If(isBuildDiagnostic, DiagnosticData.PropertiesForBuildDiagnostic, ImmutableDictionary(Of String, String).Empty)
             Return New DiagnosticData(
-                "Id", "Test", "Test Message", "Test Message Format", DiagnosticSeverity.Error, True, 0, workspace, projectId)
+                "Id", "Test", "Test Message", "Test Message Format", DiagnosticSeverity.Error, True, 0, workspace, projectId, properties:=properties)
         End Function
 
         Private Class Waiter
