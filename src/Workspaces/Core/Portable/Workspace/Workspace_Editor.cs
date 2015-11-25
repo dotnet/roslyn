@@ -409,6 +409,16 @@ namespace Microsoft.CodeAnalysis
             CheckDocumentIsInCurrentSolution(documentId);
             CheckDocumentIsClosed(documentId);
 
+            // use .ConfigureAwait(true) to marshall back to this thread.  We want to call 
+            // RegisterText on the UI thread if that's what we called OnDocumentOpened on.
+            await OnDocumentOpenedWorkerAsync(documentId, textContainer, isCurrentContext).ConfigureAwait(true);
+
+            // register outside of lock since it may call user code.
+            this.RegisterText(textContainer);
+        }
+
+        private async Task OnDocumentOpenedWorkerAsync(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext)
+        {
             using (await _serializationLock.DisposableWaitAsync().ConfigureAwait(false))
             {
                 var oldSolution = this.CurrentSolution;
@@ -443,9 +453,6 @@ namespace Microsoft.CodeAnalysis
                 var ignore1 = RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
                 var ignore2 = this.RaiseDocumentOpenedEventAsync(newDoc); // don't await this
             }
-
-            // register outside of lock since it may call user code.
-            this.RegisterText(textContainer);
         }
 
         private void SignupForTextChanges(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler)
