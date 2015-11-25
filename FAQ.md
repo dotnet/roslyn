@@ -95,7 +95,7 @@ The CodeDom targets programmatic code generation and compilation scenarios in AS
 
 The VS Code Model tries to relieve ISVs from having to parse code in VS so that ISVs can provide code-oriented extensions to VS.  The VS Code Model represented code (and had meager code generation support) down to types, members, and parameters.  It did NOT go into functions to the statement level.
 
-The Roslyn APIs fully model all C# and VB code and provide full code generation or updating capabilities.  Ultimately, we will re-implement the VS Code Model on the Roslyn APIs.  The CodeDom is a separate technology built outside the C# and VB teams, and it does not need to be rewritten (though someone may want to move it to the new Roslyn APIs).
+The Roslyn APIs fully model all C# and VB code and provide full code generation or updating capabilities.  In Visual Studio 2015, the VS Code Model APIs are implemented atop the Roslyn APIs.  The CodeDom is a separate technology built outside the C# and VB teams, and it does not need to be rewritten (though someone may want to move it to the new Roslyn APIs).
 
 ### Can you just open a Connect bug for me?
 As Microsoft employees chatting with folks on forums or via email, we're happy to open internal bugs to save you effort.  If we say we'll open a bug, then you're guaranteed we opened and gave the issue every bit of weight that we would give any customer issue.  If you want to track the bug and be automatically notified of any changes to the bug, then we need you to open a Connect bug.
