@@ -56,10 +56,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
         End Property
 
         Protected Overrides Function GetSubmissionCompilationOptions(name As String, metadataReferenceResolver As MetadataReferenceResolver, sourceReferenceResolver As SourceReferenceResolver, [imports] As ImmutableArray(Of String)) As CompilationOptions
-            ' TODO: imports
+            Dim globalImports = [imports].Select(Function(import) GlobalImport.Parse(import))
             Return New VisualBasicCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 scriptClassName:=name,
+                globalImports:=globalImports,
                 metadataReferenceResolver:=metadataReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
