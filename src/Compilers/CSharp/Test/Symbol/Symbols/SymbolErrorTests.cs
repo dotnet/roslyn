@@ -1724,6 +1724,34 @@ struct Foo
         }
 
         [Fact]
+        public void CS0106ERR_BadMemberFlag09()
+        {
+            var text = @"
+struct Foo
+{
+    public abstract event System.EventHandler Bar;
+}
+";
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 47 });
+        }
+
+        [Fact]
+        public void CS0106ERR_BadMemberFlag10()
+        {
+            var text = @"
+struct Foo
+{
+    public virtual event System.EventHandler Baz;
+    // prevent warning for test
+    void OnBaz() { Baz?.Invoke(null, null); }
+}
+";
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 46 });
+        }
+
+        [Fact]
         public void CS0111ERR_MemberAlreadyExists01()
         {
             var text = @"class A
