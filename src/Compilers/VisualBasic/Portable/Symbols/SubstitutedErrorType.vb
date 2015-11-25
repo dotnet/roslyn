@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me
                 End If
 
-                If Me.ContainingSymbol Is Nothing OrElse Me.ContainingSymbol.IsDefinition Then
+                If ContainingSymbol Is Nothing OrElse ContainingSymbol.IsDefinition Then
                     Return _fullInstanceType
                 End If
 
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' and, therefore, have nothing to substitute. Just use identity substitution.
                 substitution = VisualBasic.Symbols.TypeSubstitution.Concat(_fullInstanceType, substitution, Nothing)
 
-                Return New SubstitutedErrorType(Me.ContainingSymbol, _fullInstanceType, substitution)
+                Return New SubstitutedErrorType(ContainingSymbol, _fullInstanceType, substitution)
             End Get
         End Property
 

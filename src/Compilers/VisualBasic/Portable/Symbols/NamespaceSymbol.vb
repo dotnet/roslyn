@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>An ImmutableArray containing all the namespaces that are members of this symbol. If this symbol has no namespace members,
         ''' returns an empty ImmutableArray. Never returns Nothing.</returns>
         Public Overridable Function GetNamespaceMembers() As IEnumerable(Of NamespaceSymbol)
-            Return Me.GetMembers().OfType(Of NamespaceSymbol)()
+            Return GetMembers().OfType(Of NamespaceSymbol)()
         End Function
 
         ''' <summary>
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property NamespaceKind As NamespaceKind
             Get
-                Return Me.Extent.Kind
+                Return Extent.Kind
             End Get
         End Property
 
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property ContainingCompilation As VisualBasicCompilation
             Get
-                Return If(Me.NamespaceKind = NamespaceKind.Compilation, Me.Extent.Compilation, Nothing)
+                Return If(NamespaceKind = NamespaceKind.Compilation, Extent.Compilation, Nothing)
             End Get
         End Property
 
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overridable ReadOnly Property ConstituentNamespaces As ImmutableArray(Of NamespaceSymbol)
             Get
-                Return ImmutableArray.Create(Of NamespaceSymbol)(Me)
+                Return ImmutableArray.Create(Me)
             End Get
         End Property
 
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me.IsGlobalNamespace
+                Return IsGlobalNamespace
             End Get
         End Property
 
@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result As Accessibility = Accessibility.NotApplicable
 
             ' First, iterate through types within this namespace.
-            For Each typeMember In Me.GetTypeMembersUnordered()
+            For Each typeMember In GetTypeMembersUnordered()
                 Select Case typeMember.DeclaredAccessibility
                     Case Accessibility.Public
                         Return Accessibility.Public
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             ' Now, iterate through child namespaces
-            For Each member In Me.GetMembersUnordered()
+            For Each member In GetMembersUnordered()
                 If member.Kind = SymbolKind.Namespace Then
                     Dim [namespace] = DirectCast(member, NamespaceSymbol)
                     Dim childResult As Accessibility = [namespace].DeclaredAccessibilityOfMostAccessibleDescendantType
@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns true if namespace contains types accessible from the target assembly.
         ''' </summary>
         Friend Overridable Function ContainsTypesAccessibleFrom(fromAssembly As AssemblySymbol) As Boolean
-            Dim accessibility = Me.DeclaredAccessibilityOfMostAccessibleDescendantType
+            Dim accessibility = DeclaredAccessibilityOfMostAccessibleDescendantType
 
             If accessibility = Accessibility.Public Then
                 Return True
@@ -272,8 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If ns IsNot Nothing Then
                         If nextScope IsNot Nothing Then
-                            Debug.Assert(nextScope Is Nothing,
-                                                            "Why did we run into an unmerged namespace?")
+                            Debug.Assert(nextScope Is Nothing, "Why did we run into an unmerged namespace?")
                             nextScope = Nothing
                             Exit For
                         End If
@@ -315,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Because namespaces are merged case-insensitively,
             ' we need to make sure that we have a match for
             ' full emitted name of the type.
-            Dim qualifiedName As String = Me.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)
+            Dim qualifiedName As String = ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)
 
             Dim typeMembers As ImmutableArray(Of NamedTypeSymbol)
 
@@ -325,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If fullEmittedName.ForcedArity = -1 OrElse fullEmittedName.ForcedArity = fullEmittedName.InferredArity Then
 
                     ' Let's handle mangling case first.
-                    typeMembers = Me.GetTypeMembers(fullEmittedName.UnmangledTypeName)
+                    typeMembers = GetTypeMembers(fullEmittedName.UnmangledTypeName)
 
                     For Each named In typeMembers
                         If fullEmittedName.InferredArity = named.Arity AndAlso named.MangleName AndAlso
@@ -362,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            typeMembers = Me.GetTypeMembers(fullEmittedName.TypeName)
+            typeMembers = GetTypeMembers(fullEmittedName.TypeName)
 
             For Each named In typeMembers
                 ' If the name of the type must include generic mangling, it cannot be our match.
@@ -386,7 +385,7 @@ Done:
                     Stop
                 End If
 
-                Return New MissingMetadataTypeSymbol.TopLevel(Me.ContainingModule, fullEmittedName)
+                Return New MissingMetadataTypeSymbol.TopLevel(ContainingModule, fullEmittedName)
             End If
 
             Return namedType
@@ -402,7 +401,7 @@ Done:
         End Function
 
         Friend Function GetNestedNamespace(name As String) As NamespaceSymbol
-            For Each sym In Me.GetMembers(name)
+            For Each sym In GetMembers(name)
                 If sym.Kind = SymbolKind.Namespace Then
                     Return DirectCast(sym, NamespaceSymbol)
                 End If
@@ -413,10 +412,10 @@ Done:
         Friend Function GetNestedNamespace(name As NameSyntax) As NamespaceSymbol
             Select Case name.Kind
                 Case SyntaxKind.IdentifierName
-                    Return Me.GetNestedNamespace(DirectCast(name, IdentifierNameSyntax).Identifier.ValueText)
+                    Return GetNestedNamespace(DirectCast(name, IdentifierNameSyntax).Identifier.ValueText)
                 Case SyntaxKind.QualifiedName
                     Dim qn = DirectCast(name, QualifiedNameSyntax)
-                    Dim leftNs = Me.GetNestedNamespace(qn.Left)
+                    Dim leftNs = GetNestedNamespace(qn.Left)
                     If leftNs IsNot Nothing Then
                         Return leftNs.GetNestedNamespace(qn.Right)
                     End If
@@ -426,7 +425,7 @@ Done:
         End Function
 
         Friend Overridable Function IsDeclaredInSourceModule([module] As ModuleSymbol) As Boolean
-            Return Me.ContainingModule Is [module]
+            Return ContainingModule Is [module]
         End Function
 
         ''' <summary>
@@ -464,7 +463,7 @@ Done:
         ''' the same type were grouped together within each bucket. 
         ''' </summary>
         Friend Overridable Sub BuildExtensionMethodsMap(map As Dictionary(Of String, ArrayBuilder(Of MethodSymbol)))
-            For Each containedType As NamedTypeSymbol In Me.TypesToCheckForExtensionMethods
+            For Each containedType As NamedTypeSymbol In TypesToCheckForExtensionMethods
                 containedType.BuildExtensionMethodsMap(map, appendThrough:=Me)
             Next
         End Sub
@@ -473,7 +472,7 @@ Done:
         ''' Gets all extension methods in this namespace given a method's name. 
         ''' </summary>
         Friend Overridable Sub GetExtensionMethods(methods As ArrayBuilder(Of MethodSymbol), name As String)
-            For Each containedType As NamedTypeSymbol In Me.TypesToCheckForExtensionMethods
+            For Each containedType As NamedTypeSymbol In TypesToCheckForExtensionMethods
                 containedType.GetExtensionMethods(methods, appendThrough:=Me, Name:=name)
             Next
         End Sub
@@ -541,15 +540,15 @@ Done:
 #Region "INamespaceSymbol"
 
         Private Function INamespaceSymbol_GetMembers() As IEnumerable(Of INamespaceOrTypeSymbol) Implements INamespaceSymbol.GetMembers
-            Return Me.GetMembers().OfType(Of INamespaceOrTypeSymbol)()
+            Return GetMembers().OfType(Of INamespaceOrTypeSymbol)()
         End Function
 
         Private Function INamespaceSymbol_GetMembers(name As String) As IEnumerable(Of INamespaceOrTypeSymbol) Implements INamespaceSymbol.GetMembers
-            Return Me.GetMembers(name).OfType(Of INamespaceOrTypeSymbol)()
+            Return GetMembers(name).OfType(Of INamespaceOrTypeSymbol)()
         End Function
 
         Private Function INamespaceSymbol_GetNamespaceMembers() As IEnumerable(Of INamespaceSymbol) Implements INamespaceSymbol.GetNamespaceMembers
-            Return Me.GetNamespaceMembers()
+            Return GetNamespaceMembers()
         End Function
 
         Public Overrides Sub Accept(visitor As SymbolVisitor)
@@ -570,19 +569,19 @@ Done:
 
         Private ReadOnly Property INamespaceSymbol_ConstituentNamespaces As ImmutableArray(Of INamespaceSymbol) Implements INamespaceSymbol.ConstituentNamespaces
             Get
-                Return StaticCast(Of INamespaceSymbol).From(Me.ConstituentNamespaces)
+                Return StaticCast(Of INamespaceSymbol).From(ConstituentNamespaces)
             End Get
         End Property
 
         Private ReadOnly Property INamespaceSymbol_NamespaceKind As NamespaceKind Implements INamespaceSymbol.NamespaceKind
             Get
-                Return Me.NamespaceKind
+                Return NamespaceKind
             End Get
         End Property
 
         Private ReadOnly Property INamespaceSymbol_ContainingCompilation As Compilation Implements INamespaceSymbol.ContainingCompilation
             Get
-                Return Me.ContainingCompilation
+                Return ContainingCompilation
             End Get
         End Property
 

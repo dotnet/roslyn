@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me.TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.ReturnType, OriginalDefinition.ReturnTypeCustomModifiers)
+                Return TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.ReturnType, OriginalDefinition.ReturnTypeCustomModifiers)
             End Get
         End Property
 
@@ -335,9 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 meParameter = Nothing
                 Return False
             End If
-            meParameter = If(originalMeParameter IsNot Nothing,
-                New MeParameterSymbol(Me),
-                Nothing)
+            meParameter = If(originalMeParameter IsNot Nothing, New MeParameterSymbol(Me), Nothing)
             Return True
         End Function
 
@@ -821,13 +819,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property ConstructedFrom As MethodSymbol
                 Get
-                    Return Me.OriginalDefinition
+                    Return OriginalDefinition
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return Me.OriginalDefinition.ContainingSymbol
+                    Return OriginalDefinition.ContainingSymbol
                 End Get
             End Property
 
@@ -845,13 +843,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend Overrides ReadOnly Property CallsiteReducedFromMethod As MethodSymbol
                 Get
-                    Dim reducedDef As MethodSymbol = Me.ReducedFrom
+                    Dim reducedDef As MethodSymbol = ReducedFrom
 
                     If reducedDef Is Nothing Then
                         Return Nothing
                     End If
 
-                    If Me.Arity = reducedDef.Arity Then
+                    If Arity = reducedDef.Arity Then
                         Return reducedDef.Construct(Me.TypeArguments)
                     End If
 

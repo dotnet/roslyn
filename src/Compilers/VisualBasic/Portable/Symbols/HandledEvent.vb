@@ -20,15 +20,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        delegateCreation As BoundExpression,
                        hookupMethod As MethodSymbol)
 
-            Me._kind = kind
+            _kind = kind
 
             Debug.Assert(eventSymbol IsNot Nothing)
-            Me._eventSymbol = eventSymbol
+            _eventSymbol = eventSymbol
 
             Debug.Assert((withEventsContainerOpt Is Nothing) Or kind = HandledEventKind.WithEvents)
-            Me._WithEventsContainerOpt = withEventsContainerOpt
+            _WithEventsContainerOpt = withEventsContainerOpt
 
-            Me._WithEventsSourcePropertyOpt = withEventsSourcePropertyOpt
+            _WithEventsSourcePropertyOpt = withEventsSourcePropertyOpt
 
             Me.delegateCreation = delegateCreation
             Me.hookupMethod = hookupMethod

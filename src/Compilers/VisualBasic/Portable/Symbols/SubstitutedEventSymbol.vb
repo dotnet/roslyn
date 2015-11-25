@@ -36,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        raiseMethod As SubstitutedMethodSymbol,
                        associatedField As SubstitutedFieldSymbol)
 
-            Me._containingType = containingType
-            Me._originalDefinition = originalDefinition
-            Me._associatedField = associatedField
+            _containingType = containingType
+            _originalDefinition = originalDefinition
+            _associatedField = associatedField
 
             If addMethod IsNot Nothing Then
                 addMethod.SetAssociatedPropertyOrEvent(Me)
@@ -64,13 +64,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                If Me._lazyType Is Nothing Then
-                    Interlocked.CompareExchange(Me._lazyType,
+                If _lazyType Is Nothing Then
+                    Interlocked.CompareExchange(_lazyType,
                                                 _originalDefinition.Type.InternalSubstituteTypeParameters(TypeSubstitution).AsTypeSymbolOnly(),
                                                 Nothing)
                 End If
 
-                Return Me._lazyType
+                Return _lazyType
             End Get
 
         End Property
@@ -83,77 +83,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return Me._originalDefinition.HasSpecialName
+                Return _originalDefinition.HasSpecialName
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return Me._containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return Me._containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property OriginalDefinition As EventSymbol
             Get
-                Return Me._originalDefinition
+                Return _originalDefinition
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me._originalDefinition.Locations
+                Return _originalDefinition.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return Me._originalDefinition.DeclaringSyntaxReferences
+                Return _originalDefinition.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me._originalDefinition.GetAttributes()
+            Return _originalDefinition.GetAttributes()
         End Function
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return Me._originalDefinition.IsShared
+                Return _originalDefinition.IsShared
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Return Me._originalDefinition.IsNotOverridable
+                Return _originalDefinition.IsNotOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Return Me._originalDefinition.IsMustOverride
+                Return _originalDefinition.IsMustOverride
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Return Me._originalDefinition.IsOverridable
+                Return _originalDefinition.IsOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Return Me.OriginalDefinition.IsOverrides
+                Return OriginalDefinition.IsOverrides
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me.OriginalDefinition.IsImplicitlyDeclared
+                Return OriginalDefinition.IsImplicitlyDeclared
             End Get
         End Property
 
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property IsExplicitInterfaceImplementation As Boolean
             Get
-                Return Me._originalDefinition.IsExplicitInterfaceImplementation
+                Return _originalDefinition.IsExplicitInterfaceImplementation
             End Get
         End Property
 
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return Me.OriginalDefinition.DeclaredAccessibility
+                Return OriginalDefinition.DeclaredAccessibility
             End Get
 
         End Property
@@ -211,19 +211,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property OverriddenOrHiddenMembers As OverriddenMembersResult(Of EventSymbol)
 
             Get
-                If Me._lazyOverriddenOrHiddenMembers Is Nothing Then
-                    Interlocked.CompareExchange(Me._lazyOverriddenOrHiddenMembers,
+                If _lazyOverriddenOrHiddenMembers Is Nothing Then
+                    Interlocked.CompareExchange(_lazyOverriddenOrHiddenMembers,
                                                 OverrideHidingHelper(Of EventSymbol).MakeOverriddenMembers(Me),
                                                 Nothing)
                 End If
 
-                Return Me._lazyOverriddenOrHiddenMembers
+                Return _lazyOverriddenOrHiddenMembers
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return Me.OriginalDefinition.ObsoleteAttributeData
+                Return OriginalDefinition.ObsoleteAttributeData
             End Get
         End Property
 

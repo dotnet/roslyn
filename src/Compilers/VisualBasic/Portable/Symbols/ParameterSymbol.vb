@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected NotOverridable Overrides ReadOnly Property OriginalSymbolDefinition As Symbol
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property IsMarshalAsObject As Boolean
             Get
-                Select Case Me.MarshallingType
+                Select Case MarshallingType
                     Case UnmanagedType.Interface, UnmanagedType.IUnknown, UnmanagedType.IDispatch
                         Return True
                 End Select
@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
-                Return Me.ContainingSymbol.EmbeddedSymbolKind
+                Return ContainingSymbol.EmbeddedSymbolKind
             End Get
         End Property
 
@@ -285,49 +285,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 ' TODO: Should we check if it has the <Out> attribute and return 'RefKind.Out' in
                 ' that case?
-                Return If(Me.IsByRef, RefKind.Ref, RefKind.None)
+                Return If(IsByRef, RefKind.Ref, RefKind.None)
             End Get
         End Property
 
         Private ReadOnly Property IParameterSymbol_Type As ITypeSymbol Implements IParameterSymbol.Type
             Get
-                Return Me.Type
+                Return Type
             End Get
         End Property
 
         Private ReadOnly Property IParameterSymbol_IsOptional As Boolean Implements IParameterSymbol.IsOptional
             Get
-                Return Me.IsOptional
+                Return IsOptional
             End Get
         End Property
 
         Private ReadOnly Property IParameterSymbol_IsThis As Boolean Implements IParameterSymbol.IsThis
             Get
-                Return Me.IsMe
+                Return IsMe
             End Get
         End Property
 
         Private ReadOnly Property IParameterSymbol_CustomModifiers As ImmutableArray(Of CustomModifier) Implements IParameterSymbol.CustomModifiers
             Get
-                Return Me.CustomModifiers
+                Return CustomModifiers
             End Get
         End Property
 
         Private ReadOnly Property IParameterSymbol_Ordinal As Integer Implements IParameterSymbol.Ordinal
             Get
-                Return Me.Ordinal
+                Return Ordinal
             End Get
         End Property
 
         Private ReadOnly Property IParameterSymbol_DefaultValue As Object Implements IParameterSymbol.ExplicitDefaultValue
             Get
-                Return Me.ExplicitDefaultValue
+                Return ExplicitDefaultValue
             End Get
         End Property
 
         Private ReadOnly Property IParameterSymbol_OriginalDefinition As IParameterSymbol Implements IParameterSymbol.OriginalDefinition
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 

@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result = AllInterfacesNoUseSiteDiagnostics
 
             ' Since bases affect content of AllInterfaces set, we need to make sure they all are good.
-            Me.AddUseSiteDiagnosticsForBaseDefinitions(useSiteDiagnostics)
+            AddUseSiteDiagnosticsForBaseDefinitions(useSiteDiagnostics)
 
             For Each iface In result
                 iface.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend ReadOnly Property InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics As ImmutableHashSet(Of NamedTypeSymbol)
             Get
                 If _lazyInterfacesAndTheirBaseInterfaces Is Nothing Then
-                    Interlocked.CompareExchange(_lazyInterfacesAndTheirBaseInterfaces, MakeInterfacesAndTheirBaseInterfaces(Me.InterfacesNoUseSiteDiagnostics), Nothing)
+                    Interlocked.CompareExchange(_lazyInterfacesAndTheirBaseInterfaces, MakeInterfacesAndTheirBaseInterfaces(InterfacesNoUseSiteDiagnostics), Nothing)
                 End If
 
                 Return _lazyInterfacesAndTheirBaseInterfaces
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' AllInterfaces for its implementation, so it will pick up all changes to MakeAllInterfaces
         ' indirectly.
         Private Shared Function MakeInterfacesAndTheirBaseInterfaces(declaredInterfaces As ImmutableArray(Of NamedTypeSymbol)) As ImmutableHashSet(Of NamedTypeSymbol)
-            Dim resultBuilder = New HashSet(Of NamedTypeSymbol)()
+            Dim resultBuilder As New HashSet(Of NamedTypeSymbol)()
             For Each [interface] In declaredInterfaces
                 If Not resultBuilder.Contains([interface]) Then
                     resultBuilder.Add([interface])
@@ -436,7 +436,7 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_BaseType As INamedTypeSymbol Implements ITypeSymbol.BaseType
             Get
-                Return Me.BaseTypeNoUseSiteDiagnostics
+                Return BaseTypeNoUseSiteDiagnostics
             End Get
         End Property
 
@@ -448,13 +448,13 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_OriginalDefinition As ITypeSymbol Implements ITypeSymbol.OriginalDefinition
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
         Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
             Get
-                Return Me.TypeKind.ToCommon()
+                Return TypeKind.ToCommon()
             End Get
         End Property
 
@@ -479,7 +479,7 @@ Done:
             End If
 
             If Not interfaceMember.ContainingType.IsInterfaceType() OrElse
-                Not Me.ImplementsInterface(interfaceMember.ContainingType, Nothing) Then
+                Not ImplementsInterface(interfaceMember.ContainingType, Nothing) Then
                 Return Nothing
             End If
 
@@ -566,7 +566,7 @@ Done:
         ' Build the explicit interface map for this type. 
         ' This implementation is not used by source symbols, which additionally diagnose errors.
         Private Function MakeExplicitInterfaceImplementationMap() As Dictionary(Of Symbol, Symbol)
-            If Me.IsClassType() OrElse Me.IsStructureType() Then
+            If IsClassType() OrElse Me.IsStructureType() Then
                 Dim map = New Dictionary(Of Symbol, Symbol)()
                 For Each implementingMember In Me.GetMembersUnordered()
                     For Each interfaceMember In GetExplicitInterfaceImplementations(implementingMember)

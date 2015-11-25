@@ -20,8 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _containingType As SubstitutedNamedType
         Private ReadOnly _originalDefinition As FieldSymbol
 
-        Public Sub New(container As SubstitutedNamedType,
-                       originalDefinition As FieldSymbol)
+        Public Sub New(container As SubstitutedNamedType, originalDefinition As FieldSymbol)
             Debug.Assert(originalDefinition.IsDefinition)
             _containingType = container
             _originalDefinition = originalDefinition
@@ -83,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return Me.OriginalDefinition.ObsoleteAttributeData
+                Return OriginalDefinition.ObsoleteAttributeData
             End Get
         End Property
 

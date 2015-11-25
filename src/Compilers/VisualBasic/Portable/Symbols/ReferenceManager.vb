@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Sub InitializeAssemblyReuseData(assemblySymbol As AssemblySymbol, referencedAssemblies As ImmutableArray(Of AssemblySymbol), unifiedAssemblies As ImmutableArray(Of UnifiedAssembly(Of AssemblySymbol)))
                 AssertBound()
 
-                assemblySymbol.SetCorLibrary(If(Me.CorLibraryOpt, assemblySymbol))
+                assemblySymbol.SetCorLibrary(If(CorLibraryOpt, assemblySymbol))
 
                 Dim sourceModuleReferences = New ModuleReferences(Of AssemblySymbol)(referencedAssemblies.SelectAsArray(Function(a) a.Identity), referencedAssemblies, unifiedAssemblies)
                 assemblySymbol.Modules(0).SetReferences(sourceModuleReferences)

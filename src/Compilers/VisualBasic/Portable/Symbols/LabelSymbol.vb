@@ -16,14 +16,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements ILabelSymbol
 
         Public Sub New(name As String)
-            Me._name = name
+            _name = name
         End Sub
 
         Private ReadOnly _name As String
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me._name
+                Return _name
             End Get
         End Property
 

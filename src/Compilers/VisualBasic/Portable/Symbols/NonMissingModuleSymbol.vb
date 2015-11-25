@@ -145,14 +145,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Symbol for the type, or MissingMetadataSymbol if the type isn't found.
         ''' </returns>
         ''' <remarks></remarks>
-        Friend NotOverridable Overrides Function LookupTopLevelMetadataType(
-            ByRef emittedName As MetadataTypeName
-        ) As NamedTypeSymbol
+        Friend NotOverridable Overrides Function LookupTopLevelMetadataType(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
 
             Dim result As NamedTypeSymbol = Nothing
             Dim scope As NamespaceSymbol
 
-            scope = Me.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments)
+            scope = GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments)
 
             If scope Is Nothing Then
                 ' We failed to locate the namespace

@@ -261,12 +261,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         considerCallingConvention As Boolean,
                         considerByRef As Boolean,
                         considerCustomModifiers As Boolean)
-            Me._considerName = considerName
-            Me._considerReturnType = considerReturnType
-            Me._considerTypeConstraints = considerTypeConstraints
-            Me._considerCallingConvention = considerCallingConvention
-            Me._considerByRef = considerByRef
-            Me._considerCustomModifiers = considerCustomModifiers
+            _considerName = considerName
+            _considerReturnType = considerReturnType
+            _considerTypeConstraints = considerTypeConstraints
+            _considerCallingConvention = considerCallingConvention
+            _considerByRef = considerByRef
+            _considerCustomModifiers = considerCustomModifiers
         End Sub
 
 #Region "IEqualityComparer(Of MethodSymbol) Members"

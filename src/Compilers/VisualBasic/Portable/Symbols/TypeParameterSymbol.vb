@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected NotOverridable Overrides ReadOnly Property OriginalTypeSymbolDefinition As TypeSymbol
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function ConstraintTypesWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of TypeSymbol)
             Dim result = ConstraintTypesNoUseSiteDiagnostics
 
-            Me.AddConstraintsUseSiteDiagnostics(useSiteDiagnostics)
+            AddConstraintsUseSiteDiagnostics(useSiteDiagnostics)
 
             For Each constraint In result
                 constraint.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property DeclaringMethod As MethodSymbol
             Get
-                Return TryCast(Me.ContainingSymbol, MethodSymbol)
+                Return TryCast(ContainingSymbol, MethodSymbol)
             End Get
         End Property
 
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property IsReferenceType As Boolean
             Get
-                If (Me.HasReferenceTypeConstraint) Then
+                If (HasReferenceTypeConstraint) Then
                     Return True
                 End If
 
@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
-                Return Me.ContainingSymbol.EmbeddedSymbolKind
+                Return ContainingSymbol.EmbeddedSymbolKind
             End Get
         End Property
 
@@ -356,19 +356,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeParameterSymbol_DeclaringMethod As IMethodSymbol Implements ITypeParameterSymbol.DeclaringMethod
             Get
-                Return Me.DeclaringMethod
+                Return DeclaringMethod
             End Get
         End Property
 
         Private ReadOnly Property ITypeParameterSymbol_DeclaringType As INamedTypeSymbol Implements ITypeParameterSymbol.DeclaringType
             Get
-                Return Me.DeclaringType
+                Return DeclaringType
             End Get
         End Property
 
         Private ReadOnly Property ITypeParameterSymbol_Ordinal As Integer Implements ITypeParameterSymbol.Ordinal
             Get
-                Return Me.Ordinal
+                Return Ordinal
             End Get
         End Property
 
@@ -380,13 +380,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeParameterSymbol_OriginalDefinition As ITypeParameterSymbol Implements ITypeParameterSymbol.OriginalDefinition
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
         Private ReadOnly Property ITypeParameterSymbol_ReducedFrom As ITypeParameterSymbol Implements ITypeParameterSymbol.ReducedFrom
             Get
-                Return Me.ReducedFrom
+                Return ReducedFrom
             End Get
         End Property
 

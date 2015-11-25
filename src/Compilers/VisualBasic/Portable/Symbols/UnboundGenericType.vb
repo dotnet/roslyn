@@ -436,18 +436,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         If containerAsConstructed IsNot Nothing Then
                             If OriginalDefinition.Arity = 0 Then
-                                result = VisualBasic.Symbols.TypeSubstitution.Concat(OriginalDefinition,
-                                                                             containerAsConstructed.TypeSubstitution,
-                                                                             Nothing)
+                                result = TypeSubstitution.Concat(OriginalDefinition, containerAsConstructed.TypeSubstitution, Nothing)
                             Else
-                                result = VisualBasic.Symbols.TypeSubstitution.Create(containerAsConstructed.TypeSubstitution,
-                                                                             OriginalDefinition,
-                                                                             Me.TypeArgumentsNoUseSiteDiagnostics)
+                                result = TypeSubstitution.Create(containerAsConstructed.TypeSubstitution, OriginalDefinition, TypeArgumentsNoUseSiteDiagnostics)
                             End If
                         Else
                             Debug.Assert(Not (TypeOf container Is NamedTypeSymbol AndAlso
                                          DirectCast(container, NamedTypeSymbol).IsGenericType))
-                            result = VisualBasic.Symbols.TypeSubstitution.Create(OriginalDefinition, OriginalDefinition.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
+                            result = TypeSubstitution.Create(OriginalDefinition, OriginalDefinition.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
                         End If
 
                         Interlocked.CompareExchange(_lazyTypeSubstitution, result, Nothing)

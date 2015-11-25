@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Me.Name.GetHashCode()
+            Return Name.GetHashCode()
         End Function
 
         Public Overloads Overrides Sub Accept(visitor As SymbolVisitor)

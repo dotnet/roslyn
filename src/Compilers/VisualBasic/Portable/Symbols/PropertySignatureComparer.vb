@@ -84,11 +84,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         considerReadWriteModifiers As Boolean,
                         considerOptionalParameters As Boolean,
                         considerCustomModifiers As Boolean)
-            Me._considerName = considerName
-            Me._considerType = considerType
-            Me._considerReadWriteModifiers = considerReadWriteModifiers
-            Me._considerOptionalParameters = considerOptionalParameters
-            Me._considerCustomModifiers = considerCustomModifiers
+            _considerName = considerName
+            _considerType = considerType
+            _considerReadWriteModifiers = considerReadWriteModifiers
+            _considerOptionalParameters = considerOptionalParameters
+            _considerCustomModifiers = considerCustomModifiers
         End Sub
 
 #Region "IEqualityComparer(Of PropertySymbol) Members"

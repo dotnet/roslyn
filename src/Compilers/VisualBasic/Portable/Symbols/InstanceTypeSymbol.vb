@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 ' This is always the instance type, so the type arguments are the same as the type parameters.
                 If Arity > 0 Then
-                    Return StaticCast(Of TypeSymbol).From(Me.TypeParameters)
+                    Return StaticCast(Of TypeSymbol).From(TypeParameters)
                 Else
                     Return ImmutableArray(Of TypeSymbol).Empty
                 End If
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public NotOverridable Overrides Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As NamedTypeSymbol
             CheckCanConstructAndTypeArguments(typeArguments)
 
-            Dim substitution = VisualBasic.Symbols.TypeSubstitution.Create(Me, Me.TypeParameters, typeArguments, allowAlphaRenamedTypeParametersAsArguments:=True)
+            Dim substitution = VisualBasic.Symbols.TypeSubstitution.Create(Me, TypeParameters, typeArguments, allowAlphaRenamedTypeParametersAsArguments:=True)
 
             If substitution Is Nothing Then
                 Return Me
@@ -89,18 +89,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If substitution.TargetGenericDefinition Is Me Then
 
                 If substitution.Parent Is Nothing Then
-                    Debug.Assert(Me.Arity > 0)
+                    Debug.Assert(Arity > 0)
                     Return New SubstitutedNamedType.ConstructedInstanceType(substitution)
                 End If
 
-                newContainer = DirectCast(Me.ContainingType.InternalSubstituteTypeParameters(substitution.Parent).AsTypeSymbolOnly(), NamedTypeSymbol)
+                newContainer = DirectCast(ContainingType.InternalSubstituteTypeParameters(substitution.Parent).AsTypeSymbolOnly(), NamedTypeSymbol)
             Else
-                newContainer = DirectCast(Me.ContainingType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
+                newContainer = DirectCast(ContainingType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
             End If
 
-            Debug.Assert(Me.ContainingType IsNot Nothing)
+            Debug.Assert(ContainingType IsNot Nothing)
 
-            If Me.Arity = 0 Then
+            If Arity = 0 Then
                 Debug.Assert(Not newContainer.IsDefinition)
                 Return SubstitutedNamedType.SpecializedNonGenericType.Create(DirectCast(newContainer, NamedTypeSymbol), Me, substitution)
             End If
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' If we reach a type (Me) that is in an assembly with unified references, 
             ' we check if that type definition depends on a type from a unified reference.
-            If Me.ContainingModule.HasUnifiedReferences Then
+            If ContainingModule.HasUnifiedReferences Then
                 Return GetUnificationUseSiteDiagnosticRecursive(Me, checkedTypes:=Nothing)
             End If
 
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function DeriveUseSiteErrorInfoFromBase() As DiagnosticInfo
 
-            Dim base As NamedTypeSymbol = Me.BaseTypeNoUseSiteDiagnostics
+            Dim base As NamedTypeSymbol = BaseTypeNoUseSiteDiagnostics
 
             While base IsNot Nothing
 
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' TODO (tomat): use-site errors should be reported on each part of a qualified name,
             ' we shouldn't need to walk containing types here (see bug 15793)
             ' containing type
-            Dim containing = Me.ContainingType
+            Dim containing = ContainingType
             If containing IsNot Nothing Then
                 info = containing.GetUnificationUseSiteDiagnosticRecursive(owner, checkedTypes)
                 If info IsNot Nothing Then
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' base type
-            Dim base = Me.BaseTypeNoUseSiteDiagnostics
+            Dim base = BaseTypeNoUseSiteDiagnostics
             If base IsNot Nothing Then
                 info = base.GetUnificationUseSiteDiagnosticRecursive(owner, checkedTypes)
                 If info IsNot Nothing Then
@@ -196,8 +196,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' implemented interfaces, type parameter constraints, type arguments
-            Return If(GetUnificationUseSiteDiagnosticRecursive(Me.InterfacesNoUseSiteDiagnostics, owner, checkedTypes),
-                      GetUnificationUseSiteDiagnosticRecursive(Me.TypeParameters, owner, checkedTypes))
+            Return If(GetUnificationUseSiteDiagnosticRecursive(InterfacesNoUseSiteDiagnostics, owner, checkedTypes),
+                      GetUnificationUseSiteDiagnosticRecursive(TypeParameters, owner, checkedTypes))
         End Function
 #End Region
     End Class

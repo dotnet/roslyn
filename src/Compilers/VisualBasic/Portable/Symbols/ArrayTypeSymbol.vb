@@ -53,12 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                systemArray)
             End If
 
-            Return New MDArrayWithSizesAndBounds(elementType,
-                                                 customModifiers,
-                                                 rank,
-                                                 sizes,
-                                                 lowerBounds,
-                                                 systemArray)
+            Return New MDArrayWithSizesAndBounds(elementType, customModifiers, rank, sizes, lowerBounds, systemArray)
         End Function
 
         Friend Shared Function CreateSZArray(elementType As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), compilation As VisualBasicCompilation) As ArrayTypeSymbol
@@ -137,8 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Note, <see cref="Rank"/> equality should be checked separately!!!
         ''' </summary>
         Friend Function HasSameSizesAndLowerBoundsAs(other As ArrayTypeSymbol) As Boolean
-            If Me.Sizes.SequenceEqual(other.Sizes) Then
-                Dim thisLowerBounds = Me.LowerBounds
+            If Sizes.SequenceEqual(other.Sizes) Then
+                Dim thisLowerBounds = LowerBounds
 
                 If thisLowerBounds.IsDefault Then
                     Return other.LowerBounds.IsDefault
@@ -365,23 +360,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
             ' Check type.
-            Dim elementErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.ElementType)
+            Dim elementErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(ElementType)
 
             If elementErrorInfo IsNot Nothing AndAlso elementErrorInfo.Code = ERRID.ERR_UnsupportedType1 Then
                 Return elementErrorInfo
             End If
 
             ' Check custom modifiers.
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.CustomModifiers)
+            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(CustomModifiers)
 
             Return MergeUseSiteErrorInfo(elementErrorInfo, modifiersErrorInfo)
         End Function
 
         Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
-            Return If(Me.ElementType.GetUnificationUseSiteDiagnosticRecursive(owner, checkedTypes),
+            Return If(ElementType.GetUnificationUseSiteDiagnosticRecursive(owner, checkedTypes),
                    If(If(BaseTypeNoUseSiteDiagnostics IsNot Nothing, BaseTypeNoUseSiteDiagnostics.GetUnificationUseSiteDiagnosticRecursive(owner, checkedTypes), Nothing),
-                   If(GetUnificationUseSiteDiagnosticRecursive(Me.InterfacesNoUseSiteDiagnostics, owner, checkedTypes),
-                      GetUnificationUseSiteDiagnosticRecursive(Me.CustomModifiers, owner, checkedTypes))))
+                   If(GetUnificationUseSiteDiagnosticRecursive(InterfacesNoUseSiteDiagnostics, owner, checkedTypes),
+                      GetUnificationUseSiteDiagnosticRecursive(CustomModifiers, owner, checkedTypes))))
 
         End Function
 
@@ -391,24 +386,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IArrayTypeSymbol_ElementType As ITypeSymbol Implements IArrayTypeSymbol.ElementType
             Get
-                Return Me.ElementType
+                Return ElementType
             End Get
         End Property
 
         Private ReadOnly Property IArrayTypeSymbol_Rank As Integer Implements IArrayTypeSymbol.Rank
             Get
-                Return Me.Rank
+                Return Rank
             End Get
         End Property
 
         Private ReadOnly Property IArrayTypeSymbol_CustomModifiers As ImmutableArray(Of CustomModifier) Implements IArrayTypeSymbol.CustomModifiers
             Get
-                Return Me.CustomModifiers
+                Return CustomModifiers
             End Get
         End Property
 
         Private Function IArrayTypeSymbol_Equals(symbol As IArrayTypeSymbol) As Boolean Implements IArrayTypeSymbol.Equals
-            Return Me.Equals(TryCast(symbol, ArrayTypeSymbol))
+            Return Equals(TryCast(symbol, ArrayTypeSymbol))
         End Function
 
         Public Overrides Sub Accept(visitor As SymbolVisitor)
@@ -476,19 +471,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If newElementType <> oldElementType Then
                     Dim newArray As ArrayTypeSymbol
 
-                    If Me.IsSZArray Then
-                        Dim newInterfaces As ImmutableArray(Of NamedTypeSymbol) = Me.InterfacesNoUseSiteDiagnostics
+                    If IsSZArray Then
+                        Dim newInterfaces As ImmutableArray(Of NamedTypeSymbol) = InterfacesNoUseSiteDiagnostics
                         If newInterfaces.Length > 0 Then
                             newInterfaces = newInterfaces.SelectAsArray(Function([interface], map) DirectCast([interface].InternalSubstituteTypeParameters(map).AsTypeSymbolOnly(), NamedTypeSymbol), substitution)
                         End If
 
                         newArray = New SZArray(newElementType.Type, newElementType.CustomModifiers, _systemArray, newInterfaces)
 
-                    ElseIf Me.HasDefaultSizesAndLowerBounds
-                        newArray = New MDArray(newElementType.Type, newElementType.CustomModifiers, Me.Rank, _systemArray)
+                    ElseIf HasDefaultSizesAndLowerBounds Then
+                        newArray = New MDArray(newElementType.Type, newElementType.CustomModifiers, Rank, _systemArray)
 
                     Else
-                        newArray = New MDArrayWithSizesAndBounds(newElementType.Type, newElementType.CustomModifiers, Me.Rank, Me.Sizes, Me.LowerBounds, _systemArray)
+                        newArray = New MDArrayWithSizesAndBounds(newElementType.Type, newElementType.CustomModifiers, Rank, Sizes, LowerBounds, _systemArray)
                     End If
 
                     Return New TypeWithModifiers(newArray)

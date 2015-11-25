@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property ContainingNamespace As NamespaceSymbol
             Get
-                Dim container = Me.ContainingSymbol
+                Dim container = ContainingSymbol
                 While container IsNot Nothing
                     Dim ns = TryCast(container, NamespaceSymbol)
                     If ns IsNot Nothing Then
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Dim container As Symbol = Me.ContainingSymbol
+                Dim container As Symbol = ContainingSymbol
 
                 Dim containerAsType As NamedTypeSymbol = TryCast(container, NamedTypeSymbol)
 
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend ReadOnly Property ContainingNamespaceOrType As NamespaceOrTypeSymbol
             Get
-                Dim container = Me.ContainingSymbol
+                Dim container = ContainingSymbol
 
                 If container IsNot Nothing Then
                     Select Case container.Kind
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable ReadOnly Property ContainingAssembly As AssemblySymbol
             Get
                 ' Default implementation gets the containers assembly.
-                Dim container As Symbol = Me.ContainingSymbol
+                Dim container As Symbol = ContainingSymbol
                 If container IsNot Nothing Then
                     Return container.ContainingAssembly
                 Else
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend Overridable ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
-                Select Case Me.Kind
+                Select Case Kind
                     Case SymbolKind.ErrorType
                         Return Nothing
                     Case SymbolKind.Assembly
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return Nothing
                 End Select
 
-                Dim sourceModuleSymbol = TryCast(Me.ContainingModule, SourceModuleSymbol)
+                Dim sourceModuleSymbol = TryCast(ContainingModule, SourceModuleSymbol)
                 Return If(sourceModuleSymbol Is Nothing, Nothing, sourceModuleSymbol.DeclaringCompilation)
             End Get
         End Property
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 ' Default implementation gets the containers module.
 
-                Dim container As Symbol = Me.ContainingSymbol
+                Dim container As Symbol = ContainingSymbol
 
                 If (container IsNot Nothing) Then
                     Return container.ContainingModule
@@ -430,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend ReadOnly Property ObsoleteState As ThreeState
             Get
-                Dim data = Me.ObsoleteAttributeData
+                Dim data = ObsoleteAttributeData
                 If data Is Nothing Then
                     Return ThreeState.False
                 ElseIf data Is ObsoleteAttributeData.Uninitialized Then
@@ -490,12 +490,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property CanBeReferencedByName As Boolean
             Get
-                Select Case Me.Kind
+                Select Case Kind
                     Case SymbolKind.Local,
                          SymbolKind.Label,
                          SymbolKind.Alias
                         ' Can't be imported, but might have syntax errors in which case we use an empty name:
-                        Return Me.Name.Length > 0
+                        Return Name.Length > 0
 
                     Case SymbolKind.Namespace,
                          SymbolKind.Field,
@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return False
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(Me.Kind)
+                        Throw ExceptionUtilities.UnexpectedValue(Kind)
                 End Select
 
                 ' If we are from source, only need to check the first character, because all special
@@ -536,10 +536,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' compilation, rather than between source and non-source.  In this case, however, it suffices
                 ' to know that the symbol came from any compilation because we are just optimizing based on whether
                 ' or not previous validation occurred.
-                If Me.Dangerous_IsFromSomeCompilationIncludingRetargeting Then
-                    Return Not String.IsNullOrEmpty(Me.Name) AndAlso SyntaxFacts.IsIdentifierStartCharacter(Me.Name(0))
+                If Dangerous_IsFromSomeCompilationIncludingRetargeting Then
+                    Return Not String.IsNullOrEmpty(Name) AndAlso SyntaxFacts.IsIdentifierStartCharacter(Name(0))
                 Else
-                    Return SyntaxFacts.IsValidIdentifier(Me.Name)
+                    Return SyntaxFacts.IsValidIdentifier(Name)
                 End If
             End Get
         End Property
@@ -553,7 +553,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend ReadOnly Property CanBeReferencedByNameIgnoringIllegalCharacters As Boolean
             Get
-                If Me.Kind = SymbolKind.Method Then
+                If Kind = SymbolKind.Method Then
                     Select Case (DirectCast(Me, MethodSymbol)).MethodKind
                         Case MethodKind.Ordinary, MethodKind.DeclareMethod, MethodKind.ReducedExtension, MethodKind.DelegateInvoke, MethodKind.UserDefinedOperator, MethodKind.Conversion
                             Return True
@@ -595,13 +595,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend ReadOnly Property EffectiveDefaultMarshallingCharSet As CharSet?
             Get
-                Return If(IsEmbedded, Nothing, Me.ContainingModule.DefaultMarshallingCharSet)
+                Return If(IsEmbedded, Nothing, ContainingModule.DefaultMarshallingCharSet)
             End Get
         End Property
 
         Friend Function IsFromCompilation(compilation As VisualBasicCompilation) As Boolean
             Debug.Assert(compilation IsNot Nothing)
-            Return compilation Is Me.DeclaringCompilation
+            Return compilation Is DeclaringCompilation
         End Function
 
         ''' <summary>
@@ -627,16 +627,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend ReadOnly Property Dangerous_IsFromSomeCompilationIncludingRetargeting As Boolean
             Get
-                If Me.DeclaringCompilation IsNot Nothing Then
+                If DeclaringCompilation IsNot Nothing Then
                     Return True
                 End If
 
-                If Me.Kind = SymbolKind.Assembly Then
+                If Kind = SymbolKind.Assembly Then
                     Dim retargetingAssembly = TryCast(Me, Retargeting.RetargetingAssemblySymbol)
                     Return retargetingAssembly IsNot Nothing AndAlso retargetingAssembly.UnderlyingAssembly.DeclaringCompilation IsNot Nothing
                 End If
 
-                Dim [module] = If(Me.Kind = SymbolKind.NetModule, Me, Me.ContainingModule)
+                Dim [module] = If(Kind = SymbolKind.NetModule, Me, ContainingModule)
                 Dim retargetingModule = TryCast([module], Retargeting.RetargetingModuleSymbol)
                 Return retargetingModule IsNot Nothing AndAlso retargetingModule.UnderlyingModule.DeclaringCompilation IsNot Nothing
             End Get
@@ -753,7 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overloads Function [Equals](other As ISymbol) As Boolean Implements IEquatable(Of ISymbol).Equals
-            Return Me.[Equals](CObj(other))
+            Return [Equals](CObj(other))
         End Function
 
         ' By default, we do reference equality. This can be overridden.
@@ -782,7 +782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetDebuggerDisplay() As String
-            Return String.Format("{0} {1}", Me.Kind, Me.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Return String.Format("{0} {1}", Kind, ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Function
 
 
@@ -801,9 +801,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Returns true if some or all of the symbol is defined in the given source tree.
         Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
-            Dim declaringReferences = Me.DeclaringSyntaxReferences
-            If Me.IsImplicitlyDeclared AndAlso declaringReferences.Length = 0 Then
-                Return Me.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)
+            Dim declaringReferences = DeclaringSyntaxReferences
+            If IsImplicitlyDeclared AndAlso declaringReferences.Length = 0 Then
+                Return ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)
             End If
 
             ' Default implementation: go through all locations and check for the definition.
@@ -885,7 +885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case ERRID.ERR_UnsupportedType1
 
-                        Select Case Me.Kind
+                        Select Case Kind
                             Case SymbolKind.Field
                                 errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
 
@@ -949,7 +949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Function DeriveUseSiteErrorInfoFromParameters(parameters As ImmutableArray(Of ParameterSymbol)) As DiagnosticInfo
             Dim paramsErrorInfo As DiagnosticInfo = Nothing
-            Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
+            Dim highestPriorityUseSiteError As Integer = highestPriorityUseSiteError
 
             For Each param As ParameterSymbol In parameters
                 Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromParameter(param, highestPriorityUseSiteError)
@@ -972,7 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             customModifiers As ImmutableArray(Of CustomModifier)
         ) As DiagnosticInfo
             Dim modifiersErrorInfo As DiagnosticInfo = Nothing
-            Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
+            Dim highestPriorityUseSiteError As Integer = highestPriorityUseSiteError
 
             For Each modifier As CustomModifier In customModifiers
                 Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
@@ -1051,85 +1051,85 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property ISymbol_ContainingAssembly As IAssemblySymbol Implements ISymbol.ContainingAssembly
             Get
-                Return Me.ContainingAssembly
+                Return ContainingAssembly
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_ContainingModule As IModuleSymbol Implements ISymbol.ContainingModule
             Get
-                Return Me.ContainingModule
+                Return ContainingModule
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_ContainingNamespace As INamespaceSymbol Implements ISymbol.ContainingNamespace
             Get
-                Return Me.ContainingNamespace
+                Return ContainingNamespace
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_ContainingSymbol As ISymbol Implements ISymbol.ContainingSymbol
             Get
-                Return Me.ContainingSymbol
+                Return ContainingSymbol
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_ContainingType As INamedTypeSymbol Implements ISymbol.ContainingType
             Get
-                Return Me.ContainingType
+                Return ContainingType
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_DeclaredAccessibility As Accessibility Implements ISymbol.DeclaredAccessibility
             Get
-                Return Me.DeclaredAccessibility
+                Return DeclaredAccessibility
             End Get
         End Property
 
         Protected Overridable ReadOnly Property ISymbol_IsAbstract As Boolean Implements ISymbol.IsAbstract
             Get
-                Return Me.IsMustOverride
+                Return IsMustOverride
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_IsDefinition As Boolean Implements ISymbol.IsDefinition
             Get
-                Return Me.IsDefinition
+                Return IsDefinition
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_IsOverride As Boolean Implements ISymbol.IsOverride
             Get
-                Return Me.IsOverrides
+                Return IsOverrides
             End Get
         End Property
 
         Protected Overridable ReadOnly Property ISymbol_IsSealed As Boolean Implements ISymbol.IsSealed
             Get
-                Return Me.IsNotOverridable
+                Return IsNotOverridable
             End Get
         End Property
 
         Protected Overridable ReadOnly Property ISymbol_IsStatic As Boolean Implements ISymbol.IsStatic
             Get
-                Return Me.IsShared
+                Return IsShared
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_IsImplicitlyDeclared As Boolean Implements ISymbol.IsImplicitlyDeclared
             Get
-                Return Me.IsImplicitlyDeclared
+                Return IsImplicitlyDeclared
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_IsVirtual As Boolean Implements ISymbol.IsVirtual
             Get
-                Return Me.IsOverridable
+                Return IsOverridable
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_CanBeReferencedByName As Boolean Implements ISymbol.CanBeReferencedByName
             Get
-                Return Me.CanBeReferencedByName
+                Return CanBeReferencedByName
             End Get
         End Property
 
@@ -1141,31 +1141,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property ISymbol_Locations As ImmutableArray(Of Location) Implements ISymbol.Locations
             Get
-                Return Me.Locations
+                Return Locations
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference) Implements ISymbol.DeclaringSyntaxReferences
             Get
-                Return Me.DeclaringSyntaxReferences
+                Return DeclaringSyntaxReferences
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_Name As String Implements ISymbol.Name
             Get
-                Return Me.Name
+                Return Name
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_OriginalDefinition As ISymbol Implements ISymbol.OriginalDefinition
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
         Private ReadOnly Property ISymbol_Kind As SymbolKind Implements ISymbol.Kind
             Get
-                Return Me.Kind
+                Return Kind
             End Get
         End Property
 
@@ -1192,7 +1192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Function ISymbol_GetAttributes() As ImmutableArray(Of AttributeData) Implements ISymbol.GetAttributes
-            Return StaticCast(Of AttributeData).From(Me.GetAttributes())
+            Return StaticCast(Of AttributeData).From(GetAttributes())
         End Function
 
 #End Region

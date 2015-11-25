@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks></remarks>
         Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
 #If DEBUG Then
-            For Each [module] In Me.Modules
+            For Each [module] In Modules
                 Debug.Assert([module].GetReferencedAssemblies().Length = 0)
             Next
 #End If
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding:=True)
 
-                Dim [module] As ModuleSymbol = Me.Modules(0)
+                Dim [module] As ModuleSymbol = Modules(0)
                 Dim result As NamedTypeSymbol = [module].LookupTopLevelMetadataType(emittedName)
                 If result.TypeKind <> TypeKind.Error AndAlso result.DeclaredAccessibility <> Accessibility.Public Then
                     result = New MissingMetadataTypeSymbol.TopLevel([module], emittedName, type)
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(typeId <> SpecialType.None)
             Debug.Assert(corType.ContainingAssembly Is Me)
             Debug.Assert(corType.ContainingModule.Ordinal = 0)
-            Debug.Assert(Me.CorLibrary Is Me)
+            Debug.Assert(CorLibrary Is Me)
 
             If (_lazySpecialTypes Is Nothing) Then
                 Interlocked.CompareExchange(_lazySpecialTypes,
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overrides ReadOnly Property KeepLookingForDeclaredSpecialTypes As Boolean
             Get
-                Return Me.CorLibrary Is Me AndAlso _cachedSpecialTypes < SpecialType.Count
+                Return CorLibrary Is Me AndAlso _cachedSpecialTypes < SpecialType.Count
             End Get
         End Property
 
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property TypeNames As ICollection(Of String)
             Get
                 If _lazyTypeNames Is Nothing Then
-                    Interlocked.CompareExchange(_lazyTypeNames, UnionCollection(Of String).Create(Me.Modules, Function(m) m.TypeNames), Nothing)
+                    Interlocked.CompareExchange(_lazyTypeNames, UnionCollection(Of String).Create(Modules, Function(m) m.TypeNames), Nothing)
                 End If
 
                 Return _lazyTypeNames
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property NamespaceNames As ICollection(Of String)
             Get
                 If _lazyNamespaceNames Is Nothing Then
-                    Interlocked.CompareExchange(_lazyNamespaceNames, UnionCollection(Of String).Create(Me.Modules, Function(m) m.NamespaceNames), Nothing)
+                    Interlocked.CompareExchange(_lazyNamespaceNames, UnionCollection(Of String).Create(Modules, Function(m) m.NamespaceNames), Nothing)
                 End If
                 Return _lazyNamespaceNames
             End Get
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             'EDMAURER returns an empty list if there was no IVT attribute at all for the given name
             'A name w/o a key is represented by a list with an entry that is empty
-            Dim publicKeys As IEnumerable(Of ImmutableArray(Of Byte)) = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(Me.Name)
+            Dim publicKeys As IEnumerable(Of ImmutableArray(Of Byte)) = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(Name)
 
             'EDMAURER look for one that works, if none work, then return the failure for the last one examined.
             For Each key In publicKeys

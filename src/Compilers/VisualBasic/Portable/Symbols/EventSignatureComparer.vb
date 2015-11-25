@@ -70,13 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Consider custom modifiers on/in parameters and return types (if return is considered).
         Private ReadOnly _considerCustomModifiers As Boolean
 
-        Private Sub New(considerName As Boolean,
-                        considerType As Boolean,
-                        considerCustomModifiers As Boolean)
-
-            Me._considerName = considerName
-            Me._considerType = considerType
-            Me._considerCustomModifiers = considerCustomModifiers
+        Private Sub New(considerName As Boolean, considerType As Boolean, considerCustomModifiers As Boolean)
+            _considerName = considerName
+            _considerType = considerType
+            _considerCustomModifiers = considerCustomModifiers
         End Sub
 
 #Region "IEqualityComparer(Of EventSymbol) Members"

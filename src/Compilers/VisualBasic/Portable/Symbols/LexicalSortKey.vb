@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Private ReadOnly Property EmbeddedKind As SyntaxTreeKind
             Get
-                Return Me._embeddedKind
+                Return _embeddedKind
             End Get
         End Property
 
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property TreeOrdinal As Integer
             Get
-                Return Me._treeOrdinal
+                Return _treeOrdinal
             End Get
         End Property
 
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property Position As Integer
             Get
-                Return Me._position
+                Return _position
             End Get
         End Property
 
@@ -75,9 +75,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(treeOrdinal >= -1)
             Debug.Assert(embeddedKind = EmbeddedSymbolKind.None OrElse treeOrdinal = -1)
 
-            Me._embeddedKind = embeddedKind
-            Me._treeOrdinal = treeOrdinal
-            Me._position = location
+            _embeddedKind = embeddedKind
+            _treeOrdinal = treeOrdinal
+            _position = location
         End Sub
 
         Private Sub New(embeddedKind As SyntaxTreeKind, tree As SyntaxTree, location As Integer, compilation As VisualBasicCompilation)
@@ -106,9 +106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Sub New(location As Location, compilation As VisualBasicCompilation)
             If location Is Nothing Then
-                Me._embeddedKind = SyntaxTreeKind.None
-                Me._treeOrdinal = -1
-                Me._position = 0
+                _embeddedKind = SyntaxTreeKind.None
+                _treeOrdinal = -1
+                _position = 0
             Else
                 Debug.Assert(location.PossiblyEmbeddedOrMySourceSpan.Start >= 0)
 
@@ -118,14 +118,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim treeKind As SyntaxTreeKind = GetEmbeddedKind(tree)
 
                 If treeKind <> SyntaxTreeKind.None Then
-                    Me._embeddedKind = treeKind
-                    Me._treeOrdinal = -1
+                    _embeddedKind = treeKind
+                    _treeOrdinal = -1
                 Else
-                    Me._embeddedKind = SyntaxTreeKind.None
-                    Me._treeOrdinal = If(tree Is Nothing, -1, compilation.GetSyntaxTreeOrdinal(tree))
+                    _embeddedKind = SyntaxTreeKind.None
+                    _treeOrdinal = If(tree Is Nothing, -1, compilation.GetSyntaxTreeOrdinal(tree))
                 End If
 
-                Me._position = location.PossiblyEmbeddedOrMySourceSpan.Start
+                _position = location.PossiblyEmbeddedOrMySourceSpan.Start
             End If
         End Sub
 
@@ -199,15 +199,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property IsInitialized As Boolean
             Get
-                Return Volatile.Read(Me._position) >= 0
+                Return Volatile.Read(_position) >= 0
             End Get
         End Property
 
         Public Sub SetFrom(ByRef other As LexicalSortKey)
             Debug.Assert(other.IsInitialized)
-            Me._embeddedKind = other._embeddedKind
-            Me._treeOrdinal = other._treeOrdinal
-            Volatile.Write(Me._position, other._position)
+            _embeddedKind = other._embeddedKind
+            _treeOrdinal = other._treeOrdinal
+            Volatile.Write(_position, other._position)
         End Sub
 
     End Structure

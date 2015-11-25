@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function GetExtensionAttributeConstructor(<Out> ByRef useSiteError As DiagnosticInfo) As MethodSymbol
             If _lazyExtensionAttributeConstructor Is ErrorTypeSymbol.UnknownResultType Then
 
-                Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create("System", "Runtime", "CompilerServices"))
+                Dim system_Runtime_CompilerServices = GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create("System", "Runtime", "CompilerServices"))
                 Dim attributeType As NamedTypeSymbol = Nothing
 
                 Dim sourceModuleSymbol = DirectCast(Me.SourceModule, SourceModuleSymbol)
@@ -57,15 +57,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If attributeType Is Nothing Then
                             Debug.Assert(Not ambiguity)
                             attributeType = candidate
-                        ElseIf candidate.ContainingAssembly Is Me.Assembly Then
-                            If attributeType.ContainingAssembly Is Me.Assembly Then
+                        ElseIf candidate.ContainingAssembly Is Assembly Then
+                            If attributeType.ContainingAssembly Is Assembly Then
                                 ambiguity = True
                             Else
                                 attributeType = candidate
                                 ambiguity = False
                             End If
-                        ElseIf attributeType.ContainingAssembly IsNot Me.Assembly Then
-                            Debug.Assert(candidate.ContainingAssembly IsNot Me.Assembly)
+                        ElseIf attributeType.ContainingAssembly IsNot Assembly Then
+                            Debug.Assert(candidate.ContainingAssembly IsNot Assembly)
                             ambiguity = True
                         End If
                     Next
@@ -115,9 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Storing m_LazyExtensionAttributeConstructorErrorInfo first.
                 _lazyExtensionAttributeConstructorErrorInfo = ctorError
-                Interlocked.CompareExchange(_lazyExtensionAttributeConstructor,
-                                            DirectCast(attributeCtor, Symbol),
-                                            DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
+                Interlocked.CompareExchange(_lazyExtensionAttributeConstructor, attributeCtor, ErrorTypeSymbol.UnknownResultType)
             End If
 
             useSiteError = DirectCast(Volatile.Read(_lazyExtensionAttributeConstructorErrorInfo), DiagnosticInfo)
@@ -315,10 +313,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result As Symbol = Nothing
 
                 If Not type.IsErrorType() Then
-                    result = VisualBasicCompilation.GetRuntimeMember(type, descriptor, _wellKnownMemberSignatureComparer, accessWithinOpt:=Me.Assembly)
+                    result = GetRuntimeMember(type, descriptor, _wellKnownMemberSignatureComparer, accessWithinOpt:=Assembly)
                 End If
 
-                Interlocked.CompareExchange(_lazyWellKnownTypeMembers(member), result, DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
+                Interlocked.CompareExchange(_lazyWellKnownTypeMembers(member), result, ErrorTypeSymbol.UnknownResultType)
             End If
 
             Return _lazyWellKnownTypeMembers(member)
@@ -346,8 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If _lazyWellKnownTypes Is Nothing OrElse _lazyWellKnownTypes(index) Is Nothing Then
                 If (_lazyWellKnownTypes Is Nothing) Then
-                    Interlocked.CompareExchange(_lazyWellKnownTypes,
-                        New NamedTypeSymbol(WellKnownTypes.Count - 1) {}, Nothing)
+                    Interlocked.CompareExchange(_lazyWellKnownTypes, New NamedTypeSymbol(WellKnownTypes.Count - 1) {}, Nothing)
                 End If
 
                 Dim mdName As String = WellKnownTypes.GetMetadataName(type)
@@ -356,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsTypeMissing(type) Then
                     result = Nothing
                 Else
-                    result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True)
+                    result = Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True)
                 End If
 
                 If result Is Nothing Then

@@ -41,12 +41,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public NotOverridable Overrides Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As NamedTypeSymbol
             CheckCanConstructAndTypeArguments(typeArguments)
 
-            Dim substitution = TypeSubstitution.Create(Me, Me.TypeParameters, typeArguments, allowAlphaRenamedTypeParametersAsArguments:=True)
+            Dim substitution = TypeSubstitution.Create(Me, TypeParameters, typeArguments, allowAlphaRenamedTypeParametersAsArguments:=True)
 
             If substitution Is Nothing Then
                 Return Me
             Else
-                Return New SubstitutedErrorType(Me.ContainingSymbol, Me, substitution)
+                Return New SubstitutedErrorType(ContainingSymbol, Me, substitution)
             End If
         End Function
 
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
             Get
-                Return StaticCast(Of TypeSymbol).From(Me.TypeParameters)
+                Return StaticCast(Of TypeSymbol).From(TypeParameters)
             End Get
         End Property
 
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim other = TryCast(obj, ErrorTypeParameterSymbol)
 
-                Return other IsNot Nothing AndAlso other._ordinal = Me._ordinal AndAlso other._container.Equals(Me._container)
+                Return other IsNot Nothing AndAlso other._ordinal = _ordinal AndAlso other._container.Equals(_container)
             End Function
 
             Friend Overrides Sub EnsureAllConstraintsAreResolved()

@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(syntax As SyntaxReference, precedingInitializersLength As Integer)
             Debug.Assert(TypeOf syntax.GetSyntax() Is StatementSyntax)
             Me.Syntax = syntax
-            Me.IsMetadataConstant = False
+            IsMetadataConstant = False
             Me.PrecedingInitializersLength = precedingInitializersLength
         End Sub
 
@@ -54,9 +54,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                          syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue) OrElse
                          syntax.GetSyntax().IsKind(SyntaxKind.ModifiedIdentifier))
 
-            Me.FieldsOrProperties = ImmutableArray.Create(Of Symbol)(field)
+            FieldsOrProperties = ImmutableArray.Create(Of Symbol)(field)
             Me.Syntax = syntax
-            Me.IsMetadataConstant = field.IsMetadataConstant
+            IsMetadataConstant = field.IsMetadataConstant
             Me.PrecedingInitializersLength = precedingInitializersLength
         End Sub
 
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue))
             Me.FieldsOrProperties = fieldsOrProperties
             Me.Syntax = syntax
-            Me.IsMetadataConstant = False
+            IsMetadataConstant = False
             Me.PrecedingInitializersLength = precedingInitializersLength
         End Sub
 
@@ -82,9 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(syntax IsNot Nothing)
             Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue))
 
-            Me.FieldsOrProperties = ImmutableArray.Create(Of Symbol)([property])
+            FieldsOrProperties = ImmutableArray.Create(Of Symbol)([property])
             Me.Syntax = syntax
-            Me.IsMetadataConstant = False
+            IsMetadataConstant = False
             Me.PrecedingInitializersLength = precedingInitializersLength
         End Sub
     End Structure

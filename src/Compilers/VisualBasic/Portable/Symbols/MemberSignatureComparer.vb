@@ -34,9 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub New(methodComparer As MethodSignatureComparer,
                         propertyComparer As PropertySignatureComparer,
                         eventComparer As EventSignatureComparer)
-            Me._methodComparer = methodComparer
-            Me._propertyComparer = propertyComparer
-            Me._eventComparer = eventComparer
+            _methodComparer = methodComparer
+            _propertyComparer = propertyComparer
+            _eventComparer = eventComparer
         End Sub
 
         Public Overloads Function Equals(sym1 As Symbol, sym2 As Symbol) As Boolean _

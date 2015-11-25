@@ -29,13 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        ByVal isOut As Boolean,
                        ByVal isOptional As Boolean)
 
-            Me._type = type
-            Me._customModifiers = customModifiers
-            Me._defaultValue = defaultConstantValue
-            Me._isParamArray = isParamArray
-            Me._isByRef = isByRef
-            Me._isOut = isOut
-            Me._isOptional = isOptional
+            _type = type
+            _customModifiers = customModifiers
+            _defaultValue = defaultConstantValue
+            _isParamArray = isParamArray
+            _isByRef = isByRef
+            _isOut = isOut
+            _isOptional = isOptional
         End Sub
 
         Public Overrides ReadOnly Property Type() As TypeSymbol

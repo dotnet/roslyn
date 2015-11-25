@@ -27,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If Me.IsDefinition Then
-                Return Me.ErrorInfo
+            If IsDefinition Then
+                Return ErrorInfo
             End If
 
             ' Base class handles constructed types.
@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property NonErrorGuessType As NamedTypeSymbol
             Get
-                Dim candidates = Me.CandidateSymbols
+                Dim candidates = CandidateSymbols
                 If candidates.Length = 1 Then  ' Only return a guess if its unambiguous.
                     Return TryCast(candidates(0), NamedTypeSymbol)
                 Else
@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property IErrorTypeSymbol_CandidateSymbols As ImmutableArray(Of ISymbol) Implements IErrorTypeSymbol.CandidateSymbols
             Get
-                Return StaticCast(Of ISymbol).From(Me.CandidateSymbols)
+                Return StaticCast(Of ISymbol).From(CandidateSymbols)
             End Get
         End Property
 

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Structure TypeParameterDiagnosticInfo
         Public Sub New(typeParameter As TypeParameterSymbol, diagnostic As DiagnosticInfo)
             Me.TypeParameter = typeParameter
-            Me.DiagnosticInfo = diagnostic
+            DiagnosticInfo = diagnostic
         End Sub
 
         Public Sub New(typeParameter As TypeParameterSymbol, constraint As TypeParameterConstraint, diagnostic As DiagnosticInfo)
