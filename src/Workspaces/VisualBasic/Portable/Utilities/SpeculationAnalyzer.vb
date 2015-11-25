@@ -89,6 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Protected Overrides Sub ValidateSpeculativeSemanticModel(speculativeSemanticModel As SemanticModel, nodeToSpeculate As SyntaxNode)
             Debug.Assert(speculativeSemanticModel IsNot Nothing OrElse
                         TypeOf nodeToSpeculate Is ExpressionSyntax OrElse
+                        TypeOf nodeToSpeculate Is ExpressionStatementSyntax OrElse
                         Me.SemanticRootOfOriginalExpression.GetAncestors().Any(Function(node) node.IsKind(SyntaxKind.IncompleteMember)),
                         "SemanticModel.TryGetSpeculativeSemanticModel() API returned false.")
         End Sub
