@@ -2103,6 +2103,41 @@ public class Methods
             CompileAndVerify(sources, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
+        [Fact]
+        public void Issue4695()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    sealed class Cache
+    {
+        abstract class BucketwiseBase<TArg> where TArg : class
+        {
+            internal abstract void Default(TArg arg);
+        }
+
+        class BucketwiseBase<TAccumulator, TArg> : BucketwiseBase<TArg> where TArg : class
+        {
+            internal override void Default(TArg arg = null) { }
+        }
+
+        public void GetAll()
+        {
+            new BucketwiseBase<object, object>().Default(); // Bad image format thrown here on legacy compiler 
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        new Cache().GetAll();
+    }
+}
+";
+            CompileAndVerify(source);
+        }
+
         private void CheckInternalMembers(NamedTypeSymbol type, bool isFromSource)
         {
             Assert.NotNull(type.GetMembers("Public").SingleOrDefault());
