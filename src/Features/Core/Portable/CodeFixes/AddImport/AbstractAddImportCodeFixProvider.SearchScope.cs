@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             public override SymbolReference CreateReference(INamespaceOrTypeSymbol symbol)
             {
-                return new SymbolReference(symbol, project.Id);
+                return new ProjectSymbolReference(symbol, project.Id);
             }
         }
     }

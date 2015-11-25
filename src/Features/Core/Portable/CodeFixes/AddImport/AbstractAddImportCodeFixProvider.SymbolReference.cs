@@ -5,15 +5,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider
     {
-        private struct SymbolReference : IComparable<SymbolReference>
+        private abstract class SymbolReference : IComparable<SymbolReference>
         {
             public readonly INamespaceOrTypeSymbol Symbol;
-            public readonly ProjectId ProjectId;
 
-            public SymbolReference(INamespaceOrTypeSymbol symbol, ProjectId projectId)
+            protected SymbolReference(INamespaceOrTypeSymbol symbol)
             {
-                Symbol = symbol;
-                ProjectId = projectId;
+                this.Symbol = symbol;
             }
 
             public int CompareTo(SymbolReference other)
@@ -21,7 +19,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(this.Symbol, other.Symbol);
             }
 
-            internal Solution UpdateSolution(Document newDocument)
+            public abstract Solution UpdateSolution(Document newDocument);
+        }
+
+        private class ProjectSymbolReference : SymbolReference
+        {
+            public readonly ProjectId ProjectId;
+
+            public ProjectSymbolReference(INamespaceOrTypeSymbol symbol, ProjectId projectId)
+                : base(symbol)
+            {
+                ProjectId = projectId;
+            }
+
+            public override Solution UpdateSolution(Document newDocument)
             {
                 if (this.ProjectId == newDocument.Project.Id)
                 {
