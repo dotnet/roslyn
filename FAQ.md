@@ -22,7 +22,7 @@ Where there is code available, the answer to the question has one or more tags s
     * [How do I get a completion list or accessible symbols at a code location](#how-do-i-get-a-completion-list-or-accessible-symbols-at-a-code-location)
     * [How do I get a completion list with members of an accessible type](#how-do-i-get-a-completion-list-with-members-of-an-accessible-type)
     * [How do I get caller/callee info](#how-do-i-get-caller/callee-info)
-    * [How do I go from an ISolution to Find All References on a symbol/type](#how-do-i-go-from-an-isolution-to-find-all-references-on-a-symbol/type)
+    * [How do I go from an Solution to Find All References on a symbol/type](#how-do-i-go-from-an-solution-to-find-all-references-on-a-symbol/type)
     * [How do I find all calls in a compilation into a particular namespace](#how-do-i-find-all-calls-in-a-compilation-into-a-particular-namespace)
     * [How do I get all symbols of an assembly (or all referenced assemblies)](#how-do-i-get-all-symbols-of-an-assembly-or-all-referenced-assemblies)
     * [How do I get the type of an expression node](#how-do-i-get-the-type-of-an-expression-node)
@@ -133,8 +133,8 @@ See the sample code answer tagged “FAQ(5)” ([installed location information|
 ### How do I get caller/callee info?
 See the sample code answer tagged “FAQ(6)” ([installed location information|faq#codefiles]) to see how to get caller/callee information.  Note, the sample is not necessarily complete; for example, the analyzed code could have assigned the function to a delegate variable and then invoked it, for which the sample does not account.
 
-### How do I go from an ISolution to Find All References on a symbol/type?
-See the sample code answer tagged “FAQ(7)” ([installed location information|faq#codefiles]) to see how to get references.  Note, to use convenience extension methods, such as FindReferences, you need to use the Roslyn.Services namespace and reference Roslyn.Services.dll and Roslyn.Services.{CSharp|VisualBasic}.dll.
+### How do I go from an Solution to Find All References on a symbol/type?
+See the sample code answer tagged “FAQ(7)” ([installed location information|faq#codefiles]) to see how to get references. In a nutshell, you should use the Microsoft.CodeAnalysis.SymbolFinder API.
 
 ### How do I find all calls in a compilation into a particular namespace?
 See the sample code answer tagged “FAQ(8)” ([installed location information|faq#codefiles]) to see how to find all calls into a particular namespace (or to functions from that namespace).
