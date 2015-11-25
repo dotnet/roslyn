@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Public Overridable Shadows Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VisualBasicSyntaxNode)
             Dim node As VisualBasicSyntaxNode = Nothing
-            Return Task.FromResult(If(Me.TryGetRoot(node), node, Me.GetRoot(cancellationToken)))
+            Return Task.FromResult(If(TryGetRoot(node), node, GetRoot(cancellationToken)))
         End Function
 
         ''' <summary>

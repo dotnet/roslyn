@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Public Partial Class DocumentationCommentTriviaSyntax
         Friend Function GetInteriorXml() As String
             ' NOTE: is only used in parse tests
-            Return DirectCast(Me.Green, InternalSyntax.DocumentationCommentTriviaSyntax).GetInteriorXml
+            Return DirectCast(Green, InternalSyntax.DocumentationCommentTriviaSyntax).GetInteriorXml
         End Function
     End Class
 
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Private Shared ReadOnly s_hasDirectivesFunction As Func(Of SyntaxToken, Boolean) = Function(n) n.ContainsDirectives
 
         Public Function GetNextDirective(Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
-            Dim token = CType(MyBase.ParentTrivia.Token, SyntaxToken)
+            Dim token = MyBase.ParentTrivia.Token
 
             Dim [next] As Boolean = False
             Do While (token.Kind <> SyntaxKind.None)

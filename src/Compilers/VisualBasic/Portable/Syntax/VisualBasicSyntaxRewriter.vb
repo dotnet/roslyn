@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _visitIntoStructuredTrivia As Boolean
 
         Public Sub New(Optional visitIntoStructuredTrivia As Boolean = False)
-            Me._visitIntoStructuredTrivia = visitIntoStructuredTrivia
+            _visitIntoStructuredTrivia = visitIntoStructuredTrivia
         End Sub
 
         Public Overridable ReadOnly Property VisitIntoStructuredTrivia As Boolean
             Get
-                Return Me._visitIntoStructuredTrivia
+                Return _visitIntoStructuredTrivia
             End Get
         End Property
 
@@ -47,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitToken(token As SyntaxToken) As SyntaxToken
-            Dim leading = Me.VisitList(token.LeadingTrivia)
-            Dim trailing = Me.VisitList(token.TrailingTrivia)
+            Dim leading = VisitList(token.LeadingTrivia)
+            Dim trailing = VisitList(token.TrailingTrivia)
             If leading <> token.LeadingTrivia OrElse trailing <> token.TrailingTrivia Then
                 If leading <> token.LeadingTrivia Then
                     token = token.WithLeadingTrivia(leading)
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
             If Me.VisitIntoStructuredTrivia AndAlso trivia.HasStructure Then
                 Dim [structure] = DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode)
-                Dim newStructure = DirectCast(Me.Visit([structure]), StructuredTriviaSyntax)
+                Dim newStructure = DirectCast(Visit([structure]), StructuredTriviaSyntax)
                 If newStructure IsNot [structure] Then
                     If newStructure IsNot Nothing Then
                         Return SyntaxFactory.Trivia(newStructure)
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitListElement(Of TNode As SyntaxNode)(node As TNode) As TNode
-            Return DirectCast(Me.Visit(node), TNode)
+            Return DirectCast(Visit(node), TNode)
         End Function
 
         Public Overridable Function VisitList(list As SyntaxTokenList) As SyntaxTokenList
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitListElement(token As SyntaxToken) As SyntaxToken
-            Return Me.VisitToken(token)
+            Return VisitToken(token)
         End Function
 
         Public Overridable Function VisitList(Of TNode As SyntaxNode)(list As SeparatedSyntaxList(Of TNode)) As SeparatedSyntaxList(Of TNode)
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitListSeparator(token As SyntaxToken) As SyntaxToken
-            Return Me.VisitToken(token)
+            Return VisitToken(token)
         End Function
 
         Public Overridable Function VisitList(list As SyntaxTriviaList) As SyntaxTriviaList
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitListElement(element As SyntaxTrivia) As SyntaxTrivia
-            Return Me.VisitTrivia(element)
+            Return VisitTrivia(element)
         End Function
 
     End Class

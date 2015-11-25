@@ -1,15 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Runtime.CompilerServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Partial Friend MustInherit Class SyntaxList
@@ -33,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Private _nodes As ArrayElement(Of GreenNode)()
 
         Friend Sub New(size As Integer)
-            Me._nodes = New ArrayElement(Of GreenNode)(size - 1) {}
+            _nodes = New ArrayElement(Of GreenNode)(size - 1) {}
         End Sub
 
         Friend Function Add(item As SyntaxNode) As SyntaxListBuilder
@@ -42,93 +32,93 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Function AddInternal(item As GreenNode) As SyntaxListBuilder
             Debug.Assert(item IsNot Nothing)
-            If Me._count >= Me._nodes.Length Then
-                Me.Grow(Math.Max(8, Me._nodes.Length * 2))
+            If _count >= _nodes.Length Then
+                Grow(Math.Max(8, _nodes.Length * 2))
             End If
-            Me._nodes(Me._count).Value = item
-            Me._count += 1
+            _nodes(_count).Value = item
+            _count += 1
             Return Me
         End Function
 
         Friend Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode)) As SyntaxListBuilder
-            Return Me.AddRange(Of TNode)(list, 0, list.Count)
+            Return AddRange(Of TNode)(list, 0, list.Count)
         End Function
 
         Friend Function AddRange(items As SyntaxNode()) As SyntaxListBuilder
-            Return Me.AddRange(items, 0, items.Length)
+            Return AddRange(items, 0, items.Length)
         End Function
 
         Friend Function AddRange(list As SyntaxList(Of SyntaxNode)) As SyntaxListBuilder
-            Return Me.AddRange(list, 0, list.Count)
+            Return AddRange(list, 0, list.Count)
         End Function
 
         Friend Function AddRange(list As SyntaxNodeOrTokenList) As SyntaxListBuilder
-            Return Me.AddRange(list, 0, list.Count)
+            Return AddRange(list, 0, list.Count)
         End Function
 
         Friend Function AddRange(list As SyntaxList(Of SyntaxNode), offset As Integer, length As Integer) As SyntaxListBuilder
-            If (Me._count + length) > Me._nodes.Length Then
-                Me.Grow(Me._count + length)
+            If (_count + length) > _nodes.Length Then
+                Grow(_count + length)
             End If
 
             Dim dst = _count
             For i = offset To offset + length - 1
-                Me._nodes(dst).Value = list.ItemInternal(i).Green
+                _nodes(dst).Value = list.ItemInternal(i).Green
                 dst += 1
             Next i
 
-            Dim start As Integer = Me._count
-            Me._count = (Me._count + length)
-            Me.Validate(start, Me._count)
+            Dim start As Integer = _count
+            _count += length
+            Validate(start, _count)
             Return Me
         End Function
 
         Friend Function AddRange(items As SyntaxNode(), offset As Integer, length As Integer) As SyntaxListBuilder
-            If (Me._count + length) > Me._nodes.Length Then
-                Me.Grow(Me._count + length)
+            If (_count + length) > _nodes.Length Then
+                Grow(_count + length)
             End If
 
             Dim dst = _count
             For i = offset To offset + length - 1
-                Me._nodes(dst).Value = items(i).Green
+                _nodes(dst).Value = items(i).Green
                 dst += 1
             Next i
 
-            Dim start As Integer = Me._count
-            Me._count = start + length
-            Me.Validate(start, Me._count)
+            Dim start As Integer = _count
+            _count = start + length
+            Validate(start, _count)
             Return Me
         End Function
 
         Friend Function AddRange(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode), offset As Integer, length As Integer) As SyntaxListBuilder
-            Return Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node), offset, length)
+            Return AddRange(New SyntaxList(Of SyntaxNode)(list.Node), offset, length)
         End Function
 
         Friend Function AddRange(list As SyntaxNodeOrTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
-            If (Me._count + length) > Me._nodes.Length Then
-                Me.Grow(Me._count + length)
+            If (_count + length) > _nodes.Length Then
+                Grow(_count + length)
             End If
 
             Dim dst = _count
             For i = offset To offset + length - 1
-                Me._nodes(dst).Value = list(i).UnderlyingNode
+                _nodes(dst).Value = list(i).UnderlyingNode
                 dst += 1
             Next i
 
-            Dim start As Integer = Me._count
-            Me._count = start + length
-            Me.Validate(start, Me._count)
+            Dim start As Integer = _count
+            _count = start + length
+            Validate(start, _count)
             Return Me
         End Function
 
         Friend Function AddRange(list As SyntaxTokenList, offset As Integer, length As Integer) As SyntaxListBuilder
-            Return Me.AddRange(New SyntaxList(Of SyntaxNode)(list.Node.CreateRed), offset, length)
+            Return AddRange(New SyntaxList(Of SyntaxNode)(list.Node.CreateRed), offset, length)
         End Function
 
         Friend Function Any(kind As SyntaxKind) As Boolean
             Dim i As Integer
-            For i = 0 To Me._count - 1
-                If (Me._nodes(i).Value.RawKind = kind) Then
+            For i = 0 To _count - 1
+                If (_nodes(i).Value.RawKind = kind) Then
                     Return True
                 End If
             Next i
@@ -136,37 +126,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Friend Sub RemoveLast()
-            Me._count -= 1
-            Me._nodes(_count) = Nothing
+            _count -= 1
+            _nodes(_count) = Nothing
         End Sub
 
         Friend Sub Clear()
-            Me._count = 0
+            _count = 0
         End Sub
 
         Private Sub Grow(size As Integer)
-            Array.Resize(Me._nodes, size)
+            Array.Resize(_nodes, size)
         End Sub
 
         Friend Function ToGreenArray() As ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)()
-            Dim array = New ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)(Me._count - 1) {}
+            Dim array = New ArrayElement(Of InternalSyntax.VisualBasicSyntaxNode)(_count - 1) {}
             Dim i As Integer
             For i = 0 To array.Length - 1
-                array(i).Value = DirectCast(Me._nodes(i).Value, InternalSyntax.VisualBasicSyntaxNode)
+                array(i).Value = DirectCast(_nodes(i).Value, InternalSyntax.VisualBasicSyntaxNode)
             Next i
             Return array
         End Function
 
         Friend Function ToListNode() As GreenNode
-            Select Case Me._count
+            Select Case _count
                 Case 0
                     Return Nothing
                 Case 1
-                    Return DirectCast(Me._nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode)
+                    Return DirectCast(_nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode)
                 Case 2
-                    Return InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode))
+                    Return InternalSyntax.SyntaxList.List(DirectCast(_nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(_nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode))
                 Case 3
-                    Return InternalSyntax.SyntaxList.List(DirectCast(Me._nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(Me._nodes(2).Value, InternalSyntax.VisualBasicSyntaxNode))
+                    Return InternalSyntax.SyntaxList.List(DirectCast(_nodes(0).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(_nodes(1).Value, InternalSyntax.VisualBasicSyntaxNode), DirectCast(_nodes(2).Value, InternalSyntax.VisualBasicSyntaxNode))
             End Select
             Return InternalSyntax.SyntaxList.List(Me.ToGreenArray)
         End Function
@@ -175,13 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Private Sub Validate(start As Integer, [end] As Integer)
             Dim i As Integer
             For i = start To [end] - 1
-                Debug.Assert(Me._nodes(i).Value IsNot Nothing)
+                Debug.Assert(_nodes(i).Value IsNot Nothing)
             Next i
         End Sub
 
         Friend ReadOnly Property Count As Integer
             Get
-                Return Me._count
+                Return _count
             End Get
         End Property
     End Class
