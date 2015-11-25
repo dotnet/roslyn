@@ -1,4 +1,3 @@
-
 # .NET Compiler Platform ("Roslyn") FAQ
 
 This FAQ has good learning or getting-started questions in addition to frequent questions, all inspired by the great questions and answers from previous Roslyn CTPs.  In several cases, the community was helping each other without the team chiming in, so great job everyone!  You will find many good pointers by searching for keywords or phrases on this page.
