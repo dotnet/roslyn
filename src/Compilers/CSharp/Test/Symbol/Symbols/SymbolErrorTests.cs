@@ -1698,6 +1698,32 @@ struct Foo
         }
 
         [Fact]
+        public void CS0106ERR_BadMemberFlag07()
+        {
+            var text = @"
+struct Foo
+{
+    public virtual int Bar { get;set; }
+}
+";
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 24 });
+        }
+
+        [Fact]
+        public void CS0106ERR_BadMemberFlag08()
+        {
+            var text = @"
+struct Foo
+{
+    public abstract int Bar { get;set; }
+}
+";
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 4, Column = 25 });
+        }
+
+        [Fact]
         public void CS0111ERR_MemberAlreadyExists01()
         {
             var text = @"class A
