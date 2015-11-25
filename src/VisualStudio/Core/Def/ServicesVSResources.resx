@@ -507,4 +507,10 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
   </data>
+  <data name="SynchronizeClassView" xml:space="preserve">
+    <value>Synchronize Class View</value>
+  </data>
+  <data name="SynchronizingClassView" xml:space="preserve">
+    <value>Synchronizing Class View...</value>
+  </data>
 </root>
