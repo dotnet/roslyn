@@ -16,7 +16,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    using SymbolReference = ValueTuple<INamespaceOrTypeSymbol, ProjectId>;
+    internal struct SymbolReference : IComparable<SymbolReference>
+    {
+        public readonly INamespaceOrTypeSymbol Symbol;
+        public readonly ProjectId ProjectId;
+
+        public SymbolReference(INamespaceOrTypeSymbol symbol, ProjectId projectId)
+        {
+            Symbol = symbol;
+            ProjectId = projectId;
+        }
+
+        public int CompareTo(SymbolReference other)
+        {
+           return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(this.Symbol, other.Symbol);
+        }
+    }
 
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
     {
@@ -98,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                         foreach (var reference in allSymbolReferences)
                         {
-                            var description = this.GetDescription(reference.Item1, semanticModel, node);
+                            var description = this.GetDescription(reference.Symbol, semanticModel, node);
                             if (description != null)
                             {
                                 var action = new MyCodeAction(description, c =>
@@ -115,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             SyntaxNode node, SymbolReference reference, Document document, bool placeSystemNamespaceFirst, CancellationToken c)
         {
             // Defer to the language to add the actual import/using.
-            var newDocument = await this.AddImportAsync(node, reference.Item1, document, placeSystemNamespaceFirst, c).ConfigureAwait(false);
+            var newDocument = await this.AddImportAsync(node, reference.Symbol, document, placeSystemNamespaceFirst, c).ConfigureAwait(false);
 
-            if (reference.Item2 == document.Project.Id)
+            if (reference.ProjectId == document.Project.Id)
             {
                 return newDocument.Project.Solution;
             }
@@ -125,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // If this reference came from searching another project, then add a project reference
             // as well.
             var newProject = newDocument.Project;
-            newProject = newProject.AddProjectReference(new ProjectReference(reference.Item2));
+            newProject = newProject.AddProjectReference(new ProjectReference(reference.ProjectId));
 
             return newProject.Solution;
         }
@@ -236,13 +251,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private static bool NotGlobalNamespace(SymbolReference reference)
         {
-            var symbol = reference.Item1;
+            var symbol = reference.Symbol;
             return symbol.IsNamespace ? !((INamespaceSymbol)symbol).IsGlobalNamespace : true;
         }
 
         private static bool NotNull(SymbolReference reference)
         {
-            return reference.Item1 != null;
+            return reference.Symbol != null;
         }
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
@@ -326,13 +341,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     .Distinct()
                     .Where(NotNull)
                     .Where(NotGlobalNamespace)
-                    .OrderBy(CompareReferences)
+                    .Order()
                     .ToList();
-            }
-
-            private int CompareReferences(SymbolReference x, SymbolReference y)
-            {
-                return INamespaceOrTypeSymbolExtensions.CompareNamespaceOrTypeSymbols(x.Item1, y.Item1);
             }
 
             private async Task<IList<SymbolReference>> GetNamespacesForMatchingTypesAsync(
