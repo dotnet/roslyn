@@ -71,7 +71,6 @@ Where there is code available, the answer to the question has one or more tags s
     * [How can I use Roslyn in an MSBuild task and avoid metadata fetching and re-entrancy conflicts](#how-can-i-use-roslyn-in-an-msbuild-task-and-avoid-metadata-fetching-and-re-entrancy-conflicts)
     * [Is there an end-to-end example on compiling a program to IL (Emit APIs)](#is-there-an-end-to-end-example-on-compiling-a-program-to-il-emit-apis)
     * [How can I capture IL, debug info, and doc comment outputs from a Compilation](#how-can-i-capture-il,-debug-info,-and-doc-comment-outputs-from-a-compilation)
-    * [How do you use a VS extension written using Roslyn project](#how-do-you-use-a-vs-extension-written-using-roslyn-project)
     * [Is there an object model chart or type inheritance diagram of Roslyn types](#is-there-an-object-model-chart-or-type-inheritance-diagram-of-roslyn-types)
 
 ## Project / Cross-cutting Questions
@@ -354,9 +353,6 @@ See next question, [#How can I capture IL, debug info, and doc comment outputs f
 
 ### How can I capture IL, debug info, and doc comment outputs from a Compilation?
 See the sample code answer tagged “FAQ(34)” ([installed location information|faq#codefiles]).  This sample includes an Execute() method definition, which compiles and executes a binary.
-
-### How do you use a VS extension written using Roslyn project?
-The Visual Studio instances that run when you are debugging your Roslyn VS extension projects are launched under what we call the Roslyn "hive" (or registry hierarchy where VS finds extensions).  If you want to do so, you can launch this instance of Visual Studio from the command-line by typing "devenv.exe /rootsuffix RoslynDev".
 
 ### Is there an object model chart or type inheritance diagram of Roslyn types?
 You can create a type inheritance diagram that you can zoom and search within.  You need Visual Studio 2010 Ultimate, and the instructions for creating the diagram are in this [post](http://social.msdn.microsoft.com/Forums/en-US/roslyn/thread/705b090b-58ac-4a94-b7b5-d1408205bc90).
