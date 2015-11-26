@@ -131,52 +131,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                If Me._lazyDeclaredAccessibility = s_unsetAccessibility Then
-                    Interlocked.CompareExchange(Me._lazyDeclaredAccessibility, GetDeclaredAccessibility(Me), s_unsetAccessibility)
+                If _lazyDeclaredAccessibility = s_unsetAccessibility Then
+                    Interlocked.CompareExchange(_lazyDeclaredAccessibility, GetDeclaredAccessibility(Me), s_unsetAccessibility)
                 End If
 
-                Return DirectCast(Me._lazyDeclaredAccessibility, Accessibility)
+                Return DirectCast(_lazyDeclaredAccessibility, Accessibility)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Dim method = Me.GetterOrSetter
+                Dim method = GetterOrSetter
                 Return If((method IsNot Nothing), method.IsMustOverride, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Dim method = Me.GetterOrSetter
+                Dim method = GetterOrSetter
                 Return If((method IsNot Nothing), method.IsNotOverridable, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Dim method = Me.GetterOrSetter
+                Dim method = GetterOrSetter
                 Return If((method IsNot Nothing), method.IsOverridable, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Dim method = Me.GetterOrSetter
+                Dim method = GetterOrSetter
                 Return If((method IsNot Nothing), method.IsOverrides, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverloads As Boolean
             Get
-                Dim method = Me.GetterOrSetter
+                Dim method = GetterOrSetter
                 Return If((method IsNot Nothing), method.IsOverloads, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Dim method = Me.GetterOrSetter
+                Dim method = GetterOrSetter
                 Return If((method IsNot Nothing), method.IsShared, True)
             End Get
         End Property
@@ -192,12 +192,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property IsWithEvents As Boolean
             Get
                 'NOTE: If no-one set the IsWithEvents, getting the value will permanently set it to Unknown.
-                If Me._isWithEvents = ThreeState.Unknown Then
+                If _isWithEvents = ThreeState.Unknown Then
                     SetIsWithEvents(MyBase.IsWithEvents)
                 End If
 
-                Debug.Assert(Me._isWithEvents = ThreeState.True OrElse Me._isWithEvents = ThreeState.False)
-                Return Me._isWithEvents = ThreeState.True
+                Debug.Assert(_isWithEvents = ThreeState.True OrElse _isWithEvents = ThreeState.False)
+                Return _isWithEvents = ThreeState.True
             End Get
         End Property
 
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Friend Sub SetIsWithEvents(value As Boolean)
             Dim newValue = If(value, ThreeState.True, ThreeState.False)
-            Dim origValue = Threading.Interlocked.CompareExchange(Me._isWithEvents, newValue, ThreeState.Unknown)
+            Dim origValue = Threading.Interlocked.CompareExchange(_isWithEvents, newValue, ThreeState.Unknown)
             Debug.Assert(origValue = ThreeState.Unknown OrElse origValue = newValue, "Tried changing already known IsWithEvent value.")
         End Sub
 
@@ -287,12 +287,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of PropertySymbol)
             Get
-                If (Me._getMethod Is Nothing OrElse Me._getMethod.ExplicitInterfaceImplementations.Length = 0) AndAlso (Me._setMethod Is Nothing OrElse Me._setMethod.ExplicitInterfaceImplementations.Length = 0) Then
+                If (_getMethod Is Nothing OrElse _getMethod.ExplicitInterfaceImplementations.Length = 0) AndAlso (_setMethod Is Nothing OrElse _setMethod.ExplicitInterfaceImplementations.Length = 0) Then
                     Return ImmutableArray(Of PropertySymbol).Empty
                 End If
 
-                Dim propertiesWithImplementedGetters = PEPropertyOrEventHelpers.GetPropertiesForExplicitlyImplementedAccessor(Me._getMethod)
-                Dim propertiesWithImplementedSetters = PEPropertyOrEventHelpers.GetPropertiesForExplicitlyImplementedAccessor(Me._setMethod)
+                Dim propertiesWithImplementedGetters = PEPropertyOrEventHelpers.GetPropertiesForExplicitlyImplementedAccessor(_getMethod)
+                Dim propertiesWithImplementedSetters = PEPropertyOrEventHelpers.GetPropertiesForExplicitlyImplementedAccessor(_setMethod)
                 Dim builder = ArrayBuilder(Of PropertySymbol).GetInstance()
                 For Each prop In propertiesWithImplementedGetters
                     If prop.SetMethod Is Nothing OrElse propertiesWithImplementedSetters.Contains(prop) Then
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private ReadOnly Property GetterOrSetter As MethodSymbol
             Get
-                Return If(Me._getMethod, Me._setMethod)
+                Return If(_getMethod, _setMethod)
             End Get
         End Property
 

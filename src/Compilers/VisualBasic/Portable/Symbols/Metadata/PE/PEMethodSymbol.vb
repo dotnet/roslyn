@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Public ReadOnly ReturnParam As PEParameterSymbol
 
             Public Sub New(signatureHeader As SignatureHeader, parameters As ImmutableArray(Of ParameterSymbol), returnParam As PEParameterSymbol)
-                Me.Header = signatureHeader
+                Header = signatureHeader
                 Me.Parameters = parameters
                 Me.ReturnParam = returnParam
             End Sub
@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If (_flags And (MethodAttributes.SpecialName Or MethodAttributes.RTSpecialName Or MethodAttributes.Static Or MethodAttributes.Virtual)) =
                     (MethodAttributes.SpecialName Or MethodAttributes.RTSpecialName) AndAlso
-               String.Equals(Me.Name, WellKnownMemberNames.InstanceConstructorName, StringComparison.Ordinal) AndAlso
+               String.Equals(Name, WellKnownMemberNames.InstanceConstructorName, StringComparison.Ordinal) AndAlso
                ParameterCount = 0 AndAlso
                IsSub AndAlso Arity = 0 Then
 
@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Case UnaryOperatorKind.IsFalse, UnaryOperatorKind.IsTrue, UnaryOperatorKind.Minus, UnaryOperatorKind.Plus
                         Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, Nothing, False)
                     Case UnaryOperatorKind.Not
-                        If IdentifierComparison.Equals(Me.Name, WellKnownMemberNames.OnesComplementOperatorName) Then
+                        If IdentifierComparison.Equals(Name, WellKnownMemberNames.OnesComplementOperatorName) Then
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, Nothing, False)
                         Else
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, WellKnownMemberNames.OnesComplementOperatorName, False)
@@ -423,25 +423,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, Nothing, False)
 
                     Case BinaryOperatorKind.And
-                        If IdentifierComparison.Equals(Me.Name, WellKnownMemberNames.BitwiseAndOperatorName) Then
+                        If IdentifierComparison.Equals(Name, WellKnownMemberNames.BitwiseAndOperatorName) Then
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, Nothing, False)
                         Else
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, WellKnownMemberNames.BitwiseAndOperatorName, False)
                         End If
                     Case BinaryOperatorKind.Or
-                        If IdentifierComparison.Equals(Me.Name, WellKnownMemberNames.BitwiseOrOperatorName) Then
+                        If IdentifierComparison.Equals(Name, WellKnownMemberNames.BitwiseOrOperatorName) Then
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, Nothing, False)
                         Else
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, WellKnownMemberNames.BitwiseOrOperatorName, False)
                         End If
                     Case BinaryOperatorKind.LeftShift
-                        If IdentifierComparison.Equals(Me.Name, WellKnownMemberNames.LeftShiftOperatorName) Then
+                        If IdentifierComparison.Equals(Name, WellKnownMemberNames.LeftShiftOperatorName) Then
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, Nothing, False)
                         Else
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, WellKnownMemberNames.LeftShiftOperatorName, False)
                         End If
                     Case BinaryOperatorKind.RightShift
-                        If IdentifierComparison.Equals(Me.Name, WellKnownMemberNames.RightShiftOperatorName) Then
+                        If IdentifierComparison.Equals(Name, WellKnownMemberNames.RightShiftOperatorName) Then
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, Nothing, False)
                         Else
                             Return ComputeMethodKindForPotentialOperatorOrConversion(opInfo, MethodKind.UserDefinedOperator, WellKnownMemberNames.RightShiftOperatorName, False)
@@ -472,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim outputType As TypeSymbol = ReturnType
 
             For i As Integer = 0 To If(additionalNameOpt Is Nothing, 0, 1)
-                For Each m In _containingType.GetMembers(If(i = 0, Me.Name, additionalNameOpt))
+                For Each m In _containingType.GetMembers(If(i = 0, Name, additionalNameOpt))
                     If m Is Me Then
                         Continue For
                     End If
@@ -573,7 +573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _packedFlags.IsCustomAttributesPopulated Then
                 Dim attributeData As ImmutableArray(Of VisualBasicAttributeData) = Nothing
                 Dim containingPEModuleSymbol = DirectCast(ContainingModule(), PEModuleSymbol)
-                containingPEModuleSymbol.LoadCustomAttributes(Me.Handle, attributeData)
+                containingPEModuleSymbol.LoadCustomAttributes(Handle, attributeData)
                 Debug.Assert(Not attributeData.IsDefault)
                 If Not attributeData.IsEmpty Then
                     attributeData = InterlockedOperations.Initialize(AccessUncommonFields()._lazyCustomAttributes, attributeData)
@@ -604,14 +604,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Dim result As Boolean = False
 
-                    If Me.IsShared AndAlso
-                       Me.ParameterCount > 0 AndAlso
-                       Me.MethodKind = MethodKind.Ordinary AndAlso
+                    If IsShared AndAlso
+                       ParameterCount > 0 AndAlso
+                       MethodKind = MethodKind.Ordinary AndAlso
                        _containingType.MightContainExtensionMethods AndAlso
-                       _containingType.ContainingPEModule.Module.HasExtensionAttribute(Me.Handle, ignoreCase:=True) AndAlso
+                       _containingType.ContainingPEModule.Module.HasExtensionAttribute(Handle, ignoreCase:=True) AndAlso
                        ValidateGenericConstraintsOnExtensionMethodDefinition() Then
 
-                        Dim firstParam As ParameterSymbol = Me.Parameters(0)
+                        Dim firstParam As ParameterSymbol = Parameters(0)
 
                         result = Not (firstParam.IsOptional OrElse firstParam.IsParamArray)
                     End If
@@ -636,7 +636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             ' do not cache the result, the compiler doesn't use this (it's only exposed through public API):
-            Return _containingType.ContainingPEModule.Module.GetDllImportData(Me._handle)
+            Return _containingType.ContainingPEModule.Module.GetDllImportData(_handle)
         End Function
 
         Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
@@ -704,23 +704,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsGenericMethod As Boolean
             Get
-                Return Me.Arity > 0
+                Return Arity > 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property Arity As Integer
             Get
-                If Me._lazyTypeParameters.IsDefault Then
+                If _lazyTypeParameters.IsDefault Then
                     Try
                         Dim paramCount As Integer = 0
                         Dim typeParamCount As Integer = 0
-                        MetadataDecoder.GetSignatureCountsOrThrow(Me._containingType.ContainingPEModule.Module, Me._handle, paramCount, typeParamCount)
+                        MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, paramCount, typeParamCount)
                         Return typeParamCount
                     Catch mrEx As BadImageFormatException
                         Return TypeParameters.Length
                     End Try
                 Else
-                    Return Me._lazyTypeParameters.Length
+                    Return _lazyTypeParameters.Length
                 End If
             End Get
         End Property
@@ -802,7 +802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
-                Return Me.ReturnType.SpecialType = SpecialType.System_Void
+                Return ReturnType.SpecialType = SpecialType.System_Void
             End Get
         End Property
 
@@ -832,17 +832,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property ParameterCount As Integer
             Get
-                If Me._lazySignature Is Nothing Then
+                If _lazySignature Is Nothing Then
                     Try
                         Dim paramCount As Integer = 0
                         Dim typeParamCount As Integer = 0
-                        MetadataDecoder.GetSignatureCountsOrThrow(Me._containingType.ContainingPEModule.Module, Me._handle, paramCount, typeParamCount)
+                        MetadataDecoder.GetSignatureCountsOrThrow(_containingType.ContainingPEModule.Module, _handle, paramCount, typeParamCount)
                         Return paramCount
                     Catch mrEx As BadImageFormatException
                         Return Parameters.Length
                     End Try
                 Else
-                    Return Me._lazySignature.Parameters.Length
+                    Return _lazySignature.Parameters.Length
                 End If
             End Get
         End Property
@@ -881,7 +881,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Friend Function SetAssociatedProperty(propertySymbol As PEPropertySymbol, methodKind As MethodKind) As Boolean
             Debug.Assert((methodKind = MethodKind.PropertyGet) OrElse (methodKind = MethodKind.PropertySet))
-            Return Me.SetAssociatedPropertyOrEvent(propertySymbol, methodKind)
+            Return SetAssociatedPropertyOrEvent(propertySymbol, methodKind)
         End Function
 
         ''' <summary>
@@ -890,13 +890,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Friend Function SetAssociatedEvent(eventSymbol As PEEventSymbol, methodKind As MethodKind) As Boolean
             Debug.Assert((methodKind = MethodKind.EventAdd) OrElse (methodKind = MethodKind.EventRemove) OrElse (methodKind = MethodKind.EventRaise))
-            Return Me.SetAssociatedPropertyOrEvent(eventSymbol, methodKind)
+            Return SetAssociatedPropertyOrEvent(eventSymbol, methodKind)
         End Function
 
         Private Function SetAssociatedPropertyOrEvent(propertyOrEventSymbol As Symbol, methodKind As MethodKind) As Boolean
-            If Me._associatedPropertyOrEventOpt Is Nothing Then
-                Debug.Assert(propertyOrEventSymbol.ContainingType = Me.ContainingType)
-                Me._associatedPropertyOrEventOpt = propertyOrEventSymbol
+            If _associatedPropertyOrEventOpt Is Nothing Then
+                Debug.Assert(propertyOrEventSymbol.ContainingType = ContainingType)
+                _associatedPropertyOrEventOpt = propertyOrEventSymbol
                 _packedFlags.MethodKind = methodKind
                 Return True
             End If
@@ -968,7 +968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
             Get
                 If IsGenericMethod Then
-                    Return StaticCast(Of TypeSymbol).From(Me.TypeParameters)
+                    Return StaticCast(Of TypeSymbol).From(TypeParameters)
                 Else
                     Return ImmutableArray(Of TypeSymbol).Empty
                 End If
@@ -1028,7 +1028,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' which we do not yet know.
                 Dim explicitlyOverriddenMethods = New MetadataDecoder(
                         moduleSymbol,
-                        _containingType).GetExplicitlyOverriddenMethods(_containingType.Handle, Me._handle, Me.ContainingType)
+                        _containingType).GetExplicitlyOverriddenMethods(_containingType.Handle, _handle, ContainingType)
 
                 'avoid allocating a builder in the common case
                 Dim anyToRemove = False

@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend NotOverridable Overrides ReadOnly Property Extent As NamespaceExtent
             Get
-                Return New NamespaceExtent(Me.ContainingPEModule)
+                Return New NamespaceExtent(ContainingPEModule)
             End Get
         End Property
 
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' sure there is any better strategy on first call then getting all type members
                 ' and filtering them.
                 ' Ordered.
-                Dim modules = GetTypeMembers().WhereAsArray(Function(t) t.TypeKind = TYPEKIND.Module)
+                Dim modules = GetTypeMembers().WhereAsArray(Function(t) t.TypeKind = TypeKind.Module)
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyModules, modules, Nothing)
             End If
 
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides Function GetModuleMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
             ' This is not called during binding, so caching isn't very critical.
-            Return GetTypeMembers(name).WhereAsArray(Function(t) t.TypeKind = TYPEKIND.Module)
+            Return GetTypeMembers(name).WhereAsArray(Function(t) t.TypeKind = TypeKind.Module)
         End Function
 
         Public NotOverridable Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim children = ArrayBuilder(Of PENamedTypeSymbol).GetInstance()
                 Dim skipCheckForPiaType = Not moduleSymbol.Module.ContainsNoPiaLocalTypes()
                 Dim noPiaLocalTypes As Dictionary(Of String, TypeDefinitionHandle) = Nothing
-                Dim isGlobal = Me.IsGlobalNamespace
+                Dim isGlobal = IsGlobalNamespace
 
                 For Each g In typeGroups
                     For Each t In g
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 If ContainingPEModule.MightContainExtensionMethods Then
                     ' Note that we are using GetTypeMembers rather than GetModuleMembers because non-Modules imported 
                     ' from metadata can contain extension methods.
-                    Return Me.GetTypeMembers() ' Ordered.
+                    Return GetTypeMembers() ' Ordered.
                 End If
 
                 Return ImmutableArray(Of NamedTypeSymbol).Empty

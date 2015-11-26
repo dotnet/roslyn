@@ -297,11 +297,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Dim defaultValue As ConstantValue = ConstantValue.NotAvailable
 
                     Dim peModule = Me.PEModule
-                    Dim handle = Me._handle
+                    Dim handle = _handle
 
                     If (_flags And ParameterAttributes.HasDefault) <> 0 Then
                         defaultValue = peModule.GetParamDefaultValue(handle)
-                    ElseIf IsOptional
+                    ElseIf IsOptional Then
                         ' Dev10 behavior just checks for Decimal then DateTime.  If both are specified, DateTime wins
                         ' regardless of the parameter's type.
 
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' for GetCustomAttributesToEmit
                 Dim filterOutParamArrayAttribute As Boolean = (Not _lazyIsParamArray.HasValue() OrElse _lazyIsParamArray.Value())
 
-                Dim defaultValue As ConstantValue = Me.ExplicitDefaultConstantValue
+                Dim defaultValue As ConstantValue = ExplicitDefaultConstantValue
                 Dim filterOutConstantAttributeDescription As AttributeDescription = Nothing
 
                 If defaultValue IsNot Nothing Then
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property IsParamArray As Boolean
             Get
                 If Not _lazyIsParamArray.HasValue() Then
-                    _lazyIsParamArray = Me.PEModule.HasParamsAttribute(_handle).ToThreeState()
+                    _lazyIsParamArray = PEModule.HasParamsAttribute(_handle).ToThreeState()
                 End If
                 Return _lazyIsParamArray.Value()
             End Get
@@ -493,7 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
 
                 Debug.Assert(Not _handle.IsNil)
-                Return Me.PEModule.GetMarshallingDescriptor(_handle)
+                Return PEModule.GetMarshallingDescriptor(_handle)
             End Get
         End Property
 
@@ -504,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
 
                 Debug.Assert(Not _handle.IsNil)
-                Return Me.PEModule.GetMarshallingType(_handle)
+                Return PEModule.GetMarshallingType(_handle)
             End Get
         End Property
 
@@ -520,7 +520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 If _lazyHasIDispatchConstantAttribute = ThreeState.Unknown Then
                     Debug.Assert(Not _handle.IsNil)
 
-                    _lazyHasIDispatchConstantAttribute = Me.PEModule.
+                    _lazyHasIDispatchConstantAttribute = PEModule.
                         HasAttribute(_handle, AttributeDescription.IDispatchConstantAttribute).ToThreeState()
                 End If
 
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 If _lazyHasIUnknownConstantAttribute = ThreeState.Unknown Then
                     Debug.Assert(Not _handle.IsNil)
 
-                    _lazyHasIUnknownConstantAttribute = Me.PEModule.
+                    _lazyHasIUnknownConstantAttribute = PEModule.
                         HasAttribute(_handle, AttributeDescription.IUnknownConstantAttribute).ToThreeState()
                 End If
 
@@ -546,7 +546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 If _lazyHasCallerLineNumberAttribute = ThreeState.Unknown Then
                     Debug.Assert(Not _handle.IsNil)
 
-                    _lazyHasCallerLineNumberAttribute = Me.PEModule.
+                    _lazyHasCallerLineNumberAttribute = PEModule.
                         HasAttribute(_handle, AttributeDescription.CallerLineNumberAttribute).ToThreeState()
                 End If
 
@@ -559,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 If _lazyHasCallerMemberNameAttribute = ThreeState.Unknown Then
                     Debug.Assert(Not _handle.IsNil)
 
-                    _lazyHasCallerMemberNameAttribute = Me.PEModule.
+                    _lazyHasCallerMemberNameAttribute = PEModule.
                         HasAttribute(_handle, AttributeDescription.CallerMemberNameAttribute).ToThreeState()
                 End If
 
@@ -572,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 If _lazyHasCallerFilePathAttribute = ThreeState.Unknown Then
                     Debug.Assert(Not _handle.IsNil)
 
-                    _lazyHasCallerFilePathAttribute = Me.PEModule.
+                    _lazyHasCallerFilePathAttribute = PEModule.
                         HasAttribute(_handle, AttributeDescription.CallerFilePathAttribute).ToThreeState()
                 End If
 
