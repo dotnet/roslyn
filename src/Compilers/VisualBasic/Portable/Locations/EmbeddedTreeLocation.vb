@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overloads Overrides Function Equals(obj As Object) As Boolean
-            Return Me.Equals(TryCast(obj, EmbeddedTreeLocation))
+            Return Equals(TryCast(obj, EmbeddedTreeLocation))
         End Function
 
         Public Overrides Function GetHashCode() As Integer
