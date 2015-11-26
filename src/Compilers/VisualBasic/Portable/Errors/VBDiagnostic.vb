@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If location IsNot Me.Location Then
-                Return New VBDiagnostic(Me.Info, location, Me.IsSuppressed)
+                Return New VBDiagnostic(Info, location, IsSuppressed)
             End If
 
             Return Me
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function WithSeverity(severity As DiagnosticSeverity) As Diagnostic
             If Me.Severity <> severity Then
-                Return New VBDiagnostic(Me.Info.GetInstanceWithSeverity(severity), Me.Location, Me.IsSuppressed)
+                Return New VBDiagnostic(Info.GetInstanceWithSeverity(severity), Location, IsSuppressed)
             End If
 
             Return Me
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function WithIsSuppressed(isSuppressed As Boolean) As Diagnostic
             If Me.IsSuppressed <> isSuppressed Then
-                Return New VBDiagnostic(Me.Info, Me.Location, isSuppressed)
+                Return New VBDiagnostic(Info, Location, isSuppressed)
             End If
 
             Return Me

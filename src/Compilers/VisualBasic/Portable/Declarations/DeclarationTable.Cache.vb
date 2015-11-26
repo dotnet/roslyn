@@ -21,13 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend ReadOnly ReferenceDirectives As Lazy(Of ImmutableArray(Of ReferenceDirective))
 
             Public Sub New(table As DeclarationTable)
-                Me.MergedRoot = New Lazy(Of MergedNamespaceDeclaration)(AddressOf table.MergeOlderNamespaces)
+                MergedRoot = New Lazy(Of MergedNamespaceDeclaration)(AddressOf table.MergeOlderNamespaces)
 
-                Me.TypeNames = New Lazy(Of ICollection(Of String))(Function() GetTypeNames(Me.MergedRoot.Value))
+                TypeNames = New Lazy(Of ICollection(Of String))(Function() GetTypeNames(MergedRoot.Value))
 
-                Me.NamespaceNames = New Lazy(Of ICollection(Of String))(Function() GetNamespaceNames(Me.MergedRoot.Value))
+                NamespaceNames = New Lazy(Of ICollection(Of String))(Function() GetNamespaceNames(MergedRoot.Value))
 
-                Me.ReferenceDirectives = New Lazy(Of ImmutableArray(Of ReferenceDirective))(
+                ReferenceDirectives = New Lazy(Of ImmutableArray(Of ReferenceDirective))(
                     Function() table.SelectManyFromOlderDeclarationsNoEmbedded(Function(r) r.ReferenceDirectives))
             End Sub
         End Class

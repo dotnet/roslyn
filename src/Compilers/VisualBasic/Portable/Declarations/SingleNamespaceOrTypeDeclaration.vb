@@ -17,19 +17,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property Location As Location
             Get
-                Return Me.SyntaxReference.GetLocation()
+                Return SyntaxReference.GetLocation()
             End Get
         End Property
 
         Protected MustOverride Function GetNamespaceOrTypeDeclarationChildren() As ImmutableArray(Of SingleNamespaceOrTypeDeclaration)
 
         Protected Overrides Function GetDeclarationChildren() As ImmutableArray(Of Declaration)
-            Return StaticCast(Of Declaration).From(Me.GetNamespaceOrTypeDeclarationChildren())
+            Return StaticCast(Of Declaration).From(GetNamespaceOrTypeDeclarationChildren())
         End Function
 
         Public Overloads ReadOnly Property Children As ImmutableArray(Of SingleNamespaceOrTypeDeclaration)
             Get
-                Return Me.GetNamespaceOrTypeDeclarationChildren()
+                Return GetNamespaceOrTypeDeclarationChildren()
             End Get
         End Property
 

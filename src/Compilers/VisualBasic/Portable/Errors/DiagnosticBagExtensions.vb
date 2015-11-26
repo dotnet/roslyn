@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <System.Runtime.CompilerServices.Extension()>
         Friend Function Add(diagnostics As DiagnosticBag, code As ERRID, location As Location) As DiagnosticInfo
             Dim info = ErrorFactory.ErrorInfo(code)
-            Dim diag = New VBDiagnostic(info, location)
+            Dim diag As New VBDiagnostic(info, location)
             diagnostics.Add(diag)
             Return info
         End Function
@@ -38,14 +38,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <System.Runtime.CompilerServices.Extension()>
         Friend Function Add(diagnostics As DiagnosticBag, code As ERRID, location As Location, ParamArray args As Object()) As DiagnosticInfo
             Dim info = ErrorFactory.ErrorInfo(code, args)
-            Dim diag = New VBDiagnostic(info, location)
+            Dim diag As New VBDiagnostic(info, location)
             diagnostics.Add(diag)
             Return info
         End Function
 
         <System.Runtime.CompilerServices.Extension()>
         Friend Sub Add(diagnostics As DiagnosticBag, info As DiagnosticInfo, location As Location)
-            Dim diag = New VBDiagnostic(info, location)
+            Dim diag As New VBDiagnostic(info, location)
             diagnostics.Add(diag)
         End Sub
 
@@ -62,29 +62,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <System.Runtime.CompilerServices.Extension()>
-        Friend Function Add(
-            diagnostics As DiagnosticBag,
-            node As BoundNode,
-            useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-        ) As Boolean
+        Friend Function Add(diagnostics As DiagnosticBag, node As BoundNode, useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Return Not useSiteDiagnostics.IsNullOrEmpty AndAlso diagnostics.Add(node.Syntax.GetLocation, useSiteDiagnostics)
         End Function
 
         <System.Runtime.CompilerServices.Extension()>
-        Friend Function Add(
-            diagnostics As DiagnosticBag,
-            node As SyntaxNodeOrToken,
-            useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-        ) As Boolean
+        Friend Function Add(diagnostics As DiagnosticBag, node As SyntaxNodeOrToken, useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Return Not useSiteDiagnostics.IsNullOrEmpty AndAlso diagnostics.Add(node.GetLocation, useSiteDiagnostics)
         End Function
 
         <System.Runtime.CompilerServices.Extension()>
-        Friend Function Add(
-            diagnostics As DiagnosticBag,
-            location As Location,
-            useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-        ) As Boolean
+        Friend Function Add(diagnostics As DiagnosticBag, location As Location, useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
 
             If useSiteDiagnostics.IsNullOrEmpty Then
                 Return False

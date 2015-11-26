@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _id As ERRID
 
         Friend Sub New(id As ERRID)
-            Me._id = id
+            _id = id
         End Sub
 
         ''' <summary>

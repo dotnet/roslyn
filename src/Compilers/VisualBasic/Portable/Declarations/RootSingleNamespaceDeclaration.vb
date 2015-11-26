@@ -30,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(Not referenceDirectives.IsDefault)
 
-            Me._referenceDirectives = referenceDirectives
-            Me._hasAssemblyAttributes = hasAssemblyAttributes
+            _referenceDirectives = referenceDirectives
+            _hasAssemblyAttributes = hasAssemblyAttributes
         End Sub
     End Class
 End Namespace

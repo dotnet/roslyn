@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _syntaxTree As SyntaxTree
 
         Public Shared Function ForTree(tree As SyntaxTree, rootNamespace As ImmutableArray(Of String), scriptClassName As String, isSubmission As Boolean) As RootSingleNamespaceDeclaration
-            Dim builder = New DeclarationTreeBuilder(tree, rootNamespace, scriptClassName, isSubmission)
+            Dim builder As New DeclarationTreeBuilder(tree, rootNamespace, scriptClassName, isSubmission)
             Dim decl = DirectCast(builder.ForDeclaration(tree.GetRoot()), RootSingleNamespaceDeclaration)
             Return decl
         End Function

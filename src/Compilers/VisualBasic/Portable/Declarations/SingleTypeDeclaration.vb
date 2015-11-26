@@ -39,17 +39,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(kind <> DeclarationKind.Namespace)
 
-            Me._kind = kind
-            Me._arity = CUShort(arity)
-            Me._flags = declFlags
-            Me._modifiers = modifiers
-            Me._memberNames = memberNames
-            Me._children = children
+            _kind = kind
+            _arity = CUShort(arity)
+            _flags = declFlags
+            _modifiers = modifiers
+            _memberNames = memberNames
+            _children = children
         End Sub
 
         Public Overrides ReadOnly Property Kind As DeclarationKind
             Get
-                Return Me._kind
+                Return _kind
             End Get
         End Property
 
@@ -91,13 +91,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property Modifiers As DeclarationModifiers
             Get
-                Return Me._modifiers
+                Return _modifiers
             End Get
         End Property
 
         Public ReadOnly Property MemberNames As ICollection(Of String)
             Get
-                Return Me._memberNames
+                Return _memberNames
             End Get
         End Property
 
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Private Shadows Function GetHashCode(decl1 As SingleTypeDeclaration) As Integer Implements IEqualityComparer(Of SingleTypeDeclaration).GetHashCode
-                Return Hash.Combine(IdentifierComparison.GetHashCode(decl1.Name), Hash.Combine(decl1.Arity.GetHashCode(), CType(decl1.Kind, Integer)))
+                Return Hash.Combine(IdentifierComparison.GetHashCode(decl1.Name), Hash.Combine(decl1.Arity.GetHashCode(), decl1.Kind))
             End Function
         End Class
 

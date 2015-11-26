@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        children As ImmutableArray(Of SingleNamespaceOrTypeDeclaration),
                        Optional isPartOfRootNamespace As Boolean = False)
             MyBase.New(name, syntaxReference, nameLocation)
-            Me._children = children
+            _children = children
             Me.HasImports = hasImports
             Me.IsPartOfRootNamespace = isPartOfRootNamespace
         End Sub
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Protected Overrides Function GetNamespaceOrTypeDeclarationChildren() As ImmutableArray(Of SingleNamespaceOrTypeDeclaration)
-            Return Me._children
+            Return _children
         End Function
 
         ' If this declaration was part of a namespace block, return it, otherwise return nothing.

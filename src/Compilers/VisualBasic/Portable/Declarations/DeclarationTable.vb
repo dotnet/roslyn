@@ -44,31 +44,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _cache As Cache
 
         ' The lazily computed total merged declaration.
-        Private ReadOnly _mergedRoot As Lazy(Of MergedNamespaceDeclaration)
+        Private ReadOnly _mergedRoot As New Lazy(Of MergedNamespaceDeclaration)(AddressOf GetMergedRoot)
 
-        Private ReadOnly _typeNames As Lazy(Of ICollection(Of String))
-        Private ReadOnly _namespaceNames As Lazy(Of ICollection(Of String))
-        Private ReadOnly _referenceDirectives As Lazy(Of ICollection(Of ReferenceDirective))
+        Private ReadOnly _typeNames As New Lazy(Of ICollection(Of String))(AddressOf GetMergedTypeNames)
+        Private ReadOnly _namespaceNames As New Lazy(Of ICollection(Of String))(AddressOf GetMergedNamespaceNames)
+        Private ReadOnly _referenceDirectives As New Lazy(Of ICollection(Of ReferenceDirective))(AddressOf GetMergedReferenceDirectives)
 
         Private _lazyAllRootDeclarations As ImmutableArray(Of RootSingleNamespaceDeclaration)
 
         Private Sub New(allOlderRootDeclarations As ImmutableHashSet(Of DeclarationTableEntry),
                         latestLazyRootDeclaration As DeclarationTableEntry,
                         cache As Cache)
-            Me._allOlderRootDeclarations = allOlderRootDeclarations
-            Me._latestLazyRootDeclaration = latestLazyRootDeclaration
-            Me._cache = If(cache, New Cache(Me))
-            Me._mergedRoot = New Lazy(Of MergedNamespaceDeclaration)(AddressOf GetMergedRoot)
-            Me._typeNames = New Lazy(Of ICollection(Of String))(AddressOf GetMergedTypeNames)
-            Me._namespaceNames = New Lazy(Of ICollection(Of String))(AddressOf GetMergedNamespaceNames)
-            Me._referenceDirectives = New Lazy(Of ICollection(Of ReferenceDirective))(AddressOf GetMergedReferenceDirectives)
+            _allOlderRootDeclarations = allOlderRootDeclarations
+            _latestLazyRootDeclaration = latestLazyRootDeclaration
+            _cache = If(cache, New Cache(Me))
         End Sub
 
         Public Function AddRootDeclaration(lazyRootDeclaration As DeclarationTableEntry) As DeclarationTable
             ' We can only re-use the cache if we don't already have a 'latest' item for the decl
             ' table.
             If _latestLazyRootDeclaration Is Nothing Then
-                Return New DeclarationTable(_allOlderRootDeclarations, lazyRootDeclaration, Me._cache)
+                Return New DeclarationTable(_allOlderRootDeclarations, lazyRootDeclaration, _cache)
             Else
                 ' we already had a 'latest' item.  This means we're hearing about a change to a
                 ' different tree.  Realize the old latest item, add it to the 'older' collection
@@ -80,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function RemoveRootDeclaration(lazyRootDeclaration As DeclarationTableEntry) As DeclarationTable
             ' We can only reuse the cache if we're removing the decl that was just added.
             If _latestLazyRootDeclaration Is lazyRootDeclaration Then
-                Return New DeclarationTable(_allOlderRootDeclarations, latestLazyRootDeclaration:=Nothing, cache:=Me._cache)
+                Return New DeclarationTable(_allOlderRootDeclarations, latestLazyRootDeclaration:=Nothing, cache:=_cache)
             Else
                 ' We're removing a different tree than the latest one added.  We need to realize the
                 ' passed in root and remove that from our 'older' list.  We also can't reuse the
@@ -141,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' / | | | \ \
         ' old singles forest new single tree
         Private Function GetMergedRoot() As MergedNamespaceDeclaration
-            Dim oldRoot = Me._cache.MergedRoot.Value
+            Dim oldRoot = _cache.MergedRoot.Value
             Dim latestRoot = GetLatestRootDeclarationIfAny(includeEmbedded:=True)
             If latestRoot Is Nothing Then
                 Return oldRoot
@@ -153,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetMergedTypeNames() As ICollection(Of String)
-            Dim cachedTypeNames = Me._cache.TypeNames.Value
+            Dim cachedTypeNames = _cache.TypeNames.Value
             Dim latestRoot = GetLatestRootDeclarationIfAny(includeEmbedded:=True)
             If latestRoot Is Nothing Then
                 Return cachedTypeNames
@@ -163,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetMergedNamespaceNames() As ICollection(Of String)
-            Dim cachedNamespaceNames = Me._cache.NamespaceNames.Value
+            Dim cachedNamespaceNames = _cache.NamespaceNames.Value
             Dim latestRoot = GetLatestRootDeclarationIfAny(includeEmbedded:=True)
             If latestRoot Is Nothing Then
                 Return cachedNamespaceNames
@@ -253,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim includeMember = (filter And SymbolFilter.Member) = SymbolFilter.Member
 
             Dim stack = New Stack(Of MergedNamespaceOrTypeDeclaration)()
-            stack.Push(Me.MergedRoot)
+            stack.Push(MergedRoot)
 
             While stack.Count > 0
                 cancellationToken.ThrowIfCancellationRequested()
