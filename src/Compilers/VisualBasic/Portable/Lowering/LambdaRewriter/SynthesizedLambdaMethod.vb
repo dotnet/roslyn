@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property TypeMap As TypeSubstitution
             Get
-                Return Me._typeMap
+                Return _typeMap
             End Get
         End Property
 
@@ -54,20 +54,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        MakeName(topLevelMethodId, closureKind, lambdaNode.LambdaSymbol.SynthesizedKind, lambdaId),
                        isShared:=False)
 
-            Me._lambda = lambdaNode.LambdaSymbol
-            Me._locations = ImmutableArray.Create(lambdaNode.Syntax.GetLocation())
+            _lambda = lambdaNode.LambdaSymbol
+            _locations = ImmutableArray.Create(lambdaNode.Syntax.GetLocation())
 
             If Not topLevelMethod.IsGenericMethod Then
-                Me._typeMap = Nothing
-                Me._typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
+                _typeMap = Nothing
+                _typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
             Else
                 Dim containingTypeAsFrame = TryCast(containingType, LambdaFrame)
                 If containingTypeAsFrame IsNot Nothing Then
-                    Me._typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
-                    Me._typeMap = containingTypeAsFrame.TypeMap
+                    _typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
+                    _typeMap = containingTypeAsFrame.TypeMap
                 Else
-                    Me._typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, LambdaFrame.CreateTypeParameter)
-                    Me._typeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, Me.TypeArguments)
+                    _typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, LambdaFrame.CreateTypeParameter)
+                    _typeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, TypeArguments)
                 End If
             End If
 
@@ -80,8 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     curParam))
             Next
 
-            Me._parameters = params.ToImmutableAndFree
-            Me._topLevelMethod = topLevelMethod
+            _parameters = params.ToImmutableAndFree
+            _topLevelMethod = topLevelMethod
         End Sub
 
         Private Shared Function MakeName(topLevelMethodId As DebugId,
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 ' This is always a method definition, so the type arguments are the same as the type parameters.
                 If Arity > 0 Then
-                    Return StaticCast(Of TypeSymbol).From(Me.TypeParameters)
+                    Return StaticCast(Of TypeSymbol).From(TypeParameters)
                 Else
                     Return ImmutableArray(Of TypeSymbol).Empty
                 End If
@@ -167,13 +167,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property IsAsync As Boolean
             Get
-                Return Me._lambda.IsAsync
+                Return _lambda.IsAsync
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsIterator As Boolean
             Get
-                Return Me._lambda.IsIterator
+                Return _lambda.IsIterator
             End Get
         End Property
 
@@ -200,14 +200,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeDebuggerHiddenAttribute())
             End If
 
-            If Me.IsAsync OrElse Me.IsIterator Then
-                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
+            If IsAsync OrElse IsIterator Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
 
-                If Me.IsAsync Then
+                If IsAsync Then
                     ' Async kick-off method calls MoveNext, which contains user code. 
                     ' This means we need to emit DebuggerStepThroughAttribute in order
                     ' to have correct stepping behavior during debugging.
-                    AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeOptionalDebuggerStepThroughAttribute())
+                    AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeOptionalDebuggerStepThroughAttribute())
                 End If
             End If
         End Sub

@@ -50,16 +50,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(topLevelMethod, MakeName(scopeSyntaxOpt, methodId, closureId, isStatic, isDelegateRelaxationFrame), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
 
             If copyConstructor Then
-                Me._constructor = New SynthesizedLambdaCopyConstructor(scopeSyntaxOpt, Me)
+                _constructor = New SynthesizedLambdaCopyConstructor(scopeSyntaxOpt, Me)
             Else
-                Me._constructor = New SynthesizedLambdaConstructor(scopeSyntaxOpt, Me)
+                _constructor = New SynthesizedLambdaConstructor(scopeSyntaxOpt, Me)
             End If
 
             ' static lambdas technically have the class scope so the scope syntax is Nothing 
             If isStatic Then
-                Me._sharedConstructor = New SynthesizedConstructorSymbol(Nothing, Me, isShared:=True, isDebuggable:=False, binder:=Nothing, diagnostics:=Nothing)
+                _sharedConstructor = New SynthesizedConstructorSymbol(Nothing, Me, isShared:=True, isDebuggable:=False, binder:=Nothing, diagnostics:=Nothing)
                 Dim cacheVariableName = GeneratedNames.MakeCachedFrameInstanceName()
-                Me._singletonCache = New SynthesizedLambdaCacheFieldSymbol(Me, Me, Me, cacheVariableName, topLevelMethod, Accessibility.Public, isReadOnly:=True, isShared:=True)
+                _singletonCache = New SynthesizedLambdaCacheFieldSymbol(Me, Me, Me, cacheVariableName, topLevelMethod, Accessibility.Public, isReadOnly:=True, isShared:=True)
                 _scopeSyntaxOpt = Nothing
             Else
                 _scopeSyntaxOpt = scopeSyntaxOpt
@@ -69,9 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AssertIsClosureScopeSyntax(_scopeSyntaxOpt)
             End If
 
-            Me._typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, CreateTypeParameter)
-            Me.TypeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
-            Me._topLevelMethod = topLevelMethod
+            _typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(topLevelMethod.TypeParameters, Me, CreateTypeParameter)
+            TypeMap = TypeSubstitution.Create(topLevelMethod, topLevelMethod.TypeParameters, TypeArgumentsNoUseSiteDiagnostics)
+            _topLevelMethod = topLevelMethod
         End Sub
 
         Private Shared Function MakeName(scopeSyntaxOpt As SyntaxNode,
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If _singletonCache Is Nothing Then
                 Return CapturedLocals
             Else
-                Return DirectCast(CapturedLocals, IEnumerable(Of FieldSymbol)).Concat(Me._singletonCache)
+                Return DirectCast(CapturedLocals, IEnumerable(Of FieldSymbol)).Concat(_singletonCache)
             End If
         End Function
 
@@ -209,13 +209,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property Arity As Integer
             Get
-                Return Me._typeParameters.Length
+                Return _typeParameters.Length
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                Return Me._typeParameters
+                Return _typeParameters
             End Get
         End Property
 

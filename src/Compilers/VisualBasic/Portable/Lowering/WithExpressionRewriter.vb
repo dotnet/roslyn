@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Structure
 
         Friend Sub New(withSyntax As WithStatementSyntax)
-            Me._withSyntax = withSyntax
+            _withSyntax = withSyntax
         End Sub
 
 #Region "State"
@@ -56,21 +56,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(local IsNot Nothing)
                 Debug.Assert(initializer IsNot Nothing)
 
-                If Me._locals Is Nothing Then
-                    Debug.Assert(Me._initializers Is Nothing)
+                If _locals Is Nothing Then
+                    Debug.Assert(_initializers Is Nothing)
 
-                    Me._locals = ArrayBuilder(Of LocalSymbol).GetInstance()
-                    Me._initializers = ArrayBuilder(Of BoundExpression).GetInstance()
+                    _locals = ArrayBuilder(Of LocalSymbol).GetInstance()
+                    _initializers = ArrayBuilder(Of BoundExpression).GetInstance()
                 End If
 
-                Me._locals.Add(local)
-                Me._initializers.Add(initializer)
+                _locals.Add(local)
+                _initializers.Add(initializer)
             End Sub
 
             Public Function CreateResult(expression As BoundExpression) As Result
                 Return New Result(expression,
-                                  If(Me._locals Is Nothing, ImmutableArray(Of LocalSymbol).Empty, Me._locals.ToImmutableAndFree()),
-                                  If(Me._initializers Is Nothing, ImmutableArray(Of BoundExpression).Empty, Me._initializers.ToImmutableAndFree()))
+                                  If(_locals Is Nothing, ImmutableArray(Of LocalSymbol).Empty, _locals.ToImmutableAndFree()),
+                                  If(_initializers Is Nothing, ImmutableArray(Of BoundExpression).Empty, _initializers.ToImmutableAndFree()))
 
             End Function
         End Class

@@ -84,13 +84,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Me.F = F
                 Me.StateField = stateField
-                Me.CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, F.Syntax)
-                Me._hoistedVariables = hoistedVariables
-                Me._synthesizedLocalOrdinals = synthesizedLocalOrdinals
-                Me._nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot
+                CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, F.Syntax)
+                _hoistedVariables = hoistedVariables
+                _synthesizedLocalOrdinals = synthesizedLocalOrdinals
+                _nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot
 
                 For Each p In initialProxies
-                    Me.Proxies.Add(p.Key, p.Value)
+                    Proxies.Add(p.Key, p.Value)
                 Next
             End Sub
 
@@ -106,28 +106,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Protected Overrides ReadOnly Property TypeMap As TypeSubstitution
                 Get
-                    Return Me.F.CurrentType.TypeSubstitution
+                    Return F.CurrentType.TypeSubstitution
                 End Get
             End Property
 
             Protected Overrides ReadOnly Property CurrentMethod As MethodSymbol
                 Get
-                    Return Me.F.CurrentMethod
+                    Return F.CurrentMethod
                 End Get
             End Property
 
             Protected Overrides ReadOnly Property TopLevelMethod As MethodSymbol
                 Get
-                    Return Me.F.TopLevelMethod
+                    Return F.TopLevelMethod
                 End Get
             End Property
 
             Friend Overrides Function FramePointer(syntax As VisualBasicSyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
-                Dim oldSyntax As VisualBasicSyntaxNode = Me.F.Syntax
-                Me.F.Syntax = syntax
-                Dim result = Me.F.Me()
+                Dim oldSyntax As VisualBasicSyntaxNode = F.Syntax
+                F.Syntax = syntax
+                Dim result = F.Me()
                 Debug.Assert(frameClass = result.Type)
-                Me.F.Syntax = oldSyntax
+                F.Syntax = oldSyntax
                 Return result
             End Function
 
@@ -136,38 +136,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public ReadOnly ResumeLabel As GeneratedLabelSymbol
 
                 Public Sub New(stateNumber As Integer, resumeLabel As GeneratedLabelSymbol)
-                    Me.Number = stateNumber
+                    Number = stateNumber
                     Me.ResumeLabel = resumeLabel
                 End Sub
             End Structure
 
             Protected Function AddState() As StateInfo
-                Dim stateNumber As Integer = Me.NextState
-                Me.NextState += 1
+                Dim stateNumber As Integer = NextState
+                NextState += 1
 
-                If Me.Dispatches Is Nothing Then
-                    Me.Dispatches = New Dictionary(Of LabelSymbol, List(Of Integer))()
+                If Dispatches Is Nothing Then
+                    Dispatches = New Dictionary(Of LabelSymbol, List(Of Integer))()
                 End If
 
-                If Not Me._hasFinalizerState Then
-                    Me._currentFinalizerState = Me.NextState
-                    Me.NextState += 1
-                    Me._hasFinalizerState = True
+                If Not _hasFinalizerState Then
+                    _currentFinalizerState = NextState
+                    NextState += 1
+                    _hasFinalizerState = True
                 End If
 
-                Dim resumeLabel As GeneratedLabelSymbol = Me.F.GenerateLabel(ResumeLabelName)
-                Me.Dispatches.Add(resumeLabel, New List(Of Integer)() From {stateNumber})
-                Me.FinalizerStateMap.Add(stateNumber, Me._currentFinalizerState)
+                Dim resumeLabel As GeneratedLabelSymbol = F.GenerateLabel(ResumeLabelName)
+                Dispatches.Add(resumeLabel, New List(Of Integer)() From {stateNumber})
+                FinalizerStateMap.Add(stateNumber, _currentFinalizerState)
 
                 Return New StateInfo(stateNumber, resumeLabel)
             End Function
 
             Protected Function Dispatch() As BoundStatement
-                Return Me.F.Select(
-                            Me.F.Local(Me.CachedState, isLValue:=False),
-                            From kv In Me.Dispatches
+                Return F.Select(
+                            F.Local(CachedState, isLValue:=False),
+                            From kv In Dispatches
                             Order By kv.Value(0)
-                            Select Me.F.SwitchSection(kv.Value, F.Goto(kv.Key)))
+                            Select F.SwitchSection(kv.Value, F.Goto(kv.Key)))
             End Function
 
 #Region "Visitors"
@@ -177,10 +177,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return node
                 End If
 
-                Dim oldSyntax As VisualBasicSyntaxNode = Me.F.Syntax
-                Me.F.Syntax = node.Syntax
+                Dim oldSyntax As VisualBasicSyntaxNode = F.Syntax
+                F.Syntax = node.Syntax
                 Dim result As BoundNode = MyBase.Visit(node)
-                Me.F.Syntax = oldSyntax
+                F.Syntax = oldSyntax
                 Return result
             End Function
 
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If local.SynthesizedKind = SynthesizedLocalKind.UserDefined OrElse local.SynthesizedKind = SynthesizedLocalKind.LambdaDisplayClass Then
                         Dim proxy As TProxy = Nothing
                         If Proxies.TryGetValue(local, proxy) Then
-                            Me.AddProxyFieldsForStateMachineScope(proxy, hoistedLocalsWithDebugScopes)
+                            AddProxyFieldsForStateMachineScope(proxy, hoistedLocalsWithDebugScopes)
                         End If
                     End If
                 Next
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Must remain in sync with <see cref="TryUnwrapBoundStateMachineScope"/>.
             ''' </remarks>
             Friend Function MakeStateMachineScope(hoistedLocals As ImmutableArray(Of FieldSymbol), statement As BoundStatement) As BoundBlock
-                Return Me.F.Block(New BoundStateMachineScope(Me.F.Syntax, hoistedLocals, statement).MakeCompilerGenerated)
+                Return F.Block(New BoundStateMachineScope(F.Syntax, hoistedLocals, statement).MakeCompilerGenerated)
             End Function
 
             ''' <remarks>
@@ -278,37 +278,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
 
-                Dim oldDispatches As Dictionary(Of LabelSymbol, List(Of Integer)) = Me.Dispatches
-                Dim oldFinalizerState As Integer = Me._currentFinalizerState
-                Dim oldHasFinalizerState As Boolean = Me._hasFinalizerState
+                Dim oldDispatches As Dictionary(Of LabelSymbol, List(Of Integer)) = Dispatches
+                Dim oldFinalizerState As Integer = _currentFinalizerState
+                Dim oldHasFinalizerState As Boolean = _hasFinalizerState
 
-                Me.Dispatches = Nothing
-                Me._currentFinalizerState = -1
-                Me._hasFinalizerState = False
+                Dispatches = Nothing
+                _currentFinalizerState = -1
+                _hasFinalizerState = False
 
-                Dim tryBlock As BoundBlock = Me.F.Block(DirectCast(Me.Visit(node.TryBlock), BoundStatement))
+                Dim tryBlock As BoundBlock = F.Block(DirectCast(Visit(node.TryBlock), BoundStatement))
                 Dim dispatchLabel As GeneratedLabelSymbol = Nothing
-                If Me.Dispatches IsNot Nothing Then
-                    dispatchLabel = Me.F.GenerateLabel("tryDispatch")
+                If Dispatches IsNot Nothing Then
+                    dispatchLabel = F.GenerateLabel("tryDispatch")
 
-                    If Me._hasFinalizerState Then
+                    If _hasFinalizerState Then
                         ' cause the current finalizer state to arrive here and then "return false"
-                        Dim finalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("finalizer")
-                        Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me._currentFinalizerState})
+                        Dim finalizer As GeneratedLabelSymbol = F.GenerateLabel("finalizer")
+                        Dispatches.Add(finalizer, New List(Of Integer)() From {_currentFinalizerState})
 
-                        Dim skipFinalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("skipFinalizer")
-                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(),
-                                              Me.Dispatch(),
-                                              Me.F.Goto(skipFinalizer),
-                                              Me.F.Label(finalizer),
-                                              Me.F.Assignment(
-                                                  F.Field(F.Me(), Me.StateField, True),
-                                                  F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineStates.NotStartedStateMachine))),
-                                              Me.GenerateReturn(False),
-                                              Me.F.Label(skipFinalizer),
+                        Dim skipFinalizer As GeneratedLabelSymbol = F.GenerateLabel("skipFinalizer")
+                        tryBlock = F.Block(F.HiddenSequencePoint(),
+                                              Dispatch(),
+                                              F.Goto(skipFinalizer),
+                                              F.Label(finalizer),
+                                              F.Assignment(
+                                                  F.Field(F.Me(), StateField, True),
+                                                  F.AssignmentExpression(F.Local(CachedState, True), F.Literal(StateMachineStates.NotStartedStateMachine))),
+                                              GenerateReturn(False),
+                                              F.Label(skipFinalizer),
                                               tryBlock)
                     Else
-                        tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(), Me.Dispatch(), tryBlock)
+                        tryBlock = F.Block(F.HiddenSequencePoint(), Dispatch(), tryBlock)
                     End If
 
                     If oldDispatches Is Nothing Then
@@ -318,40 +318,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     oldDispatches.Add(dispatchLabel, New List(Of Integer)(From kv In Dispatches.Values From n In kv Order By n Select n))
                 End If
 
-                Me._hasFinalizerState = oldHasFinalizerState
-                Me._currentFinalizerState = oldFinalizerState
+                _hasFinalizerState = oldHasFinalizerState
+                _currentFinalizerState = oldFinalizerState
 
-                Me.Dispatches = oldDispatches
+                Dispatches = oldDispatches
 
-                Dim catchBlocks As ImmutableArray(Of BoundCatchBlock) = Me.VisitList(node.CatchBlocks)
+                Dim catchBlocks As ImmutableArray(Of BoundCatchBlock) = VisitList(node.CatchBlocks)
                 Dim finallyBlockOpt As BoundBlock = If(node.FinallyBlockOpt Is Nothing, Nothing,
-                                                       Me.F.Block(
-                                                           Me.F.HiddenSequencePoint(),
-                                                           Me.F.If(
-                                                               condition:=Me.F.IntLessThan(
-                                                                   Me.F.Local(Me.CachedState, False),
-                                                                   Me.F.Literal(StateMachineStates.FirstUnusedState)),
-                                                               thenClause:=DirectCast(Me.Visit(node.FinallyBlockOpt), BoundBlock)),
-                                                           Me.F.HiddenSequencePoint()))
+                                                       F.Block(
+                                                           F.HiddenSequencePoint(),
+                                                           F.If(
+                                                               condition:=F.IntLessThan(
+                                                                   F.Local(CachedState, False),
+                                                                   F.Literal(StateMachineStates.FirstUnusedState)),
+                                                               thenClause:=DirectCast(Visit(node.FinallyBlockOpt), BoundBlock)),
+                                                           F.HiddenSequencePoint()))
 
                 Dim result As BoundStatement = node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.ExitLabelOpt)
                 If dispatchLabel IsNot Nothing Then
-                    result = Me.F.Block(Me.F.HiddenSequencePoint(), Me.F.Label(dispatchLabel), result)
+                    result = F.Block(F.HiddenSequencePoint(), F.Label(dispatchLabel), result)
                 End If
 
                 Return result
             End Function
 
             Public Overrides Function VisitMeReference(node As BoundMeReference) As BoundNode
-                Return Me.MaterializeProxy(node, Me.Proxies(Me.TopLevelMethod.MeParameter))
+                Return MaterializeProxy(node, Proxies(TopLevelMethod.MeParameter))
             End Function
 
             Public Overrides Function VisitMyClassReference(node As BoundMyClassReference) As BoundNode
-                Return Me.MaterializeProxy(node, Me.Proxies(Me.TopLevelMethod.MeParameter))
+                Return MaterializeProxy(node, Proxies(TopLevelMethod.MeParameter))
             End Function
 
             Public Overrides Function VisitMyBaseReference(node As BoundMyBaseReference) As BoundNode
-                Return Me.MaterializeProxy(node, Me.Proxies(Me.TopLevelMethod.MeParameter))
+                Return MaterializeProxy(node, Proxies(TopLevelMethod.MeParameter))
             End Function
 
             Private Function TryRewriteLocal(local As LocalSymbol) As LocalSymbol
@@ -387,13 +387,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     rewrittenCatchLocal = TryRewriteLocal(origLocal)
                 End If
 
-                Dim rewrittenExceptionVariable As BoundExpression = DirectCast(Me.Visit(node.ExceptionSourceOpt), BoundExpression)
+                Dim rewrittenExceptionVariable As BoundExpression = DirectCast(Visit(node.ExceptionSourceOpt), BoundExpression)
 
                 ' rewrite filter and body
                 ' NOTE: this will proxy all accesses to exception local if that got hoisted.
-                Dim rewrittenErrorLineNumber = DirectCast(Me.Visit(node.ErrorLineNumberOpt), BoundExpression)
-                Dim rewrittenFilter = DirectCast(Me.Visit(node.ExceptionFilterOpt), BoundExpression)
-                Dim rewrittenBody = DirectCast(Me.Visit(node.Body), BoundBlock)
+                Dim rewrittenErrorLineNumber = DirectCast(Visit(node.ErrorLineNumberOpt), BoundExpression)
+                Dim rewrittenFilter = DirectCast(Visit(node.ExceptionFilterOpt), BoundExpression)
+                Dim rewrittenBody = DirectCast(Visit(node.Body), BoundBlock)
 
                 ' rebuild the node.
                 Return node.Update(rewrittenCatchLocal,

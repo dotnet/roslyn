@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return type
             End If
 
-            Return type.InternalSubstituteTypeParameters(Me.TypeMap).Type
+            Return type.InternalSubstituteTypeParameters(TypeMap).Type
         End Function
 
         Public NotOverridable Overrides Function VisitMethodInfo(node As BoundMethodInfo) As BoundNode
@@ -147,19 +147,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ShouldRewriteMethodSymbol(originalReceiver As BoundExpression, rewrittenReceiverOpt As BoundExpression, newMethod As MethodSymbol) As Boolean
             Return originalReceiver IsNot rewrittenReceiverOpt OrElse
                    Not newMethod.IsDefinition OrElse
-                   (Me.TypeMap IsNot Nothing AndAlso Me.TypeMap.TargetGenericDefinition.Equals(newMethod)) OrElse
-                   (Me.IsInExpressionLambda AndAlso rewrittenReceiverOpt IsNot Nothing AndAlso
+                   (TypeMap IsNot Nothing AndAlso TypeMap.TargetGenericDefinition.Equals(newMethod)) OrElse
+                   (IsInExpressionLambda AndAlso rewrittenReceiverOpt IsNot Nothing AndAlso
                         (rewrittenReceiverOpt.IsMyClassReference OrElse rewrittenReceiverOpt.IsMyBaseReference))
         End Function
 
         Public NotOverridable Overrides Function VisitParameter(node As BoundParameter) As BoundNode
             Dim proxy As TProxy = Nothing
             If Proxies.TryGetValue(node.ParameterSymbol, proxy) Then
-                Return Me.MaterializeProxy(node, proxy)
+                Return MaterializeProxy(node, proxy)
             End If
 
             Dim replacementParameter As ParameterSymbol = Nothing
-            If Me.ParameterMap.TryGetValue(node.ParameterSymbol, replacementParameter) Then
+            If ParameterMap.TryGetValue(node.ParameterSymbol, replacementParameter) Then
                 Return New BoundParameter(node.Syntax, replacementParameter, node.IsLValue, replacementParameter.Type, node.HasErrors)
             End If
 
@@ -178,11 +178,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim proxy As TProxy = Nothing
             If Proxies.TryGetValue(local, proxy) Then
-                Return Me.MaterializeProxy(node, proxy)
+                Return MaterializeProxy(node, proxy)
             End If
 
             Dim replacementLocal As LocalSymbol = Nothing
-            If Me.LocalMap.TryGetValue(local, replacementLocal) Then
+            If LocalMap.TryGetValue(local, replacementLocal) Then
                 Return New BoundLocal(node.Syntax, replacementLocal, node.IsLValue, replacementLocal.Type, node.HasErrors)
             End If
 
@@ -230,11 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If constructor IsNot Nothing Then
                 If node.Type IsNot rewritten.Type OrElse Not constructor.IsDefinition Then
                     Dim newConstructor = VisitMethodSymbol(constructor)
-                    rewritten = node.Update(
-                        newConstructor,
-                        rewritten.Arguments,
-                        rewritten.InitializerOpt,
-                        rewritten.Type)
+                    rewritten = node.Update(newConstructor, rewritten.Arguments, rewritten.InitializerOpt, rewritten.Type)
                 End If
             End If
 
@@ -245,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Rewrites method.
         ''' </summary>
         Private Function VisitMethodSymbol(method As MethodSymbol) As MethodSymbol
-            Dim substitution As TypeSubstitution = Me.TypeMap
+            Dim substitution As TypeSubstitution = TypeMap
 
             If substitution IsNot Nothing Then
                 Dim newMethod As MethodSymbol = method.OriginalDefinition
@@ -280,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Rewrites property.
         ''' </summary>
         Private Function VisitPropertySymbol([property] As PropertySymbol) As PropertySymbol
-            Dim substitution As TypeSubstitution = Me.TypeMap
+            Dim substitution As TypeSubstitution = TypeMap
 
             If substitution IsNot Nothing Then
                 Dim newProperty As PropertySymbol = [property].OriginalDefinition
@@ -307,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Rewrites field.
         ''' </summary>
         Private Function VisitFieldSymbol(field As FieldSymbol) As FieldSymbol
-            Dim substitution As TypeSubstitution = Me.TypeMap
+            Dim substitution As TypeSubstitution = TypeMap
 
             If substitution IsNot Nothing Then
                 Dim newField As FieldSymbol = field.OriginalDefinition
@@ -339,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         newLocals As ArrayBuilder(Of LocalSymbol)) As BoundBlock
 
             For Each v In node.Locals
-                If Me.PreserveOriginalLocals OrElse Not Me.Proxies.ContainsKey(v) Then
+                If PreserveOriginalLocals OrElse Not Proxies.ContainsKey(v) Then
                     Dim vType = VisitType(v.Type)
                     If vType = v.Type Then
 
@@ -383,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Select
 
                     If keepSequencePointFirst Then
-                        Dim replacement = DirectCast(Me.Visit(nodeStatements(0)), BoundStatement)
+                        Dim replacement = DirectCast(Visit(nodeStatements(0)), BoundStatement)
                         If replacement IsNot Nothing Then
                             newStatements.Add(replacement)
                         End If
@@ -403,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             prologue.Free()
 
             For i As Integer = start To nodeStatements.Length - 1
-                Dim replacement = DirectCast(Me.Visit(nodeStatements(i)), BoundStatement)
+                Dim replacement = DirectCast(Visit(nodeStatements(i)), BoundStatement)
                 If replacement IsNot Nothing Then
                     newStatements.Add(replacement)
                 End If
@@ -452,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' merge locals new and rewritten original
             For Each v In origLocals
-                If Not Me.Proxies.ContainsKey(v) Then
+                If Not Proxies.ContainsKey(v) Then
                     Dim vType = VisitType(v.Type)
                     If vType = v.Type Then
                         newLocals.Add(v)
@@ -466,14 +462,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' merge side-effect - prologue followed by rewritten original side-effect
             For Each s In node.SideEffects
-                Dim replacement = DirectCast(Me.Visit(s), BoundExpression)
+                Dim replacement = DirectCast(Visit(s), BoundExpression)
                 If replacement IsNot Nothing Then
                     prologue.Add(replacement)
                 End If
             Next
 
             Debug.Assert(node.ValueOpt IsNot Nothing OrElse node.HasErrors OrElse node.Type.SpecialType = SpecialType.System_Void)
-            Dim newValue = DirectCast(Me.Visit(node.ValueOpt), BoundExpression)
+            Dim newValue = DirectCast(Visit(node.ValueOpt), BoundExpression)
 
             Return node.Update(newLocals.ToImmutableAndFree(), prologue.ToImmutableAndFree(), newValue, If(newValue Is Nothing, node.Type, newValue.Type))
         End Function

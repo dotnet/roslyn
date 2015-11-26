@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub New(frame As LambdaFrame, captured As Symbol, type As TypeSymbol, fieldName As String, isMeParameter As Boolean)
             MyBase.New(frame, captured, type, fieldName, accessibility:=Accessibility.Public)
 
-            Me._isMe = isMeParameter
+            _isMe = isMeParameter
         End Sub
 
         Public Shared Function Create(frame As LambdaFrame, captured As Symbol, ByRef uniqueId As Integer) As LambdaCapturedVariable
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property IsCapturedFrame As Boolean
             Get
-                Return Me._isMe
+                Return _isMe
             End Get
         End Property
     End Class

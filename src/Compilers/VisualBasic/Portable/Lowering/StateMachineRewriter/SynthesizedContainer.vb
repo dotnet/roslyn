@@ -36,32 +36,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  baseType As NamedTypeSymbol,
                                  originalInterfaces As ImmutableArray(Of NamedTypeSymbol))
 
-            Me._containingType = topLevelMethod.ContainingType
-            Me._name = typeName
+            _containingType = topLevelMethod.ContainingType
+            _name = typeName
 
-            Me._baseType = baseType
+            _baseType = baseType
 
             If Not topLevelMethod.IsGenericMethod Then
-                Me._typeMap = Nothing
-                Me._typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
-                Me._interfaces = originalInterfaces
+                _typeMap = Nothing
+                _typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
+                _interfaces = originalInterfaces
             Else
-                Me._typeParameters =
+                _typeParameters =
                     SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(
                         topLevelMethod.OriginalDefinition.TypeParameters, Me, s_createTypeParameter)
 
-                Dim typeArgs(Me._typeParameters.Length - 1) As TypeSymbol
-                For ind = 0 To Me._typeParameters.Length - 1
-                    typeArgs(ind) = Me._typeParameters(ind)
+                Dim typeArgs(_typeParameters.Length - 1) As TypeSymbol
+                For ind = 0 To _typeParameters.Length - 1
+                    typeArgs(ind) = _typeParameters(ind)
                 Next
 
                 Dim newConstructedWrappedMethod As MethodSymbol = topLevelMethod.Construct(typeArgs.AsImmutableOrNull())
 
-                Me._typeMap = TypeSubstitution.Create(newConstructedWrappedMethod.OriginalDefinition,
+                _typeMap = TypeSubstitution.Create(newConstructedWrappedMethod.OriginalDefinition,
                                                      newConstructedWrappedMethod.OriginalDefinition.TypeParameters,
                                                      typeArgs.AsImmutableOrNull())
 
-                Me._interfaces = originalInterfaces.SelectAsArray(Function(i) DirectCast(i.InternalSubstituteTypeParameters(Me._typeMap).AsTypeSymbolOnly(), NamedTypeSymbol))
+                _interfaces = originalInterfaces.SelectAsArray(Function(i) DirectCast(i.InternalSubstituteTypeParameters(_typeMap).AsTypeSymbolOnly(), NamedTypeSymbol))
             End If
         End Sub
 
@@ -69,13 +69,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property Name As String
             Get
-                Return Me._name
+                Return _name
             End Get
         End Property
 
         Friend NotOverridable Overrides ReadOnly Property MangleName As Boolean
             Get
-                Return Me._typeParameters.Length > 0
+                Return _typeParameters.Length > 0
             End Get
         End Property
 
@@ -107,13 +107,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property Arity As Integer
             Get
-                Return Me._typeParameters.Length
+                Return _typeParameters.Length
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                Return Me._typeParameters
+                Return _typeParameters
             End Get
         End Property
 
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
-            Return Me._baseType
+            Return _baseType
         End Function
 
         Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
-            Return Me._interfaces
+            Return _interfaces
         End Function
 
         Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
@@ -206,13 +206,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            Debug.Assert(Me.Constructor IsNot Nothing)
-            Return ImmutableArray.Create(Of Symbol)(Me.Constructor)
+            Debug.Assert(Constructor IsNot Nothing)
+            Return ImmutableArray.Create(Of Symbol)(Constructor)
         End Function
 
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             Return If(CaseInsensitiveComparison.Equals(name, WellKnownMemberNames.InstanceConstructorName),
-                      ImmutableArray.Create(Of Symbol)(Me.Constructor), ImmutableArray(Of Symbol).Empty)
+                      ImmutableArray.Create(Of Symbol)(Constructor), ImmutableArray(Of Symbol).Empty)
         End Function
 
         Public Overrides ReadOnly Property MemberNames As IEnumerable(Of String)
@@ -227,13 +227,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return Me._containingType
+                Return _containingType
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return Me._containingType
+                Return _containingType
             End Get
         End Property
 
@@ -291,14 +291,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property TypeSubstitution As TypeSubstitution
             Get
-                Return Me._typeMap
+                Return _typeMap
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-            Dim compilation = Me.DeclaringCompilation
+            Dim compilation = DeclaringCompilation
 
             Debug.Assert(
                 WellKnownMembers.IsSynthesizedAttributeOptional(

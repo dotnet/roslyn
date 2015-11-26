@@ -50,10 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.StateMachineType = stateMachineType
             Me.SlotAllocatorOpt = slotAllocatorOpt
             Me.Diagnostics = diagnostics
-            Me.SynthesizedLocalOrdinals = New SynthesizedLocalOrdinalsDispenser()
-            Me.nonReusableLocalProxies = New Dictionary(Of Symbol, TProxy)()
+            SynthesizedLocalOrdinals = New SynthesizedLocalOrdinalsDispenser()
+            nonReusableLocalProxies = New Dictionary(Of Symbol, TProxy)()
 
-            Me.F = New SyntheticBoundNodeFactory(method, method, method.ContainingType, body.Syntax, compilationState, diagnostics)
+            F = New SyntheticBoundNodeFactory(method, method, method.ContainingType, body.Syntax, compilationState, diagnostics)
         End Sub
 
         ''' <summary>
@@ -87,24 +87,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected MustOverride Sub GenerateMethodImplementations()
 
         Protected Function Rewrite() As BoundBlock
-            Debug.Assert(Not Me.PreserveInitialParameterValues OrElse Method.IsIterator)
+            Debug.Assert(Not PreserveInitialParameterValues OrElse Method.IsIterator)
 
-            Me.F.OpenNestedType(Me.StateMachineType)
-            Me.F.CompilationState.StateMachineImplementationClass(Me.Method) = Me.StateMachineType
+            F.OpenNestedType(StateMachineType)
+            F.CompilationState.StateMachineImplementationClass(Method) = StateMachineType
 
-            Me.GenerateControlFields()
+            GenerateControlFields()
 
             ' and fields for the initial values of all the parameters of the method
-            If Me.PreserveInitialParameterValues Then
-                Me.InitialParameters = New Dictionary(Of Symbol, TProxy)()
+            If PreserveInitialParameterValues Then
+                InitialParameters = New Dictionary(Of Symbol, TProxy)()
             End If
 
             ' add fields for the captured variables of the method
-            Dim variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(New FlowAnalysisInfo(F.CompilationState.Compilation, Me.Method, Me.Body), Me.Diagnostics)
+            Dim variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(New FlowAnalysisInfo(F.CompilationState.Compilation, Method, Body), Diagnostics)
 
-            CreateNonReusableLocalProxies(variablesToHoist, Me.nextFreeHoistedLocalSlot)
+            CreateNonReusableLocalProxies(variablesToHoist, nextFreeHoistedLocalSlot)
 
-            Me.hoistedVariables = New OrderedSet(Of Symbol)(variablesToHoist.CapturedLocals)
+            hoistedVariables = New OrderedSet(Of Symbol)(variablesToHoist.CapturedLocals)
 
             GenerateMethodImplementations()
 
@@ -113,28 +113,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GenerateKickoffMethodBody() As BoundBlock
-            Me.F.CurrentMethod = Me.Method
+            F.CurrentMethod = Method
             Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
-            bodyBuilder.Add(Me.F.HiddenSequencePoint())
+            bodyBuilder.Add(F.HiddenSequencePoint())
 
-            Dim frameType As NamedTypeSymbol = If(Me.Method.IsGenericMethod, Me.StateMachineType.Construct(Method.TypeArguments), Me.StateMachineType)
+            Dim frameType As NamedTypeSymbol = If(Method.IsGenericMethod, StateMachineType.Construct(Method.TypeArguments), StateMachineType)
             Dim stateMachineVariable As LocalSymbol = F.SynthesizedLocal(frameType)
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable)
 
             ' Plus code to initialize all of the parameter proxies result
-            Dim proxies = If(PreserveInitialParameterValues, Me.InitialParameters, Me.nonReusableLocalProxies)
+            Dim proxies = If(PreserveInitialParameterValues, InitialParameters, nonReusableLocalProxies)
             Dim initializers = ArrayBuilder(Of BoundExpression).GetInstance()
 
             ' starting with the "Me" proxy
-            If Not Me.Method.IsShared AndAlso Me.Method.MeParameter IsNot Nothing Then
+            If Not Method.IsShared AndAlso Method.MeParameter IsNot Nothing Then
                 Dim proxy As TProxy = Nothing
-                If proxies.TryGetValue(Me.Method.MeParameter, proxy) Then
-                    InitializeParameterWithProxy(Me.Method.MeParameter, proxy, stateMachineVariable, initializers)
+                If proxies.TryGetValue(Method.MeParameter, proxy) Then
+                    InitializeParameterWithProxy(Method.MeParameter, proxy, stateMachineVariable, initializers)
                 End If
             End If
 
             ' then all the parameters
-            For Each parameter In Me.Method.Parameters
+            For Each parameter In Method.Parameters
                 Dim proxy As TProxy = Nothing
                 If proxies.TryGetValue(parameter, proxy) Then
                     InitializeParameterWithProxy(parameter, proxy, stateMachineVariable, initializers)
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             initializers.Free()
 
             bodyBuilder.Add(GenerateStateMachineCreation(stateMachineVariable, frameType))
-            Return Me.F.Block(
+            Return F.Block(
                 ImmutableArray.Create(Of LocalSymbol)(stateMachineVariable),
                 bodyBuilder.ToImmutableAndFree())
         End Function
@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   parameter As ParameterSymbol) As TProxy
 
             Dim proxy As TProxy = Nothing
-            If Me.nonReusableLocalProxies.TryGetValue(parameter, proxy) Then
+            If nonReusableLocalProxies.TryGetValue(parameter, proxy) Then
                 ' This proxy may have already be added while processing 
                 ' previous ByRef local
                 Return proxy
@@ -203,28 +203,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: without generation of any errors/warnings. Roslyn has to match this behavior
 
                 proxy = CreateParameterCapture(
-                            Me.F.StateMachineField(
+                            F.StateMachineField(
                                 Method.ContainingType,
-                                Me.Method,
+                                Method,
                                 If(isMeOfClosureType,
                                     GeneratedNames.MakeStateMachineCapturedClosureMeName(typeName),
                                     GeneratedNames.MakeStateMachineCapturedMeName()),
                                 Accessibility.Friend),
                             parameter)
-                Me.nonReusableLocalProxies.Add(parameter, proxy)
+                nonReusableLocalProxies.Add(parameter, proxy)
 
-                If Me.PreserveInitialParameterValues Then
-                    Dim initialMe As TProxy = If(Me.Method.ContainingType.IsStructureType(),
+                If PreserveInitialParameterValues Then
+                    Dim initialMe As TProxy = If(Method.ContainingType.IsStructureType(),
                                                  CreateParameterCapture(
-                                                     Me.F.StateMachineField(
-                                                         Me.Method.ContainingType,
-                                                         Me.Method,
+                                                     F.StateMachineField(
+                                                         Method.ContainingType,
+                                                         Method,
                                                          GeneratedNames.MakeIteratorParameterProxyName(GeneratedNames.MakeStateMachineCapturedMeName()),
                                                          Accessibility.Friend),
                                                      parameter),
-                                                 Me.nonReusableLocalProxies(parameter))
+                                                 nonReusableLocalProxies(parameter))
 
-                    Me.InitialParameters.Add(parameter, initialMe)
+                    InitialParameters.Add(parameter, initialMe)
                 End If
 
             Else
@@ -234,18 +234,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 proxy = CreateParameterCapture(
                             F.StateMachineField(
                                 paramType,
-                                Me.Method,
+                                Method,
                                 GeneratedNames.MakeStateMachineParameterName(parameter.Name),
                                 Accessibility.Friend),
                             parameter)
-                Me.nonReusableLocalProxies.Add(parameter, proxy)
+                nonReusableLocalProxies.Add(parameter, proxy)
 
-                If Me.PreserveInitialParameterValues Then
-                    Me.InitialParameters.Add(parameter,
+                If PreserveInitialParameterValues Then
+                    InitialParameters.Add(parameter,
                                              CreateParameterCapture(
-                                                 Me.F.StateMachineField(
+                                                 F.StateMachineField(
                                                      paramType,
-                                                     Me.Method,
+                                                     Method,
                                                      GeneratedNames.MakeIteratorParameterProxyName(parameter.Name),
                                                      Accessibility.Friend),
                                                  parameter))
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '      When emitting a delta the id is only used to map to the existing field in the previous generation.
 
                 Dim declaratorSyntax As SyntaxNode = local.GetDeclaratorSyntax()
-                Dim syntaxOffset As Integer = Me.Method.CalculateLocalSyntaxOffset(declaratorSyntax.SpanStart, declaratorSyntax.SyntaxTree)
+                Dim syntaxOffset As Integer = Method.CalculateLocalSyntaxOffset(declaratorSyntax.SpanStart, declaratorSyntax.SyntaxTree)
                 Dim ordinal As Integer = SynthesizedLocalOrdinals.AssignLocalOrdinal(local.SynthesizedKind, syntaxOffset)
                 id = New LocalDebugId(syntaxOffset, ordinal)
 
@@ -301,8 +301,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If slotIndex = -1 Then
-                slotIndex = Me.nextFreeHoistedLocalSlot
-                Me.nextFreeHoistedLocalSlot = Me.nextFreeHoistedLocalSlot + 1
+                slotIndex = nextFreeHoistedLocalSlot
+                nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot + 1
             End If
 
             proxy = CreateByValLocalCapture(MakeHoistedFieldForLocal(local, fieldType, slotIndex, id), local)
@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     proxyName = StringConstants.HoistedSynthesizedLocalPrefix & slotIndex
             End Select
 
-            Return F.StateMachineField(localType, Me.Method, proxyName, New LocalSlotDebugInfo(local.SynthesizedKind, id), slotIndex, Accessibility.Friend)
+            Return F.StateMachineField(localType, Method, proxyName, New LocalSlotDebugInfo(local.SynthesizedKind, id), slotIndex, Accessibility.Friend)
         End Function
 
         ''' <summary>
@@ -350,11 +350,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' We will also return True if signature is definitely bad - contains parameters that are ByRef or have error types
         ''' </summary>
         Friend Overridable Function EnsureAllSymbolsAndSignature() As Boolean
-            If Me.Method.ReturnType.IsErrorType Then
+            If Method.ReturnType.IsErrorType Then
                 Return True
             End If
 
-            For Each parameter In Me.Method.Parameters
+            For Each parameter In Method.Parameters
                 If parameter.IsByRef OrElse parameter.Type.IsErrorType Then
                     Return True
                 End If
@@ -364,40 +364,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Sub EnsureSpecialType(type As SpecialType, <[In], Out> ByRef hasErrors As Boolean)
-            Dim sType = Me.F.SpecialType(type)
+            Dim sType = F.SpecialType(type)
             If sType.GetUseSiteErrorInfo IsNot Nothing Then
                 hasErrors = True
             End If
         End Sub
 
         Friend Sub EnsureWellKnownType(type As WellKnownType, <[In], Out> ByRef hasErrors As Boolean)
-            Dim wkType = Me.F.WellKnownType(type)
+            Dim wkType = F.WellKnownType(type)
             If wkType.GetUseSiteErrorInfo IsNot Nothing Then
                 hasErrors = True
             End If
         End Sub
 
         Friend Sub EnsureWellKnownMember(Of T As Symbol)(member As WellKnownMember, <[In], Out> ByRef hasErrors As Boolean)
-            Dim wkMember = Me.F.WellKnownMember(Of T)(member)
+            Dim wkMember = F.WellKnownMember(Of T)(member)
             If wkMember Is Nothing OrElse wkMember.GetUseSiteErrorInfo IsNot Nothing Then
                 hasErrors = True
             End If
         End Sub
 
         Friend Function OpenMethodImplementation(interfaceMethod As WellKnownMember, name As String, accessibility As Accessibility, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
-            Dim methodToImplement As MethodSymbol = Me.F.WellKnownMember(Of MethodSymbol)(interfaceMethod)
+            Dim methodToImplement As MethodSymbol = F.WellKnownMember(Of MethodSymbol)(interfaceMethod)
 
             Return OpenMethodImplementation(methodToImplement, name, accessibility, hasMethodBodyDependency, associatedProperty)
         End Function
 
         Friend Function OpenMethodImplementation(interfaceMethod As SpecialMember, name As String, accessibility As Accessibility, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
-            Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol)
+            Dim methodToImplement As MethodSymbol = DirectCast(F.SpecialMember(interfaceMethod), MethodSymbol)
 
             Return OpenMethodImplementation(methodToImplement, name, accessibility, hasMethodBodyDependency, associatedProperty)
         End Function
 
         Friend Function OpenMethodImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, accessibility As Accessibility, Optional hasMethodBodyDependency As Boolean = False, Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
-            Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol).AsMember(interfaceType)
+            Dim methodToImplement As MethodSymbol = DirectCast(F.SpecialMember(interfaceMethod), MethodSymbol).AsMember(interfaceType)
 
             Return OpenMethodImplementation(methodToImplement, name, accessibility, hasMethodBodyDependency, associatedProperty)
         End Function
@@ -411,50 +411,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Errors must be reported before and if any this point should not be reachable
             Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
 
-            Dim result As New SynthesizedStateMachineDebuggerNonUserCodeMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
+            Dim result As New SynthesizedStateMachineDebuggerNonUserCodeMethod(DirectCast(F.CurrentType, StateMachineTypeSymbol),
                                                                                methodName,
                                                                                methodToImplement,
-                                                                               Me.F.Syntax,
+                                                                               F.Syntax,
                                                                                accessibility,
                                                                                hasMethodBodyDependency,
                                                                                associatedProperty)
 
-            Me.F.AddMethod(Me.F.CurrentType, result)
-            Me.F.CurrentMethod = result
+            F.AddMethod(F.CurrentType, result)
+            F.CurrentMethod = result
             Return result
         End Function
 
         Friend Function OpenPropertyImplementation(interfaceProperty As SpecialMember, name As String, accessibility As Accessibility) As MethodSymbol
-            Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceProperty), PropertySymbol).GetMethod
+            Dim methodToImplement As MethodSymbol = DirectCast(F.SpecialMember(interfaceProperty), PropertySymbol).GetMethod
 
             Return OpenPropertyImplementation(methodToImplement, name, accessibility)
         End Function
 
         Friend Function OpenPropertyImplementation(interfaceType As NamedTypeSymbol, interfaceMethod As SpecialMember, name As String, accessibility As Accessibility) As MethodSymbol
-            Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), PropertySymbol).GetMethod.AsMember(interfaceType)
+            Dim methodToImplement As MethodSymbol = DirectCast(F.SpecialMember(interfaceMethod), PropertySymbol).GetMethod.AsMember(interfaceType)
 
             Return OpenPropertyImplementation(methodToImplement, name, accessibility)
         End Function
 
         Private Function OpenPropertyImplementation(getterToImplement As MethodSymbol, name As String, accessibility As Accessibility) As MethodSymbol
 
-            Dim prop As New SynthesizedStateMachineProperty(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
+            Dim prop As New SynthesizedStateMachineProperty(DirectCast(F.CurrentType, StateMachineTypeSymbol),
                                                             name,
                                                             getterToImplement,
-                                                            Me.F.Syntax,
+                                                            F.Syntax,
                                                             accessibility)
 
-            Me.F.AddProperty(Me.F.CurrentType, prop)
+            F.AddProperty(F.CurrentType, prop)
 
             Dim getter = prop.GetMethod
-            Me.F.AddMethod(Me.F.CurrentType, getter)
+            F.AddMethod(F.CurrentType, getter)
 
-            Me.F.CurrentMethod = getter
+            F.CurrentMethod = getter
             Return getter
         End Function
 
         Friend Sub CloseMethod(body As BoundStatement)
-            Me.F.CloseMethod(RewriteBodyIfNeeded(body, Me.F.TopLevelMethod, Me.F.CurrentMethod))
+            F.CloseMethod(RewriteBodyIfNeeded(body, F.TopLevelMethod, F.CurrentMethod))
         End Sub
 
         Friend Overridable Function RewriteBodyIfNeeded(body As BoundStatement, topMethod As MethodSymbol, currentMethod As MethodSymbol) As BoundStatement
@@ -462,13 +462,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function OpenMoveNextMethodImplementation(interfaceMethod As WellKnownMember, accessibility As Accessibility) As SynthesizedMethod
-            Dim methodToImplement As MethodSymbol = Me.F.WellKnownMember(Of MethodSymbol)(interfaceMethod)
+            Dim methodToImplement As MethodSymbol = F.WellKnownMember(Of MethodSymbol)(interfaceMethod)
 
             Return OpenMoveNextMethodImplementation(methodToImplement, accessibility)
         End Function
 
         Friend Function OpenMoveNextMethodImplementation(interfaceMethod As SpecialMember, accessibility As Accessibility) As SynthesizedMethod
-            Dim methodToImplement As MethodSymbol = DirectCast(Me.F.SpecialMember(interfaceMethod), MethodSymbol)
+            Dim methodToImplement As MethodSymbol = DirectCast(F.SpecialMember(interfaceMethod), MethodSymbol)
 
             Return OpenMoveNextMethodImplementation(methodToImplement, accessibility)
         End Function
@@ -478,13 +478,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Errors must be reported before and if any this point should not be reachable
             Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
 
-            Dim result As New SynthesizedStateMachineMoveNextMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
+            Dim result As New SynthesizedStateMachineMoveNextMethod(DirectCast(F.CurrentType, StateMachineTypeSymbol),
                                                                     methodToImplement,
-                                                                    Me.F.Syntax,
+                                                                    F.Syntax,
                                                                     accessibility)
 
-            Me.F.AddMethod(Me.F.CurrentType, result)
-            Me.F.CurrentMethod = result
+            F.AddMethod(F.CurrentType, result)
+            F.CurrentMethod = result
             Return result
         End Function
     End Class
