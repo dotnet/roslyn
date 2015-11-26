@@ -79,13 +79,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             _underlyingModule = underlyingModule
             RetargetingTranslator = New RetargetingSymbolTranslator(Me)
 
-            Me._createRetargetingMethod = AddressOf CreateRetargetingMethod
-            Me._createRetargetingNamespace = AddressOf CreateRetargetingNamespace
-            Me._createRetargetingNamedType = AddressOf CreateRetargetingNamedType
-            Me._createRetargetingField = AddressOf CreateRetargetingField
-            Me._createRetargetingTypeParameter = AddressOf CreateRetargetingTypeParameter
-            Me._createRetargetingProperty = AddressOf CreateRetargetingProperty
-            Me._createRetargetingEvent = AddressOf CreateRetargetingEvent
+            _createRetargetingMethod = AddressOf CreateRetargetingMethod
+            _createRetargetingNamespace = AddressOf CreateRetargetingNamespace
+            _createRetargetingNamedType = AddressOf CreateRetargetingNamedType
+            _createRetargetingField = AddressOf CreateRetargetingField
+            _createRetargetingTypeParameter = AddressOf CreateRetargetingTypeParameter
+            _createRetargetingProperty = AddressOf CreateRetargetingProperty
+            _createRetargetingEvent = AddressOf CreateRetargetingEvent
         End Sub
 
         Friend Overrides ReadOnly Property Ordinal As Integer
