@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24627.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -326,7 +326,6 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "MSBuildTask.Shared", "src\C
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\Test\Utilities\Shared\TestUtilities.projitems*{76c6f005-c89d-4348-bb4a-391898dbeb52}*SharedItemsImports = 4
 		src\Compilers\Server\ServerShared\ServerShared.projitems*{32691768-af9c-4cae-9d0f-10721091b9aa}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{edc68a0e-c68d-4a74-91b7-bf38ec909888}*SharedItemsImports = 4
 		src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.projitems*{d87f0e46-dd1b-46ea-8425-9e185d9b602e}*SharedItemsImports = 13
