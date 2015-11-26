@@ -2123,19 +2123,20 @@ class Program
             internal override void Default(TArg arg = null) { }
         }
 
-        public void GetAll()
+        public string GetAll()
         {
             new BucketwiseBase<object, object>().Default(); // Bad image format thrown here on legacy compiler 
+            return ""OK"";
         }
     }
 
     static void Main(string[] args)
     {
-        new Cache().GetAll();
+        Console.WriteLine(new Cache().GetAll());
     }
 }
 ";
-            CompileAndVerify(source);
+            CompileAndVerify(source, expectedOutput: "OK");
         }
 
         private void CheckInternalMembers(NamedTypeSymbol type, bool isFromSource)
