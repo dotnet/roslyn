@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             )
                 Debug.Assert(TypeKind = TypeKind.Class OrElse TypeKind = TypeKind.Delegate)
                 Me.Manager = manager
-                Me.TypeDescriptorKey = typeDescr.Key
+                TypeDescriptorKey = typeDescr.Key
                 _adjustedPropertyNames = New LocationAndNames(typeDescr)
 
                 Dim arity As Integer = typeDescr.Fields.Length
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return Me.Manager.ContainingModule.GlobalNamespace
+                    Return Manager.ContainingModule.GlobalNamespace
                 End Get
             End Property
 
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _nameAndIndex
                 End Get
                 Set(value As NameAndIndex)
-                    Dim oldValue = Interlocked.CompareExchange(Me._nameAndIndex, value, Nothing)
+                    Dim oldValue = Interlocked.CompareExchange(_nameAndIndex, value, Nothing)
                     Debug.Assert(oldValue Is Nothing OrElse
                                  (oldValue.Name = value.Name AndAlso oldValue.Index = value.Index))
                 End Set
@@ -298,15 +298,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Public ReadOnly Names As ImmutableArray(Of String)
 
                 Public Sub New(typeDescr As AnonymousTypeDescriptor)
-                    Me.Location = typeDescr.Location
-                    Me.Names = typeDescr.Fields.SelectAsArray(Function(d) d.Name)
+                    Location = typeDescr.Location
+                    Names = typeDescr.Fields.SelectAsArray(Function(d) d.Name)
                 End Sub
 
             End Class
 
             Public ReadOnly Property SmallestLocation As Location
                 Get
-                    Return Me._adjustedPropertyNames.Location
+                    Return _adjustedPropertyNames.Location
                 End Get
             End Property
 
@@ -324,9 +324,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Do
                     ' Loop until we managed to set location and names OR we detected that we don't need 
                     ' to set it ('location' in type descriptor is bigger that the one in m_adjustedPropertyNames)
-                    Dim currentAdjustedNames As LocationAndNames = Me._adjustedPropertyNames
+                    Dim currentAdjustedNames As LocationAndNames = _adjustedPropertyNames
                     If currentAdjustedNames IsNot Nothing AndAlso
-                            Me.Manager.Compilation.CompareSourceLocations(currentAdjustedNames.Location, newLocation) < 0 Then
+                            Manager.Compilation.CompareSourceLocations(currentAdjustedNames.Location, newLocation) < 0 Then
 
                         ' The template's adjusted property names do not need to be changed
                         Exit Sub
@@ -334,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Dim newAdjustedNames As New LocationAndNames(typeDescr)
 
-                    If Interlocked.CompareExchange(Me._adjustedPropertyNames, newAdjustedNames, currentAdjustedNames) Is currentAdjustedNames Then
+                    If Interlocked.CompareExchange(_adjustedPropertyNames, newAdjustedNames, currentAdjustedNames) Is currentAdjustedNames Then
                         ' Changed successfully, proceed to updating the fields
                         Exit Do
                     End If
@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Sub
 
             Friend Function GetAdjustedName(index As Integer) As String
-                Dim names = Me._adjustedPropertyNames
+                Dim names = _adjustedPropertyNames
                 Debug.Assert(names IsNot Nothing)
                 Debug.Assert(names.Names.Length > index)
                 Return names.Names(index)

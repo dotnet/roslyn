@@ -86,13 +86,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Name As String
                 Get
-                    Return Me._name
+                    Return _name
                 End Get
             End Property
 
             Public Overrides ReadOnly Property MetadataName As String
                 Get
-                    Return Me.AnonymousType.GetAdjustedName(Me.PropertyIndex)
+                    Return AnonymousType.GetAdjustedName(PropertyIndex)
                 End Get
             End Property
 

@@ -29,10 +29,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #If DEBUG Then
             Dim location As Location = anonymous.Locations(0)
             If location.IsInSource Then
-                If Me.AreTemplatesSealed Then
-                    Debug.Assert(Me._sourceLocationsSeen.ContainsKey(location))
+                If AreTemplatesSealed Then
+                    Debug.Assert(_sourceLocationsSeen.ContainsKey(location))
                 Else
-                    Me._sourceLocationsSeen.TryAdd(location, True)
+                    _sourceLocationsSeen.TryAdd(location, True)
                 End If
             End If
 #End If
@@ -41,38 +41,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property AnonymousTypeTemplates As ConcurrentDictionary(Of String, AnonymousTypeTemplateSymbol)
             Get
                 ' Lazily create a template types cache
-                If Me._concurrentTypesCache Is Nothing Then
+                If _concurrentTypesCache Is Nothing Then
 
-                    Dim previousSubmission As VisualBasicCompilation = Me.Compilation.PreviousSubmission
+                    Dim previousSubmission As VisualBasicCompilation = Compilation.PreviousSubmission
                     Dim previousCache = If(previousSubmission Is Nothing, Nothing,
                                        previousSubmission.AnonymousTypeManager._concurrentTypesCache)
 
-                    Interlocked.CompareExchange(Me._concurrentTypesCache,
+                    Interlocked.CompareExchange(_concurrentTypesCache,
                                             If(previousCache Is Nothing,
                                                New ConcurrentDictionary(Of String, AnonymousTypeTemplateSymbol),
                                                New ConcurrentDictionary(Of String, AnonymousTypeTemplateSymbol)(previousCache)),
                                             Nothing)
                 End If
 
-                Return Me._concurrentTypesCache
+                Return _concurrentTypesCache
             End Get
         End Property
 
         Private ReadOnly Property AnonymousDelegateTemplates As ConcurrentDictionary(Of String, AnonymousDelegateTemplateSymbol)
             Get
-                If Me._concurrentDelegatesCache Is Nothing Then
-                    Dim previousSubmission As VisualBasicCompilation = Me.Compilation.PreviousSubmission
+                If _concurrentDelegatesCache Is Nothing Then
+                    Dim previousSubmission As VisualBasicCompilation = Compilation.PreviousSubmission
                     Dim previousCache = If(previousSubmission Is Nothing, Nothing,
                                        previousSubmission.AnonymousTypeManager._concurrentDelegatesCache)
 
-                    Interlocked.CompareExchange(Me._concurrentDelegatesCache,
+                    Interlocked.CompareExchange(_concurrentDelegatesCache,
                                             If(previousCache Is Nothing,
                                                New ConcurrentDictionary(Of String, AnonymousDelegateTemplateSymbol),
                                                New ConcurrentDictionary(Of String, AnonymousDelegateTemplateSymbol)(previousCache)),
                                             Nothing)
                 End If
 
-                Return Me._concurrentDelegatesCache
+                Return _concurrentDelegatesCache
             End Get
         End Property
 
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' If the collection is not sealed yet we should assign new indexes 
             ' to the created anonymous type and delegate templates
-            If Not Me.AreTemplatesSealed Then
+            If Not AreTemplatesSealed Then
 
                 ' If we are emitting .NET module, include module's name into type's name to ensure
                 ' uniqueness across added modules.
@@ -230,10 +230,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     template.NameAndIndex = New NameAndIndex(name, index)
                 Next
 
-                Me.SealTemplates()
+                SealTemplates()
             End If
 
-            If builder.Count > 0 AndAlso Not Me.CheckAndReportMissingSymbols(builder, diagnostics) Then
+            If builder.Count > 0 AndAlso Not CheckAndReportMissingSymbols(builder, diagnostics) Then
 
                 ' Process all the templates
                 For Each template In builder
@@ -301,12 +301,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub GetAllCreatedTemplates(builder As ArrayBuilder(Of AnonymousTypeOrDelegateTemplateSymbol))
             Debug.Assert(Not builder.Any())
 
-            AddFromCache(builder, Me._concurrentTypesCache)
-            AddFromCache(builder, Me._concurrentDelegatesCache)
+            AddFromCache(builder, _concurrentTypesCache)
+            AddFromCache(builder, _concurrentDelegatesCache)
 
             If builder.Any() Then
                 ' Sort types and delegates using smallest location
-                builder.Sort(New AnonymousTypeComparer(Me.Compilation))
+                builder.Sort(New AnonymousTypeComparer(Compilation))
             End If
         End Sub
 
@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private ReadOnly _compilation As VisualBasicCompilation
 
             Friend Sub New(compilation As VisualBasicCompilation)
-                Me._compilation = compilation
+                _compilation = compilation
             End Sub
 
             Public Function Compare(x As AnonymousTypeOrDelegateTemplateSymbol, y As AnonymousTypeOrDelegateTemplateSymbol) As Integer Implements IComparer(Of AnonymousTypeOrDelegateTemplateSymbol).Compare
