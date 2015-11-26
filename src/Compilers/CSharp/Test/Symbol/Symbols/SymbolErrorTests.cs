@@ -1685,7 +1685,7 @@ struct Foo
     public virtual event System.EventHandler Bar6;
     // prevent warning for test
     void OnBar() { Bar6?.Invoke(null, null); }
-    public virtual int this[int x] { get; set; }
+    public virtual int this[int x] { get { return 1;} set {;} }
     // use long for to prevent signature clash
     public abstract int this[long x] { get; set; }
 }
@@ -1698,14 +1698,8 @@ struct Foo
                 //     public abstract int Bar4 { get;set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar4").WithArguments("abstract").WithLocation(7, 25),
                 // (12,24): error CS0106: The modifier 'virtual' is not valid for this item
-                //     public virtual int this[int x] { get; set; }
+                //     public virtual int this[int x] { get { return 1;} set {;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("virtual").WithLocation(12, 24),
-                // (12,38): error CS0501: 'Foo.this[int].get' must declare a body because it is not marked abstract, extern, or partial
-                //     public virtual int this[int x] { get; set; }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("Foo.this[int].get").WithLocation(12, 38),
-                // (12,43): error CS0501: 'Foo.this[int].set' must declare a body because it is not marked abstract, extern, or partial
-                //     public virtual int this[int x] { get; set; }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("Foo.this[int].set").WithLocation(12, 43),
                 // (14,25): error CS0106: The modifier 'abstract' is not valid for this item
                 //     public abstract int this[long x] { get; set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(14, 25),
@@ -1720,8 +1714,7 @@ struct Foo
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar5").WithArguments("abstract").WithLocation(8, 47),
                 // (9,46): error CS0106: The modifier 'virtual' is not valid for this item
                 //     public virtual event System.EventHandler Bar6;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar6").WithArguments("virtual").WithLocation(9, 46)
-                );
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Bar6").WithArguments("virtual").WithLocation(9, 46));
         }
 
         [Fact]
