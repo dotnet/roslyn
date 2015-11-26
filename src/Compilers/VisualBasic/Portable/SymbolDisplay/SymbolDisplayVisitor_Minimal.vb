@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetAliasSymbol(symbol As INamespaceOrTypeSymbol) As IAliasSymbol
-            If Not Me.IsMinimizing Then
+            If Not IsMinimizing Then
                 Return Nothing
             End If
 
