@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Sub New(moduleBeingBuilt As PEModuleBuilder, underlyingModule As ModuleSymbol)
             Debug.Assert(moduleBeingBuilt IsNot Nothing)
             Debug.Assert(underlyingModule IsNot Nothing)
-            Me._moduleBeingBuilt = moduleBeingBuilt
-            Me._underlyingModule = underlyingModule
+            _moduleBeingBuilt = moduleBeingBuilt
+            _underlyingModule = underlyingModule
         End Sub
 
         Private Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) Implements Cci.IReference.Dispatch

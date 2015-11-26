@@ -36,12 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ''' </summary>
             Public ReadOnly Property CannotSchedule As Boolean
                 Get
-                    Return Me._cannotSchedule
+                    Return _cannotSchedule
                 End Get
             End Property
 
             Public Sub ShouldNotSchedule()
-                Me._cannotSchedule = True
+                _cannotSchedule = True
             End Sub
 
             Public Sub New(stackAtDeclaration As Integer)

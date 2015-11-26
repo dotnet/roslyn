@@ -71,19 +71,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
 
-                Me._method = method
-                Me._builder = builder
-                Me._exprReturnLabel = F.GenerateLabel("exprReturn")
-                Me._exitLabel = F.GenerateLabel("exitLabel")
-                Me._owner = owner
-                Me._asyncMethodKind = GetAsyncMethodKind(Me._method)
-                Me._spillFieldAllocator = New SpillFieldAllocator(F)
+                _method = method
+                _builder = builder
+                _exprReturnLabel = F.GenerateLabel("exprReturn")
+                _exitLabel = F.GenerateLabel("exitLabel")
+                _owner = owner
+                _asyncMethodKind = GetAsyncMethodKind(_method)
+                _spillFieldAllocator = New SpillFieldAllocator(F)
 
-                If Me._asyncMethodKind = AsyncMethodKind.GenericTaskFunction Then
-                    Me._exprRetValue = Me.F.SynthesizedLocal(Me._owner._resultType, SynthesizedLocalKind.StateMachineReturnValue, F.Syntax)
+                If _asyncMethodKind = AsyncMethodKind.GenericTaskFunction Then
+                    _exprRetValue = Me.F.SynthesizedLocal(_owner._resultType, SynthesizedLocalKind.StateMachineReturnValue, F.Syntax)
                 End If
 
-                Me._nextAwaiterId = If(slotAllocatorOpt IsNot Nothing, slotAllocatorOpt.PreviousAwaiterSlotCount, 0)
+                _nextAwaiterId = If(slotAllocatorOpt IsNot Nothing, slotAllocatorOpt.PreviousAwaiterSlotCount, 0)
             End Sub
 
             Private Function GetAwaiterField(awaiterType As TypeSymbol) As FieldSymbol
@@ -93,16 +93,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Even in case of nested await expressions only one awaiter Is active.
                 ' So we don't need to tie the awaiter variable to a particular await expression and only use its type 
                 ' to find the previous awaiter field.
-                If Not Me._awaiterFields.TryGetValue(awaiterType, result) Then
+                If Not _awaiterFields.TryGetValue(awaiterType, result) Then
                     Dim slotIndex As Integer = -1
-                    If Me.SlotAllocatorOpt Is Nothing OrElse Not Me.SlotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.CompilationState.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics), slotIndex) Then
+                    If SlotAllocatorOpt Is Nothing OrElse Not SlotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.CompilationState.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics), slotIndex) Then
                         slotIndex = _nextAwaiterId
                         _nextAwaiterId = _nextAwaiterId + 1
                     End If
 
                     Dim fieldName As String = GeneratedNames.MakeStateMachineAwaiterFieldName(slotIndex)
-                    result = Me.F.StateMachineField(awaiterType, Me._method, fieldName, SynthesizedLocalKind.AwaiterField, slotIndex, accessibility:=Accessibility.Friend)
-                    Me._awaiterFields.Add(awaiterType, result)
+                    result = F.StateMachineField(awaiterType, _method, fieldName, SynthesizedLocalKind.AwaiterField, slotIndex, accessibility:=Accessibility.Friend)
+                    _awaiterFields.Add(awaiterType, result)
                 End If
                 Return result
             End Function
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Generate the body for MoveNext()
             ''' </summary>
             Friend Sub GenerateMoveNext(body As BoundStatement, moveNextMethod As MethodSymbol)
-                Me.F.CurrentMethod = moveNextMethod
+                F.CurrentMethod = moveNextMethod
 
                 Dim rewrittenBody As BoundStatement = DirectCast(Visit(body), BoundStatement)
 
@@ -141,79 +141,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' STMT:   cachedState = state
                 bodyBuilder.Add(
-                    Me.F.Assignment(
-                        Me.F.Local(Me.CachedState, True),
-                        Me.F.Field(Me.F.Me(), Me.StateField, False)))
+                    F.Assignment(
+                        F.Local(CachedState, True),
+                        F.Field(F.Me(), StateField, False)))
 
                 ' Note that the first real sequence point comes after the dispatch jump table is because 
                 ' the Begin construct should map to the logical beginning of the method.  A breakpoint 
                 ' there should only be hit once, upon first entry into the method, and subsequent calls 
                 ' to MoveNext to resume the method should not hit that breakpoint.
-                Dim exceptionLocal = Me.F.SynthesizedLocal(Me.F.WellKnownType(WellKnownType.System_Exception))
+                Dim exceptionLocal = F.SynthesizedLocal(F.WellKnownType(WellKnownType.System_Exception))
                 bodyBuilder.Add(
-                    Me.F.Try(
-                        Me.F.Block(
+                    F.Try(
+                        F.Block(
                             ImmutableArray(Of LocalSymbol).Empty,
-                            Me.F.HiddenSequencePoint(),
-                            Me.Dispatch(),
+                            F.HiddenSequencePoint(),
+                            Dispatch(),
                             rewrittenBody
                         ),
-                        Me.F.CatchBlocks(
-                            Me.F.Catch(
+                        F.CatchBlocks(
+                            F.Catch(
                                 exceptionLocal,
-                                Me.F.Block(
-                                    Me.F.HiddenSequencePoint(),
-                                    Me.F.Assignment(Me.F.Field(Me.F.Me(), Me.StateField, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)),
-                                    Me.F.ExpressionStatement(
-                                        Me._owner.GenerateMethodCall(
-                                            Me.F.Field(Me.F.Me(), Me._builder, False),
-                                            Me._owner._builderType,
+                                F.Block(
+                                    F.HiddenSequencePoint(),
+                                    F.Assignment(F.Field(F.Me(), StateField, True), F.Literal(StateMachineStates.FinishedStateMachine)),
+                                    F.ExpressionStatement(
+                                        _owner.GenerateMethodCall(
+                                            F.Field(F.Me(), _builder, False),
+                                            _owner._builderType,
                                             "SetException",
-                                            Me.F.Local(exceptionLocal, False))),
-                                    Me.F.Goto(Me._exitLabel)),
+                                            F.Local(exceptionLocal, False))),
+                                    F.Goto(_exitLabel)),
                                 isSynthesizedAsyncCatchAll:=True))))
 
                 ' STMT:   ExprReturnLabel: ' for the rewritten 'Return <expressions>' statements in the user's method body
-                bodyBuilder.Add(Me.F.Label(Me._exprReturnLabel))
+                bodyBuilder.Add(F.Label(_exprReturnLabel))
 
                 ' STMT:   state = cachedState = finishedState
-                Dim stateDone = Me.F.Assignment(
-                        Me.F.Field(Me.F.Me(), Me.StateField, True),
-                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)))
+                Dim stateDone = F.Assignment(
+                        F.Field(F.Me(), StateField, True),
+                        F.AssignmentExpression(F.Local(CachedState, True), F.Literal(StateMachineStates.FinishedStateMachine)))
                 Dim block As MethodBlockSyntax = TryCast(body.Syntax, MethodBlockSyntax)
                 If (block Is Nothing) Then
                     bodyBuilder.Add(stateDone)
                 Else
-                    bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.EndBlockStatement.Span, stateDone))
-                    bodyBuilder.Add(Me.F.HiddenSequencePoint())
+                    bodyBuilder.Add(F.SequencePointWithSpan(block, block.EndBlockStatement.Span, stateDone))
+                    bodyBuilder.Add(F.HiddenSequencePoint())
                 End If
 
                 ' STMT: builder.SetResult([RetVal])
                 bodyBuilder.Add(
-                    Me.F.ExpressionStatement(
-                        Me._owner.GenerateMethodCall(
-                            Me.F.Field(Me.F.Me(), Me._builder, False),
-                            Me._owner._builderType,
+                    F.ExpressionStatement(
+                        _owner.GenerateMethodCall(
+                            F.Field(F.Me(), _builder, False),
+                            _owner._builderType,
                             "SetResult",
-                            If(Me._asyncMethodKind = AsyncMethodKind.GenericTaskFunction,
-                               {Me.F.Local(Me._exprRetValue, False)}, SpecializedCollections.EmptyArray(Of BoundExpression)()))))
+                            If(_asyncMethodKind = AsyncMethodKind.GenericTaskFunction,
+                               {F.Local(_exprRetValue, False)}, SpecializedCollections.EmptyArray(Of BoundExpression)()))))
 
                 ' STMT:   ReturnLabel: ' for the forced exit from the method, such as return from catch block above
-                bodyBuilder.Add(Me.F.Label(Me._exitLabel))
-                bodyBuilder.Add(Me.F.Return())
+                bodyBuilder.Add(F.Label(_exitLabel))
+                bodyBuilder.Add(F.Return())
 
                 Dim newStatements As ImmutableArray(Of BoundStatement) = bodyBuilder.ToImmutableAndFree()
-                Dim newBody = Me.F.Block(
-                        If(Me._exprRetValue IsNot Nothing,
-                           ImmutableArray.Create(Me._exprRetValue, Me.CachedState),
-                           ImmutableArray.Create(Me.CachedState)),
+                Dim newBody = F.Block(
+                        If(_exprRetValue IsNot Nothing,
+                           ImmutableArray.Create(_exprRetValue, CachedState),
+                           ImmutableArray.Create(CachedState)),
                        newStatements)
 
                 If rootScopeHoistedLocals.Length > 0 Then
                     newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody)
                 End If
 
-                Me._owner.CloseMethod(newBody)
+                _owner.CloseMethod(newBody)
             End Sub
 
             Protected Overrides ReadOnly Property ResumeLabelName As String
@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Protected Overrides Function GenerateReturn(finished As Boolean) As BoundStatement
-                Return Me.F.Goto(Me._exitLabel)
+                Return F.Goto(_exitLabel)
             End Function
 
             Protected Overrides ReadOnly Property IsInExpressionLambda As Boolean

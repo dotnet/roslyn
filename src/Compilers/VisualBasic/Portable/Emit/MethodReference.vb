@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Sub New(underlyingMethod As MethodSymbol)
             Debug.Assert(underlyingMethod IsNot Nothing)
-            Me.m_UnderlyingMethod = underlyingMethod
+            m_UnderlyingMethod = underlyingMethod
         End Sub
 
         Protected Overrides ReadOnly Property UnderlyingSymbol As Symbol

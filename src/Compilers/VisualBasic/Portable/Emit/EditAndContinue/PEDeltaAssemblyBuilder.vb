@@ -103,16 +103,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim metadataCompilation = compilation.RemoveAllSyntaxTrees()
 
             Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All)
-            Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
+            Dim metadataDecoder As New MetadataDecoder(metadataAssembly.PrimaryModule)
             Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
-            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder)
+            Dim metadataSymbols As New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
         End Function
 
         ' friend for testing
         Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
-            Dim result = New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+            Dim result As New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
                 If Not def.Namespace.IsNil Then

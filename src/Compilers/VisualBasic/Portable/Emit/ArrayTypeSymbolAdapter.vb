@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function IArrayTypeReferenceGetElementType(context As EmitContext) As Cci.ITypeReference Implements Cci.IArrayTypeReference.GetElementType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim customModifiers As ImmutableArray(Of CustomModifier) = Me.CustomModifiers
-            Dim type = moduleBeingBuilt.Translate(Me.ElementType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim type = moduleBeingBuilt.Translate(ElementType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
             If customModifiers.Length = 0 Then
                 Return type
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IArrayTypeReferenceIsSZArray As Boolean Implements Cci.IArrayTypeReference.IsSZArray
             Get
-                Return Me.IsSZArray
+                Return IsSZArray
             End Get
         End Property
 
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim lowerBounds = Me.LowerBounds
 
                 If lowerBounds.IsDefault Then
-                    Return Linq.Enumerable.Repeat(0, Me.Rank)
+                    Return Enumerable.Repeat(0, Rank)
                 End If
 
                 Return lowerBounds
@@ -41,13 +41,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IArrayTypeReferenceRank As UInteger Implements Cci.IArrayTypeReference.Rank
             Get
-                Return CType(Me.Rank, UInteger)
+                Return CType(Rank, UInteger)
             End Get
         End Property
 
         Private ReadOnly Property IArrayTypeReferenceSizes As IEnumerable(Of ULong) Implements Cci.IArrayTypeReference.Sizes
             Get
-                If Me.Sizes.IsEmpty Then
+                If Sizes.IsEmpty Then
                     Return SpecializedCollections.EmptyEnumerable(Of ULong)()
                 End If
 
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Iterator Function GetSizes() As IEnumerable(Of ULong)
-            For Each size In Me.Sizes
+            For Each size In Sizes
                 Yield CType(size, ULong)
             Next
         End Function

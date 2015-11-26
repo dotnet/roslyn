@@ -8,13 +8,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property INamedEntity_Name As String Implements INamedEntity.Name
             Get
-                Return Me.MetadataName
+                Return MetadataName
             End Get
         End Property
 
         Private ReadOnly Property INamespaceSymbol_ContainingNamespace As Cci.INamespace Implements Cci.INamespace.ContainingNamespace
             Get
-                Return Me.ContainingNamespace
+                Return ContainingNamespace
             End Get
         End Property
     End Class

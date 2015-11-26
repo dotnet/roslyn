@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
 
-                If Me.ContainingSymbol.Kind = SymbolKind.Method Then
+                If ContainingSymbol.Kind = SymbolKind.Method Then
                     Return Me
                 End If
                 Return Nothing
@@ -54,9 +54,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeReferenceAsGenericMethodParameterReference As IGenericMethodParameterReference Implements ITypeReference.AsGenericMethodParameterReference
             Get
-                Debug.Assert(Me.IsDefinition)
+                Debug.Assert(IsDefinition)
 
-                If Me.ContainingSymbol.Kind = SymbolKind.Method Then
+                If ContainingSymbol.Kind = SymbolKind.Method Then
                     Return Me
                 End If
 
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
 
-                If Me.ContainingSymbol.Kind = SymbolKind.NamedType Then
+                If ContainingSymbol.Kind = SymbolKind.NamedType Then
                     Return Me
                 End If
 
@@ -84,9 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeReferenceAsGenericTypeParameterReference As IGenericTypeParameterReference Implements ITypeReference.AsGenericTypeParameterReference
             Get
-                Debug.Assert(Me.IsDefinition)
+                Debug.Assert(IsDefinition)
 
-                If Me.ContainingSymbol.Kind = SymbolKind.NamedType Then
+                If ContainingSymbol.Kind = SymbolKind.NamedType Then
                     Return Me
                 End If
 
@@ -125,10 +125,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As MetadataVisitor) ' Implements IReference.Dispatch
-            Debug.Assert(Me.IsDefinition)
-            Dim kind As SymbolKind = Me.ContainingSymbol.Kind
+            Debug.Assert(IsDefinition)
+            Dim kind As SymbolKind = ContainingSymbol.Kind
 
-            If (DirectCast(visitor.Context.Module, PEModuleBuilder)).SourceModule = Me.ContainingModule Then
+            If (DirectCast(visitor.Context.Module, PEModuleBuilder)).SourceModule = ContainingModule Then
                 If kind = SymbolKind.NamedType Then
                     visitor.Visit(DirectCast(Me, IGenericTypeParameter))
                 Else
@@ -152,46 +152,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Friend NotOverridable Overrides Function IReferenceAsDefinition(context As EmitContext) As IDefinition ' Implements IReference.AsDefinition
-            Debug.Assert(Me.IsDefinition)
+            Debug.Assert(IsDefinition)
             Return Nothing
         End Function
 
         Private ReadOnly Property INamedEntityName As String Implements INamedEntity.Name
             Get
-                Return Me.MetadataName
+                Return MetadataName
             End Get
         End Property
 
         Private ReadOnly Property IParameterListEntryIndex As UShort Implements IParameterListEntry.Index
             Get
-                Return CType(Me.Ordinal, UShort)
+                Return CType(Ordinal, UShort)
             End Get
         End Property
 
         Private ReadOnly Property IGenericMethodParameterReferenceDefiningMethod As IMethodReference Implements IGenericMethodParameterReference.DefiningMethod
             Get
-                Debug.Assert(Me.IsDefinition)
-                Return DirectCast(Me.ContainingSymbol, MethodSymbol)
+                Debug.Assert(IsDefinition)
+                Return DirectCast(ContainingSymbol, MethodSymbol)
             End Get
         End Property
 
         Private ReadOnly Property IGenericTypeParameterReferenceDefiningType As ITypeReference Implements IGenericTypeParameterReference.DefiningType
             Get
-                Debug.Assert(Me.IsDefinition)
-                Return DirectCast(Me.ContainingSymbol, NamedTypeSymbol)
+                Debug.Assert(IsDefinition)
+                Return DirectCast(ContainingSymbol, NamedTypeSymbol)
             End Get
         End Property
 
         Private Iterator Function IGenericParameterGetConstraints(context As EmitContext) As IEnumerable(Of ITypeReference) Implements IGenericParameter.GetConstraints
             Dim _module = DirectCast(context.Module, PEModuleBuilder)
             Dim seenValueType = False
-            For Each t In Me.ConstraintTypesNoUseSiteDiagnostics
+            For Each t In ConstraintTypesNoUseSiteDiagnostics
                 If t.SpecialType = SpecialType.System_ValueType Then
                     seenValueType = True
                 End If
                 Yield _module.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             Next
-            If Me.HasValueTypeConstraint AndAlso Not seenValueType Then
+            If HasValueTypeConstraint AndAlso Not seenValueType Then
                 ' Add System.ValueType constraint to comply with Dev11 C# output
                 Yield _module.GetSpecialType(CodeAnalysis.SpecialType.System_ValueType,
                                              DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
@@ -200,13 +200,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IGenericParameterMustBeReferenceType As Boolean Implements IGenericParameter.MustBeReferenceType
             Get
-                Return Me.HasReferenceTypeConstraint
+                Return HasReferenceTypeConstraint
             End Get
         End Property
 
         Private ReadOnly Property IGenericParameterMustBeValueType As Boolean Implements IGenericParameter.MustBeValueType
             Get
-                Return Me.HasValueTypeConstraint
+                Return HasValueTypeConstraint
             End Get
         End Property
 
@@ -214,13 +214,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 '  add constructor constraint for value type constrained 
                 '  type parameters to comply with Dev11 output
-                Return Me.HasConstructorConstraint OrElse Me.HasValueTypeConstraint
+                Return HasConstructorConstraint OrElse HasValueTypeConstraint
             End Get
         End Property
 
         Private ReadOnly Property IGenericParameterVariance As TypeParameterVariance Implements IGenericParameter.Variance
             Get
-                Select Case Me.Variance
+                Select Case Variance
                     Case VarianceKind.None
                         Return TypeParameterVariance.NonVariant
                     Case VarianceKind.In
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case VarianceKind.Out
                         Return TypeParameterVariance.Covariant
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(Me.Variance)
+                        Throw ExceptionUtilities.UnexpectedValue(Variance)
                 End Select
             End Get
         End Property
@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
 
-                Return DirectCast(Me.ContainingSymbol, MethodSymbol)
+                Return DirectCast(ContainingSymbol, MethodSymbol)
             End Get
         End Property
 
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
 
-                Return DirectCast(Me.ContainingSymbol, NamedTypeSymbol)
+                Return DirectCast(ContainingSymbol, NamedTypeSymbol)
             End Get
         End Property
 

@@ -267,9 +267,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Debug.Assert(sideEffect.Kind = BoundKind.SpillSequence)
                                     Dim spill = DirectCast(sideEffect, BoundSpillSequence)
                                     builder.AssumeFieldsIfNeeded(spill)
-                                    builder.AddStatement(Me.RewriteSpillSequenceIntoBlock(spill, True))
+                                    builder.AddStatement(RewriteSpillSequenceIntoBlock(spill, True))
                                 Else
-                                    builder.AddStatement(Me.F.ExpressionStatement(sideEffect))
+                                    builder.AddStatement(F.ExpressionStatement(sideEffect))
                                 End If
                             Next
                         End If
@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         array = array.Update(spilledExpression, spilledIndices.AsImmutableOrNull, array.IsLValue, array.Type)
 
                         ' Make sure side effects are checked
-                        builder.AddStatement(Me.F.ExpressionStatement(array))
+                        builder.AddStatement(F.ExpressionStatement(array))
 
                         Return array
 
@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          fieldAccess.Type)
 
                         ' Make sure side effects are checked
-                        builder.AddStatement(Me.F.ExpressionStatement(fieldAccess))
+                        builder.AddStatement(F.ExpressionStatement(fieldAccess))
 
                         Return fieldAccess
 
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return expr
 
                     Case BoundKind.Parameter
-                        Debug.Assert(Me.Proxies.ContainsKey(DirectCast(expr, BoundParameter).ParameterSymbol))
+                        Debug.Assert(Proxies.ContainsKey(DirectCast(expr, BoundParameter).ParameterSymbol))
                         Return expr
 
                     Case Else
@@ -368,16 +368,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case Else
                         ' Create a field for a spill
-                        Dim spillField As FieldSymbol = Me._spillFieldAllocator.AllocateField(expr.Type)
-                        Dim initialization As BoundStatement = Me.F.Assignment(Me.F.Field(Me.F.Me(), spillField, True), expr)
+                        Dim spillField As FieldSymbol = _spillFieldAllocator.AllocateField(expr.Type)
+                        Dim initialization As BoundStatement = F.Assignment(F.Field(F.Me(), spillField, True), expr)
 
                         If expr.Kind = BoundKind.SpillSequence Then
-                            initialization = Me.RewriteSpillSequenceIntoBlock(DirectCast(expr, BoundSpillSequence), True, initialization)
+                            initialization = RewriteSpillSequenceIntoBlock(DirectCast(expr, BoundSpillSequence), True, initialization)
                         End If
 
                         builder.AddFieldWithInitialization(spillField, initialization)
 
-                        Return Me.F.Field(Me.F.Me(), spillField, False)
+                        Return F.Field(F.Me(), spillField, False)
                 End Select
 
                 Throw ExceptionUtilities.UnexpectedValue(expr.Kind)
@@ -396,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 newStatements.AddRange(spill.Statements)
 
                 If addValueAsExpression AndAlso spill.ValueOpt IsNot Nothing Then
-                    newStatements.Add(Me.F.ExpressionStatement(spill.ValueOpt))
+                    newStatements.Add(F.ExpressionStatement(spill.ValueOpt))
                 End If
 
                 newStatements.AddRange(additional)
@@ -410,25 +410,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         newStatements.Add(F.Assignment(F.Field(F.Me(), field, True), F.Null(field.Type)))
                     End If
 
-                    Me._spillFieldAllocator.FreeField(field)
+                    _spillFieldAllocator.FreeField(field)
                 Next
 
-                Return Me.F.Block(spill.Locals, newStatements.ToImmutableAndFree())
+                Return F.Block(spill.Locals, newStatements.ToImmutableAndFree())
             End Function
 
             Private Function TypeNeedsClearing(type As TypeSymbol) As Boolean
                 Dim result As Boolean = False
-                If Me._typesNeedingClearingCache.TryGetValue(type, result) Then
+                If _typesNeedingClearingCache.TryGetValue(type, result) Then
                     Return result
                 End If
 
                 If type.IsArrayType OrElse type.IsTypeParameter Then
-                    Me._typesNeedingClearingCache.Add(type, True)
+                    _typesNeedingClearingCache.Add(type, True)
                     Return True
                 End If
 
                 If type.IsErrorType OrElse type.IsEnumType Then
-                    Me._typesNeedingClearingCache.Add(type, False)
+                    _typesNeedingClearingCache.Add(type, False)
                     Return False
                 End If
 
@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(namedType IsNot Nothing, "Structure which is not a NamedTypeSymbol??")
 
                         ' Prevent cycles
-                        Me._typesNeedingClearingCache.Add(type, True)
+                        _typesNeedingClearingCache.Add(type, True)
                         result = False
 
                         ' For structures, go through the fields
@@ -498,12 +498,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End Select
                             End If
                         Next
-                        Me._typesNeedingClearingCache.Remove(type)
+                        _typesNeedingClearingCache.Remove(type)
 
                         ' Note: structures with cycles will *NOT* be cleared
                 End Select
 
-                Me._typesNeedingClearingCache.Add(type, result)
+                _typesNeedingClearingCache.Add(type, result)
                 Return result
             End Function
 

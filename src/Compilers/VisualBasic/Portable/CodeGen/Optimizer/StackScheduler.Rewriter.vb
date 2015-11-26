@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Private ReadOnly _info As Dictionary(Of LocalSymbol, LocalDefUseInfo) = Nothing
 
             Private Sub New(info As Dictionary(Of LocalSymbol, LocalDefUseInfo))
-                Me._info = info
+                _info = info
             End Sub
 
             Public Shared Function Rewrite(src As BoundStatement, info As Dictionary(Of LocalSymbol, LocalDefUseInfo)) As BoundStatement
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     result = MyBase.Visit(node)
                 End If
 
-                Me._nodeCounter += 1
+                _nodeCounter += 1
 
                 Return result
             End Function
@@ -79,20 +79,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Loop
 
 
-                Dim left = DirectCast(Me.Visit(child), BoundExpression)
+                Dim left = DirectCast(Visit(child), BoundExpression)
 
                 Do
                     binary = stack.Pop()
 
-                    Dim right = DirectCast(Me.Visit(binary.Right), BoundExpression)
-                    Dim type As TypeSymbol = Me.VisitType(binary.Type)
+                    Dim right = DirectCast(Visit(binary.Right), BoundExpression)
+                    Dim type As TypeSymbol = VisitType(binary.Type)
                     left = binary.Update(binary.OperatorKind, left, right, binary.Checked, binary.ConstantValueOpt, type)
 
                     If stack.Count = 0 Then
                         Exit Do
                     End If
 
-                    Me._nodeCounter += 1
+                    _nodeCounter += 1
                 Loop
 
                 Debug.Assert(binary Is node)
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Public Overrides Function VisitReferenceAssignment(node As BoundReferenceAssignment) As BoundNode
                 Dim locInfo As LocalDefUseInfo = Nothing
-                Dim left = DirectCast(node.ByRefLocal, BoundLocal)
+                Dim left = node.ByRefLocal
 
                 ' store to something that is not special. (operands still could be rewritten) 
                 If Not _info.TryGetValue(left.LocalSymbol, locInfo) Then
@@ -142,10 +142,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 End If
 
                 ' we do not need to visit lhs, just update the counter to be in sync
-                Me._nodeCounter += 1
+                _nodeCounter += 1
 
                 ' Visit the expression being assigned 
-                Dim right = DirectCast(Me.Visit(node.LValue), BoundExpression)
+                Dim right = DirectCast(Visit(node.LValue), BoundExpression)
 
                 ' this should not be the last store, why would be created such a variable after all???
                 Debug.Assert(locInfo.localDefs.Any(Function(d) _nodeCounter = d.Start AndAlso _nodeCounter <= d.End))
@@ -162,8 +162,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' default visitor for AssignmentOperator that ignores LeftOnTheRightOpt
             Private Function VisitAssignmentOperatorDefault(node As BoundAssignmentOperator) As BoundNode
-                Dim left As BoundExpression = DirectCast(Me.Visit(node.Left), BoundExpression)
-                Dim right As BoundExpression = DirectCast(Me.Visit(node.Right), BoundExpression)
+                Dim left As BoundExpression = DirectCast(Visit(node.Left), BoundExpression)
+                Dim right As BoundExpression = DirectCast(Visit(node.Right), BoundExpression)
 
                 Debug.Assert(node.LeftOnTheRightOpt Is Nothing)
 
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' otherwise record a store.
 
                 ' fake visiting of left
-                Me._nodeCounter += 1
+                _nodeCounter += 1
 
                 ' Left on the right should be Nothing by this time
                 Debug.Assert(node.LeftOnTheRightOpt Is Nothing)
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' Me.nodeCounter += 1
 
                 ' visit right
-                Dim right = DirectCast(Me.Visit(node.Right), BoundExpression)
+                Dim right = DirectCast(Visit(node.Right), BoundExpression)
 
                 ' do actual assignment
                 Debug.Assert(locInfo.localDefs.Any(Function(d) _nodeCounter = d.Start AndAlso _nodeCounter <= d.End))
@@ -221,12 +221,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
-                Dim receiverOrCondition As BoundExpression = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
-                Dim whenNotNull As BoundExpression = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
+                Dim receiverOrCondition As BoundExpression = DirectCast(Visit(node.ReceiverOrCondition), BoundExpression)
+                Dim whenNotNull As BoundExpression = DirectCast(Visit(node.WhenNotNull), BoundExpression)
                 Dim whenNullOpt As BoundExpression = node.WhenNullOpt
 
                 If whenNullOpt IsNot Nothing Then
-                    whenNullOpt = DirectCast(Me.Visit(whenNullOpt), BoundExpression)
+                    whenNullOpt = DirectCast(Visit(whenNullOpt), BoundExpression)
                 End If
 
                 Return node.Update(receiverOrCondition, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNullOpt, node.Type)

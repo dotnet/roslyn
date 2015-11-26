@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' Let's guard against such case.
                 Dim slotCount = Math.Min(localSlots.Length, slotMetadata.Length)
 
-                Dim map = New Dictionary(Of EncLocalInfo, Integer)()
+                Dim map As New Dictionary(Of EncLocalInfo, Integer)()
 
                 For slotIndex = 0 To slotCount - 1
 
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         ' We do Not emit custom modifiers on locals so ignore the
                         ' previous version of the local if it had custom modifiers.
                         If metadata.CustomModifiers.IsDefaultOrEmpty Then
-                            Dim local = New EncLocalInfo(slot, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, metadata.SignatureOpt)
+                            Dim local As New EncLocalInfo(slot, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, metadata.SignatureOpt)
                             map.Add(local, slotIndex)
                         End If
                     End If

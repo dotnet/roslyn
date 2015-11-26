@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Sub New(underlyingNamedType As NamedTypeSymbol)
             Debug.Assert(underlyingNamedType IsNot Nothing)
-            Me.m_UnderlyingNamedType = underlyingNamedType
+            m_UnderlyingNamedType = underlyingNamedType
         End Sub
 
         Private ReadOnly Property INamedTypeReferenceGenericParameterCount As UShort Implements Cci.INamedTypeReference.GenericParameterCount

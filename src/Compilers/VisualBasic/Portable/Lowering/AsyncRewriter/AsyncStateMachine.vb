@@ -20,20 +20,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        asyncMethod.ContainingAssembly.GetSpecialType(If(typeKind = TypeKind.Struct, SpecialType.System_ValueType, SpecialType.System_Object)),
                        ImmutableArray.Create(asyncMethod.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine)))
 
-            Me._constructor = New SynthesizedSimpleConstructorSymbol(Me)
-            Me._constructor.SetParameters(ImmutableArray(Of ParameterSymbol).Empty)
-            Me._typeKind = typeKind
+            _constructor = New SynthesizedSimpleConstructorSymbol(Me)
+            _constructor.SetParameters(ImmutableArray(Of ParameterSymbol).Empty)
+            _typeKind = typeKind
         End Sub
 
         Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
-                Return Me._typeKind
+                Return _typeKind
             End Get
         End Property
 
         Protected Friend Overrides ReadOnly Property Constructor As MethodSymbol
             Get
-                Return Me._constructor
+                Return _constructor
             End Get
         End Property
     End Class

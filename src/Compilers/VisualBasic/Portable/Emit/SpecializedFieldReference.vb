@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Sub New(underlyingField As FieldSymbol)
             Debug.Assert(underlyingField IsNot Nothing)
-            Me._underlyingField = underlyingField
+            _underlyingField = underlyingField
         End Sub
 
         Protected Overrides ReadOnly Property UnderlyingSymbol As Symbol
