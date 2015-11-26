@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property HasEmbeddedAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._hasEmbeddedAttribute
+                Return _hasEmbeddedAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._hasEmbeddedAttribute = value
+                _hasEmbeddedAttribute = value
                 SetDataStored()
             End Set
         End Property
@@ -27,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property HasAttributeForExtensibleInterface As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._hasAttributeForExtensibleInterface
+                Return _hasAttributeForExtensibleInterface
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._hasAttributeForExtensibleInterface = value
+                _hasAttributeForExtensibleInterface = value
                 SetDataStored()
             End Set
         End Property

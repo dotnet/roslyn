@@ -15,11 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property IsExtensionMethod As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._isExtensionMethod
+                Return _isExtensionMethod
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._isExtensionMethod = value
+                _isExtensionMethod = value
                 SetDataStored()
             End Set
         End Property

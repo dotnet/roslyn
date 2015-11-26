@@ -15,11 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property HasNonSerializedAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._hasNonSerializedAttribute
+                Return _hasNonSerializedAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._hasNonSerializedAttribute = value
+                _hasNonSerializedAttribute = value
                 SetDataStored()
             End Set
         End Property
