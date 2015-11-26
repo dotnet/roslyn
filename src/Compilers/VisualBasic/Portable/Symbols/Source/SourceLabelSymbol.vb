@@ -68,12 +68,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
             Dim symbol = TryCast(obj, SourceLabelSymbol)
-            Return symbol IsNot Nothing AndAlso symbol._labelName.Equals(Me._labelName) AndAlso
-                Equals(symbol._containingMethod, Me._containingMethod)
+            Return symbol IsNot Nothing AndAlso symbol._labelName.Equals(_labelName) AndAlso
+                Equals(symbol._containingMethod, _containingMethod)
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Me._labelName.GetHashCode()
+            Return _labelName.GetHashCode()
         End Function
     End Class
 End Namespace

@@ -41,25 +41,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim strVal As String = If(args(0).Kind <> TypedConstantKind.Array, TryCast(args(0).Value, String), Nothing)
 
                     If Not String.IsNullOrEmpty(strVal) Then
-                        Me.ClassId = strVal
+                        ClassId = strVal
                     End If
 
                     If args.Length > 1 Then
                         strVal = If(args(1).Kind <> TypedConstantKind.Array, TryCast(args(1).Value, String), Nothing)
                         If Not String.IsNullOrEmpty(strVal) Then
-                            Me.InterfaceId = strVal
+                            InterfaceId = strVal
                         End If
 
                         If args.Length > 2 Then
                             strVal = If(args(2).Kind <> TypedConstantKind.Array, TryCast(args(2).Value, String), Nothing)
                             If Not String.IsNullOrEmpty(strVal) Then
-                                Me.EventId = strVal
+                                EventId = strVal
                             End If
                         End If
                     End If
                 End If
 
-                Me.InterfaceShadows = attrData.DecodeNamedArgument("InterfaceShadows", Microsoft.CodeAnalysis.SpecialType.System_Boolean, False)
+                InterfaceShadows = attrData.DecodeNamedArgument("InterfaceShadows", Microsoft.CodeAnalysis.SpecialType.System_Boolean, False)
             End Sub
 
             Public Function GetSynthesizedInterfaces() As ImmutableArray(Of NamedTypeSymbol)
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 comClass.Name)
                     Next
 
-                    If Not Me.InterfaceShadows Then
+                    If Not InterfaceShadows Then
                         Dim container As NamedTypeSymbol = comClass.BaseTypeNoUseSiteDiagnostics
                         While container IsNot Nothing
                             For Each member As Symbol In container.GetMembers(interfaceName)
@@ -941,7 +941,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Public Overrides ReadOnly Property TypeKind As TYPEKIND
+                Public Overrides ReadOnly Property TypeKind As TypeKind
                     Get
                         Return TypeKind.Interface
                     End Get
@@ -969,7 +969,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ImmutableArray(Of VisualBasicAttributeData).Empty
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     Dim compilation As VisualBasicCompilation = _comClass.DeclaringCompilation
@@ -1302,7 +1302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return attributes.ToImmutableAndFree()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If _synthesizedDispId = ReservedDispId.None Then
@@ -1584,7 +1584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _clonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If IsComEventParameter Then
@@ -1594,7 +1594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim toClone As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
                     _clonedFrom.AddSynthesizedAttributes(compilationState, toClone)
 
-                    Dim compilation = Me.DeclaringCompilation
+                    Dim compilation = DeclaringCompilation
                     Dim paramArrayAttribute As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_ParamArrayAttribute)
                     Dim dateTimeConstantAttribute As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute)
                     Dim decimalConstantAttribute As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute)

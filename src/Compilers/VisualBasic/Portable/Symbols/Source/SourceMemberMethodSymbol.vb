@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected Overrides ReadOnly Property BoundAttributesSource As SourceMethodSymbol
             Get
-                Return Me.SourcePartialDefinition
+                Return SourcePartialDefinition
             End Get
         End Property
 
@@ -127,8 +127,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim old = Interlocked.CompareExchange(_lazyMetadataName, metadataName, Nothing)
             Debug.Assert(old Is Nothing OrElse old = metadataName) ';If there was a race, make sure it was consistent
 
-            If Me.IsPartial Then
-                Dim partialImpl = Me.OtherPartOfPartial
+            If IsPartial Then
+                Dim partialImpl = OtherPartOfPartial
                 If partialImpl IsNot Nothing Then
                     partialImpl.SetMetadataName(metadataName)
                 End If
@@ -142,8 +142,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Protected Overrides Function GetAttributeDeclarations() As OneOrMany(Of SyntaxList(Of AttributeListSyntax))
-            If Me.SourcePartialImplementation IsNot Nothing Then
-                Return OneOrMany.Create(ImmutableArray.Create(AttributeDeclarationSyntaxList, Me.SourcePartialImplementation.AttributeDeclarationSyntaxList))
+            If SourcePartialImplementation IsNot Nothing Then
+                Return OneOrMany.Create(ImmutableArray.Create(AttributeDeclarationSyntaxList, SourcePartialImplementation.AttributeDeclarationSyntaxList))
             Else
                 Return OneOrMany.Create(AttributeDeclarationSyntaxList)
             End If
@@ -152,8 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function GetQuickAttributes() As QuickAttributes
             Dim quickAttrs = _quickAttributes
 
-            If Me.IsPartial Then
-                Dim partialImpl = Me.OtherPartOfPartial
+            If IsPartial Then
+                Dim partialImpl = OtherPartOfPartial
                 If partialImpl IsNot Nothing Then
                     Return quickAttrs Or partialImpl._quickAttributes
                 End If
@@ -181,14 +181,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-            If Me.IsAsync OrElse Me.IsIterator Then
-                AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
+            If IsAsync OrElse IsIterator Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
 
-                If Me.IsAsync Then
+                If IsAsync Then
                     ' Async kick-off method calls MoveNext, which contains user code. 
                     ' This means we need to emit DebuggerStepThroughAttribute in order
                     ' to have correct stepping behavior during debugging.
-                    AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeOptionalDebuggerStepThroughAttribute())
+                    AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeOptionalDebuggerStepThroughAttribute())
                 End If
             End If
         End Sub
@@ -213,12 +213,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
 
             ' Ensure explicit implementations are resolved.
-            If Not Me.ExplicitInterfaceImplementations.IsEmpty Then
+            If Not ExplicitInterfaceImplementations.IsEmpty Then
                 ' Check any constraints against implemented methods.
                 ValidateImplementedMethodConstraints(diagnostics)
             End If
 
-            Dim methodImpl As SourceMemberMethodSymbol = If(Me.IsPartial, SourcePartialImplementation, Me)
+            Dim methodImpl As SourceMemberMethodSymbol = If(IsPartial, SourcePartialImplementation, Me)
 
             If methodImpl IsNot Nothing AndAlso
                (methodImpl.IsAsync OrElse methodImpl.IsIterator) AndAlso
@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If params.IsDefault Then
 
                     Dim diagBag = DiagnosticBag.GetInstance
-                    Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                    Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
                     params = GetTypeParameters(sourceModule, diagBag)
 
                     sourceModule.AtomicStoreArrayAndDiagnostics(_lazyTypeParameters,
@@ -308,12 +308,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function GetTypeParameters(sourceModule As SourceModuleSymbol,
                                      diagBag As DiagnosticBag) As ImmutableArray(Of TypeParameterSymbol)
 
-            Dim paramList = GetTypeParameterListSyntax(Me.DeclarationSyntax)
+            Dim paramList = GetTypeParameterListSyntax(DeclarationSyntax)
             If paramList Is Nothing Then
                 Return ImmutableArray(Of TypeParameterSymbol).Empty
             End If
 
-            Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, m_containingType)
+            Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, SyntaxTree, m_containingType)
             Dim typeParamsSyntax = paramList.Parameters
             Dim arity As Integer = typeParamsSyntax.Count
             Dim typeParameters(0 To arity - 1) As TypeParameterSymbol
@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                           binder.GetSyntaxReference(typeParamSyntax))
 
                 ' method type parameters cannot have same name as containing Function (but can for a Sub)
-                If Me.DeclarationSyntax.Kind = SyntaxKind.FunctionStatement AndAlso CaseInsensitiveComparison.Equals(Me.Name, ident.ValueText) Then
+                If DeclarationSyntax.Kind = SyntaxKind.FunctionStatement AndAlso CaseInsensitiveComparison.Equals(Name, ident.ValueText) Then
                     Binder.ReportDiagnostic(diagBag, typeParamSyntax, ERRID.ERR_TypeParamNameFunctionNameCollision)
                 End If
             Next
@@ -347,24 +347,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #Region "Explicit Interface Implementations"
 
         Friend Function HasExplicitInterfaceImplementations() As Boolean
-            Dim syntax = TryCast(Me.DeclarationSyntax, MethodStatementSyntax)
+            Dim syntax = TryCast(DeclarationSyntax, MethodStatementSyntax)
             Return syntax IsNot Nothing AndAlso syntax.ImplementsClause IsNot Nothing
         End Function
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
                 If _lazyImplementedMethods.IsDefault Then
-                    Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                    Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
                     Dim diagnostics = DiagnosticBag.GetInstance()
                     Dim implementedMethods As ImmutableArray(Of MethodSymbol)
 
-                    If Me.IsPartial Then
+                    If IsPartial Then
                         ' Partial method declaration itself cannot have Implements clause (an error should 
                         ' be reported) and just returns implemented methods from the implementation
 
                         ' Report diagnostic if needed
-                        Debug.Assert(Me.SyntaxTree IsNot Nothing)
-                        Dim syntax = TryCast(Me.DeclarationSyntax, MethodStatementSyntax)
+                        Debug.Assert(SyntaxTree IsNot Nothing)
+                        Dim syntax = TryCast(DeclarationSyntax, MethodStatementSyntax)
                         If (syntax IsNot Nothing) AndAlso (syntax.ImplementsClause IsNot Nothing) Then
 
                             ' Don't allow implements on partial method declarations.
@@ -373,12 +373,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         ' Store implemented interface methods from the partial method implementation.
-                        Dim implementation As MethodSymbol = Me.PartialImplementationPart
+                        Dim implementation As MethodSymbol = PartialImplementationPart
                         implementedMethods = If(implementation Is Nothing,
                                                                        ImmutableArray(Of MethodSymbol).Empty,
                                                                        implementation.ExplicitInterfaceImplementations)
                     Else
-                        implementedMethods = Me.GetExplicitInterfaceImplementations(sourceModule, diagnostics)
+                        implementedMethods = GetExplicitInterfaceImplementations(sourceModule, diagnostics)
                     End If
 
                     sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedMethods, implementedMethods, diagnostics, CompilationStage.Declare)
@@ -389,14 +389,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function GetExplicitInterfaceImplementations(sourceModule As SourceModuleSymbol, diagBag As DiagnosticBag) As ImmutableArray(Of MethodSymbol)
-            Debug.Assert(Not Me.IsPartial)
-            Dim syntax = TryCast(Me.DeclarationSyntax, MethodStatementSyntax)
+            Debug.Assert(Not IsPartial)
+            Dim syntax = TryCast(DeclarationSyntax, MethodStatementSyntax)
 
             If (syntax IsNot Nothing) AndAlso
                 (syntax.ImplementsClause IsNot Nothing) Then
 
-                Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, ContainingType)
-                If Me.IsShared And Not ContainingType.IsModuleType Then
+                Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, SyntaxTree, ContainingType)
+                If IsShared And Not ContainingType.IsModuleType Then
                     ' Implementing with shared methods is illegal.
                     ' Module case is caught inside ProcessImplementsClause and has different message.
                     Binder.ReportDiagnostic(diagBag,
@@ -417,8 +417,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Validate method type parameter constraints against implemented methods.
         ''' </summary>
         Friend Sub ValidateImplementedMethodConstraints(diagnostics As DiagnosticBag)
-            If Me.IsPartial AndAlso Me.OtherPartOfPartial IsNot Nothing Then
-                Me.OtherPartOfPartial.ValidateImplementedMethodConstraints(diagnostics)
+            If IsPartial AndAlso OtherPartOfPartial IsNot Nothing Then
+                OtherPartOfPartial.ValidateImplementedMethodConstraints(diagnostics)
             Else
                 Dim implementedMethods = ExplicitInterfaceImplementations
                 If implementedMethods.IsEmpty Then
@@ -445,25 +445,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property IsPartialDefinition As Boolean
             Get
-                Return Me.IsPartial
+                Return IsPartial
             End Get
         End Property
 
         Friend ReadOnly Property IsPartialImplementation As Boolean
             Get
-                Return Not IsPartialDefinition AndAlso Me.OtherPartOfPartial IsNot Nothing
+                Return Not IsPartialDefinition AndAlso OtherPartOfPartial IsNot Nothing
             End Get
         End Property
 
         Public ReadOnly Property SourcePartialDefinition As SourceMemberMethodSymbol
             Get
-                Return If(IsPartialDefinition, Nothing, Me.OtherPartOfPartial)
+                Return If(IsPartialDefinition, Nothing, OtherPartOfPartial)
             End Get
         End Property
 
         Public ReadOnly Property SourcePartialImplementation As SourceMemberMethodSymbol
             Get
-                Return If(IsPartialDefinition, Me.OtherPartOfPartial, Nothing)
+                Return If(IsPartialDefinition, OtherPartOfPartial, Nothing)
             End Get
         End Property
 
@@ -482,21 +482,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property OtherPartOfPartial As SourceMemberMethodSymbol
             Get
 #If DEBUG Then
-                Me._partialMethodInfoIsFrozen = True
+                _partialMethodInfoIsFrozen = True
 #End If
-                Return Me._otherPartOfPartial
+                Return _otherPartOfPartial
             End Get
             Private Set(value As SourceMemberMethodSymbol)
-                Dim oldValue As SourceMemberMethodSymbol = Me._otherPartOfPartial
-                Me._otherPartOfPartial = value
+                Dim oldValue As SourceMemberMethodSymbol = _otherPartOfPartial
+                _otherPartOfPartial = value
 
 #If DEBUG Then
                 ' As we want to make sure we always validate attributes on partial 
                 ' method declaration, we need to make sure we don't validate
                 ' attributes before PartialMethodCounterpart is assigned
-                Debug.Assert(Me.m_lazyCustomAttributesBag Is Nothing)
-                Debug.Assert(Me.m_lazyReturnTypeCustomAttributesBag Is Nothing)
-                For Each param In Me.Parameters
+                Debug.Assert(m_lazyCustomAttributesBag Is Nothing)
+                Debug.Assert(m_lazyReturnTypeCustomAttributesBag Is Nothing)
+                For Each param In Parameters
                     Dim complexParam = TryCast(param, SourceComplexParameterSymbol)
                     If complexParam IsNot Nothing Then
                         complexParam.AssertAttributesNotValidatedYet()
@@ -504,8 +504,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 ' If partial method info is frozen the new and the old values must be equal
-                Debug.Assert(Not Me._partialMethodInfoIsFrozen OrElse oldValue Is value)
-                Me._partialMethodInfoIsFrozen = True
+                Debug.Assert(Not _partialMethodInfoIsFrozen OrElse oldValue Is value)
+                _partialMethodInfoIsFrozen = True
 #End If
             End Set
         End Property
@@ -513,7 +513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property SuppressDuplicateProcDefDiagnostics As Boolean
             Get
 #If DEBUG Then
-                Me._partialMethodInfoIsFrozen = True
+                _partialMethodInfoIsFrozen = True
 #End If
                 Return (_lazyState And StateFlags.SuppressDuplicateProcDefDiagnostics) <> 0
             End Get
@@ -522,8 +522,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim stateChanged = ThreadSafeFlagOperations.Set(_lazyState, StateFlags.SuppressDuplicateProcDefDiagnostics)
 #If DEBUG Then
                 ' If partial method info is frozen the new and the old values must be equal
-                Debug.Assert(Not Me._partialMethodInfoIsFrozen OrElse Not stateChanged)
-                Me._partialMethodInfoIsFrozen = True
+                Debug.Assert(Not _partialMethodInfoIsFrozen OrElse Not stateChanged)
+                _partialMethodInfoIsFrozen = True
 #End If
             End Set
         End Property
@@ -542,7 +542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            If Me.IsPartial Then
+            If IsPartial Then
                 Throw ExceptionUtilities.Unreachable
             End If
 
@@ -556,10 +556,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property HandledEvents As ImmutableArray(Of HandledEvent)
             Get
                 If _lazyHandles.IsDefault Then
-                    Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                    Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
 
                     Dim diagnostics = DiagnosticBag.GetInstance()
-                    Dim boundHandledEvents = Me.GetHandles(sourceModule, diagnostics)
+                    Dim boundHandledEvents = GetHandles(sourceModule, diagnostics)
 
                     sourceModule.AtomicStoreArrayAndDiagnostics(Of HandledEvent)(_lazyHandles,
                                                                                   boundHandledEvents,
@@ -574,13 +574,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function GetHandles(sourceModule As SourceModuleSymbol, diagBag As DiagnosticBag) As ImmutableArray(Of HandledEvent)
-            Dim syntax = TryCast(Me.DeclarationSyntax, MethodStatementSyntax)
+            Dim syntax = TryCast(DeclarationSyntax, MethodStatementSyntax)
 
             If (syntax Is Nothing) OrElse (syntax.HandlesClause Is Nothing) Then
                 Return ImmutableArray(Of HandledEvent).Empty
             End If
 
-            Dim typeBinder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, m_containingType)
+            Dim typeBinder As Binder = BinderBuilder.CreateBinderForType(sourceModule, SyntaxTree, m_containingType)
             typeBinder = New LocationSpecificBinder(BindingLocation.HandlesClause, Me, typeBinder)
             Dim handlesBuilder = ArrayBuilder(Of HandledEvent).GetInstance
 
@@ -613,7 +613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' This is the WithEvents property that will actually used to hookup handlers. (it could be a proxy override)
             Dim witheventsPropertyInCurrentClass As PropertySymbol = Nothing
 
-            If Me.ContainingType.IsModuleType AndAlso singleHandleClause.EventContainer.Kind <> SyntaxKind.WithEventsEventContainer Then
+            If ContainingType.IsModuleType AndAlso singleHandleClause.EventContainer.Kind <> SyntaxKind.WithEventsEventContainer Then
                 Binder.ReportDiagnostic(diagBag, singleHandleClause, ERRID.ERR_HandlesSyntaxInModule)
                 Return Nothing
             End If
@@ -625,15 +625,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Select Case DirectCast(singleHandleClause.EventContainer, KeywordEventContainerSyntax).Keyword.Kind
                     Case SyntaxKind.MeKeyword
                         handlesKind = HandledEventKind.Me
-                        eventContainingType = Me.ContainingType
+                        eventContainingType = ContainingType
 
                     Case SyntaxKind.MyClassKeyword
                         handlesKind = HandledEventKind.MyClass
-                        eventContainingType = Me.ContainingType
+                        eventContainingType = ContainingType
 
                     Case SyntaxKind.MyBaseKeyword
                         handlesKind = HandledEventKind.MyBase
-                        eventContainingType = Me.ContainingType.BaseTypeNoUseSiteDiagnostics
+                        eventContainingType = ContainingType.BaseTypeNoUseSiteDiagnostics
                 End Select
 
             ElseIf eventContainerKind = SyntaxKind.WithEventsEventContainer OrElse
@@ -660,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Nothing
                 End If
 
-                If witheventsProperty.IsShared AndAlso Not Me.IsShared Then
+                If witheventsProperty.IsShared AndAlso Not IsShared Then
                     'Events of shared WithEvents variables cannot be handled by non-shared methods.
                     Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_SharedEventNeedsSharedHandler)
                 End If
@@ -685,8 +685,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' if was found in one of bases, need to override it
-                If witheventsProperty.ContainingType <> Me.ContainingType Then
-                    witheventsPropertyInCurrentClass = DirectCast(Me.ContainingType, SourceNamedTypeSymbol).GetOrAddWithEventsOverride(witheventsProperty)
+                If witheventsProperty.ContainingType <> ContainingType Then
+                    witheventsPropertyInCurrentClass = DirectCast(ContainingType, SourceNamedTypeSymbol).GetOrAddWithEventsOverride(witheventsProperty)
                 Else
                     witheventsPropertyInCurrentClass = witheventsProperty
                 End If
@@ -764,12 +764,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If handlesKind = HandledEventKind.WithEvents Then
                 hookupMethod = witheventsPropertyInCurrentClass.SetMethod
             Else
-                If eventSymbol.IsShared AndAlso Me.IsShared Then
+                If eventSymbol.IsShared AndAlso IsShared Then
                     ' if both method and event are shared, host method is shared ctor
-                    hookupMethod = Me.ContainingType.SharedConstructors(0) ' There will only be one in a correct program.
+                    hookupMethod = ContainingType.SharedConstructors(0) ' There will only be one in a correct program.
                 Else
                     ' if either method, or event are not shared, host method is instance ctor
-                    Dim instanceCtors = Me.ContainingType.InstanceConstructors
+                    Dim instanceCtors = ContainingType.InstanceConstructors
                     Debug.Assert(Not instanceCtors.IsEmpty, "bind non-type members should have ensured at least one ctor for us")
 
                     ' any instance ctor will do for our purposes here. 
@@ -782,14 +782,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' No use site errors, since method is from source (or synthesized)
 
             If Not hookupMethod.IsShared Then
-                receiverOpt = New BoundMeReference(singleHandleClause, Me.ContainingType).MakeCompilerGenerated
+                receiverOpt = New BoundMeReference(singleHandleClause, ContainingType).MakeCompilerGenerated
             End If
 
             Dim handlingMethod As MethodSymbol = Me
-            If Me.PartialDefinitionPart IsNot Nothing Then
+            If PartialDefinitionPart IsNot Nothing Then
                 ' it is ok for a partial method to have Handles, but if there is a definition part,
                 ' it is the definition method that will do the handling
-                handlingMethod = Me.PartialDefinitionPart
+                handlingMethod = PartialDefinitionPart
             End If
 
             Dim qualificationKind As QualificationKind
@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' TODO: Consider skip reporting this diagnostic if "ERR_SharedEventNeedsSharedHandler" was already reported above.
 
                 'Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.
-                Binder.ReportDiagnostic(diagBag, singleHandleClause.EventMember, ERRID.ERR_EventHandlerSignatureIncompatible2, Me.Name, eventName)
+                Binder.ReportDiagnostic(diagBag, singleHandleClause.EventMember, ERRID.ERR_EventHandlerSignatureIncompatible2, Name, eventName)
                 Return Nothing
 
             End If

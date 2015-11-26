@@ -123,13 +123,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Not Me.m_property.IsCustomProperty OrElse MyBase.IsImplicitlyDeclared
+                Return Not m_property.IsCustomProperty OrElse MyBase.IsImplicitlyDeclared
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return If(Me.m_property.IsCustomProperty, MyBase.DeclaringSyntaxReferences, ImmutableArray(Of SyntaxReference).Empty)
+                Return If(m_property.IsCustomProperty, MyBase.DeclaringSyntaxReferences, ImmutableArray(Of SyntaxReference).Empty)
             End Get
         End Property
 
@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Dim accessibility = Me.LocalAccessibility
+                Dim accessibility = LocalAccessibility
                 If accessibility <> Accessibility.NotApplicable Then
                     Return accessibility
                 End If
@@ -229,9 +229,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return result
 
                 Case MethodKind.PropertySet
-                    Debug.Assert(Me.IsSub)
-                    Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, Me.m_property.ContainingSourceType)
-                    Return binder.GetSpecialType(SpecialType.System_Void, Me.DeclarationSyntax, diagBag)
+                    Debug.Assert(IsSub)
+                    Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, SyntaxTree, m_property.ContainingSourceType)
+                    Return binder.GetSpecialType(SpecialType.System_Void, DeclarationSyntax, diagBag)
 
                 Case Else
                     Throw ExceptionUtilities.Unreachable()
@@ -275,10 +275,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetParameters(sourceModule As SourceModuleSymbol, diagBag As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
             If m_property.IsCustomProperty Then
-                Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, Me.m_property.ContainingSourceType)
+                Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, SyntaxTree, m_property.ContainingSourceType)
                 binder = New LocationSpecificBinder(BindingLocation.PropertyAccessorSignature, Me, binder)
 
-                Return BindParameters(Me.m_property, Me, Me.Locations.FirstOrDefault, binder, BlockSyntax.BlockStatement.ParameterList, diagBag)
+                Return BindParameters(m_property, Me, Locations.FirstOrDefault, binder, BlockSyntax.BlockStatement.ParameterList, diagBag)
             Else
                 ' synthesize parameters for auto-properties and abstract properties
                 Return If(MethodKind = MethodKind.PropertyGet,
@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return overriddenMethod.ReturnTypeCustomModifiers
                 End If
 
-                Return If(Me.MethodKind = MethodKind.PropertySet, ImmutableArray(Of CustomModifier).Empty, m_property.TypeCustomModifiers)
+                Return If(MethodKind = MethodKind.PropertySet, ImmutableArray(Of CustomModifier).Empty, m_property.TypeCustomModifiers)
             End Get
         End Property
 
@@ -355,13 +355,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected Overrides Function GetReturnTypeAttributeDeclarations() As OneOrMany(Of SyntaxList(Of AttributeListSyntax))
             ' getter return type attributes should be copied from the property return type attributes
-            Debug.Assert(Me.MethodKind = MethodKind.PropertySet)
+            Debug.Assert(MethodKind = MethodKind.PropertySet)
             Return Nothing
         End Function
 
         Protected Overrides ReadOnly Property BoundReturnTypeAttributesSource As SourcePropertySymbol
             Get
-                Return If(Me.MethodKind = MethodKind.PropertyGet, m_property, Nothing)
+                Return If(MethodKind = MethodKind.PropertyGet, m_property, Nothing)
             End Get
         End Property
 

@@ -26,20 +26,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _syntaxReference As SyntaxReference
 
         Public Sub New(ordinal As Integer, name As String, syntax As TypeSyntax)
-            Me._ordinal = ordinal
-            Me._name = name
-            Me._syntaxReference = syntax.GetReference()
+            _ordinal = ordinal
+            _name = name
+            _syntaxReference = syntax.GetReference()
         End Sub
 
         Public Overrides ReadOnly Property Ordinal As Integer
             Get
-                Return Me._ordinal
+                Return _ordinal
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me._name
+                Return _name
             End Get
         End Property
 
@@ -89,13 +89,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return ImmutableArray.Create(Of SyntaxReference)(Me._syntaxReference)
+                Return ImmutableArray.Create(Of SyntaxReference)(_syntaxReference)
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return ImmutableArray.Create(Of Location)(Me._syntaxReference.GetLocation())
+                Return ImmutableArray.Create(Of Location)(_syntaxReference.GetLocation())
             End Get
         End Property
 
@@ -125,13 +125,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Return Me._name = other._name AndAlso
-                Me._ordinal = other._ordinal AndAlso
-                Me._syntaxReference.GetSyntax().Equals(other._syntaxReference.GetSyntax())
+            Return (_name = other._name) AndAlso (_ordinal = other._ordinal) AndAlso
+                    _syntaxReference.GetSyntax().Equals(other._syntaxReference.GetSyntax())
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me._name, Me._ordinal)
+            Return Hash.Combine(_name, _ordinal)
         End Function
     End Class
 

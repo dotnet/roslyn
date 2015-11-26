@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
-            Return Me.GetDeclaredBase(Nothing)
+            Return GetDeclaredBase(Nothing)
         End Function
 
         Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(info, Locations(0))
             End If
 
-            Return If(Me.TypeKind = TypeKind.Submission, Nothing, baseType)
+            Return If(TypeKind = TypeKind.Submission, Nothing, baseType)
         End Function
 
         Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
@@ -169,9 +169,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim staticInitializers As ArrayBuilder(Of FieldOrPropertyInitializer) = Nothing
                 Dim instanceInitializers As ArrayBuilder(Of FieldOrPropertyInitializer) = Nothing
 
-                Debug.Assert(Me.IsScriptClass OrElse Me.IsImplicitClass)
+                Debug.Assert(IsScriptClass OrElse IsImplicitClass)
 
-                Dim globalCodeNotAllowed As Boolean = Me.IsImplicitClass
+                Dim globalCodeNotAllowed As Boolean = IsImplicitClass
                 Dim nodeMembers = If(node.Kind = SyntaxKind.CompilationUnit, DirectCast(node, CompilationUnitSyntax).Members, DirectCast(node, NamespaceBlockSyntax).Members)
 
                 ' We don't need to do any checking, just declare the members.

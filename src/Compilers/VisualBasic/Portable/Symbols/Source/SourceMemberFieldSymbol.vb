@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend NotOverridable Overrides Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
-            Return IsDefinedInSourceTree(Me.DeclarationSyntax, tree, definedWithinSpan, cancellationToken)
+            Return IsDefinedInSourceTree(DeclarationSyntax, tree, definedWithinSpan, cancellationToken)
         End Function
 
         Friend NotOverridable Overrides ReadOnly Property GetAttributeDeclarations As OneOrMany(Of SyntaxList(Of AttributeListSyntax))
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 If _lazyType Is Nothing Then
-                    Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                    Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
                     Dim diagnostics = DiagnosticBag.GetInstance()
                     Dim varType = ComputeType(diagnostics)
                     Debug.Assert(varType IsNot Nothing)
@@ -86,20 +86,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim declarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
 
             Dim binder As Binder = BinderBuilder.CreateBinderForType(
-                DirectCast(Me.ContainingModule, SourceModuleSymbol),
-                Me.SyntaxTree,
+                DirectCast(ContainingModule, SourceModuleSymbol),
+                SyntaxTree,
                 ContainingType)
 
             binder = New LocationSpecificBinder(BindingLocation.FieldType, Me, binder)
 
             ' Ignore type syntax errors for all but the first field of a given type.
             Dim varType = ComputeFieldType(modifiedIdentifier, binder, diagBag,
-                                           isConst:=Me.IsConst,
+                                           isConst:=IsConst,
                                            isWithEvents:=False,
                                            ignoreTypeSyntaxDiagnostics:=(m_memberFlags And SourceMemberFlags.FirstFieldDeclarationOfType) = 0)
 
             If Not varType.IsErrorType() Then
-                If Me.IsConst Then
+                If IsConst Then
                     ' Note: The native compiler reports two errors for "Const F As C": ERR_ConstAsNonConstant
                     ' and ERR_ConstantWithNoValue. Rather than report two errors in those cases, we only
                     ' report ERR_ConstantWithNoValue if ERR_ConstAsNonConstant has not been reported.
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' and for arrays there is a special error.
                 If varType.IsArrayType Then
                     ' 'WithEvents' variables cannot be typed as arrays.
-                    binder.ReportDiagnostic(diagnostics, modifiedIdentifier, ERRID.ERR_EventSourceIsArray)
+                    Binder.ReportDiagnostic(diagnostics, modifiedIdentifier, ERRID.ERR_EventSourceIsArray)
 
                 ElseIf Not (varType.IsClassOrInterfaceType OrElse
                     (varType.Kind = SymbolKind.TypeParameter AndAlso varType.IsReferenceType)) Then
@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim typeSyntax = declarator.AsClause.Type
                         If typeSyntax IsNot Nothing Then
                             ' 'WithEvents' variables can only be typed as classes, interfaces or type parameters with class constraints.
-                            binder.ReportDiagnostic(diagnostics, identifier, ERRID.ERR_WithEventsAsStruct)
+                            Binder.ReportDiagnostic(diagnostics, identifier, ERRID.ERR_WithEventsAsStruct)
                         End If
                     End If
                 End If
@@ -305,8 +305,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
                 If _constantTuple Is Nothing Then
-                    Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    Dim initializer = If(Me.IsConst, _equalsValueOrAsNewInitOpt, Nothing)
+                    Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
+                    Dim initializer = If(IsConst, _equalsValueOrAsNewInitOpt, Nothing)
 
                     If initializer IsNot Nothing Then
                         Dim diagnostics = DiagnosticBag.GetInstance()

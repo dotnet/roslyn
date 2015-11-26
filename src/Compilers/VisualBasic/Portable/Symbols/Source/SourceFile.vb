@@ -56,9 +56,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                            optionExplicit As Boolean?,
                            optionCompareText As Boolean?)
 
-                Me.MemberImports = importMembersOf
-                Me.MemberImportsSyntax = importMembersOfSyntax
-                Me.AliasImports = importAliases
+                MemberImports = importMembersOf
+                MemberImportsSyntax = importMembersOfSyntax
+                AliasImports = importAliases
                 Me.XmlNamespaces = xmlNamespaces
 
                 Me.OptionStrict = optionStrict
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Sub GenerateAllDeclarationErrors()
             ' Getting the bound information causes the declaration errors to be generated
-            Dim unused1 = Me.BoundInformation
+            Dim unused1 = BoundInformation
             EnsureImportsValidated()
         End Sub
 

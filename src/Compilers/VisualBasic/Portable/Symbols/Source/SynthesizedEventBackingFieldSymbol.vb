@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim result = _propertyOrEvent.Type
 
                     If _propertyOrEvent.IsWindowsRuntimeEvent Then
-                        Dim tokenType = Me.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T)
+                        Dim tokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T)
                         Dim info = Binder.GetUseSiteErrorForWellKnownType(tokenType)
                         If info IsNot Nothing Then
                             diagnostics.Add(info, _propertyOrEvent.Locations(0))
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
             cancellationToken.ThrowIfCancellationRequested()
-            Dim unusedType = Me.Type
+            Dim unusedType = Type
         End Sub
     End Class
 End Namespace

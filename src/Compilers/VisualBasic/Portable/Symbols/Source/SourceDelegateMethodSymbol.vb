@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     getErrorInfo = ErrorFactory.GetErrorInfo_WRN_ObjectAssumed1_WRN_MissingAsClauseinFunction
                 End If
 
-                Dim asClause = DirectCast(delegateSyntax.AsClause, SimpleAsClauseSyntax)
+                Dim asClause = delegateSyntax.AsClause
                 Return binder.DecodeIdentifierType(delegateSyntax.Identifier, asClause, getErrorInfo, diagnostics)
             Else
                 Return binder.GetSpecialType(SpecialType.System_Void, syntax, diagnostics)
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return Me.MethodKind = MethodKind.Constructor
+                Return MethodKind = MethodKind.Constructor
             End Get
         End Property
 

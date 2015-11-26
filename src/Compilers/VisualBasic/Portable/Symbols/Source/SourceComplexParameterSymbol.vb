@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Private ReadOnly Property BoundAttributesSource As SourceParameterSymbol
             Get
-                Dim sourceMethod = TryCast(Me.ContainingSymbol, SourceMemberMethodSymbol)
+                Dim sourceMethod = TryCast(ContainingSymbol, SourceMemberMethodSymbol)
                 If sourceMethod Is Nothing Then
                     Return Nothing
                 End If
@@ -49,21 +49,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Nothing
                 End If
 
-                Return DirectCast(impl.Parameters(Me.Ordinal), SourceParameterSymbol)
+                Return DirectCast(impl.Parameters(Ordinal), SourceParameterSymbol)
             End Get
         End Property
 
         Friend Overrides ReadOnly Property AttributeDeclarationList As SyntaxList(Of AttributeListSyntax)
             Get
-                Return If(Me._syntaxRef Is Nothing, Nothing,
-                          DirectCast(Me._syntaxRef.GetSyntax, ParameterSyntax).AttributeLists())
+                Return If(_syntaxRef Is Nothing, Nothing, DirectCast(_syntaxRef.GetSyntax, ParameterSyntax).AttributeLists())
             End Get
         End Property
 
         Private Function GetAttributeDeclarations() As OneOrMany(Of SyntaxList(Of AttributeListSyntax))
             Dim attributes = AttributeDeclarationList
 
-            Dim sourceMethod = TryCast(Me.ContainingSymbol, SourceMemberMethodSymbol)
+            Dim sourceMethod = TryCast(ContainingSymbol, SourceMemberMethodSymbol)
             If sourceMethod Is Nothing Then
                 Return OneOrMany.Create(attributes)
             End If
@@ -73,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' combine attributes with the corresponding parameter of a partial implementation:
             Dim otherPart As SourceMemberMethodSymbol = sourceMethod.SourcePartialImplementation
             If otherPart IsNot Nothing Then
-                otherAttributes = DirectCast(otherPart.Parameters(Me.Ordinal), SourceParameterSymbol).AttributeDeclarationList
+                otherAttributes = DirectCast(otherPart.Parameters(Ordinal), SourceParameterSymbol).AttributeDeclarationList
             Else
                 otherAttributes = Nothing
             End If
@@ -90,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function GetAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
             If _lazyCustomAttributesBag Is Nothing OrElse Not _lazyCustomAttributesBag.IsSealed Then
 
-                Dim copyFrom As SourceParameterSymbol = Me.BoundAttributesSource
+                Dim copyFrom As SourceParameterSymbol = BoundAttributesSource
 
                 ' prevent infinite recursion:
                 Debug.Assert(copyFrom IsNot Me)
@@ -99,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim attributesBag = copyFrom.GetAttributesBag()
                     Interlocked.CompareExchange(_lazyCustomAttributesBag, attributesBag, Nothing)
                 Else
-                    Dim attributeSyntax = Me.GetAttributeDeclarations()
+                    Dim attributeSyntax = GetAttributeDeclarations()
                     LoadAndValidateAttributes(attributeSyntax, _lazyCustomAttributesBag)
                 End If
             End If
@@ -108,18 +107,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetEarlyDecodedWellKnownAttributeData() As ParameterEarlyWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = _lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
-                attributesBag = Me.GetAttributesBag()
+                attributesBag = GetAttributesBag()
             End If
 
             Return DirectCast(attributesBag.EarlyDecodedWellKnownAttributeData, ParameterEarlyWellKnownAttributeData)
         End Function
 
         Friend Overrides Function GetDecodedWellKnownAttributeData() As CommonParameterWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = _lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
-                attributesBag = Me.GetAttributesBag()
+                attributesBag = GetAttributesBag()
             End If
 
             Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonParameterWellKnownAttributeData)
@@ -172,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim inProgressBinder = New DefaultParametersInProgressBinder(inProgress.Add(Me), binder)
 
             Dim constValue As ConstantValue = Nothing
-            inProgressBinder.BindParameterDefaultValue(Me.Type, defaultSyntax, diagnostics, constValue:=constValue)
+            inProgressBinder.BindParameterDefaultValue(Type, defaultSyntax, diagnostics, constValue:=constValue)
 
             If constValue IsNot Nothing Then
                 VerifyParamDefaultValueMatchesAttributeIfAny(constValue, defaultSyntax.Value, diagnostics)
@@ -200,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend NotOverridable Overrides Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
-            Return IsDefinedInSourceTree(Me.SyntaxNode, tree, definedWithinSpan, cancellationToken)
+            Return IsDefinedInSourceTree(SyntaxNode, tree, definedWithinSpan, cancellationToken)
         End Function
 
         Public Overrides ReadOnly Property IsOptional As Boolean
@@ -215,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return True
                 End If
 
-                Dim attributeSource As SourceParameterSymbol = If(Me.BoundAttributesSource, Me)
+                Dim attributeSource As SourceParameterSymbol = If(BoundAttributesSource, Me)
 
                 Dim data = attributeSource.GetEarlyDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasParamArrayAttribute
@@ -224,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
             Get
-                Dim attributeSource As SourceParameterSymbol = If(Me.BoundAttributesSource, Me)
+                Dim attributeSource As SourceParameterSymbol = If(BoundAttributesSource, Me)
 
                 Dim data = attributeSource.GetEarlyDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasCallerLineNumberAttribute
@@ -233,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
             Get
-                Dim attributeSource As SourceParameterSymbol = If(Me.BoundAttributesSource, Me)
+                Dim attributeSource As SourceParameterSymbol = If(BoundAttributesSource, Me)
 
                 Dim data = attributeSource.GetEarlyDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasCallerMemberNameAttribute
@@ -242,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
             Get
-                Dim attributeSource As SourceParameterSymbol = If(Me.BoundAttributesSource, Me)
+                Dim attributeSource As SourceParameterSymbol = If(BoundAttributesSource, Me)
 
                 Dim data = attributeSource.GetEarlyDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasCallerFilePathAttribute
@@ -305,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Asking for the default value earlier than that can lead to infinite recursion. Instead, pass in the m_lazyDefaultValue.  If the value hasn't
             ' been computed yet, the new symbol will compute it.
 
-            Return New SourceComplexParameterSymbol(newContainingSymbol, Me.Name, Me.Ordinal, Me.Type, Me.Locations(0), _syntaxRef, _flags, _lazyDefaultValue)
+            Return New SourceComplexParameterSymbol(newContainingSymbol, Name, Ordinal, Type, Locations(0), _syntaxRef, _flags, _lazyDefaultValue)
         End Function
 
         ' Create a parameter from syntax.
@@ -393,10 +392,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
             If customModifiers.IsDefaultOrEmpty Then
-                Return New SourceComplexParameterSymbol(Me.ContainingSymbol, Me.Name, Me.Ordinal, type, Me.Location, _syntaxRef, _flags, _lazyDefaultValue)
+                Return New SourceComplexParameterSymbol(ContainingSymbol, Name, Ordinal, type, Location, _syntaxRef, _flags, _lazyDefaultValue)
             End If
 
-            Return New SourceComplexParameterSymbolWithCustomModifiers(Me.ContainingSymbol, Me.Name, Me.Ordinal, type, Me.Location, _syntaxRef, _flags, _lazyDefaultValue, customModifiers, countOfCustomModifiersPrecedingByRef)
+            Return New SourceComplexParameterSymbolWithCustomModifiers(ContainingSymbol, Name, Ordinal, type, Location, _syntaxRef, _flags, _lazyDefaultValue, customModifiers, countOfCustomModifiersPrecedingByRef)
         End Function
 
         Private Class SourceComplexParameterSymbolWithCustomModifiers

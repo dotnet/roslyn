@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected Overrides Sub AddGroupClassMembersIfNeeded(membersBuilder As MembersAndInitializersBuilder, diagnostics As DiagnosticBag)
             ' For reference, see Bindable::IsMyGroupCollection and Bindable::CrackAttributesOnAllSymbolsInContainer in native code.
-            If Me.TypeKind = TypeKind.Class AndAlso Not Me.IsGenericType Then
+            If TypeKind = TypeKind.Class AndAlso Not IsGenericType Then
 
                 Dim binder As Binder = Nothing
                 Dim attributeSyntax As AttributeSyntax = Nothing
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' Now, iterate over all top level types declared in this module and pick those
                         ' inheriting from the bases we found (Bindable::ScanAndLoadMyGroupCollectionMembers). 
                         Dim collectionTypes = ArrayBuilder(Of KeyValuePair(Of NamedTypeSymbol, Integer)).GetInstance()
-                        GetMyGroupCollectionTypes(Me.ContainingModule.GlobalNamespace, baseTypes, binder, collectionTypes)
+                        GetMyGroupCollectionTypes(ContainingModule.GlobalNamespace, baseTypes, binder, collectionTypes)
 
                         If collectionTypes.Count > 0 Then
                             ' See Bindable::GenSyntheticMyGroupCollectionProperties
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     If VisualBasicAttributeData.IsTargetEarlyAttribute(attributeType, attr, AttributeDescription.MyGroupCollectionAttribute) Then
                                         ' Calling GetAttribute can still get us into cycle if MyGroupCollectionAttribute is applied to itself.
                                         If attributeType Is Me Then
-                                            binder.ReportDiagnostic(diagnostics, attr, ERRID.ERR_MyGroupCollectionAttributeCycle)
+                                            Binder.ReportDiagnostic(diagnostics, attr, ERRID.ERR_MyGroupCollectionAttributeCycle)
                                             Debug.Assert(attributeData Is Nothing)
                                             GoTo DoneWithBindingAttributes
                                         End If
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                                             If expression IsNot Nothing AndAlso
                                                Not TypeOf expression Is LiteralExpressionSyntax Then
-                                                binder.ReportDiagnostic(diagnostics, expression, ERRID.ERR_LiteralExpected)
+                                                Binder.ReportDiagnostic(diagnostics, expression, ERRID.ERR_LiteralExpected)
                                                 attributeData = Nothing
                                                 GoTo DoneWithBindingAttributes
                                             End If
@@ -299,7 +299,7 @@ DoneWithBindingAttributes:
 
 #If DEBUG Then
         Protected Overrides Sub VerifyMembers()
-            If Me.TypeKind = TypeKind.Class Then
+            If TypeKind = TypeKind.Class Then
                 Debug.Assert(MembersHaveBeenCreated)
                 Debug.Assert(HasPublicParameterlessConstructor(Me) = InferFromSyntaxIfClassWillHavePublicParameterlessConstructor())
             End If
@@ -307,7 +307,7 @@ DoneWithBindingAttributes:
 #End If
 
         Friend Function InferFromSyntaxIfClassWillHavePublicParameterlessConstructor() As Boolean
-            Debug.Assert(Me.TypeKind = TypeKind.Class)
+            Debug.Assert(TypeKind = TypeKind.Class)
             Dim diagnostics = DiagnosticBag.GetInstance()
             Dim haveInstanceConstructor As Boolean = False
 
@@ -346,7 +346,7 @@ DoneWithBindingAttributes:
             Next
 
             diagnostics.Free()
-            Return Not haveInstanceConstructor AndAlso Not Me.IsMustInherit
+            Return Not haveInstanceConstructor AndAlso Not IsMustInherit
         End Function
 
         ''' <summary>
@@ -391,7 +391,7 @@ DoneWithBindingAttributes:
             ' be allowed
             Dim conflictsWith As Symbol = Nothing
             Dim nestedTypes = GetTypeMembersDictionary()
-            Dim isWinMd = Me.IsCompilationOutputWinMdObj()
+            Dim isWinMd = IsCompilationOutputWinMdObj()
 
             If ConflictsWithExistingMemberOrType(propertyName, membersBuilder, nestedTypes, conflictsWith) OrElse
                ConflictsWithExistingMemberOrType(binder.GetAccessorName(propertyName, MethodKind.PropertyGet, False), membersBuilder, nestedTypes, conflictsWith) OrElse

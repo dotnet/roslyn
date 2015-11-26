@@ -49,12 +49,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
-            Dim unusedType = Me.Type
+            Dim unusedType = Type
             GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
 
             ' We want declaration events to be last, after all compilation analysis is done, so we produce them here
-            Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            If Interlocked.CompareExchange(_eventProduced, 1, 0) = 0 AndAlso Not Me.IsImplicitlyDeclared Then
+            Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
+            If Interlocked.CompareExchange(_eventProduced, 1, 0) = 0 AndAlso Not IsImplicitlyDeclared Then
                 sourceModule.DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
         End Sub
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            Return New LexicalSortKey(_syntaxRef, Me.DeclaringCompilation)
+            Return New LexicalSortKey(_syntaxRef, DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If you want to override attribute binding logic for a sub-class, then override <see cref="GetAttributesBag"/> method.
         ''' </remarks>
         Public NotOverridable Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me.GetAttributesBag().Attributes
+            Return GetAttributesBag().Attributes
         End Function
 
         Private Function GetAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
@@ -233,9 +233,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetDecodedWellKnownAttributeData() As CommonFieldWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = _lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
-                attributesBag = Me.GetAttributesBag()
+                attributesBag = GetAttributesBag()
             End If
 
             Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonFieldWellKnownAttributeData)
@@ -250,31 +250,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _lazyCustomAttributesBag = attributeData
         End Sub
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-            If Me.IsConst Then
-                If Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty) IsNot Nothing Then
+            If IsConst Then
+                If GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty) IsNot Nothing Then
                     Dim data = GetDecodedWellKnownAttributeData()
                     If data Is Nothing OrElse data.ConstValue = CodeAnalysis.ConstantValue.Unset Then
-                        If Me.Type.SpecialType = SpecialType.System_DateTime Then
-                            Dim attributeValue = DirectCast(Me.ConstantValue, DateTime)
+                        If Type.SpecialType = SpecialType.System_DateTime Then
+                            Dim attributeValue = DirectCast(ConstantValue, DateTime)
 
-                            Dim specialTypeInt64 = Me.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)
+                            Dim specialTypeInt64 = ContainingAssembly.GetSpecialType(SpecialType.System_Int64)
                             ' NOTE: used from emit, so shouldn't have gotten here if there were errors
                             Debug.Assert(specialTypeInt64.GetUseSiteErrorInfo() Is Nothing)
 
-                            Dim compilation = Me.DeclaringCompilation
+                            Dim compilation = DeclaringCompilation
 
                             AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
                             ImmutableArray.Create(
                                 New TypedConstant(specialTypeInt64, TypedConstantKind.Primitive, attributeValue.Ticks))))
 
-                        ElseIf Me.Type.SpecialType = SpecialType.System_Decimal Then
-                            Dim attributeValue = DirectCast(Me.ConstantValue, Decimal)
+                        ElseIf Type.SpecialType = SpecialType.System_Decimal Then
+                            Dim attributeValue = DirectCast(ConstantValue, Decimal)
 
-                            Dim compilation = Me.DeclaringCompilation
+                            Dim compilation = DeclaringCompilation
                             AddSynthesizedAttribute(attributes, compilation.SynthesizeDecimalConstantAttribute(attributeValue))
                         End If
                     End If
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasSpecialNameAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.NonSerializedAttribute) Then
 
-                If Me.ContainingType.IsSerializable Then
+                If ContainingType.IsSerializable Then
                     arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasNonSerializedAttribute = True
                 Else
                     arguments.Diagnostics.Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
@@ -346,9 +346,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim data = arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)()
                 Dim constValue As ConstantValue
 
-                If Me.IsConst Then
-                    If Me.Type.IsDecimalType() OrElse Me.Type.IsDateTimeType() Then
-                        constValue = Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                If IsConst Then
+                    If Type.IsDecimalType() OrElse Type.IsDateTimeType() Then
+                        constValue = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
 
                         If constValue IsNot Nothing AndAlso Not constValue.IsBad AndAlso constValue <> attrValue Then
                             arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
@@ -415,11 +415,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' If there are no attributes then this symbol is not Obsolete.
-                If (Not Me._containingType.AnyMemberHasAttributes) Then
+                If (Not _containingType.AnyMemberHasAttributes) Then
                     Return Nothing
                 End If
 
-                Dim lazyCustomAttributesBag = Me._lazyCustomAttributesBag
+                Dim lazyCustomAttributesBag = _lazyCustomAttributesBag
                 If (lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed) Then
                     Dim data = DirectCast(_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonFieldEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)

@@ -97,13 +97,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If(ReportRedundantConstraints(), DirectConstraintConflictKind.RedundantConstraint, DirectConstraintConflictKind.None)
 
                 Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
-                constraints = Me.RemoveDirectConstraintConflicts(constraints, inProgress.Prepend(Me), reportConflicts, diagnosticsBuilder)
+                constraints = RemoveDirectConstraintConflicts(constraints, inProgress.Prepend(Me), reportConflicts, diagnosticsBuilder)
 
                 ImmutableInterlocked.InterlockedInitialize(_lazyConstraints, constraints)
 
                 If ImmutableInterlocked.InterlockedInitialize(_lazyConstraintTypes, GetConstraintTypesOnly(constraints)) Then
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                    Me.ReportIndirectConstraintConflicts(diagnosticsBuilder, useSiteDiagnosticsBuilder)
+                    ReportIndirectConstraintConflicts(diagnosticsBuilder, useSiteDiagnosticsBuilder)
 
                     If useSiteDiagnosticsBuilder IsNot Nothing Then
                         diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me.ContainingSymbol.IsImplicitlyDeclared
+                Return ContainingSymbol.IsImplicitlyDeclared
             End Get
         End Property
 

@@ -53,11 +53,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim symbol = TryCast(obj, BoundLambdaParameterSymbol)
-            Return symbol IsNot Nothing AndAlso Equals(symbol._lambdaSymbol, Me._lambdaSymbol) AndAlso symbol.Ordinal = Me.Ordinal
+            Return symbol IsNot Nothing AndAlso Equals(symbol._lambdaSymbol, _lambdaSymbol) AndAlso symbol.Ordinal = Ordinal
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me._lambdaSymbol.GetHashCode(), Me.Ordinal)
+            Return Hash.Combine(_lambdaSymbol.GetHashCode(), Ordinal)
         End Function
 
     End Class

@@ -17,13 +17,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _type As TypeSymbol
 
         Friend Sub New(memberSymbol As Symbol)
-            Me._container = memberSymbol
-            Me._type = _container.ContainingType
+            _container = memberSymbol
+            _type = _container.ContainingType
         End Sub
 
         Friend Sub New(memberSymbol As Symbol, type As TypeSymbol)
-            Me._container = memberSymbol
-            Me._type = type
+            _container = memberSymbol
+            _type = type
         End Sub
 
         Public Overrides ReadOnly Property Name As String
