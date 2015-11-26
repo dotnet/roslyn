@@ -6,8 +6,8 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Utilities.VsNavInfo
     Friend Module VsNavInfoHelpers
 
-        Public Sub IsOK(comAction As Func(Of Integer))
-            Assert.Equal(VSConstants.S_OK, comAction())
+        Public Sub IsOK(result As Integer)
+            Assert.Equal(VSConstants.S_OK, result)
         End Sub
 
         Public Delegate Sub NodeVerifier(vsNavInfoNode As IVsNavInfoNode)
@@ -15,11 +15,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Utilities.VsNavInfo
         Private Function Node(expectedListType As _LIB_LISTTYPE, expectedName As String) As NodeVerifier
             Return Sub(vsNavInfoNode)
                        Dim listType As UInteger
-                       IsOK(Function() vsNavInfoNode.get_Type(listType))
+                       IsOK(vsNavInfoNode.get_Type(listType))
                        Assert.Equal(CUInt(expectedListType), listType)
 
                        Dim actualName As String = Nothing
-                       IsOK(Function() vsNavInfoNode.get_Name(actualName))
+                       IsOK(vsNavInfoNode.get_Name(actualName))
                        Assert.Equal(expectedName, actualName)
                    End Sub
         End Function

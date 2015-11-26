@@ -836,14 +836,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
                 If canonicalNodes IsNot Nothing Then
                     Dim enumerator As IVsEnumNavInfoNodes = Nothing
-                    IsOK(Function() navInfo.EnumCanonicalNodes(enumerator))
+                    IsOK(navInfo.EnumCanonicalNodes(enumerator))
 
                     VerifyNodes(enumerator, canonicalNodes)
                 End If
 
                 If presentationNodes IsNot Nothing Then
                     Dim enumerator As IVsEnumNavInfoNodes = Nothing
-                    IsOK(Function() navInfo.EnumPresentationNodes(CUInt(_LIB_LISTFLAGS.LLF_NONE), enumerator))
+                    IsOK(navInfo.EnumPresentationNodes(CUInt(_LIB_LISTFLAGS.LLF_NONE), enumerator))
 
                     VerifyNodes(enumerator, presentationNodes)
                 End If

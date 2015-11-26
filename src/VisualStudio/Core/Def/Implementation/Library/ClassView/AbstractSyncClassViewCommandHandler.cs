@@ -19,6 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
     internal abstract class AbstractSyncClassViewCommandHandler : ForegroundThreadAffinitizedObject,
         ICommandHandler<SyncClassViewCommandArgs>
     {
+        private const string ClassView = "Class View";
+
         private readonly IServiceProvider _serviceProvider;
         private readonly IWaitIndicator _waitIndicator;
 
@@ -47,8 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
 
             _waitIndicator.Wait(
-                title: ServicesVSResources.SynchronizeClassView,
-                message: ServicesVSResources.SynchronizingClassView,
+                title: string.Format(ServicesVSResources.SynchronizeClassView, ClassView),
+                message: string.Format(ServicesVSResources.SynchronizingWithClassView, ClassView),
                 allowCancel: true,
                 action: context =>
                 {

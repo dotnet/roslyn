@@ -1084,7 +1084,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Synchronize Class View.
+        ///   Looks up a localized string similar to Synchronize {0}.
         /// </summary>
         internal static string SynchronizeClassView {
             get {
@@ -1093,11 +1093,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Synchronizing Class View....
+        ///   Looks up a localized string similar to Synchronizing with {0}....
         /// </summary>
-        internal static string SynchronizingClassView {
+        internal static string SynchronizingWithClassView {
             get {
-                return ResourceManager.GetString("SynchronizingClassView", resourceCulture);
+                return ResourceManager.GetString("SynchronizingWithClassView", resourceCulture);
             }
         }
         

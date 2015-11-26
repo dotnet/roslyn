@@ -36,14 +36,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
             If _canonicalNodes IsNot Nothing Then
                 Dim enumerator As IVsEnumNavInfoNodes = Nothing
-                IsOK(Function() _navInfo.EnumCanonicalNodes(enumerator))
+                IsOK(_navInfo.EnumCanonicalNodes(enumerator))
 
                 VerifyNodes(enumerator, _canonicalNodes)
             End If
 
             If _presentationNodes IsNot Nothing Then
                 Dim enumerator As IVsEnumNavInfoNodes = Nothing
-                IsOK(Function() _navInfo.EnumPresentationNodes(CUInt(_LIB_LISTFLAGS.LLF_NONE), enumerator))
+                IsOK(_navInfo.EnumPresentationNodes(CUInt(_LIB_LISTFLAGS.LLF_NONE), enumerator))
 
                 VerifyNodes(enumerator, _presentationNodes)
             End If
