@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         Dim value As ULong = CType(literal.Value, ULong)
 
                         If value = 0 AndAlso HasOverflow(literal.GetDiagnostics()) Then
-                            ' Overflow/underflow case or zero literal, skip pretty listing.
+                            'Overflow/underflow, skip pretty listing.
                             Return newNode
                         End If
 
@@ -269,30 +269,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Case LiteralBase.Decimal
                         Return CType(value, ULong).ToString(CultureInfo.InvariantCulture)
                     Case LiteralBase.Hexadecimal
-                        Dim valueString = ""
-                        If TypeOf (value) Is Short Then
-                            valueString = CType(value, Short).ToString("X")
-                        ElseIf TypeOf (value) Is Integer Then
-                            valueString = CType(value, Integer).ToString("X")
-                        ElseIf TypeOf (value) Is Long Then
-                            valueString = CType(value, Long).ToString("X")
-                        Else
-                            valueString = CType(value, ULong).ToString("X")
-                        End If
-
-                        Return "&H" & valueString
+                        Return "&H" + ConvertToULong(value).ToString("X")
                     Case LiteralBase.Octal
-                        Dim val1 As ULong
-                        If TypeOf (value) Is Short Then
-                            val1 = CType(value, UShort)
-                        ElseIf TypeOf (value) Is Integer Then
-                            val1 = CType(value, UInteger)
-                        ElseIf TypeOf (value) Is Long Then
-                            val1 = CType(value, ULong)
-                        Else
-                            val1 = CType(value, ULong)
-                        End If
-                        Return $"&O{ConvertToOctalString(val1)}"
+                        Dim val1 As ULong = ConvertToULong(value)
+                        Return "&O" + ConvertToOctalString(val1)
                     Case Else
                         Throw ExceptionUtilities.Unreachable
                 End Select
@@ -320,6 +300,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim exponent As ULong = value
                 Dim builder As New StringBuilder()
 
+                If value = 0 Then
+                    Return "0"
+                End If
+
                 While (exponent > 0)
                     Dim remainder = exponent Mod 8UL
 
@@ -333,6 +317,22 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private Function HasOverflow(diagnostics As IEnumerable(Of Diagnostic)) As Boolean
                 Return diagnostics.Any(Function(diagnostic As Diagnostic) diagnostic.Id = "BC30036")
+            End Function
+
+            Private Function ConvertToULong(value As Object) As ULong
+                'Cannot convert directly to ULong from Short or Integer as negative numbers
+                'appear to have all bits above the current bit range set to 1
+                'so short value -32768 or binary 1000000000000000 becomes
+                'binary 1111111111111111111111111111111111111111111111111000000000000000
+                'or in decimal 18446744073709518848
+                'This will cause the subsequent conversion to a hex or octal string to output an incorrect value
+                If TypeOf (value) Is Short Then
+                    Return CType(value, UShort)
+                ElseIf TypeOf (value) Is Integer Then
+                    Return CType(value, UInteger)
+                Else
+                    Return CType(value, ULong)
+                End If
             End Function
         End Class
     End Class

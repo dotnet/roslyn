@@ -1840,6 +1840,8 @@ Module Program
         Const i6 As Integer = 000
         Const i7 As UInteger = 0060UI
         Const i8 As Integer = &H0000FFFFI
+        Const i9 As Integer = &O000
+        Const i10 As Integer = &H000
         Const l0 As Long = 0060L
         Const l1 As Long = 0060&
         Const l2 As ULong = 0060UL
@@ -1862,6 +1864,8 @@ Module Program
         Const i6 As Integer = 0
         Const i7 As UInteger = 60UI
         Const i8 As Integer = &HFFFFI
+        Const i9 As Integer = &O0
+        Const i10 As Integer = &H0
         Const l0 As Long = 60L
         Const l1 As Long = 60&
         Const l2 As ULong = 60UL
@@ -1875,7 +1879,7 @@ End Module
         }
 
         [Fact]
-        [Trait(Traits.Feature,Traits.Features.ReduceTokens)]
+        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
         public async Task ReduceIntegerLiteralWithNegativeHexOrOctalValue()
         {
             var code = @"[|
