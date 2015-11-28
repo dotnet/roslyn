@@ -23,6 +23,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CacheUtil.cs" />
+    <Compile Include="CachingTestExecutor.cs" />
     <Compile Include="ITestExecutor.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="ProcessRunner.cs" />
