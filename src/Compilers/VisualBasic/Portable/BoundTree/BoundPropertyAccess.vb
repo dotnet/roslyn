@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.PropertySymbol
+                Return PropertySymbol
             End Get
         End Property
 
@@ -31,19 +31,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Function SetAccessKind(newAccessKind As PropertyAccessKind) As BoundPropertyAccess
             Debug.Assert(newAccessKind = PropertyAccessKind.Unknown OrElse
-                    Me.AccessKind = PropertyAccessKind.Unknown OrElse
-                    Me.AccessKind = newAccessKind)
+                    AccessKind = PropertyAccessKind.Unknown OrElse
+                    AccessKind = newAccessKind)
 
-            Return Me.Update(Me.PropertySymbol, Me.PropertyGroupOpt, newAccessKind, Me.IsWriteable, Me.ReceiverOpt, Me.Arguments, GetTypeFromAccessKind(Me.PropertySymbol, newAccessKind))
+            Return Update(PropertySymbol, PropertyGroupOpt, newAccessKind, IsWriteable, ReceiverOpt, Arguments, GetTypeFromAccessKind(PropertySymbol, newAccessKind))
         End Function
 
 #If DEBUG Then
         Private Sub Validate()
             ' if property group is specified it should not have receiver if it was moved to a bound call
-            Debug.Assert(Me.ReceiverOpt Is Nothing OrElse Me.PropertyGroupOpt Is Nothing OrElse Me.PropertyGroupOpt.ReceiverOpt Is Nothing)
+            Debug.Assert(ReceiverOpt Is Nothing OrElse PropertyGroupOpt Is Nothing OrElse PropertyGroupOpt.ReceiverOpt Is Nothing)
 
-            Dim expectedType = GetTypeFromAccessKind(Me.PropertySymbol, Me.AccessKind)
-            Debug.Assert(Me.Type = expectedType)
+            Dim expectedType = GetTypeFromAccessKind(PropertySymbol, AccessKind)
+            Debug.Assert(Type = expectedType)
         End Sub
 #End If
 

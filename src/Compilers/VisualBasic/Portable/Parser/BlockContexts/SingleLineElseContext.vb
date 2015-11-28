@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.CatchStatement, SyntaxKind.FinallyStatement
                     ' A Catch or Finally always closes a single line else
                     Add(Parser.ReportSyntaxError(node, If(node.Kind = SyntaxKind.CatchStatement, ERRID.ERR_CatchNoMatchingTry, ERRID.ERR_FinallyNoMatchingTry)))
-                    Return Me.EndBlock(Nothing)
+                    Return EndBlock(Nothing)
 
             End Select
 

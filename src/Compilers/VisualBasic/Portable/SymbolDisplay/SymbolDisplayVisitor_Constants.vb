@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case Else
                     Dim valueString = SymbolDisplay.FormatPrimitive(value, quoteStrings:=True, useHexadecimalNumbers:=False)
-                    Me.builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, Nothing, valueString, False))
+                    builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, Nothing, valueString, False))
             End Select
         End Sub
 

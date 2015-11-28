@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _checksumAlgorithm = checksumAlgorithm
                 _options = options
                 _path = path
-                _root = If(cloneRoot, Me.CloneNodeAsRoot(syntaxRoot), syntaxRoot)
+                _root = If(cloneRoot, CloneNodeAsRoot(syntaxRoot), syntaxRoot)
                 _hasCompilationUnitRoot = (syntaxRoot.Kind = SyntaxKind.CompilationUnit)
                 _isMyTemplate = isMyTemplate
             End Sub
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
                 If _lazyText Is Nothing Then
-                    Dim treeText = Me.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm)
+                    Dim treeText = GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm)
                     Interlocked.CompareExchange(_lazyText, treeText, Nothing)
                 End If
 
@@ -124,33 +124,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
-                If Me._root Is root AndAlso Me._options Is options Then
+                If _root Is root AndAlso _options Is options Then
                     Return Me
                 End If
 
                 Return New ParsedSyntaxTree(
                     Nothing,
-                    Me._encodingOpt,
-                    Me._checksumAlgorithm,
-                    Me._path,
+                    _encodingOpt,
+                    _checksumAlgorithm,
+                    _path,
                     DirectCast(options, VisualBasicParseOptions),
                     DirectCast(root, VisualBasicSyntaxNode),
-                    Me._isMyTemplate)
+                    _isMyTemplate)
             End Function
 
             Public Overrides Function WithFilePath(path As String) As SyntaxTree
-                If String.Equals(Me._path, path) Then
+                If String.Equals(_path, path) Then
                     Return Me
                 End If
 
                 Return New ParsedSyntaxTree(
-                    Me._lazyText,
-                    Me._encodingOpt,
-                    Me._checksumAlgorithm,
+                    _lazyText,
+                    _encodingOpt,
+                    _checksumAlgorithm,
                     path,
-                    Me._options,
-                    Me._root,
-                    Me._isMyTemplate)
+                    _options,
+                    _root,
+                    _isMyTemplate)
             End Function
         End Class
     End Class

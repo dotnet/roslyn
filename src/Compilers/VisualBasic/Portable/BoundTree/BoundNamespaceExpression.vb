@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return If(DirectCast(Me.AliasOpt, Symbol), Me.NamespaceSymbol)
+                Return If(DirectCast(AliasOpt, Symbol), NamespaceSymbol)
             End Get
         End Property
 

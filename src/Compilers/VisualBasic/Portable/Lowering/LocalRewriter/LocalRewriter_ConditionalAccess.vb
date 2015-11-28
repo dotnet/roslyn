@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim first As BoundExpression
 
                     If ShouldCaptureConditionalAccessReceiver(rewrittenReceiver) Then
-                        temp = New SynthesizedLocal(Me._currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
+                        temp = New SynthesizedLocal(_currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
 
                         assignment = factory.AssignmentExpression(factory.Local(temp, isLValue:=True), rewrittenReceiver.MakeRValue())
                         first = factory.Local(temp, isLValue:=True)
@@ -97,8 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' if( receiver IsNot Nothing, receiver. ... -> to Nullable, Nothing) 
                     receiverOrCondition = rewrittenReceiver
                     captureReceiver = ShouldCaptureConditionalAccessReceiver(rewrittenReceiver)
-                    Me._conditionalAccessReceiverPlaceholderId += 1
-                    newPlaceholderId = Me._conditionalAccessReceiverPlaceholderId
+                    _conditionalAccessReceiverPlaceholderId += 1
+                    newPlaceholderId = _conditionalAccessReceiverPlaceholderId
                     Debug.Assert(newPlaceholderId <> 0)
                     newPlaceHolder = New BoundConditionalAccessReceiverPlaceholder(node.Placeholder.Syntax, newPlaceholderId, node.Placeholder.Type)
                     placeholderReplacement = newPlaceHolder

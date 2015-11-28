@@ -145,14 +145,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.OpenLocalScope()
 
                 For Each local In sequence.Locals
-                    Me.DefineLocal(local, sequence.Syntax)
+                    DefineLocal(local, sequence.Syntax)
                 Next
             End If
 
-            Me.EmitSideEffects(sequence.SideEffects)
+            EmitSideEffects(sequence.SideEffects)
             Debug.Assert(sequence.ValueOpt IsNot Nothing)
 
-            Dim tempOpt = Me.EmitAddress(sequence.ValueOpt, addressKind)
+            Dim tempOpt = EmitAddress(sequence.ValueOpt, addressKind)
 
             ' when a sequence Is happened to be a byref receiver
             ' we may need to extend the life time of the target until we are done accessing it
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Select Case expression.Kind
                 Case BoundKind.Sequence
                     Dim boundSequenceValue = DirectCast(expression, BoundSequence).ValueOpt
-                    Return boundSequenceValue IsNot Nothing AndAlso Me.HasHome(boundSequenceValue)
+                    Return boundSequenceValue IsNot Nothing AndAlso HasHome(boundSequenceValue)
 
                 Case BoundKind.FieldAccess
                     Return HasHome(DirectCast(expression, BoundFieldAccess))
@@ -259,14 +259,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             ' while readonly fields have home it is not valid to refer to it when not constructing.
-            If field.ContainingType <> Me._method.ContainingType Then
+            If field.ContainingType <> _method.ContainingType Then
                 Return False
             End If
 
             If field.IsShared Then
-                Return Me._method.MethodKind = MethodKind.SharedConstructor
+                Return _method.MethodKind = MethodKind.SharedConstructor
             Else
-                Return Me._method.MethodKind = MethodKind.Constructor AndAlso
+                Return _method.MethodKind = MethodKind.Constructor AndAlso
                     fieldAccess.ReceiverOpt.Kind = BoundKind.MeReference
             End If
         End Function
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Select Case expression.Kind
                     Case BoundKind.Sequence
                         Dim boundSequenceValue = DirectCast(expression, BoundSequence).ValueOpt
-                        Return boundSequenceValue IsNot Nothing AndAlso Me.AllowedToTakeRef(boundSequenceValue, addressKind)
+                        Return boundSequenceValue IsNot Nothing AndAlso AllowedToTakeRef(boundSequenceValue, addressKind)
 
                     Case BoundKind.FieldAccess
                         Return AllowedToTakeRef(DirectCast(expression, BoundFieldAccess), addressKind)

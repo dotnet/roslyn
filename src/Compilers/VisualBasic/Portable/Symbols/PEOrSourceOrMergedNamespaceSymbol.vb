@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' Bubble up public accessibility
                     If _lazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Public Then
-                        Dim parent = TryCast(Me.ContainingSymbol, PEOrSourceOrMergedNamespaceSymbol)
+                        Dim parent = TryCast(ContainingSymbol, PEOrSourceOrMergedNamespaceSymbol)
 
                         While parent IsNot Nothing AndAlso
                               parent._lazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Private

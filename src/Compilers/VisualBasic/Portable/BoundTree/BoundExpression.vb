@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Property IsConstant As Boolean
             Get
-                Return Me.ConstantValueOpt IsNot Nothing
+                Return ConstantValueOpt IsNot Nothing
             End Get
         End Property
 
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Protected Sub ValidateConstantValue()
-            ValidateConstantValue(Me.Type, Me.ConstantValueOpt)
+            ValidateConstantValue(Type, ConstantValueOpt)
         End Sub
 
         Protected Shared Sub ValidateConstantValue(type As TypeSymbol, constValue As ConstantValue)

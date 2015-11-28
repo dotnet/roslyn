@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Friend Sub New(green As InternalSyntax.SyntaxList, parent As SyntaxNode, position As Integer)
                 MyBase.New(green, parent, position)
-                Me._children = New ArrayElement(Of WeakReference(Of SyntaxNode))(((green.SlotCount + 1) >> 1) - 1) {}
+                _children = New ArrayElement(Of WeakReference(Of SyntaxNode))(((green.SlotCount + 1) >> 1) - 1) {}
             End Sub
 
             Friend Overrides Function GetNodeSlot(i As Integer) As SyntaxNode
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                 If (i And 1) = 0 Then
                     'not a separator
-                    result = GetWeakRedElement(Me._children(i >> 1).Value, i)
+                    result = GetWeakRedElement(_children(i >> 1).Value, i)
                 End If
 
                 Return result
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                 If (i And 1) = 0 Then
                     'not a separator
-                    Dim weak = Me._children(i >> 1).Value
+                    Dim weak = _children(i >> 1).Value
                     If weak IsNot Nothing Then
                         weak.TryGetTarget(result)
                     End If

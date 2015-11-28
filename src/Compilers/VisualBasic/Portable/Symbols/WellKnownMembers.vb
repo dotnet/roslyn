@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim system_Runtime_CompilerServices = GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create("System", "Runtime", "CompilerServices"))
                 Dim attributeType As NamedTypeSymbol = Nothing
 
-                Dim sourceModuleSymbol = DirectCast(Me.SourceModule, SourceModuleSymbol)
+                Dim sourceModuleSymbol = DirectCast(SourceModule, SourceModuleSymbol)
                 Dim sourceModuleBinder As Binder = BinderBuilder.CreateSourceModuleBinder(sourceModuleSymbol)
 
                 If system_Runtime_CompilerServices IsNot Nothing Then

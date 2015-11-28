@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(Not ContainingType.IsImplicitlyDeclared)
-            Dim compilation = Me.DeclaringCompilation
+            Dim compilation = DeclaringCompilation
             AddSynthesizedAttribute(attributes,
                                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Dim result = MyBase.ImplementationAttributes
 
-                If DirectCast(Me.AssociatedSymbol, PropertySymbol).IsWithEvents Then
+                If DirectCast(AssociatedSymbol, PropertySymbol).IsWithEvents Then
                     result = result Or Reflection.MethodImplAttributes.Synchronized
                 End If
 

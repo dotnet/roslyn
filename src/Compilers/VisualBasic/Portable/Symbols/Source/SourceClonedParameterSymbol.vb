@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End Region
 
         Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
-            Return New SourceClonedParameterSymbolWithCustomModifiers(_originalParam, DirectCast(Me.ContainingSymbol, MethodSymbol), Me.Ordinal, type, customModifiers, countOfCustomModifiersPrecedingByRef)
+            Return New SourceClonedParameterSymbolWithCustomModifiers(_originalParam, DirectCast(ContainingSymbol, MethodSymbol), Ordinal, type, customModifiers, countOfCustomModifiersPrecedingByRef)
         End Function
 
         Friend NotInheritable Class SourceClonedParameterSymbolWithCustomModifiers

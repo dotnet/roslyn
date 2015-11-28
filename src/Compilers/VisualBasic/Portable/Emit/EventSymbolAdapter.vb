@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IEventDefinitionIsSpecialName As Boolean Implements Cci.IEventDefinition.IsSpecialName
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasSpecialName
+                Return HasSpecialName
             End Get
 
         End Property
@@ -72,19 +72,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IEventDefinitionCaller As Cci.IMethodReference Implements Cci.IEventDefinition.Caller
             Get
                 CheckDefinitionInvariant()
-                Return Me.RaiseMethod
+                Return RaiseMethod
             End Get
 
         End Property
 
         Private Overloads Function IEventDefinitionGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IEventDefinition.GetType
-            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property IEventDefinitionContainingTypeDefinition As Cci.ITypeDefinition Implements Cci.IEventDefinition.ContainingTypeDefinition
             Get
                 CheckDefinitionInvariant()
-                Return Me.ContainingType
+                Return ContainingType
             End Get
 
         End Property
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As Cci.ITypeReference Implements Cci.ITypeMemberReference.GetContainingType
             CheckDefinitionInvariant()
-            Return Me.ContainingType
+            Return ContainingType
         End Function
 
         Friend Overrides Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) ' Implements Cci.IReference.Dispatch
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IEventDefinitionName As String Implements Cci.IEventDefinition.Name
             Get
                 CheckDefinitionInvariant()
-                Return Me.MetadataName
+                Return MetadataName
             End Get
         End Property
 

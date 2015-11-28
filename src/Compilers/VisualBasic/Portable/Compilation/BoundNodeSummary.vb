@@ -33,9 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(lowestBound As BoundNode,
                        highestBound As BoundNode,
                        lowestBoundOfSyntacticParent As BoundNode)
-            Me.LowestBoundNode = lowestBound
-            Me.HighestBoundNode = highestBound
-            Me.LowestBoundNodeOfSyntacticParent = lowestBoundOfSyntacticParent
+            LowestBoundNode = lowestBound
+            HighestBoundNode = highestBound
+            LowestBoundNodeOfSyntacticParent = lowestBoundOfSyntacticParent
         End Sub
     End Structure
 End Namespace

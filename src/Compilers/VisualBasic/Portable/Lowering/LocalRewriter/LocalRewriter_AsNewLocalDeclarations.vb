@@ -97,14 +97,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       localSymbol.Type)))
                     End If
 
-                    rewrittenInitializer = Me.VisitAndGenerateObjectCloneIfNeeded(initializerToRewrite)
+                    rewrittenInitializer = VisitAndGenerateObjectCloneIfNeeded(initializerToRewrite)
 
                     If Not objectInitializer.CreateTemporaryLocalForInitialization Then
                         RemovePlaceholderReplacement(placeholder)
                     End If
 
                 Else
-                    rewrittenInitializer = Me.VisitAndGenerateObjectCloneIfNeeded(node.Initializer)
+                    rewrittenInitializer = VisitAndGenerateObjectCloneIfNeeded(node.Initializer)
                 End If
 
                 Dim initialization = RewriteLocalDeclarationAsInitializer(

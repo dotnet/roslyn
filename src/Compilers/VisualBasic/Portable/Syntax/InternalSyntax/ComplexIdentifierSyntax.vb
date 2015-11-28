@@ -20,10 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, precedingTrivia As VisualBasicSyntaxNode, followingTrivia As VisualBasicSyntaxNode, possibleKeywordKind As SyntaxKind, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter)
             MyBase.New(kind, errors, annotations, text, precedingTrivia, followingTrivia)
 
-            Me._possibleKeywordKind = possibleKeywordKind
-            Me._isBracketed = isBracketed
-            Me._identifierText = identifierText
-            Me._typeCharacter = typeCharacter
+            _possibleKeywordKind = possibleKeywordKind
+            _isBracketed = isBracketed
+            _identifierText = identifierText
+            _typeCharacter = typeCharacter
 
         End Sub
 
@@ -52,13 +52,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend Overrides ReadOnly Property PossibleKeywordKind As SyntaxKind
             Get
-                Return Me._possibleKeywordKind
+                Return _possibleKeywordKind
             End Get
         End Property
 
         Public Overrides ReadOnly Property RawContextualKind As Integer
             Get
-                Return Me._possibleKeywordKind
+                Return _possibleKeywordKind
             End Get
         End Property
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend Overrides ReadOnly Property IsBracketed As Boolean
             Get
-                Return Me._isBracketed
+                Return _isBracketed
             End Get
         End Property
 
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend Overrides ReadOnly Property IdentifierText As String
             Get
-                Return Me._identifierText
+                Return _identifierText
             End Get
         End Property
 
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend Overrides ReadOnly Property TypeCharacter As TypeCharacter
             Get
-                Return Me._typeCharacter
+                Return _typeCharacter
             End Get
         End Property
 

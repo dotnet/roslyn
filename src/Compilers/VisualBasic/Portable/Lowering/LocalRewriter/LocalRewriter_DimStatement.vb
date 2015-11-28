@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inits As ArrayBuilder(Of BoundStatement) = Nothing
 
             For Each decl In node.LocalDeclarations
-                Dim init As BoundNode = Me.Visit(decl)
+                Dim init As BoundNode = Visit(decl)
                 If init IsNot Nothing Then
                     If inits Is Nothing Then
                         inits = ArrayBuilder(Of BoundStatement).GetInstance

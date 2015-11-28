@@ -49,8 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend Overrides Function GetMembersForCci() As ImmutableArray(Of Symbol)
                 Dim builder = ArrayBuilder(Of Symbol).GetInstance()
-                Dim manager As EmbeddedSymbolManager = Me.DeclaringCompilation.EmbeddedSymbolManager
-                For Each member In Me.GetMembers
+                Dim manager As EmbeddedSymbolManager = DeclaringCompilation.EmbeddedSymbolManager
+                For Each member In GetMembers
                     If manager.IsSymbolReferenced(member) Then
                         builder.Add(member)
                     End If

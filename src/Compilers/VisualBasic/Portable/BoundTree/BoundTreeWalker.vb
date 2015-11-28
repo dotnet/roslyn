@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Sub VisitList(Of T As BoundNode)(list As ImmutableArray(Of T))
             If Not list.IsDefault Then
                 For Each item In list
-                    Me.Visit(item)
+                    Visit(item)
                 Next
             End If
         End Sub
@@ -91,10 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 current = binary.Left
             End While
 
-            Me.Visit(current)
+            Visit(current)
 
             While rightOperands.Count > 0
-                Me.Visit(rightOperands.Pop())
+                Visit(rightOperands.Pop())
             End While
 
             rightOperands.Free()

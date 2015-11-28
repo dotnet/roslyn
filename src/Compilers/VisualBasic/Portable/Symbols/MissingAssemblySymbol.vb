@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub New()
             MyBase.New(New AssemblyIdentity("<Missing Core Assembly>"))
-            Me.SetCorLibrary(Me)
+            SetCorLibrary(Me)
         End Sub
 
         ''' <summary>
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="type"></param>
         Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
 #If DEBUG Then
-            For Each [module] In Me.Modules
+            For Each [module] In Modules
                 Debug.Assert([module].GetReferencedAssemblies().Length = 0)
             Next
 #End If

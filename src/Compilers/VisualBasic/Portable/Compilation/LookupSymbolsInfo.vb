@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' 1) Expose Freeing primitive. 
         Public Sub Free()
             ' Note that poolables are not finalizable.  If one gets collected - no big deal.
-            Me.Clear()
+            Clear()
             s_pool.Free(Me)
         End Sub
 

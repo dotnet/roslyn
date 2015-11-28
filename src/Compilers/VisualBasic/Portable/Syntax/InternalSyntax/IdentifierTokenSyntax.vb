@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Public Overrides ReadOnly Property RawContextualKind As Integer
             Get
-                Return Me.PossibleKeywordKind
+                Return PossibleKeywordKind
             End Get
         End Property
 

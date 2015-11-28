@@ -26,14 +26,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
-            Me._isEnumerable = isEnumerable
+            _isEnumerable = isEnumerable
 
             Dim methodReturnType = method.ReturnType
             If methodReturnType.GetArity = 0 Then
-                Me._elementType = method.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
+                _elementType = method.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
             Else
                 ' the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
-                Me._elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(Me.TypeMap).Type
+                _elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(TypeMap).Type
             End If
         End Sub
 
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function EnsureAllSymbolsAndSignature() As Boolean
             Dim hasErrors As Boolean = MyBase.EnsureAllSymbolsAndSignature
 
-            If Me.Method.IsSub OrElse Me._elementType.IsErrorType Then
+            If Method.IsSub OrElse _elementType.IsErrorType Then
                 hasErrors = True
             End If
 
@@ -101,12 +101,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             EnsureSpecialType(SpecialType.System_Boolean, hasErrors)
             EnsureSpecialType(SpecialType.System_Int32, hasErrors)
 
-            If Me.Method.ReturnType.IsDefinition Then
-                If Me._isEnumerable Then
+            If Method.ReturnType.IsDefinition Then
+                If _isEnumerable Then
                     EnsureSpecialType(SpecialType.System_Collections_IEnumerator, hasErrors)
                 End If
             Else
-                If Me._isEnumerable Then
+                If _isEnumerable Then
                     EnsureSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T, hasErrors)
                     EnsureSpecialType(SpecialType.System_Collections_IEnumerable, hasErrors)
                 End If
@@ -121,14 +121,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub GenerateControlFields()
             ' Add a field: int _state
-            Me.StateField = Me.F.StateMachineField(Me.F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Public)
+            StateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Public)
 
             ' Add a field: T current
-            _currentField = F.StateMachineField(_elementType, Me.Method, GeneratedNames.MakeIteratorCurrentFieldName(), Accessibility.Public)
+            _currentField = F.StateMachineField(_elementType, Method, GeneratedNames.MakeIteratorCurrentFieldName(), Accessibility.Public)
 
             ' if it is an Enumerable, add a field: initialThreadId As Integer
             _initialThreadIdField = If(_isEnumerable,
-                F.StateMachineField(F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeIteratorInitialThreadIdName(), Accessibility.Public),
+                F.StateMachineField(F.SpecialType(SpecialType.System_Int32), Method, GeneratedNames.MakeIteratorInitialThreadIdName(), Accessibility.Public),
                 Nothing)
 
         End Sub
@@ -137,12 +137,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim managedThreadId As BoundExpression = Nothing  ' Thread.CurrentThread.ManagedThreadId
 
             ' Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
-            Dim disposeMethod = Me.OpenMethodImplementation(SpecialMember.System_IDisposable__Dispose,
+            Dim disposeMethod = OpenMethodImplementation(SpecialMember.System_IDisposable__Dispose,
                                                              "Dispose",
                                                              Accessibility.Private,
                                                              hasMethodBodyDependency:=True)
 
-            Dim moveNextMethod = Me.OpenMoveNextMethodImplementation(SpecialMember.System_Collections_IEnumerator__MoveNext,
+            Dim moveNextMethod = OpenMoveNextMethodImplementation(SpecialMember.System_Collections_IEnumerator__MoveNext,
                                                                      Accessibility.Private)
 
             GenerateMoveNextAndDispose(moveNextMethod, disposeMethod)
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '    result.parameter = this.parameterProxy; ' copy all of the parameter proxies
 
                 ' Add IEnumerator<int> IEnumerable<int>.GetEnumerator()
-                Dim getEnumeratorGeneric = Me.OpenMethodImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType),
+                Dim getEnumeratorGeneric = OpenMethodImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType),
                                                             SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator,
                                                             "GetEnumerator",
                                                             Accessibility.Private,
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       IEnumerable.GetEnumerator seems better -
                 '       it is clear why we have the property, and "Current" suffix will be shared in metadata with another Current.
                 '       It is also consistent with the naming of IEnumerable.Current (see below).
-                Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerable__GetEnumerator,
+                OpenMethodImplementation(SpecialMember.System_Collections_IEnumerable__GetEnumerator,
                                             "IEnumerable.GetEnumerator",
                                             Accessibility.Private,
                                             hasMethodBodyDependency:=False)
@@ -257,14 +257,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Add T IEnumerator<T>.Current
-            Me.OpenPropertyImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType),
+            OpenPropertyImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType),
                                           SpecialMember.System_Collections_Generic_IEnumerator_T__Current,
                                           "Current",
                                           Accessibility.Private)
             F.CloseMethod(F.Return(F.Field(F.Me, _currentField, False)))
 
             ' Add void IEnumerator.Reset()
-            Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerator__Reset,
+            OpenMethodImplementation(SpecialMember.System_Collections_IEnumerator__Reset,
                                         "Reset",
                                         Accessibility.Private,
                                         hasMethodBodyDependency:=False)
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '       It may be an overkill and may lead to metadata bloat. 
             '       IEnumerable.Current seems better -
             '       it is clear why we have the property, and "Current" suffix will be shared in metadata with another Current.
-            Me.OpenPropertyImplementation(SpecialMember.System_Collections_IEnumerator__Current,
+            OpenPropertyImplementation(SpecialMember.System_Collections_IEnumerator__Current,
                                           "IEnumerator.Current",
                                           Accessibility.Private)
             F.CloseMethod(F.Return(F.Field(F.Me, _currentField, False)))
@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property PreserveInitialParameterValues As Boolean
             Get
-                Return Me._isEnumerable
+                Return _isEnumerable
             End Get
         End Property
 
@@ -328,15 +328,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedMethod, disposeMethod As SynthesizedMethod)
-            Dim rewriter = New IteratorMethodToClassRewriter(method:=Me.Method,
-                                                          F:=Me.F,
-                                                          state:=Me.StateField,
-                                                          current:=Me._currentField,
-                                                          hoistedVariables:=Me.hoistedVariables,
-                                                          localProxies:=Me.nonReusableLocalProxies,
-                                                          SynthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
-                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
-                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
+            Dim rewriter = New IteratorMethodToClassRewriter(method:=Method,
+                                                          F:=F,
+                                                          state:=StateField,
+                                                          current:=_currentField,
+                                                          hoistedVariables:=hoistedVariables,
+                                                          localProxies:=nonReusableLocalProxies,
+                                                          SynthesizedLocalOrdinals:=SynthesizedLocalOrdinals,
+                                                          slotAllocatorOpt:=SlotAllocatorOpt,
+                                                          nextFreeHoistedLocalSlot:=nextFreeHoistedLocalSlot,
                                                           diagnostics:=Diagnostics)
 
             rewriter.GenerateMoveNextAndDispose(Body, moveNextMethod, disposeMethod)
@@ -353,17 +353,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub InitializeParameterWithProxy(parameter As ParameterSymbol, proxy As FieldSymbol, stateMachineVariable As LocalSymbol, initializers As ArrayBuilder(Of BoundExpression))
             Debug.Assert(proxy IsNot Nothing)
 
-            Dim frameType As NamedTypeSymbol = If(Me.Method.IsGenericMethod,
-                                                  Me.StateMachineType.Construct(Me.Method.TypeArguments),
-                                                  Me.StateMachineType)
+            Dim frameType As NamedTypeSymbol = If(Method.IsGenericMethod,
+                                                  StateMachineType.Construct(Method.TypeArguments),
+                                                  StateMachineType)
 
             Dim expression As BoundExpression = If(parameter.IsMe,
-                                                   DirectCast(Me.F.Me, BoundExpression),
-                                                   Me.F.Parameter(parameter).MakeRValue())
+                                                   DirectCast(F.Me, BoundExpression),
+                                                   F.Parameter(parameter).MakeRValue())
             initializers.Add(
-                Me.F.AssignmentExpression(
-                    Me.F.Field(
-                        Me.F.Local(stateMachineVariable, True),
+                F.AssignmentExpression(
+                    F.Field(
+                        F.Local(stateMachineVariable, True),
                         proxy.AsMember(frameType),
                         True),
                     expression))

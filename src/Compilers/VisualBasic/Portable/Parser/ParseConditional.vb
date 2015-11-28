@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 warningKeyword = ResyncAt(warningKeyword)
             End If
 
-            Dim errorCodes = Me._pool.AllocateSeparated(Of IdentifierNameSyntax)()
+            Dim errorCodes = _pool.AllocateSeparated(Of IdentifierNameSyntax)()
             If Not SyntaxFacts.IsTerminator(CurrentToken.Kind) Then
                 Do
                     Dim errorCode = SyntaxFactory.IdentifierName(ParseIdentifier())
@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 statement = CheckFeatureAvailability(Feature.WarningDirectives, statement)
             End If
 
-            Me._pool.Free(errorCodes)
+            _pool.Free(errorCodes)
             Return statement
         End Function
 

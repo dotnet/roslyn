@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </value>
         Public ReadOnly Property ConditionIsTop As Boolean
             Get
-                Return Me.TopConditionOpt IsNot Nothing
+                Return TopConditionOpt IsNot Nothing
             End Get
         End Property
 
@@ -32,10 +32,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </value>
         Public ReadOnly Property ConditionIsUntil As Boolean
             Get
-                If Me.TopConditionOpt IsNot Nothing Then
-                    Return Me.TopConditionIsUntil
+                If TopConditionOpt IsNot Nothing Then
+                    Return TopConditionIsUntil
                 Else
-                    Return Me.BottomConditionIsUntil
+                    Return BottomConditionIsUntil
                 End If
             End Get
         End Property
@@ -48,10 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property ConditionOpt As BoundExpression
             Get
-                If Me.TopConditionOpt IsNot Nothing Then
-                    Return Me.TopConditionOpt
+                If TopConditionOpt IsNot Nothing Then
+                    Return TopConditionOpt
                 Else
-                    Return Me.BottomConditionOpt
+                    Return BottomConditionOpt
                 End If
             End Get
         End Property

@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Note, Dev11 emits DebuggerNonUserCodeAttribute, but we are using DebuggerHiddenAttribute instead.
-            AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeDebuggerHiddenAttribute())
+            AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeDebuggerHiddenAttribute())
         End Sub
 
         Private Shared Function MakeSafeName(name As String) As String

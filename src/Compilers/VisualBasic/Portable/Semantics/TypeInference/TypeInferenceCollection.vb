@@ -574,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Do not merge array literals with other expressions
             If TypeOf type IsNot ArrayLiteralTypeSymbol Then
 
-                For Each competitor As DominantTypeData In Me.GetTypeDataList()
+                For Each competitor As DominantTypeData In GetTypeDataList()
 
                     ' Do not merge array literals with other expressions
                     If TypeOf competitor.ResultType IsNot ArrayLiteralTypeSymbol AndAlso type.IsSameTypeIgnoringCustomModifiers(competitor.ResultType) Then
@@ -595,7 +595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 typeData.ResultType = type
                 typeData.InferenceRestrictions = conversion
 
-                Me.GetTypeDataList().Add(typeData)
+                GetTypeDataList().Add(typeData)
             End If
         End Sub
 

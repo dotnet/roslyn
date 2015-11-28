@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property Name As String
             Get
-                Return Binder.GetAccessorName(m_propertyOrEvent.Name, Me.MethodKind, Me.IsCompilationOutputWinMdObj())
+                Return Binder.GetAccessorName(m_propertyOrEvent.Name, MethodKind, IsCompilationOutputWinMdObj())
             End Get
         End Property
 
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If overriddenMethod IsNot Nothing Then
                 Return overriddenMethod.MetadataName
             Else
-                Return Me.Name
+                Return Name
             End If
         End Function
 

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim methodBlock = TryCast(root, MethodBlockBaseSyntax)
 
             Debug.Assert(Not TypeOf methodSymbol Is SourceMethodSymbol OrElse
-                         Me.IsSemanticModelBinder OrElse
+                         IsSemanticModelBinder OrElse
                          (methodBlock Is DirectCast(methodSymbol, SourceMethodSymbol).BlockSyntax AndAlso
                           methodBlock IsNot Nothing))
 

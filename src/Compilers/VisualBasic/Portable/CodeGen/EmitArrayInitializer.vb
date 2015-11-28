@@ -44,9 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim initializationStyle = ShouldEmitBlockInitializer(arrayType.ElementType, initExprs)
 
             If initializationStyle = ArrayInitializerStyle.Element Then
-                Me.EmitElementInitializers(arrayType, initExprs, True)
+                EmitElementInitializers(arrayType, initExprs, True)
             Else
-                _builder.EmitArrayBlockInitializer(Me.GetRawData(initExprs), inits.Syntax, _diagnostics)
+                _builder.EmitArrayBlockInitializer(GetRawData(initExprs), inits.Syntax, _diagnostics)
 
                 If initializationStyle = ArrayInitializerStyle.Mixed Then
                     EmitElementInitializers(arrayType, initExprs, False)
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Next
                 Else
                     For Each init In inits
-                        Me.AsConstOrDefault(init).Serialize(bw)
+                        AsConstOrDefault(init).Serialize(bw)
                     Next
                 End If
             End If

@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
             Get
-                Return Me._containingModule
+                Return _containingModule
             End Get
         End Property
 
@@ -168,25 +168,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim name As String = symbol.Name
                 Dim item As Object = Nothing
 
-                If Me._dictionary.TryGetValue(name, item) Then
+                If _dictionary.TryGetValue(name, item) Then
                     Dim builder = TryCast(item, ArrayBuilder(Of NamespaceOrTypeSymbol))
                     If builder Is Nothing Then
                         builder = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance()
                         builder.Add(DirectCast(item, NamespaceOrTypeSymbol))
-                        Me._dictionary(name) = builder
+                        _dictionary(name) = builder
                     End If
                     builder.Add(symbol)
 
                 Else
-                    Me._dictionary(name) = symbol
+                    _dictionary(name) = symbol
                 End If
 
             End Sub
 
             Public Function CreateMap() As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
-                Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(Me._dictionary.Count, IdentifierComparison.Comparer)
+                Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(_dictionary.Count, IdentifierComparison.Comparer)
 
-                For Each kvp In Me._dictionary
+                For Each kvp In _dictionary
 
                     Dim value As Object = kvp.Value
                     Dim members As ImmutableArray(Of NamespaceOrTypeSymbol)
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim dictionary As New Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))(CaseInsensitiveComparison.Comparer)
 
-                Dim map As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol)) = Me.GetNameToMembersMap()
+                Dim map As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol)) = GetNameToMembersMap()
                 For Each kvp In map
                     Dim members As ImmutableArray(Of NamespaceOrTypeSymbol) = kvp.Value
 
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _lazyAllMembers
 
             Else
-                Dim allMembers = Me.GetMembersUnordered()
+                Dim allMembers = GetMembersUnordered()
 
                 If allMembers.Length >= 2 Then
                     allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance)
@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overloads Overrides Function GetMembersUnordered() As ImmutableArray(Of Symbol)
             If _lazyAllMembers.IsDefault Then
-                Dim members = StaticCast(Of Symbol).From(Me.GetNameToMembersMap().Flatten())
+                Dim members = StaticCast(Of Symbol).From(GetNameToMembersMap().Flatten())
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyAllMembers, members, Nothing)
             End If
 
@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             Dim members As ImmutableArray(Of NamespaceOrTypeSymbol) = Nothing
-            If Me.GetNameToMembersMap().TryGetValue(name, members) Then
+            If GetNameToMembersMap().TryGetValue(name, members) Then
                 Return ImmutableArray(Of Symbol).CastUp(members)
             Else
                 Return ImmutableArray(Of Symbol).Empty
@@ -339,16 +339,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetTypeMembersUnordered() As ImmutableArray(Of NamedTypeSymbol)
-            Return Me.GetNameToTypeMembersMap().Flatten()
+            Return GetNameToTypeMembersMap().Flatten()
         End Function
 
         Public Overloads Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)
-            Return Me.GetNameToTypeMembersMap().Flatten(LexicalOrderSymbolComparer.Instance)
+            Return GetNameToTypeMembersMap().Flatten(LexicalOrderSymbolComparer.Instance)
         End Function
 
         Public Overloads Overrides Function GetTypeMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
             Dim members As ImmutableArray(Of NamedTypeSymbol) = Nothing
-            If Me.GetNameToTypeMembersMap().TryGetValue(name, members) Then
+            If GetNameToTypeMembersMap().TryGetValue(name, members) Then
                 Return members
             Else
                 Return ImmutableArray(Of NamedTypeSymbol).Empty
@@ -378,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
             If Not _lazyLexicalSortKey.IsInitialized Then
-                _lazyLexicalSortKey.SetFrom(_declaration.GetLexicalSortKey(Me.DeclaringCompilation))
+                _lazyLexicalSortKey.SetFrom(_declaration.GetLexicalSortKey(DeclaringCompilation))
             End If
             Return _lazyLexicalSortKey
         End Function
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 ' PERF: Declaring references are cached for compilations with event queue.
-                Return If(Me.DeclaringCompilation?.EventQueue IsNot Nothing, GetCachedDeclaringReferences(), ComputeDeclaringReferencesCore())
+                Return If(DeclaringCompilation?.EventQueue IsNot Nothing, GetCachedDeclaringReferences(), ComputeDeclaringReferencesCore())
             End Get
         End Property
 
@@ -425,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
-            If Me.IsGlobalNamespace Then
+            If IsGlobalNamespace Then
                 Return True
             Else
                 ' Check if any namespace declaration block intersects with the given tree/span.
@@ -531,14 +531,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' VS can display errors and warnings separately in the IDE, so it may be ok to flood the users with
             ' these warnings.
             If Not reportedNamespaceMismatch AndAlso
-                String.Compare(node.Identifier.ValueText, Me.Name, StringComparison.Ordinal) <> 0 Then
+                String.Compare(node.Identifier.ValueText, Name, StringComparison.Ordinal) <> 0 Then
                 ' all namespace names from the declarations match following the VB identifier comparison rules,
                 ' so we just need to check when they are not matching using case sensitive comparison.
 
                 ' filename is the one where the correct declaration occurred in Dev10
                 ' TODO: report "related location" rather than including path in the message:
                 Dim path = GetSourcePathForDeclaration()
-                Dim diag = New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_NamespaceCaseMismatch3, node.Identifier.ValueText, Me.Name, path), node.GetLocation())
+                Dim diag = New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_NamespaceCaseMismatch3, node.Identifier.ValueText, Name, path), node.GetLocation())
                 diagnostics.Add(diag)
                 reportedNamespaceMismatch = True
             End If
@@ -578,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim path = Nothing
 
             For Each declaration In _declaration.Declarations
-                If String.Compare(Me.Name, declaration.Name, StringComparison.Ordinal) = 0 Then
+                If String.Compare(Name, declaration.Name, StringComparison.Ordinal) = 0 Then
                     If declaration.IsPartOfRootNamespace Then
                         'path = StringConstants.ProjectSettingLocationName
                         path = New LocalizableErrorArgument(ERRID.IDS_ProjectSettingsLocationName)
@@ -607,7 +607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _containingModule.MightContainExtensionMethods Then
                     ' Note that we are using GetModuleMembers because only Modules can contain extension methods in source.
-                    Return Me.GetModuleMembers()
+                    Return GetModuleMembers()
                 End If
 
                 Return ImmutableArray(Of NamedTypeSymbol).Empty
@@ -658,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     containingDecl = _declaration.Declarations.FirstOrDefault(Function(decl) decl.GetNamespaceBlockSyntax() Is Nothing)
                 End If
 
-                Dim containingDeclName = If(containingDecl IsNot Nothing, containingDecl.Name, Me.Name)
+                Dim containingDeclName = If(containingDecl IsNot Nothing, containingDecl.Name, Name)
                 Dim containingNamespace = TryCast(Me.ContainingNamespace, SourceNamespaceSymbol)
                 Dim fullDeclName As String
                 If containingNamespace IsNot Nothing AndAlso containingNamespace.Name <> "" Then

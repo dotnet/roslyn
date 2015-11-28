@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '       must be present; see comments on bound node declaration
             Debug.Assert(local IsNot Nothing)
 
-            Return New BoundLocal(node.Syntax, local, False, Me.VisitType(local.Type))
+            Return New BoundLocal(node.Syntax, local, False, VisitType(local.Type))
         End Function
 
         Public Overrides Function VisitAnonymousTypeFieldInitializer(node As BoundAnonymousTypeFieldInitializer) As BoundNode

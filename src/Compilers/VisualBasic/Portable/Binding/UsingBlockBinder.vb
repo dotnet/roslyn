@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' if this is not an AsNew declaration with multiple names and an initializer (error case), then only use
                         ' the initializer for the last variable.
-                        localsBuilder.Add(LocalSymbol.Create(Me.ContainingMember, Me,
+                        localsBuilder.Add(LocalSymbol.Create(ContainingMember, Me,
                                                              name.Identifier, name, variableDeclarator.AsClause,
                                                              If(isNotAsNewAndHasInitializer AndAlso i = names.Count - 1,
                                                                 variableDeclarator.Initializer,

@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 If _lazyExplicitInterfaceImplementations.IsDefault Then
                     ImmutableInterlocked.InterlockedCompareExchange(
                         _lazyExplicitInterfaceImplementations,
-                        Me.RetargetExplicitInterfaceImplementations(),
+                        RetargetExplicitInterfaceImplementations(),
                         Nothing)
                 End If
 
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Private Function RetargetExplicitInterfaceImplementations() As ImmutableArray(Of EventSymbol)
-            Dim impls = Me.UnderlyingEvent.ExplicitInterfaceImplementations
+            Dim impls = UnderlyingEvent.ExplicitInterfaceImplementations
             If impls.IsEmpty Then
                 Return impls
             End If
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Dim builder = ArrayBuilder(Of EventSymbol).GetInstance()
 
             For i = 0 To impls.Length - 1
-                Dim retargeted = Me.RetargetingModule.RetargetingTranslator.RetargetImplementedEvent(impls(i))
+                Dim retargeted = RetargetingModule.RetargetingTranslator.RetargetImplementedEvent(impls(i))
                 If retargeted IsNot Nothing Then
                     builder.Add(retargeted)
                 End If

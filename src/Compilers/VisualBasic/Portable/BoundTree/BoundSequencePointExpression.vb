@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
         Public Overrides ReadOnly Property IsLValue As Boolean
             Get
-                Return Me.Expression.IsLValue
+                Return Expression.IsLValue
             End Get
         End Property
 

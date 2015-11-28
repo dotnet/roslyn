@@ -366,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="kind">The Output Kind.</param>
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the output kind is different; otherwise current instance.</returns>        
         Public Shadows Function WithOutputKind(kind As OutputKind) As VisualBasicCompilationOptions
-            If kind = Me.OutputKind Then
+            If kind = OutputKind Then
                 Return Me
             End If
 
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="name">The name for the ScriptClassName.</param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the script class name is different; otherwise current instance.</returns>        
         Public Shadows Function WithScriptClassName(name As String) As VisualBasicCompilationOptions
-            If String.Equals(name, Me.ScriptClassName, StringComparison.Ordinal) Then
+            If String.Equals(name, ScriptClassName, StringComparison.Ordinal) Then
                 Return Me
             End If
 
@@ -405,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="name">The name for the MainType .</param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the main type name is different; otherwise current instance.</returns>        
         Public Shadows Function WithMainTypeName(name As String) As VisualBasicCompilationOptions
-            If String.Equals(name, Me.MainTypeName, StringComparison.Ordinal) Then
+            If String.Equals(name, MainTypeName, StringComparison.Ordinal) Then
                 Return Me
             End If
 
@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The Option Strict setting.  <see cref="Microsoft.CodeAnalysis.VisualBasic.OptionStrict"/></param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the option strict is different; otherwise current instance.</returns>        
         Public Shadows Function WithOptionStrict(value As OptionStrict) As VisualBasicCompilationOptions
-            If value = Me.OptionStrict Then
+            If value = OptionStrict Then
                 Return Me
             End If
 
@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The Option infer setting. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the option infer is different; otherwise current instance.</returns>        
         Public Shadows Function WithOptionInfer(value As Boolean) As VisualBasicCompilationOptions
-            If value = Me.OptionInfer Then
+            If value = OptionInfer Then
                 Return Me
             End If
 
@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The Option Explicit setting. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the option explicit is different; otherwise current instance.</returns>        
         Public Shadows Function WithOptionExplicit(value As Boolean) As VisualBasicCompilationOptions
-            If value = Me.OptionExplicit Then
+            If value = OptionExplicit Then
                 Return Me
             End If
 
@@ -501,7 +501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The Option Compare Text setting. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the option compare text is different; otherwise current instance.</returns>        
         Public Shadows Function WithOptionCompareText(value As Boolean) As VisualBasicCompilationOptions
-            If value = Me.OptionCompareText Then
+            If value = OptionCompareText Then
                 Return Me
             End If
 
@@ -514,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The Embed VB Core Runtime setting. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the embed vb core runtime is different; otherwise current instance.</returns>        
         Public Shadows Function WithEmbedVbCoreRuntime(value As Boolean) As VisualBasicCompilationOptions
-            If value = Me.EmbedVbCoreRuntime Then
+            If value = EmbedVbCoreRuntime Then
                 Return Me
             End If
 
@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="enabled">The overflow check setting. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the overflow check is different; otherwise current instance.</returns>        
         Public Shadows Function WithOverflowChecks(enabled As Boolean) As VisualBasicCompilationOptions
-            If enabled = Me.CheckOverflow Then
+            If enabled = CheckOverflow Then
                 Return Me
             End If
 
@@ -606,7 +606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="name">The name of the cryptography key container. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the cryptography key container name is different; otherwise current instance.</returns>        
         Public Shadows Function WithCryptoKeyContainer(name As String) As VisualBasicCompilationOptions
-            If String.Equals(name, Me.CryptoKeyContainer, StringComparison.Ordinal) Then
+            If String.Equals(name, CryptoKeyContainer, StringComparison.Ordinal) Then
                 Return Me
             End If
 
@@ -619,7 +619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="path">The cryptography key file path. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the cryptography key path is different; otherwise current instance.</returns>        
         Public Shadows Function WithCryptoKeyFile(path As String) As VisualBasicCompilationOptions
-            If String.Equals(path, Me.CryptoKeyFile, StringComparison.Ordinal) Then
+            If String.Equals(path, CryptoKeyFile, StringComparison.Ordinal) Then
                 Return Me
             End If
 
@@ -636,7 +636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 value = ImmutableArray(Of Byte).Empty
             End If
 
-            If value = Me.CryptoPublicKey Then
+            If value = CryptoPublicKey Then
                 Return Me
             End If
 
@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The delay signing setting. </param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the delay sign is different; otherwise current instance.</returns>        
         Public Shadows Function WithDelaySign(value As Boolean?) As VisualBasicCompilationOptions
-            If value = Me.DelaySign Then
+            If value = DelaySign Then
                 Return Me
             End If
 
@@ -662,7 +662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The platform setting. <see cref="Microsoft.CodeAnalysis.Platform"/></param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the platform is different; otherwise current instance.</returns>        
         Public Shadows Function WithPlatform(value As Platform) As VisualBasicCompilationOptions
-            If value = Me.Platform Then
+            If value = Platform Then
                 Return Me
             End If
 
@@ -670,7 +670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function WithPublicSign(value As Boolean) As VisualBasicCompilationOptions
-            If value = Me.PublicSign Then
+            If value = PublicSign Then
                 Return Me
             End If
 
@@ -678,23 +678,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonWithDeterministic(deterministic As Boolean) As CompilationOptions
-            Return Me.WithDeterministic(deterministic)
+            Return WithDeterministic(deterministic)
         End Function
 
         Protected Overrides Function CommonWithGeneralDiagnosticOption(value As ReportDiagnostic) As CompilationOptions
-            Return Me.WithGeneralDiagnosticOption(value)
+            Return WithGeneralDiagnosticOption(value)
         End Function
 
         Protected Overrides Function CommonWithSpecificDiagnosticOptions(specificDiagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)) As CompilationOptions
-            Return Me.WithSpecificDiagnosticOptions(specificDiagnosticOptions)
+            Return WithSpecificDiagnosticOptions(specificDiagnosticOptions)
         End Function
 
         Protected Overrides Function CommonWithSpecificDiagnosticOptions(specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic))) As CompilationOptions
-            Return Me.WithSpecificDiagnosticOptions(specificDiagnosticOptions)
+            Return WithSpecificDiagnosticOptions(specificDiagnosticOptions)
         End Function
 
         Protected Overrides Function CommonWithReportSuppressedDiagnostics(reportSuppressedDiagnostics As Boolean) As CompilationOptions
-            Return Me.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
+            Return WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
         End Function
 
         <Obsolete>
@@ -708,7 +708,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The Report Warning setting. <see cref="Microsoft.CodeAnalysis.ReportDiagnostic"/></param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the report warning is different; otherwise current instance.</returns>        
         Public Shadows Function WithGeneralDiagnosticOption(value As ReportDiagnostic) As VisualBasicCompilationOptions
-            If value = Me.GeneralDiagnosticOption Then
+            If value = GeneralDiagnosticOption Then
                 Return Me
             End If
 
@@ -725,7 +725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 value = ImmutableDictionary(Of String, ReportDiagnostic).Empty
             End If
 
-            If value Is Me.SpecificDiagnosticOptions Then
+            If value Is SpecificDiagnosticOptions Then
                 Return Me
             End If
 
@@ -747,7 +747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">Report suppressed diagnostics setting.</param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the value is different from the current value; otherwise current instance.</returns>        
         Public Shadows Function WithReportSuppressedDiagnostics(value As Boolean) As VisualBasicCompilationOptions
-            If value = Me.ReportSuppressedDiagnostics Then
+            If value = ReportSuppressedDiagnostics Then
                 Return Me
             End If
 
@@ -759,7 +759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <returns>A new instance of <see cref="VisualBasicCompilationOptions"/>, if the value is different; otherwise the current instance.</returns>        
         Public Shadows Function WithOptimizationLevel(value As OptimizationLevel) As VisualBasicCompilationOptions
-            If value = Me.OptimizationLevel Then
+            If value = OptimizationLevel Then
                 Return Me
             End If
 
@@ -767,7 +767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
-            If value = Me.MetadataImportOptions Then
+            If value = MetadataImportOptions Then
                 Return Me
             End If
 
@@ -780,7 +780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="options">The parse option setting. <see cref="Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions"/></param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions, if the parse options is different; otherwise current instance.</returns>        
         Public Function WithParseOptions(options As VisualBasicParseOptions) As VisualBasicCompilationOptions
-            If options Is Me.ParseOptions Then
+            If options Is ParseOptions Then
                 Return Me
             End If
 
@@ -788,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function WithXmlReferenceResolver(resolver As XmlReferenceResolver) As VisualBasicCompilationOptions
-            If resolver Is Me.XmlReferenceResolver Then
+            If resolver Is XmlReferenceResolver Then
                 Return Me
             End If
 
@@ -796,7 +796,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function WithSourceReferenceResolver(resolver As SourceReferenceResolver) As VisualBasicCompilationOptions
-            If resolver Is Me.SourceReferenceResolver Then
+            If resolver Is SourceReferenceResolver Then
                 Return Me
             End If
 
@@ -804,7 +804,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function WithMetadataReferenceResolver(resolver As MetadataReferenceResolver) As VisualBasicCompilationOptions
-            If resolver Is Me.MetadataReferenceResolver Then
+            If resolver Is MetadataReferenceResolver Then
                 Return Me
             End If
 
@@ -814,7 +814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function WithAssemblyIdentityComparer(comparer As AssemblyIdentityComparer) As VisualBasicCompilationOptions
             comparer = If(comparer, AssemblyIdentityComparer.Default)
 
-            If comparer Is Me.AssemblyIdentityComparer Then
+            If comparer Is AssemblyIdentityComparer Then
                 Return Me
             End If
 
@@ -822,7 +822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function WithStrongNameProvider(provider As StrongNameProvider) As VisualBasicCompilationOptions
-            If provider Is Me.StrongNameProvider Then
+            If provider Is StrongNameProvider Then
                 Return Me
             End If
 
@@ -866,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
-            If Me.EmbedVbCoreRuntime AndAlso Me.OutputKind.IsNetModule() Then
+            If EmbedVbCoreRuntime AndAlso OutputKind.IsNetModule() Then
                 builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_VBCoreNetModuleConflict))
             End If
 
@@ -939,15 +939,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Return If(Me.GlobalImports.IsDefault, other.GlobalImports.IsDefault, Me.GlobalImports.SequenceEqual(other.GlobalImports)) AndAlso
-                   String.Equals(Me.RootNamespace, other.RootNamespace, StringComparison.Ordinal) AndAlso
-                   Me.OptionStrict = other.OptionStrict AndAlso
-                   Me.OptionInfer = other.OptionInfer AndAlso
-                   Me.OptionExplicit = other.OptionExplicit AndAlso
-                   Me.OptionCompareText = other.OptionCompareText AndAlso
-                   Me.EmbedVbCoreRuntime = other.EmbedVbCoreRuntime AndAlso
-                   Me.SuppressEmbeddedDeclarations = other.SuppressEmbeddedDeclarations AndAlso
-                   If(Me.ParseOptions Is Nothing, other.ParseOptions Is Nothing, Me.ParseOptions.Equals(other.ParseOptions))
+            Return If(GlobalImports.IsDefault, other.GlobalImports.IsDefault, GlobalImports.SequenceEqual(other.GlobalImports)) AndAlso
+                   String.Equals(RootNamespace, other.RootNamespace, StringComparison.Ordinal) AndAlso
+                   OptionStrict = other.OptionStrict AndAlso
+                   OptionInfer = other.OptionInfer AndAlso
+                   OptionExplicit = other.OptionExplicit AndAlso
+                   OptionCompareText = other.OptionCompareText AndAlso
+                   EmbedVbCoreRuntime = other.EmbedVbCoreRuntime AndAlso
+                   SuppressEmbeddedDeclarations = other.SuppressEmbeddedDeclarations AndAlso
+                   If(ParseOptions Is Nothing, other.ParseOptions Is Nothing, ParseOptions.Equals(other.ParseOptions))
         End Function
 
         ''' <summary>
@@ -956,7 +956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="obj">A object to compare with this object</param>
         ''' <returns>A boolean value.  True if the current object is equal to the other parameter; otherwise, False.</returns>
         Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me.Equals(TryCast(obj, VisualBasicCompilationOptions))
+            Return Equals(TryCast(obj, VisualBasicCompilationOptions))
         End Function
 
 
@@ -966,15 +966,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A hashcode representing this instance.</returns>
         Public Overrides Function GetHashCode() As Integer
             Return Hash.Combine(MyBase.GetHashCodeHelper(),
-                   Hash.Combine(Hash.CombineValues(Me.GlobalImports),
-                   Hash.Combine(If(Me.RootNamespace IsNot Nothing, StringComparer.Ordinal.GetHashCode(Me.RootNamespace), 0),
-                   Hash.Combine(Me.OptionStrict,
-                   Hash.Combine(Me.OptionInfer,
-                   Hash.Combine(Me.OptionExplicit,
-                   Hash.Combine(Me.OptionCompareText,
-                   Hash.Combine(Me.EmbedVbCoreRuntime,
-                   Hash.Combine(Me.SuppressEmbeddedDeclarations,
-                   Hash.Combine(Me.ParseOptions, 0))))))))))
+                   Hash.Combine(Hash.CombineValues(GlobalImports),
+                   Hash.Combine(If(RootNamespace IsNot Nothing, StringComparer.Ordinal.GetHashCode(RootNamespace), 0),
+                   Hash.Combine(OptionStrict,
+                   Hash.Combine(OptionInfer,
+                   Hash.Combine(OptionExplicit,
+                   Hash.Combine(OptionCompareText,
+                   Hash.Combine(EmbedVbCoreRuntime,
+                   Hash.Combine(SuppressEmbeddedDeclarations,
+                   Hash.Combine(ParseOptions, 0))))))))))
         End Function
 
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic

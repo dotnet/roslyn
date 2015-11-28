@@ -10,12 +10,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property CciIsOptional As Boolean Implements Cci.ICustomModifier.IsOptional
             Get
-                Return Me.IsOptional
+                Return IsOptional
             End Get
         End Property
 
         Private Function CciGetModifier(context As EmitContext) As Cci.ITypeReference Implements Cci.ICustomModifier.GetModifier
-            Return DirectCast(context.Module, PEModuleBuilder).Translate(Me.Modifier, DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
+            Return DirectCast(context.Module, PEModuleBuilder).Translate(Modifier, DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), context.Diagnostics)
         End Function
     End Class
 End Namespace

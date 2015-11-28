@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Sub OnCreatedIndices(diagnostics As DiagnosticBag) Implements IPEDeltaAssemblyBuilder.OnCreatedIndices
-            Dim embeddedTypesManager = Me.EmbeddedTypesManagerOpt
+            Dim embeddedTypesManager = EmbeddedTypesManagerOpt
             If embeddedTypesManager IsNot Nothing Then
                 For Each embeddedType In embeddedTypesManager.EmbeddedTypesMap.Keys
                     diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_EncNoPIAReference, embeddedType), Location.None)

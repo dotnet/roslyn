@@ -17,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim targetType = DirectCast(node.Type, NamedTypeSymbol)
-            Dim lambda = BuildDelegateRelaxationLambda(node.Syntax, targetType, node.MemberAccess, node.Binder, Me._diagnostics)
+            Dim lambda = BuildDelegateRelaxationLambda(node.Syntax, targetType, node.MemberAccess, node.Binder, _diagnostics)
 
-            Return Me.VisitExpressionNode(lambda)
+            Return VisitExpressionNode(lambda)
         End Function
 
 

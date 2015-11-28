@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Create assignment for the rewritten object 
                 ' creation expression to the temp
                 '    temp = new CollectionType(param1)
-                tempLocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
+                tempLocalSymbol = New SynthesizedLocal(_currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
                 tempLocal = New BoundLocal(syntaxNode, tempLocalSymbol, expressionType)
                 Dim temporaryAssignment = New BoundAssignmentOperator(syntaxNode,
                                                                   tempLocal,
@@ -309,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.CreateTemporaryLocalForInitialization Then
                 ' create temporary
                 '    Dim temp as RefTypeName 
-                Dim tempLocalSymbol As LocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
+                Dim tempLocalSymbol As LocalSymbol = New SynthesizedLocal(_currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
                 sequenceType = expressionType
 
                 sequenceTemporaries = ImmutableArray.Create(Of LocalSymbol)(tempLocalSymbol)

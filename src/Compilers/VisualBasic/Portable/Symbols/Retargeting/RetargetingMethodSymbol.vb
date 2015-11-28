@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
             Get
                 If (IsGenericMethod) Then
-                    Return StaticCast(Of TypeSymbol).From(Me.TypeParameters)
+                    Return StaticCast(Of TypeSymbol).From(TypeParameters)
                 Else
                     Return ImmutableArray(Of TypeSymbol).Empty
                 End If
@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Friend Overrides ReadOnly Property ReturnTypeMarshallingInformation As MarshalPseudoCustomAttributeData
             Get
-                Return Me.RetargetingTranslator.Retarget(_underlyingMethod.ReturnTypeMarshallingInformation)
+                Return RetargetingTranslator.Retarget(_underlyingMethod.ReturnTypeMarshallingInformation)
             End Get
         End Property
 
@@ -426,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 If _lazyExplicitInterfaceImplementations.IsDefault Then
                     ImmutableInterlocked.InterlockedCompareExchange(
                         _lazyExplicitInterfaceImplementations,
-                        Me.RetargetExplicitInterfaceImplementations(),
+                        RetargetExplicitInterfaceImplementations(),
                         Nothing)
                 End If
 
@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Private Function RetargetExplicitInterfaceImplementations() As ImmutableArray(Of MethodSymbol)
-            Dim impls = Me.UnderlyingMethod.ExplicitInterfaceImplementations
+            Dim impls = UnderlyingMethod.ExplicitInterfaceImplementations
             If impls.IsEmpty Then
                 Return impls
             End If

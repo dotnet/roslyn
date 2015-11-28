@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Public ReadOnly Property Succeeded As Boolean
                 Get
-                    Return Me.Length > 0
+                    Return Length > 0
                 End Get
             End Property
         End Structure
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 hashCode = (hashCode Xor unicodeValue) * Hash.FnvPrime
             End While
 
-            If state = AccumulatorState.Done AndAlso (terminatorLength = 0 OrElse Not Me._IsScanningXmlDoc) Then
+            If state = AccumulatorState.Done AndAlso (terminatorLength = 0 OrElse Not _IsScanningXmlDoc) Then
                 If terminatorLength <> 0 Then
                     index += 1
                     hashCode = (hashCode Xor unicodeValue) * Hash.FnvPrime

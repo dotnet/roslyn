@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '     skipEventRaise:
                 ' End Block
                 '
-                Dim temp As LocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, receiver.Type, SynthesizedLocalKind.LoweringTemp)
+                Dim temp As LocalSymbol = New SynthesizedLocal(_currentMethodOrLambda, receiver.Type, SynthesizedLocalKind.LoweringTemp)
                 Dim tempAccess As BoundLocal = New BoundLocal(syntax, temp, temp.Type).MakeCompilerGenerated
 
                 Dim tempInit = New BoundExpressionStatement(syntax,
@@ -78,9 +78,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         BinaryOperatorKind.Is,
                                                         tempAccess.MakeRValue(),
                                                         New BoundLiteral(syntax, ConstantValue.Nothing,
-                                                                         Me.Compilation.GetSpecialType(SpecialType.System_Object)),
+                                                                         Compilation.GetSpecialType(SpecialType.System_Object)),
                                                         False,
-                                                        Me.Compilation.GetSpecialType(SpecialType.System_Boolean)).MakeCompilerGenerated
+                                                        Compilation.GetSpecialType(SpecialType.System_Boolean)).MakeCompilerGenerated
 
                 Dim skipEventRaise As New GeneratedLabelSymbol("skipEventRaise")
 

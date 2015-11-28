@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim captured = CaptureNullableIfNeeded(operand, temps, inits, doNotCaptureLocals)
 
             If operandHasValue Then
-                hasValueExpr = New BoundLiteral(operand.Syntax, ConstantValue.True, Me.GetSpecialType(SpecialType.System_Boolean))
+                hasValueExpr = New BoundLiteral(operand.Syntax, ConstantValue.True, GetSpecialType(SpecialType.System_Boolean))
                 Return captured
             End If
 
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' capture into local.
-            temp = New SynthesizedLocal(Me._currentMethodOrLambda, operand.Type, SynthesizedLocalKind.LoweringTemp)
+            temp = New SynthesizedLocal(_currentMethodOrLambda, operand.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localAccess = New BoundLocal(operand.Syntax, temp, True, temp.Type)
             init = New BoundAssignmentOperator(operand.Syntax, localAccess, operand, True, operand.Type)
             Return localAccess.MakeRValue
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New BoundBadExpression(expr.Syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr),
-                                          Me.Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
+                                          Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
         End Function
 
         Private Shared Function NullableNull(syntax As VisualBasicSyntaxNode, nullableType As TypeSymbol) As BoundExpression

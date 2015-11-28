@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(statement Is Nothing)
             Debug.Assert(BeginStatement IsNot Nothing)
 
-            Dim result = SyntaxFactory.CatchBlock(DirectCast(BeginStatement, CatchStatementSyntax), Me.Body())
+            Dim result = SyntaxFactory.CatchBlock(DirectCast(BeginStatement, CatchStatementSyntax), Body())
 
             FreeStatements()
 

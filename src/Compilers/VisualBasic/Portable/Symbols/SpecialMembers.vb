@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overrides Function GetDeclaredSpecialTypeMember(member As SpecialMember) As Symbol
 #If DEBUG Then
-            For Each [module] In Me.Modules
+            For Each [module] In Modules
                 Debug.Assert([module].GetReferencedAssemblies().Length = 0)
             Next
 #End If

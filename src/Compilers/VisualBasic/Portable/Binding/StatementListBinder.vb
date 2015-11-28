@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             ' if this is not an AsNew declaration with multiple names and an initializer (error case), then only use
                             ' the initializer for the last variable.
-                            Dim localVar = LocalSymbol.Create(Me.ContainingMember, Me,
+                            Dim localVar = LocalSymbol.Create(ContainingMember, Me,
                                                              modifiedIdentifier.Identifier, modifiedIdentifier, asClauseOptSyntax,
                                                              If(isNotAsNewAndHasInitializer AndAlso i = names.Count - 1,
                                                                 declarator.Initializer,

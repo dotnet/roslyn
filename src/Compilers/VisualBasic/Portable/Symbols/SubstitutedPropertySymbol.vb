@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return Me.OriginalDefinition.ObsoleteAttributeData
+                Return OriginalDefinition.ObsoleteAttributeData
             End Get
         End Property
 

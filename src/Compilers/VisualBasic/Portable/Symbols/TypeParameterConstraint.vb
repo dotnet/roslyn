@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' The location should only be provided for type parameters from source.
             Debug.Assert((loc Is Nothing) OrElse loc.PossiblyEmbeddedOrMySourceTree IsNot Nothing)
             Me.Kind = kind
-            Me.TypeConstraint = type
-            Me.LocationOpt = loc
+            TypeConstraint = type
+            LocationOpt = loc
         End Sub
 
         Public Function AtLocation(loc As Location) As TypeParameterConstraint

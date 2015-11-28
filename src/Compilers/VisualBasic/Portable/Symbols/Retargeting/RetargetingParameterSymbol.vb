@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Friend Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData
             Get
-                Return Me.RetargetingTranslator.Retarget(Me.UnderlyingParameter.MarshallingInformation)
+                Return RetargetingTranslator.Retarget(UnderlyingParameter.MarshallingInformation)
             End Get
         End Property
 

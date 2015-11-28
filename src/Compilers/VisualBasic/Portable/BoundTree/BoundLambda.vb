@@ -15,9 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 ' NOTE: the following assert fails if the lambda was compiler generated, this is 
                 ' NOTE: intentional as the method is not supposed to be called for such lambdas
-                Debug.Assert(TypeOf Me.Syntax Is LambdaExpressionSyntax)
+                Debug.Assert(TypeOf Syntax Is LambdaExpressionSyntax)
 
-                Dim kind As SyntaxKind = Me.Syntax.Kind
+                Dim kind As SyntaxKind = Syntax.Kind
 
                 Return kind = SyntaxKind.SingleLineFunctionLambdaExpression OrElse
                        kind = SyntaxKind.SingleLineSubLambdaExpression
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.LambdaSymbol
+                Return LambdaSymbol
             End Get
         End Property
 

@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.New(container, PrivateImplementationDetails.SynthesizedStringHashFunctionName, privateImplType)
 
             ' Signature:  uint ComputeStringHash(s as String)
-            Dim compilation = Me.DeclaringCompilation
+            Dim compilation = DeclaringCompilation
 
             _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSimpleSymbol(Me, compilation.GetSpecialType(SpecialType.System_String), 0, "s"))
             _returnType = compilation.GetSpecialType(SpecialType.System_UInt32)

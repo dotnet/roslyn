@@ -38,24 +38,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub New(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag, containingSymbol As MethodSymbol)
-            Me._compilation = compilation
-            Me._diagnostics = diagnostics
-            Me._containingSymbol = containingSymbol
+            _compilation = compilation
+            _diagnostics = diagnostics
+            _containingSymbol = containingSymbol
 
-            Me._inExpressionLambda = False
+            _inExpressionLambda = False
         End Sub
 
         Private ReadOnly Property IsInExpressionLambda As Boolean
             Get
-                Return Me._inExpressionLambda
+                Return _inExpressionLambda
             End Get
         End Property
 
         Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
-            Dim save_containingSymbol = Me._containingSymbol
-            Me._containingSymbol = node.LambdaSymbol
-            Me.Visit(node.Expression)
-            Me._containingSymbol = save_containingSymbol
+            Dim save_containingSymbol = _containingSymbol
+            _containingSymbol = node.LambdaSymbol
+            Visit(node.Expression)
+            _containingSymbol = save_containingSymbol
             Return Nothing
         End Function
 
@@ -70,9 +70,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Need to go up the chain of containers and see if the last lambda we see
                     ' is a QueryLambda, before we reach parameter's container. 
                     If Binder.IsTopMostEnclosingLambdaAQueryLambda(_containingSymbol, parameterSymbolContainingSymbol) Then
-                        Binder.ReportDiagnostic(Me._diagnostics, node.Syntax, ERRID.ERR_CannotLiftByRefParamQuery1, parameterSymbol.Name)
+                        Binder.ReportDiagnostic(_diagnostics, node.Syntax, ERRID.ERR_CannotLiftByRefParamQuery1, parameterSymbol.Name)
                     Else
-                        Binder.ReportDiagnostic(Me._diagnostics, node.Syntax, ERRID.ERR_CannotLiftByRefParamLambda1, parameterSymbol.Name)
+                        Binder.ReportDiagnostic(_diagnostics, node.Syntax, ERRID.ERR_CannotLiftByRefParamLambda1, parameterSymbol.Name)
                     End If
                 End If
             End If
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim errorId As ERRID = GetMeAccessError()
 
             If errorId <> ERRID.ERR_None Then
-                Binder.ReportDiagnostic(Me._diagnostics, node.Syntax, errorId)
+                Binder.ReportDiagnostic(_diagnostics, node.Syntax, errorId)
             End If
 
             Return MyBase.VisitMeReference(node)
@@ -94,14 +94,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim errorId As ERRID = GetMeAccessError()
 
             If errorId <> ERRID.ERR_None Then
-                Binder.ReportDiagnostic(Me._diagnostics, node.Syntax, errorId)
+                Binder.ReportDiagnostic(_diagnostics, node.Syntax, errorId)
             End If
 
             Return MyBase.VisitMyClassReference(node)
         End Function
 
         Private Function GetMeAccessError() As ERRID
-            Dim meParameter As ParameterSymbol = Me._containingSymbol.MeParameter
+            Dim meParameter As ParameterSymbol = _containingSymbol.MeParameter
             If meParameter IsNot Nothing AndAlso meParameter.IsByRef Then
                 If _containingSymbol.MethodKind = MethodKind.LambdaMethod Then
                     ' Need to go up the chain of containers and see if the last lambda we see
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     End If
                                 Next
 
-                                Binder.ReportDiagnostic(Me._diagnostics, errorSyntax, errorId)
+                                Binder.ReportDiagnostic(_diagnostics, errorSyntax, errorId)
                             End If
                         End If
                     End If
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Function VisitWithStatement(node As BoundWithStatement) As BoundNode
-            Me.Visit(node.OriginalExpression)
+            Visit(node.OriginalExpression)
 
             Dim info As WithBlockBinder.WithBlockInfo = node.Binder.Info
 
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 info = Nothing
             End If
 
-            Me.Visit(node.Body)
+            Visit(node.Body)
 
             If info IsNot Nothing Then
                 _withExpressionPlaceholderMap.Remove(info.ExpressionPlaceholder)

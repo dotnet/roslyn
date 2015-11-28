@@ -403,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return ImmutableArray(Of TypeParameterSymbol).Empty
                     End If
 
-                    Return Me.ConstructedFrom.TypeParameters
+                    Return ConstructedFrom.TypeParameters
                 End Get
             End Property
 
@@ -432,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim container As Symbol = ContainingSymbol
                         Dim containerAsConstructed = TryCast(container, UnboundGenericType.ConstructedSymbol)
 
-                        Debug.Assert(Not Me.HasTypeArgumentsCustomModifiers)
+                        Debug.Assert(Not HasTypeArgumentsCustomModifiers)
 
                         If containerAsConstructed IsNot Nothing Then
                             If OriginalDefinition.Arity = 0 Then
@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Else
                             Debug.Assert(Not (TypeOf container Is NamedTypeSymbol AndAlso
                                          DirectCast(container, NamedTypeSymbol).IsGenericType))
-                            result = TypeSubstitution.Create(OriginalDefinition, OriginalDefinition.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
+                            result = TypeSubstitution.Create(OriginalDefinition, OriginalDefinition.TypeParameters, TypeArgumentsNoUseSiteDiagnostics)
                         End If
 
                         Interlocked.CompareExchange(_lazyTypeSubstitution, result, Nothing)

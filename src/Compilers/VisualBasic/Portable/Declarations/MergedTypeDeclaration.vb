@@ -51,13 +51,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Kind As DeclarationKind
             Get
-                Return Me.Declarations(0).Kind
+                Return Declarations(0).Kind
             End Get
         End Property
 
         Public ReadOnly Property Arity As Integer
             Get
-                Return Me.Declarations(0).Arity
+                Return Declarations(0).Arity
             End Get
         End Property
 
@@ -151,21 +151,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads ReadOnly Property Children As ImmutableArray(Of MergedTypeDeclaration)
             Get
-                If Me._children Is Nothing Then
-                    Interlocked.CompareExchange(Me._children, MakeChildren(), Nothing)
+                If _children Is Nothing Then
+                    Interlocked.CompareExchange(_children, MakeChildren(), Nothing)
                 End If
-                Return Me._children.AsImmutableOrNull()
+                Return _children.AsImmutableOrNull()
             End Get
         End Property
 
         Protected Overrides Function GetDeclarationChildren() As ImmutableArray(Of Declaration)
-            Return StaticCast(Of Declaration).From(Me.Children)
+            Return StaticCast(Of Declaration).From(Children)
         End Function
 
         Public ReadOnly Property MemberNames As ICollection(Of String)
             Get
                 If _memberNames Is Nothing Then
-                    Dim names = UnionCollection(Of String).Create(Me.Declarations, Function(d) d.MemberNames)
+                    Dim names = UnionCollection(Of String).Create(Declarations, Function(d) d.MemberNames)
                     Interlocked.CompareExchange(_memberNames, names, Nothing)
                 End If
 
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property AnyMemberHasAttributes As Boolean
             Get
-                For Each decl In Me.Declarations
+                For Each decl In Declarations
                     If decl.AnyMemberHasAttributes Then
                         Return True
                     End If

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.ParameterSymbol
+                Return ParameterSymbol
             End Get
         End Property
 
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function MakeRValue() As BoundParameter
             If _IsLValue Then
-                Return Me.Update(_ParameterSymbol, False, SuppressVirtualCalls, Type)
+                Return Update(_ParameterSymbol, False, SuppressVirtualCalls, Type)
             End If
 
             Return Me

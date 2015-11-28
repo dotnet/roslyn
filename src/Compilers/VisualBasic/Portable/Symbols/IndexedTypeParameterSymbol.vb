@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _index As Integer
 
         Private Sub New(index As Integer)
-            Me._index = index
+            _index = index
         End Sub
 
         Friend Shared Function GetTypeParameter(index As Integer) As TypeParameterSymbol

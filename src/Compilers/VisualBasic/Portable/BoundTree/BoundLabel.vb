@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.Label
+                Return Label
             End Get
         End Property
 

@@ -18,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Sub New(reader As ObjectReader)
                 MyBase.New(reader)
-                Me._importText = reader.ReadString()
-                Me._startIndex = reader.ReadInt32()
-                Me._length = reader.ReadInt32()
-                Me._wrappedDiagnostic = DirectCast(reader.ReadValue(), DiagnosticInfo)
+                _importText = reader.ReadString()
+                _startIndex = reader.ReadInt32()
+                _length = reader.ReadInt32()
+                _wrappedDiagnostic = DirectCast(reader.ReadValue(), DiagnosticInfo)
             End Sub
 
             Protected Overrides Function GetReader() As Func(Of ObjectReader, Object)

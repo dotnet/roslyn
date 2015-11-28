@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim current As Symbol = genericDefinition
 
             Do
-                If current Is Me.TargetGenericDefinition Then
+                If current Is TargetGenericDefinition Then
                     Return True
                 End If
 

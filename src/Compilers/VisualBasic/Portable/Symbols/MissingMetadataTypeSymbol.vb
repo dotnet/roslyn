@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MyBase.New(moduleSymbol, emittedName, typeId)
 
                 Debug.Assert(errorInfo IsNot Nothing)
-                Me._errorInfo = errorInfo
+                _errorInfo = errorInfo
             End Sub
 
             Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private Function GetDebuggerDisplay() As String
                 Dim fullName As String
 
-                fullName = _containingType.ToString() & "." & Me.Name
+                fullName = _containingType.ToString() & "." & Name
 
                 If _arity > 0 Then
                     fullName = fullName & "(Of " & New String(","c, _arity - 1) & ")"

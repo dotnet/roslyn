@@ -17,30 +17,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _list As SyntaxList(Of VisualBasicSyntaxNode)
 
         Friend Sub New(list As SyntaxList(Of VisualBasicSyntaxNode))
-            Me._list = list
+            _list = list
         End Sub
 
         Friend ReadOnly Property Node As VisualBasicSyntaxNode
             Get
-                Return Me._list.Node
+                Return _list.Node
             End Get
         End Property
 
         Public ReadOnly Property Count As Integer
             Get
-                Return (Me._list.Count + 1) >> 1
+                Return (_list.Count + 1) >> 1
             End Get
         End Property
 
         Public ReadOnly Property SeparatorCount As Integer
             Get
-                Return (Me._list.Count) >> 1
+                Return (_list.Count) >> 1
             End Get
         End Property
 
         Default Public ReadOnly Property Item(index As Integer) As TNode
             Get
-                Return DirectCast(Me._list(index << 1), TNode)
+                Return DirectCast(_list(index << 1), TNode)
             End Get
         End Property
 
@@ -49,16 +49,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         ''' <param name="index">The index.</param><returns></returns>
         Public Function GetSeparator(index As Integer) As SyntaxToken
-            Return DirectCast(Me._list((index << 1) + 1), SyntaxToken)
+            Return DirectCast(_list((index << 1) + 1), SyntaxToken)
         End Function
 
         Public Function Any() As Boolean
-            Return (Me.Count > 0)
+            Return (Count > 0)
         End Function
 
         Public Function Any(kind As SyntaxKind) As Boolean
-            For i = 0 To Me.Count - 1
-                Dim element = Me.Item(i)
+            For i = 0 To Count - 1
+                Dim element = Item(i)
                 If (element.Kind = kind) Then
                     Return True
                 End If
@@ -67,16 +67,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function GetWithSeparators() As SyntaxList(Of VisualBasicSyntaxNode)
-            Return Me._list
+            Return _list
         End Function
 
         ' for debugging
         Private ReadOnly Property Nodes As TNode()
             Get
-                Dim arr As TNode() = New TNode(Me.Count - 1) {}
+                Dim arr As TNode() = New TNode(Count - 1) {}
 
-                For i = 0 To Me.Count - 1
-                    arr(i) = Me.Item(i)
+                For i = 0 To Count - 1
+                    arr(i) = Item(i)
                 Next
                 Return arr
             End Get

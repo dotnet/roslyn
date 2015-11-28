@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Friend Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData
             Get
-                Return Me.RetargetingTranslator.Retarget(Me.UnderlyingField.MarshallingInformation)
+                Return RetargetingTranslator.Retarget(UnderlyingField.MarshallingInformation)
             End Get
         End Property
 
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Dim associated As Symbol = _underlyingField.AssociatedSymbol
-                Return If(associated Is Nothing, Nothing, Me.RetargetingTranslator.Retarget(associated))
+                Return If(associated Is Nothing, Nothing, RetargetingTranslator.Retarget(associated))
             End Get
         End Property
 

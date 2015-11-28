@@ -24,9 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(Not kind.IsLongLived OrElse syntaxOpt IsNot Nothing)
 
-            Me._kind = kind
-            Me._syntaxOpt = syntaxOpt
-            Me._isByRef = isByRef
+            _kind = kind
+            _syntaxOpt = syntaxOpt
+            _isByRef = isByRef
         End Sub
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)

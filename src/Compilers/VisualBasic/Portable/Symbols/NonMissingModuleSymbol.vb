@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 ' Only primary module of an assembly marked with an Extension attribute
                 ' can contain extension methods recognized by the language (Dev10 behavior).
-                Dim assembly As AssemblySymbol = Me.ContainingAssembly
+                Dim assembly As AssemblySymbol = ContainingAssembly
                 Return assembly.Modules(0) Is Me AndAlso assembly.MightContainExtensionMethods
             End Get
         End Property

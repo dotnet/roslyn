@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 RemovePlaceholderReplacement(exprPlaceholderOpt)
             End If
 
-            If Me.GenerateDebugInfo Then
+            If GenerateDebugInfo Then
                 ' Add End Select sequence point
                 Dim selectSyntax = DirectCast(syntaxNode, SelectBlockSyntax)
                 If selectSyntax IsNot Nothing Then
@@ -154,15 +154,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean)
 
             Dim compareStringMethod = DirectCast(Compilation.GetWellKnownTypeMember(compareStringMember), MethodSymbol)
-            Me.ReportMissingOrBadRuntimeHelper(selectCaseExpr, compareStringMember, compareStringMethod)
+            ReportMissingOrBadRuntimeHelper(selectCaseExpr, compareStringMember, compareStringMethod)
 
             Const stringCharsMember As SpecialMember = SpecialMember.System_String__Chars
             Dim stringCharsMethod = DirectCast(ContainingAssembly.GetSpecialTypeMember(stringCharsMember), MethodSymbol)
-            Me.ReportMissingOrBadRuntimeHelper(selectCaseExpr, stringCharsMember, stringCharsMethod)
+            ReportMissingOrBadRuntimeHelper(selectCaseExpr, stringCharsMember, stringCharsMethod)
 
-            Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_Int32))
-            Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_UInt32))
-            Me.ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_String))
+            ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_Int32))
+            ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_UInt32))
+            ReportBadType(selectCaseExpr, Compilation.GetSpecialType(SpecialType.System_String))
 
             If _emitModule Is Nothing Then
                 Return
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Not caseBlocks.IsDefault)
 
             Dim selectExprStmtSyntax = selectExpressionStmt.Syntax
-            If Me.GenerateDebugInfo Then
+            If GenerateDebugInfo Then
                 ' Add select case begin sequence point
                 statementBuilder.Add(New BoundSequencePoint(selectExprStmtSyntax, Nothing))
             End If
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Store the select expression result in a temp
                 Dim selectStatementSyntax = DirectCast(selectExprStmtSyntax.Parent, SelectBlockSyntax).SelectStatement
-                Dim tempLocal = New SynthesizedLocal(Me._currentMethodOrLambda, selectExprType, SynthesizedLocalKind.SelectCaseValue, selectStatementSyntax)
+                Dim tempLocal = New SynthesizedLocal(_currentMethodOrLambda, selectExprType, SynthesizedLocalKind.SelectCaseValue, selectStatementSyntax)
                 tempLocals = ImmutableArray.Create(Of LocalSymbol)(tempLocal)
 
                 Dim boundTemp = New BoundLocal(rewrittenSelectExpression.Syntax, tempLocal, selectExprType)
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(startFrom = caseBlocks.Length - 1)
 
                 ' Case Else statement needs a sequence point
-                If Me.GenerateDebugInfo Then
+                If GenerateDebugInfo Then
                     rewrittenStatement = New BoundSequencePoint(curCaseBlock.CaseStatement.Syntax, rewrittenBody)
                 Else
                     rewrittenStatement = rewrittenBody

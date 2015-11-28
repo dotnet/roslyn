@@ -119,13 +119,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Function GetAssemblyNamespace(namespaceSymbol As NamespaceSymbol) As NamespaceSymbol
             If namespaceSymbol.IsGlobalNamespace Then
-                Return Me.GlobalNamespace
+                Return GlobalNamespace
             End If
 
             Dim container As NamespaceSymbol = namespaceSymbol.ContainingNamespace
 
             If container Is Nothing Then
-                Return Me.GlobalNamespace
+                Return GlobalNamespace
             End If
 
             If namespaceSymbol.Extent.Kind = NamespaceKind.Assembly AndAlso namespaceSymbol.ContainingAssembly = Me Then
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function CreateCycleInTypeForwarderErrorTypeSymbol(ByRef emittedName As MetadataTypeName) As ErrorTypeSymbol
             Dim diagInfo As DiagnosticInfo = New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_TypeFwdCycle2, emittedName.FullName, Me)
-            Return New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Me.Modules(0), emittedName, diagInfo)
+            Return New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Modules(0), emittedName, diagInfo)
         End Function
 
         ''' <summary>
@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result As NamedTypeSymbol
 
             ' First try this assembly
-            result = Me.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+            result = LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
 
             If isWellKnownType AndAlso Not IsValidWellKnownType(result) Then
                 result = Nothing
@@ -489,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If includeReferences Then
                 ' Lookup in references
-                Dim references As ImmutableArray(Of AssemblySymbol) = Me.Modules(0).GetReferencedAssemblySymbols()
+                Dim references As ImmutableArray(Of AssemblySymbol) = Modules(0).GetReferencedAssemblySymbols()
 
                 For i As Integer = 0 To references.Length - 1 Step 1
                     Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol AndAlso references(i).IsMissing)) ' Non-source assemblies can have missing references
@@ -546,24 +546,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' being compiled as a module, Not as an assembly. You can only strong-name an assembly. So if this module
             ' Is named Jones, And Smith Is extending friend access to Jones, then we are going to optimistically 
             ' assume that Jones Is going to be compiled into an assembly with a matching strong name, if necessary.
-            Dim compilation As Compilation = Me.DeclaringCompilation
+            Dim compilation As Compilation = DeclaringCompilation
             If compilation IsNot Nothing AndAlso compilation.Options.OutputKind.IsNetModule() Then
                 Return IVTConclusion.Match
             End If
 
             Dim result As IVTConclusion
 
-            If Me.PublicKey.IsDefaultOrEmpty OrElse key.IsDefaultOrEmpty Then
-                If Me.PublicKey.IsDefaultOrEmpty AndAlso key.IsDefaultOrEmpty Then
+            If PublicKey.IsDefaultOrEmpty OrElse key.IsDefaultOrEmpty Then
+                If PublicKey.IsDefaultOrEmpty AndAlso key.IsDefaultOrEmpty Then
                     'we are not signed, therefore the other assembly shouldn't be signed
                     result = If(otherIdentity.IsStrongName, IVTConclusion.OneSignedOneNot, IVTConclusion.Match)
-                ElseIf Me.PublicKey.IsDefaultOrEmpty Then
+                ElseIf PublicKey.IsDefaultOrEmpty Then
                     result = IVTConclusion.PublicKeyDoesntMatch
                 Else
                     ' key is NullOrEmpty, Me.PublicKey is not.
                     result = IVTConclusion.NoRelationshipClaimed
                 End If
-            ElseIf ByteSequenceComparer.Equals(key, Me.PublicKey) Then
+            ElseIf ByteSequenceComparer.Equals(key, PublicKey) Then
                 result = If(otherIdentity.IsStrongName, IVTConclusion.Match, IVTConclusion.OneSignedOneNot)
             Else
                 result = IVTConclusion.PublicKeyDoesntMatch
@@ -587,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IAssemblySymbol_GlobalNamespace As INamespaceSymbol Implements IAssemblySymbol.GlobalNamespace
             Get
-                Return Me.GlobalNamespace
+                Return GlobalNamespace
             End Get
         End Property
 
@@ -601,9 +601,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Dim myKeys = Me.GetInternalsVisibleToPublicKeys(assembly.Identity.Name)
+            Dim myKeys = GetInternalsVisibleToPublicKeys(assembly.Identity.Name)
             For Each key In myKeys
-                If assembly.PerformIVTCheck(key, Me.Identity) = IVTConclusion.Match Then
+                If assembly.PerformIVTCheck(key, Identity) = IVTConclusion.Match Then
                     Return True
                 End If
             Next
@@ -613,16 +613,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IAssemblySymbol_Modules As IEnumerable(Of IModuleSymbol) Implements IAssemblySymbol.Modules
             Get
-                Return Me.Modules
+                Return Modules
             End Get
         End Property
 
         Private Function IAssemblySymbol_ResolveForwardedType(metadataName As String) As INamedTypeSymbol Implements IAssemblySymbol.ResolveForwardedType
-            Return Me.ResolveForwardedType(metadataName)
+            Return ResolveForwardedType(metadataName)
         End Function
 
         Private Function IAssemblySymbol_GetTypeByMetadataName(metadataName As String) As INamedTypeSymbol Implements IAssemblySymbol.GetTypeByMetadataName
-            Return Me.GetTypeByMetadataName(metadataName)
+            Return GetTypeByMetadataName(metadataName)
         End Function
 
         Public Overrides Sub Accept(visitor As SymbolVisitor)

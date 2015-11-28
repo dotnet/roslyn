@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ifConditionGotoStart = New BoundStatementList(ifConditionGotoStart.Syntax, conditionResumeTargetOpt.Add(ifConditionGotoStart))
             End If
 
-            If Me.GenerateDebugInfo Then
+            If GenerateDebugInfo Then
                 ' will be hidden or not, depending on statementBeginSyntax being nothing (for each) or not (real while loop)
                 ifConditionGotoStart = New BoundSequencePoint(statementBeginSyntax, ifConditionGotoStart)
             End If

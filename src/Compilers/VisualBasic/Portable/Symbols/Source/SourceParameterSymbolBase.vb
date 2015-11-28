@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Create the ParamArrayAttribute
             If IsParamArray AndAlso Not HasParamArrayAttribute Then
-                Dim compilation = Me.DeclaringCompilation
+                Dim compilation = DeclaringCompilation
                 AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_ParamArrayAttribute__ctor))
             End If
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If HasExplicitDefaultValue AndAlso Not HasDefaultValueAttribute Then
                 ' Synthesize DateTimeConstantAttribute or DecimalConstantAttribute when the default
                 ' value is either DateTime or Decimal and there is not an explicit custom attribute.
-                Dim compilation = Me.DeclaringCompilation
+                Dim compilation = DeclaringCompilation
                 Dim defaultValue = ExplicitDefaultConstantValue
 
                 Select Case defaultValue.SpecialType

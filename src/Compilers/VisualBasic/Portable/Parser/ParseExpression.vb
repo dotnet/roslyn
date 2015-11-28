@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Else
 
-                    If start.Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=False) Then
+                    If start.Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(PeekToken(1).Kind, qualified:=False) Then
                         ' This looks like ?. or ?! 
 
                         Dim qToken = DirectCast(start, PunctuationSyntax)
@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     term = ParseParenthesizedQualifier(term, RedimOrNewParent)
 
-                ElseIf [Next].Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=True) Then
+                ElseIf [Next].Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(PeekToken(1).Kind, qualified:=True) Then
                     ' This looks like ?. ?! or ?(
 
                     Dim qToken = DirectCast([Next], PunctuationSyntax)
@@ -1776,7 +1776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseVariableList() As SeparatedSyntaxList(Of ExpressionSyntax)
 
-            Dim variables As SeparatedSyntaxListBuilder(Of ExpressionSyntax) = Me._pool.AllocateSeparated(Of ExpressionSyntax)()
+            Dim variables As SeparatedSyntaxListBuilder(Of ExpressionSyntax) = _pool.AllocateSeparated(Of ExpressionSyntax)()
 
             Do
                 variables.Add(ParseVariable())
@@ -1790,7 +1790,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             Dim result = variables.ToList
-            Me._pool.Free(variables)
+            _pool.Free(variables)
 
             Return result
         End Function

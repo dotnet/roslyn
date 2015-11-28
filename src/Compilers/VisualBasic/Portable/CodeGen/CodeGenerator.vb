@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Function IsDebugPlus() As Boolean
-            Return Me._module.Compilation.Options.DebugPlusMode
+            Return _module.Compilation.Options.DebugPlusMode
         End Function
 
         Public Sub Generate()
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub SetInitialDebugDocument()
-            Dim methodBlockSyntax = Me._method.Syntax
+            Dim methodBlockSyntax = _method.Syntax
             If _emitPdbSequencePoints AndAlso methodBlockSyntax IsNot Nothing Then
                 ' If methodBlockSyntax is available (i.e. we're in a SourceMethodSymbol), then
                 ' provide the IL builder with our best guess at the appropriate debug document.

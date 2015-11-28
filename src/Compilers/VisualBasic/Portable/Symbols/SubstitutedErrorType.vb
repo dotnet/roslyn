@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim substitution As TypeSubstitution = _substitution.Parent
 
-                Debug.Assert(substitution IsNot Nothing AndAlso substitution.TargetGenericDefinition Is Me.ContainingType.OriginalDefinition)
+                Debug.Assert(substitution IsNot Nothing AndAlso substitution.TargetGenericDefinition Is ContainingType.OriginalDefinition)
 
                 ' We don't alpha-rename type parameters of error type symbols because they don't have constraints
                 ' and, therefore, have nothing to substitute. Just use identity substitution.

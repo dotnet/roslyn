@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             ' Note that the result of the operator is nullable type. 
 
-            Dim operand = Me.VisitExpressionNode(node.Operand)
+            Dim operand = VisitExpressionNode(node.Operand)
             Dim operatorCall = node.Call
 
             Dim resultType = operatorCall.Type

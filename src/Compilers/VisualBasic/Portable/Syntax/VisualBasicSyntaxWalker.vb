@@ -39,11 +39,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim asNode = child.AsNode()
                 If asNode IsNot Nothing Then
                     If Depth >= SyntaxWalkerDepth.Node Then
-                        Me.Visit(asNode)
+                        Visit(asNode)
                     End If
                 Else
                     If Depth >= SyntaxWalkerDepth.Token Then
-                        Me.VisitToken(child.AsToken())
+                        VisitToken(child.AsToken())
                     End If
                 End If
             Loop While i < childCnt
@@ -52,8 +52,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overridable Sub VisitToken(token As SyntaxToken)
             If Depth >= SyntaxWalkerDepth.Trivia Then
-                Me.VisitLeadingTrivia(token)
-                Me.VisitTrailingTrivia(token)
+                VisitLeadingTrivia(token)
+                VisitTrailingTrivia(token)
             End If
         End Sub
 

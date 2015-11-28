@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property DeclaringType As NamedTypeSymbol
             Get
-                Return TryCast(Me.ContainingSymbol, NamedTypeSymbol)
+                Return TryCast(ContainingSymbol, NamedTypeSymbol)
             End Get
         End Property
 
@@ -235,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' > because this property does not propagate up the constraining hierarchy.
         ' > (e.g. "class A<S, T> where S : T, where T : class" does not guarantee that S is ObjRef)
         Private Function IsReferenceTypeIgnoringIsClass() As Boolean
-            For Each constraint In Me.ConstraintTypesNoUseSiteDiagnostics
+            For Each constraint In ConstraintTypesNoUseSiteDiagnostics
                 If (ConstraintImpliesReferenceType(constraint)) Then
                     Return True
                 End If
@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsValueType As Boolean
             Get
-                If Me.HasValueTypeConstraint Then
+                If HasValueTypeConstraint Then
                     Return True
                 End If
 
@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' End Structure
                 '
                 ' therefore we need to check the type constraints for value types as well
-                For Each constraint In Me.ConstraintTypesNoUseSiteDiagnostics
+                For Each constraint In ConstraintTypesNoUseSiteDiagnostics
                     If (constraint.IsValueType) Then
                         Return True
                     End If
@@ -374,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeParameterSymbol_ConstraintTypes As ImmutableArray(Of ITypeSymbol) Implements ITypeParameterSymbol.ConstraintTypes
             Get
-                Return StaticCast(Of ITypeSymbol).From(Me.ConstraintTypesNoUseSiteDiagnostics)
+                Return StaticCast(Of ITypeSymbol).From(ConstraintTypesNoUseSiteDiagnostics)
             End Get
         End Property
 

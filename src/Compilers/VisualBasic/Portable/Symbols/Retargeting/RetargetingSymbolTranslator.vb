@@ -32,32 +32,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Private ReadOnly _createRetargetingEvent As Func(Of Symbol, RetargetingEventSymbol)
 
         Private Function CreateRetargetingMethod(symbol As Symbol) As RetargetingMethodSymbol
-            Debug.Assert(symbol.ContainingModule Is Me.UnderlyingModule)
+            Debug.Assert(symbol.ContainingModule Is UnderlyingModule)
             Return New RetargetingMethodSymbol(Me, DirectCast(symbol, MethodSymbol))
         End Function
 
         Private Function CreateRetargetingNamespace(symbol As Symbol) As RetargetingNamespaceSymbol
-            Debug.Assert(symbol.ContainingModule Is Me.UnderlyingModule)
+            Debug.Assert(symbol.ContainingModule Is UnderlyingModule)
             Return New RetargetingNamespaceSymbol(Me, DirectCast(symbol, NamespaceSymbol))
         End Function
 
         Private Function CreateRetargetingNamedType(symbol As Symbol) As RetargetingNamedTypeSymbol
-            Debug.Assert(symbol.ContainingModule Is Me.UnderlyingModule)
+            Debug.Assert(symbol.ContainingModule Is UnderlyingModule)
             Return New RetargetingNamedTypeSymbol(Me, DirectCast(symbol, NamedTypeSymbol))
         End Function
 
         Private Function CreateRetargetingField(symbol As Symbol) As RetargetingFieldSymbol
-            Debug.Assert(symbol.ContainingModule Is Me.UnderlyingModule)
+            Debug.Assert(symbol.ContainingModule Is UnderlyingModule)
             Return New RetargetingFieldSymbol(Me, DirectCast(symbol, FieldSymbol))
         End Function
 
         Private Function CreateRetargetingProperty(symbol As Symbol) As RetargetingPropertySymbol
-            Debug.Assert(symbol.ContainingModule Is Me.UnderlyingModule)
+            Debug.Assert(symbol.ContainingModule Is UnderlyingModule)
             Return New RetargetingPropertySymbol(Me, DirectCast(symbol, PropertySymbol))
         End Function
 
         Private Function CreateRetargetingEvent(symbol As Symbol) As RetargetingEventSymbol
-            Debug.Assert(symbol.ContainingModule Is Me.UnderlyingModule)
+            Debug.Assert(symbol.ContainingModule Is UnderlyingModule)
             Return New RetargetingEventSymbol(Me, DirectCast(symbol, EventSymbol))
         End Function
 
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                      container.ContainingType,
                                      DirectCast(container, NamedTypeSymbol))
 
-            Debug.Assert(containingType.ContainingModule Is Me.UnderlyingModule)
+            Debug.Assert(containingType.ContainingModule Is UnderlyingModule)
             Return New RetargetingTypeParameterSymbol(Me, typeParameter)
         End Function
 
@@ -210,11 +210,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     While container IsNot Nothing
                         If container.IsExplicitDefinitionOfNoPiaLocalType Then
                             ' Types nested into local types are not supported.
-                            Return DirectCast(Me.SymbolMap.GetOrAdd(type, New UnsupportedMetadataTypeSymbol()), NamedTypeSymbol)
+                            Return DirectCast(SymbolMap.GetOrAdd(type, New UnsupportedMetadataTypeSymbol()), NamedTypeSymbol)
                         End If
                         container = container.ContainingType
                     End While
-                    Return DirectCast(Me.SymbolMap.GetOrAdd(type, _retargetingModule._createRetargetingNamedType), NamedTypeSymbol)
+                    Return DirectCast(SymbolMap.GetOrAdd(type, _retargetingModule._createRetargetingNamedType), NamedTypeSymbol)
                 Else
                     ' The type is defined in one of the added modules
                     Debug.Assert([module].Ordinal > 0)
@@ -860,7 +860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Public Function Retarget(method As MethodSymbol, retargetedMethodComparer As IEqualityComparer(Of MethodSymbol)) As MethodSymbol
-                If method.ContainingModule Is Me.UnderlyingModule AndAlso method.IsDefinition Then
+                If method.ContainingModule Is UnderlyingModule AndAlso method.IsDefinition Then
                     Return DirectCast(SymbolMap.GetOrAdd(method, _retargetingModule._createRetargetingMethod), RetargetingMethodSymbol)
                 End If
 
@@ -950,7 +950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 End Function
 
                 Public Overrides Function Retarget(typeParameter As TypeParameterSymbol) As TypeParameterSymbol
-                    If typeParameter.ContainingModule Is Me.UnderlyingModule Then
+                    If typeParameter.ContainingModule Is UnderlyingModule Then
                         Return MyBase.Retarget(typeParameter)
                     End If
 
@@ -975,7 +975,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Public Function RetargetImplementedEvent([event] As EventSymbol) As EventSymbol
-                If ([event].ContainingModule Is Me.UnderlyingModule) AndAlso [event].IsDefinition Then
+                If ([event].ContainingModule Is UnderlyingModule) AndAlso [event].IsDefinition Then
                     Return DirectCast(SymbolMap.GetOrAdd([event], _retargetingModule._createRetargetingEvent), RetargetingEventSymbol)
                 End If
 
@@ -1007,7 +1007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Public Function Retarget([property] As PropertySymbol, retargetedPropertyComparer As IEqualityComparer(Of PropertySymbol)) As PropertySymbol
-                If ([property].ContainingModule Is Me.UnderlyingModule) AndAlso [property].IsDefinition Then
+                If ([property].ContainingModule Is UnderlyingModule) AndAlso [property].IsDefinition Then
                     Return DirectCast(SymbolMap.GetOrAdd([property], _retargetingModule._createRetargetingProperty), RetargetingPropertySymbol)
                 End If
 

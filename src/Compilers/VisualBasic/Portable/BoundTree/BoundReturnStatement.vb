@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundReturnStatement
 
         Friend Function IsEndOfMethodReturn() As Boolean
-            Return Me.ExitLabelOpt is nothing
+            Return ExitLabelOpt is nothing
         End Function
 
 #If DEBUG Then

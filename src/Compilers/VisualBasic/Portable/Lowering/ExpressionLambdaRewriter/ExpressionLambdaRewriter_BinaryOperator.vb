@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return ConvertRuntimeHelperToExpressionTree(GetBinaryOperatorMethodName(opKind, isChecked),
                                                                 Visit(node.Left), Visit(node.Right),
-                                                                Me._factory.Literal(isLifted),
+                                                                _factory.Literal(isLifted),
                                                                 _factory.MethodInfo(node.Call.Method))
 
                 Case Else
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If helper IsNot Nothing Then
                 Debug.Assert(helper.MethodKind = MethodKind.Ordinary OrElse helper.MethodKind = MethodKind.UserDefinedOperator)
-                Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, Me._factory.Literal(resultType.IsNullableType), _factory.MethodInfo(helper))
+                Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, _factory.Literal(resultType.IsNullableType), _factory.MethodInfo(helper))
             End If
 
 
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Convert arguments to underlying type if they are enums
             If operandNotNullableType.IsEnumType AndAlso Not isIsIsNot Then
                 ' Assuming both operands are of the same type
-                Dim newType As TypeSymbol = If(operandIsNullable, Me._factory.NullableOf(operandUnderlyingType), operandUnderlyingType)
+                Dim newType As TypeSymbol = If(operandIsNullable, _factory.NullableOf(operandUnderlyingType), operandUnderlyingType)
 
                 left = CreateBuiltInConversion(operandActiveType, newType, left, node.Checked, False, ConversionSemantics.[Default])
                 right = CreateBuiltInConversion(operandActiveType, newType, right, node.Checked, False, ConversionSemantics.[Default])
@@ -251,13 +251,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Check if we need to convert the boolean arguments to Int32.
             If convertOperandsToInteger AndAlso Not isIsIsNot Then
-                Dim newType As TypeSymbol = If(operandIsNullable, Me._factory.NullableOf(Me.Int32Type), Me.Int32Type)
+                Dim newType As TypeSymbol = If(operandIsNullable, _factory.NullableOf(Int32Type), Int32Type)
                 left = Convert(left, newType, node.Checked)
                 right = Convert(right, newType, node.Checked)
                 operandActiveType = newType
             End If
 
-            Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, Me._factory.Literal(resultType.IsNullableType), Me._factory.Null)
+            Return ConvertRuntimeHelperToExpressionTree(opMethod, left, right, _factory.Literal(resultType.IsNullableType), _factory.Null)
         End Function
 
 #End Region
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 helper = DirectCast(_factory.SpecialMember(SpecialMember.System_String__ConcatStringString), MethodSymbol)
 
             ElseIf opKind = BinaryOperatorKind.Power Then
-                helper = Me._factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Math__PowDoubleDouble)
+                helper = _factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Math__PowDoubleDouble)
             End If
 
             Dim isChecked As Boolean = node.Checked AndAlso IsIntegralType(resultUnderlyingType)
@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If needToCastBackToByteOrSByte Then
                 Debug.Assert(resultUnderlyingSpecialType = SpecialType.System_Byte OrElse resultUnderlyingSpecialType = SpecialType.System_SByte)
-                result = Convert(result, If(resultTypeIsNullable, Me._factory.NullableOf(resultUnderlyingType), resultUnderlyingType), isChecked)
+                result = Convert(result, If(resultTypeIsNullable, _factory.NullableOf(resultUnderlyingType), resultUnderlyingType), isChecked)
             End If
 
             If resultNotNullableType.IsEnumType Then
@@ -396,12 +396,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Convert enums to their underlying types
             If notNullableType.IsEnumType Then
                 Dim underlyingType As TypeSymbol = notNullableType.GetEnumUnderlyingTypeOrSelf
-                loweredOperand = Convert(loweredOperand, If(isNullable, Me._factory.NullableOf(underlyingType), underlyingType), False)
+                loweredOperand = Convert(loweredOperand, If(isNullable, _factory.NullableOf(underlyingType), underlyingType), False)
             End If
 
             ' Byte and SByte promote operators to Int32, then demote after
             If needToCastBackToByteOrSByte Then
-                loweredOperand = Convert(loweredOperand, If(isNullable, Me._factory.NullableOf(Me.Int32Type), Me.Int32Type), checked)
+                loweredOperand = Convert(loweredOperand, If(isNullable, _factory.NullableOf(Int32Type), Int32Type), checked)
             End If
 
             Return loweredOperand
@@ -434,8 +434,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' visit and convert operand
                     result = Visit(operand)
-                    If operandType <> Me.Int32Type Then
-                        result = CreateBuiltInConversion(operandType, Me.Int32Type, result, isChecked, False, ConversionSemantics.[Default])
+                    If operandType <> Int32Type Then
+                        result = CreateBuiltInConversion(operandType, Int32Type, result, isChecked, False, ConversionSemantics.[Default])
                     End If
 
                     applyConversionToNullable = True
@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             result = MaskShiftCountOperand(result, shiftedType, shiftMask, result.ConstantValueOpt, isChecked)
 
             If applyConversionToNullable Then
-                result = Convert(result, Me._factory.NullableOf(Me.Int32Type), isChecked)
+                result = Convert(result, _factory.NullableOf(Int32Type), isChecked)
             End If
 
             Return result
@@ -465,13 +465,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If shiftConst Is Nothing OrElse shiftConst.UInt32Value > shiftMask Then
                 Dim constantOperand As BoundExpression =
                     ConvertRuntimeHelperToExpressionTree("Constant",
-                                                         Me._factory.Convert(Me.ObjectType, Me._factory.Literal(shiftMask)),
-                                                         Me._factory.Typeof(Me.Int32Type))
+                                                         _factory.Convert(ObjectType, _factory.Literal(shiftMask)),
+                                                         _factory.Typeof(Int32Type))
 
                 Dim isNullable As Boolean = shiftedType.IsNullableType
                 Dim isInt32 As Boolean = shiftedType.GetNullableUnderlyingTypeOrSelf.SpecialType = SpecialType.System_Int32
 
-                Dim int32Nullable As TypeSymbol = If(isNullable, Me._factory.NullableOf(Me.Int32Type), Nothing)
+                Dim int32Nullable As TypeSymbol = If(isNullable, _factory.NullableOf(Int32Type), Nothing)
 
                 If isNullable Then
                     constantOperand = Convert(constantOperand, int32Nullable, isChecked)
@@ -587,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(opKind)
             End Select
 
-            Return Me._factory.WellKnownMember(Of MethodSymbol)(wellKnownHelper)
+            Return _factory.WellKnownMember(Of MethodSymbol)(wellKnownHelper)
         End Function
 
         Private Function GetBinaryOperatorMethodName(opKind As BinaryOperatorKind, isChecked As Boolean) As String
@@ -698,7 +698,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    methodReturnType)
 
             If resultType.IsNullableType <> methodReturnType.IsNullableType Then
-                Return Me._factory.Convert(resultType, [call])
+                Return _factory.Convert(resultType, [call])
             End If
             Return [call]
         End Function

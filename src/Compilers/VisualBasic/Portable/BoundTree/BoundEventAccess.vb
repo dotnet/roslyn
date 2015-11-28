@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundEventAccess
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.EventSymbol
+                Return EventSymbol
             End Get
         End Property
     End Class

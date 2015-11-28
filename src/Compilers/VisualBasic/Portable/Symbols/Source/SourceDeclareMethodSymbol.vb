@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides Function GetDllImportData() As DllImportData
-            Return Me._platformInvokeInfo
+            Return _platformInvokeInfo
         End Function
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)

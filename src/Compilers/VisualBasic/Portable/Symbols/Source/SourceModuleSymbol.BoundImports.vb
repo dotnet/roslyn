@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Me.AliasImports = aliasImports
                 Me.AliasImportsInfo = aliasImportsInfo
                 Me.XmlNamespaces = xmlNamespaces
-                Me.Diagnostics = diags
+                Diagnostics = diags
             End Sub
         End Class
 

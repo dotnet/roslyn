@@ -25,14 +25,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.Method
+                Return Method
             End Get
         End Property
 
 #If DEBUG Then
         Private Sub Validate()
             ' if method group is specified it should not have receiver if it was moved to a bound call
-            Debug.Assert(Me.ReceiverOpt Is Nothing OrElse Me.MethodGroupOpt Is Nothing OrElse Me.MethodGroupOpt.ReceiverOpt Is Nothing)
+            Debug.Assert(ReceiverOpt Is Nothing OrElse MethodGroupOpt Is Nothing OrElse MethodGroupOpt.ReceiverOpt Is Nothing)
 
             ValidateConstantValue()
 

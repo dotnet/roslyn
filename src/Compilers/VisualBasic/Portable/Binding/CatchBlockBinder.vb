@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If asClauseOptSyntax IsNot Nothing Then
                 Debug.Assert(catchStatement.IdentifierName IsNot Nothing)
 
-                Dim localVar = LocalSymbol.Create(Me.ContainingMember,
+                Dim localVar = LocalSymbol.Create(ContainingMember,
                                                Me,
                                                catchStatement.IdentifierName.Identifier,
                                                Nothing,

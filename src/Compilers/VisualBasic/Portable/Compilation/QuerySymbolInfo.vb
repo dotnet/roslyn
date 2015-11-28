@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub New(select1 As SymbolInfo)
             Me.Select1 = select1
-            Me.Select2 = SymbolInfo.None
+            Select2 = SymbolInfo.None
         End Sub
 
         Friend Sub New(select1 As SymbolInfo, select2 As SymbolInfo)

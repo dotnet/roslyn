@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function AllocateSeparated(Of TNode As VisualBasicSyntaxNode)() As SeparatedSyntaxListBuilder(Of TNode)
-            Return New SeparatedSyntaxListBuilder(Of TNode)(Me.Allocate)
+            Return New SeparatedSyntaxListBuilder(Of TNode)(Allocate)
         End Function
 
         Friend Sub Free(item As SyntaxListBuilder)

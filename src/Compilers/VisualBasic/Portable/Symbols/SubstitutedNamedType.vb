@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Overloads Function SubstituteTypeParametersForMemberType(memberType As NamedTypeSymbol) As NamedTypeSymbol
-            Debug.Assert(memberType.IsDefinition AndAlso memberType.ContainingSymbol Is Me.OriginalDefinition)
+            Debug.Assert(memberType.IsDefinition AndAlso memberType.ContainingSymbol Is OriginalDefinition)
 
             If memberType.Arity = 0 Then
                 Return SpecializedNonGenericType.Create(Me, memberType, _substitution)
@@ -423,7 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Given a member from the original type of this type, substitute into it and get the corresponding member in this type.
         Friend Function GetMemberForDefinition(member As Symbol) As Symbol
             Debug.Assert(member.IsDefinition)
-            Debug.Assert(member.ContainingType = Me.OriginalDefinition)
+            Debug.Assert(member.ContainingType = OriginalDefinition)
 
             Return SubstituteTypeParametersInMember(member)
         End Function
@@ -714,7 +714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Debug.Assert(_substitution.Parent IsNot Nothing)
 
-                Dim substitution = TypeSubstitution.Create(_substitution.Parent, Me.OriginalDefinition, typeArguments,
+                Dim substitution = TypeSubstitution.Create(_substitution.Parent, OriginalDefinition, typeArguments,
                                                            allowAlphaRenamedTypeParametersAsArguments:=True)
                 Return New ConstructedSpecializedGenericType(Me, substitution)
             End Function
@@ -880,7 +880,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If newContainer IsNot _container Then
                     ' The container is affected.
 
-                    Dim definition = Me.OriginalDefinition
+                    Dim definition = OriginalDefinition
 
                     If newContainer.IsDefinition Then
                         ' New substitution cancelled out original substitution.
@@ -1024,7 +1024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                   GetUnificationUseSiteDiagnosticRecursive(_typeArguments, owner, checkedTypes))
 
                 If result Is Nothing AndAlso _hasTypeArgumentsCustomModifiers Then
-                    For Each modifiers In Me.TypeArgumentsCustomModifiers
+                    For Each modifiers In TypeArgumentsCustomModifiers
                         result = GetUnificationUseSiteDiagnosticRecursive(modifiers, owner, checkedTypes)
 
                         If result IsNot Nothing Then
@@ -1052,7 +1052,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property ConstructedFrom As NamedTypeSymbol
                 Get
-                    Return Me.OriginalDefinition
+                    Return OriginalDefinition
                 End Get
             End Property
 
@@ -1071,7 +1071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me
                 End If
 
-                Dim definition As NamedTypeSymbol = Me.OriginalDefinition
+                Dim definition As NamedTypeSymbol = OriginalDefinition
                 Dim containedType As NamedTypeSymbol = definition.ContainingType
                 Dim newContainedType As NamedTypeSymbol
 
@@ -1100,7 +1100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If substitution Is Nothing Then
                     ' Old substitution is cancelled out.
-                    Return Me.OriginalDefinition
+                    Return OriginalDefinition
                 End If
 
                 If substitution IsNot _substitution Then

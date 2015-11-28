@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' nodes to be able to enforce correct UseTwice semantics
 
             If node.Clauses.Length = 1 Then
-                Return Me.Visit(node.Clauses(0))
+                Return Visit(node.Clauses(0))
 
             Else
                 Dim statements = New BoundStatement(node.Clauses.Length - 1) {}
                 For i = 0 To node.Clauses.Length - 1
-                    statements(i) = DirectCast(Me.Visit(node.Clauses(i)), BoundStatement)
+                    statements(i) = DirectCast(Visit(node.Clauses(i)), BoundStatement)
                 Next
                 Return New BoundStatementList(node.Syntax, statements.AsImmutableOrNull())
             End If

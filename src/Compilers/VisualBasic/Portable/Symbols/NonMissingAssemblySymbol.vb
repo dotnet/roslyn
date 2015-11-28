@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub CacheTopLevelMetadataType(ByRef emittedName As MetadataTypeName, result As NamedTypeSymbol)
             Dim result1 As NamedTypeSymbol = Nothing
-            result1 = Me._emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result)
+            result1 = _emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result)
             Debug.Assert(result1.Equals(result)) ' object identity may differ in error cases
         End Sub
 

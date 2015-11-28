@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundRangeVariable
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.RangeVariable
+                Return RangeVariable
             End Get
         End Property
     End Class

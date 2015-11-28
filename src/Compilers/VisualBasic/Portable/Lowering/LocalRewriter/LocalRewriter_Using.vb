@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim initializationExpression = node.ResourceExpressionOpt
                 placeholderInfo = node.UsingInfo.PlaceholderInfo(initializationExpression.Type)
 
-                Dim tempResourceSymbol As LocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda,
+                Dim tempResourceSymbol As LocalSymbol = New SynthesizedLocal(_currentMethodOrLambda,
                                                                             initializationExpression.Type,
                                                                             SynthesizedLocalKind.Using,
                                                                             blockSyntax.UsingStatement)

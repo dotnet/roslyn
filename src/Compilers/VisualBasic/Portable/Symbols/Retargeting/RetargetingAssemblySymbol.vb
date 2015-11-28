@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Return Nothing
             End If
 
-            Return Me.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
+            Return RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
         End Function
     End Class
 End Namespace

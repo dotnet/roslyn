@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Select
             Next
 
-            Return If(hasClass OrElse hasDelegate, Me.ReportMissingOrErroneousSymbols(diagnostics, hasClass, hasDelegate, hasKeys), True)
+            Return If(hasClass OrElse hasDelegate, ReportMissingOrErroneousSymbols(diagnostics, hasClass, hasDelegate, hasKeys), True)
         End Function
 
         Public ReadOnly Property System_Boolean As NamedTypeSymbol
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property System_Object__ToString As MethodSymbol
             Get
-                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__ToString), MethodSymbol)
+                Return DirectCast(ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__ToString), MethodSymbol)
             End Get
         End Property
 
@@ -209,13 +209,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property System_Object__GetHashCode As MethodSymbol
             Get
-                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode), MethodSymbol)
+                Return DirectCast(ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode), MethodSymbol)
             End Get
         End Property
 
         Public ReadOnly Property System_Object__Equals As MethodSymbol
             Get
-                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__Equals), MethodSymbol)
+                Return DirectCast(ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__Equals), MethodSymbol)
             End Get
         End Property
 

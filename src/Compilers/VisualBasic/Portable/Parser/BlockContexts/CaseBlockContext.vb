@@ -56,9 +56,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim result As VisualBasicSyntaxNode
             If BlockKind = SyntaxKind.CaseBlock Then
-                result = SyntaxFactory.CaseBlock(DirectCast(BeginStatement, CaseStatementSyntax), Me.Body())
+                result = SyntaxFactory.CaseBlock(DirectCast(BeginStatement, CaseStatementSyntax), Body())
             Else
-                result = SyntaxFactory.CaseElseBlock(DirectCast(BeginStatement, CaseStatementSyntax), Me.Body())
+                result = SyntaxFactory.CaseElseBlock(DirectCast(BeginStatement, CaseStatementSyntax), Body())
             End If
 
             FreeStatements()

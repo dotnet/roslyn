@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
             Get
-                Return StaticCast(Of TypeSymbol).From(Me.TypeParameters)
+                Return StaticCast(Of TypeSymbol).From(TypeParameters)
             End Get
         End Property
 
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-            Dim compilation = Me.DeclaringCompilation
+            Dim compilation = DeclaringCompilation
 
             AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
             AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())

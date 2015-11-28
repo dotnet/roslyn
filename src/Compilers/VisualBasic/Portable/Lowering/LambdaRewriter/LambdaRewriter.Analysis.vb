@@ -122,11 +122,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend ReadOnly symbolsCapturedWithoutCopyCtor As ISet(Of Symbol)
 
             Private Sub New(method As MethodSymbol, symbolsCapturedWithoutCopyCtor As ISet(Of Symbol), diagnostics As DiagnosticBag)
-                Me._currentParent = method
-                Me._method = method
+                _currentParent = method
+                _method = method
                 Me.symbolsCapturedWithoutCopyCtor = symbolsCapturedWithoutCopyCtor
-                Me._diagnostics = diagnostics
-                Me._inExpressionLambda = False
+                _diagnostics = diagnostics
+                _inExpressionLambda = False
             End Sub
 
             ''' <summary>
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 For Each local In locals
-                    Debug.Assert(local.ContainingSymbol = Me._currentParent OrElse
+                    Debug.Assert(local.ContainingSymbol = _currentParent OrElse
                                  local.ContainingSymbol.Kind <> SymbolKind.Method,
                                  "locals should be owned by current method")
 
@@ -305,8 +305,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockParent.Add(_currentBlock, oldBlock)
                 lambdaParent.Add(node.LambdaSymbol, oldParent)
 
-                Dim wasInExpressionLambda As Boolean = Me._inExpressionLambda
-                Me._inExpressionLambda = _inExpressionLambda OrElse convertToExpressionTree
+                Dim wasInExpressionLambda As Boolean = _inExpressionLambda
+                _inExpressionLambda = _inExpressionLambda OrElse convertToExpressionTree
 
 
                 For Each parameter In node.LambdaSymbol.Parameters
@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim result = MyBase.VisitBlock(node.Body)
 
-                Me._inExpressionLambda = wasInExpressionLambda
+                _inExpressionLambda = wasInExpressionLambda
 
                 _currentParent = oldParent
                 _currentBlock = oldBlock
@@ -462,17 +462,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Public Overrides Function VisitMeReference(node As BoundMeReference) As BoundNode
-                ReferenceVariable(Me._method.MeParameter, node.Syntax)
+                ReferenceVariable(_method.MeParameter, node.Syntax)
                 Return MyBase.VisitMeReference(node)
             End Function
 
             Public Overrides Function VisitMyClassReference(node As BoundMyClassReference) As BoundNode
-                ReferenceVariable(Me._method.MeParameter, node.Syntax)
+                ReferenceVariable(_method.MeParameter, node.Syntax)
                 Return MyBase.VisitMyClassReference(node)
             End Function
 
             Public Overrides Function VisitMyBaseReference(node As BoundMyBaseReference) As BoundNode
-                ReferenceVariable(Me._method.MeParameter, node.Syntax)
+                ReferenceVariable(_method.MeParameter, node.Syntax)
                 Return MyBase.VisitMyBaseReference(node)
             End Function
 

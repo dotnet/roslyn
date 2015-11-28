@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(Of ParameterSyntax)(Me.Locations)
+                Return GetDeclaringSyntaxReferenceHelper(Of ParameterSyntax)(Locations)
             End Get
         End Property
 

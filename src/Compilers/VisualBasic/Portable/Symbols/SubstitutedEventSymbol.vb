@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me.OriginalDefinition.Name
+                Return OriginalDefinition.Name
             End Get
         End Property
 

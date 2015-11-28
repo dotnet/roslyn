@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert((Me.OnErrorKind = OnErrorStatementKind.GoToLabel) = Not (Me.LabelOpt Is Nothing AndAlso Me.LabelExpressionOpt Is Nothing))
-            Debug.Assert(Me.LabelExpressionOpt Is Nothing OrElse Me.LabelOpt IsNot Nothing OrElse Me.HasErrors)
+            Debug.Assert((OnErrorKind = OnErrorStatementKind.GoToLabel) = Not (LabelOpt Is Nothing AndAlso LabelExpressionOpt Is Nothing))
+            Debug.Assert(LabelExpressionOpt Is Nothing OrElse LabelOpt IsNot Nothing OrElse HasErrors)
         End Sub
 #End If
 

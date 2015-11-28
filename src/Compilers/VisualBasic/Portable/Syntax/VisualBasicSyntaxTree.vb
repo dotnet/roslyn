@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Public Overridable Shadows Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VisualBasicSyntaxNode)
             Dim node As VisualBasicSyntaxNode = Nothing
-            Return Task.FromResult(If(Me.TryGetRoot(node), node, Me.GetRoot(cancellationToken)))
+            Return Task.FromResult(If(TryGetRoot(node), node, GetRoot(cancellationToken)))
         End Function
 
         ''' <summary>
@@ -75,12 +75,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         ''' <exception cref="InvalidCastException">Throws this exception if <see cref="SyntaxTree.HasCompilationUnitRoot"/> is false.</exception>
         Public Function GetCompilationUnitRoot(Optional cancellationToken As CancellationToken = Nothing) As CompilationUnitSyntax
-            Return DirectCast(Me.GetRoot(cancellationToken), CompilationUnitSyntax)
+            Return DirectCast(GetRoot(cancellationToken), CompilationUnitSyntax)
         End Function
 
         Friend ReadOnly Property HasReferenceDirectives As Boolean
             Get
-                Debug.Assert(Me.HasCompilationUnitRoot)
+                Debug.Assert(HasCompilationUnitRoot)
 
                 Return Options.Kind = SourceCodeKind.Script AndAlso GetCompilationUnitRoot().GetReferenceDirectives().Count > 0
             End Get
@@ -97,12 +97,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function WithChangedText(newText As SourceText) As SyntaxTree
             ' try to find the changes between the old text and the new text.
             Dim oldText As SourceText = Nothing
-            If Me.TryGetText(oldText) Then
-                Return Me.WithChanges(newText, newText.GetChangeRanges(oldText).ToArray())
+            If TryGetText(oldText) Then
+                Return WithChanges(newText, newText.GetChangeRanges(oldText).ToArray())
             End If
 
             ' if we do not easily know the old text, then specify entire text as changed so we do a full reparse.
-            Return Me.WithChanges(newText, {New TextChangeRange(New TextSpan(0, Me.Length), newText.Length)})
+            Return WithChanges(newText, {New TextChangeRange(New TextSpan(0, Length), newText.Length)})
         End Function
 
         ''' <summary>
@@ -114,11 +114,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim scanner As scanner
-            If changes.Length = 1 AndAlso changes(0).Span = New TextSpan(0, Me.Length) AndAlso changes(0).NewLength = newText.Length Then
+            If changes.Length = 1 AndAlso changes(0).Span = New TextSpan(0, Length) AndAlso changes(0).NewLength = newText.Length Then
                 ' if entire text is replaced then do a full reparse
                 scanner = New scanner(newText, Options)
             Else
-                scanner = New Blender(newText, changes, Me, Me.Options)
+                scanner = New Blender(newText, changes, Me, Options)
             End If
 
             Dim node As InternalSyntax.CompilationUnitSyntax
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
-            Dim tree = New ParsedSyntaxTree(newText, newText.Encoding, newText.ChecksumAlgorithm, Me.FilePath, Options, root, isMyTemplate:=False)
+            Dim tree = New ParsedSyntaxTree(newText, newText.Encoding, newText.ChecksumAlgorithm, FilePath, Options, root, isMyTemplate:=False)
 
             tree.VerifySource(changes)
             Return tree
@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetDiagnostics(node As SyntaxNode) As IEnumerable(Of Diagnostic)
             If node Is Nothing Then Throw New ArgumentNullException(NameOf(node))
 
-            Return Me.GetDiagnostics(DirectCast(node.Green, InternalSyntax.VisualBasicSyntaxNode), DirectCast(node, VisualBasicSyntaxNode).Position, InDocumentationComment(node))
+            Return GetDiagnostics(DirectCast(node.Green, InternalSyntax.VisualBasicSyntaxNode), DirectCast(node, VisualBasicSyntaxNode).Position, InDocumentationComment(node))
         End Function
 
         ''' <summary>
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(token As SyntaxToken) As IEnumerable(Of Diagnostic)
-            Return Me.GetDiagnostics(DirectCast(token.Node, InternalSyntax.SyntaxToken), token.Position, InDocumentationComment(token))
+            Return GetDiagnostics(DirectCast(token.Node, InternalSyntax.SyntaxToken), token.Position, InDocumentationComment(token))
         End Function
 
         ''' <summary>
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(trivia As SyntaxTrivia) As IEnumerable(Of Diagnostic)
-            Return Me.GetDiagnostics(DirectCast(trivia.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), trivia.Position, InDocumentationComment(trivia))
+            Return GetDiagnostics(DirectCast(trivia.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), trivia.Position, InDocumentationComment(trivia))
         End Function
 
         ''' <summary>
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(nodeOrToken As SyntaxNodeOrToken) As IEnumerable(Of Diagnostic)
-            Return Me.GetDiagnostics(DirectCast(nodeOrToken.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), nodeOrToken.Position, InDocumentationComment(nodeOrToken))
+            Return GetDiagnostics(DirectCast(nodeOrToken.UnderlyingNode, InternalSyntax.VisualBasicSyntaxNode), nodeOrToken.Position, InDocumentationComment(nodeOrToken))
         End Function
 
         ''' <summary>
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' This method does not filter diagnostics based on compiler options like /nowarn, /warnaserror etc.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of Diagnostic)
-            Return Me.GetDiagnostics(Me.GetRoot(cancellationToken).VbGreen, 0, False)
+            Return GetDiagnostics(GetRoot(cancellationToken).VbGreen, 0, False)
         End Function
 
         Friend Iterator Function EnumerateDiagnostics(node As InternalSyntax.VisualBasicSyntaxNode, position As Integer, InDocumentationComment As Boolean) As IEnumerable(Of Diagnostic)
@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The values are not affected by line mapping directives (<c>#ExternalSource</c>).
         ''' </remarks>
         Public Overrides Function GetLineSpan(span As TextSpan, Optional cancellationToken As CancellationToken = Nothing) As FileLinePositionSpan
-            Return New FileLinePositionSpan(Me.FilePath, GetLinePosition(span.Start), GetLinePosition(span.End))
+            Return New FileLinePositionSpan(FilePath, GetLinePosition(span.Start), GetLinePosition(span.End))
         End Function
 
         ''' <summary>
@@ -371,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
             End If
 
-            Return _lineDirectiveMap.TranslateSpan(Me.GetText(cancellationToken), Me.FilePath, span)
+            Return _lineDirectiveMap.TranslateSpan(GetText(cancellationToken), FilePath, span)
         End Function
 
         Public Overrides Function GetLineVisibility(position As Integer, Optional cancellationToken As CancellationToken = Nothing) As LineVisibility
@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
             End If
 
-            Return _lineDirectiveMap.GetLineVisibility(Me.GetText(cancellationToken), position)
+            Return _lineDirectiveMap.GetLineVisibility(GetText(cancellationToken), position)
         End Function
 
         Friend Overrides Function GetMappedLineSpanAndVisibility(span As TextSpan, ByRef isHiddenPosition As Boolean) As FileLinePositionSpan
@@ -389,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Interlocked.CompareExchange(_lineDirectiveMap, New VisualBasicLineDirectiveMap(Me), Nothing)
             End If
 
-            Return _lineDirectiveMap.TranslateSpanAndVisibility(Me.GetText(), Me.FilePath, span, isHiddenPosition)
+            Return _lineDirectiveMap.TranslateSpanAndVisibility(GetText(), FilePath, span, isHiddenPosition)
         End Function
 
         Public Overrides Function HasHiddenRegions() As Boolean
@@ -414,16 +414,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _lazyWarningStateMap As VisualBasicWarningStateMap
 
         Private Function GetLinePosition(position As Integer) As LinePosition
-            Return Me.GetText().Lines.GetLinePosition(position)
+            Return GetText().Lines.GetLinePosition(position)
         End Function
 
         ''' <summary>
         ''' Gets a location for the specified text <paramref name="span"/>.
         ''' </summary>
         Public Overrides Function GetLocation(span As TextSpan) As Location
-            If Me.IsEmbeddedSyntaxTree Then
-                Return New EmbeddedTreeLocation(Me.GetEmbeddedKind, span)
-            ElseIf Me.IsMyTemplate Then
+            If IsEmbeddedSyntaxTree Then
+                Return New EmbeddedTreeLocation(GetEmbeddedKind, span)
+            ElseIf IsMyTemplate Then
                 Return New MyTemplateLocation(Me, span)
             End If
 
@@ -453,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(oldTree))
             End If
 
-            Return SyntaxDiffer.GetPossiblyDifferentTextSpans(oldTree.GetRoot(), Me.GetRoot())
+            Return SyntaxDiffer.GetPossiblyDifferentTextSpans(oldTree.GetRoot(), GetRoot())
         End Function
 
         ''' <summary>
@@ -472,16 +472,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "SyntaxTree"
 
         Protected Overrides Function GetRootCore(CancellationToken As CancellationToken) As SyntaxNode
-            Return Me.GetRoot(CancellationToken)
+            Return GetRoot(CancellationToken)
         End Function
 
         Protected Overrides Async Function GetRootAsyncCore(cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-            Return Await Me.GetRootAsync(cancellationToken).ConfigureAwait(False)
+            Return Await GetRootAsync(cancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Function TryGetRootCore(ByRef root As SyntaxNode) As Boolean
             Dim node As VisualBasicSyntaxNode = Nothing
-            If Me.TryGetRoot(node) Then
+            If TryGetRoot(node) Then
                 root = node
                 Return True
             Else
@@ -492,7 +492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property OptionsCore As ParseOptions
             Get
-                Return Me.Options
+                Return Options
             End Get
         End Property
 
@@ -505,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property ConditionalSymbols As ConditionalSymbolsMap
             Get
                 If _lazySymbolsMap Is ConditionalSymbolsMap.Uninitialized Then
-                    Interlocked.CompareExchange(_lazySymbolsMap, ConditionalSymbolsMap.Create(Me.GetRoot(CancellationToken.None), Options), ConditionalSymbolsMap.Uninitialized)
+                    Interlocked.CompareExchange(_lazySymbolsMap, ConditionalSymbolsMap.Create(GetRoot(CancellationToken.None), Options), ConditionalSymbolsMap.Uninitialized)
                 End If
 
                 Return _lazySymbolsMap
@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function IsAnyPreprocessorSymbolDefined(conditionalSymbolNames As IEnumerable(Of String), atNode As SyntaxNodeOrToken) As Boolean
             Debug.Assert(conditionalSymbolNames IsNot Nothing)
 
-            Dim conditionalSymbolsMap As conditionalSymbolsMap = Me.ConditionalSymbols
+            Dim conditionalSymbolsMap As conditionalSymbolsMap = ConditionalSymbols
             If conditionalSymbolsMap Is Nothing Then
                 Return False
             End If

@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend NotOverridable Overrides ReadOnly Property BackingFieldSymbol As FieldSymbol
                 Get
-                    Return DirectCast(Me.m_propertyOrEvent, AnonymousTypePropertySymbol).AssociatedField
+                    Return DirectCast(m_propertyOrEvent, AnonymousTypePropertySymbol).AssociatedField
                 End Get
             End Property
 
             Protected Overrides Function GenerateMetadataName() As String
-                Return Binder.GetAccessorName(m_propertyOrEvent.MetadataName, Me.MethodKind, Me.IsCompilationOutputWinMdObj())
+                Return Binder.GetAccessorName(m_propertyOrEvent.MetadataName, MethodKind, IsCompilationOutputWinMdObj())
             End Function
 
             Public Overrides ReadOnly Property ReturnType As TypeSymbol

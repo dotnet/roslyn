@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _node As CompilationUnitSyntax
 
             Public Sub New()
-                _node = Me.CloneNodeAsRoot(SyntaxFactory.ParseCompilationUnit(String.Empty))
+                _node = CloneNodeAsRoot(SyntaxFactory.ParseCompilationUnit(String.Empty))
             End Sub
 
             Public Overrides Function ToString() As String
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function WithFilePath(path As String) As SyntaxTree
-                Return SyntaxFactory.SyntaxTree(_node, options:=Me.Options, path:=path, encoding:=Nothing)
+                Return SyntaxFactory.SyntaxTree(_node, options:=Options, path:=path, encoding:=Nothing)
             End Function
         End Class
     End Class

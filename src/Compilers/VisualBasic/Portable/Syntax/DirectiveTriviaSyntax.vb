@@ -10,13 +10,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Function GetRelatedDirectives() As List(Of DirectiveTriviaSyntax)
             Dim list = New List(Of DirectiveTriviaSyntax)()
-            Me.GetRelatedDirectives(list)
+            GetRelatedDirectives(list)
             Return list
         End Function
 
         Private Sub GetRelatedDirectives(list As List(Of DirectiveTriviaSyntax))
             list.Clear()
-            Dim p = Me.GetPreviousRelatedDirective()
+            Dim p = GetPreviousRelatedDirective()
             While p IsNot Nothing
                 list.Add(p)
                 p = p.GetPreviousRelatedDirective()
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             list.Reverse()
             list.Add(Me)
-            Dim n = Me.GetNextRelatedDirective()
+            Dim n = GetNextRelatedDirective()
             While n IsNot Nothing
                 list.Add(n)
                 n = n.GetNextRelatedDirective()

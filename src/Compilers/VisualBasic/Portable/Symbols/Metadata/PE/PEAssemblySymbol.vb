@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             If _lazyCustomAttributes.IsDefault Then
-                PrimaryModule.LoadCustomAttributes(Me.Assembly.Handle, _lazyCustomAttributes)
+                PrimaryModule.LoadCustomAttributes(Assembly.Handle, _lazyCustomAttributes)
             End If
             Return _lazyCustomAttributes
         End Function
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend ReadOnly Property PrimaryModule As PEModuleSymbol
             Get
-                Return DirectCast(Me.Modules(0), PEModuleSymbol)
+                Return DirectCast(Modules(0), PEModuleSymbol)
             End Get
         End Property
 

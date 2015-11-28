@@ -42,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Sub MakeBinder(node As VisualBasicSyntaxNode, containingBinder As Binder)
-            Dim oldContainingBinder As Binder = Me._containingBinder
-            Me._containingBinder = containingBinder
+            Dim oldContainingBinder As Binder = _containingBinder
+            _containingBinder = containingBinder
             MyBase.Visit(node)
-            Me._containingBinder = oldContainingBinder
+            _containingBinder = oldContainingBinder
         End Sub
 
         Public ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)

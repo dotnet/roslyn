@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend MustInherit Class SynthesizedPropertyAccessorBase(Of T As PropertySymbol)
 
         Friend Overloads Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Return GetBoundMethodBody(Me, Me.BackingFieldSymbol, methodBodyBinder)
+            Return GetBoundMethodBody(Me, BackingFieldSymbol, methodBodyBinder)
         End Function
 
         Friend Overloads Shared Function GetBoundMethodBody(accessor As MethodSymbol,

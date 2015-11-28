@@ -356,21 +356,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private Sub New(typeBlockSyntax As TypeBlockSyntax, declaration As SingleTypeDeclaration, nestedTypes As ArrayBuilder(Of Integer))
                 Me.TypeBlockSyntax = typeBlockSyntax
-                Me.TypeDeclaration = declaration
+                TypeDeclaration = declaration
                 Me.NestedTypes = nestedTypes
             End Sub
 
             Public Function WithNestedTypes(nested As ArrayBuilder(Of Integer)) As TypeBlockInfo
-                Debug.Assert(Me.TypeDeclaration Is Nothing)
-                Debug.Assert(Me.NestedTypes Is Nothing)
+                Debug.Assert(TypeDeclaration Is Nothing)
+                Debug.Assert(NestedTypes Is Nothing)
                 Debug.Assert(nested IsNot Nothing)
-                Return New TypeBlockInfo(Me.TypeBlockSyntax, Nothing, nested)
+                Return New TypeBlockInfo(TypeBlockSyntax, Nothing, nested)
             End Function
 
             Public Function WithDeclaration(declaration As SingleTypeDeclaration) As TypeBlockInfo
-                Debug.Assert(Me.TypeDeclaration Is Nothing)
+                Debug.Assert(TypeDeclaration Is Nothing)
                 Debug.Assert(declaration IsNot Nothing)
-                Return New TypeBlockInfo(Me.TypeBlockSyntax, declaration, Me.NestedTypes)
+                Return New TypeBlockInfo(TypeBlockSyntax, declaration, NestedTypes)
             End Function
         End Structure
 

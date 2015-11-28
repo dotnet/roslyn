@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim n As Integer = list.Count
             Do While (i < n)
                 Dim item As TNode = list.Item(i)
-                Dim visited As TNode = DirectCast(Me.Visit(item), TNode)
+                Dim visited As TNode = DirectCast(Visit(item), TNode)
                 If item IsNot visited AndAlso alternate.IsNull Then
                     alternate = New SyntaxListBuilder(Of TNode)(n)
                     alternate.AddRange(list, 0, i)
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             While i < itemCount
                 Dim item = list(i)
-                Dim visitedItem = Me.Visit(item)
+                Dim visitedItem = Visit(item)
 
                 Dim separator As SyntaxToken = Nothing
                 Dim visitedSeparator As SyntaxToken = Nothing
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     separator = list.GetSeparator(i)
                     ' LastTokenReplacer depends on us calling Visit rather than VisitToken for separators.
                     ' It is not clear whether this is desirable/acceptable.
-                    Dim visitedSeparatorNode = Me.Visit(separator)
+                    Dim visitedSeparatorNode = Visit(separator)
                     Debug.Assert(TypeOf visitedSeparatorNode Is SyntaxToken, "Cannot replace a separator with a non-separator")
 
                     visitedSeparator = DirectCast(visitedSeparatorNode, SyntaxToken)

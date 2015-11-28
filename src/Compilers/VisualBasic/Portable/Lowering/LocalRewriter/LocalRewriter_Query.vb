@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Conveniently, we already know the lambda's symbol.
 
             ' BEGIN LAMBDA REWRITE
-            Dim originalMethodOrLambda = Me._currentMethodOrLambda
-            Me._currentMethodOrLambda = node.LambdaSymbol
+            Dim originalMethodOrLambda = _currentMethodOrLambda
+            _currentMethodOrLambda = node.LambdaSymbol
 
             Dim nodeRangeVariables As ImmutableArray(Of RangeVariableSymbol) = node.RangeVariables
 
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             ImmutableArray(Of LocalSymbol).Empty,
                                             ImmutableArray.Create(returnstmt))
 
-            Me._hasLambdas = True
+            _hasLambdas = True
 
             Dim result As BoundLambda = New BoundLambda(node.Syntax,
                                    node.LambdaSymbol,
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Done with lambda body rewrite, restore current lambda.
             ' END LAMBDA REWRITE
-            Me._currentMethodOrLambda = originalMethodOrLambda
+            _currentMethodOrLambda = originalMethodOrLambda
 
             Return result
         End Function
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitAggregateClause(node As BoundAggregateClause) As BoundNode
             If node.CapturedGroupOpt IsNot Nothing Then
                 Debug.Assert(node.GroupPlaceholderOpt IsNot Nothing)
-                Dim groupLocal = New SynthesizedLocal(Me._currentMethodOrLambda, node.CapturedGroupOpt.Type, SynthesizedLocalKind.LoweringTemp)
+                Dim groupLocal = New SynthesizedLocal(_currentMethodOrLambda, node.CapturedGroupOpt.Type, SynthesizedLocalKind.LoweringTemp)
 
                 AddPlaceholderReplacement(node.GroupPlaceholderOpt,
                                               New BoundLocal(node.Syntax, groupLocal, False, groupLocal.Type))

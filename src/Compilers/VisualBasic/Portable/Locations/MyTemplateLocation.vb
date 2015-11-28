@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Return other IsNot Nothing AndAlso Me._tree Is other._tree AndAlso other._span.Equals(Me._span)
+            Return other IsNot Nothing AndAlso _tree Is other._tree AndAlso other._span.Equals(_span)
         End Function
 
         Public Overloads Overrides Function Equals(obj As Object) As Boolean

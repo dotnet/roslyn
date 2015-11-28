@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim compilation = _property.DeclaringCompilation
 
-            Debug.Assert(Not Me.ContainingType.IsImplicitlyDeclared)
+            Debug.Assert(Not ContainingType.IsImplicitlyDeclared)
 
             AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))

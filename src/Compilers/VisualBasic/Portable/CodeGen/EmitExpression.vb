@@ -467,19 +467,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.OpenLocalScope()
 
                 For Each local In sequence.Locals
-                    Me.DefineLocal(local, sequence.Syntax)
+                    DefineLocal(local, sequence.Syntax)
                 Next
             End If
 
-            Me.EmitSideEffects(sequence.SideEffects)
+            EmitSideEffects(sequence.SideEffects)
             Debug.Assert(sequence.ValueOpt IsNot Nothing OrElse sequence.Type.SpecialType = SpecialType.System_Void)
-            Me.EmitExpression(sequence.ValueOpt, used)
+            EmitExpression(sequence.ValueOpt, used)
 
             If hasLocals Then
                 _builder.CloseLocalScope()
 
                 For Each local In sequence.Locals
-                    Me.FreeLocal(local)
+                    FreeLocal(local)
                 Next
             End If
         End Sub
@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ElseIf receiver.Kind = BoundKind.DirectCast AndAlso IsUnboxingDirectCast(DirectCast(receiver, BoundDirectCast)) Then
                 EmitExpression(DirectCast(receiver, BoundDirectCast).Operand, True)
-                Me._builder.EmitOpCode(ILOpCode.Unbox)
+                _builder.EmitOpCode(ILOpCode.Unbox)
                 EmitSymbolToken(receiver.Type, receiver.Syntax)
                 Return True
 
@@ -685,7 +685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim field As FieldSymbol = fieldAccess.FieldSymbol
 
                 If Not field.IsShared AndAlso EmitFieldLoadReceiverAddress(fieldAccess.ReceiverOpt) Then
-                    Me._builder.EmitOpCode(ILOpCode.Ldflda)
+                    _builder.EmitOpCode(ILOpCode.Ldflda)
                     EmitSymbolToken(field, fieldAccess.Syntax)
                     Return True
                 End If
@@ -920,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim receiver = [call].ReceiverOpt
 
             Debug.Assert([call].MethodGroupOpt Is Nothing)
-            Debug.Assert(Not Me._module.AllowOmissionOfConditionalCalls OrElse Not method.CallsAreOmitted([call].Syntax, [call].SyntaxTree))
+            Debug.Assert(Not _module.AllowOmissionOfConditionalCalls OrElse Not method.CallsAreOmitted([call].Syntax, [call].SyntaxTree))
 
             ' is this a call to a default struct constructor?
             ' this happens in struct non-parameterless constructors calling
@@ -1019,7 +1019,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' Devirtualizing of calls to effectively sealed methods.
             If callKind = CallKind.CallVirt AndAlso
-                method.ContainingModule Is Me._method.ContainingModule Then
+                method.ContainingModule Is _method.ContainingModule Then
 
                 ' NOTE: we check that we call method in same module just to be sure
                 ' that it cannot be recompiled as not final and make our call not verifiable. 
@@ -1091,26 +1091,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             FreeOptTemp(tempOpt)
 
             ' Dev10 #850039 Check if we must disable inlining and optimization for the enclosing proc.
-            If Me._checkCallsForUnsafeJITOptimization AndAlso method.IsDefinition Then
+            If _checkCallsForUnsafeJITOptimization AndAlso method.IsDefinition Then
                 Dim disableJITOptimization As Boolean = False
 
-                If method.ContainingSymbol Is Me._module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_ErrObject) Then
+                If method.ContainingSymbol Is _module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_ErrObject) Then
                     If String.Equals(method.Name, "Raise", StringComparison.Ordinal) Then
                         disableJITOptimization = True
                     End If
-                ElseIf method.ContainingSymbol Is Me._module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_ProjectData) Then
+                ElseIf method.ContainingSymbol Is _module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_ProjectData) Then
                     If String.Equals(method.Name, "EndApp", StringComparison.Ordinal) Then
                         disableJITOptimization = True
                     End If
-                ElseIf method.ContainingSymbol Is Me._module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_ApplicationServices_ApplicationBase) Then
+                ElseIf method.ContainingSymbol Is _module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_ApplicationServices_ApplicationBase) Then
                     If String.Equals(method.Name, "Info", StringComparison.Ordinal) Then
                         disableJITOptimization = True
                     End If
-                ElseIf method.ContainingSymbol Is Me._module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_ApplicationServices_WindowsFormsApplicationBase) Then
+                ElseIf method.ContainingSymbol Is _module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_ApplicationServices_WindowsFormsApplicationBase) Then
                     If String.Equals(method.Name, "Run", StringComparison.Ordinal) Then
                         disableJITOptimization = True
                     End If
-                ElseIf method.ContainingSymbol Is Me._module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_FileSystem) Then
+                ElseIf method.ContainingSymbol Is _module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_FileSystem) Then
                     Select Case method.Name
                         Case "Dir", "EOF", "FileAttr", "FileClose", "FileCopy", "FileGet", "FileGetObject", "FileOpen", "FilePut",
                              "FilePutObject", "FileWidth", "FreeFile", "Input", "InputString", "Kill", "LineInput", "Loc", "Lock",
@@ -1120,8 +1120,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 End If
 
                 If disableJITOptimization Then
-                    Me._checkCallsForUnsafeJITOptimization = False
-                    Me._module.SetDisableJITOptimization(Me._method)
+                    _checkCallsForUnsafeJITOptimization = False
+                    _module.SetDisableJITOptimization(_method)
                 End If
             End If
         End Sub
@@ -1367,7 +1367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BoundKind.Local
                     Dim local = DirectCast(expr, BoundLocal)
-                    If (Me.IsStackLocal(local.LocalSymbol)) Then
+                    If (IsStackLocal(local.LocalSymbol)) Then
                         ' stack value, we cannot be sure what it is
                         Return Nothing
                     End If
@@ -1477,7 +1477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitInitObj(type As TypeSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
             If (used) Then
-                Dim temp = Me.AllocateTemp(type, syntaxNode)
+                Dim temp = AllocateTemp(type, syntaxNode)
                 _builder.EmitLocalAddress(temp)                  '  ldloca temp
                 _builder.EmitOpCode(ILOpCode.Initobj)            '  intitobj  <MyStruct>
                 EmitSymbolToken(type, syntaxNode)
@@ -1600,7 +1600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitAssignmentExpression(assignmentOperator As BoundAssignmentOperator, used As Boolean)
-            If Me.TryEmitAssignmentInPlace(assignmentOperator, used) Then
+            If TryEmitAssignmentInPlace(assignmentOperator, used) Then
                 Return
             End If
 
@@ -1648,11 +1648,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' 
             ' * Post-storage: If we stashed away the duplicated value in the temporary, we need to restore it back to the stack.
 
-            Dim lhsUsesStack As Boolean = Me.EmitAssignmentPreamble(assignmentOperator.Left)
-            Me.EmitExpression(assignmentOperator.Right, used:=True)
-            Dim temp As LocalDefinition = Me.EmitAssignmentDuplication(assignmentOperator, used, lhsUsesStack)
-            Me.EmitStore(assignmentOperator.Left)
-            Me.EmitAssignmentPostfix(temp)
+            Dim lhsUsesStack As Boolean = EmitAssignmentPreamble(assignmentOperator.Left)
+            EmitExpression(assignmentOperator.Right, used:=True)
+            Dim temp As LocalDefinition = EmitAssignmentDuplication(assignmentOperator, used, lhsUsesStack)
+            EmitStore(assignmentOperator.Left)
+            EmitAssignmentPostfix(temp)
         End Sub
 
         ' sometimes it is possible and advantageous to get an address of the lHS and 
@@ -1670,7 +1670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' if result is used, and lives on heap, we must keep RHS value on the stack.
             ' otherwise we can try conjuring up the RHS value directly where it belongs.
-            If used AndAlso Not Me.TargetIsNotOnHeap(left) Then
+            If used AndAlso Not TargetIsNotOnHeap(left) Then
                 Return False
             End If
 
@@ -1690,16 +1690,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             If right.IsDefaultValue() Then
-                Me.InPlaceInit(left, used)
+                InPlaceInit(left, used)
                 Return True
             Else
                 If right.Kind = BoundKind.ObjectCreationExpression Then
                     ' It is desirable to do in-place ctor call if possible.
                     ' we could do newobj/stloc, but inplace call 
                     ' produces same or better code in current JITs 
-                    If Me.PartialCtorResultCannotEscape(left) Then
+                    If PartialCtorResultCannotEscape(left) Then
                         Dim objCreation As BoundObjectCreationExpression = DirectCast(right, BoundObjectCreationExpression)
-                        Me.InPlaceCtorCall(left, objCreation, used)
+                        InPlaceCtorCall(left, objCreation, used)
                         Return True
                     End If
                 End If
@@ -1716,33 +1716,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
 
         Private Sub InPlaceInit(target As BoundExpression, used As Boolean)
-            Dim temp = Me.EmitAddress(target, AddressKind.Writeable)
+            Dim temp = EmitAddress(target, AddressKind.Writeable)
             Debug.Assert(temp Is Nothing, "temp is not expected when in-place assigning")
 
-            Me._builder.EmitOpCode(ILOpCode.Initobj)    '  intitobj  <MyStruct>
-            Me.EmitSymbolToken(target.Type, target.Syntax)
+            _builder.EmitOpCode(ILOpCode.Initobj)    '  intitobj  <MyStruct>
+            EmitSymbolToken(target.Type, target.Syntax)
 
             If used Then
-                Debug.Assert(Me.TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified")
-                Me.EmitExpression(target, used = True)
+                Debug.Assert(TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified")
+                EmitExpression(target, used = True)
             End If
         End Sub
 
         Private Sub InPlaceCtorCall(target As BoundExpression, objCreation As BoundObjectCreationExpression, used As Boolean)
-            Dim temp = Me.EmitAddress(target, AddressKind.Writeable)
+            Dim temp = EmitAddress(target, AddressKind.Writeable)
             Debug.Assert(temp Is Nothing, "temp is not expected when in-place assigning")
 
             Dim constructor As MethodSymbol = objCreation.ConstructorOpt
-            Me.EmitArguments(objCreation.Arguments, constructor.Parameters)
+            EmitArguments(objCreation.Arguments, constructor.Parameters)
 
             ' +1 to adjust for consumed target address
             Dim stackAdjustment As Integer = constructor.ParameterCount + 1
-            Me._builder.EmitOpCode(ILOpCode.[Call], -stackAdjustment)
-            Me.EmitSymbolToken(constructor, objCreation.Syntax)
+            _builder.EmitOpCode(ILOpCode.[Call], -stackAdjustment)
+            EmitSymbolToken(constructor, objCreation.Syntax)
 
             If used Then
-                Debug.Assert(Me.TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified")
-                Me.EmitExpression(target, used = True)
+                Debug.Assert(TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified")
+                EmitExpression(target, used = True)
             End If
         End Sub
 
@@ -1750,7 +1750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' we also must not be in a try, otherwise if ctor throws
         ' partially assigned value may be observed in the handler.
         Private Function PartialCtorResultCannotEscape(left As BoundExpression) As Boolean
-            Return Me._tryNestingLevel = 0 AndAlso Me.TargetIsNotOnHeap(left)
+            Return _tryNestingLevel = 0 AndAlso TargetIsNotOnHeap(left)
         End Function
 
         Private Function TargetIsNotOnHeap(left As BoundExpression) As Boolean
@@ -1830,11 +1830,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         _builder.OpenLocalScope()
 
                         For Each local In sequence.Locals
-                            Me.DefineLocal(local, sequence.Syntax)
+                            DefineLocal(local, sequence.Syntax)
                         Next
                     End If
 
-                    Me.EmitSideEffects(sequence.SideEffects)
+                    EmitSideEffects(sequence.SideEffects)
                     lhsUsesStack = EmitAssignmentPreamble(sequence.ValueOpt)
 
                 Case Else
@@ -1848,10 +1848,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Function EmitAssignmentDuplication(assignmentOperator As BoundAssignmentOperator, used As Boolean, lhsUsesStack As Boolean) As LocalDefinition
             Dim temp As LocalDefinition = Nothing
             If used Then
-                Me._builder.EmitOpCode(ILOpCode.Dup)
+                _builder.EmitOpCode(ILOpCode.Dup)
                 If lhsUsesStack Then
-                    temp = Me.AllocateTemp(assignmentOperator.Left.Type, assignmentOperator.Left.Syntax)
-                    Me._builder.EmitLocalStore(temp)
+                    temp = AllocateTemp(assignmentOperator.Left.Type, assignmentOperator.Left.Syntax)
+                    _builder.EmitLocalStore(temp)
                 End If
             End If
             Return temp
@@ -1859,8 +1859,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitAssignmentPostfix(temp As LocalDefinition)
             If temp IsNot Nothing Then
-                Me._builder.EmitLocalLoad(temp)
-                Me.FreeTemp(temp)
+                _builder.EmitLocalLoad(temp)
+                FreeTemp(temp)
             End If
         End Sub
 
@@ -1930,7 +1930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         _builder.CloseLocalScope()
 
                         For Each local In sequence.Locals
-                            Me.FreeLocal(local)
+                            FreeLocal(local)
                         Next
                     End If
 
@@ -2091,7 +2091,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(type, boundTypeOfOperator.SourceType.Syntax)
 
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) 'argument off, return value on
-            Dim getTypeMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__GetTypeFromHandle), MethodSymbol)
+            Dim getTypeMethod = DirectCast(_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__GetTypeFromHandle), MethodSymbol)
             Debug.Assert(getTypeMethod IsNot Nothing) ' Should have been checked during binding
             EmitSymbolToken(getTypeMethod, boundTypeOfOperator.Syntax)
             EmitPopIfUnused(used)
@@ -2105,12 +2105,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Debug.Assert(Not node.Field.ContainingType.IsAnonymousType) ' NO anonymous types field access expected
 
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) ' argument off, return value on
-                getField = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle), MethodSymbol)
+                getField = DirectCast(_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle), MethodSymbol)
             Else
                 _builder.EmitOpCode(ILOpCode.Ldtoken)
                 EmitSymbolToken(node.Field.ContainingType, node.Syntax)
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-1) ' 2 arguments off, return value on
-                getField = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle2), MethodSymbol)
+                getField = DirectCast(_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle2), MethodSymbol)
             End If
 
             Debug.Assert(getField IsNot Nothing)
@@ -2129,12 +2129,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim getMethod As MethodSymbol
             If Not node.Method.ContainingType.IsGenericType AndAlso Not node.Method.ContainingType.IsAnonymousType Then ' anonymous types are generic under the hood.
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) ' argument off, return value on
-                getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle), MethodSymbol)
+                getMethod = DirectCast(_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle), MethodSymbol)
             Else
                 _builder.EmitOpCode(ILOpCode.Ldtoken)
                 EmitSymbolToken(node.Method.ContainingType, node.Syntax)
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-1) ' 2 arguments off, return value on
-                getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2), MethodSymbol)
+                getMethod = DirectCast(_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2), MethodSymbol)
             End If
 
             Debug.Assert(getMethod IsNot Nothing)

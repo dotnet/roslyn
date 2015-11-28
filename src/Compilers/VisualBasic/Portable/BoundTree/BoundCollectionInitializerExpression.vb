@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            If Not Me.HasErrors Then
-                For Each initializer In Me.Initializers
+            If Not HasErrors Then
+                For Each initializer In Initializers
                     Debug.Assert(initializer.Kind = BoundKind.Call)
                 Next
             End If

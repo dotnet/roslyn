@@ -69,13 +69,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function TryGetLastTokenAt(position As Integer, ByRef lastToken As SyntaxToken) As Boolean
-            If position = Me.EndPosition Then
+            If position = EndPosition Then
                 Dim cu = TryCast(Me, CompilationUnitSyntax)
                 If cu IsNot Nothing Then
                     lastToken = cu.EndOfFileToken
                     Debug.Assert(lastToken.EndPosition = position)
                 Else
-                    lastToken = Me.GetLastToken
+                    lastToken = GetLastToken
                     If (lastToken.EndPosition <> position) Then
                         Return False
                     End If
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return lastToken
                 End If
 
-                If Not Me.FullSpan.Contains(position) Then
+                If Not FullSpan.Contains(position) Then
                     Throw New IndexOutOfRangeException(NameOf(position))
                 End If
 

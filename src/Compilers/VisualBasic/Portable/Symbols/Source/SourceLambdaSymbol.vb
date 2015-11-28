@@ -53,19 +53,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property AssociatedAnonymousDelegate As NamedTypeSymbol
             Get
-                If Me._lazyAnonymousDelegateSymbol Is ErrorTypeSymbol.UnknownResultType Then
+                If _lazyAnonymousDelegateSymbol Is ErrorTypeSymbol.UnknownResultType Then
                     Dim newValue As NamedTypeSymbol = MakeAssociatedAnonymousDelegate()
-                    Dim oldValue As NamedTypeSymbol = Interlocked.CompareExchange(Me._lazyAnonymousDelegateSymbol, newValue, ErrorTypeSymbol.UnknownResultType)
+                    Dim oldValue As NamedTypeSymbol = Interlocked.CompareExchange(_lazyAnonymousDelegateSymbol, newValue, ErrorTypeSymbol.UnknownResultType)
                     Debug.Assert(oldValue Is ErrorTypeSymbol.UnknownResultType OrElse oldValue Is newValue)
                 End If
-                Return Me._lazyAnonymousDelegateSymbol
+                Return _lazyAnonymousDelegateSymbol
             End Get
         End Property
 
         Friend Function MakeAssociatedAnonymousDelegate() As NamedTypeSymbol
-            Dim anonymousDelegateSymbol As NamedTypeSymbol = Me._unboundLambda.InferredAnonymousDelegate.Key
+            Dim anonymousDelegateSymbol As NamedTypeSymbol = _unboundLambda.InferredAnonymousDelegate.Key
             Dim targetSignature As New UnboundLambda.TargetSignature(anonymousDelegateSymbol.DelegateInvokeMethod)
-            Dim boundLambda As BoundLambda = Me._unboundLambda.Bind(targetSignature)
+            Dim boundLambda As BoundLambda = _unboundLambda.Bind(targetSignature)
 
             ' NOTE: If the lambda does not have an associated anonymous delegate, but 
             ' NOTE: the target signature of the lambda is the same as its anonymous delegate 

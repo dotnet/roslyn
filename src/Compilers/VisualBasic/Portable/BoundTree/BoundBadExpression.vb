@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(Me.HasErrors)
+            Debug.Assert(HasErrors)
         End Sub
 #End If
 

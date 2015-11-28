@@ -975,7 +975,7 @@ DoneWithDiagnostics:
                         Dim relaxationBinder As Binder
 
                         ' If conversion is explicit, use Option Strict Off.
-                        If isExplicit AndAlso Me.OptionStrict <> VisualBasic.OptionStrict.Off Then
+                        If isExplicit AndAlso OptionStrict <> VisualBasic.OptionStrict.Off Then
                             relaxationBinder = New OptionStrictOffBinder(Me)
                         Else
                             relaxationBinder = Me
@@ -1076,7 +1076,7 @@ DoneWithDiagnostics:
             ReportDiagnosticsIfObsolete(diagnostics, convKind.Value, tree)
 
             Debug.Assert(convKind.Value.IsUserDefinedOperator())
-            If Me.ContainingMember Is convKind.Value Then
+            If ContainingMember Is convKind.Value Then
                 ReportDiagnostic(diagnostics, argumentSyntax, ERRID.WRN_RecursiveOperatorCall, convKind.Value)
             End If
 
@@ -1191,7 +1191,7 @@ DoneWithDiagnostics:
                             Dim reclassifyBinder As Binder
 
                             ' If conversion is explicit, use Option Strict Off.
-                            If isExplicit AndAlso Me.OptionStrict <> VisualBasic.OptionStrict.Off Then
+                            If isExplicit AndAlso OptionStrict <> VisualBasic.OptionStrict.Off Then
                                 reclassifyBinder = New OptionStrictOffBinder(Me)
                             Else
                                 reclassifyBinder = Me
@@ -1319,7 +1319,7 @@ DoneWithDiagnostics:
                     ReportDiagnostic(diagnostics,
                                      unboundLambda.Syntax,
                                      If(unboundLambda.IsFunctionLambda, ERRID.ERR_LambdaBindingMismatch1, ERRID.ERR_LambdaBindingMismatch2),
-                                     If(targetDelegateType.TypeKind = TypeKind.Delegate AndAlso targetDelegateType.IsFromCompilation(Me.Compilation),
+                                     If(targetDelegateType.TypeKind = TypeKind.Delegate AndAlso targetDelegateType.IsFromCompilation(Compilation),
                                         CType(CustomSymbolDisplayFormatter.DelegateSignature(targetDelegateType), Object),
                                         CType(targetDelegateType, Object)))
                 End If
@@ -1374,7 +1374,7 @@ DoneWithDiagnostics:
                     ReportDiagnostic(diagnostics,
                                      unboundLambda.Syntax,
                                      err,
-                                     If(targetDelegateType.TypeKind = TypeKind.Delegate AndAlso targetDelegateType.IsFromCompilation(Me.Compilation),
+                                     If(targetDelegateType.TypeKind = TypeKind.Delegate AndAlso targetDelegateType.IsFromCompilation(Compilation),
                                         CType(CustomSymbolDisplayFormatter.DelegateSignature(targetDelegateType), Object),
                                         CType(targetDelegateType, Object)))
                 End If
@@ -1410,7 +1410,7 @@ DoneWithDiagnostics:
                 Dim relaxationBinder As Binder
 
                 ' If conversion is explicit, use Option Strict Off.
-                If isExplicit AndAlso Me.OptionStrict <> VisualBasic.OptionStrict.Off Then
+                If isExplicit AndAlso OptionStrict <> VisualBasic.OptionStrict.Off Then
                     relaxationBinder = New OptionStrictOffBinder(Me)
                 Else
                     relaxationBinder = Me

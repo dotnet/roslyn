@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(implicitlyDefinedBy.IsStatic)
 
             Me.IsValueField = isValueField
-            Me._reportErrorForLongNames = reportErrorForLongNames
+            _reportErrorForLongNames = reportErrorForLongNames
         End Sub
 
         Friend Overloads ReadOnly Property ImplicitlyDefinedBy As LocalSymbol

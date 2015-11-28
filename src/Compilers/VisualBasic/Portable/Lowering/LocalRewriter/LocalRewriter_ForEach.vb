@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The variable will not be initialized, because a declared control variable is also not initialized when 
             ' executing the collection expression.
             If node.DeclaredOrInferredLocalOpt IsNot Nothing Then
-                Dim tempLocal = New SynthesizedLocal(Me._currentMethodOrLambda, node.ControlVariable.Type, SynthesizedLocalKind.LoweringTemp)
+                Dim tempLocal = New SynthesizedLocal(_currentMethodOrLambda, node.ControlVariable.Type, SynthesizedLocalKind.LoweringTemp)
                 Dim tempForControlVariable = New BoundLocal(node.Syntax, tempLocal, node.ControlVariable.Type)
 
                 Dim replacedControlVariable As Boolean = False
@@ -109,11 +109,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If replacedControlVariable Then
                     locals.Add(tempLocal)
 
-                    If Me._symbolsCapturedWithoutCopyCtor Is Nothing Then
-                        Me._symbolsCapturedWithoutCopyCtor = New HashSet(Of Symbol)()
+                    If _symbolsCapturedWithoutCopyCtor Is Nothing Then
+                        _symbolsCapturedWithoutCopyCtor = New HashSet(Of Symbol)()
                     End If
 
-                    Me._symbolsCapturedWithoutCopyCtor.Add(tempLocal)
+                    _symbolsCapturedWithoutCopyCtor.Add(tempLocal)
                 End If
             End If
 
@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Dim collectionCopy As C = c
             Dim expressionType = initExpression.Type
             Debug.Assert(kind.IsLongLived())
-            Dim collectionCopy = New SynthesizedLocal(Me._currentMethodOrLambda, expressionType, kind, syntaxNode)
+            Dim collectionCopy = New SynthesizedLocal(_currentMethodOrLambda, expressionType, kind, syntaxNode)
             locals.Add(collectionCopy)
             boundLocal = New BoundLocal(syntaxNode, collectionCopy, expressionType)
 

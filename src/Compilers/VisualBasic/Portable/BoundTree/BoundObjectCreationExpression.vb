@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.ConstructorOpt
+                Return ConstructorOpt
             End Get
         End Property
 

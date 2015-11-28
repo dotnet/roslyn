@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitXmlDocument(node As BoundXmlDocument) As BoundNode
-            If Me._inExpressionLambda AndAlso Not node.HasErrors Then
+            If _inExpressionLambda AndAlso Not node.HasErrors Then
                 Return VisitXmlContainerInExpressionLambda(node.RewriterInfo)
             Else
                 Return VisitXmlContainer(node.RewriterInfo)
@@ -34,22 +34,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitXmlElement(node As BoundXmlElement) As BoundNode
             Dim rewriterInfo = node.RewriterInfo
-            Dim previousImportedNamespaces = Me._xmlImportedNamespaces
+            Dim previousImportedNamespaces = _xmlImportedNamespaces
 
             If rewriterInfo.IsRoot Then
                 Debug.Assert(Not rewriterInfo.ImportedNamespaces.IsDefault)
-                Me._xmlImportedNamespaces = rewriterInfo.ImportedNamespaces
+                _xmlImportedNamespaces = rewriterInfo.ImportedNamespaces
             End If
 
             Dim result As BoundNode
-            If Me._inExpressionLambda AndAlso Not node.HasErrors Then
+            If _inExpressionLambda AndAlso Not node.HasErrors Then
                 result = VisitXmlContainerInExpressionLambda(rewriterInfo)
             Else
                 result = VisitXmlContainer(rewriterInfo)
             End If
 
             If rewriterInfo.IsRoot Then
-                Me._xmlImportedNamespaces = previousImportedNamespaces
+                _xmlImportedNamespaces = previousImportedNamespaces
             End If
 
             Return result
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function VisitXmlContainer(rewriterInfo As BoundXmlContainerRewriterInfo) As BoundExpression
-            Debug.Assert(Not Me._inExpressionLambda)
+            Debug.Assert(Not _inExpressionLambda)
 
             Dim expr = VisitExpressionNode(rewriterInfo.ObjectCreation)
 
@@ -143,13 +143,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' initialization assignment is added to 'sideEffects'.
         ''' </summary>
         Private Function CreateTempLocal(syntax As VisualBasicSyntaxNode, type As TypeSymbol, expr As BoundExpression, sideEffects As ArrayBuilder(Of BoundExpression)) As BoundLocal
-            Dim local = New BoundLocal(syntax, New SynthesizedLocal(Me._currentMethodOrLambda, type, SynthesizedLocalKind.LoweringTemp), type)
+            Dim local = New BoundLocal(syntax, New SynthesizedLocal(_currentMethodOrLambda, type, SynthesizedLocalKind.LoweringTemp), type)
             sideEffects.Add(New BoundAssignmentOperator(syntax, local, expr, suppressObjectClone:=True, type:=type))
             Return local.MakeRValue()
         End Function
 
         Private Function VisitXmlContainerInExpressionLambda(rewriterInfo As BoundXmlContainerRewriterInfo) As BoundExpression
-            Debug.Assert(Me._inExpressionLambda)
+            Debug.Assert(_inExpressionLambda)
 
             ' NOTE: When we convert Xml container expression in context of expression lambda we rewrite it into 
             '       one of the following: New XElement(XName, Object), New XElement(XName, Object()) or
@@ -181,9 +181,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim constructor As MethodSymbol = Nothing
             If objCreation.Arguments.Length = 1 Then
                 ' This is a branch where XElement::.ctor(XName) lands, we need to get XElement::.ctor(XName, Object()) 
-                Debug.Assert(objCreation.ConstructorOpt.ContainingType = Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement))
+                Debug.Assert(objCreation.ConstructorOpt.ContainingType = Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement))
 
-                constructor = DirectCast(Me.Compilation.GetWellKnownTypeMember(If(origSideEffects.Length = 1,
+                constructor = DirectCast(Compilation.GetWellKnownTypeMember(If(origSideEffects.Length = 1,
                                                                                   WellKnownMember.System_Xml_Linq_XElement__ctor,
                                                                                   WellKnownMember.System_Xml_Linq_XElement__ctor2)), MethodSymbol)
 
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' This is a branch where XDocument::.ctor(XDeclaration, Object()) lands
                 Debug.Assert(objCreation.Arguments.Length = 2)
                 constructor = objCreation.ConstructorOpt
-                Debug.Assert(constructor.ContainingType = Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XDocument))
+                Debug.Assert(constructor.ContainingType = Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XDocument))
             End If
 
             Dim syntax = objCreation.Syntax
@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             New BoundLiteral(
                                                 objCreation.Syntax,
                                                 ConstantValue.Create(rewrittenCallArguments.Length),
-                                                Me.GetSpecialType(SpecialType.System_Int32))),
+                                                GetSpecialType(SpecialType.System_Int32))),
                                         New BoundArrayInitialization(
                                             objCreation.Syntax, rewrittenCallArguments.AsImmutableOrNull, arrayType),
                                         arrayType)
@@ -274,9 +274,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateTempLocalInExpressionLambda(syntax As VisualBasicSyntaxNode, type As TypeSymbol, expr As BoundExpression) As BoundLocal
-            Dim local As New SynthesizedLocal(Me._topMethod, type, SynthesizedLocalKind.XmlInExpressionLambda, Me._currentMethodOrLambda.Syntax)
+            Dim local As New SynthesizedLocal(_topMethod, type, SynthesizedLocalKind.XmlInExpressionLambda, _currentMethodOrLambda.Syntax)
             Dim boundLocal = New BoundLocal(syntax, local, type)
-            Me._xmlFixupData.AddLocal(local, New BoundAssignmentOperator(syntax, boundLocal, expr, suppressObjectClone:=True, type:=type))
+            _xmlFixupData.AddLocal(local, New BoundAssignmentOperator(syntax, boundLocal, expr, suppressObjectClone:=True, type:=type))
             Return boundLocal.MakeRValue()
         End Function
 
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim prefixesBuilder = ArrayBuilder(Of BoundExpression).GetInstance()
             Dim namespacesBuilder = ArrayBuilder(Of BoundExpression).GetInstance()
 
-            For Each pair In Me._xmlImportedNamespaces
+            For Each pair In _xmlImportedNamespaces
                 prefixesBuilder.Add(CreateCompilerGeneratedXmlnsPrefix(syntax, pair.Key))
                 namespacesBuilder.Add(CreateCompilerGeneratedXmlNamespace(syntax, pair.Value))
             Next

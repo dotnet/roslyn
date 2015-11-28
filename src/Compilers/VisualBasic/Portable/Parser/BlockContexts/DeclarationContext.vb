@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         node = Parser.ReportSyntaxError(node, ERRID.ERR_NamespaceNotAtNamespace)
                     End If
 
-                    Dim context = Me.PrevBlock
+                    Dim context = PrevBlock
                     RecoverFromMissingEnd(context)
 
                     'Let the outer context process this statement
@@ -100,7 +100,7 @@ HandleMethodBase:
 
                     ' It is a syntax error to have an operator in a module
                     ' This error is reported in declared in Dev10
-                    If Me.BlockKind = SyntaxKind.ModuleBlock Then
+                    If BlockKind = SyntaxKind.ModuleBlock Then
                         node = Parser.ReportSyntaxError(node, ERRID.ERR_OperatorDeclaredInModule)
                     End If
 
@@ -308,7 +308,7 @@ HandleMethodBase:
                     Return UseSyntax(node, newContext, DirectCast(node, MethodBlockBaseSyntax).End.IsMissing)
 
                 Case SyntaxKind.OperatorBlock
-                    If Me.BlockKind = SyntaxKind.ModuleBlock Then
+                    If BlockKind = SyntaxKind.ModuleBlock Then
                         ' Crumble if this is in a module block for correct error processing
                         newContext = Me
                         Return LinkResult.Crumble

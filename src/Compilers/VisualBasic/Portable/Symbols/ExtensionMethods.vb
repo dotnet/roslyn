@@ -13,11 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected Function ValidateGenericConstraintsOnExtensionMethodDefinition() As Boolean
 
-            If Me.Arity = 0 Then
+            If Arity = 0 Then
                 Return True
             End If
 
-            Dim firstParam As ParameterSymbol = Me.Parameters(0)
+            Dim firstParam As ParameterSymbol = Parameters(0)
 
             Dim typeParameters As New HashSet(Of TypeParameterSymbol)
 

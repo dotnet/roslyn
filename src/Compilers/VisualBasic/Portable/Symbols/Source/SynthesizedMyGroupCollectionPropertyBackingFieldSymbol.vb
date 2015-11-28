@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeEditorBrowsableNeverAttribute())
+            AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeEditorBrowsableNeverAttribute())
         End Sub
 
     End Class

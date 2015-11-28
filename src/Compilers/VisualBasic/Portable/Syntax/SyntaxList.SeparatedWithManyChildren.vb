@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Friend Sub New(green As InternalSyntax.SyntaxList, parent As SyntaxNode, position As Integer)
                 MyBase.New(green, parent, position)
-                Me._children = New ArrayElement(Of SyntaxNode)(((green.SlotCount + 1) >> 1) - 1) {}
+                _children = New ArrayElement(Of SyntaxNode)(((green.SlotCount + 1) >> 1) - 1) {}
             End Sub
 
             Friend Overrides Function GetNodeSlot(i As Integer) As SyntaxNode
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     Return Nothing
                 End If
 
-                Return GetRedElement(Me._children(i >> 1).Value, i)
+                Return GetRedElement(_children(i >> 1).Value, i)
             End Function
 
             Friend Overrides Function GetCachedSlot(i As Integer) As SyntaxNode
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     Return Nothing
                 End If
 
-                Return TryCast(Me._children(i >> 1).Value, VisualBasicSyntaxNode)
+                Return TryCast(_children(i >> 1).Value, VisualBasicSyntaxNode)
             End Function
 
             Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSyntaxVisitor(Of TResult)) As TResult

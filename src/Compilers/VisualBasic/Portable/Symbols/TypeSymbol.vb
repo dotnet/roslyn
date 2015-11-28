@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim namedType As NamedTypeSymbol = Nothing
 
-            If Me.Kind <> SymbolKind.ErrorType Then
+            If Kind <> SymbolKind.ErrorType Then
                 Dim typeMembers As ImmutableArray(Of NamedTypeSymbol)
 
                 If emittedTypeName.IsMangled Then
@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If emittedTypeName.ForcedArity = -1 OrElse emittedTypeName.ForcedArity = emittedTypeName.InferredArity Then
                         ' Let's handle mangling case first.
-                        typeMembers = Me.GetTypeMembers(emittedTypeName.UnmangledTypeName)
+                        typeMembers = GetTypeMembers(emittedTypeName.UnmangledTypeName)
 
                         For Each named In typeMembers
                             If emittedTypeName.InferredArity = named.Arity AndAlso named.MangleName AndAlso String.Equals(named.Name, emittedTypeName.UnmangledTypeName, StringComparison.Ordinal) Then
@@ -359,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
 
-                typeMembers = Me.GetTypeMembers(emittedTypeName.TypeName)
+                typeMembers = GetTypeMembers(emittedTypeName.TypeName)
 
                 For Each named In typeMembers
                     ' If the name of the type must include generic mangling, it cannot be our match.
@@ -430,7 +430,7 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_AllInterfaces As ImmutableArray(Of INamedTypeSymbol) Implements ITypeSymbol.AllInterfaces
             Get
-                Return StaticCast(Of INamedTypeSymbol).From(Me.AllInterfacesNoUseSiteDiagnostics)
+                Return StaticCast(Of INamedTypeSymbol).From(AllInterfacesNoUseSiteDiagnostics)
             End Get
         End Property
 
@@ -442,7 +442,7 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_Interfaces As ImmutableArray(Of INamedTypeSymbol) Implements ITypeSymbol.Interfaces
             Get
-                Return StaticCast(Of INamedTypeSymbol).From(Me.InterfacesNoUseSiteDiagnostics)
+                Return StaticCast(Of INamedTypeSymbol).From(InterfacesNoUseSiteDiagnostics)
             End Get
         End Property
 
@@ -541,7 +541,7 @@ Done:
         ' Does NOT look into base types for implementations.
         Friend Function GetExplicitImplementationForInterfaceMember(Of T As Symbol)(interfaceMethod As T) As T
             Dim implementingMethod As Symbol = Nothing
-            Me.ExplicitInterfaceImplementationMap.TryGetValue(interfaceMethod, implementingMethod)
+            ExplicitInterfaceImplementationMap.TryGetValue(interfaceMethod, implementingMethod)
 
             Return DirectCast(implementingMethod, T)
         End Function
@@ -553,7 +553,7 @@ Done:
         Friend Overridable ReadOnly Property ExplicitInterfaceImplementationMap As Dictionary(Of Symbol, Symbol)
             Get
                 If m_lazyExplicitInterfaceImplementationMap Is Nothing Then
-                    Interlocked.CompareExchange(Me.m_lazyExplicitInterfaceImplementationMap, MakeExplicitInterfaceImplementationMap(), Nothing)
+                    Interlocked.CompareExchange(m_lazyExplicitInterfaceImplementationMap, MakeExplicitInterfaceImplementationMap(), Nothing)
                 End If
 
                 Return m_lazyExplicitInterfaceImplementationMap
@@ -566,9 +566,9 @@ Done:
         ' Build the explicit interface map for this type. 
         ' This implementation is not used by source symbols, which additionally diagnose errors.
         Private Function MakeExplicitInterfaceImplementationMap() As Dictionary(Of Symbol, Symbol)
-            If IsClassType() OrElse Me.IsStructureType() Then
+            If IsClassType() OrElse IsStructureType() Then
                 Dim map = New Dictionary(Of Symbol, Symbol)()
-                For Each implementingMember In Me.GetMembersUnordered()
+                For Each implementingMember In GetMembersUnordered()
                     For Each interfaceMember In GetExplicitInterfaceImplementations(implementingMember)
                         If Not map.ContainsKey(interfaceMember) Then
                             map.Add(interfaceMember, implementingMember) ' use first implementation found, even though duplicate is an error it could happen.

@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If friendToken.Kind <> SyntaxKind.None Then
                     Dim startLoc As Integer = Math.Min(badKeyword.SpanStart, friendToken.SpanStart)
                     Dim endLoc As Integer = Math.Max(badKeyword.Span.End, friendToken.Span.End)
-                    Dim location = Me.SyntaxTree.GetLocation(New TextSpan(startLoc, endLoc - startLoc))
+                    Dim location = SyntaxTree.GetLocation(New TextSpan(startLoc, endLoc - startLoc))
                     ReportDiagnostic(diagBag, location, errid, badKeyword.ToString() & " " & friendToken.ToString())
                     Return
                 End If

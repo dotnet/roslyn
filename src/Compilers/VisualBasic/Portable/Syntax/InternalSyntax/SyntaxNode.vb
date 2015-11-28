@@ -11,19 +11,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend ReadOnly Property Kind As SyntaxKind
             Get
-                Return CType(Me.RawKind, SyntaxKind)
+                Return CType(RawKind, SyntaxKind)
             End Get
         End Property
 
         Friend ReadOnly Property ContextualKind As SyntaxKind
             Get
-                Return CType(Me.RawContextualKind, SyntaxKind)
+                Return CType(RawContextualKind, SyntaxKind)
             End Get
         End Property
 
         Public Overrides ReadOnly Property KindText As String
             Get
-                Return Me.Kind.ToString()
+                Return Kind.ToString()
             End Get
         End Property
 
@@ -62,8 +62,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function MatchesFactoryContext(context As ISyntaxFactoryContext) As Boolean
-            Return context.IsWithinAsyncMethodOrLambda = Me.ParsedInAsync AndAlso
-                context.IsWithinIteratorContext = Me.ParsedInIterator
+            Return context.IsWithinAsyncMethodOrLambda = ParsedInAsync AndAlso
+                context.IsWithinIteratorContext = ParsedInIterator
         End Function
 
         ''' <summary>
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Protected Overrides Sub WriteTo(writer As IO.TextWriter, leading As Boolean, trailing As Boolean)
-            Me.WriteTo(writer)
+            WriteTo(writer)
         End Sub
 
         ''' <summary>
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend Overridable Sub WriteToOrFlatten(writer As IO.TextWriter, stack As ArrayBuilder(Of GreenNode))
             ' By default just push children to the stack
-            For i = Me.SlotCount() - 1 To 0 Step -1
+            For i = SlotCount() - 1 To 0 Step -1
                 Dim node As GreenNode = GetSlot(i)
                 If node IsNot Nothing Then
                     stack.Push(GetSlot(i))
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' This implementation is overridden for tokens; this is the implementation for non-token nodes.
 
             ' Add diagnostics.
-            Dim diagnostics As DiagnosticInfo() = Me.GetDiagnostics()
+            Dim diagnostics As DiagnosticInfo() = GetDiagnostics()
             If diagnostics IsNot Nothing AndAlso diagnostics.Length > 0 Then
                 For Each diag In diagnostics
                     nonTokenDiagnostics.Add(diag)
@@ -186,20 +186,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Protected Property _slotCount As Integer
             Get
-                Return Me.SlotCount
+                Return SlotCount
             End Get
 
             Set(value As Integer)
-                Me.SlotCount = value
+                SlotCount = value
             End Set
         End Property
 
         Friend Function GetFirstToken() As SyntaxToken
-            Return DirectCast(Me.GetFirstTerminal(), SyntaxToken)
+            Return DirectCast(GetFirstTerminal(), SyntaxToken)
         End Function
 
         Friend Function GetLastToken() As SyntaxToken
-            Return DirectCast(Me.GetLastTerminal(), SyntaxToken)
+            Return DirectCast(GetLastTerminal(), SyntaxToken)
         End Function
 
         ' Get the leading trivia a green array, recursively to first token.
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Public Overrides Function GetLeadingTriviaCore() As GreenNode
-            Return Me.GetLeadingTrivia()
+            Return GetLeadingTrivia()
         End Function
 
         ' Get the trailing trivia a green array, recursively to first token.
@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Public Overrides Function GetTrailingTriviaCore() As GreenNode
-            Return Me.GetTrailingTrivia()
+            Return GetTrailingTrivia()
         End Function
 
         Protected Sub New(kind As SyntaxKind)
@@ -301,8 +301,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Overridable Sub AddSyntaxErrors(accumulatedErrors As List(Of DiagnosticInfo))
-            If Me.GetDiagnostics IsNot Nothing Then
-                accumulatedErrors.AddRange(Me.GetDiagnostics)
+            If GetDiagnostics IsNot Nothing Then
+                accumulatedErrors.AddRange(GetDiagnostics)
             End If
 
             Dim cnt = SlotCount()
@@ -480,7 +480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Public Overrides Function IsTriviaWithEndOfLine() As Boolean
-            Return Me.Kind = SyntaxKind.EndOfLineTrivia OrElse Me.Kind = SyntaxKind.CommentTrivia
+            Return Kind = SyntaxKind.EndOfLineTrivia OrElse Kind = SyntaxKind.CommentTrivia
         End Function
 
     End Class

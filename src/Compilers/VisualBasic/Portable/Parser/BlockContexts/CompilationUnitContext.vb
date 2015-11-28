@@ -404,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Debug.Assert(_processedNodesWithoutDuplication.Add(node))
 #End If
                 Dim rewritten = MyBase.VisitIfDirectiveTrivia(node)
-                If Me._notClosedIfDirectives IsNot Nothing AndAlso Me._notClosedIfDirectives.Contains(node) Then
+                If _notClosedIfDirectives IsNot Nothing AndAlso _notClosedIfDirectives.Contains(node) Then
                     rewritten = Parser.ReportSyntaxError(rewritten, ERRID.ERR_LbExpectedEndIf)
                 End If
 
@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Debug.Assert(_processedNodesWithoutDuplication.Add(node))
 #End If
                 Dim rewritten = MyBase.VisitRegionDirectiveTrivia(node)
-                If Me._notClosedRegionDirectives IsNot Nothing AndAlso Me._notClosedRegionDirectives.Contains(node) Then
+                If _notClosedRegionDirectives IsNot Nothing AndAlso _notClosedRegionDirectives.Contains(node) Then
                     rewritten = Parser.ReportSyntaxError(rewritten, ERRID.ERR_ExpectedEndRegion)
 
                 ElseIf Not _regionsAreAllowedEverywhere
@@ -510,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Debug.Assert(_processedNodesWithoutDuplication.Add(node))
 #End If
                 Dim rewritten = MyBase.VisitExternalSourceDirectiveTrivia(node)
-                If Me._notClosedExternalSourceDirective Is node Then
+                If _notClosedExternalSourceDirective Is node Then
                     rewritten = Parser.ReportSyntaxError(rewritten, ERRID.ERR_ExpectedEndExternalSource)
                 End If
                 Return rewritten

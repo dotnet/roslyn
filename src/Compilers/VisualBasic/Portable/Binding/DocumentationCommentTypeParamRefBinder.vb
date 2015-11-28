@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LookupOptions.MustNotBeLocalOrParameter
 
             Dim lookupResult As LookupResult = lookupResult.GetInstance()
-            Me.Lookup(lookupResult, identifier.Identifier.ValueText, 0, options, useSiteDiagnostics)
+            Lookup(lookupResult, identifier.Identifier.ValueText, 0, options, useSiteDiagnostics)
 
             If Not lookupResult.HasSingleSymbol Then
                 lookupResult.Free()

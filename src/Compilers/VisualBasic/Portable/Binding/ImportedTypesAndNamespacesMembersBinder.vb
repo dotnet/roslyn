@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If currentResult.IsGoodOrAmbiguous AndAlso Not originalBinder.IsSemanticModelBinder Then
-                    Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, importedSym.ImportsClausePosition)
+                    Compilation.MarkImportDirectiveAsUsed(SyntaxTree, importedSym.ImportsClausePosition)
                 End If
 
                 ' If lookup in an import produces an ambiguous result, return that ambiguity.
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     DirectCast(importedSym.NamespaceOrType, NamedTypeSymbol).AppendProbableExtensionMethods(name, methods)
 
                     If methods.Count <> 0 AndAlso Not originalBinder.IsSemanticModelBinder Then
-                        Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, importedSym.ImportsClausePosition)
+                        Compilation.MarkImportDirectiveAsUsed(SyntaxTree, importedSym.ImportsClausePosition)
                     End If
                 End If
             Next

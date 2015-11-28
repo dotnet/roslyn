@@ -16,10 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not _inExpressionLambda AndAlso Not node.HasErrors Then
                 If constantValue.Discriminator = ConstantValueTypeDiscriminator.Decimal Then
-                    Return RewriteDecimalConstant(node, constantValue, Me._topMethod, Me._diagnostics)
+                    Return RewriteDecimalConstant(node, constantValue, _topMethod, _diagnostics)
 
                 ElseIf constantValue.Discriminator = ConstantValueTypeDiscriminator.DateTime Then
-                    Return RewriteDateConstant(node, constantValue, Me._topMethod, Me._diagnostics)
+                    Return RewriteDateConstant(node, constantValue, _topMethod, _diagnostics)
                 End If
             End If
 

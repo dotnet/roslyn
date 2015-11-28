@@ -27,9 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Friend Overrides Function GetNodeSlot(index As Integer) As SyntaxNode
                 Select Case index
                     Case 0
-                        Return GetRedElement(Me._child0, 0)
+                        Return GetRedElement(_child0, 0)
                     Case 1
-                        Return GetRedElementIfNotToken(Me._child1)
+                        Return GetRedElementIfNotToken(_child1)
                 End Select
                 Return Nothing
             End Function

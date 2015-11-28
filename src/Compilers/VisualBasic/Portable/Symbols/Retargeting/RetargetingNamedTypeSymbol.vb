@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
                 If _lazyTypeParameters.IsDefault Then
-                    If Me.Arity = 0 Then
+                    If Arity = 0 Then
                         _lazyTypeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
                     Else
                         ImmutableInterlocked.InterlockedCompareExchange(_lazyTypeParameters,
@@ -389,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim declaredInterfaces As ImmutableArray(Of NamedTypeSymbol) = GetDeclaredInterfacesNoUseSiteDiagnostics(Nothing)
-            If (Not Me.IsInterface) Then
+            If (Not IsInterface) Then
                 ' only interfaces needs to check for inheritance cycles via interfaces.
                 Return declaredInterfaces
             End If

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' </summary>
         Public ReadOnly Property Rank() As Integer
             Get
-                Return Me.CommaTokens.Count + 1
+                Return CommaTokens.Count + 1
             End Get
         End Property
 

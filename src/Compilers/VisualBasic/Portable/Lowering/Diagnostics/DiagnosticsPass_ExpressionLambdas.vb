@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _expressionTreePlaceholders As New HashSet(Of BoundNode)(ReferenceEqualityComparer.Instance)
 
         Public Overrides Function VisitObjectCreationExpression(node As BoundObjectCreationExpression) As BoundNode
-            If Me.IsInExpressionLambda Then
+            If IsInExpressionLambda Then
                 Dim initializer As BoundObjectInitializerExpressionBase = node.InitializerOpt
                 If initializer IsNot Nothing AndAlso initializer.Kind = BoundKind.ObjectInitializerExpression AndAlso node.ConstantValueOpt Is Nothing Then
                     ' report an error for the cases where ExpressionLambdaRewriter is going to emit
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitUserDefinedUnaryOperator(node As BoundUserDefinedUnaryOperator) As BoundNode
-            If Me.IsInExpressionLambda Then
+            If IsInExpressionLambda Then
                 Dim opKind As UnaryOperatorKind = node.OperatorKind And UnaryOperatorKind.OpMask
                 Dim isLifted As Boolean = (node.OperatorKind And UnaryOperatorKind.Lifted) <> 0
 
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitAnonymousTypePropertyAccess(node As BoundAnonymousTypePropertyAccess) As BoundNode
-            If Me.IsInExpressionLambda Then
+            If IsInExpressionLambda Then
                 ' we do not allow anonymous objects which use one field to initialize another one
                 GenerateDiagnostic(ERRID.ERR_BadAnonymousTypeForExprTree, node)
             End If
@@ -66,12 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             'Me.VisitList(node.Declarations)
             Debug.Assert(node.Declarations.All(Function(d) d.Kind = BoundKind.AnonymousTypePropertyAccess))
 
-            Me.VisitList(node.Arguments)
+            VisitList(node.Arguments)
             Return Nothing
         End Function
 
         Public Overrides Function VisitSequence(node As BoundSequence) As BoundNode
-            If Not node.Locals.IsEmpty AndAlso Me.IsInExpressionLambda Then
+            If Not node.Locals.IsEmpty AndAlso IsInExpressionLambda Then
                 ' All such cases are not supported, note that some cases of invalid
                 ' sequences are handled in DiagnosticsPass, but we still want to catch
                 ' here those sequences created in lowering
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitUserDefinedBinaryOperator(node As BoundUserDefinedBinaryOperator) As BoundNode
-            If Me.IsInExpressionLambda Then
+            If IsInExpressionLambda Then
                 Dim opKind As BinaryOperatorKind = node.OperatorKind And BinaryOperatorKind.OpMask
 
                 Select Case opKind
@@ -107,32 +107,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitObjectInitializerExpression(node As BoundObjectInitializerExpression) As BoundNode
-            If Not Me.IsInExpressionLambda Then
+            If Not IsInExpressionLambda Then
                 Return MyBase.VisitObjectInitializerExpression(node)
             End If
 
             Dim placeholder As BoundWithLValueExpressionPlaceholder = node.PlaceholderOpt
             Debug.Assert(placeholder IsNot Nothing)
-            Me.Visit(placeholder)
+            Visit(placeholder)
 
             ' Initializers cannot reference placeholder
-            Me._expressionTreePlaceholders.Add(placeholder)
+            _expressionTreePlaceholders.Add(placeholder)
 
             For Each initializer In node.Initializers
                 ' Ignore assignments in object initializers, only reference the value
                 Debug.Assert(initializer.Kind = BoundKind.AssignmentOperator)
                 Dim assignment = DirectCast(initializer, BoundAssignmentOperator)
                 Debug.Assert(assignment.LeftOnTheRightOpt Is Nothing)
-                Me.Visit(assignment.Right)
+                Visit(assignment.Right)
             Next
 
-            Me._expressionTreePlaceholders.Remove(placeholder)
+            _expressionTreePlaceholders.Remove(placeholder)
 
             Return Nothing
         End Function
 
         Public Overrides Function VisitWithLValueExpressionPlaceholder(node As BoundWithLValueExpressionPlaceholder) As BoundNode
-            If Me._expressionTreePlaceholders.Contains(node) Then
+            If _expressionTreePlaceholders.Contains(node) Then
                 GenerateExpressionTreeNotSupportedDiagnostic(node)
             End If
 
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '        we will continue allowing that too
             'NOTE:   native vbc also allows compound assignments like += but generates incorrect code.
             '        we are not going to support += assuming that it is not likely to be used in real scenarios.
-            If Me.IsInExpressionLambda AndAlso
+            If IsInExpressionLambda AndAlso
                     Not (node.Left.Kind = BoundKind.PropertyAccess AndAlso node.LeftOnTheRightOpt Is Nothing) Then
 
                 ' Do not support explicit assignments
@@ -159,13 +159,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitFieldAccess(node As BoundFieldAccess) As BoundNode
             Dim field As FieldSymbol = node.FieldSymbol
             If Not field.IsShared Then
-                Me.Visit(node.ReceiverOpt)
+                Visit(node.ReceiverOpt)
             End If
             Return Nothing
         End Function
 
         Public Overrides Function VisitArrayCreation(node As BoundArrayCreation) As BoundNode
-            If Me.IsInExpressionLambda Then
+            If IsInExpressionLambda Then
                 If Not DirectCast(node.Type, ArrayTypeSymbol).IsSZArray Then
                     Dim initializer As BoundArrayInitialization = node.InitializerOpt
                     If initializer IsNot Nothing AndAlso Not initializer.Initializers.IsEmpty Then
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitLambda(node As BoundLambda) As BoundNode
-            If Me.IsInExpressionLambda Then
+            If IsInExpressionLambda Then
                 Dim lambda As LambdaSymbol = node.LambdaSymbol
 
                 If lambda.IsAsync OrElse lambda.IsIterator Then
@@ -235,37 +235,37 @@ lSelect:
                 End If
             End If
 
-            Dim save_containingSymbol = Me._containingSymbol
-            Me._containingSymbol = node.LambdaSymbol
-            Me.Visit(node.Body)
-            Me._containingSymbol = save_containingSymbol
+            Dim save_containingSymbol = _containingSymbol
+            _containingSymbol = node.LambdaSymbol
+            Visit(node.Body)
+            _containingSymbol = save_containingSymbol
             Return Nothing
         End Function
 
         Public Overrides Function VisitCall(node As BoundCall) As BoundNode
             Dim method As MethodSymbol = node.Method
             If Not method.IsShared Then
-                Me.Visit(node.ReceiverOpt)
+                Visit(node.ReceiverOpt)
             End If
 
-            Me.VisitList(node.Arguments)
+            VisitList(node.Arguments)
             Return Nothing
         End Function
 
         Public Overrides Function VisitPropertyAccess(node As BoundPropertyAccess) As BoundNode
             Dim [property] As PropertySymbol = node.PropertySymbol
             If Not [property].IsShared Then
-                Me.Visit(node.ReceiverOpt)
+                Visit(node.ReceiverOpt)
             End If
 
-            Me.VisitList(node.Arguments)
+            VisitList(node.Arguments)
             Return Nothing
         End Function
 
         Public Overrides Function VisitEventAccess(node As BoundEventAccess) As BoundNode
             Dim [event] As EventSymbol = node.EventSymbol
             If Not [event].IsShared Then
-                Me.Visit(node.ReceiverOpt)
+                Visit(node.ReceiverOpt)
             End If
             Return Nothing
         End Function
@@ -278,11 +278,11 @@ lSelect:
                 CheckLambdaForByRefParameters(relaxationLambda)
             End If
 
-            Me.Visit(operand)
+            Visit(operand)
         End Sub
 
         Private Function CheckLambdaForByRefParameters(lambda As BoundLambda) As Boolean
-            Debug.Assert(Me.IsInExpressionLambda)
+            Debug.Assert(IsInExpressionLambda)
             Debug.Assert(lambda IsNot Nothing)
 
             Dim hasByRefParameters As Boolean = False
@@ -297,69 +297,69 @@ lSelect:
         End Function
 
         Public Overrides Function VisitConversion(node As BoundConversion) As BoundNode
-            Dim savedInExpressionLambda As Boolean = Me._inExpressionLambda
+            Dim savedInExpressionLambda As Boolean = _inExpressionLambda
             If (node.ConversionKind And ConversionKind.ConvertedToExpressionTree) <> 0 Then
-                Me._inExpressionLambda = True
+                _inExpressionLambda = True
             End If
 
-            If Me.IsInExpressionLambda AndAlso (node.ConversionKind And ConversionKind.Lambda) <> 0 Then
+            If IsInExpressionLambda AndAlso (node.ConversionKind And ConversionKind.Lambda) <> 0 Then
                 VisitLambdaConversion(node.Operand, node.RelaxationLambdaOpt)
             Else
                 MyBase.VisitConversion(node)
             End If
 
-            Me._inExpressionLambda = savedInExpressionLambda
+            _inExpressionLambda = savedInExpressionLambda
             Return Nothing
         End Function
 
         Public Overrides Function VisitTryCast(node As BoundTryCast) As BoundNode
-            Dim savedInExpressionLambda As Boolean = Me._inExpressionLambda
+            Dim savedInExpressionLambda As Boolean = _inExpressionLambda
             If (node.ConversionKind And ConversionKind.ConvertedToExpressionTree) <> 0 Then
-                Me._inExpressionLambda = True
+                _inExpressionLambda = True
             End If
 
-            If Me.IsInExpressionLambda AndAlso (node.ConversionKind And ConversionKind.Lambda) <> 0 Then
+            If IsInExpressionLambda AndAlso (node.ConversionKind And ConversionKind.Lambda) <> 0 Then
                 VisitLambdaConversion(node.Operand, node.RelaxationLambdaOpt)
             Else
                 MyBase.VisitTryCast(node)
             End If
 
-            Me._inExpressionLambda = savedInExpressionLambda
+            _inExpressionLambda = savedInExpressionLambda
             Return Nothing
         End Function
 
         Public Overrides Function VisitDirectCast(node As BoundDirectCast) As BoundNode
-            Dim savedInExpressionLambda As Boolean = Me._inExpressionLambda
+            Dim savedInExpressionLambda As Boolean = _inExpressionLambda
             If (node.ConversionKind And ConversionKind.ConvertedToExpressionTree) <> 0 Then
-                Me._inExpressionLambda = True
+                _inExpressionLambda = True
             End If
 
-            If Me.IsInExpressionLambda AndAlso (node.ConversionKind And ConversionKind.Lambda) <> 0 Then
+            If IsInExpressionLambda AndAlso (node.ConversionKind And ConversionKind.Lambda) <> 0 Then
                 VisitLambdaConversion(node.Operand, node.RelaxationLambdaOpt)
             Else
                 MyBase.VisitDirectCast(node)
             End If
 
-            Me._inExpressionLambda = savedInExpressionLambda
+            _inExpressionLambda = savedInExpressionLambda
             Return Nothing
         End Function
 
         Public Overrides Function VisitLateInvocation(node As BoundLateInvocation) As BoundNode
-            If Not Me.IsInExpressionLambda Then
+            If Not IsInExpressionLambda Then
                 Return MyBase.VisitLateInvocation(node)
             End If
 
             GenerateDiagnostic(ERRID.ERR_ExprTreeNoLateBind, node)
 
             If node.Member.Kind <> BoundKind.LateMemberAccess Then
-                Me.Visit(node.Member)
+                Visit(node.Member)
             End If
-            Me.VisitList(node.ArgumentsOpt)
+            VisitList(node.ArgumentsOpt)
             Return Nothing
         End Function
 
         Public Overrides Function VisitLateMemberAccess(node As BoundLateMemberAccess) As BoundNode
-            If Me.IsInExpressionLambda Then
+            If IsInExpressionLambda Then
                 GenerateDiagnostic(ERRID.ERR_ExprTreeNoLateBind, node)
             End If
 
@@ -367,7 +367,7 @@ lSelect:
         End Function
 
         Public Overrides Function VisitConditionalAccess(node As BoundConditionalAccess) As BoundNode
-            If Me.IsInExpressionLambda Then
+            If IsInExpressionLambda Then
                 GenerateDiagnostic(ERRID.ERR_NullPropagatingOpInExpressionTree, node)
             End If
 
@@ -379,7 +379,7 @@ lSelect:
         End Sub
 
         Private Sub GenerateDiagnostic(code As ERRID, node As BoundNode)
-            Me._diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(code), node.Syntax.GetLocation()))
+            _diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(code), node.Syntax.GetLocation()))
         End Sub
 
     End Class

@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.ElseIfStatement
                     'ElseIf is unsupported in line if. End the line if and report expected end of statement per Dev10
                     Add(Parser.ReportSyntaxError(node, ERRID.ERR_ExpectedEOS))
-                    Return Me.EndBlock(Nothing)
+                    Return EndBlock(Nothing)
 
                 Case SyntaxKind.ElseStatement
                     Return New SingleLineElseContext(SyntaxKind.SingleLineElseClause, DirectCast(node, StatementSyntax), Me)
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.CatchStatement, SyntaxKind.FinallyStatement
                     ' A Catch or Finally always closes a single line if
                     Add(Parser.ReportSyntaxError(node, If(node.Kind = SyntaxKind.CatchStatement, ERRID.ERR_CatchNoMatchingTry, ERRID.ERR_FinallyNoMatchingTry)))
-                    Return Me.EndBlock(Nothing)
+                    Return EndBlock(Nothing)
 
             End Select
 
