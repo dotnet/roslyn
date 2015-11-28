@@ -21,21 +21,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' List of statements
                 Dim statements = ArrayBuilder(Of BoundStatement).GetInstance()
 
-                Dim anonymousType = DirectCast(Me.ContainingType, AnonymousTypeTemplateSymbol)
-                Debug.Assert(anonymousType.Properties.Length = Me.ParameterCount)
+                Dim anonymousType = DirectCast(ContainingType, AnonymousTypeTemplateSymbol)
+                Debug.Assert(anonymousType.Properties.Length = ParameterCount)
 
                 ' 'Me' reference
                 Dim boundMeReference = New BoundMeReference(syntax, anonymousType).MakeCompilerGenerated()
 
-                For index = 0 To Me.ParameterCount - 1
+                For index = 0 To ParameterCount - 1
 
                     Dim [property] As AnonymousTypePropertySymbol = anonymousType.Properties(index)
                     Dim propertyType As TypeSymbol = [property].Type
 
                     '  Generate 'field' = 'parameter' statement
-                    Dim fieldAccess = New BoundFieldAccess(syntax, boundMeReference, [property].AssociatedField, True, propertyType).MakeCompilerGenerated()
-                    Dim parameter = New BoundParameter(syntax, Me._parameters(index), isLValue:=False, type:=propertyType).MakeCompilerGenerated()
-                    Dim assignment = New BoundAssignmentOperator(syntax, fieldAccess, parameter, False, propertyType).MakeCompilerGenerated()
+                    Dim fieldAccess As New BoundFieldAccess(syntax, boundMeReference, [property].AssociatedField, True, propertyType).MakeCompilerGenerated()
+                    Dim parameter As New BoundParameter(syntax, _parameters(index), isLValue:=False, type:=propertyType).MakeCompilerGenerated()
+                    Dim assignment As New BoundAssignmentOperator(syntax, fieldAccess, parameter, False, propertyType).MakeCompilerGenerated()
                     statements.Add(New BoundExpressionStatement(syntax, assignment).MakeCompilerGenerated())
                 Next
 
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim boundMeReference As BoundMeReference = New BoundMeReference(syntax, AnonymousType).MakeCompilerGenerated()
 
                 ' Argument 'obj' reference
-                Dim boundObjReference As BoundParameter = New BoundParameter(syntax, Me._parameters(0), isLValue:=False,
+                Dim boundObjReference As BoundParameter = New BoundParameter(syntax, _parameters(0), isLValue:=False,
                                                                              type:=AnonymousType.Manager.System_Object).MakeCompilerGenerated()
 
                 ' TryCast(obj, <anonymous-type>)
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                        AnonymousType, Nothing).MakeCompilerGenerated()
 
                 ' Call Me.Equals(TryCast(obj, <anonymous-type>))
-                Dim boundCallToEquals As BoundExpression = New BoundCall(syntax, Me._iEquatableEqualsMethod, Nothing,
+                Dim boundCallToEquals As BoundExpression = New BoundCall(syntax, _iEquatableEqualsMethod, Nothing,
                                                                          boundMeReference, ImmutableArray.Create(Of BoundExpression)(boundTryCast),
                                                                          Nothing, AnonymousType.Manager.System_Boolean).MakeCompilerGenerated()
 
@@ -86,10 +86,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim syntax As VisualBasicSyntaxNode = Me.Syntax
 
-                Dim objectType As TypeSymbol = Me.AnonymousType.Manager.System_Object
-                Dim getHashCodeMethod As MethodSymbol = Me.AnonymousType.Manager.System_Object__GetHashCode
-                Dim integerType As TypeSymbol = Me.AnonymousType.Manager.System_Int32
-                Dim booleanType As TypeSymbol = Me.AnonymousType.Manager.System_Boolean
+                Dim objectType As TypeSymbol = AnonymousType.Manager.System_Object
+                Dim getHashCodeMethod As MethodSymbol = AnonymousType.Manager.System_Object__GetHashCode
+                Dim integerType As TypeSymbol = AnonymousType.Manager.System_Int32
+                Dim booleanType As TypeSymbol = AnonymousType.Manager.System_Boolean
 
                 ' Generate Hash base
 
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
                 Dim hashBase As Integer = builder.ToStringAndFree().ToLower().GetHashCode()
 #Else
-                Dim properties = Me.AnonymousType.Properties
+                Dim properties = AnonymousType.Properties
                 Dim names(properties.Length - 1) As String
                 For i = 0 To properties.Length - 1
                     names(i) = properties(i).Name
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim zeroLiteral = New BoundLiteral(syntax, ConstantValue.Create(0), integerType).MakeCompilerGenerated()
                 Dim nothingLiteral = New BoundLiteral(syntax, ConstantValue.Nothing, objectType).MakeCompilerGenerated()
 
-                For Each [property] In Me.AnonymousType.Properties
+                For Each [property] In AnonymousType.Properties
                     If [property].IsReadOnly Then
 
                         '  <expression> ::= <expression>*<factor>
@@ -185,8 +185,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim syntax As VisualBasicSyntaxNode = Me.Syntax
 
-                Dim objectType As TypeSymbol = Me.AnonymousType.Manager.System_Object
-                Dim booleanType As TypeSymbol = Me.AnonymousType.Manager.System_Boolean
+                Dim objectType As TypeSymbol = AnonymousType.Manager.System_Object
+                Dim booleanType As TypeSymbol = AnonymousType.Manager.System_Boolean
 
                 ' Locals
                 Dim localMyFieldBoxed As LocalSymbol = New SynthesizedLocal(Me, objectType, SynthesizedLocalKind.LoweringTemp)
@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim boundMeReference As BoundMeReference = New BoundMeReference(syntax, AnonymousType)
 
                 ' Argument 'val' reference
-                Dim boundValReference As BoundParameter = New BoundParameter(syntax, Me._parameters(0), isLValue:=False, type:=AnonymousType)
+                Dim boundValReference As BoundParameter = New BoundParameter(syntax, _parameters(0), isLValue:=False, type:=AnonymousType)
 
                 ' 'Nothing' Literal to be reused 
                 Dim nothingLiteral = New BoundLiteral(syntax, ConstantValue.Nothing, objectType).MakeCompilerGenerated()
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' TODO: Make sure we don't call GetObjectValue here
                 Dim boundCallToEquals As BoundExpression = New BoundCall(syntax,
-                                                                         Me.AnonymousType.Manager.System_Object__Equals, Nothing,
+                                                                         AnonymousType.Manager.System_Object__Equals, Nothing,
                                                                          boundLocalMyFieldBoxed,
                                                                          ImmutableArray.Create(Of BoundExpression)(boundLocalOtherFieldBoxed),
                                                                          Nothing, booleanType).MakeCompilerGenerated()
@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return New BoundDirectCast(Syntax,
                                            New BoundFieldAccess(Syntax, receiver, field, False, field.Type).MakeCompilerGenerated(),
                                            ConversionKind.WideningTypeParameter,
-                                           Me.AnonymousType.Manager.System_Object, Nothing).MakeCompilerGenerated()
+                                           AnonymousType.Manager.System_Object, Nothing).MakeCompilerGenerated()
             End Function
 
             Private Function BuildIsCheck(left As BoundExpression, right As BoundExpression, booleanType As TypeSymbol, Optional reverse As Boolean = False) As BoundExpression
@@ -319,10 +319,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim syntax As VisualBasicSyntaxNode = Me.Syntax
 
-                Dim objectType As TypeSymbol = Me.AnonymousType.Manager.System_Object
-                Dim stringType As TypeSymbol = Me.ReturnType
+                Dim objectType As TypeSymbol = AnonymousType.Manager.System_Object
+                Dim stringType As TypeSymbol = ReturnType
 
-                Dim arrayOfObjectsType As TypeSymbol = Me.AnonymousType.Manager.Compilation.CreateArrayTypeSymbol(objectType)
+                Dim arrayOfObjectsType As TypeSymbol = AnonymousType.Manager.Compilation.CreateArrayTypeSymbol(objectType)
 
                 Dim numberOfFields As Integer = AnonymousType.Properties.Length
 
@@ -354,11 +354,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim arrayInstantiation As BoundExpression = New BoundArrayCreation(syntax,
                                                                                    ImmutableArray.Create(Of BoundExpression)(
                                                                                        New BoundLiteral(syntax, ConstantValue.Create(numberOfFields),
-                                                                                                        Me.AnonymousType.Manager.System_Int32).MakeCompilerGenerated()),
+                                                                                                        AnonymousType.Manager.System_Int32).MakeCompilerGenerated()),
                                                                                    boundArrayInitializer, arrayOfObjectsType).MakeCompilerGenerated()
 
                 ' String.Format(<formatPattern>, New Object(numberOfFields - 1) { field0, field1, ... })
-                Dim formatMethod = Me.AnonymousType.Manager.System_String__Format_IFormatProvider
+                Dim formatMethod = AnonymousType.Manager.System_String__Format_IFormatProvider
                 Dim [call] As BoundExpression = New BoundCall(syntax, formatMethod, Nothing, Nothing,
                                                               ImmutableArray.Create(Of BoundExpression)(
                                                                         New BoundLiteral(syntax, ConstantValue.Nothing,

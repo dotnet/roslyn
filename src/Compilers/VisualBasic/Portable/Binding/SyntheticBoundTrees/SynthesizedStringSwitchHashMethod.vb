@@ -51,16 +51,16 @@ start:
         ''' This method should be kept consistent with ComputeStringHash
         ''' </remarks>
         Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim F = New SyntheticBoundNodeFactory(Me, Me, Me.Syntax, Nothing, diagnostics)
+            Dim F = New SyntheticBoundNodeFactory(Me, Me, Syntax, Nothing, diagnostics)
             F.CurrentMethod = Me
 
-            Dim i As LocalSymbol = F.SynthesizedLocal(Me.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))
-            Dim hashCode As LocalSymbol = F.SynthesizedLocal(Me.ContainingAssembly.GetSpecialType(SpecialType.System_UInt32))
+            Dim i As LocalSymbol = F.SynthesizedLocal(ContainingAssembly.GetSpecialType(SpecialType.System_Int32))
+            Dim hashCode As LocalSymbol = F.SynthesizedLocal(ContainingAssembly.GetSpecialType(SpecialType.System_UInt32))
 
             Dim again As LabelSymbol = F.GenerateLabel("again")
             Dim start As LabelSymbol = F.GenerateLabel("start")
 
-            Dim text As ParameterSymbol = Me.Parameters(0)
+            Dim text As ParameterSymbol = Parameters(0)
 
             '  This method should be kept consistent with ComputeStringHash
 
@@ -85,7 +85,7 @@ start:
             '            Return hashCode
 
             Dim textI As BoundExpression = F.Call(F.Parameter(text),
-                               DirectCast(Me.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_String__Chars), MethodSymbol),
+                               DirectCast(ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_String__Chars), MethodSymbol),
                                F.Local(i, False))
 
             textI = F.Convert(i.Type, textI, ConversionKind.WideningNumeric)
@@ -93,13 +93,13 @@ start:
 
             Dim body As BoundBlock = F.Block(
                     ImmutableArray.Create(Of LocalSymbol)(hashCode, i),
-                    F.Assignment(F.Local(hashCode, True), New BoundLiteral(Me.Syntax, ConstantValue.Create(CUInt(2166136261)), hashCode.Type)),
+                    F.Assignment(F.Local(hashCode, True), New BoundLiteral(Syntax, ConstantValue.Create(CUInt(2166136261)), hashCode.Type)),
                     F.If(
-                        F.Binary(BinaryOperatorKind.IsNot, Me.ContainingAssembly.GetSpecialType(SpecialType.System_Boolean),
+                        F.Binary(BinaryOperatorKind.IsNot, ContainingAssembly.GetSpecialType(SpecialType.System_Boolean),
                             F.Parameter(text).MakeRValue(),
                             F.Null(text.Type)),
                         F.Block(
-                            F.Assignment(F.Local(i, True), New BoundLiteral(Me.Syntax, ConstantValue.Create(0), i.Type)),
+                            F.Assignment(F.Local(i, True), New BoundLiteral(Syntax, ConstantValue.Create(0), i.Type)),
                             F.Goto(start),
                             F.Label(again),
                             F.Assignment(
@@ -108,17 +108,17 @@ start:
                                     F.Binary(BinaryOperatorKind.Xor, hashCode.Type,
                                         textI,
                                         F.Local(hashCode, False)),
-                                    New BoundLiteral(Me.Syntax, ConstantValue.Create(CUInt(16777619)), hashCode.Type))),
+                                    New BoundLiteral(Syntax, ConstantValue.Create(CUInt(16777619)), hashCode.Type))),
                             F.Assignment(
                                 F.Local(i, True),
                                 F.Binary(BinaryOperatorKind.Add, i.Type,
                                     F.Local(i, False),
-                                    New BoundLiteral(Me.Syntax, ConstantValue.Create(1), i.Type))),
+                                    New BoundLiteral(Syntax, ConstantValue.Create(1), i.Type))),
                             F.Label(start),
                             F.If(
-                                F.Binary(BinaryOperatorKind.LessThan, Me.ContainingAssembly.GetSpecialType(SpecialType.System_Boolean),
+                                F.Binary(BinaryOperatorKind.LessThan, ContainingAssembly.GetSpecialType(SpecialType.System_Boolean),
                                     F.Local(i, False),
-                                    F.Call(F.Parameter(text).MakeRValue(), DirectCast(Me.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_String__Length), MethodSymbol))),
+                                    F.Call(F.Parameter(text).MakeRValue(), DirectCast(ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_String__Length), MethodSymbol))),
                                 F.Goto(again)))),
                 F.Return(F.Local(hashCode, False)))
 

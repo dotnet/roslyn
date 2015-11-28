@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As ObjectCreationExpressionSyntax,
             diagnostics As DiagnosticBag
         ) As BoundExpression
-            Dim type As TypeSymbol = Me.BindTypeSyntax(node.Type, diagnostics)
+            Dim type As TypeSymbol = BindTypeSyntax(node.Type, diagnostics)
 
             ' When the type is an error still try to bind the arguments for better data flow analysis and 
             ' to permit them to be analyzed via the binding API.
@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 ' Check accessibility
                                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                                Dim isInAccessible As Boolean = (Me.CheckAccessibility(namedCoClass, useSiteDiagnostics) <> AccessCheckResult.Accessible)
+                                Dim isInAccessible As Boolean = (CheckAccessibility(namedCoClass, useSiteDiagnostics) <> AccessCheckResult.Accessible)
                                 diagnostics.Add(node, useSiteDiagnostics)
 
                                 If isInAccessible Then

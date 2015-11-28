@@ -36,11 +36,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Sub New(sourceModule As SourceModuleSymbol, tree As SyntaxTree)
-            Me._sourceModule = sourceModule
-            Me._tree = tree
-            Me._cache = New ConcurrentDictionary(Of ValueTuple(Of VisualBasicSyntaxNode, Byte), Binder)
+            _sourceModule = sourceModule
+            _tree = tree
+            _cache = New ConcurrentDictionary(Of ValueTuple(Of VisualBasicSyntaxNode, Byte), Binder)
 
-            Me._binderFactoryVisitorPool = New ObjectPool(Of BinderFactoryVisitor)(Function() New BinderFactoryVisitor(Me))
+            _binderFactoryVisitorPool = New ObjectPool(Of BinderFactoryVisitor)(Function() New BinderFactoryVisitor(Me))
         End Sub
 
         Private Function MakeBinder(node As VisualBasicSyntaxNode, position As Integer) As Binder

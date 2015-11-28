@@ -38,15 +38,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Shared ReadOnly Empty As ProcessedFieldOrPropertyInitializers = New ProcessedFieldOrPropertyInitializers()
 
             Private Sub New()
-                Me.BoundInitializers = ImmutableArray(Of BoundInitializer).Empty
-                Me.HasAnyErrors = False
-                Me._loweredInitializers = ImmutableArray(Of BoundStatement).Empty
+                BoundInitializers = ImmutableArray(Of BoundInitializer).Empty
+                HasAnyErrors = False
+                _loweredInitializers = ImmutableArray(Of BoundStatement).Empty
             End Sub
 
             Friend Sub New(boundInitializers As ImmutableArray(Of BoundInitializer))
                 Debug.Assert(Not boundInitializers.IsDefault)
                 Me.BoundInitializers = boundInitializers
-                Me.HasAnyErrors = boundInitializers.Any(Function(i) i.HasErrors)
+                HasAnyErrors = boundInitializers.Any(Function(i) i.HasErrors)
             End Sub
 
             Private _analyzed As Boolean = False
@@ -54,12 +54,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(method IsNot Nothing)
 
                 If Not _analyzed Then
-                    If Not Me.BoundInitializers.IsEmpty Then
+                    If Not BoundInitializers.IsEmpty Then
                         ' Create a dummy block
-                        Dim block As New BoundBlock(Me.BoundInitializers(0).Syntax,
+                        Dim block As New BoundBlock(BoundInitializers(0).Syntax,
                                                     Nothing,
                                                     ImmutableArray(Of LocalSymbol).Empty,
-                                                    StaticCast(Of BoundStatement).From(Me.BoundInitializers))
+                                                    StaticCast(Of BoundStatement).From(BoundInitializers))
 
                         Analyzer.AnalyzeMethodBody(method, block, diagnostics)
                         DiagnosticsPass.IssueDiagnostics(block, diagnostics, method)
@@ -202,9 +202,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag,
             isLast As Boolean) As BoundInitializer
 
-            Dim boundStatement As BoundStatement = Me.BindStatement(statementNode, diagnostics)
+            Dim boundStatement As BoundStatement = BindStatement(statementNode, diagnostics)
 
-            If Me.Compilation.IsSubmission AndAlso isLast AndAlso boundStatement.Kind = BoundKind.ExpressionStatement AndAlso Not boundStatement.HasErrors Then
+            If Compilation.IsSubmission AndAlso isLast AndAlso boundStatement.Kind = BoundKind.ExpressionStatement AndAlso Not boundStatement.HasErrors Then
                 ' insert an implicit conversion to the submission return type (if needed):
                 Dim expression = (DirectCast(boundStatement, BoundExpressionStatement)).Expression
                 If expression.Type Is Nothing OrElse expression.Type.SpecialType <> SpecialType.System_Void Then
@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' In speculative semantic model scenarios equalsValueOrAsNewSyntax might have no parent.
             If equalsValueOrAsNewSyntax.Parent IsNot Nothing Then
-                Debug.Assert(Me.IsSemanticModelBinder OrElse
+                Debug.Assert(IsSemanticModelBinder OrElse
                              fieldSymbols.Length = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
 
                 If equalsValueOrAsNewSyntax.Kind() = SyntaxKind.AsNewClause Then
@@ -548,10 +548,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If boundInitValueHasErrorsOrConstTypeIsWrong Then
                     Dim discard = DiagnosticBag.GetInstance
-                    constValue = Me.GetExpressionConstantValueIfAny(boundInitValue, discard, ConstantContext.Default)
+                    constValue = GetExpressionConstantValueIfAny(boundInitValue, discard, ConstantContext.Default)
                     discard.Free()
                 Else
-                    constValue = Me.GetExpressionConstantValueIfAny(boundInitValue, initValueDiagnostics, ConstantContext.Default)
+                    constValue = GetExpressionConstantValueIfAny(boundInitValue, initValueDiagnostics, ConstantContext.Default)
                 End If
 
                 ' e.g. the init value of "Public foo as Byte = 2.2" is still considered as constant and therefore a CByte(2)

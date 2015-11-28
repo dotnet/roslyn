@@ -48,15 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 myBaseReference = New BoundMyBaseReference(syntax, meSymbol.Type)
                 Dim baseGetSym = propertySymbol.GetMethod.OverriddenMethod
 
-                baseGet = New BoundCall(
-                    syntax,
-                    baseGetSym,
-                    Nothing,
-                    myBaseReference,
-                    ImmutableArray(Of BoundExpression).Empty,
-                    Nothing,
-                    True,
-                    baseGetSym.ReturnType)
+                baseGet = New BoundCall(syntax, baseGetSym, Nothing, myBaseReference, ImmutableArray(Of BoundExpression).Empty, Nothing, True, baseGetSym.ReturnType)
             Else
                 ' not overriding property operates with field
                 field = backingField

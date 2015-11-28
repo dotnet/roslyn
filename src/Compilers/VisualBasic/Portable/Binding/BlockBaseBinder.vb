@@ -33,17 +33,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property LocalsMap As Dictionary(Of String, T)
             Get
-                If Me._lazyLocalsMap Is Nothing AndAlso Not Me.Locals.IsEmpty Then
-                    Interlocked.CompareExchange(Me._lazyLocalsMap, BuildMap(Me.Locals), Nothing)
+                If _lazyLocalsMap Is Nothing AndAlso Not Locals.IsEmpty Then
+                    Interlocked.CompareExchange(_lazyLocalsMap, BuildMap(Locals), Nothing)
                 End If
-                Return Me._lazyLocalsMap
+                Return _lazyLocalsMap
             End Get
         End Property
 
         Private Function BuildMap(locals As ImmutableArray(Of T)) As Dictionary(Of String, T)
             Debug.Assert(Not locals.IsEmpty)
 
-            Dim map = New Dictionary(Of String, T)(locals.Length, IdentifierComparison.Comparer)
+            Dim map As New Dictionary(Of String, T)(locals.Length, IdentifierComparison.Comparer)
             For Each local In locals
                 If Not map.ContainsKey(local.Name) Then
                     map(local.Name) = local
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Next
                 Else
-                    If Me.LocalsMap.TryGetValue(name, localSymbol) Then
+                    If LocalsMap.TryGetValue(name, localSymbol) Then
                         lookupResult.SetFrom(CheckViability(localSymbol, arity, options, Nothing, useSiteDiagnostics))
                     End If
                 End If

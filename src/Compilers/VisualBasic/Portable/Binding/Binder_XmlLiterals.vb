@@ -572,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Structure XmlName
             Public Sub New(localName As String, [namespace] As String)
                 Me.LocalName = localName
-                Me.XmlNamespace = [namespace]
+                XmlNamespace = [namespace]
             End Sub
 
             Public ReadOnly LocalName As String
@@ -1367,9 +1367,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(objectCreation As BoundExpression)
             Debug.Assert(objectCreation IsNot Nothing)
             Me.ObjectCreation = objectCreation
-            Me.SideEffects = ImmutableArray(Of BoundExpression).Empty
+            SideEffects = ImmutableArray(Of BoundExpression).Empty
 
-            Me.HasErrors = objectCreation.HasErrors
+            HasErrors = objectCreation.HasErrors
         End Sub
 
         Public Sub New(isRoot As Boolean,
@@ -1400,7 +1400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.InScopeXmlNamespaces = inScopeXmlNamespaces
             Me.SideEffects = sideEffects
 
-            Me.HasErrors = objectCreation.HasErrors OrElse sideEffects.Any(Function(s) s.HasErrors)
+            HasErrors = objectCreation.HasErrors OrElse sideEffects.Any(Function(s) s.HasErrors)
         End Sub
 
         Public ReadOnly IsRoot As Boolean
@@ -1444,7 +1444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As XmlNamespaceAndImportsClausePosition = Nothing
             If _namespaces.TryGetValue(prefix, result) Then
                 [namespace] = result.XmlNamespace
-                Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, result.ImportsClausePosition)
+                Compilation.MarkImportDirectiveAsUsed(SyntaxTree, result.ImportsClausePosition)
                 fromImports = True
                 Return True
             End If

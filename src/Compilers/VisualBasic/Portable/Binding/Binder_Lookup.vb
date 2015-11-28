@@ -153,15 +153,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' attribute
-            If unwrappedSym.ContainingModule IsNot Me.ContainingModule AndAlso unwrappedSym.IsHiddenByEmbeddedAttribute() Then
+            If unwrappedSym.ContainingModule IsNot ContainingModule AndAlso unwrappedSym.IsHiddenByEmbeddedAttribute() Then
                 Return SingleLookupResult.Empty
             End If
 
             If unwrappedSym.Kind = SymbolKind.NamedType AndAlso unwrappedSym.EmbeddedSymbolKind = EmbeddedSymbolKind.EmbeddedAttribute AndAlso
-                    Me.SyntaxTree IsNot Nothing AndAlso Me.SyntaxTree.GetEmbeddedKind = EmbeddedSymbolKind.None Then
+                    SyntaxTree IsNot Nothing AndAlso SyntaxTree.GetEmbeddedKind = EmbeddedSymbolKind.None Then
                 ' Only allow direct access to Microsoft.VisualBasic.Embedded attribute
                 ' from user code if current compilation embeds Vb Core
-                If Not Me.Compilation.Options.EmbedVbCoreRuntime Then
+                If Not Compilation.Options.EmbedVbCoreRuntime Then
                     Return SingleLookupResult.Empty
                 End If
             End If
@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    ERRID.ERR_InaccessibleMember3,
                                                    sym.ContainingSymbol.Name,
                                                    sym,
-                                                   AccessCheck.GetAccessibilityForErrorMessage(sym, Me.Compilation.Assembly))
+                                                   AccessCheck.GetAccessibilityForErrorMessage(sym, Compilation.Assembly))
             Else
                 diagInfo = New BadSymbolDiagnostic(sym,
                                                    ERRID.ERR_InaccessibleSymbol2,
@@ -1359,7 +1359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Sub
 
                 Public Overrides Function GetHashCode() As Integer
-                    Return Hash.Combine(Me.InterfaceType.GetHashCode(), Me.InComInterfaceContext.GetHashCode())
+                    Return Hash.Combine(InterfaceType.GetHashCode(), InComInterfaceContext.GetHashCode())
                 End Function
 
                 Public Overloads Overrides Function Equals(obj As Object) As Boolean
@@ -1367,7 +1367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Overloads Function Equals(other As InterfaceInfo) As Boolean Implements IEquatable(Of InterfaceInfo).Equals
-                    Return Me.InterfaceType.Equals(other.InterfaceType) AndAlso Me.InComInterfaceContext = other.InComInterfaceContext
+                    Return InterfaceType.Equals(other.InterfaceType) AndAlso InComInterfaceContext = other.InComInterfaceContext
                 End Function
             End Structure
 

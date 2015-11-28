@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, node, ERRID.WRN_LateBindingResolution)
             End If
 
-            Dim objType = Me.GetSpecialType(SpecialType.System_Object, node, diagnostics)
+            Dim objType = GetSpecialType(SpecialType.System_Object, node, diagnostics)
 
             If receiver IsNot Nothing AndAlso
                 receiver.Kind = BoundKind.MeReference AndAlso
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = MakeRValue(receiver, diagnostics)
             End If
 
-            Dim objType = Me.GetSpecialType(SpecialType.System_Object, node, diagnostics)
+            Dim objType = GetSpecialType(SpecialType.System_Object, node, diagnostics)
             Return New BoundLateInvocation(node, receiver, arguments, argumentNames, LateBoundAccessKind.Unknown, groupOpt, objType)
         End Function
 

@@ -13,12 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _factory As BinderFactory
 
             Public Sub New(factory As BinderFactory)
-                Me._factory = factory
+                _factory = factory
             End Sub
 
             Friend WriteOnly Property Position As Integer
                 Set(value As Integer)
-                    Me._position = value
+                    _position = value
                 End Set
             End Property
 
