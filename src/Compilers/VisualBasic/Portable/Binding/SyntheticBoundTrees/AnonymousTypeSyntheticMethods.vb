@@ -33,9 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim propertyType As TypeSymbol = [property].Type
 
                     '  Generate 'field' = 'parameter' statement
-                    Dim fieldAccess As New BoundFieldAccess(syntax, boundMeReference, [property].AssociatedField, True, propertyType).MakeCompilerGenerated()
-                    Dim parameter As New BoundParameter(syntax, _parameters(index), isLValue:=False, type:=propertyType).MakeCompilerGenerated()
-                    Dim assignment As New BoundAssignmentOperator(syntax, fieldAccess, parameter, False, propertyType).MakeCompilerGenerated()
+                    Dim fieldAccess As BoundFieldAccess = New BoundFieldAccess(syntax, boundMeReference, [property].AssociatedField, True, propertyType).MakeCompilerGenerated()
+                    Dim parameter As BoundParameter = New BoundParameter(syntax, _parameters(index), isLValue:=False, type:=propertyType).MakeCompilerGenerated()
+                    Dim assignment As BoundAssignmentOperator = New BoundAssignmentOperator(syntax, fieldAccess, parameter, False, propertyType).MakeCompilerGenerated()
                     statements.Add(New BoundExpressionStatement(syntax, assignment).MakeCompilerGenerated())
                 Next
 
