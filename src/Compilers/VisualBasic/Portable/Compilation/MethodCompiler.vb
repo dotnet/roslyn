@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub WaitForWorkers()
-            Dim tasks As ConcurrentStack(Of Task) = Me._compilerTasks
+            Dim tasks As ConcurrentStack(Of Task) = _compilerTasks
             If tasks Is Nothing Then
                 Return
             End If
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub VisitNamespace(symbol As NamespaceSymbol)
             _cancellationToken.ThrowIfCancellationRequested()
 
-            If Me._compilation.Options.ConcurrentBuild Then
+            If _compilation.Options.ConcurrentBuild Then
                 Dim worker As Task = CompileNamespaceAsTask(symbol)
                 _compilerTasks.Push(worker)
             Else
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Throw ExceptionUtilities.Unreachable
                         End Try
                     End Sub),
-                Me._cancellationToken)
+                _cancellationToken)
         End Function
 
         Private Sub CompileNamespace(symbol As NamespaceSymbol)
@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Sub VisitNamedType(symbol As NamedTypeSymbol)
             _cancellationToken.ThrowIfCancellationRequested()
             If PassesFilter(_filterOpt, symbol) Then
-                If Me._compilation.Options.ConcurrentBuild Then
+                If _compilation.Options.ConcurrentBuild Then
                     Dim worker As Task = CompileNamedTypeAsTask(symbol, _filterOpt)
                     _compilerTasks.Push(worker)
                 Else
@@ -497,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Throw ExceptionUtilities.Unreachable
                         End Try
                     End Sub),
-                Me._cancellationToken)
+                _cancellationToken)
         End Function
 
         Private Sub CompileNamedType(containingType As NamedTypeSymbol, filter As Predicate(Of Symbol))
@@ -1144,7 +1144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not DoEmitPhase AndAlso (sourceMethod IsNot Nothing) Then
                 Dim cachedDiagnostics = sourceMethod.Diagnostics
                 If Not cachedDiagnostics.IsDefault Then
-                    Me._diagnostics.AddRange(cachedDiagnostics)
+                    _diagnostics.AddRange(cachedDiagnostics)
                     Return
                 End If
             End If

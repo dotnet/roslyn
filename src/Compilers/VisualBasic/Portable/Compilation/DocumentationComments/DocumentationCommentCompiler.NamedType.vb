@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' the writer
             ''' </summary>
             Public Overrides Sub VisitNamedType(symbol As NamedTypeSymbol)
-                Me._cancellationToken.ThrowIfCancellationRequested()
+                _cancellationToken.ThrowIfCancellationRequested()
 
                 If Not ShouldSkipSymbol(symbol) Then
                     Dim sourceNamedType = TryCast(symbol, SourceNamedTypeSymbol)
@@ -32,9 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         WriteDocumentationCommentForNamedType(sourceNamedType)
                     End If
 
-                    If Not Me._isForSingleSymbol Then
+                    If Not _isForSingleSymbol Then
                         For Each member In symbol.GetMembers()
-                            Me.Visit(member)
+                            Visit(member)
                         Next
                     End If
                 End If
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For Each reference In namedType.SyntaxReferences
                     Dim trivia As DocumentationCommentTriviaSyntax =
-                        TryGetDocCommentTriviaAndGenerateDiagnostics(reference.GetVisualBasicSyntax(Me._cancellationToken))
+                        TryGetDocCommentTriviaAndGenerateDiagnostics(reference.GetVisualBasicSyntax(_cancellationToken))
 
                     If trivia IsNot Nothing Then
                         multipleDocComments.Add(trivia)
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' all of them with (optionally) reporting all diagnostics 
                     If maxDocumentationMode = DocumentationMode.Diagnose Then
                         For Each trivia In multipleDocComments
-                            Me._diagnostics.Add(ERRID.WRN_XMLDocOnAPartialType, trivia.GetLocation(), symbolName)
+                            _diagnostics.Add(ERRID.WRN_XMLDocOnAPartialType, trivia.GetLocation(), symbolName)
                         Next
                     End If
                     multipleDocComments.Free()

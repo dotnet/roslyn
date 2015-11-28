@@ -33,12 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _declaredOrInheritedCompliance As ConcurrentDictionary(Of Symbol, Compliance)
 
         Private Sub New(compilation As VisualBasicCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As ConcurrentQueue(Of Diagnostic), cancellationToken As CancellationToken)
-            Me._compilation = compilation
-            Me._filterTree = filterTree
-            Me._filterSpanWithinTree = filterSpanWithinTree
-            Me._diagnostics = diagnostics
-            Me._cancellationToken = cancellationToken
-            Me._declaredOrInheritedCompliance = New ConcurrentDictionary(Of Symbol, Compliance)()
+            _compilation = compilation
+            _filterTree = filterTree
+            _filterSpanWithinTree = filterSpanWithinTree
+            _diagnostics = diagnostics
+            _cancellationToken = cancellationToken
+            _declaredOrInheritedCompliance = New ConcurrentDictionary(Of Symbol, Compliance)()
         End Sub
 
         ''' <summary>
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitAssembly(symbol As AssemblySymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
+            _cancellationToken.ThrowIfCancellationRequested()
             Debug.Assert(TypeOf symbol Is SourceAssemblySymbol)
 
             ' NOTE: unlike in C#, false at the assembly level does not short-circuit any checks.
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The regular attribute code handles conflicting attributes from included netmodules.
 
             If symbol.Modules.Length > 1 AndAlso _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
+                Dim options = If(_cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = _cancellationToken}, s_defaultParallelOptions)
                 Parallel.ForEach(symbol.Modules, options, UICultureUtilities.WithCurrentUICulture(Of ModuleSymbol)(AddressOf VisitModule))
             Else
                 For Each m In symbol.Modules
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitNamespace(symbol As NamespaceSymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
+            _cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
                 Return
             End If
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
+                Dim options = If(_cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = _cancellationToken}, s_defaultParallelOptions)
                 Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
             Else
                 For Each m In symbol.GetMembersUnordered()
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitNamedType(symbol As NamedTypeSymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
+            _cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
                 Return
             End If
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If _compilation.Options.ConcurrentBuild Then
-                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, s_defaultParallelOptions)
+                Dim options = If(_cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = _cancellationToken}, s_defaultParallelOptions)
                 Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(Of Symbol)(AddressOf Visit))
             Else
                 For Each m In symbol.GetMembersUnordered()
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(IsAccessibleOutsideAssembly(constructor), "Should be implied by IsAccessibleIfContainerIsAccessible")
                     Dim hasUnacceptableParameterType As Boolean = False
                     For Each paramType In GetParameterTypes(constructor)
-                        If paramType.TypeKind = TypeKind.Array OrElse TypedConstant.GetTypedConstantKind(paramType, Me._compilation) = TypedConstantKind.Error Then
+                        If paramType.TypeKind = TypeKind.Array OrElse TypedConstant.GetTypedConstantKind(paramType, _compilation) = TypedConstantKind.Error Then
                             hasUnacceptableParameterType = True
                             Exit For
                         End If
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub VisitMethod(symbol As MethodSymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
+            _cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
                 Return
             End If
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Dim attributeLocation As Location = Nothing
                                 If TryGetAttributeWarningLocation(attribute, attributeLocation) Then
                                     Dim attributeUsage As AttributeUsageInfo = attribute.AttributeClass.GetAttributeUsageInfo()
-                                    Me.AddDiagnostic(symbol, ERRID.WRN_CLSAttrInvalidOnGetSet, attributeLocation, attribute.AttributeClass.Name, attributeUsage.GetValidTargetsErrorArgument())
+                                    AddDiagnostic(symbol, ERRID.WRN_CLSAttrInvalidOnGetSet, attributeLocation, attribute.AttributeClass.Name, attributeUsage.GetValidTargetsErrorArgument())
                                     Exit For
                                 End If
                             End If
@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Dim attributeLocation As Location = Nothing
                                 If GetDeclaredCompliance(symbol, attributeLocation) = True Then
                                     ' This warning is a little strange since attributes on event accessors are silently ignored.
-                                    Me.AddDiagnostic(symbol, ERRID.WRN_CLSEventMethodInNonCLSType3, attributeLocation, methodKind.TryGetAccessorDisplayName(), symbol.AssociatedSymbol.Name, containingType)
+                                    AddDiagnostic(symbol, ERRID.WRN_CLSEventMethodInNonCLSType3, attributeLocation, methodKind.TryGetAccessorDisplayName(), symbol.AssociatedSymbol.Name, containingType)
                                 End If
                             End If
                         End If
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitProperty(symbol As PropertySymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
+            _cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
                 Return
             End If
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitEvent(symbol As EventSymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
+            _cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
                 Return
             End If
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitField(symbol As FieldSymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
+            _cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
                 Return
             End If
@@ -281,9 +281,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Not IsTrue(GetDeclaredOrInheritedCompliance(symbol)), "Only call on non-compliant symbols")
             Dim containingType As NamedTypeSymbol = symbol.ContainingType
             If containingType IsNot Nothing AndAlso containingType.IsInterface Then
-                Me.AddDiagnostic(symbol, ERRID.WRN_NonCLSMemberInCLSInterface1, symbol) ' NOTE: Dev11 actually reports the kind
+                AddDiagnostic(symbol, ERRID.WRN_NonCLSMemberInCLSInterface1, symbol) ' NOTE: Dev11 actually reports the kind
             ElseIf symbol.IsMustOverride AndAlso symbol.Kind <> SymbolKind.NamedType Then
-                Me.AddDiagnostic(symbol, ERRID.WRN_NonCLSMustOverrideInCLSType1, containingType) ' NOTE: Dev11 actually reports the type kind
+                AddDiagnostic(symbol, ERRID.WRN_NonCLSMustOverrideInCLSType1, containingType) ' NOTE: Dev11 actually reports the type kind
             End If
         End Sub
 
@@ -292,19 +292,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbol.IsInterface Then
                 For Each interfaceType In symbol.InterfacesNoUseSiteDiagnostics
                     If ShouldReportNonCompliantType(interfaceType, symbol) Then
-                        Me.AddDiagnostic(symbol, ERRID.WRN_InheritedInterfaceNotCLSCompliant2, symbol, interfaceType)
+                        AddDiagnostic(symbol, ERRID.WRN_InheritedInterfaceNotCLSCompliant2, symbol, interfaceType)
                     End If
                 Next
             ElseIf symbol.TypeKind = TypeKind.Enum Then
                 Dim underlyingType As NamedTypeSymbol = symbol.EnumUnderlyingType
                 If ShouldReportNonCompliantType(underlyingType, symbol) Then
-                    Me.AddDiagnostic(symbol, ERRID.WRN_EnumUnderlyingTypeNotCLS1, underlyingType)
+                    AddDiagnostic(symbol, ERRID.WRN_EnumUnderlyingTypeNotCLS1, underlyingType)
                 End If
             Else
                 Dim baseType As NamedTypeSymbol = symbol.BaseTypeNoUseSiteDiagnostics
                 Debug.Assert(baseType IsNot Nothing OrElse symbol.SpecialType = SpecialType.System_Object, "Only object has no base.")
                 If baseType IsNot Nothing AndAlso ShouldReportNonCompliantType(baseType, symbol) Then
-                    Me.AddDiagnostic(symbol, ERRID.WRN_BaseClassNotCLSCompliant2, symbol, baseType)
+                    AddDiagnostic(symbol, ERRID.WRN_BaseClassNotCLSCompliant2, symbol, baseType)
                 End If
             End If
         End Sub
@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim containingType As NamedTypeSymbol = symbol.ContainingType
             Debug.Assert(containingType Is Nothing OrElse Not containingType.IsImplicitClass)
             If containingType IsNot Nothing AndAlso Not IsTrue(GetDeclaredOrInheritedCompliance(containingType)) Then
-                Me.AddDiagnostic(symbol, ERRID.WRN_CLSMemberInNonCLSType3, symbol.GetKindText(), symbol, containingType)
+                AddDiagnostic(symbol, ERRID.WRN_CLSMemberInNonCLSType3, symbol.GetKindText(), symbol, containingType)
             End If
         End Sub
 
@@ -323,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each typeParameter In typeParameters
                 For Each constraintType In typeParameter.ConstraintTypesNoUseSiteDiagnostics
                     If ShouldReportNonCompliantType(constraintType, context, typeParameter) Then
-                        Me.AddDiagnostic(typeParameter, ERRID.WRN_GenericConstraintNotCLSCompliant1, constraintType)
+                        AddDiagnostic(typeParameter, ERRID.WRN_GenericConstraintNotCLSCompliant1, constraintType)
                     End If
                 Next
             Next
@@ -337,7 +337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          "Only call on compliant symbols")
             For Each parameter In parameters
                 If ShouldReportNonCompliantType(parameter.Type, context, parameter) Then
-                    Me.AddDiagnostic(parameter, ERRID.WRN_ParamNotCLSCompliant1, parameter.Name)
+                    AddDiagnostic(parameter, ERRID.WRN_ParamNotCLSCompliant1, parameter.Name)
                 ElseIf parameter.HasExplicitDefaultValue Then
                     ' CLSComplianceChecker::VerifyProcForCLSCompliance checks for exactly these types
                     Select Case parameter.ExplicitDefaultConstantValue.Discriminator
@@ -345,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ConstantValueTypeDiscriminator.UInt16,
                             ConstantValueTypeDiscriminator.UInt32,
                             ConstantValueTypeDiscriminator.UInt64
-                            Me.AddDiagnostic(parameter, ERRID.WRN_OptionalValueNotCLSCompliant1, parameter.Name)
+                            AddDiagnostic(parameter, ERRID.WRN_OptionalValueNotCLSCompliant1, parameter.Name)
                     End Select
                 End If
             Next
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
             If ShouldReportNonCompliantType(type, symbol.ContainingType, symbol) Then
-                Me.AddDiagnostic(symbol, code, symbol.Name)
+                AddDiagnostic(symbol, code, symbol.Name)
             End If
         End Sub
 
@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(symbol.DelegateReturnType.SpecialType = SpecialType.System_Void)
                 CheckParameterCompliance(symbol.DelegateParameters, symbol.ContainingType)
             ElseIf ShouldReportNonCompliantType(type, symbol.ContainingType, symbol) Then
-                Me.AddDiagnostic(symbol, ERRID.WRN_EventDelegateTypeNotCLSCompliant2, type, symbol.Name)
+                AddDiagnostic(symbol, ERRID.WRN_EventDelegateTypeNotCLSCompliant2, type, symbol.Name)
             End If
         End Sub
 
@@ -483,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each other As Symbol In sameNameSymbols
                 ' Note: not checking accessor signatures, but checking accessor names.
                 If symbol.Kind = other.Kind AndAlso Not symbol.IsAccessor() AndAlso Not other.IsAccessor() AndAlso SignaturesCollide(symbol, other) Then
-                    Me.AddDiagnostic(symbol, ERRID.WRN_ArrayOverloadsNonCLS2, symbol, other)
+                    AddDiagnostic(symbol, ERRID.WRN_ArrayOverloadsNonCLS2, symbol, other)
                     ' NOTE: Unlike in C#, we can't stop after the first conflict because our diagnostic actually
                     ' references the other symbol and we need to produce the same diagnostics every time.
                 End If
@@ -502,18 +502,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If name.Length > 0 AndAlso name(0) = "_"c Then
 
                 If symbol.Kind = SymbolKind.Namespace Then
-                    Dim rootNamespace = Me._compilation.RootNamespace
+                    Dim rootNamespace = _compilation.RootNamespace
 
                     Debug.Assert(symbol.ContainingNamespace IsNot Nothing, "Only true for the global namespace and that has an empty name.")
                     If symbol = rootNamespace AndAlso symbol.ContainingNamespace.IsGlobalNamespace Then
-                        Me.AddDiagnostic(symbol, ERRID.WRN_RootNamespaceNotCLSCompliant1, rootNamespace)
+                        AddDiagnostic(symbol, ERRID.WRN_RootNamespaceNotCLSCompliant1, rootNamespace)
                         Return
                     End If
 
                     Dim curr = rootNamespace
                     While curr IsNot Nothing
                         If symbol = curr Then
-                            Me.AddDiagnostic(symbol, ERRID.WRN_RootNamespaceNotCLSCompliant2, symbol.Name, rootNamespace)
+                            AddDiagnostic(symbol, ERRID.WRN_RootNamespaceNotCLSCompliant2, symbol.Name, rootNamespace)
                             Return
                         End If
 
@@ -521,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End While
                 End If
 
-                Me.AddDiagnostic(symbol, ERRID.WRN_NameNotCLSCompliant1, name)
+                AddDiagnostic(symbol, ERRID.WRN_NameNotCLSCompliant1, name)
             End If
         End Sub
 
@@ -530,11 +530,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Return symbol.DeclaringCompilation IsNot Me._compilation OrElse symbol.IsImplicitlyDeclared OrElse IsSyntacticallyFilteredOut(symbol)
+            Return symbol.DeclaringCompilation IsNot _compilation OrElse symbol.IsImplicitlyDeclared OrElse IsSyntacticallyFilteredOut(symbol)
         End Function
 
         Private Function IsSyntacticallyFilteredOut(symbol As Symbol) As Boolean
-            Return Me._filterTree IsNot Nothing AndAlso Not symbol.IsDefinedInSourceTree(Me._filterTree, Me._filterSpanWithinTree, Me._cancellationToken)
+            Return _filterTree IsNot Nothing AndAlso Not symbol.IsDefinedInSourceTree(_filterTree, _filterSpanWithinTree, _cancellationToken)
         End Function
 
         Private Function ShouldReportNonCompliantType(type As TypeSymbol, context As NamedTypeSymbol, Optional diagnosticSymbol As Symbol = Nothing) As Boolean
@@ -560,7 +560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub ReportNonCompliantTypeArguments(type As NamedTypeSymbol, context As NamedTypeSymbol, diagnosticSymbol As Symbol)
             For Each typeArg In type.TypeArgumentsNoUseSiteDiagnostics
                 If Not IsCompliantType(typeArg, context) Then
-                    Me.AddDiagnostic(diagnosticSymbol, ERRID.WRN_TypeNotCLSCompliant1, typeArg)
+                    AddDiagnostic(diagnosticSymbol, ERRID.WRN_TypeNotCLSCompliant1, typeArg)
                 End If
                 ReportNonCompliantTypeArguments(typeArg, context, diagnosticSymbol)
             Next
@@ -606,8 +606,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetDeclaredOrInheritedCompliance(symbol As Symbol) As Compliance
             Debug.Assert(symbol.Kind = SymbolKind.NamedType OrElse Not (TypeOf symbol Is TypeSymbol), "Type kinds without declarations are handled elsewhere.")
 
-            Debug.Assert(symbol.Kind <> If(Me._compilation.Options.OutputKind = OutputKind.NetModule, SymbolKind.Assembly, SymbolKind.NetModule) OrElse
-                         (symbol.Kind = SymbolKind.Assembly AndAlso Me._compilation.Assembly IsNot symbol),
+            Debug.Assert(symbol.Kind <> If(_compilation.Options.OutputKind = OutputKind.NetModule, SymbolKind.Assembly, SymbolKind.NetModule) OrElse
+                         (symbol.Kind = SymbolKind.Assembly AndAlso _compilation.Assembly IsNot symbol),
                          "Don't care about assembly when building netmodule and vice versa")
 
             If symbol.Kind = SymbolKind.Namespace Then
@@ -628,7 +628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(symbol.Kind <> SymbolKind.Parameter)
             Debug.Assert(symbol.Kind <> SymbolKind.RangeVariable)
             Dim compliance As Compliance
-            If Me._declaredOrInheritedCompliance.TryGetValue(symbol, compliance) Then
+            If _declaredOrInheritedCompliance.TryGetValue(symbol, compliance) Then
                 Return compliance
             End If
 
@@ -644,7 +644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case (symbol.Kind)
                 Case SymbolKind.Assembly, SymbolKind.NetModule, SymbolKind.NamedType
-                    Return Me._declaredOrInheritedCompliance.GetOrAdd(symbol, compliance)
+                    Return _declaredOrInheritedCompliance.GetOrAdd(symbol, compliance)
                 Case Else
                     Return compliance
             End Select
@@ -678,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '         and an appropriate warning/error is given if their inherit from a
             '         non-CLS Compliant type
 
-            If symbol.IsFromCompilation(Me._compilation) OrElse symbol.Kind <> SymbolKind.NamedType Then
+            If symbol.IsFromCompilation(_compilation) OrElse symbol.Kind <> SymbolKind.NamedType Then
                 Return GetDeclaredComplianceHelper(symbol, attributeLocation, isAttributeInherited:=Nothing)
             End If
 
@@ -747,11 +747,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetContainingModuleOrAssembly(symbol As Symbol) As Symbol
             Dim containingAssembly = symbol.ContainingAssembly
 
-            If containingAssembly IsNot Me._compilation.Assembly Then
+            If containingAssembly IsNot _compilation.Assembly Then
                 Return containingAssembly
             End If
 
-            Dim producingNetModule = Me._compilation.Options.OutputKind = OutputKind.NetModule
+            Dim producingNetModule = _compilation.Options.OutputKind = OutputKind.NetModule
             Return If(producingNetModule, DirectCast(symbol.ContainingModule, Symbol), containingAssembly)
         End Function
 
@@ -787,13 +787,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub AddDiagnostic(symbol As Symbol, code As ERRID, ParamArray args As Object())
             Dim location = If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.Locations(0))
-            Me.AddDiagnostic(symbol, code, location, args)
+            AddDiagnostic(symbol, code, location, args)
         End Sub
 
         Private Sub AddDiagnostic(symbol As Symbol, code As ERRID, location As Location, ParamArray args As Object())
             Dim info = New BadSymbolDiagnostic(symbol, code, args)
             Dim diag = New VBDiagnostic(info, location)
-            Me._diagnostics.Enqueue(diag)
+            _diagnostics.Enqueue(diag)
         End Sub
 
         Private Shared Function IsImplicitClass(symbol As Symbol) As Boolean

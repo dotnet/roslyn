@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary> 
         Public Overrides ReadOnly Property SyntaxTree As SyntaxTree
             Get
-                Return Me._syntaxTree
+                Return _syntaxTree
             End Get
         End Property
 
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
-                Return Me._ignoresAccessibility
+                Return _ignoresAccessibility
             End Get
         End Property
 
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetMemberSemanticModel(position As Integer) As MemberSemanticModel
-            Dim binder As binder = _binderFactory.GetBinderForPosition(FindInitialNodeFromPosition(position), position)
+            Dim binder As Binder = _binderFactory.GetBinderForPosition(FindInitialNodeFromPosition(position), position)
             Dim model = GetMemberSemanticModel(binder) ' Depends on the runtime type, so don't wrap in a SemanticModelBinder.
             Debug.Assert(model Is Nothing OrElse model.RootBinder.IsSemanticModelBinder)
             Return model
@@ -179,13 +179,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' to find more nested binders.
                 Return model.GetEnclosingBinder(position)
             Else
-                Dim binder As binder = _binderFactory.GetBinderForPosition(FindInitialNodeFromPosition(position), position)
+                Dim binder As Binder = _binderFactory.GetBinderForPosition(FindInitialNodeFromPosition(position), position)
                 Return SemanticModelBinder.Mark(binder, IgnoresAccessibility)
             End If
         End Function
 
         Friend Overrides Function GetInvokeSummaryForRaiseEvent(node As RaiseEventStatementSyntax) As BoundNodeSummary
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
             If model IsNot Nothing Then
                 Return model.GetInvokeSummaryForRaiseEvent(node)
             Else
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             node = SyntaxFactory.GetStandaloneExpression(DirectCast(node, ExpressionSyntax))
 
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
             Dim result As SymbolInfo
 
             If model IsNot Nothing Then
@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetCollectionInitializerAddSymbolInfo(collectionInitializer As ObjectCreationExpressionSyntax, node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(collectionInitializer)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(collectionInitializer)
 
             If model IsNot Nothing Then
                 Return model.GetCollectionInitializerAddSymbolInfo(collectionInitializer, node, cancellationToken)
@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
             node = SyntaxFactory.GetStandaloneExpression(DirectCast(node, ExpressionSyntax))
 
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetExpressionTypeInfo(node, cancellationToken)
@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function GetExpressionMemberGroup(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Symbol)
             node = SyntaxFactory.GetStandaloneExpression(DirectCast(node, ExpressionSyntax))
 
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetExpressionMemberGroup(node, cancellationToken)
@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function GetExpressionConstantValue(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As ConstantValue
             node = SyntaxFactory.GetStandaloneExpression(DirectCast(node, ExpressionSyntax))
 
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetExpressionConstantValue(node, cancellationToken)
@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetOperationWorker(node, options, cancellationToken)
@@ -362,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetAttributeSymbolInfo(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(attribute)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(attribute)
 
             If model IsNot Nothing Then
                 Return model.GetAttributeSymbolInfo(attribute, cancellationToken)
@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetQueryClauseSymbolInfo(node As QueryClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetQueryClauseSymbolInfo(node, cancellationToken)
@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetLetClauseSymbolInfo(node As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetLetClauseSymbolInfo(node, cancellationToken)
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOrderingSymbolInfo(node As OrderingSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetOrderingSymbolInfo(node, cancellationToken)
@@ -402,7 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetAggregateClauseSymbolInfoWorker(node As AggregateClauseSyntax, Optional cancellationToken As CancellationToken = Nothing) As AggregateClauseSymbolInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetAggregateClauseSymbolInfoWorker(node, cancellationToken)
@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetCollectionRangeVariableSymbolInfoWorker(node As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As CollectionRangeVariableSymbolInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetCollectionRangeVariableSymbolInfoWorker(node, cancellationToken)
@@ -422,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetAttributeTypeInfo(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(attribute)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(attribute)
 
             If model IsNot Nothing Then
                 Return model.GetAttributeTypeInfo(attribute, cancellationToken)
@@ -432,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetAttributeMemberGroup(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Symbol)
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(attribute)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(attribute)
 
             If model IsNot Nothing Then
                 Return model.GetAttributeMemberGroup(attribute, cancellationToken)
@@ -586,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim docCommentBinder = Me._binderFactory.GetBinderForPosition(node, node.SpanStart)
+            Dim docCommentBinder = _binderFactory.GetBinderForPosition(node, node.SpanStart)
             docCommentBinder = SemanticModelBinder.Mark(docCommentBinder, IgnoresAccessibility)
 
             If isCrefAttribute Then
@@ -865,7 +865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function CheckSymbolLocationsAgainstSyntax(symbol As NamedTypeSymbol, nodeToCheck As VisualBasicSyntaxNode) As NamedTypeSymbol
             For Each location In symbol.Locations
-                If location.SourceTree Is Me.SyntaxTree AndAlso nodeToCheck.Span.Contains(location.SourceSpan.Start) Then
+                If location.SourceTree Is SyntaxTree AndAlso nodeToCheck.Span.Contains(location.SourceSpan.Start) Then
                     Return symbol
                 End If
             Next
@@ -987,7 +987,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim namespaceToLookInForImplicitType As INamespaceSymbol = Nothing
                             Select Case statementSyntax.Parent.Kind
                                 Case SyntaxKind.CompilationUnit
-                                    namespaceToLookInForImplicitType = Me._sourceModule.RootNamespace
+                                    namespaceToLookInForImplicitType = _sourceModule.RootNamespace
                                 Case SyntaxKind.NamespaceBlock
                                     namespaceToLookInForImplicitType = GetDeclaredSymbol(DirectCast(statementSyntax.Parent, NamespaceBlockSyntax))
                             End Select
@@ -1078,7 +1078,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ElseIf TypeOf declarationSyntax Is LambdaHeaderSyntax Then
                         ' This could be a lambda parameter.
-                        Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(declarationSyntax)
+                        Dim model As MemberSemanticModel = GetMemberSemanticModel(declarationSyntax)
 
                         If model IsNot Nothing Then
                             Return model.GetDeclaredSymbol(parameter, cancellationToken)
@@ -1117,12 +1117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If symbol IsNot Nothing Then
                     Dim typeSymbol = TryCast(symbol, NamedTypeSymbol)
                     If typeSymbol IsNot Nothing Then
-                        Return Me.GetTypeParameterSymbol(typeSymbol.TypeParameters, typeParameter)
+                        Return GetTypeParameterSymbol(typeSymbol.TypeParameters, typeParameter)
                     End If
 
                     Dim methodSymbol = TryCast(symbol, MethodSymbol)
                     If methodSymbol IsNot Nothing Then
-                        Return Me.GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter)
+                        Return GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter)
                     End If
                 End If
             End If
@@ -1206,7 +1206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Possibility 3: Local variable
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(declarationSyntax)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(declarationSyntax)
 
             If model IsNot Nothing Then
                 Return model.GetDeclaredSymbol(declarationSyntax, cancellationToken)
@@ -1221,7 +1221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="fieldInitializerSyntax">The anonymous object creation field initializer syntax.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overrides Function GetDeclaredSymbol(fieldInitializerSyntax As FieldInitializerSyntax, Optional cancellationToken As System.Threading.CancellationToken = Nothing) As IPropertySymbol
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(fieldInitializerSyntax)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(fieldInitializerSyntax)
 
             If model IsNot Nothing Then
                 Return model.GetDeclaredSymbol(fieldInitializerSyntax, cancellationToken)
@@ -1236,7 +1236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="anonymousObjectCreationExpressionSyntax">The anonymous object creation syntax.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overrides Function GetDeclaredSymbol(anonymousObjectCreationExpressionSyntax As AnonymousObjectCreationExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(anonymousObjectCreationExpressionSyntax)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(anonymousObjectCreationExpressionSyntax)
 
             If model IsNot Nothing Then
                 Return model.GetDeclaredSymbol(anonymousObjectCreationExpressionSyntax, cancellationToken)
@@ -1251,7 +1251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="rangeVariableSyntax">The range variable syntax that declares a variable.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(rangeVariableSyntax)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(rangeVariableSyntax)
 
             If model IsNot Nothing Then
                 Return model.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
@@ -1266,7 +1266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="rangeVariableSyntax">The range variable syntax that declares a variable.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(rangeVariableSyntax)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(rangeVariableSyntax)
 
             If model IsNot Nothing Then
                 Return model.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
@@ -1281,7 +1281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="rangeVariableSyntax">The range variable syntax that declares a variable.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As AggregationRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(rangeVariableSyntax)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(rangeVariableSyntax)
 
             If model IsNot Nothing Then
                 Return model.GetDeclaredSymbol(rangeVariableSyntax, cancellationToken)
@@ -1311,7 +1311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim aliasName As String = declarationSyntax.Alias.Identifier.ValueText
 
             If Not String.IsNullOrEmpty(aliasName) Then
-                Dim sourceFile = Me._sourceModule.GetSourceFile(Me.SyntaxTree)
+                Dim sourceFile = _sourceModule.GetSourceFile(SyntaxTree)
 
                 Dim aliasImports As Dictionary(Of String, AliasAndImportsClausePosition) = sourceFile.AliasImports
                 Dim symbol As AliasAndImportsClausePosition = Nothing
@@ -1357,7 +1357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each declarator In declarationSyntax.Declarators
                 For Each identifier In declarator.Names
-                    Dim field = TryCast(Me.GetDeclaredSymbol(identifier, cancellationToken), IFieldSymbol)
+                    Dim field = TryCast(GetDeclaredSymbol(identifier, cancellationToken), IFieldSymbol)
                     If field IsNot Nothing Then
                         builder.Add(field)
                     End If
@@ -1390,7 +1390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO(cyrusn): Check arguments.  This is a public entrypoint, so we must do appropriate
             ' checks here.  However, no other methods in this type do any checking currently.  So I'm
             ' going to hold off on this until we do a full sweep of the API.
-            Dim binding = Me.GetMemberSemanticModel(expression)
+            Dim binding = GetMemberSemanticModel(expression)
             If binding Is Nothing Then
                 Return New Conversion(Nothing)  'NoConversion
             End If
@@ -1417,7 +1417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim memberModel = Me.GetMemberSemanticModel(position)
+            Dim memberModel = GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel, position, method, speculativeModel)
             End If
@@ -1427,12 +1427,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim memberModel = Me.GetMemberSemanticModel(position)
+            Dim memberModel = GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelCore(parentModel, position, type, bindingOption, speculativeModel)
             End If
 
-            Dim binder As Binder = Me.GetSpeculativeBinderForExpression(position, type, bindingOption)
+            Dim binder As Binder = GetSpeculativeBinderForExpression(position, type, bindingOption)
             If binder IsNot Nothing Then
                 speculativeModel = SpeculativeSyntaxTreeSemanticModel.Create(Me, type, binder, position, bindingOption)
                 Return True
@@ -1443,7 +1443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim memberModel = Me.GetMemberSemanticModel(position)
+            Dim memberModel = GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelCore(parentModel, position, rangeArgument, speculativeModel)
             End If
@@ -1453,7 +1453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim memberModel = Me.GetMemberSemanticModel(position)
+            Dim memberModel = GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelCore(parentModel, position, statement, speculativeModel)
             End If
@@ -1463,7 +1463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim memberModel = Me.GetMemberSemanticModel(position)
+            Dim memberModel = GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then
                 Return memberModel.TryGetSpeculativeSemanticModelCore(parentModel, position, initializer, speculativeModel)
             End If
@@ -1854,7 +1854,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="node">The for each syntax node.</param>
         Friend Overrides Function GetForEachStatementInfoWorker(node As ForEachBlockSyntax) As ForEachStatementInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(node)
 
             If model IsNot Nothing Then
                 Return model.GetForEachStatementInfoWorker(node)
@@ -1864,7 +1864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetAwaitExpressionInfoWorker(awaitExpression As AwaitExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As AwaitExpressionInfo
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(awaitExpression)
+            Dim model As MemberSemanticModel = GetMemberSemanticModel(awaitExpression)
 
             If model IsNot Nothing Then
                 Return model.GetAwaitExpressionInfoWorker(awaitExpression, cancellationToken)
@@ -1878,7 +1878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Used to create a region analysis context 
         ''' with failed flag set to be used in 'failed' scenarios </summary>
         Private Function CreateFailedRegionAnalysisContext() As RegionAnalysisContext
-            Return New RegionAnalysisContext(Me.Compilation)
+            Return New RegionAnalysisContext(Compilation)
         End Function
 
         Private Function CreateRegionAnalysisContext(expression As ExpressionSyntax) As RegionAnalysisContext

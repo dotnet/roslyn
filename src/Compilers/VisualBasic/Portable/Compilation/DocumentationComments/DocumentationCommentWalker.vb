@@ -44,19 +44,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(syntaxTree IsNot Nothing)
                     Debug.Assert(diagnostics IsNot Nothing)
 
-                    Me._symbol = symbol
-                    Me._syntaxTree = syntaxTree
-                    Me._wellKnownElementNodes = wellKnownElementNodes
-                    Me._writer = writer
-                    Me._diagnostics = diagnostics
-                    Me._reportDiagnostics = syntaxTree.ReportDocumentationCommentDiagnostics()
+                    _symbol = symbol
+                    _syntaxTree = syntaxTree
+                    _wellKnownElementNodes = wellKnownElementNodes
+                    _writer = writer
+                    _diagnostics = diagnostics
+                    _reportDiagnostics = syntaxTree.ReportDocumentationCommentDiagnostics()
                 End Sub
 
                 Private Sub CaptureWellKnownTagNode(node As XmlNodeSyntax, name As XmlNodeSyntax)
                     Debug.Assert(node IsNot Nothing)
                     Debug.Assert(name IsNot Nothing)
 
-                    If Me._wellKnownElementNodes Is Nothing Then
+                    If _wellKnownElementNodes Is Nothing Then
                         Return
                     End If
 
@@ -71,9 +71,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim builder As ArrayBuilder(Of XmlNodeSyntax) = Nothing
-                    If Not Me._wellKnownElementNodes.TryGetValue(tag, builder) Then
+                    If Not _wellKnownElementNodes.TryGetValue(tag, builder) Then
                         builder = ArrayBuilder(Of XmlNodeSyntax).GetInstance()
-                        Me._wellKnownElementNodes.Add(tag, builder)
+                        _wellKnownElementNodes.Add(tag, builder)
                     End If
 
                     builder.Add(node)
@@ -90,13 +90,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Sub
 
                 Private Sub WriteHeaderAndVisit(symbol As Symbol, trivia As DocumentationCommentTriviaSyntax)
-                    Me._writer.Write("<member name=""")
-                    Me._writer.Write(symbol.GetDocumentationCommentId())
-                    Me._writer.WriteLine(""">")
+                    _writer.Write("<member name=""")
+                    _writer.Write(symbol.GetDocumentationCommentId())
+                    _writer.WriteLine(""">")
 
                     Visit(trivia)
 
-                    Me._writer.WriteLine("</member>")
+                    _writer.WriteLine("</member>")
                 End Sub
 
                 ''' <summary>
@@ -120,13 +120,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Private ReadOnly Property Compilation As VisualBasicCompilation
                     Get
-                        Return Me._symbol.DeclaringCompilation
+                        Return _symbol.DeclaringCompilation
                     End Get
                 End Property
 
                 Private ReadOnly Property [Module] As SourceModuleSymbol
                     Get
-                        Return DirectCast(Me.Compilation.SourceModule, SourceModuleSymbol)
+                        Return DirectCast(Compilation.SourceModule, SourceModuleSymbol)
                     End Get
                 End Property
 
@@ -144,12 +144,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim reference As CrefReferenceSyntax = crefAttr.Reference
                         Debug.Assert(Not reference.ContainsDiagnostics)
 
-                        Dim crefBinder = CreateDocumentationCommentBinderForSymbol(Me.Module, Me._symbol, Me._syntaxTree, DocumentationCommentBinder.BinderType.Cref)
+                        Dim crefBinder = CreateDocumentationCommentBinderForSymbol([Module], _symbol, _syntaxTree, DocumentationCommentBinder.BinderType.Cref)
                         Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                         Dim diagnostics = DiagnosticBag.GetInstance
                         Dim result As ImmutableArray(Of Symbol) = crefBinder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, diagnosticBag:=diagnostics, useSiteDiagnostics:=useSiteDiagnostics)
                         Dim errorLocations = diagnostics.ToReadOnlyAndFree().SelectAsArray(Function(x) x.Location).WhereAsArray(Function(x) x IsNot Nothing)
-                        If Not useSiteDiagnostics.IsNullOrEmpty AndAlso Me._reportDiagnostics Then
+                        If Not useSiteDiagnostics.IsNullOrEmpty AndAlso _reportDiagnostics Then
                             ProcessErrorLocations(node, errorLocations, useSiteDiagnostics, Nothing)
                         End If
 
@@ -192,9 +192,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If smallestSymbolCommentId Is Nothing Then
                                 ' some symbols were found, but none of them has id
                                 ProcessErrorLocations(crefAttr, errorLocations, Nothing, errid)
-                            ElseIf Me._writer IsNot Nothing Then
+                            ElseIf _writer IsNot Nothing Then
                                 ' Write [<id>]
-                                Me._writer.Write(smallestSymbolCommentId)
+                                _writer.Write(smallestSymbolCommentId)
                             End If
                         End If
 
@@ -233,12 +233,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 VisitToken(attr.EqualsToken)
                                 VisitToken(str.StartQuoteToken)
 
-                                If needError AndAlso Me._reportDiagnostics Then
-                                    Me._diagnostics.Add(ERRID.WRN_XMLDocCrefAttributeNotFound1, node.GetLocation(), strValue.Trim())
+                                If needError AndAlso _reportDiagnostics Then
+                                    _diagnostics.Add(ERRID.WRN_XMLDocCrefAttributeNotFound1, node.GetLocation(), strValue.Trim())
                                 End If
 
-                                If needError AndAlso Me._writer IsNot Nothing Then
-                                    Me._writer.Write("!:")
+                                If needError AndAlso _writer IsNot Nothing Then
+                                    _writer.Write("!:")
                                 End If
 
                                 ' Write [<attr-value>]
@@ -271,33 +271,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Next
                         End If
                     ElseIf errorLocations.Length = 0 AndAlso useSiteDiagnostics IsNot Nothing Then
-                        Me._diagnostics.Add(node, useSiteDiagnostics)
+                        _diagnostics.Add(node, useSiteDiagnostics)
                     ElseIf useSiteDiagnostics IsNot Nothing Then
                         For Each location In errorLocations
-                            Me._diagnostics.Add(location, useSiteDiagnostics)
+                            _diagnostics.Add(location, useSiteDiagnostics)
                         Next
                     End If
                 End Sub
 
                 Private Sub ProcessBadNameInCrefAttribute(crefAttribute As XmlCrefAttributeSyntax, errorLocation As Location, errid As ERRID)
                     ' Write [!:<name>]
-                    If Me._writer IsNot Nothing Then
-                        Me._writer.Write("!:")
+                    If _writer IsNot Nothing Then
+                        _writer.Write("!:")
                     End If
 
                     Dim reference As VisualBasicSyntaxNode = crefAttribute.Reference
 
                     Visit(reference) ' This will write the name to XML
 
-                    If Me._reportDiagnostics Then
+                    If _reportDiagnostics Then
                         Dim location = If(errorLocation, reference.GetLocation)
-                        Me._diagnostics.Add(errid, location, reference.ToFullString().TrimEnd(Nothing))
+                        _diagnostics.Add(errid, location, reference.ToFullString().TrimEnd(Nothing))
                     End If
                 End Sub
 
                 Public Overrides Sub VisitToken(token As SyntaxToken)
-                    If Me._writer IsNot Nothing Then
-                        token.WriteTo(Me._writer)
+                    If _writer IsNot Nothing Then
+                        token.WriteTo(_writer)
                     End If
                     MyBase.VisitToken(token)
                 End Sub

@@ -31,11 +31,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     MyBase.New(SyntaxWalkerDepth.Trivia)
 
                     Debug.Assert(diagnostics IsNot Nothing)
-                    Me._diagnostics = diagnostics
-                    Me._filterSpanWithinTree = filterSpanWithinTree
-                    Me._cancellationToken = cancellationToken
+                    _diagnostics = diagnostics
+                    _filterSpanWithinTree = filterSpanWithinTree
+                    _cancellationToken = cancellationToken
 
-                    Me._isInsideMethodOrLambda = False
+                    _isInsideMethodOrLambda = False
                 End Sub
 
                 Public Shared Sub ReportUnprocessed(tree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Sub
 
                 Private Function IsSyntacticallyFilteredOut(fullSpan As TextSpan) As Boolean
-                    Return Me._filterSpanWithinTree.HasValue AndAlso Not Me._filterSpanWithinTree.Value.Contains(fullSpan)
+                    Return _filterSpanWithinTree.HasValue AndAlso Not _filterSpanWithinTree.Value.Contains(fullSpan)
                 End Function
 
                 Public Overrides Sub VisitMethodBlock(node As MethodBlockSyntax)
@@ -66,38 +66,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Sub
 
                 Private Sub VisitMethodBlockBase(node As Syntax.MethodBlockBaseSyntax)
-                    Me._cancellationToken.ThrowIfCancellationRequested()
+                    _cancellationToken.ThrowIfCancellationRequested()
 
                     If IsSyntacticallyFilteredOut(node.FullSpan) Then
                         Return
                     End If
 
-                    Dim stored = Me._isInsideMethodOrLambda
+                    Dim stored = _isInsideMethodOrLambda
 
                     ' Visit block start statement
-                    Me._isInsideMethodOrLambda = False
-                    Me.Visit(node.BlockStatement)
+                    _isInsideMethodOrLambda = False
+                    Visit(node.BlockStatement)
 
                     ' Visit the rest 
-                    Me._isInsideMethodOrLambda = True
-                    Me.DefaultVisitChildrenStartingWith(node, 1)
+                    _isInsideMethodOrLambda = True
+                    DefaultVisitChildrenStartingWith(node, 1)
 
-                    Me._isInsideMethodOrLambda = stored
+                    _isInsideMethodOrLambda = stored
                 End Sub
 
                 Public Overrides Sub VisitMultiLineLambdaExpression(node As Syntax.MultiLineLambdaExpressionSyntax)
-                    Me._cancellationToken.ThrowIfCancellationRequested()
+                    _cancellationToken.ThrowIfCancellationRequested()
 
                     If IsSyntacticallyFilteredOut(node.FullSpan) Then
                         Return
                     End If
 
-                    Dim stored = Me._isInsideMethodOrLambda
-                    Me._isInsideMethodOrLambda = True  ' Any doc comment inside this block is an error
+                    Dim stored = _isInsideMethodOrLambda
+                    _isInsideMethodOrLambda = True  ' Any doc comment inside this block is an error
 
                     MyBase.VisitMultiLineLambdaExpression(node)
 
-                    Me._isInsideMethodOrLambda = stored
+                    _isInsideMethodOrLambda = stored
                 End Sub
 
                 Public Overrides Sub DefaultVisit(node As SyntaxNode)
@@ -118,9 +118,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim asNode = child.AsNode()
                         If asNode IsNot Nothing Then
-                            Me.Visit(asNode)
+                            Visit(asNode)
                         Else
-                            Me.VisitToken(child.AsToken())
+                            VisitToken(child.AsToken())
                         End If
                     End While
                 End Sub
@@ -131,8 +131,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If trivia.Kind = SyntaxKind.DocumentationCommentTrivia Then
-                        If Me._isInsideMethodOrLambda Then
-                            Me._diagnostics.Add(ERRID.WRN_XMLDocInsideMethod, trivia.GetLocation())
+                        If _isInsideMethodOrLambda Then
+                            _diagnostics.Add(ERRID.WRN_XMLDocInsideMethod, trivia.GetLocation())
 
                         Else
                             Dim parent As VisualBasicSyntaxNode = DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode)
@@ -163,7 +163,7 @@ lAgain:
                                     GoTo lAgain
 
                                 Case Else
-                                    Me._diagnostics.Add(ERRID.WRN_XMLDocWithoutLanguageElement, trivia.GetLocation())
+                                    _diagnostics.Add(ERRID.WRN_XMLDocWithoutLanguageElement, trivia.GetLocation())
 
                             End Select
                         End If

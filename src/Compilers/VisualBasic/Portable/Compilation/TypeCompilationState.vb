@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Body As BoundStatement
 
             Friend Sub New(_method As MethodSymbol, _body As BoundStatement)
-                Me.Method = _method
-                Me.Body = _body
+                Method = _method
+                Body = _body
             End Sub
         End Structure
 
@@ -111,9 +111,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary> Free resources </summary>
         Public Sub Free()
-            If Me._synthesizedMethods IsNot Nothing Then
-                Me._synthesizedMethods.Free()
-                Me._synthesizedMethods = Nothing
+            If _synthesizedMethods IsNot Nothing Then
+                _synthesizedMethods.Free()
+                _synthesizedMethods = Nothing
             End If
 
             If _methodWrappers IsNot Nothing Then

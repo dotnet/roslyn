@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits VisualBasicSymbolVisitor
 
             Public Overrides Sub VisitMethod(symbol As MethodSymbol)
-                Me._cancellationToken.ThrowIfCancellationRequested()
+                _cancellationToken.ThrowIfCancellationRequested()
 
                 If Not ShouldSkipSymbol(symbol) Then
                     Dim sourceMethod As SourceMethodSymbol =

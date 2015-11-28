@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits VisualBasicSymbolVisitor
 
             Public Overrides Sub VisitField(symbol As FieldSymbol)
-                Me._cancellationToken.ThrowIfCancellationRequested()
+                _cancellationToken.ThrowIfCancellationRequested()
 
                 If Not ShouldSkipSymbol(symbol) Then
                     Dim sourceField = TryCast(symbol, SourceFieldSymbol)

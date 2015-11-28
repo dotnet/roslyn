@@ -19,12 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Private ReadOnly Property IsInSemanticModelMode As Boolean
                 Get
-                    Return Me._isForSingleSymbol
+                    Return _isForSingleSymbol
                 End Get
             End Property
 
             Private Function ShouldSkipSymbol(symbol As Symbol) As Boolean
-                Return Me._filterSyntaxTree IsNot Nothing AndAlso Not symbol.IsDefinedInSourceTree(Me._filterSyntaxTree, Me._filterSpanWithinTree, Me._cancellationToken)
+                Return _filterSyntaxTree IsNot Nothing AndAlso Not symbol.IsDefinedInSourceTree(_filterSyntaxTree, _filterSpanWithinTree, _cancellationToken)
             End Function
 
             <Flags>
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For Each node In builder
                     If node.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                        Me._diagnostics.Add(errorId, node.GetLocation(), args)
+                        _diagnostics.Add(errorId, node.GetLocation(), args)
                     End If
                 Next
             End Sub
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Sub New(node As XmlNodeSyntax)
                     Me.Node = node
-                    Me.Attributes = GetElementAttributes(node)
+                    Attributes = GetElementAttributes(node)
                 End Sub
 
                 Public Shared Function CompareAttributes(a As SortedDictionary(Of String, String), b As SortedDictionary(Of String, String)) As Integer
@@ -257,12 +257,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Function CompareTo(other As XmlNodeWithAttributes) As Integer Implements IComparable(Of XmlNodeWithAttributes).CompareTo
-                    Dim result As Integer = CompareAttributes(Me.Attributes, other.Attributes)
+                    Dim result As Integer = CompareAttributes(Attributes, other.Attributes)
                     If result <> 0 Then
                         Return result
                     End If
 
-                    Return If(Me.Node.SpanStart > other.Node.SpanStart, 1, -1)
+                    Return If(Node.SpanStart > other.Node.SpanStart, 1, -1)
                 End Function
             End Structure
 
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If XmlNodeWithAttributes.CompareAttributes(node1.Attributes, node2.Attributes) = 0 Then
                         If reportErrors Then
-                            Me._diagnostics.Add(ERRID.WRN_XMLDocDuplicateXMLNode1, node2.Node.GetLocation(), tagName)
+                            _diagnostics.Add(ERRID.WRN_XMLDocDuplicateXMLNode1, node2.Node.GetLocation(), tagName)
                         End If
                     End If
                 Next
@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If Not crefAttributeFound Then
                             If element.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                                Me._diagnostics.Add(ERRID.WRN_XMLDocExceptionTagWithoutCRef, element.GetLocation())
+                                _diagnostics.Add(ERRID.WRN_XMLDocExceptionTagWithoutCRef, element.GetLocation())
                             End If
                         End If
                     Next
@@ -403,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' create binder to be able to find containing type's type parameters
                 Dim builder As ArrayBuilder(Of XmlNodeSyntax) = Nothing
                 If wellKnownElementNodes.TryGetValue(WellKnownTag.TypeParamRef, builder) Then
-                    Dim binder = CreateDocumentationCommentBinderForSymbol(Me.Module, symbol, tree, DocumentationCommentBinder.BinderType.NameInTypeParamRef)
+                    Dim binder = CreateDocumentationCommentBinderForSymbol([Module], symbol, tree, DocumentationCommentBinder.BinderType.NameInTypeParamRef)
 
                     For Each node In builder
                         Dim nameAttribute As XmlNameAttributeSyntax =
@@ -417,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(nameAttribute.Reference, useSiteDiagnostics)
 
                             If node.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                                Me._diagnostics.Add(node, useSiteDiagnostics)
+                                _diagnostics.Add(node, useSiteDiagnostics)
                             End If
 
                             Dim needDiagnostic As Boolean = True
@@ -427,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             If needDiagnostic AndAlso node.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                                Me._diagnostics.Add(ERRID.WRN_XMLDocBadGenericParamTag2,
+                                _diagnostics.Add(ERRID.WRN_XMLDocBadGenericParamTag2,
                                                     node.GetLocation(),
                                                     nameAttribute.Reference.Identifier.ValueText,
                                                     symbolName)
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If needDiagnostic Then
                             If node.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                                Me._diagnostics.Add(badNameValueError, node.GetLocation(), nameValue.Trim(), symbolName)
+                                _diagnostics.Add(badNameValueError, node.GetLocation(), nameValue.Trim(), symbolName)
                             End If
                         End If
                     End If
@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               trivia As DocumentationCommentTriviaSyntax,
                                                               wellKnownElementNodes As Dictionary(Of WellKnownTag, ArrayBuilder(Of XmlNodeSyntax))) As String
 
-                If Not Me.IsInSemanticModelMode Then
+                If Not IsInSemanticModelMode Then
                     If trivia.ContainsDiagnostics Then
                         Return Nothing
                     End If
@@ -540,7 +540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim substitutedText As String =
                     DocumentationCommentWalker.GetSubstitutedText(
-                        symbol, trivia, wellKnownElementNodes, Me._diagnostics)
+                        symbol, trivia, wellKnownElementNodes, _diagnostics)
 
                 If substitutedText Is Nothing Then
                     Return Nothing
@@ -549,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim formattedXml As String = FormatComment(substitutedText)
 
                 Dim formattedAfterIncludes As String = Nothing
-                If Me._processIncludes Then
+                If _processIncludes Then
 
                     Dim includeNodes As ArrayBuilder(Of XmlNodeSyntax) = Nothing
                     wellKnownElementNodes.TryGetValue(WellKnownTag.Include, includeNodes)
@@ -559,18 +559,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             formattedXml,
                             symbol,
                             includeNodes,
-                            Me._compilation,
-                            Me._filterSyntaxTree,
-                            Me._filterSpanWithinTree,
-                            Me._includedFileCache,
-                            Me._diagnostics,
-                            Me._cancellationToken)
+                            _compilation,
+                            _filterSyntaxTree,
+                            _filterSpanWithinTree,
+                            _includedFileCache,
+                            _diagnostics,
+                            _cancellationToken)
 
                 Else
                     formattedAfterIncludes = formattedXml
                 End If
 
-                If Me.IsInSemanticModelMode Then
+                If IsInSemanticModelMode Then
                     ' If we are in semantic model mode we are ignoring any diagnostics anyway, 
                     ' so we can skip parse/check the XML for errors
                     Return formattedAfterIncludes
@@ -581,7 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim ex As XmlException = XmlDocumentationCommentTextReader.ParseAndGetException(formattedAfterIncludes)
                 If ex IsNot Nothing Then
                     If trivia.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                        Me._diagnostics.Add(ERRID.WRN_XMLDocParseError1, trivia.GetLocation(), GetDescription(ex))
+                        _diagnostics.Add(ERRID.WRN_XMLDocParseError1, trivia.GetLocation(), GetDescription(ex))
                     End If
 
                     Return Nothing
@@ -591,7 +591,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Sub WriteDocumentationCommentForSymbol(xmlDocComment As String)
-                If Not Me._isForSingleSymbol Then
+                If Not _isForSingleSymbol Then
                     Write(xmlDocComment)
                 Else
                     ' Write just document comment without optional trailing new line
@@ -603,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
 
-                    Me._writer.WriteSubString(xmlDocComment, 0, [end], appendNewLine:=False)
+                    _writer.WriteSubString(xmlDocComment, 0, [end], appendNewLine:=False)
                 End If
             End Sub
 
@@ -653,7 +653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        Binder.GetXmlString(DirectCast(value, XmlStringSyntax).TextTokens),
                                        value.ToString())
 
-                                Me._diagnostics.Add(badNameValueError, attr.GetLocation(), attributeValue, symbolName)
+                                _diagnostics.Add(badNameValueError, attr.GetLocation(), attributeValue, symbolName)
                             End If
 
                             Return Nothing
@@ -663,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' 'name' attribute was not found, generate a warning and return Nothing
                 If missingNameValueError <> ERRID.ERR_None AndAlso element.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                    Me._diagnostics.Add(missingNameValueError, element.GetLocation())
+                    _diagnostics.Add(missingNameValueError, element.GetLocation())
                 End If
                 Return Nothing
             End Function
@@ -678,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case SyntaxKind.DocumentationCommentTrivia
                             If theOnlyDocCommentTrivia IsNot Nothing Then
                                 If DirectCast(trivia.SyntaxTree, VisualBasicSyntaxTree).ReportDocumentationCommentDiagnostics() Then
-                                    Me._diagnostics.Add(ERRID.WRN_XMLDocMoreThanOneCommentBlock, theOnlyDocCommentTrivia.GetLocation())
+                                    _diagnostics.Add(ERRID.WRN_XMLDocMoreThanOneCommentBlock, theOnlyDocCommentTrivia.GetLocation())
                                 End If
                             End If
                             theOnlyDocCommentTrivia = DirectCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
@@ -696,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If lastCommentTrivia Then
                     If theOnlyDocCommentTrivia.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                        Me._diagnostics.Add(ERRID.WRN_XMLDocBadXMLLine, theOnlyDocCommentTrivia.GetLocation())
+                        _diagnostics.Add(ERRID.WRN_XMLDocBadXMLLine, theOnlyDocCommentTrivia.GetLocation())
                     End If
                     Return Nothing
                 End If

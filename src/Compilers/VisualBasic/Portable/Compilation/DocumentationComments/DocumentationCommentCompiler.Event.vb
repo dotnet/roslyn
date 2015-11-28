@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits VisualBasicSymbolVisitor
 
             Public Overrides Sub VisitEvent(symbol As EventSymbol)
-                Me._cancellationToken.ThrowIfCancellationRequested()
+                _cancellationToken.ThrowIfCancellationRequested()
 
                 If Not ShouldSkipSymbol(symbol) Then
                     Dim sourceEvent = TryCast(symbol, SourceEventSymbol)
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim docCommentTrivia As DocumentationCommentTriviaSyntax =
                     TryGetDocCommentTriviaAndGenerateDiagnostics(
-                        [event].SyntaxReference.GetVisualBasicSyntax(Me._cancellationToken))
+                        [event].SyntaxReference.GetVisualBasicSyntax(_cancellationToken))
 
                 If docCommentTrivia Is Nothing Then
                     Return

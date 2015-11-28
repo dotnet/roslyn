@@ -34,15 +34,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?,
                 preferredCulture As CultureInfo, cancellationToken As CancellationToken)
 
-                Me._assemblyName = assemblyName
-                Me._compilation = compilation
-                Me._writer = New DocWriter(writer)
-                Me._processIncludes = processIncludes
-                Me._isForSingleSymbol = isForSingleSymbol
-                Me._diagnostics = diagnostics
-                Me._filterSyntaxTree = filterTree
-                Me._filterSpanWithinTree = filterSpanWithinTree
-                Me._cancellationToken = cancellationToken
+                _assemblyName = assemblyName
+                _compilation = compilation
+                _writer = New DocWriter(writer)
+                _processIncludes = processIncludes
+                _isForSingleSymbol = isForSingleSymbol
+                _diagnostics = diagnostics
+                _filterSyntaxTree = filterTree
+                _filterSpanWithinTree = filterSpanWithinTree
+                _cancellationToken = cancellationToken
             End Sub
 
             ''' <summary>
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly Property [Module] As SourceModuleSymbol
                 Get
-                    Return DirectCast(Me._compilation.SourceModule, SourceModuleSymbol)
+                    Return DirectCast(_compilation.SourceModule, SourceModuleSymbol)
                 End Get
             End Property
 

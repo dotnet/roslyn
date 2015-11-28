@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, bindingOption, binder)
 
             If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                Return Me.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnodeSummary, binder)
+                Return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnodeSummary, binder)
             Else
                 Return SymbolInfo.None
             End If
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bnodeSummary = GetSpeculativelyBoundAttributeSummary(position, attribute, binder)
 
             If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                Return Me.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnodeSummary, binder)
+                Return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnodeSummary, binder)
             Else
                 Return SymbolInfo.None
             End If
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, bindingOption, binder)
 
             If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                Return Me.GetTypeInfoForNode(bnodeSummary)
+                Return GetTypeInfoForNode(bnodeSummary)
             Else
                 Return VisualBasicTypeInfo.None
             End If
@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Determine the type, converted type, and expression
             Dim type As TypeSymbol = Nothing
             Dim convertedType As TypeSymbol = Nothing
-            Dim conversion As conversion = Nothing
+            Dim conversion As Conversion = Nothing
             type = GetSemanticType(boundNodes, convertedType, conversion)
 
             Return New VisualBasicTypeInfo(type, convertedType, conversion)
@@ -415,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, SpeculativeBindingOption.BindAsExpression, binder)
 
             If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                Dim val As ConstantValue = Me.GetConstantValueForNode(bnodeSummary)
+                Dim val As ConstantValue = GetConstantValueForNode(bnodeSummary)
 
                 If val IsNot Nothing AndAlso Not val.IsBad Then
                     Return New [Optional](Of Object)(val.Value)
@@ -456,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, SpeculativeBindingOption.BindAsExpression, binder)
 
             If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                Dim result = Me.GetMemberGroupForNode(bnodeSummary, binderOpt:=Nothing)
+                Dim result = GetMemberGroupForNode(bnodeSummary, binderOpt:=Nothing)
 #If DEBUG Then
                 For Each item In result
                     Debug.Assert(item.Kind <> SymbolKind.Namespace)
@@ -529,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, nameSyntax, bindingOption, binder)
 
             If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                Dim info As SymbolInfo = Me.GetSymbolInfoForNode(SymbolInfoOptions.PreferTypeToConstructors Or SymbolInfoOptions.PreserveAliases, bnodeSummary, binderOpt:=binder)
+                Dim info As SymbolInfo = GetSymbolInfoForNode(SymbolInfoOptions.PreferTypeToConstructors Or SymbolInfoOptions.PreserveAliases, bnodeSummary, binderOpt:=binder)
                 Return TryCast(info.Symbol, IAliasSymbol)
             Else
                 Return Nothing
@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend MustOverride Function GetEnclosingBinder(position As Integer) As Binder
 
         Friend Function IsInTree(node As SyntaxNode) As Boolean
-            Return IsUnderNode(node, Me.Root)
+            Return IsUnderNode(node, Root)
         End Function
 
         Private Shared Function IsUnderNode(node As SyntaxNode, root As SyntaxNode) As Boolean
@@ -592,11 +592,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            If Me.IsSpeculativeSemanticModel Then
+            If IsSpeculativeSemanticModel Then
                 Throw New InvalidOperationException(VBResources.ChainingSpeculativeModelIsNotSupported)
             End If
 
-            If Me.Compilation.ContainsSyntaxTree(node.SyntaxTree) Then
+            If Compilation.ContainsSyntaxTree(node.SyntaxTree) Then
                 Throw New ArgumentException(VBResources.SpeculatedSyntaxNodeCannotBelongToCurrentCompilation)
             End If
         End Sub
@@ -715,7 +715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
 
             ' Add speculative binder to bind speculatively.
             Return If(binder IsNot Nothing, SpeculativeBinder.Create(binder), Nothing)
@@ -738,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 bnode = binder.BindNamespaceOrTypeExpression(DirectCast(expression, TypeSyntax), diagnostics)
             Else
                 Debug.Assert(bindingOption = SpeculativeBindingOption.BindAsExpression)
-                bnode = Me.Bind(binder, expression, diagnostics)
+                bnode = Bind(binder, expression, diagnostics)
                 bnode = MakeValueIfPossible(binder, bnode)
             End If
 
@@ -751,10 +751,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   <Out> ByRef binder As Binder) As BoundNode
             Debug.Assert(expression IsNot Nothing)
 
-            binder = Me.GetSpeculativeBinderForExpression(position, expression, bindingOption)
+            binder = GetSpeculativeBinderForExpression(position, expression, bindingOption)
             If binder IsNot Nothing Then
                 Dim diagnostics = DiagnosticBag.GetInstance()
-                Dim bnode = Me.GetSpeculativelyBoundNode(binder, expression, bindingOption, diagnostics)
+                Dim bnode = GetSpeculativelyBoundNode(binder, expression, bindingOption, diagnostics)
                 diagnostics.Free()
                 Return bnode
             Else
@@ -772,7 +772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim standalone = SyntaxFactory.GetStandaloneExpression(expression)
 
-            Dim bnode = Me.GetSpeculativelyBoundNode(position, standalone, bindingOption, binder)
+            Dim bnode = GetSpeculativelyBoundNode(position, standalone, bindingOption, binder)
             If bnode IsNot Nothing Then
                 Debug.Assert(binder IsNot Nothing)
                 Return New BoundNodeSummary(bnode, bnode, Nothing)
@@ -792,7 +792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Convert a stand-alone speculatively bound expression to an rvalue. 
             ' This will get the value of properties, convert lambdas to anonymous 
             ' delegate type, etc.
-            Dim boundExpression = TryCast(node, boundExpression)
+            Dim boundExpression = TryCast(node, BoundExpression)
             If boundExpression IsNot Nothing Then
                 ' Try calling ReclassifyAsValue
                 Dim diagnostics = DiagnosticBag.GetInstance()
@@ -818,7 +818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             CheckPosition(position)
 
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
 
             ' Add speculative attribute binder to bind speculatively.
             Return If(binder IsNot Nothing,
@@ -831,7 +831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' the resulting bound node. May return null in some error cases.
         ''' </summary>
         Friend Function GetSpeculativelyBoundAttribute(position As Integer, attribute As AttributeSyntax, <Out> ByRef binder As Binder) As BoundAttribute
-            binder = Me.GetSpeculativeAttributeBinder(position, attribute)
+            binder = GetSpeculativeAttributeBinder(position, attribute)
 
             If binder IsNot Nothing Then
                 Dim diagnostics = DiagnosticBag.GetInstance()
@@ -920,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    ByRef convertedType As TypeSymbol,
                    ByRef conversion As Conversion) As TypeSymbol
             convertedType = Nothing
-            conversion = New conversion(Conversions.Identity)
+            conversion = New Conversion(Conversions.Identity)
 
             Dim lowestExpr = TryCast(boundNodes.LowestBoundNode, BoundExpression)
             Dim highestExpr = TryCast(boundNodes.HighestBoundNode, BoundExpression)
@@ -944,7 +944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Let's account for that.
             If lowestExpr.Kind = BoundKind.ArrayCreation AndAlso DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralOpt IsNot Nothing Then
                 type = Nothing
-                conversion = New conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralConversion, Nothing))
+                conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralConversion, Nothing))
             Else
                 type = lowestExpr.Type
             End If
@@ -970,7 +970,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' be a higher conversion node associated to the same syntax node.
 
             If highestExpr IsNot Nothing Then
-                If highestExpr.Type IsNot Nothing AndAlso highestExpr.Type.TypeKind <> TYPEKIND.Error Then
+                If highestExpr.Type IsNot Nothing AndAlso highestExpr.Type.TypeKind <> TypeKind.Error Then
                     convertedType = highestExpr.Type
                     If (type Is Nothing OrElse Not type.IsSameTypeIgnoringCustomModifiers(convertedType)) Then
                         ' If the upper expression is of a different type, we want to return
@@ -980,9 +980,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim conversionNode = DirectCast(highestExpr, BoundConversion)
 
                             If useOfLocalBeforeDeclaration AndAlso Not type.IsErrorType() Then
-                                conversion = New conversion(Conversions.ClassifyConversion(type, convertedType, Nothing))
+                                conversion = New Conversion(Conversions.ClassifyConversion(type, convertedType, Nothing))
                             Else
-                                conversion = New conversion(KeyValuePair.Create(conversionNode.ConversionKind,
+                                conversion = New Conversion(KeyValuePair.Create(conversionNode.ConversionKind,
                                                                                 TryCast(conversionNode.ExpressionSymbol, MethodSymbol)))
                             End If
                         End If
@@ -1050,7 +1050,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If boundType.AliasOpt IsNot Nothing Then
                             symbolsBuilder.Add(boundType.AliasOpt)
                         Else
-                            Dim typeSymbol As typeSymbol = boundType.Type
+                            Dim typeSymbol As TypeSymbol = boundType.Type
                             Dim originalErrorType = TryCast(typeSymbol.OriginalDefinition, ErrorTypeSymbol)
                             If originalErrorType IsNot Nothing Then
                                 resultKind = originalErrorType.ResultKind
@@ -1118,7 +1118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          BoundKind.MyClassReference
 
                         Dim meReference = DirectCast(boundNodes.LowestBoundNode, BoundExpression)
-                        Dim binder As binder = If(binderOpt, GetEnclosingBinder(boundNodes.LowestBoundNode.Syntax.SpanStart))
+                        Dim binder As Binder = If(binderOpt, GetEnclosingBinder(boundNodes.LowestBoundNode.Syntax.SpanStart))
                         Dim containingType As NamedTypeSymbol = binder.ContainingType
                         Dim containingMember = binder.ContainingMember
 
@@ -1441,13 +1441,13 @@ _Default:
 
                 ' We must have bound to a single named type 
                 If unwrappedSymbols.Length = 1 AndAlso TypeOf unwrappedSymbols(0) Is TypeSymbol Then
-                    Dim typeSymbol As typeSymbol = DirectCast(unwrappedSymbols(0), typeSymbol)
-                    Dim namedTypeSymbol As namedTypeSymbol = TryCast(typeSymbol, namedTypeSymbol)
+                    Dim typeSymbol As TypeSymbol = DirectCast(unwrappedSymbols(0), TypeSymbol)
+                    Dim namedTypeSymbol As NamedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
 
                     ' Figure out which constructor was selected.
                     Select Case boundNodeOfSyntacticParent.Kind
                         Case BoundKind.Attribute
-                            Dim boundAttribute As boundAttribute = DirectCast(boundNodeOfSyntacticParent, boundAttribute)
+                            Dim boundAttribute As BoundAttribute = DirectCast(boundNodeOfSyntacticParent, BoundAttribute)
 
                             Debug.Assert(resultKind <> LookupResultKind.Good OrElse namedTypeSymbol = boundAttribute.Type)
                             constructor = boundAttribute.Constructor
@@ -1455,7 +1455,7 @@ _Default:
 
                         Case BoundKind.BadExpression
                             ' Note that namedTypeSymbol might be null here; e.g., a type parameter.
-                            Dim boundBadExpression As boundBadExpression = DirectCast(boundNodeOfSyntacticParent, boundBadExpression)
+                            Dim boundBadExpression As BoundBadExpression = DirectCast(boundNodeOfSyntacticParent, BoundBadExpression)
                             resultKind = LookupResult.WorseResultKind(resultKind, boundBadExpression.ResultKind)
 
                         Case Else
@@ -1486,12 +1486,12 @@ _Default:
                 ' Filter namedTypeSymbol's instance constructors by accessibility.
                 ' If all the instance constructors are inaccessible, we retain
                 ' all the instance constructors.
-                Dim binder As binder = If(binderOpt, GetEnclosingBinder(lowestBoundNode.Syntax.SpanStart))
+                Dim binder As Binder = If(binderOpt, GetEnclosingBinder(lowestBoundNode.Syntax.SpanStart))
                 Dim candidateConstructors As ImmutableArray(Of MethodSymbol)
 
                 If binder IsNot Nothing Then
-                    Dim interfaceCoClass As namedTypeSymbol = If(namedTypeSymbol.IsInterface,
-                                                                 TryCast(namedTypeSymbol.CoClassType, namedTypeSymbol), Nothing)
+                    Dim interfaceCoClass As NamedTypeSymbol = If(namedTypeSymbol.IsInterface,
+                                                                 TryCast(namedTypeSymbol.CoClassType, NamedTypeSymbol), Nothing)
                     candidateConstructors = binder.GetAccessibleConstructors(If(interfaceCoClass, namedTypeSymbol), useSiteDiagnostics:=Nothing)
 
                     Dim instanceConstructors = namedTypeSymbol.InstanceConstructors
@@ -1531,7 +1531,7 @@ _Default:
             ' Getting the set of symbols is a bit involved. We use the union of the symbol with 
             ' any symbols from the diagnostics, but error symbols are not included.\
             Dim resultKind As LookupResultKind
-            Dim symbolsBuilder = ArrayBuilder(Of symbol).GetInstance()
+            Dim symbolsBuilder = ArrayBuilder(Of Symbol).GetInstance()
             Dim originalErrorSymbol = If(type IsNot Nothing, TryCast(type.OriginalDefinition, ErrorTypeSymbol), Nothing)
             If originalErrorSymbol IsNot Nothing Then
                 ' Error case.
@@ -1548,7 +1548,7 @@ _Default:
                 resultKind = LookupResultKind.Good
             End If
 
-            Dim symbols As ImmutableArray(Of symbol) = RemoveErrorTypesAndDuplicates(symbolsBuilder, options)
+            Dim symbols As ImmutableArray(Of Symbol) = RemoveErrorTypesAndDuplicates(symbolsBuilder, options)
             symbolsBuilder.Free()
 
             Return SymbolInfoFactory.Create(symbols, resultKind)
@@ -1834,7 +1834,7 @@ _Default:
 
             CheckPosition(position)
 
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
             If binder Is Nothing Then
                 Return ImmutableArray(Of Symbol).Empty
             End If
@@ -1854,7 +1854,7 @@ _Default:
                 ' If they didn't provide a name, then look up all names and associated arities 
                 ' and find all the corresponding symbols.
                 Dim info = LookupSymbolsInfo.GetInstance()
-                Me.AddLookupSymbolsInfo(position, info, container, options)
+                AddLookupSymbolsInfo(position, info, container, options)
 
                 Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Count)
 
@@ -1887,7 +1887,7 @@ _Default:
             Else
                 ' They provided a name.  Find all the arities for that name, and then look all of those up.
                 Dim info = LookupSymbolsInfo.GetInstance()
-                Me.AddLookupSymbolsInfo(position, info, container, options)
+                AddLookupSymbolsInfo(position, info, container, options)
 
                 Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Count)
 
@@ -1913,10 +1913,10 @@ _Default:
                     ' The name maps to multiple symbols. Actually do a real lookup so 
                     ' that we will properly figure out hiding and whatnot.
                     If arities IsNot Nothing Then
-                        Me.LookupSymbols(binder, container, name, arities, options, results)
+                        LookupSymbols(binder, container, name, arities, options, results)
                     Else
                         ' If there's no unique symbol, then there won't have been a non-zero arity
-                        Me.LookupSymbols(binder, container, name, 0, options, results)
+                        LookupSymbols(binder, container, name, 0, options, results)
                     End If
                 End If
             End If
@@ -1939,7 +1939,7 @@ _Default:
                 ' TODO: What happens here if options has LookupOptions.AllMethodsOfAnyArity bit set?
                 '       It looks like we will be dealing with a lot of duplicate methods. Should we optimize this
                 '       by clearing the bit?
-                Me.LookupSymbols(binder, container, name, knownArity, options, tempResults)
+                LookupSymbols(binder, container, name, knownArity, options, tempResults)
                 uniqueSymbols.UnionWith(tempResults)
 
                 tempResults.Clear()
@@ -2045,7 +2045,7 @@ _Default:
                                         Optional options As LookupOptions = LookupOptions.Default)
             CheckPosition(position)
 
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
 
             If binder IsNot Nothing Then
                 If container Is Nothing Then
@@ -2078,9 +2078,9 @@ _Default:
                 Throw New ArgumentNullException(NameOf(symbol))
             End If
 
-            Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol))
+            Dim vbsymbol = symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol))
 
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
             If binder IsNot Nothing Then
                 Return binder.IsAccessible(vbsymbol, Nothing)
             End If
@@ -2257,7 +2257,7 @@ _Default:
             CheckPosition(position)
             CheckModelAndSyntaxNodeToSpeculate(attribute)
 
-            Dim binder As binder = Me.GetSpeculativeAttributeBinder(position, attribute)
+            Dim binder As Binder = GetSpeculativeAttributeBinder(position, attribute)
             If binder Is Nothing Then
                 speculativeModel = Nothing
                 Return False
@@ -2334,7 +2334,7 @@ _Default:
             Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
             CheckPosition(position)
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
 
             If binder IsNot Nothing Then
                 ' Add speculative binder to bind speculatively.
@@ -2366,11 +2366,11 @@ _Default:
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
             End If
 
-            Dim binder As binder = Me.GetEnclosingBinder(identifierSyntax.SpanStart)
+            Dim binder As Binder = GetEnclosingBinder(identifierSyntax.SpanStart)
             Dim blockBinder = TryCast(StripSemanticModelBinder(binder), BlockBaseBinder)
             If blockBinder IsNot Nothing Then
                 ' Most of the time, we should be able to find the identifier by name.
-                Dim lookupResult As lookupResult = lookupResult.GetInstance()
+                Dim lookupResult As LookupResult = LookupResult.GetInstance()
                 Try
                     ' NB: "binder", not "blockBinder", so that we don't incorrectly mark imports as used.
                     binder.Lookup(lookupResult, identifierSyntax.Identifier.ValueText, 0, Nothing, useSiteDiagnostics:=Nothing)
@@ -2490,7 +2490,7 @@ _Default:
                 Throw New ArgumentException(VBResources.DeclarationSyntaxNotWithinSyntaxTree)
             End If
 
-            Dim binder = TryCast(StripSemanticModelBinder(Me.GetEnclosingBinder(declarationSyntax.SpanStart)), BlockBaseBinder)
+            Dim binder = TryCast(StripSemanticModelBinder(GetEnclosingBinder(declarationSyntax.SpanStart)), BlockBaseBinder)
             If binder IsNot Nothing Then
                 Dim label As LabelSymbol = binder.LookupLabelByNameToken(declarationSyntax.LabelToken)
                 If label IsNot Nothing Then
@@ -2674,7 +2674,7 @@ _Default:
         ''' <param name="declarationSyntax">The catch statement syntax node.</param>
         ''' <returns>The local symbol that was declared by the Catch statement or Nothing if statement does not declare a local variable.</returns>
         Public Overloads Function GetDeclaredSymbol(declarationSyntax As CatchStatementSyntax, Optional cancellationToken As CancellationToken = Nothing) As ILocalSymbol
-            Dim enclosingBinder = StripSemanticModelBinder(Me.GetEnclosingBinder(declarationSyntax.SpanStart))
+            Dim enclosingBinder = StripSemanticModelBinder(GetEnclosingBinder(declarationSyntax.SpanStart))
             Dim catchBinder = TryCast(enclosingBinder, CatchBlockBinder)
 
             If catchBinder IsNot Nothing Then
@@ -2947,7 +2947,7 @@ _Default:
         ''' </summary>
         Public Shadows Function GetEnclosingSymbol(position As Integer, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
             CheckPosition(position)
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
             Return If(binder Is Nothing, Nothing, binder.ContainingMember)
         End Function
 
@@ -2959,7 +2959,7 @@ _Default:
         Public ReadOnly Property OptionStrict As VisualBasic.OptionStrict
             Get
                 ' Since options never change within a file, we can just use the start location.
-                Dim binder = Me.GetEnclosingBinder(Root.SpanStart) ' should never return null.
+                Dim binder = GetEnclosingBinder(Root.SpanStart) ' should never return null.
                 Return binder.OptionStrict
             End Get
         End Property
@@ -2973,7 +2973,7 @@ _Default:
         Public ReadOnly Property OptionInfer As Boolean
             Get
                 ' Since options never change within a file, we can just use the start location.
-                Dim binder = Me.GetEnclosingBinder(Root.SpanStart) ' should never return null.
+                Dim binder = GetEnclosingBinder(Root.SpanStart) ' should never return null.
                 Return binder.OptionInfer
             End Get
         End Property
@@ -2987,7 +2987,7 @@ _Default:
         Public ReadOnly Property OptionExplicit As Boolean
             Get
                 ' Since options never change within a file, we can just use the start location.
-                Dim binder = Me.GetEnclosingBinder(Root.SpanStart) ' should never return null.
+                Dim binder = GetEnclosingBinder(Root.SpanStart) ' should never return null.
                 Return binder.OptionExplicit
             End Get
         End Property
@@ -3001,7 +3001,7 @@ _Default:
         Public ReadOnly Property OptionCompareText As Boolean
             Get
                 ' Since options never change within a file, we can just use the start location.
-                Dim binder = Me.GetEnclosingBinder(Root.SpanStart) ' should never return null.
+                Dim binder = GetEnclosingBinder(Root.SpanStart) ' should never return null.
                 Return binder.OptionCompareText
             End Get
         End Property
@@ -3024,19 +3024,19 @@ _Default:
 
         Protected NotOverridable Overrides ReadOnly Property ParentModelCore As SemanticModel
             Get
-                Return Me.ParentModel
+                Return ParentModel
             End Get
         End Property
 
         Protected NotOverridable Overrides ReadOnly Property SyntaxTreeCore As SyntaxTree
             Get
-                Return Me.SyntaxTree
+                Return SyntaxTree
             End Get
         End Property
 
         Protected NotOverridable Overrides ReadOnly Property CompilationCore As Compilation
             Get
-                Return Me.Compilation
+                Return Compilation
             End Get
         End Property
 
@@ -3045,39 +3045,39 @@ _Default:
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            Dim expressionSyntax = TryCast(node, expressionSyntax)
+            Dim expressionSyntax = TryCast(node, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
-                Return Me.GetSymbolInfo(expressionSyntax, cancellationToken)
+                Return GetSymbolInfo(expressionSyntax, cancellationToken)
             End If
 
-            Dim attributeSyntax = TryCast(node, attributeSyntax)
+            Dim attributeSyntax = TryCast(node, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
-                Return Me.GetSymbolInfo(attributeSyntax, cancellationToken)
+                Return GetSymbolInfo(attributeSyntax, cancellationToken)
             End If
 
             Dim clauseSyntax = TryCast(node, QueryClauseSyntax)
             If clauseSyntax IsNot Nothing Then
-                Return Me.GetSymbolInfo(clauseSyntax, cancellationToken)
+                Return GetSymbolInfo(clauseSyntax, cancellationToken)
             End If
 
             Dim letVariable = TryCast(node, ExpressionRangeVariableSyntax)
             If letVariable IsNot Nothing Then
-                Return Me.GetSymbolInfo(letVariable, cancellationToken)
+                Return GetSymbolInfo(letVariable, cancellationToken)
             End If
 
             Dim ordering = TryCast(node, OrderingSyntax)
             If ordering IsNot Nothing Then
-                Return Me.GetSymbolInfo(ordering, cancellationToken)
+                Return GetSymbolInfo(ordering, cancellationToken)
             End If
 
             Dim [function] = TryCast(node, FunctionAggregationSyntax)
             If [function] IsNot Nothing Then
-                Return Me.GetSymbolInfo([function], cancellationToken)
+                Return GetSymbolInfo([function], cancellationToken)
             End If
 
             Dim cref = TryCast(node, CrefReferenceSyntax)
             If cref IsNot Nothing Then
-                Return Me.GetSymbolInfo(cref, cancellationToken)
+                Return GetSymbolInfo(cref, cancellationToken)
             End If
 
             Return SymbolInfo.None
@@ -3088,14 +3088,14 @@ _Default:
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            Dim expressionSyntax = TryCast(node, expressionSyntax)
+            Dim expressionSyntax = TryCast(node, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
-                Return Me.GetTypeInfoWorker(expressionSyntax, cancellationToken)
+                Return GetTypeInfoWorker(expressionSyntax, cancellationToken)
             End If
 
-            Dim attributeSyntax = TryCast(node, attributeSyntax)
+            Dim attributeSyntax = TryCast(node, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
-                Return Me.GetTypeInfoWorker(attributeSyntax, cancellationToken)
+                Return GetTypeInfoWorker(attributeSyntax, cancellationToken)
             End If
 
             Return VisualBasicTypeInfo.None
@@ -3106,14 +3106,14 @@ _Default:
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            Dim expressionSyntax = TryCast(node, expressionSyntax)
+            Dim expressionSyntax = TryCast(node, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
-                Return Me.GetMemberGroup(expressionSyntax, cancellationToken)
+                Return GetMemberGroup(expressionSyntax, cancellationToken)
             End If
 
-            Dim attributeSyntax = TryCast(node, attributeSyntax)
+            Dim attributeSyntax = TryCast(node, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
-                Return Me.GetMemberGroup(attributeSyntax, cancellationToken)
+                Return GetMemberGroup(attributeSyntax, cancellationToken)
             End If
 
             Return ImmutableArray(Of ISymbol).Empty
@@ -3121,7 +3121,7 @@ _Default:
 
         Protected NotOverridable Overrides Function GetSpeculativeTypeInfoCore(position As Integer, expression As SyntaxNode, bindingOption As SpeculativeBindingOption) As TypeInfo
             Return If(TypeOf expression Is ExpressionSyntax,
-                       Me.GetSpeculativeTypeInfo(position, DirectCast(expression, ExpressionSyntax), bindingOption),
+                       GetSpeculativeTypeInfo(position, DirectCast(expression, ExpressionSyntax), bindingOption),
                        Nothing)
         End Function
 
@@ -3210,102 +3210,102 @@ _Default:
 
             Select Case node.Kind
                 Case SyntaxKind.SimpleImportsClause
-                    Return Me.GetDeclaredSymbol(DirectCast(node, SimpleImportsClauseSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, SimpleImportsClauseSyntax), cancellationToken)
 
                 Case SyntaxKind.ModifiedIdentifier
-                    Return Me.GetDeclaredSymbol(DirectCast(node, ModifiedIdentifierSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, ModifiedIdentifierSyntax), cancellationToken)
 
                 Case SyntaxKind.EnumMemberDeclaration
-                    Return Me.GetDeclaredSymbol(DirectCast(node, EnumMemberDeclarationSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, EnumMemberDeclarationSyntax), cancellationToken)
 
                 Case SyntaxKind.Parameter
-                    Return Me.GetDeclaredSymbol(DirectCast(node, ParameterSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, ParameterSyntax), cancellationToken)
 
                 Case SyntaxKind.TypeParameter
-                    Return Me.GetDeclaredSymbol(DirectCast(node, TypeParameterSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, TypeParameterSyntax), cancellationToken)
 
                 Case SyntaxKind.LabelStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, LabelStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, LabelStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.NamespaceStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, NamespaceStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, NamespaceStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.ClassStatement, SyntaxKind.StructureStatement, SyntaxKind.InterfaceStatement, SyntaxKind.ModuleStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, TypeStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, TypeStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.EnumStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, EnumStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, EnumStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, DelegateStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, DelegateStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, MethodStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, MethodStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.PropertyStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, PropertyStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, PropertyStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.EventStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, EventStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, EventStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.SubNewStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, SubNewStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, SubNewStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.GetAccessorStatement, SyntaxKind.SetAccessorStatement,
                  SyntaxKind.AddHandlerAccessorStatement, SyntaxKind.RemoveHandlerAccessorStatement, SyntaxKind.RaiseEventAccessorStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, AccessorStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, AccessorStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.OperatorStatement,
                  SyntaxKind.DeclareSubStatement, SyntaxKind.DeclareFunctionStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, MethodBaseSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, MethodBaseSyntax), cancellationToken)
 
                 Case SyntaxKind.NamespaceBlock
-                    Return Me.GetDeclaredSymbol(DirectCast(node, NamespaceBlockSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, NamespaceBlockSyntax), cancellationToken)
 
                 Case SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock
-                    Return Me.GetDeclaredSymbol(DirectCast(node, TypeBlockSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, TypeBlockSyntax), cancellationToken)
 
                 Case SyntaxKind.EnumBlock
-                    Return Me.GetDeclaredSymbol(DirectCast(node, EnumBlockSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, EnumBlockSyntax), cancellationToken)
 
                 Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock,
                  SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
                  SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
-                    Return Me.GetDeclaredSymbol(DirectCast(node, MethodBlockBaseSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, MethodBlockBaseSyntax), cancellationToken)
 
                 Case SyntaxKind.PropertyBlock
-                    Return Me.GetDeclaredSymbol(DirectCast(node, PropertyBlockSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, PropertyBlockSyntax), cancellationToken)
 
                 Case SyntaxKind.EventBlock
-                    Return Me.GetDeclaredSymbol(DirectCast(node, EventBlockSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, EventBlockSyntax), cancellationToken)
 
                 Case SyntaxKind.CollectionRangeVariable
-                    Return Me.GetDeclaredSymbol(DirectCast(node, CollectionRangeVariableSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, CollectionRangeVariableSyntax), cancellationToken)
 
                 Case SyntaxKind.ExpressionRangeVariable
-                    Return Me.GetDeclaredSymbol(DirectCast(node, ExpressionRangeVariableSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, ExpressionRangeVariableSyntax), cancellationToken)
 
                 Case SyntaxKind.AggregationRangeVariable
-                    Return Me.GetDeclaredSymbol(DirectCast(node, AggregationRangeVariableSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, AggregationRangeVariableSyntax), cancellationToken)
 
                 Case SyntaxKind.CatchStatement
-                    Return Me.GetDeclaredSymbol(DirectCast(node, CatchStatementSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, CatchStatementSyntax), cancellationToken)
 
                 Case SyntaxKind.InferredFieldInitializer, SyntaxKind.NamedFieldInitializer
-                    Return Me.GetDeclaredSymbol(DirectCast(node, FieldInitializerSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, FieldInitializerSyntax), cancellationToken)
 
                 Case SyntaxKind.AnonymousObjectCreationExpression
-                    Return Me.GetDeclaredSymbol(DirectCast(node, AnonymousObjectCreationExpressionSyntax), cancellationToken)
+                    Return GetDeclaredSymbol(DirectCast(node, AnonymousObjectCreationExpressionSyntax), cancellationToken)
             End Select
 
             Dim td = TryCast(node, TypeStatementSyntax)
             If td IsNot Nothing Then
-                Return Me.GetDeclaredSymbol(td, cancellationToken)
+                Return GetDeclaredSymbol(td, cancellationToken)
             End If
 
             Dim md = TryCast(node, MethodBaseSyntax)
             If md IsNot Nothing Then
-                Return Me.GetDeclaredSymbol(md, cancellationToken)
+                Return GetDeclaredSymbol(md, cancellationToken)
             End If
 
             Return Nothing
@@ -3316,7 +3316,7 @@ _Default:
 
             Dim field = TryCast(declaration, FieldDeclarationSyntax)
             If field IsNot Nothing Then
-                Return Me.GetDeclaredSymbols(field, cancellationToken)
+                Return GetDeclaredSymbols(field, cancellationToken)
             End If
 
             Dim symbol = GetDeclaredSymbolCore(declaration, cancellationToken)
@@ -3328,7 +3328,7 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeDataFlowCore(firstStatement As SyntaxNode, lastStatement As SyntaxNode) As DataFlowAnalysis
-            Return Me.AnalyzeDataFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, NameOf(firstStatement)),
+            Return AnalyzeDataFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, NameOf(firstStatement)),
                                                 SafeCastArgument(Of StatementSyntax)(lastStatement, NameOf(lastStatement)))
         End Function
 
@@ -3340,11 +3340,11 @@ _Default:
 
             If TypeOf statementOrExpression Is ExecutableStatementSyntax Then
 
-                Return Me.AnalyzeDataFlow(DirectCast(statementOrExpression, StatementSyntax))
+                Return AnalyzeDataFlow(DirectCast(statementOrExpression, StatementSyntax))
 
             ElseIf TypeOf statementOrExpression Is ExpressionSyntax Then
 
-                Return Me.AnalyzeDataFlow(DirectCast(statementOrExpression, ExpressionSyntax))
+                Return AnalyzeDataFlow(DirectCast(statementOrExpression, ExpressionSyntax))
 
             Else
 
@@ -3354,12 +3354,12 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeControlFlowCore(firstStatement As SyntaxNode, lastStatement As SyntaxNode) As ControlFlowAnalysis
-            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, NameOf(firstStatement)),
+            Return AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(firstStatement, NameOf(firstStatement)),
                                                    SafeCastArgument(Of StatementSyntax)(lastStatement, NameOf(lastStatement)))
         End Function
 
         Protected NotOverridable Overrides Function AnalyzeControlFlowCore(statement As SyntaxNode) As ControlFlowAnalysis
-            Return Me.AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(statement, NameOf(statement)))
+            Return AnalyzeControlFlow(SafeCastArgument(Of StatementSyntax)(statement, NameOf(statement)))
         End Function
 
         Private Shared Function SafeCastArgument(Of T As Class)(node As SyntaxNode, argName As String) As T
@@ -3391,7 +3391,7 @@ _Default:
         End Function
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
-            Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of symbol)(NameOf(symbol)))
+            Return IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol)))
         End Function
 
         Protected NotOverridable Overrides Function IsEventUsableAsFieldCore(position As Integer, symbol As IEventSymbol) As Boolean
@@ -3459,50 +3459,50 @@ _Default:
         ' case we decide we need more verbose logging in certain cases for debugging.
 
         Friend Function GetMessage(position As Integer) As String
-            Return String.Format("{0}: at {1}", Me.SyntaxTree.FilePath, position)
+            Return String.Format("{0}: at {1}", SyntaxTree.FilePath, position)
         End Function
 
         Friend Function GetMessage(node As VisualBasicSyntaxNode) As String
-            If node Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2})", Me.SyntaxTree.FilePath, node.Kind.ToString(), node.Position)
+            If node Is Nothing Then Return SyntaxTree.FilePath
+            Return String.Format("{0}: {1} ({2})", SyntaxTree.FilePath, node.Kind.ToString(), node.Position)
         End Function
 
         Friend Function GetMessage(node As VisualBasicSyntaxNode, position As Integer) As String
-            If node Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) at {3}", Me.SyntaxTree.FilePath, node.Kind.ToString(), node.Position, position)
+            If node Is Nothing Then Return SyntaxTree.FilePath
+            Return String.Format("{0}: {1} ({2}) at {3}", SyntaxTree.FilePath, node.Kind.ToString(), node.Position, position)
         End Function
 
         Friend Function GetMessage(firstStatement As StatementSyntax, lastStatement As StatementSyntax) As String
-            If firstStatement Is Nothing OrElse lastStatement Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} to {2}", Me.SyntaxTree.FilePath, firstStatement.Position, lastStatement.EndPosition)
+            If firstStatement Is Nothing OrElse lastStatement Is Nothing Then Return SyntaxTree.FilePath
+            Return String.Format("{0}: {1} to {2}", SyntaxTree.FilePath, firstStatement.Position, lastStatement.EndPosition)
         End Function
 
         Friend Function GetMessage(expression As ExpressionSyntax, type As TypeSymbol) As String
-            If expression Is Nothing OrElse type Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) -> {3} {4}", Me.SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, type.TypeKind.ToString(), type.Name)
+            If expression Is Nothing OrElse type Is Nothing Then Return SyntaxTree.FilePath
+            Return String.Format("{0}: {1} ({2}) -> {3} {4}", SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, type.TypeKind.ToString(), type.Name)
         End Function
 
         Friend Function GetMessage(expression As ExpressionSyntax, type As TypeSymbol, position As Integer) As String
-            If expression Is Nothing OrElse type Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) -> {3} {4} at {5}", Me.SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, type.TypeKind.ToString(), type.Name, position)
+            If expression Is Nothing OrElse type Is Nothing Then Return SyntaxTree.FilePath
+            Return String.Format("{0}: {1} ({2}) -> {3} {4} at {5}", SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, type.TypeKind.ToString(), type.Name, position)
         End Function
 
         Friend Function GetMessage(expression As ExpressionSyntax, [option] As SpeculativeBindingOption, position As Integer) As String
-            If expression Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) at {3} ({4})", Me.SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, position, [option].ToString())
+            If expression Is Nothing Then Return SyntaxTree.FilePath
+            Return String.Format("{0}: {1} ({2}) at {3} ({4})", SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, position, [option].ToString())
         End Function
 
         Friend Function GetMessage(name As String, [option] As LookupOptions, position As Integer) As String
-            Return String.Format("{0}: {1} at {2} ({3})", Me.SyntaxTree.FilePath, name, position, [option].ToString())
+            Return String.Format("{0}: {1} at {2} ({3})", SyntaxTree.FilePath, name, position, [option].ToString())
         End Function
 
         Friend Function GetMessage(symbol As Symbol, position As Integer) As String
-            If symbol Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} {2} at {3}", Me.SyntaxTree.FilePath, symbol.Kind.ToString(), symbol.Name, position)
+            If symbol Is Nothing Then Return SyntaxTree.FilePath
+            Return String.Format("{0}: {1} {2} at {3}", SyntaxTree.FilePath, symbol.Kind.ToString(), symbol.Name, position)
         End Function
 
         Friend Function GetMessage(stage As CompilationStage) As String
-            Return String.Format("{0} ({1})", Me.SyntaxTree.FilePath, stage.ToString())
+            Return String.Format("{0} ({1})", SyntaxTree.FilePath, stage.ToString())
         End Function
 #End Region
     End Class

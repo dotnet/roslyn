@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits VisualBasicSymbolVisitor
 
             Public Overrides Sub VisitProperty(symbol As PropertySymbol)
-                Me._cancellationToken.ThrowIfCancellationRequested()
+                _cancellationToken.ThrowIfCancellationRequested()
 
                 If Not ShouldSkipSymbol(symbol) Then
                     Dim sourceProperty = TryCast(symbol, SourcePropertySymbol)
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim docCommentTrivia As DocumentationCommentTriviaSyntax =
-                    TryGetDocCommentTriviaAndGenerateDiagnostics(If([property].BlockSyntaxReference, [property].SyntaxReference).GetVisualBasicSyntax(Me._cancellationToken))
+                    TryGetDocCommentTriviaAndGenerateDiagnostics(If([property].BlockSyntaxReference, [property].SyntaxReference).GetVisualBasicSyntax(_cancellationToken))
 
                 If docCommentTrivia Is Nothing Then
                     Return
