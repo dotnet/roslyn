@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Iterator;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
@@ -32,10 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbol = model.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
-            if (methodSymbol.ReturnsVoid)
+            if (methodSymbol?.ReturnType == null || methodSymbol.ReturnsVoid)
             {
                 return null;
             }
+
+            var type = methodSymbol.ReturnType;
 
             var ienumerableSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
             var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName("System.Collections.IEnumerator");
@@ -50,35 +53,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 return null;
             }
 
-            var methodDeclarationNode = node as MethodDeclarationSyntax;
-            var typeInfo = model.GetTypeInfo(methodDeclarationNode.ReturnType, cancellationToken);
-            if (typeInfo.Type == null)
-            {
-                return null;
-            }
+            
 
-            if (typeInfo.Type.InheritsFromOrEquals(ienumerableSymbol))
+            if (type.GetBaseTypesAndThis().AsImmutable().Concat(type.AllInterfaces).Contains(t =>
+                    SymbolEquivalenceComparer.Instance.Equals(t, ienumerableSymbol)))
             {
-                if (typeInfo.Type.GetArity() != 1)
+                if (type.GetArity() != 1)
                 {
                     return null;
                 }
 
-                var typeArg = typeInfo.Type.GetTypeArguments().First();
+                var typeArg = type.GetTypeArguments().First();
                 ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
             }
             else
             {
-                ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeInfo.Type);
+                ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(type);
             }
 
             var newReturnType = ienumerableGenericSymbol.GenerateTypeSyntax();
-            var newMethodDeclarationNode = methodDeclarationNode.WithReturnType(newReturnType);
-            root = root.ReplaceNode(methodDeclarationNode, newMethodDeclarationNode);
+            var newMethodDeclarationSyntax = (node as MethodDeclarationSyntax)?.WithReturnType(newReturnType);
+            if (newMethodDeclarationSyntax != null)
+            {
+                root = root.ReplaceNode(node, newMethodDeclarationSyntax);
+            }
+
+            var oldAccessor = (node.Parent.Parent as PropertyDeclarationSyntax);
+            if (oldAccessor != null)
+            {
+                root = root.ReplaceNode(oldAccessor, oldAccessor.WithType(newReturnType));
+            }
+
             var newDocument = document.WithSyntaxRoot(root);
             return new MyCodeAction(
                 string.Format(CSharpFeaturesResources.ChangeReturnType,
-                    methodDeclarationNode.ReturnType.ToString(),
+                    type.ToMinimalDisplayString(model, node.SpanStart),
                     ienumerableGenericSymbol.ToMinimalDisplayString(model, node.SpanStart)), newDocument);
         }
 
