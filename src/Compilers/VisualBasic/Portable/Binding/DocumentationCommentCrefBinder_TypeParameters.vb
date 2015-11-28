@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub New(containingBinder As Binder, typeParameters As Dictionary(Of String, CrefTypeParameterSymbol))
                 MyBase.New(containingBinder)
-                Me._typeParameters = typeParameters
+                _typeParameters = typeParameters
             End Sub
 
             Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(lookupResult.IsClear)
 
                 Dim typeParameter As CrefTypeParameterSymbol = Nothing
-                If Me._typeParameters.TryGetValue(name, typeParameter) Then
+                If _typeParameters.TryGetValue(name, typeParameter) Then
                     lookupResult.SetFrom(CheckViability(typeParameter,
                                                         arity,
                                                         options Or LookupOptions.IgnoreAccessibility,

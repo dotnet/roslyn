@@ -55,37 +55,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property OriginalPositionForSpeculation As Integer
             Get
-                Return Me._speculatedPosition
+                Return _speculatedPosition
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property ParentModel As SemanticModel
             Get
-                Return Me._parentSemanticModelOpt
+                Return _parentSemanticModelOpt
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
-                Return Me._ignoresAccessibility
+                Return _ignoresAccessibility
             End Get
         End Property
 
         Friend NotOverridable Overloads Overrides Function GetEnclosingBinder(position As Integer) As Binder
-            Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, FindInitialNodeFromPosition(position), position)
+            Dim binder = GetEnclosingBinderInternal(RootBinder, Root, FindInitialNodeFromPosition(position), position)
             Debug.Assert(binder IsNot Nothing)
             Return SemanticModelBinder.Mark(binder, IgnoresAccessibility)
         End Function
 
         Private Overloads Function GetEnclosingBinder(node As VisualBasicSyntaxNode) As Binder
-            Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, node, node.SpanStart)
+            Dim binder = GetEnclosingBinderInternal(RootBinder, Root, node, node.SpanStart)
             Debug.Assert(binder IsNot Nothing)
             Return SemanticModelBinder.Mark(binder, IgnoresAccessibility)
         End Function
 
         ' Get the bound node corresponding to the root.
         Friend Overridable Function GetBoundRoot() As BoundNode
-            Return GetUpperBoundNode(Me.Root)
+            Return GetUpperBoundNode(Root)
         End Function
 
         Public Overrides Function ClassifyConversion(expression As ExpressionSyntax, destination As ITypeSymbol) As Conversion
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim vbDestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
-            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), boundExpression)
+            Dim boundExpression = TryCast(GetLowerBoundNode(expression), BoundExpression)
 
             If boundExpression Is Nothing OrElse vbDestination.IsErrorType() Then
                 Return New Conversion(Nothing)  ' NoConversion
@@ -168,21 +168,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected Function GetBindableParent(node As VisualBasicSyntaxNode) As VisualBasicSyntaxNode
             Dim parent As VisualBasicSyntaxNode = node.Parent
-            If parent Is Nothing OrElse node Is Me.Root Then
+            If parent Is Nothing OrElse node Is Root Then
                 Return Nothing
             End If
 
-            Dim expressionSyntax = TryCast(parent, expressionSyntax)
+            Dim expressionSyntax = TryCast(parent, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return SyntaxFactory.GetStandaloneExpression(expressionSyntax)
             End If
 
-            Dim statementSyntax = TryCast(parent, statementSyntax)
+            Dim statementSyntax = TryCast(parent, StatementSyntax)
             If statementSyntax IsNot Nothing AndAlso IsStandaloneStatement(statementSyntax) Then
                 Return statementSyntax
             End If
 
-            Dim attributeSyntax = TryCast(parent, attributeSyntax)
+            Dim attributeSyntax = TryCast(parent, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return attributeSyntax
             End If
@@ -771,7 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function GetExpressionSymbolInfo(node As ExpressionSyntax, options As SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
             ValidateSymbolInfoOptions(options)
 
-            If Me.IsSpeculativeSemanticModel Then
+            If IsSpeculativeSemanticModel Then
                 ' For speculative model, we need to get the standalone expression when this is invoked via public GetSymbolInfo API
                 node = SyntaxFactory.GetStandaloneExpression(node)
             End If
@@ -810,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
-            If Me.IsSpeculativeSemanticModel Then
+            If IsSpeculativeSemanticModel Then
                 ' For speculative model, we need to get the standalone expression when this is invoked via public GetTypeInfo API
                 node = SyntaxFactory.GetStandaloneExpression(node)
             End If
@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetExpressionMemberGroup(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Symbol)
-            If Me.IsSpeculativeSemanticModel Then
+            If IsSpeculativeSemanticModel Then
                 ' For speculative model, we need to get the standalone expression when this is invoked via public GetMemberGroup API
                 node = SyntaxFactory.GetStandaloneExpression(node)
             End If
@@ -836,7 +836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetExpressionConstantValue(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As ConstantValue
-            If Me.IsSpeculativeSemanticModel Then
+            If IsSpeculativeSemanticModel Then
                 ' For speculative model, we need to get the standalone expression when this is invoked via public GetConstantValue API
                 node = SyntaxFactory.GetStandaloneExpression(node)
             End If
@@ -1039,7 +1039,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend NotOverridable Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, type As TypeSyntax, bindingOption As SpeculativeBindingOption, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim binder As Binder = Me.GetSpeculativeBinderForExpression(position, type, bindingOption)
+            Dim binder As Binder = GetSpeculativeBinderForExpression(position, type, bindingOption)
             If binder Is Nothing Then
                 speculativeModel = Nothing
                 Return False
@@ -1050,7 +1050,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend NotOverridable Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, rangeArgument As RangeArgumentSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
             If binder Is Nothing Then
                 speculativeModel = Nothing
                 Return False
@@ -1066,7 +1066,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub CacheBoundNodes(boundNode As BoundNode, Optional thisSyntaxNodeOnly As VisualBasicSyntaxNode = Nothing)
             _rwLock.EnterWriteLock()
             Try
-                SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, Me._guardedNodeMap, thisSyntaxNodeOnly)
+                SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, _guardedNodeMap, thisSyntaxNodeOnly)
             Finally
                 _rwLock.ExitWriteLock()
             End Try
@@ -1159,16 +1159,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Because order of declaration is important, and any expression could declare
         ' an implicit local, we have to bind the whole method body from start to finish. 
         Private Sub EnsureFullyBoundIfImplicitVariablesAllowed()
-            If Me.RootBinder.ImplicitVariableDeclarationAllowed AndAlso Not Me.RootBinder.AllImplicitVariableDeclarationsAreHandled Then
+            If RootBinder.ImplicitVariableDeclarationAllowed AndAlso Not RootBinder.AllImplicitVariableDeclarationsAreHandled Then
                 _rwLock.EnterWriteLock()
                 Try
                     ' To prevent races, we must check again under the lock.
-                    If Not Me.RootBinder.AllImplicitVariableDeclarationsAreHandled Then
+                    If Not RootBinder.AllImplicitVariableDeclarationsAreHandled Then
                         ' bind everything, so all implicit variables are declared, and processed in the right order.
-                        Me.GuardedIncrementalBind(Me.Root, Me.RootBinder)
+                        GuardedIncrementalBind(Root, RootBinder)
 
                         ' after this call, RootBinder.AllImplicitVariableDeclarationsAreHandled = True
-                        Me.RootBinder.DisallowFurtherImplicitVariableDeclaration(Me._guardedDiagnostics)
+                        RootBinder.DisallowFurtherImplicitVariableDeclaration(_guardedDiagnostics)
                     End If
                 Finally
                     _rwLock.ExitWriteLock()
@@ -1179,7 +1179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GuardedGetBoundNodesFromMap(node As VisualBasicSyntaxNode) As ImmutableArray(Of BoundNode)
             Debug.Assert(_rwLock.IsReadLockHeld OrElse _rwLock.IsWriteLockHeld)
             Dim result As ImmutableArray(Of BoundNode) = Nothing
-            Return If(Me._guardedNodeMap.TryGetValue(node, result), result, Nothing)
+            Return If(_guardedNodeMap.TryGetValue(node, result), result, Nothing)
         End Function
 
         ''' <summary>
@@ -1225,7 +1225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf SyntaxFacts.InLambdaInterior(current, position) Then
                     If current IsNot binderRoot Then
                         Dim lambdaBinder As LambdaBodyBinder =
-                                            Me.GetLambdaBodyBinder(DirectCast(current, LambdaExpressionSyntax))
+                                            GetLambdaBodyBinder(DirectCast(current, LambdaExpressionSyntax))
 
                         If lambdaBinder IsNot Nothing Then
                             Debug.Assert(lambdaBinder.Root Is current)
@@ -1598,7 +1598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _rwLock.EnterReadLock()
             Try
-                If Me._guardedQueryBindersMap.TryGetValue(node, binders) Then
+                If _guardedQueryBindersMap.TryGetValue(node, binders) Then
                     Return binders
                 End If
             Finally
@@ -1612,7 +1612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _rwLock.EnterWriteLock()
             Try
-                If Me._guardedQueryBindersMap.TryGetValue(node, binders) Then
+                If _guardedQueryBindersMap.TryGetValue(node, binders) Then
                     Return binders
                 End If
 
@@ -1622,7 +1622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AssertIfShouldHaveFound(node)
                 End If
 
-                Me._guardedQueryBindersMap.Add(node, Nothing)
+                _guardedQueryBindersMap.Add(node, Nothing)
                 Return Nothing
             Finally
                 _rwLock.ExitWriteLock()
@@ -1651,7 +1651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     _rwLock.EnterReadLock()
                     Try
-                        If Me._guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
+                        If _guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
                             binder = cachedBinder
                             Return binder IsNot Nothing
                         End If
@@ -1665,7 +1665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     _rwLock.EnterReadLock()
                     Try
-                        If Me._guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
+                        If _guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
                             binder = cachedBinder
                             Return binder IsNot Nothing
                         End If
@@ -1786,7 +1786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If we didn't find in the cached bound nodes, find a binding root and bind it.
             ' This will cache bound nodes under the binding root.
-            Dim bindingRoot = Me.GetBindingRoot(node)
+            Dim bindingRoot = GetBindingRoot(node)
             Dim bindingRootBinder = GetEnclosingBinder(bindingRoot)
 
             _rwLock.EnterWriteLock()
@@ -1819,7 +1819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If bound.IsDefault Then
                         ' Bind the node and cache any associated bound nodes we find.
-                        Dim boundNode = Me.Bind(binder, node, Me._guardedDiagnostics)
+                        Dim boundNode = Bind(binder, node, _guardedDiagnostics)
                         SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, _guardedNodeMap, node)
                     End If
 
@@ -1873,7 +1873,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(enclosingBinder.IsSemanticModelBinder)
             Dim binder = New IncrementalBinder(Me, enclosingBinder)
-            Dim boundRoot As BoundNode = Me.Bind(binder, bindingRoot, Me._guardedDiagnostics)
+            Dim boundRoot As BoundNode = Bind(binder, bindingRoot, _guardedDiagnostics)
 
             ' if the node could not be bound, there's nothing more to do.
             If boundRoot Is Nothing Then
@@ -1891,7 +1891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              bindingRoot.Kind = SyntaxKind.PropertyStatement OrElse
                              bindingRoot.Kind = SyntaxKind.Parameter OrElse
                              bindingRoot.Kind = SyntaxKind.EnumMemberDeclaration OrElse
-                             bindingRoot Is Me.Root AndAlso Me.IsSpeculativeSemanticModel)
+                             bindingRoot Is Root AndAlso IsSpeculativeSemanticModel)
 
                 _guardedNodeMap.Add(bindingRoot, ImmutableArray.Create(Of BoundNode)(boundRoot))
             End If
@@ -1908,7 +1908,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim enclosingStatement As StatementSyntax = Nothing
 
             ' Walk all the way up to the root syntax, so that we see any enclosing lambdas.
-            While node IsNot Me.Root
+            While node IsNot Root
                 If enclosingStatement Is Nothing Then
                     Dim statementNode = TryCast(node, StatementSyntax)
                     If statementNode IsNot Nothing AndAlso IsStandaloneStatement(statementNode) Then
@@ -1934,7 +1934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If enclosingStatement IsNot Nothing Then
                 Return enclosingStatement
             Else
-                Return Me.Root
+                Return Root
             End If
         End Function
 
@@ -1968,7 +1968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' in effect on nested binders.
             ''' </summary>
             Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
-                Dim binder As Binder = Me.ContainingBinder.GetBinder(node)
+                Dim binder As Binder = ContainingBinder.GetBinder(node)
 
                 If binder IsNot Nothing Then
                     Debug.Assert(Not (TypeOf binder Is IncrementalBinder))
@@ -1983,7 +1983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' in effect on nested binders.
             ''' </summary>
             Public Overrides Function GetBinder(list As SyntaxList(Of StatementSyntax)) As Binder
-                Dim binder As Binder = Me.ContainingBinder.GetBinder(list)
+                Dim binder As Binder = ContainingBinder.GetBinder(list)
 
                 If binder IsNot Nothing Then
                     Debug.Assert(Not (TypeOf binder Is IncrementalBinder))
@@ -2182,10 +2182,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     current = binary.Left
                 End While
 
-                Me.Visit(current)
+                Visit(current)
 
                 While rightOperands.Count > 0
-                    Me.Visit(rightOperands.Pop())
+                    Visit(rightOperands.Pop())
                 End While
 
                 rightOperands.Free()
@@ -2199,58 +2199,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitCall(node As BoundCall) As BoundNode
                 Dim receiver As BoundExpression = node.ReceiverOpt
                 Debug.Assert(receiver Is Nothing OrElse Not node.Method.IsShared OrElse receiver.HasErrors)
-                Me.Visit(receiver)
+                Visit(receiver)
 
                 Dim boundGroup As BoundMethodGroup = node.MethodGroupOpt
                 If boundGroup IsNot Nothing Then
                     If boundGroup.Syntax IsNot node.Syntax Then
 
                         Debug.Assert(boundGroup.ReceiverOpt Is Nothing OrElse receiver Is Nothing)
-                        Me.Visit(boundGroup)
+                        Visit(boundGroup)
 
                     ElseIf node.Method.IsShared Then
                         ' NOTE: in this case the receiver is nothing, but we still 
                         '       want to visit it if we find it in the method group
-                        Me.Visit(boundGroup.ReceiverOpt)
+                        Visit(boundGroup.ReceiverOpt)
                     End If
                 End If
 
-                Me.VisitList(node.Arguments)
+                VisitList(node.Arguments)
                 Return Nothing
             End Function
 
             Public Overrides Function VisitPropertyAccess(node As BoundPropertyAccess) As BoundNode
                 Dim receiver As BoundExpression = node.ReceiverOpt
                 Debug.Assert(receiver Is Nothing OrElse Not node.PropertySymbol.IsShared OrElse receiver.HasErrors)
-                Me.Visit(receiver)
+                Visit(receiver)
 
                 Dim boundGroup As BoundPropertyGroup = node.PropertyGroupOpt
                 If boundGroup IsNot Nothing Then
                     If boundGroup.Syntax IsNot node.Syntax Then
 
                         Debug.Assert(boundGroup.ReceiverOpt Is Nothing OrElse receiver Is Nothing)
-                        Me.Visit(node.PropertyGroupOpt)
+                        Visit(node.PropertyGroupOpt)
 
                     ElseIf node.PropertySymbol.IsShared Then
                         ' NOTE: in this case the receiver is nothing but we still 
                         '       want to visit it if we find it in the property group
-                        Me.Visit(boundGroup.ReceiverOpt)
+                        Visit(boundGroup.ReceiverOpt)
                     End If
                 End If
 
-                Me.VisitList(node.Arguments)
+                VisitList(node.Arguments)
                 Return Nothing
             End Function
 
             Public Overrides Function VisitTypeExpression(node As BoundTypeExpression) As BoundNode
-                Me.Visit(node.UnevaluatedReceiverOpt)
+                Visit(node.UnevaluatedReceiverOpt)
                 Return MyBase.VisitTypeExpression(node)
             End Function
 
             Public Overrides Function VisitAttribute(node As BoundAttribute) As BoundNode
-                Me.VisitList(node.ConstructorArguments)
+                VisitList(node.ConstructorArguments)
                 For Each namedArg In node.NamedArguments
-                    Me.Visit(namedArg)
+                    Visit(namedArg)
                 Next
                 Return Nothing
             End Function
@@ -2315,19 +2315,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Shouldn't visit RelaxationLambda here.
 
                 Dim receiver As BoundExpression = node.ReceiverOpt
-                Me.Visit(receiver)
+                Visit(receiver)
 
                 Dim boundGroup As BoundMethodGroup = node.MethodGroupOpt
                 If boundGroup IsNot Nothing Then
                     If boundGroup.Syntax IsNot node.Syntax Then
 
                         Debug.Assert(boundGroup.ReceiverOpt Is Nothing OrElse receiver Is Nothing)
-                        Me.Visit(boundGroup)
+                        Visit(boundGroup)
 
                     ElseIf node.Method.IsShared Then
                         ' NOTE: in this case the receiver is nothing, but we still 
                         '       want to visit it if we find it in the method group
-                        Me.Visit(boundGroup.ReceiverOpt)
+                        Visit(boundGroup.ReceiverOpt)
                     End If
                 End If
 
@@ -2388,17 +2388,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function VisitObjectInitializerExpressionBase(node As BoundObjectInitializerExpressionBase) As BoundNode
-                Me.VisitList(node.Initializers)
+                VisitList(node.Initializers)
 
                 Return Nothing
             End Function
 
             Public Overrides Function VisitCollectionInitializerExpression(node As BoundCollectionInitializerExpression) As BoundNode
-                Return Me.VisitObjectInitializerExpressionBase(node)
+                Return VisitObjectInitializerExpressionBase(node)
             End Function
 
             Public Overrides Function VisitObjectInitializerExpression(node As BoundObjectInitializerExpression) As BoundNode
-                Return Me.VisitObjectInitializerExpressionBase(node)
+                Return VisitObjectInitializerExpressionBase(node)
             End Function
 
             Public Overrides Function VisitLateInvocation(node As BoundLateInvocation) As BoundNode

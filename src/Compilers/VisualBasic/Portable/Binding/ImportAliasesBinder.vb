@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim res = CheckViability([alias].Alias, arity, options, Nothing, useSiteDiagnostics)
                 If res.IsGoodOrAmbiguous AndAlso Not originalBinder.IsSemanticModelBinder Then
-                    Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, [alias].ImportsClausePosition)
+                    Compilation.MarkImportDirectiveAsUsed(SyntaxTree, [alias].ImportsClausePosition)
                 End If
 
                 lookupResult.SetFrom(res) ' -1 for arity: don't check arity.
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
-                Return Me.Compilation.SourceModule
+                Return Compilation.SourceModule
             End Get
         End Property
     End Class

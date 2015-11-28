@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub New(kind As LookupResultKind, symbol As Symbol, diagInfo As DiagnosticInfo)
             Me.Kind = kind
             Me.Symbol = symbol
-            Me.Diagnostic = diagInfo
+            Diagnostic = diagInfo
         End Sub
 
         Public ReadOnly Property HasDiagnostic As Boolean
@@ -431,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Merge two results, returning the better one. If they are equally good, the first has
         ' priority. Never produces an ambiguity.
         Public Sub MergePrioritized(other As LookupResult)
-            If other.Kind > Me.Kind AndAlso Me.Kind < LookupResultKind.Ambiguous Then
+            If other.Kind > Kind AndAlso Kind < LookupResultKind.Ambiguous Then
                 SetFrom(other)
             End If
         End Sub
@@ -439,7 +439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Merge two results, returning the better one. If they are equally good, the first has
         ' priority. Never produces an ambiguity.
         Public Sub MergePrioritized(other As SingleLookupResult)
-            If other.Kind > Me.Kind AndAlso Me.Kind < LookupResultKind.Ambiguous Then
+            If other.Kind > Kind AndAlso Kind < LookupResultKind.Ambiguous Then
                 SetFrom(other)
             End If
         End Sub
@@ -448,14 +448,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' multiple viable results, instead produce an ambiguity between all of them.
         Public Sub MergeAmbiguous(other As LookupResult,
                                   generateAmbiguityDiagnostic As Func(Of ImmutableArray(Of Symbol), AmbiguousSymbolDiagnostic))
-            If Me.IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
+            If IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
                 ' Two viable or ambiguous results. Produce ambiguity.
                 Dim ambiguousResults = ArrayBuilder(Of Symbol).GetInstance()
 
-                If TypeOf Me.Diagnostic Is AmbiguousSymbolDiagnostic Then
-                    ambiguousResults.AddRange(DirectCast(Me.Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols)
+                If TypeOf Diagnostic Is AmbiguousSymbolDiagnostic Then
+                    ambiguousResults.AddRange(DirectCast(Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols)
                 Else
-                    ambiguousResults.AddRange(Me.Symbols)
+                    ambiguousResults.AddRange(Symbols)
                 End If
 
                 If TypeOf other.Diagnostic Is AmbiguousSymbolDiagnostic Then
@@ -465,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 SetFrom(ambiguousResults.ToImmutableAndFree(), generateAmbiguityDiagnostic)
-            ElseIf other.Kind > Me.Kind Then
+            ElseIf other.Kind > Kind Then
                 SetFrom(other)
             Else
                 Return
@@ -476,14 +476,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' multiple viable results, instead produce an ambiguity between all of them.
         Public Sub MergeAmbiguous(other As SingleLookupResult,
                                   generateAmbiguityDiagnostic As Func(Of ImmutableArray(Of Symbol), AmbiguousSymbolDiagnostic))
-            If Me.IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
+            If IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
                 ' Two viable results. Produce ambiguity.
                 Dim ambiguousResults = ArrayBuilder(Of Symbol).GetInstance()
 
-                If TypeOf Me.Diagnostic Is AmbiguousSymbolDiagnostic Then
-                    ambiguousResults.AddRange(DirectCast(Me.Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols)
+                If TypeOf Diagnostic Is AmbiguousSymbolDiagnostic Then
+                    ambiguousResults.AddRange(DirectCast(Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols)
                 Else
-                    ambiguousResults.AddRange(Me.Symbols)
+                    ambiguousResults.AddRange(Symbols)
                 End If
 
                 If TypeOf other.Diagnostic Is AmbiguousSymbolDiagnostic Then
@@ -493,7 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 SetFrom(ambiguousResults.ToImmutableAndFree(), generateAmbiguityDiagnostic)
-            ElseIf other.Kind > Me.Kind Then
+            ElseIf other.Kind > Kind Then
                 SetFrom(other)
             Else
                 Return
@@ -530,15 +530,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' multiple viable results, either produce an result with both symbols if they can overload each other,
         ' or use the current one..
         Public Sub MergeOverloadedOrPrioritizedExtensionMethods(other As SingleLookupResult)
-            Debug.Assert(Not Me.IsAmbiguous AndAlso Not other.IsAmbiguous)
+            Debug.Assert(Not IsAmbiguous AndAlso Not other.IsAmbiguous)
             Debug.Assert(other.Symbol.IsReducedExtensionMethod())
-            Debug.Assert(Not Me.HasSymbol OrElse Me.Symbols(0).IsReducedExtensionMethod())
+            Debug.Assert(Not HasSymbol OrElse Symbols(0).IsReducedExtensionMethod())
 
-            If Me.IsGood AndAlso other.IsGood Then
+            If IsGood AndAlso other.IsGood Then
                 _symList.Add(other.Symbol)
-            ElseIf other.Kind > Me.Kind Then
+            ElseIf other.Kind > Kind Then
                 SetFrom(other)
-            ElseIf Me.Kind <> LookupResultKind.Inaccessible OrElse Me.Kind > other.Kind Then
+            ElseIf Kind <> LookupResultKind.Inaccessible OrElse Kind > other.Kind Then
                 Return
             Else
                 _symList.Add(other.Symbol)
@@ -551,26 +551,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' If the "checkIfCurrentHasOverloads" is True, then we only overload if every symbol in our current result has "Overloads" modifier; otherwise
         ' we overload regardless of the modifier.
         Public Sub MergeOverloadedOrPrioritized(other As LookupResult, checkIfCurrentHasOverloads As Boolean)
-            If Me.IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
-                If Me.IsGood AndAlso other.IsGood Then
+            If IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
+                If IsGood AndAlso other.IsGood Then
                     ' Two viable results. Either they can overload each other, or we need to produce an ambiguity.
-                    If CanOverload(Me.Symbols(0), other.Symbols(0)) AndAlso (Not checkIfCurrentHasOverloads OrElse AllSymbolsHaveOverloads()) Then
+                    If CanOverload(Symbols(0), other.Symbols(0)) AndAlso (Not checkIfCurrentHasOverloads OrElse AllSymbolsHaveOverloads()) Then
                         _symList.AddRange(other.Symbols)
                     Else
                         ' They don't overload each other. Just hide.
                         Return
                     End If
                 Else
-                    Debug.Assert(Me.IsAmbiguous OrElse other.IsAmbiguous)
+                    Debug.Assert(IsAmbiguous OrElse other.IsAmbiguous)
                     ' Stick with the current result.
                     ' Good result from derived class shouldn't be overridden by an ambiguous result from the base class.
                     ' Ambiguous result from derived class shouldn't be overridden by a good result from the base class.
                     Return
                 End If
-            ElseIf other.Kind > Me.Kind Then
+            ElseIf other.Kind > Kind Then
                 SetFrom(other)
-            ElseIf Me.Kind <> LookupResultKind.Inaccessible OrElse Me.Kind > other.Kind OrElse
-                Not CanOverload(Me.Symbols(0), other.Symbols(0)) OrElse
+            ElseIf Kind <> LookupResultKind.Inaccessible OrElse Kind > other.Kind OrElse
+                Not CanOverload(Symbols(0), other.Symbols(0)) OrElse
                 (checkIfCurrentHasOverloads AndAlso Not AllSymbolsHaveOverloads()) Then
                 Return
             Else
@@ -591,26 +591,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         ''' <remarks></remarks>
         Public Sub MergeOverloadedOrPrioritized(other As SingleLookupResult, checkIfCurrentHasOverloads As Boolean)
-            If Me.IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
-                If Me.IsGood AndAlso other.IsGood Then
+            If IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
+                If IsGood AndAlso other.IsGood Then
                     ' Two viable results. Either they can overload each other, or we need to produce an ambiguity.
-                    If CanOverload(Me.Symbols(0), other.Symbol) AndAlso (Not checkIfCurrentHasOverloads OrElse AllSymbolsHaveOverloads()) Then
+                    If CanOverload(Symbols(0), other.Symbol) AndAlso (Not checkIfCurrentHasOverloads OrElse AllSymbolsHaveOverloads()) Then
                         _symList.Add(other.Symbol)
                     Else
                         ' They don't overload each other. Just hide.
                         Return
                     End If
                 Else
-                    Debug.Assert(Me.IsAmbiguous OrElse other.IsAmbiguous)
+                    Debug.Assert(IsAmbiguous OrElse other.IsAmbiguous)
                     ' Stick with the current result.
                     ' Good result from derived class shouldn't be overridden by an ambiguous result from the base class.
                     ' Ambiguous result from derived class shouldn't be overridden by a good result from the base class.
                     Return
                 End If
-            ElseIf other.Kind > Me.Kind Then
+            ElseIf other.Kind > Kind Then
                 SetFrom(other)
-            ElseIf Me.Kind <> LookupResultKind.Inaccessible OrElse Me.Kind > other.Kind OrElse
-                Not CanOverload(Me.Symbols(0), other.Symbol) OrElse
+            ElseIf Kind <> LookupResultKind.Inaccessible OrElse Kind > other.Kind OrElse
+                Not CanOverload(Symbols(0), other.Symbol) OrElse
                 (checkIfCurrentHasOverloads AndAlso Not AllSymbolsHaveOverloads()) Then
                 Return
             Else
@@ -622,16 +622,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' multiple viable results, either produce an result with both symbols if they can overload each other,
         ' or produce an ambiguity error otherwise.
         Public Sub MergeMembersOfTheSameType(other As SingleLookupResult, imported As Boolean)
-            Debug.Assert(Not Me.HasSymbol OrElse other.Symbol Is Nothing OrElse Me.Symbols(0).ContainingType = other.Symbol.ContainingType)
+            Debug.Assert(Not HasSymbol OrElse other.Symbol Is Nothing OrElse Symbols(0).ContainingType = other.Symbol.ContainingType)
             Debug.Assert(Not other.IsAmbiguous)
 
-            If Me.IsGoodOrAmbiguous AndAlso other.IsGood Then
+            If IsGoodOrAmbiguous AndAlso other.IsGood Then
                 ' Two viable results. Either they can overload each other, or we need to produce an ambiguity.
                 MergeOverloadedOrAmbiguousInTheSameType(other, imported)
-            ElseIf other.Kind > Me.Kind Then
+            ElseIf other.Kind > Kind Then
                 SetFrom(other)
-            ElseIf Me.Kind <> LookupResultKind.Inaccessible OrElse Me.Kind > other.Kind OrElse
-                Not CanOverload(Me.Symbols(0), other.Symbol) Then
+            ElseIf Kind <> LookupResultKind.Inaccessible OrElse Kind > other.Kind OrElse
+                Not CanOverload(Symbols(0), other.Symbol) Then
                 Return
             Else
                 _symList.Add(other.Symbol)
@@ -639,10 +639,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub MergeOverloadedOrAmbiguousInTheSameType(other As SingleLookupResult, imported As Boolean)
-            Debug.Assert(Me.IsGoodOrAmbiguous AndAlso other.IsGood)
+            Debug.Assert(IsGoodOrAmbiguous AndAlso other.IsGood)
 
-            If Me.IsGood Then
-                If CanOverload(Me.Symbols(0), other.Symbol) Then
+            If IsGood Then
+                If CanOverload(Symbols(0), other.Symbol) Then
                     _symList.Add(other.Symbol)
                     Return
                 End If
@@ -703,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             ElseIf imported Then
-                Debug.Assert(Me.IsAmbiguous)
+                Debug.Assert(IsAmbiguous)
                 ' This function guarantees that accessibility of all ambiguous symbols,
                 ' even those dropped from the list by MergeAmbiguous is the same.
                 ' So, it is sufficient to test Accessibility of the only symbol we have. 
@@ -897,10 +897,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Symbols in source take priority over symbols in a referenced assembly.
             If other.StopFurtherLookup AndAlso
-               Me.StopFurtherLookup AndAlso Me.Symbols.Count > 0 Then
+               StopFurtherLookup AndAlso Symbols.Count > 0 Then
 
                 Dim currentLocation = GetSymbolLocation(other.Symbol, sourceModule, options)
-                Dim contenderLocation = GetSymbolLocation(Me.Symbols(0), sourceModule, options)
+                Dim contenderLocation = GetSymbolLocation(Symbols(0), sourceModule, options)
                 Dim diff = currentLocation - contenderLocation
                 If diff <> 0 Then
                     Return diff
@@ -908,14 +908,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If other.IsGood Then
-                If Me.IsGood Then
-                    Debug.Assert(Me.HasSingleSymbol)
-                    Debug.Assert(Me.Symbols(0).Kind <> SymbolKind.Namespace OrElse other.Symbol.Kind <> SymbolKind.Namespace) ' namespaces are supposed to be merged
-                    Return ResolveAmbiguityInTheSameNamespace(Me.Symbols(0), other.Symbol, sourceModule)
+                If IsGood Then
+                    Debug.Assert(HasSingleSymbol)
+                    Debug.Assert(Symbols(0).Kind <> SymbolKind.Namespace OrElse other.Symbol.Kind <> SymbolKind.Namespace) ' namespaces are supposed to be merged
+                    Return ResolveAmbiguityInTheSameNamespace(Symbols(0), other.Symbol, sourceModule)
 
-                ElseIf Me.IsAmbiguous Then
+                ElseIf IsAmbiguous Then
                     ' Check to see if all symbols in the ambiguous result are types, which lose to the new symbol.
-                    For Each candidate In DirectCast(Me.Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols
+                    For Each candidate In DirectCast(Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols
                         Debug.Assert(candidate.Kind <> SymbolKind.Namespace OrElse other.Symbol.Kind <> SymbolKind.Namespace) ' namespaces are supposed to be merged
                         If candidate.Kind = SymbolKind.Namespace Then
                             Return 0 ' namespace never loses

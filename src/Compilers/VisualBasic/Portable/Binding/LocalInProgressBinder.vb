@@ -29,12 +29,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Sub New(containingBinder As Binder, symbol As LocalSymbol)
             MyBase.New(containingBinder)
-            Me._symbols = New ConsList(Of LocalSymbol)(symbol, containingBinder.ImplicitlyTypedLocalsBeingBound)
+            _symbols = New ConsList(Of LocalSymbol)(symbol, containingBinder.ImplicitlyTypedLocalsBeingBound)
         End Sub
 
         Public Overrides ReadOnly Property ImplicitlyTypedLocalsBeingBound As ConsList(Of LocalSymbol)
             Get
-                Return Me._symbols
+                Return _symbols
             End Get
 
         End Property

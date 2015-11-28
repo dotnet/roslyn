@@ -22,19 +22,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _typeParameterBinder As TypeParametersBinder
 
         Private Function GetOrCreateTypeParametersAwareBinder(typeParameters As Dictionary(Of String, CrefTypeParameterSymbol)) As Binder
-            If Me._typeParameterBinder Is Nothing Then
-                Interlocked.CompareExchange(Me._typeParameterBinder, New TypeParametersBinder(Me, typeParameters), Nothing)
+            If _typeParameterBinder Is Nothing Then
+                Interlocked.CompareExchange(_typeParameterBinder, New TypeParametersBinder(Me, typeParameters), Nothing)
             End If
 
 #If DEBUG Then
             ' Make sure the type parameter symbols are the same
-            Debug.Assert(typeParameters.Count = Me._typeParameterBinder._typeParameters.Count)
+            Debug.Assert(typeParameters.Count = _typeParameterBinder._typeParameters.Count)
             For Each kvp In typeParameters
-                Debug.Assert(kvp.Value.Equals(Me._typeParameterBinder._typeParameters(kvp.Key)))
+                Debug.Assert(kvp.Value.Equals(_typeParameterBinder._typeParameters(kvp.Key)))
             Next
 #End If
 
-            Return Me._typeParameterBinder
+            Return _typeParameterBinder
         End Function
 
         Private Function HasTrailingSkippedTokensAndShouldReportError(reference As CrefReferenceSyntax) As Boolean
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindInsideCrefSignatureOrReturnType(crefReference As CrefReferenceSyntax, name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As DiagnosticBag) As ImmutableArray(Of Symbol)
-            Dim typeParameterAwareBinder As Binder = Me.GetOrCreateTypeParametersAwareBinder(crefReference)
+            Dim typeParameterAwareBinder As Binder = GetOrCreateTypeParametersAwareBinder(crefReference)
 
             Dim result As Symbol
             If (diagnosticBag Is Nothing) Then
@@ -237,8 +237,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetOrCreateTypeParametersAwareBinder(crefReference As CrefReferenceSyntax) As Binder
             ' To create type-param-aware binder we need to have type parameters, 
             ' but we don't want to do so if the binder is already created
-            If Me._typeParameterBinder IsNot Nothing Then
-                Return Me._typeParameterBinder
+            If _typeParameterBinder IsNot Nothing Then
+                Return _typeParameterBinder
             End If
 
             Dim typeParameters As New Dictionary(Of String, CrefTypeParameterSymbol)(IdentifierComparison.Comparer)
@@ -368,7 +368,7 @@ lAgain:
                     ' Fall through
 
                 Case SyntaxKind.GlobalName
-                    Return ImmutableArray.Create(Of Symbol)(Me.Compilation.GlobalNamespace)
+                    Return ImmutableArray.Create(Of Symbol)(Compilation.GlobalNamespace)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(name.Kind)
@@ -457,7 +457,7 @@ lAgain:
             signatureTypes = Nothing
             returnType = Nothing
 
-            Dim typeParameterAwareBinder As Binder = Me.GetOrCreateTypeParametersAwareBinder(typeParameters)
+            Dim typeParameterAwareBinder As Binder = GetOrCreateTypeParametersAwareBinder(typeParameters)
             Dim diagnostic = If(diagnosticBag, DiagnosticBag.GetInstance())
 
             Dim signature As CrefSignatureSyntax = reference.Signature
@@ -519,7 +519,7 @@ lAgain:
         End Sub
 
         Private Sub CollectTopLevelOperatorReferenceStrict(reference As CrefOperatorReferenceSyntax, argCount As Integer, symbols As ArrayBuilder(Of Symbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
-            CollectOperatorsAndConversionsInType(reference, argCount, Me.ContainingType, symbols, useSiteDiagnostics)
+            CollectOperatorsAndConversionsInType(reference, argCount, ContainingType, symbols, useSiteDiagnostics)
         End Sub
 
         Private Sub CollectSimpleNameSymbolsStrict(node As SimpleNameSyntax,
@@ -591,7 +591,7 @@ lAgain:
                     allowColorColor = False
 
                 Case SyntaxKind.GlobalName
-                    symbols.Add(Me.Compilation.GlobalNamespace)
+                    symbols.Add(Compilation.GlobalNamespace)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(left.Kind)
@@ -690,7 +690,7 @@ lAgain:
         End Sub
 
         Private Sub CollectConstructorsSymbolsStrict(symbols As ArrayBuilder(Of Symbol))
-            Dim containingSymbol As Symbol = Me.ContainingMember
+            Dim containingSymbol As Symbol = ContainingMember
             If containingSymbol Is Nothing Then
                 Return
             End If
@@ -732,7 +732,7 @@ lAgain:
 
             Dim result As LookupResult = LookupResult.GetInstance()
 
-            Me.Lookup(result, name, arity, If(typeOrNamespaceOnly, options Or LookupOptions.NamespacesOrTypesOnly, options), useSiteDiagnostics)
+            Lookup(result, name, arity, If(typeOrNamespaceOnly, options Or LookupOptions.NamespacesOrTypesOnly, options), useSiteDiagnostics)
 
             If Not result.IsGoodOrAmbiguous OrElse Not result.HasSymbol Then
                 result.Free()

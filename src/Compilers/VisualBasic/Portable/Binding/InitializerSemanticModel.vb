@@ -41,11 +41,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case node.Kind
                 Case SyntaxKind.FieldDeclaration
                     '  get field symbol
-                    If Me.MemberSymbol.Kind = SymbolKind.Field Then
-                        Dim fieldSymbol = DirectCast(Me.MemberSymbol, SourceFieldSymbol)
+                    If MemberSymbol.Kind = SymbolKind.Field Then
+                        Dim fieldSymbol = DirectCast(MemberSymbol, SourceFieldSymbol)
                         boundInitializer = BindInitializer(binder, fieldSymbol.EqualsValueOrAsNewInitOpt, diagnostics)
                     Else
-                        Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
+                        Dim propertySymbol = DirectCast(MemberSymbol, SourcePropertySymbol)
                         Dim declSyntax As ModifiedIdentifierSyntax = DirectCast(propertySymbol.Syntax, ModifiedIdentifierSyntax)
                         Dim declarator = DirectCast(declSyntax.Parent, VariableDeclaratorSyntax)
 
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.PropertyStatement
                     '  get property symbol
-                    Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
+                    Dim propertySymbol = DirectCast(MemberSymbol, SourcePropertySymbol)
                     Dim declSyntax As PropertyStatementSyntax = DirectCast(propertySymbol.DeclarationSyntax, PropertyStatementSyntax)
                     Dim initSyntax As VisualBasicSyntaxNode = declSyntax.AsClause
                     If initSyntax Is Nothing OrElse initSyntax.Kind <> SyntaxKind.AsNewClause Then
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     boundInitializer = BindInitializer(binder, initSyntax, diagnostics)
                 Case SyntaxKind.Parameter
-                    Dim parameterSyntax = DirectCast(node, parameterSyntax)
+                    Dim parameterSyntax = DirectCast(node, ParameterSyntax)
                     boundInitializer = BindInitializer(binder, parameterSyntax.Default, diagnostics)
 
                 Case SyntaxKind.EnumMemberDeclaration
@@ -89,19 +89,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindInitializer(binder As Binder, initializer As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As BoundNode
             Dim boundInitializer As BoundNode = Nothing
 
-            Select Case Me.MemberSymbol.Kind
+            Select Case MemberSymbol.Kind
                 Case SymbolKind.Field
                     '  try to get enum field symbol
-                    Dim enumFieldSymbol = TryCast(Me.MemberSymbol, SourceEnumConstantSymbol)
+                    Dim enumFieldSymbol = TryCast(MemberSymbol, SourceEnumConstantSymbol)
                     If enumFieldSymbol IsNot Nothing Then
                         Debug.Assert(initializer IsNot Nothing)
                         If initializer.Kind = SyntaxKind.EqualsValue Then
-                            Dim enumSymbol = DirectCast(Me.MemberSymbol, SourceEnumConstantSymbol)
+                            Dim enumSymbol = DirectCast(MemberSymbol, SourceEnumConstantSymbol)
                             boundInitializer = binder.BindFieldAndEnumConstantInitializer(enumSymbol, DirectCast(initializer, EqualsValueSyntax), isEnum:=True, diagnostics:=diagnostics, constValue:=Nothing)
                         End If
                     Else
                         '  get field symbol
-                        Dim fieldSymbol = DirectCast(Me.MemberSymbol, SourceFieldSymbol)
+                        Dim fieldSymbol = DirectCast(MemberSymbol, SourceFieldSymbol)
                         Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                         If initializer IsNot Nothing Then
                             ' bind const and non const field initializers the same to get a bound expression back and not a constant value.
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SymbolKind.Property
                     '  get property symbol
-                    Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
+                    Dim propertySymbol = DirectCast(MemberSymbol, SourcePropertySymbol)
                     Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                     binder.BindPropertyInitializer(ImmutableArray.Create(Of Symbol)(propertySymbol), initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
@@ -125,12 +125,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Parameter
                     Debug.Assert(initializer IsNot Nothing)
                     If initializer.Kind = SyntaxKind.EqualsValue Then
-                        Dim parameterSymbol = DirectCast(Me.RootBinder.ContainingMember, SourceComplexParameterSymbol)
+                        Dim parameterSymbol = DirectCast(RootBinder.ContainingMember, SourceComplexParameterSymbol)
                         boundInitializer = binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing)
                     End If
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(Me.MemberSymbol.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(MemberSymbol.Kind)
             End Select
 
             Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
@@ -140,15 +140,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function GetBoundRoot() As BoundNode
             ' In initializer the root bound node is sometimes not associated with Me.Root. Get the
             ' syntax that the root bound node should be associated with.
-            Dim rootSyntax = Me.Root
+            Dim rootSyntax = Root
 
             If rootSyntax.Kind = SyntaxKind.FieldDeclaration Then
-                Dim fieldSymbol = TryCast(Me.RootBinder.ContainingMember, SourceFieldSymbol)
+                Dim fieldSymbol = TryCast(RootBinder.ContainingMember, SourceFieldSymbol)
                 If fieldSymbol IsNot Nothing Then
                     rootSyntax = If(fieldSymbol.EqualsValueOrAsNewInitOpt, fieldSymbol.Syntax)
                 Else
                     ' 'WithEvents x As Y = ...'
-                    Dim propertySymbol = TryCast(Me.RootBinder.ContainingMember, SourcePropertySymbol)
+                    Dim propertySymbol = TryCast(RootBinder.ContainingMember, SourcePropertySymbol)
                     Debug.Assert(rootSyntax Is propertySymbol.DeclarationSyntax)
 
                     Dim propertyNameId = DirectCast(propertySymbol.Syntax, ModifiedIdentifierSyntax) ' serves as an assert
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, initializer As EqualsValueSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
             If binder Is Nothing Then
                 speculativeModel = Nothing
                 Return False

@@ -36,15 +36,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' CONSIDER: Do we want to ensure that speculated method and the original method have identical signatures?
 
             ' Create a speculative binder for the method body.
-            Dim methodSymbol = DirectCast(Me.MemberSymbol, methodSymbol)
+            Dim methodSymbol = DirectCast(MemberSymbol, MethodSymbol)
 
-            Dim containingBinder As binder = Me.RootBinder
+            Dim containingBinder As Binder = RootBinder
 
             ' Get up to the NamedTypeBinder
-            Dim namedTypeBinder As namedTypeBinder
+            Dim namedTypeBinder As NamedTypeBinder
 
             Do
-                namedTypeBinder = TryCast(containingBinder, namedTypeBinder)
+                namedTypeBinder = TryCast(containingBinder, NamedTypeBinder)
 
                 If namedTypeBinder IsNot Nothing Then
                     Exit Do
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function TryGetSpeculativeSemanticModelCore(parentModel As SyntaxTreeSemanticModel, position As Integer, statement As ExecutableStatementSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean
-            Dim binder = Me.GetEnclosingBinder(position)
+            Dim binder = GetEnclosingBinder(position)
             If binder Is Nothing Then
                 speculativeModel = Nothing
                 Return False

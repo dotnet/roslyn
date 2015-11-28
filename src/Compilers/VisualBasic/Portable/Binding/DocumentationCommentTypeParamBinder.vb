@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
-            If Me.CommentedSymbol Is Nothing Then
+            If CommentedSymbol Is Nothing Then
                 Return ImmutableArray(Of Symbol).Empty
             End If
 
@@ -34,13 +34,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                If Me.CommentedSymbol IsNot Nothing Then
-                    Select Case Me.CommentedSymbol.Kind
+                If CommentedSymbol IsNot Nothing Then
+                    Select Case CommentedSymbol.Kind
                         Case SymbolKind.NamedType
-                            Return DirectCast(Me.CommentedSymbol, NamedTypeSymbol).TypeParameters
+                            Return DirectCast(CommentedSymbol, NamedTypeSymbol).TypeParameters
 
                         Case SymbolKind.Method
-                            Return DirectCast(Me.CommentedSymbol, MethodSymbol).TypeParameters
+                            Return DirectCast(CommentedSymbol, MethodSymbol).TypeParameters
                     End Select
                 End If
 

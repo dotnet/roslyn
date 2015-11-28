@@ -15,13 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared ReadOnly Empty As SymbolsInProgress(Of T) = New SymbolsInProgress(Of T)(ImmutableSetWithInsertionOrder(Of T).Empty)
 
         Private Sub New(fields As ImmutableSetWithInsertionOrder(Of T))
-            Me._symbols = fields
+            _symbols = fields
         End Sub
 
         Friend Function Add(symbol As T) As SymbolsInProgress(Of T)
             Debug.Assert(symbol IsNot Nothing)
 
-            Return New SymbolsInProgress(Of T)(Me._symbols.Add(symbol))
+            Return New SymbolsInProgress(Of T)(_symbols.Add(symbol))
         End Function
 
         Friend Function Contains(symbol As T) As Boolean

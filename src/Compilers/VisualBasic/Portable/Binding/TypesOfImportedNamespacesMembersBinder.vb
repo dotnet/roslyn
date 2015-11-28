@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim currentResult = LookupResult.GetInstance()
                     originalBinder.LookupMemberInModules(currentResult, DirectCast(importedSym.NamespaceOrType, NamespaceSymbol), name, arity, options, useSiteDiagnostics)
                     If currentResult.IsGood AndAlso Not originalBinder.IsSemanticModelBinder Then
-                        Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, importedSym.ImportsClausePosition)
+                        Compilation.MarkImportDirectiveAsUsed(SyntaxTree, importedSym.ImportsClausePosition)
                     End If
 
                     lookupResult.MergeAmbiguous(currentResult, ImportedTypesAndNamespacesMembersBinder.GenerateAmbiguityError)
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim count = methods.Count
                     DirectCast(importedSym.NamespaceOrType, NamespaceSymbol).AppendProbableExtensionMethods(name, methods)
                     If methods.Count <> count AndAlso Not originalBinder.IsSemanticModelBinder Then
-                        Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, importedSym.ImportsClausePosition)
+                        Compilation.MarkImportDirectiveAsUsed(SyntaxTree, importedSym.ImportsClausePosition)
                     End If
                 End If
             Next

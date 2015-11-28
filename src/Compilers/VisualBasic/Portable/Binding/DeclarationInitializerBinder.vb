@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(symbol As Symbol, [next] As Binder, root As VisualBasicSyntaxNode)
             MyBase.New([next])
             Debug.Assert((symbol.Kind = SymbolKind.Field) OrElse (symbol.Kind = SymbolKind.Property) OrElse (symbol.Kind = SymbolKind.Parameter))
-            Me._symbol = symbol
+            _symbol = symbol
             Debug.Assert(root IsNot Nothing)
             _root = root
         End Sub
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
-                Return Me._symbol
+                Return _symbol
             End Get
         End Property
 

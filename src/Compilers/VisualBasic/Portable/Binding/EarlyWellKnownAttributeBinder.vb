@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _owner As Symbol
         Friend Sub New(owner As Symbol, containingBinder As Binder)
             MyBase.New(containingBinder, isEarlyAttributeBinder:=True)
-            Me._owner = owner
+            _owner = owner
         End Sub
 
         Public Overrides ReadOnly Property ContainingMember As Symbol
