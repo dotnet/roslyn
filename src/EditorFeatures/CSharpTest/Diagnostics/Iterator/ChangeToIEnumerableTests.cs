@@ -96,7 +96,7 @@ using System.Collections.Generic;
 
 class Program
 {
-    static IEnumerable<IList<int>> M()
+    static IEnumerable<int> M()
     {
         yield return 0;
     }

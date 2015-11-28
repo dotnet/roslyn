@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 root = root.ReplaceNode(node, newMethodDeclarationSyntax);
             }
 
-            var oldAccessor = (node.Parent.Parent as PropertyDeclarationSyntax);
+            var oldAccessor = (node?.Parent?.Parent as PropertyDeclarationSyntax);
             if (oldAccessor != null)
             {
                 root = root.ReplaceNode(oldAccessor, oldAccessor.WithType(newReturnType));
