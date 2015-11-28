@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.UnitTests;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;

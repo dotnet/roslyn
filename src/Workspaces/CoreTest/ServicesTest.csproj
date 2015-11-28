@@ -106,8 +106,6 @@
     <Compile Include="FormattingTests.cs" />
     <Compile Include="Formatting\FormattingTestBase.cs" />
     <Compile Include="GeneratedCodeRecognitionTests.cs" />
-    <Compile Include="WorkspaceTests\MSBuildWorkspaceTests.cs" />
-    <Compile Include="WorkspaceTests\MSBuildWorkspaceTestBase.cs" />
     <Compile Include="WorkspaceTests\WorkspaceTestBase.cs" />
     <Compile Include="SolutionTests\ProjectDependencyGraphTests.cs" />
     <Compile Include="SolutionTests\ProjectInfoTests.cs" />
