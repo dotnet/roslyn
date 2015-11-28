@@ -23,8 +23,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ITestExecutor.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="ProcessRunner.cs" />
+    <Compile Include="ProcessTestExecutor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="TestRunner.cs" />
     <Compile Include="ConsoleUtil.cs" />

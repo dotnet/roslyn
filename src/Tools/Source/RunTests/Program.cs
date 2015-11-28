@@ -29,7 +29,7 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            var testRunner = new TestRunner(options);
+            var testRunner = new TestRunner(new ProcessTestExecutor(options));
             var start = DateTime.Now;
 
             Console.WriteLine("Running {0} test assemblies", options.Assemblies.Count());
