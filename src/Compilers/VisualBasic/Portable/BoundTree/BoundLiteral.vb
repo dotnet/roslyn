@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundLiteral
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
             Get
-                Return Me.Value
+                Return Value
             End Get
         End Property
 

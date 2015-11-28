@@ -23,8 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property IsSingleLine As Boolean
             Get
-                Debug.Assert(TypeOf Me.Syntax Is LambdaExpressionSyntax)
-                Dim kind As SyntaxKind = Me.Syntax.Kind
+                Debug.Assert(TypeOf Syntax Is LambdaExpressionSyntax)
+                Dim kind As SyntaxKind = Syntax.Kind
 
                 Return kind = SyntaxKind.SingleLineFunctionLambdaExpression OrElse
                        kind = SyntaxKind.SingleLineSubLambdaExpression
@@ -36,8 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property IsFunctionLambda As Boolean
             Get
-                Debug.Assert(TypeOf Me.Syntax Is LambdaExpressionSyntax)
-                Dim kind As SyntaxKind = Me.Syntax.Kind
+                Debug.Assert(TypeOf Syntax Is LambdaExpressionSyntax)
+                Dim kind As SyntaxKind = Syntax.Kind
 
                 Return kind = SyntaxKind.SingleLineFunctionLambdaExpression OrElse
                        kind = SyntaxKind.MultiLineFunctionLambdaExpression
@@ -57,16 +57,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function InferReturnType(target As TargetSignature) As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))
             Debug.Assert(target IsNot Nothing AndAlso target.ReturnType.IsVoidType())
 
-            If Me.ReturnType IsNot Nothing Then
-                Dim result = New KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))(If(Me.IsFunctionLambda AndAlso Me.ReturnType.IsVoidType(),
+            If ReturnType IsNot Nothing Then
+                Dim result = New KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))(If(IsFunctionLambda AndAlso ReturnType.IsVoidType(),
                                                                                LambdaSymbol.ReturnTypeVoidReplacement,
-                                                                         Me.ReturnType),
+                                                                         ReturnType),
                                                                       Nothing)
 
                 Return _BindingCache.InferredReturnType.GetOrAdd(target, result)
             End If
 
-            Debug.Assert(Me.IsFunctionLambda)
+            Debug.Assert(IsFunctionLambda)
 
             Return _BindingCache.InferredReturnType.GetOrAdd(target, AddressOf DoInferFunctionLambdaReturnType)
         End Function
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not isByRef.IsNull)
                 Debug.Assert(returnType IsNot Nothing)
                 Me.ParameterTypes = parameterTypes
-                Me._isByRef = isByRef
+                _isByRef = isByRef
                 Me.ReturnType = returnType
             End Sub
 
@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isByRef = BitVector.Empty
 
                 If params.Length = 0 Then
-                    Me.ParameterTypes = ImmutableArray(Of TypeSymbol).Empty
+                    ParameterTypes = ImmutableArray(Of TypeSymbol).Empty
                 Else
                     Dim types(params.Length - 1) As TypeSymbol
                     Dim i As Integer
@@ -163,10 +163,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Next
 
-                    Me.ParameterTypes = types.AsImmutableOrNull
+                    ParameterTypes = types.AsImmutableOrNull
                 End If
 
-                Me._isByRef = isByRef
+                _isByRef = isByRef
                 Me.ReturnType = returnType
             End Sub
 
@@ -199,18 +199,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim other = TryCast(obj, TargetSignature)
 
-                If other Is Nothing OrElse other.ParameterTypes.Length <> Me.ParameterTypes.Length Then
+                If other Is Nothing OrElse other.ParameterTypes.Length <> ParameterTypes.Length Then
                     Return False
                 End If
 
                 For i As Integer = 0 To ParameterTypes.Length - 1
-                    If Me.ParameterTypes(i) <> other.ParameterTypes(i) OrElse
-                       Me._isByRef(i) <> other._isByRef(i) Then
+                    If ParameterTypes(i) <> other.ParameterTypes(i) OrElse
+                       _isByRef(i) <> other._isByRef(i) Then
                         Return False
                     End If
                 Next
 
-                Return Me.ReturnType = other.ReturnType
+                Return ReturnType = other.ReturnType
             End Function
         End Class
 

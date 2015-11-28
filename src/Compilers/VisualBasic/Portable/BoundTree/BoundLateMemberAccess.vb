@@ -23,10 +23,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Function SetAccessKind(newAccessKind As LateBoundAccessKind) As BoundLateMemberAccess
             Debug.Assert(newAccessKind = LateBoundAccessKind.Unknown OrElse
-                    Me.AccessKind = LateBoundAccessKind.Unknown OrElse
-                    Me.AccessKind = newAccessKind)
+                    AccessKind = LateBoundAccessKind.Unknown OrElse
+                    AccessKind = newAccessKind)
 
-            Return Me.Update(Me.NameOpt, Me.ContainerTypeOpt, Me.ReceiverOpt, Me.TypeArgumentsOpt, newAccessKind, Me.Type)
+            Return Update(NameOpt, ContainerTypeOpt, ReceiverOpt, TypeArgumentsOpt, newAccessKind, Type)
         End Function
 
 #If DEBUG Then

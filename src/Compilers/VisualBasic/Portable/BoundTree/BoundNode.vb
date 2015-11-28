@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overloads Function MemberwiseClone(Of T As BoundNode)() As T
-            Return DirectCast(Me.MemberwiseClone(), T)
+            Return DirectCast(MemberwiseClone(), T)
         End Function
 #End If
     End Class

@@ -28,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(Not Me.Expression.IsLValue)
+            Debug.Assert(Not Expression.IsLValue)
 
-            For Each index In Me.Indices
+            For Each index In Indices
                 Debug.Assert(Not index.IsLValue)
             Next
         End Sub

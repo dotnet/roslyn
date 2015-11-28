@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(Me.Type.IsValueType)
-            Debug.Assert(Not Me.Type.IsTypeParameter)
+            Debug.Assert(Type.IsValueType)
+            Debug.Assert(Not Type.IsTypeParameter)
         End Sub
 #End If
 

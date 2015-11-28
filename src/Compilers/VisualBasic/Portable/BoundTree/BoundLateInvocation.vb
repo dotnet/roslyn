@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Function SetAccessKind(newAccessKind As LateBoundAccessKind) As BoundLateInvocation
             Debug.Assert(newAccessKind = LateBoundAccessKind.Unknown OrElse
-                    Me.AccessKind = LateBoundAccessKind.Unknown OrElse
-                    Me.AccessKind = newAccessKind)
+                    AccessKind = LateBoundAccessKind.Unknown OrElse
+                    AccessKind = newAccessKind)
 
             Dim member As BoundExpression = Me.Member
 
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 member = DirectCast(member, BoundLateMemberAccess).SetAccessKind(newAccessKind)
             End If
 
-            Return Me.Update(member, Me.ArgumentsOpt, Me.ArgumentNamesOpt, newAccessKind, Me.MethodOrPropertyGroupOpt, Me.Type)
+            Return Update(member, ArgumentsOpt, ArgumentNamesOpt, newAccessKind, MethodOrPropertyGroupOpt, Type)
         End Function
 
 #If DEBUG Then
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert((AccessKind And LateBoundAccessKind.Call) = 0 OrElse (AccessKind And Not LateBoundAccessKind.Call) = 0)
 
             If Member.Kind = BoundKind.LateMemberAccess Then
-                Debug.Assert(DirectCast(Member, BoundLateMemberAccess).AccessKind = Me.AccessKind)
+                Debug.Assert(DirectCast(Member, BoundLateMemberAccess).AccessKind = AccessKind)
             End If
 
             Debug.Assert(Type.IsObjectType())

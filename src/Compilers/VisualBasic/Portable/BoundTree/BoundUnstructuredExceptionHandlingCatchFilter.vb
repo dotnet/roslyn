@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(Me.Type.IsBooleanType())
+            Debug.Assert(Type.IsBooleanType())
         End Sub
 #End If
 

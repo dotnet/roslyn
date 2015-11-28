@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.LocalSymbol
+                Return LocalSymbol
             End Get
         End Property
 
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim result As ConstantValue = LocalSymbol.GetConstantValue(Nothing)
 #If DEBUG Then
-                ValidateConstantValue(Me.Type, result)
+                ValidateConstantValue(Type, result)
 #End If
                 Return result
             End Get

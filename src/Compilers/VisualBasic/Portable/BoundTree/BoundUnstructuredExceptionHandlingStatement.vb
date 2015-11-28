@@ -10,13 +10,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(Me.ContainsOnError OrElse Me.ContainsResume OrElse Me.TrackLineNumber)
-            Debug.Assert(Me.ResumeWithoutLabelOpt Is Nothing OrElse Me.ContainsResume)
+            Debug.Assert(ContainsOnError OrElse ContainsResume OrElse TrackLineNumber)
+            Debug.Assert(ResumeWithoutLabelOpt Is Nothing OrElse ContainsResume)
 
-            If Me.ResumeWithoutLabelOpt IsNot Nothing Then
-                Debug.Assert(Me.ResumeWithoutLabelOpt.Kind = SyntaxKind.OnErrorResumeNextStatement OrElse
-                             Me.ResumeWithoutLabelOpt.Kind = SyntaxKind.ResumeNextStatement OrElse
-                             Me.ResumeWithoutLabelOpt.Kind = SyntaxKind.ResumeStatement)
+            If ResumeWithoutLabelOpt IsNot Nothing Then
+                Debug.Assert(ResumeWithoutLabelOpt.Kind = SyntaxKind.OnErrorResumeNextStatement OrElse
+                             ResumeWithoutLabelOpt.Kind = SyntaxKind.ResumeNextStatement OrElse
+                             ResumeWithoutLabelOpt.Kind = SyntaxKind.ResumeStatement)
             End If
         End Sub
 #End If
