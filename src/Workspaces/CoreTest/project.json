@@ -1,11 +1,17 @@
 ﻿{
+  "supports": {
+    "net46.app": {},
+    "dnxcore50.app": {}
+  },
   "dependencies": {
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
+    "Microsoft.CSharp": "4.0.0",
+    "System.Dynamic.Runtime": "4.0.10",
     "xunit.runner.console": "2.1.0"
   },
   "frameworks": {
-    "net46": {}
-  },
-  "runtimes": {
-    "win7": { }
+    "dotnet": {
+      "imports": "portable-net452"
+    }
   }
 }
