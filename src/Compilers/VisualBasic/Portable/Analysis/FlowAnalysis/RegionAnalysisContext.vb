@@ -49,23 +49,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' a separate parameter because we do have it anyways)
         ''' </summary>
         Friend Sub New(compilation As VisualBasicCompilation, member As Symbol, boundNode As BoundNode, firstInRegion As BoundNode, lastInRegion As BoundNode, region As textspan)
-            Me._compilation = compilation
-            Me._symbol = member
-            Me._boundNode = boundNode
+            _compilation = compilation
+            _symbol = member
+            _boundNode = boundNode
 
-            Me._region = region
-            Me._firstInRegion = firstInRegion
-            Me._lastInRegion = lastInRegion
-            Me.Failed = Me._symbol Is Nothing OrElse Me._boundNode Is Nothing OrElse Me._firstInRegion Is Nothing OrElse Me._lastInRegion Is Nothing
+            _region = region
+            _firstInRegion = firstInRegion
+            _lastInRegion = lastInRegion
+            Failed = _symbol Is Nothing OrElse _boundNode Is Nothing OrElse _firstInRegion Is Nothing OrElse _lastInRegion Is Nothing
 
-            If Not Me.Failed AndAlso Me._firstInRegion Is Me._lastInRegion Then
+            If Not Failed AndAlso _firstInRegion Is _lastInRegion Then
 
-                Select Case Me._firstInRegion.Kind
+                Select Case _firstInRegion.Kind
                     Case BoundKind.NamespaceExpression,
                          BoundKind.TypeExpression
 
                         ' Some bound nodes are still considered to be invalid for flow analysis
-                        Me.Failed = True
+                        Failed = True
                 End Select
 
             End If
@@ -75,26 +75,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Construct context with Failed flag
         ''' </summary>
         Friend Sub New(compilation As VisualBasicCompilation)
-            Me._compilation = compilation
-            Me._symbol = Nothing
-            Me._boundNode = Nothing
-            Me._region = Nothing
-            Me._firstInRegion = Nothing
-            Me._lastInRegion = Nothing
-            Me.Failed = True
+            _compilation = compilation
+            _symbol = Nothing
+            _boundNode = Nothing
+            _region = Nothing
+            _firstInRegion = Nothing
+            _lastInRegion = Nothing
+            Failed = True
         End Sub
 
         Friend ReadOnly Property AnalysisInfo As FlowAnalysisInfo
             Get
-                Debug.Assert(Not Me.Failed)
-                Return New FlowAnalysisInfo(Me._compilation, Me._symbol, Me._boundNode)
+                Debug.Assert(Not Failed)
+                Return New FlowAnalysisInfo(_compilation, _symbol, _boundNode)
             End Get
         End Property
 
         Friend ReadOnly Property RegionInfo As FlowAnalysisRegionInfo
             Get
-                Debug.Assert(Not Me.Failed)
-                Return New FlowAnalysisRegionInfo(Me._firstInRegion, Me._lastInRegion, Me._region)
+                Debug.Assert(Not Failed)
+                Return New FlowAnalysisRegionInfo(_firstInRegion, _lastInRegion, _region)
             End Get
         End Property
 

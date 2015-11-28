@@ -31,52 +31,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property Count As Integer
                 Get
-                    If Me._builder IsNot Nothing Then
-                        Return Me._builder.Count
+                    If _builder IsNot Nothing Then
+                        Return _builder.Count
                     End If
-                    Return If(Me._singleValue = SlotKind.Unreachable, 0, 1)
+                    Return If(_singleValue = SlotKind.Unreachable, 0, 1)
                 End Get
             End Property
 
             Default Public Property Item(index As Integer) As Integer
                 Get
-                    Debug.Assert(index >= 0 AndAlso index < Me.Count)
-                    If Me._builder IsNot Nothing Then
-                        Return Me._builder(index)
+                    Debug.Assert(index >= 0 AndAlso index < Count)
+                    If _builder IsNot Nothing Then
+                        Return _builder(index)
                     End If
-                    Return Me._singleValue
+                    Return _singleValue
                 End Get
                 Set(value As Integer)
-                    Debug.Assert(index >= 0 AndAlso index < Me.Count)
+                    Debug.Assert(index >= 0 AndAlso index < Count)
                     Debug.Assert(value <> SlotKind.Unreachable)
-                    If Me._builder IsNot Nothing Then
-                        Me._builder(index) = value
+                    If _builder IsNot Nothing Then
+                        _builder(index) = value
                     End If
-                    Me._singleValue = value
+                    _singleValue = value
                 End Set
             End Property
 
             Public Sub Append(slot As Integer)
                 Debug.Assert(slot <> SlotKind.Unreachable)
-                If Me._builder IsNot Nothing Then
-                    Me._builder.Add(slot)
+                If _builder IsNot Nothing Then
+                    _builder.Add(slot)
 
-                ElseIf Me._singleValue = 0 Then
-                    Me._singleValue = slot
+                ElseIf _singleValue = 0 Then
+                    _singleValue = slot
 
                 Else
-                    Me._builder = ArrayBuilder(Of Integer).GetInstance()
-                    Me._builder.Add(Me._singleValue)
-                    Me._builder.Add(slot)
+                    _builder = ArrayBuilder(Of Integer).GetInstance()
+                    _builder.Add(_singleValue)
+                    _builder.Add(slot)
                 End If
             End Sub
 
             Public Sub Free()
-                If Me._builder IsNot Nothing Then
-                    Me._builder.Free()
-                    Me._builder = Nothing
+                If _builder IsNot Nothing Then
+                    _builder.Free()
+                    _builder = Nothing
                 End If
-                Me._singleValue = 0
+                _singleValue = 0
             End Sub
         End Structure
 

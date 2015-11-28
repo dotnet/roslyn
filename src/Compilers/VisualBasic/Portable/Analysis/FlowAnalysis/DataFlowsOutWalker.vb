@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(info, region, unassignedVariables, trackUnassignments:=True, trackStructsWithIntrinsicTypedFields:=True)
 
-            Me._dataFlowsIn = dataFlowsIn
-            Me._originalUnassigned = originalUnassigned
+            _dataFlowsIn = dataFlowsIn
+            _originalUnassigned = originalUnassigned
         End Sub
 
         Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
@@ -66,8 +66,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' that flows in is assigned at the beginning of the loop.  If it isn't, then it must 
             ' be in a loop and flow out of the region in that loop (and into the region inside the loop).
             For Each variable As Symbol In _dataFlowsIn
-                Dim slot As Integer = Me.MakeSlot(variable)
-                If Not Me.State.IsAssigned(slot) AndAlso variable.Kind <> SymbolKind.RangeVariable AndAlso
+                Dim slot As Integer = MakeSlot(variable)
+                If Not State.IsAssigned(slot) AndAlso variable.Kind <> SymbolKind.RangeVariable AndAlso
                         (variable.Kind <> SymbolKind.Local OrElse Not DirectCast(variable, LocalSymbol).IsStatic) Then
                     _dataFlowsOut.Add(variable)
                 End If
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' any reachable assignment to a ref or out parameter can 
                 ' be visible to the caller in the face of exceptions.
-                If Me.State.Reachable Then
+                If State.Reachable Then
                     Select Case node.Kind
 
                         Case BoundKind.Parameter, BoundKind.MeReference
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub NoteWrite(variable As Symbol, value As BoundExpression)
-            If Me.State.Reachable Then
+            If State.Reachable Then
                 Dim isByRefParameter As Boolean = variable.Kind = SymbolKind.Parameter AndAlso DirectCast(variable, ParameterSymbol).IsByRef
                 Dim isStaticLocal As Boolean = variable.Kind = SymbolKind.Local AndAlso DirectCast(variable, LocalSymbol).IsStatic
 
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function WasUsedBeforeAssignment(sym As Symbol) As Boolean
-            Return Me._originalUnassigned.Contains(sym)
+            Return _originalUnassigned.Contains(sym)
         End Function
 
         Friend Overrides Sub AssignLocalOnDeclaration(local As LocalSymbol, node As BoundLocalDeclaration)

@@ -57,8 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Sub EnterRegion()
-            Me.SetState(ResetState(Me.State))
-            Me._dataFlowsIn.Clear()
+            SetState(ResetState(State))
+            _dataFlowsIn.Clear()
             MyBase.EnterRegion()
         End Sub
 
@@ -96,8 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' in which case set a flag that the region is not valid
             If IsInside Then
                 Dim firstLocal As LocalSymbol = ambiguous.Locals(0)
-                If Not Me.State.IsAssigned(VariableSlot(firstLocal)) Then
-                    Me.SetInvalidRegion()
+                If Not State.IsAssigned(VariableSlot(firstLocal)) Then
+                    SetInvalidRegion()
                 End If
             End If
         End Sub
