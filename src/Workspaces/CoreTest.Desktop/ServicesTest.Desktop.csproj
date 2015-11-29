@@ -92,6 +92,9 @@
     <Compile Include="UtilityTest\FilePathUtilitiesTests.cs" />
     <Compile Include="CodeCleanup\FixIncorrectTokenTests.cs" />
     <Compile Include="CodeCleanup\ReduceTokenTests.cs" />
+    <Compile Include="SolutionTests\SolutionTests.cs" />
+    <Compile Include="WorkspaceServiceTests\TemporaryStorageServiceTests.cs" />
+    <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTestBase.cs" />
   </ItemGroup>

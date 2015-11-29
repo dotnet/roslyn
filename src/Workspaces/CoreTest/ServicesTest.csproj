@@ -86,7 +86,6 @@
     <Compile Include="CodeCleanup\Extensions.cs" />
     <Compile Include="CodeCleanup\NormalizeModifiersOrOperatorsTests.cs" />
     <Compile Include="CodeCleanup\RemoveUnnecessaryLineContinuationTests.cs" />
-    <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
     <Compile Include="WorkspaceTests\AdhocWorkspaceTests.cs" />
     <Compile Include="Differencing\MatchTests.cs" />
     <Compile Include="Differencing\TestNode.cs" />
@@ -111,12 +110,10 @@
     <Compile Include="SerializationTests.cs" />
     <Compile Include="SolutionGeneration.cs" />
     <Compile Include="WorkspaceTests\SolutionParsingTests.cs" />
-    <Compile Include="SolutionTests\SolutionTests.cs" />
     <Compile Include="SolutionUtilities.cs" />
     <Compile Include="SyntaxNodeTests.cs" />
     <Compile Include="SyntaxPathTests.cs" />
     <Compile Include="SyntaxReferenceTests.cs" />
-    <Compile Include="WorkspaceServiceTests\TemporaryStorageServiceTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestOptionService.cs" />
     <Compile Include="TestWorkspace.cs" />
     <Compile Include="WorkspaceTests\WorkspaceExtensions.cs" />

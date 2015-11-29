@@ -151,6 +151,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        // TODO: Port this to ServicesTest.Desktop.
+#if false
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_CommandLineProject()
         {
@@ -185,6 +187,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var compilation = project.GetCompilationAsync().Result;
             }
         }
+#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_TryApplyChanges()
