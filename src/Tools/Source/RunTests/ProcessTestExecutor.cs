@@ -126,20 +126,5 @@ namespace RunTests
                 throw new Exception($"Unable to run {assemblyPath} with {_options.XunitPath}. {ex}");
             }
         }
-
-        private static void DeleteFile(string filePath)
-        {
-            try
-            {
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
     }
 }

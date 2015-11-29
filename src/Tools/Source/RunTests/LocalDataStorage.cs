@@ -57,11 +57,7 @@ namespace RunTests
             {
                 try
                 {
-                    if (!Directory.Exists(_storagePath))
-                    {
-                        Directory.CreateDirectory(_storagePath);
-                    }
-
+                    FileUtil.EnsureDirectory(_storagePath);
                     var filePath = Path.Combine(_storagePath, cacheKey);
                     File.WriteAllText(filePath, testResult.AssemblyName);
                 }

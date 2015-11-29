@@ -25,6 +25,7 @@
   <ItemGroup>
     <Compile Include="CacheUtil.cs" />
     <Compile Include="CachingTestExecutor.cs" />
+    <Compile Include="FileUtil.cs" />
     <Compile Include="IDataStorage.cs" />
     <Compile Include="ITestExecutor.cs" />
     <Compile Include="LocalDataStorage.cs" />
