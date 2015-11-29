@@ -68,7 +68,7 @@ namespace RunTests
         {
             var builder = new StringBuilder();
             builder.AppendLine($"Assembly: {Path.GetFileName(assemblyPath)} {GetFileChecksum(assemblyPath)}");
-            builder.AppendLine($"Xunit: {_options.XunitPath} {GetFileChecksum(_options.XunitPath)}");
+            builder.AppendLine($"Xunit: {Path.GetFileName(_options.XunitPath)} {GetFileChecksum(_options.XunitPath)}");
             AppendReferences(builder, assemblyPath);
             builder.AppendLine("Options:");
             builder.AppendLine($"\t{nameof(_options.Test64)} - {_options.Test64}");
@@ -79,15 +79,6 @@ namespace RunTests
             // TODO: Need to include dependency information here, option data, etc ...
             // Test file alone isn't enough.  Makes it easy to test though.
             return builder.ToString();
-        }
-
-        private void AppendFileLine(StringBuilder builder, string assemblyPath)
-        {
-            // TODO: Use something like a /pathmap option to normalize this when we 
-            // want to share across developer machines. 
-            var fileHash = GetFileChecksum(assemblyPath);
-            builder.AppendFormat($"{assemblyPath} {fileHash}");
-            builder.AppendLine();
         }
 
         private void AppendReferences(StringBuilder builder, string assemblyPath)
@@ -149,7 +140,6 @@ namespace RunTests
             return data.Replace("-", "");
         }
 
-        // TODO: make this async? 
         private string GetFileChecksum(string filePath)
         {
             string checksum;
