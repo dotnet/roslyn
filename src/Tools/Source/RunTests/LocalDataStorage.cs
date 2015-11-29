@@ -14,6 +14,16 @@ namespace RunTests
     /// </summary>
     internal sealed class LocalDataStorage : IDataStorage
     {
+        private enum StorageKind
+        {
+            AssemblyPath,
+            ExitCode,
+            CommandLine,
+            StandardOutput,
+            ErrorOutput,
+            ResultsFile,
+        }
+
         internal const string DirectoryName = "RunTestsStorage";
 
         private readonly string _storagePath;
@@ -27,31 +37,39 @@ namespace RunTests
         {
             testResult = default(TestResult);
 
-            var filePath = Path.Combine(_storagePath, cacheKey);
+            var storageFolder = GetStorageFolder(cacheKey);
+            if (!Directory.Exists(storageFolder))
+            {
+                return false;
+            }
+
             try
             {
-                if (!File.Exists(filePath))
+                var exitCode = Read(cacheKey, StorageKind.ExitCode);
+                var commandLine = Read(cacheKey, StorageKind.CommandLine);
+                var assemblyPath = Read(cacheKey, StorageKind.AssemblyPath);
+                var standardOutput = Read(cacheKey, StorageKind.StandardOutput);
+                var errorOutput = Read(cacheKey, StorageKind.ErrorOutput);
+                var resultsFilePath = GetStoragePath(cacheKey, StorageKind.ResultsFile);
+                if (!File.Exists(resultsFilePath))
                 {
-                    return false;
+                    resultsFilePath = null;
                 }
 
-                var text = File.ReadAllText(filePath);
-                if (text.Length > 0)
-                {
-                    testResult = new TestResult(
-                        exitCode: 0,
-                        assemblyPath: text,
-                        elapsed: TimeSpan.FromSeconds(0),
-                        commandLine: string.Empty,
-                        resultsFilePath: null,
-                        standardOutput: string.Empty,
-                        errorOutput: string.Empty);
-                    return true;
-                }
+                testResult = new TestResult(
+                    exitCode: int.Parse(exitCode),
+                    assemblyPath: assemblyPath,
+                    resultsFilePath: resultsFilePath,
+                    commandLine: commandLine,
+                    elapsed: TimeSpan.FromSeconds(0),
+                    standardOutput: standardOutput,
+                    errorOutput: errorOutput);
+                return true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 // Okay for exception to occur here on I/O
+                Logger.Log($"Failed to read cache {cacheKey} {e.Message}");
             }
 
             return false;
@@ -59,20 +77,53 @@ namespace RunTests
 
         public void AddTestResult(string cacheKey, TestResult testResult)
         {
-            // TODO: Cache more than just success 
-            if (testResult.Succeeded)
+            var storagePath = Path.Combine(_storagePath, cacheKey);
+            try
             {
-                try
+                if (!FileUtil.EnsureDirectory(storagePath))
                 {
-                    FileUtil.EnsureDirectory(_storagePath);
-                    var filePath = Path.Combine(_storagePath, cacheKey);
-                    File.WriteAllText(filePath, testResult.AssemblyName);
+                    return;
                 }
-                catch (Exception)
+
+                Write(cacheKey, StorageKind.ExitCode, testResult.ExitCode.ToString());
+                Write(cacheKey, StorageKind.AssemblyPath, testResult.AssemblyPath);
+                Write(cacheKey, StorageKind.StandardOutput, testResult.StandardOutput);
+                Write(cacheKey, StorageKind.ErrorOutput, testResult.ErrorOutput);
+                Write(cacheKey, StorageKind.CommandLine, testResult.CommandLine);
+
+                if (!string.IsNullOrEmpty(testResult.ResultsFilePath))
                 {
-                    // I/O errors are expected and okay here.
+                    File.Copy(testResult.ResultsFilePath, GetStoragePath(cacheKey, StorageKind.ResultsFile));
                 }
             }
+            catch (Exception e)
+            {
+                // I/O errors are expected and okay here.
+                Logger.Log($"Failed to log {cacheKey} {e.Message}");
+                FileUtil.DeleteDirectory(storagePath);
+            }
+        }
+
+        private string GetStorageFolder(string cacheKey)
+        {
+            return Path.Combine(_storagePath, cacheKey);
+        }
+
+        private string GetStoragePath(string cacheKey, StorageKind kind)
+        {
+            return Path.Combine(GetStorageFolder(cacheKey), kind.ToString());
+        }
+
+        private void Write(string cacheKey, StorageKind kind, string contents)
+        {
+            var filePath = GetStoragePath(cacheKey, kind);
+            File.WriteAllText(filePath, contents);
+        }
+
+        private string Read(string cacheKey, StorageKind kind)
+        {
+            var filePath = GetStoragePath(cacheKey, kind);
+            return File.ReadAllText(filePath);
         }
     }
 }

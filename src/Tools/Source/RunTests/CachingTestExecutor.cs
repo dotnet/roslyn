@@ -35,6 +35,7 @@ namespace RunTests
             {
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
                 testResult = await _testExecutor.RunTest(assemblyPath, cancellationToken);
+                testResult = Migrate(testResult);
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - caching");
                 _dataStorage.AddTestResult(cacheKey, testResult);
             }
@@ -44,6 +45,34 @@ namespace RunTests
             }
 
             return testResult;
+        }
+
+        /// <summary>
+        /// The results file is specified in terms of the cache storage.  Need to make it local
+        /// to the current output folder
+        /// </summary>
+        /// <param name="testResult"></param>
+        /// <returns></returns>
+        private static TestResult Migrate(TestResult testResult)
+        {
+            if (string.IsNullOrEmpty(testResult.ResultsFilePath))
+            {
+                return testResult;
+            }
+
+            var resultsDir = Path.Combine(Path.GetDirectoryName(testResult.AssemblyPath), Constants.ResultsDirectoryName);
+            FileUtil.EnsureDirectory(resultsDir);
+            var resultsFilePath = Path.Combine(resultsDir, Path.GetFileName(testResult.ResultsFilePath));
+            File.Copy(testResult.ResultsFilePath, resultsFilePath, overwrite: true);
+
+            return new TestResult(
+                exitCode: testResult.ExitCode,
+                assemblyPath: testResult.AssemblyName,
+                resultsFilePath: resultsFilePath,
+                commandLine: testResult.CommandLine,
+                elapsed: testResult.Elapsed,
+                standardOutput: testResult.StandardOutput,
+                errorOutput: testResult.ErrorOutput);
         }
     }
 }
