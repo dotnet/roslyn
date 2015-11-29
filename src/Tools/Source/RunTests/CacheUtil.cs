@@ -11,6 +11,20 @@ using System.Threading.Tasks;
 
 namespace RunTests
 {
+    internal struct CacheFile
+    {
+        internal static readonly CacheFile Empty = new CacheFile(string.Empty, string.Empty);
+
+        internal readonly string CacheKey;
+        internal readonly string Contents;
+
+        internal CacheFile(string cacheKey, string contents)
+        {
+            CacheKey = cacheKey;
+            Contents = contents;
+        }
+    }
+
     internal sealed class CacheUtil
     {
         private readonly Options _options;
@@ -27,29 +41,26 @@ namespace RunTests
         /// </summary>
         internal string GetCacheKey(string assemblyPath)
         {
-            try
-            {
-                var fileContents = BuildAssemblyCacheFile(assemblyPath);
-                return GetHashString(fileContents);
-            }
-            catch
-            {
-                // Lots of file IO that can fail.  When it fails return a value
-                // that's unique and won't result in a cache hit.
-                return Guid.NewGuid().ToString();
-            }
+            return GetCacheFile(assemblyPath).CacheKey;
         }
 
-        internal string GetCacheFile(string assemblyPath)
+        internal string GetCacheFileContents(string assemblyPath)
+        {
+            return BuildAssemblyCacheFile(assemblyPath);
+        }
+
+        internal CacheFile GetCacheFile(string assemblyPath)
         {
             try
             {
-                return BuildAssemblyCacheFile(assemblyPath);
+                var contents = GetCacheFileContents(assemblyPath);
+                var checksum = GetHashString(contents);
+                return new CacheFile(cacheKey: checksum, contents: contents);
             }
             catch (Exception ex)
             {
                 Logger.Log($"Error creating log file {ex.Message} {ex.StackTrace}");
-                return string.Empty;
+                return CacheFile.Empty;
             }
         }
 
@@ -87,6 +98,7 @@ namespace RunTests
             var set = new HashSet<string>();
             var toVisit = new Queue<AssemblyName>(initialAssembly.GetReferencedAssemblies());
             var binariesPath = Path.GetDirectoryName(initialAssembly.Location);
+            var references = new List<Tuple<string, string>>();
 
             while (toVisit.Count > 0)
             {
@@ -109,12 +121,18 @@ namespace RunTests
                     }
 
                     var currentHash = GetFileChecksum(currentAssembly.Location);
-                    builder.AppendLine($"\t{current.Name} {currentHash}");
+                    references.Add(Tuple.Create(current.Name, currentHash));
                 }
                 catch
                 {
-                    builder.AppendLine($"\t{current.Name} <could not calculate checksum>");
+                    references.Add(Tuple.Create(current.Name, "<could not calculate checksum>"));
                 }
+            }
+
+            references.Sort((x, y) => x.Item1.CompareTo(y.Item1));
+            foreach (var pair in references)
+            {
+                builder.AppendLine($"\t{pair.Item1} {pair.Item2}");
             }
         }
 
@@ -131,6 +149,7 @@ namespace RunTests
             return data.Replace("-", "");
         }
 
+        // TODO: make this async? 
         private string GetFileChecksum(string filePath)
         {
             string checksum;
@@ -145,7 +164,7 @@ namespace RunTests
         }
 
         private string GetFileChecksumCore(string filePath)
-        { 
+        {
             var bytes = File.ReadAllBytes(filePath);
             var hashBytes = _hash.ComputeHash(bytes);
             return HashBytesToString(hashBytes);

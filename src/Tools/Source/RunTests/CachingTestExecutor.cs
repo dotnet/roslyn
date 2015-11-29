@@ -22,21 +22,21 @@ namespace RunTests
 
         public async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
-            var cacheKey = _cacheUtil.GetCacheKey(assemblyPath);
+            var cacheFile = _cacheUtil.GetCacheFile(assemblyPath);
             var builder = new StringBuilder();
-            builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {cacheKey}");
+            builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {cacheFile.CacheKey}");
             builder.AppendLine("===");
-            builder.AppendLine(_cacheUtil.GetCacheFile(assemblyPath));
+            builder.AppendLine(cacheFile.Contents);
             builder.AppendLine("===");
             Logger.Log(builder.ToString());
 
             TestResult testResult;
-            if (!_dataStorage.TryGetTestResult(cacheKey, out testResult))
+            if (!_dataStorage.TryGetTestResult(cacheFile.CacheKey, out testResult))
             {
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
                 testResult = await _testExecutor.RunTest(assemblyPath, cancellationToken);
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - caching");
-                _dataStorage.AddTestResult(cacheKey, testResult);
+                _dataStorage.AddTestResult(cacheFile, testResult);
             }
             else
             {

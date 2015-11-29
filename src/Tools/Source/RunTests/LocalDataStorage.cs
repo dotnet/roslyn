@@ -22,6 +22,7 @@ namespace RunTests
             StandardOutput,
             ErrorOutput,
             ResultsFile,
+            CacheFile
         }
 
         internal const string DirectoryName = "RunTestsStorage";
@@ -75,8 +76,9 @@ namespace RunTests
             return false;
         }
 
-        public void AddTestResult(string cacheKey, TestResult testResult)
+        public void AddTestResult(CacheFile cacheFile, TestResult testResult)
         {
+            var cacheKey = cacheFile.CacheKey;
             var storagePath = Path.Combine(_storagePath, cacheKey);
             try
             {
@@ -90,6 +92,7 @@ namespace RunTests
                 Write(cacheKey, StorageKind.StandardOutput, testResult.StandardOutput);
                 Write(cacheKey, StorageKind.ErrorOutput, testResult.ErrorOutput);
                 Write(cacheKey, StorageKind.CommandLine, testResult.CommandLine);
+                Write(cacheKey, StorageKind.CacheFile, cacheFile.Contents);
 
                 if (!string.IsNullOrEmpty(testResult.ResultsFilePath))
                 {

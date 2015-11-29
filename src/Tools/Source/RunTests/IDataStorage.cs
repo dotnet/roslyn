@@ -12,6 +12,6 @@ namespace RunTests
     {
         bool TryGetTestResult(string cacheKey, out TestResult testResult);
 
-        void AddTestResult(string cacheKey, TestResult testResult);
+        void AddTestResult(CacheFile cacheFile, TestResult testResult);
     }
 }
