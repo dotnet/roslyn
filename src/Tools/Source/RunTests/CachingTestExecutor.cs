@@ -13,10 +13,12 @@ namespace RunTests
     {
         private readonly ITestExecutor _testExecutor;
         private readonly CacheUtil _cacheUtil;
+        private readonly IDataStorage _dataStorage;
 
-        internal CachingTestExecutor(ITestExecutor testExecutor)
+        internal CachingTestExecutor(ITestExecutor testExecutor, IDataStorage dataStorage)
         {
             _testExecutor = testExecutor;
+            _dataStorage = dataStorage;
             _cacheUtil = new CacheUtil();
         }
 
@@ -24,10 +26,10 @@ namespace RunTests
         {
             var cacheKey = _cacheUtil.GetCacheKey(assemblyPath);
             TestResult testResult;
-            if (!_cacheUtil.TryGetTestResult(cacheKey, out testResult))
+            if (!_dataStorage.TryGetTestResult(cacheKey, out testResult))
             {
                 testResult = await _testExecutor.RunTest(assemblyPath, cancellationToken);
-                _cacheUtil.AddTestResult(cacheKey, testResult);
+                _dataStorage.AddTestResult(cacheKey, testResult);
             }
 
             return testResult;

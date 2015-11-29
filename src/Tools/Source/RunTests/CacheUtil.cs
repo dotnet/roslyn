@@ -32,17 +32,6 @@ namespace RunTests
             }
         }
 
-        internal bool TryGetTestResult(string cacheKey, out TestResult testResult)
-        {
-            testResult = default(TestResult);
-            return false;
-        }
-
-        internal void AddTestResult(string cacheKey, TestResult testResult)
-        {
-            
-        }
-
         private string BuildAssemblyCacheFile(string assemblyPath)
         {
             var builder = new StringBuilder();
