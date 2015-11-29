@@ -47,14 +47,14 @@ namespace RunTests
             // TODO: Use something like a /pathmap option to normalize this when we 
             // want to share across developer machines. 
             var fileHash = GetFileChecksum(assemblyPath);
-            builder.AppendFormat($"{assemblyPath} {Encoding.UTF8.GetString(fileHash)}");
+            builder.AppendFormat($"{assemblyPath} {BitConverter.ToString(fileHash)}");
         }
 
         private string GetHashString(string input)
         {
             var inputBytes = Encoding.UTF8.GetBytes(input);
             var hashBytes = _hash.ComputeHash(inputBytes);
-            return Encoding.UTF8.GetString(hashBytes);
+            return BitConverter.ToString(hashBytes);
         }
 
         private byte[] GetFileChecksum(string filePath)

@@ -52,6 +52,7 @@ namespace RunTests
                 return 1;
             }
 
+            Logger.Finish();
             Console.WriteLine("All tests passed: {0}", span);
             return options.MissingAssemblies.Any() ? 1 : 0;
         }

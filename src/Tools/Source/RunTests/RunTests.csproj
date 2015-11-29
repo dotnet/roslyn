@@ -28,6 +28,7 @@
     <Compile Include="IDataStorage.cs" />
     <Compile Include="ITestExecutor.cs" />
     <Compile Include="LocalDataStorage.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessTestExecutor.cs" />
