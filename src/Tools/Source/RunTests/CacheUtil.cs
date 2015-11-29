@@ -15,6 +15,7 @@ namespace RunTests
     {
         private readonly Options _options;
         private readonly MD5 _hash = MD5.Create();
+        private readonly Dictionary<string, string> _fileToChecksumMap = new Dictionary<string, string>();
 
         internal CacheUtil(Options options)
         {
@@ -132,6 +133,19 @@ namespace RunTests
 
         private string GetFileChecksum(string filePath)
         {
+            string checksum;
+            if (_fileToChecksumMap.TryGetValue(filePath, out checksum))
+            {
+                return checksum;
+            }
+
+            checksum = GetFileChecksumCore(filePath);
+            _fileToChecksumMap.Add(filePath, checksum);
+            return checksum;
+        }
+
+        private string GetFileChecksumCore(string filePath)
+        { 
             var bytes = File.ReadAllBytes(filePath);
             var hashBytes = _hash.ComputeHash(bytes);
             return HashBytesToString(hashBytes);
