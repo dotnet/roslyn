@@ -35,12 +35,12 @@ namespace RunTests
             {
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
                 testResult = await _testExecutor.RunTest(assemblyPath, cancellationToken);
-                testResult = Migrate(testResult);
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - caching");
                 _dataStorage.AddTestResult(cacheKey, testResult);
             }
             else
             {
+                testResult = Migrate(testResult);
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - cache hit");
             }
 
