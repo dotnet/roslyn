@@ -12,7 +12,13 @@ namespace RunTests
 {
     internal sealed class CacheUtil
     {
+        private readonly Options _options;
         private readonly MD5 _hash = MD5.Create();
+
+        internal CacheUtil(Options options)
+        {
+            _options = options;
+        }
 
         /// <summary>
         /// Get the cache string for the given test assembly file.
@@ -32,10 +38,27 @@ namespace RunTests
             }
         }
 
+        internal string GetCacheFile(string assemblyPath)
+        {
+            try
+            {
+                return BuildAssemblyCacheFile(assemblyPath);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
         private string BuildAssemblyCacheFile(string assemblyPath)
         {
             var builder = new StringBuilder();
             AppendFileLine(builder, assemblyPath);
+            AppendFileLine(builder, _options.XunitPath);
+            builder.AppendLine($"{nameof(_options.Test64)} - {_options.Test64}");
+            builder.AppendLine($"{nameof(_options.UseHtml)} - {_options.UseHtml}");
+            builder.AppendLine($"{nameof(_options.Trait)} - {_options.Trait}");
+            builder.AppendLine($"{nameof(_options.NoTrait)} - {_options.NoTrait}");
 
             // TODO: Need to include dependency information here, option data, etc ...
             // Test file alone isn't enough.  Makes it easy to test though.
@@ -47,20 +70,28 @@ namespace RunTests
             // TODO: Use something like a /pathmap option to normalize this when we 
             // want to share across developer machines. 
             var fileHash = GetFileChecksum(assemblyPath);
-            builder.AppendFormat($"{assemblyPath} {BitConverter.ToString(fileHash)}");
+            builder.AppendFormat($"{assemblyPath} {fileHash}");
+            builder.AppendLine();
         }
 
         private string GetHashString(string input)
         {
             var inputBytes = Encoding.UTF8.GetBytes(input);
             var hashBytes = _hash.ComputeHash(inputBytes);
-            return BitConverter.ToString(hashBytes);
+            return HashBytesToString(hashBytes);
         }
 
-        private byte[] GetFileChecksum(string filePath)
+        private static string HashBytesToString(byte[] hash)
+        {
+            var data = BitConverter.ToString(hash);
+            return data.Replace("-", "");
+        }
+
+        private string GetFileChecksum(string filePath)
         {
             var bytes = File.ReadAllBytes(filePath);
-            return _hash.ComputeHash(bytes);
+            var hashBytes = _hash.ComputeHash(bytes);
+            return HashBytesToString(hashBytes);
         }
     }
 }

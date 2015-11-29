@@ -31,7 +31,7 @@ namespace RunTests
 
             // TODO: Should caching test execution be enabled / disabled by an option?
             ITestExecutor testExecutor = new ProcessTestExecutor(options);
-            testExecutor = new CachingTestExecutor(testExecutor, new LocalDataStorage());
+            testExecutor = new CachingTestExecutor(options, testExecutor, new LocalDataStorage());
             var testRunner = new TestRunner(testExecutor);
             var start = DateTime.Now;
 
@@ -46,13 +46,14 @@ namespace RunTests
                 ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
             }
 
+            Logger.Finish();
+
             if (!result)
             {
                 ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failures encountered: {0}", span);
                 return 1;
             }
 
-            Logger.Finish();
             Console.WriteLine("All tests passed: {0}", span);
             return options.MissingAssemblies.Any() ? 1 : 0;
         }

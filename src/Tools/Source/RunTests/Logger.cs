@@ -29,6 +29,5 @@ namespace RunTests
                 File.WriteAllLines(logFilePath, s_lines.ToArray());
             }
         }
-
     }
 }
