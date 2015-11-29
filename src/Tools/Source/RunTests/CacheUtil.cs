@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,8 +45,9 @@ namespace RunTests
             {
                 return BuildAssemblyCacheFile(assemblyPath);
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Log($"Error creating log file {ex.Message} {ex.StackTrace}");
                 return string.Empty;
             }
         }
@@ -53,12 +55,14 @@ namespace RunTests
         private string BuildAssemblyCacheFile(string assemblyPath)
         {
             var builder = new StringBuilder();
-            AppendFileLine(builder, assemblyPath);
-            AppendFileLine(builder, _options.XunitPath);
-            builder.AppendLine($"{nameof(_options.Test64)} - {_options.Test64}");
-            builder.AppendLine($"{nameof(_options.UseHtml)} - {_options.UseHtml}");
-            builder.AppendLine($"{nameof(_options.Trait)} - {_options.Trait}");
-            builder.AppendLine($"{nameof(_options.NoTrait)} - {_options.NoTrait}");
+            builder.AppendLine($"Assembly: {Path.GetFileName(assemblyPath)} {GetFileChecksum(assemblyPath)}");
+            builder.AppendLine($"Xunit: {_options.XunitPath} {GetFileChecksum(_options.XunitPath)}");
+            AppendReferences(builder, assemblyPath);
+            builder.AppendLine("Options:");
+            builder.AppendLine($"\t{nameof(_options.Test64)} - {_options.Test64}");
+            builder.AppendLine($"\t{nameof(_options.UseHtml)} - {_options.UseHtml}");
+            builder.AppendLine($"\t{nameof(_options.Trait)} - {_options.Trait}");
+            builder.AppendLine($"\t{nameof(_options.NoTrait)} - {_options.NoTrait}");
 
             // TODO: Need to include dependency information here, option data, etc ...
             // Test file alone isn't enough.  Makes it easy to test though.
@@ -72,6 +76,45 @@ namespace RunTests
             var fileHash = GetFileChecksum(assemblyPath);
             builder.AppendFormat($"{assemblyPath} {fileHash}");
             builder.AppendLine();
+        }
+
+        private void AppendReferences(StringBuilder builder, string assemblyPath)
+        {
+            builder.AppendLine("References:");
+
+            var initialAssembly = Assembly.ReflectionOnlyLoadFrom(assemblyPath);
+            var set = new HashSet<string>();
+            var toVisit = new Queue<AssemblyName>(initialAssembly.GetReferencedAssemblies());
+            var binariesPath = Path.GetDirectoryName(initialAssembly.Location);
+
+            while (toVisit.Count > 0)
+            {
+                var current = toVisit.Dequeue();
+                if (!set.Add(current.FullName))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var currentPath = Path.Combine(binariesPath, Path.ChangeExtension(current.Name, "dll"));
+                    var currentAssembly = File.Exists(currentPath)
+                        ? Assembly.ReflectionOnlyLoadFrom(currentPath)
+                        : Assembly.ReflectionOnlyLoad(current.FullName);
+
+                    foreach (var name in currentAssembly.GetReferencedAssemblies())
+                    {
+                        toVisit.Enqueue(name);
+                    }
+
+                    var currentHash = GetFileChecksum(currentAssembly.Location);
+                    builder.AppendLine($"\t{current.Name} {currentHash}");
+                }
+                catch
+                {
+                    builder.AppendLine($"\t{current.Name} <could not calculate checksum>");
+                }
+            }
         }
 
         private string GetHashString(string input)
