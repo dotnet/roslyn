@@ -25,20 +25,19 @@ namespace RunTests
             try
             { 
                 var assemblyName = Path.GetFileName(assemblyPath);
-                var resultsFile = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{(_options.UseHtml ? "html" : "xml")}");
-                var resultsDir = Path.GetDirectoryName(resultsFile);
-                var outputLogPath = Path.Combine(resultsDir, $"{assemblyName}.out.log");
+                var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyPath), Constants.ResultsDirectoryName);
+                var resultsFilePath = Path.Combine(resultsDir, $"{assemblyName}.{(_options.UseHtml ? "html" : "xml")}");
 
                 // NOTE: xUnit doesn't always create the log directory
                 Directory.CreateDirectory(resultsDir);
 
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.
-                File.Create(resultsFile).Close();
+                File.Create(resultsFilePath).Close();
 
                 var builder = new StringBuilder();
                 builder.AppendFormat(@"""{0}""", assemblyPath);
-                builder.AppendFormat(@" -{0} ""{1}""", _options.UseHtml ? "html" : "xml", resultsFile);
+                builder.AppendFormat(@" -{0} ""{1}""", _options.UseHtml ? "html" : "xml", resultsFilePath);
                 builder.Append(" -noshadow -verbose");
 
                 if (!string.IsNullOrWhiteSpace(_options.Trait))
@@ -59,7 +58,6 @@ namespace RunTests
                     }
                 }
 
-                var errorOutput = new StringBuilder();
                 var start = DateTime.UtcNow;
 
                 var xunitPath = _options.XunitPath;
@@ -74,8 +72,6 @@ namespace RunTests
 
                 if (processOutput.ExitCode != 0)
                 {
-                    File.WriteAllLines(outputLogPath, processOutput.OutputLines);
-
                     // On occasion we get a non-0 output but no actual data in the result file.  The could happen
                     // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
                     // To avoid losing information, write the process output to the console.  In addition, delete the results
@@ -83,7 +79,7 @@ namespace RunTests
                     var resultData = string.Empty;
                     try
                     {
-                        resultData = File.ReadAllText(resultsFile).Trim();
+                        resultData = File.ReadAllText(resultsFilePath).Trim();
                     }
                     catch
                     {
@@ -93,33 +89,23 @@ namespace RunTests
                     if (resultData.Length == 0)
                     {
                         // Delete the output file.
-                        File.Delete(resultsFile);
-                    }
-
-                    errorOutput.AppendLine($"Command: {_options.XunitPath} {builder}");
-                    errorOutput.AppendLine($"xUnit output: {outputLogPath}");
-
-                    if (processOutput.ErrorLines.Any())
-                    {
-                        foreach (var line in processOutput.ErrorLines)
-                        {
-                            errorOutput.AppendLine(line);
-                        }
-                    }
-                    else
-                    {
-                        errorOutput.AppendLine($"xunit produced no error output but had exit code {processOutput.ExitCode}");
-                    }
-
-                    // If the results are html, use Process.Start to open in the browser.
-
-                    if (_options.UseHtml && resultData.Length > 0)
-                    {
-                        Process.Start(resultsFile);
+                        File.Delete(resultsFilePath);
+                        resultsFilePath = null;
                     }
                 }
 
-                return new TestResult(processOutput.ExitCode == 0, assemblyName, span, errorOutput.ToString());
+                var commandLine = $"{xunitPath} {builder.ToString()}";
+                var standardOutput = string.Join(Environment.NewLine, processOutput.OutputLines);
+                var errorOutput = string.Join(Environment.NewLine, processOutput.ErrorLines);
+
+                return new TestResult(
+                    exitCode: processOutput.ExitCode,
+                    assemblyPath: assemblyPath,
+                    resultsFilePath: resultsFilePath,
+                    commandLine: commandLine,
+                    elapsed: span,
+                    standardOutput: standardOutput,
+                    errorOutput: errorOutput);
             }
             catch (Exception ex)
             {

@@ -38,7 +38,14 @@ namespace RunTests
                 var text = File.ReadAllText(filePath);
                 if (text.Length > 0)
                 {
-                    testResult = new TestResult(succeeded: true, assemblyName: text, elapsed: TimeSpan.FromSeconds(0), errorOutput: string.Empty);
+                    testResult = new TestResult(
+                        exitCode: 0,
+                        assemblyPath: text,
+                        elapsed: TimeSpan.FromSeconds(0),
+                        commandLine: string.Empty,
+                        resultsFilePath: null,
+                        standardOutput: string.Empty,
+                        errorOutput: string.Empty);
                     return true;
                 }
             }
