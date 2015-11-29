@@ -29,9 +29,12 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            // TODO: Should caching test execution be enabled / disabled by an option?
             ITestExecutor testExecutor = new ProcessTestExecutor(options);
-            testExecutor = new CachingTestExecutor(options, testExecutor, new LocalDataStorage());
+            if (options.UseCachedResults)
+            {
+                testExecutor = new CachingTestExecutor(options, testExecutor, new LocalDataStorage());
+            }
+
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
 
