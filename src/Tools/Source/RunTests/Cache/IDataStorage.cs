@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RunTests
+namespace RunTests.Cache
 {
     internal interface IDataStorage
     {
-        bool TryGetTestResult(string cacheKey, out TestResult testResult);
+        bool TryGetTestResult(string checksum, out TestResult testResult);
 
-        void AddTestResult(CacheFile cacheFile, TestResult testResult);
+        void AddTestResult(ContentFile conentFile, TestResult testResult);
     }
 }

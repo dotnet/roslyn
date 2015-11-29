@@ -9,62 +9,35 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RunTests
+namespace RunTests.Cache
 {
-    internal struct CacheFile
-    {
-        internal static readonly CacheFile Empty = new CacheFile(string.Empty, string.Empty);
-
-        internal readonly string CacheKey;
-        internal readonly string Contents;
-
-        internal CacheFile(string cacheKey, string contents)
-        {
-            CacheKey = cacheKey;
-            Contents = contents;
-        }
-    }
-
-    internal sealed class CacheUtil
+    internal sealed class ContentUtil
     {
         private readonly Options _options;
         private readonly MD5 _hash = MD5.Create();
         private readonly Dictionary<string, string> _fileToChecksumMap = new Dictionary<string, string>();
 
-        internal CacheUtil(Options options)
+        internal ContentUtil(Options options)
         {
             _options = options;
         }
 
-        /// <summary>
-        /// Get the cache string for the given test assembly file.
-        /// </summary>
-        internal string GetCacheKey(string assemblyPath)
-        {
-            return GetCacheFile(assemblyPath).CacheKey;
-        }
-
-        internal string GetCacheFileContents(string assemblyPath)
-        {
-            return BuildAssemblyCacheFile(assemblyPath);
-        }
-
-        internal CacheFile GetCacheFile(string assemblyPath)
+        internal ContentFile GetTestResultConentFile(string assemblyPath)
         {
             try
             {
-                var contents = GetCacheFileContents(assemblyPath);
-                var checksum = GetHashString(contents);
-                return new CacheFile(cacheKey: checksum, contents: contents);
+                var content = BuildTestResultContent(assemblyPath);
+                var checksum = GetChecksum(content);
+                return new ContentFile(checksum: checksum, content: content);
             }
             catch (Exception ex)
             {
                 Logger.Log($"Error creating log file {ex.Message} {ex.StackTrace}");
-                return CacheFile.Empty;
+                return ContentFile.Empty;
             }
         }
 
-        private string BuildAssemblyCacheFile(string assemblyPath)
+        private string BuildTestResultContent(string assemblyPath)
         {
             var builder = new StringBuilder();
             builder.AppendLine($"Assembly: {Path.GetFileName(assemblyPath)} {GetFileChecksum(assemblyPath)}");
@@ -127,10 +100,10 @@ namespace RunTests
             }
         }
 
-        private string GetHashString(string input)
+        private string GetChecksum(string content)
         {
-            var inputBytes = Encoding.UTF8.GetBytes(input);
-            var hashBytes = _hash.ComputeHash(inputBytes);
+            var contentBytes = Encoding.UTF8.GetBytes(content);
+            var hashBytes = _hash.ComputeHash(contentBytes);
             return HashBytesToString(hashBytes);
         }
 

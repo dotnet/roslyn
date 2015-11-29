@@ -7,10 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RunTests
+namespace RunTests.Cache
 {
     /// <summary>
     /// Data storage that works under %LOCALAPPDATA%
+    /// TODO: need to do garbage collection on the files
     /// </summary>
     internal sealed class LocalDataStorage : IDataStorage
     {
@@ -22,7 +23,7 @@ namespace RunTests
             StandardOutput,
             ErrorOutput,
             ResultsFile,
-            CacheFile
+            Content
         }
 
         internal const string DirectoryName = "RunTestsStorage";
@@ -34,11 +35,11 @@ namespace RunTests
             _storagePath = storagePath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DirectoryName);
         }
 
-        public bool TryGetTestResult(string cacheKey, out TestResult testResult)
+        public bool TryGetTestResult(string checksum, out TestResult testResult)
         {
             testResult = default(TestResult);
 
-            var storageFolder = GetStorageFolder(cacheKey);
+            var storageFolder = GetStorageFolder(checksum);
             if (!Directory.Exists(storageFolder))
             {
                 return false;
@@ -46,12 +47,12 @@ namespace RunTests
 
             try
             {
-                var exitCode = Read(cacheKey, StorageKind.ExitCode);
-                var commandLine = Read(cacheKey, StorageKind.CommandLine);
-                var assemblyPath = Read(cacheKey, StorageKind.AssemblyPath);
-                var standardOutput = Read(cacheKey, StorageKind.StandardOutput);
-                var errorOutput = Read(cacheKey, StorageKind.ErrorOutput);
-                var resultsFilePath = GetStoragePath(cacheKey, StorageKind.ResultsFile);
+                var exitCode = Read(checksum, StorageKind.ExitCode);
+                var commandLine = Read(checksum, StorageKind.CommandLine);
+                var assemblyPath = Read(checksum, StorageKind.AssemblyPath);
+                var standardOutput = Read(checksum, StorageKind.StandardOutput);
+                var errorOutput = Read(checksum, StorageKind.ErrorOutput);
+                var resultsFilePath = GetStoragePath(checksum, StorageKind.ResultsFile);
                 if (!File.Exists(resultsFilePath))
                 {
                     resultsFilePath = null;
@@ -70,16 +71,16 @@ namespace RunTests
             catch (Exception e)
             {
                 // Okay for exception to occur here on I/O
-                Logger.Log($"Failed to read cache {cacheKey} {e.Message}");
+                Logger.Log($"Failed to read cache {checksum} {e.Message}");
             }
 
             return false;
         }
 
-        public void AddTestResult(CacheFile cacheFile, TestResult testResult)
+        public void AddTestResult(ContentFile contentFile, TestResult testResult)
         {
-            var cacheKey = cacheFile.CacheKey;
-            var storagePath = Path.Combine(_storagePath, cacheKey);
+            var checksum = contentFile.Checksum;
+            var storagePath = Path.Combine(_storagePath, checksum);
             try
             {
                 if (!FileUtil.EnsureDirectory(storagePath))
@@ -87,45 +88,45 @@ namespace RunTests
                     return;
                 }
 
-                Write(cacheKey, StorageKind.ExitCode, testResult.ExitCode.ToString());
-                Write(cacheKey, StorageKind.AssemblyPath, testResult.AssemblyPath);
-                Write(cacheKey, StorageKind.StandardOutput, testResult.StandardOutput);
-                Write(cacheKey, StorageKind.ErrorOutput, testResult.ErrorOutput);
-                Write(cacheKey, StorageKind.CommandLine, testResult.CommandLine);
-                Write(cacheKey, StorageKind.CacheFile, cacheFile.Contents);
+                Write(checksum, StorageKind.ExitCode, testResult.ExitCode.ToString());
+                Write(checksum, StorageKind.AssemblyPath, testResult.AssemblyPath);
+                Write(checksum, StorageKind.StandardOutput, testResult.StandardOutput);
+                Write(checksum, StorageKind.ErrorOutput, testResult.ErrorOutput);
+                Write(checksum, StorageKind.CommandLine, testResult.CommandLine);
+                Write(checksum, StorageKind.Content, contentFile.Content);
 
                 if (!string.IsNullOrEmpty(testResult.ResultsFilePath))
                 {
-                    File.Copy(testResult.ResultsFilePath, GetStoragePath(cacheKey, StorageKind.ResultsFile));
+                    File.Copy(testResult.ResultsFilePath, GetStoragePath(checksum, StorageKind.ResultsFile));
                 }
             }
             catch (Exception e)
             {
                 // I/O errors are expected and okay here.
-                Logger.Log($"Failed to log {cacheKey} {e.Message}");
+                Logger.Log($"Failed to log {checksum} {e.Message}");
                 FileUtil.DeleteDirectory(storagePath);
             }
         }
 
-        private string GetStorageFolder(string cacheKey)
+        private string GetStorageFolder(string checksum)
         {
-            return Path.Combine(_storagePath, cacheKey);
+            return Path.Combine(_storagePath, checksum);
         }
 
-        private string GetStoragePath(string cacheKey, StorageKind kind)
+        private string GetStoragePath(string checksum, StorageKind kind)
         {
-            return Path.Combine(GetStorageFolder(cacheKey), kind.ToString());
+            return Path.Combine(GetStorageFolder(checksum), kind.ToString());
         }
 
-        private void Write(string cacheKey, StorageKind kind, string contents)
+        private void Write(string checksum, StorageKind kind, string contents)
         {
-            var filePath = GetStoragePath(cacheKey, kind);
+            var filePath = GetStoragePath(checksum, kind);
             File.WriteAllText(filePath, contents);
         }
 
-        private string Read(string cacheKey, StorageKind kind)
+        private string Read(string checksum, StorageKind kind)
         {
-            var filePath = GetStoragePath(cacheKey, kind);
+            var filePath = GetStoragePath(checksum, kind);
             return File.ReadAllText(filePath);
         }
     }

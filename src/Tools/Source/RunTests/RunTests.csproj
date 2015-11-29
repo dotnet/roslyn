@@ -23,13 +23,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CacheUtil.cs" />
-    <Compile Include="CachingTestExecutor.cs" />
+    <Compile Include="Cache\ContentUtil.cs" />
+    <Compile Include="Cache\CachingTestExecutor.cs" />
+    <Compile Include="Cache\ConentFile.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="FileUtil.cs" />
-    <Compile Include="IDataStorage.cs" />
+    <Compile Include="Cache\IDataStorage.cs" />
     <Compile Include="ITestExecutor.cs" />
-    <Compile Include="LocalDataStorage.cs" />
+    <Compile Include="Cache\LocalDataStorage.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="ProcessRunner.cs" />

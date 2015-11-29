@@ -5,38 +5,38 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RunTests
+namespace RunTests.Cache
 {
     internal sealed class CachingTestExecutor : ITestExecutor
     {
         private readonly ITestExecutor _testExecutor;
-        private readonly CacheUtil _cacheUtil;
+        private readonly ContentUtil _contentUtil;
         private readonly IDataStorage _dataStorage;
 
         internal CachingTestExecutor(Options options, ITestExecutor testExecutor, IDataStorage dataStorage)
         {
             _testExecutor = testExecutor;
             _dataStorage = dataStorage;
-            _cacheUtil = new CacheUtil(options);
+            _contentUtil = new ContentUtil(options);
         }
 
         public async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
-            var cacheFile = _cacheUtil.GetCacheFile(assemblyPath);
+            var contentFile = _contentUtil.GetTestResultConentFile(assemblyPath);
             var builder = new StringBuilder();
-            builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {cacheFile.CacheKey}");
+            builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {contentFile.Checksum}");
             builder.AppendLine("===");
-            builder.AppendLine(cacheFile.Contents);
+            builder.AppendLine(contentFile.Content);
             builder.AppendLine("===");
             Logger.Log(builder.ToString());
 
             TestResult testResult;
-            if (!_dataStorage.TryGetTestResult(cacheFile.CacheKey, out testResult))
+            if (!_dataStorage.TryGetTestResult(contentFile.Checksum, out testResult))
             {
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
                 testResult = await _testExecutor.RunTest(assemblyPath, cancellationToken);
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - caching");
-                _dataStorage.AddTestResult(cacheFile, testResult);
+                _dataStorage.AddTestResult(contentFile, testResult);
             }
             else
             {
