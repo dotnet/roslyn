@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -39,17 +41,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private class ProjectSymbolReference : SymbolReference
         {
-            private readonly ProjectId projectId;
+            private readonly ProjectId _projectId;
 
             public ProjectSymbolReference(INamespaceOrTypeSymbol symbol, ProjectId projectId)
                 : base(symbol)
             {
-                this.projectId = projectId;
+                _projectId = projectId;
             }
 
             public override Solution UpdateSolution(Document newDocument)
             {
-                if (this.projectId == newDocument.Project.Id)
+                if (_projectId == newDocument.Project.Id)
                 {
                     // This reference was found while searching in the project for our document.  No
                     // need to make any solution changes.
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // If this reference came from searching another project, then add a project reference
                 // as well.
                 var newProject = newDocument.Project;
-                newProject = newProject.AddProjectReference(new ProjectReference(this.projectId));
+                newProject = newProject.AddProjectReference(new ProjectReference(_projectId));
 
                 return newProject.Solution;
             }
@@ -67,17 +69,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private class MetadataSymbolReference : SymbolReference
         {
-            private readonly PortableExecutableReference reference;
+            private readonly PortableExecutableReference _reference;
 
             public MetadataSymbolReference(INamespaceOrTypeSymbol symbol, PortableExecutableReference reference)
                 : base(symbol)
             {
-                this.reference = reference;
+                _reference = reference;
             }
 
             public override Solution UpdateSolution(Document newDocument)
             {
-                return newDocument.Project.AddMetadataReference(this.reference).Solution;
+                return newDocument.Project.AddMetadataReference(_reference).Solution;
             }
         }
     }

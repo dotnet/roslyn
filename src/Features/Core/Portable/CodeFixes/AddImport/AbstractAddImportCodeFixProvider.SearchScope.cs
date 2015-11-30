@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,33 +27,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private class ProjectSearchScope : SearchScope
         {
-            private readonly bool includeDirectReferences;
-            private readonly Project project;
+            private readonly bool _includeDirectReferences;
+            private readonly Project _project;
 
             public ProjectSearchScope(Project project, bool includeDirectReferences, bool ignoreCase, CancellationToken cancellationToken)
                 : base(ignoreCase, cancellationToken)
             {
-                this.project = project;
-                this.includeDirectReferences = includeDirectReferences;
+                _project = project;
+                _includeDirectReferences = includeDirectReferences;
             }
 
             public override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter)
             {
                 return SymbolFinder.FindDeclarationsAsync(
-                    project, name, ignoreCase, filter, includeDirectReferences, cancellationToken);
+                    _project, name, ignoreCase, filter, _includeDirectReferences, cancellationToken);
             }
 
             public override SymbolReference CreateReference(INamespaceOrTypeSymbol symbol)
             {
-                return new ProjectSymbolReference(symbol, project.Id);
+                return new ProjectSymbolReference(symbol, _project.Id);
             }
         }
 
         private class MetadataSearchScope : SearchScope
         {
-            private readonly IAssemblySymbol assembly;
-            private readonly PortableExecutableReference metadataReference;
-            private readonly Solution solution;
+            private readonly IAssemblySymbol _assembly;
+            private readonly PortableExecutableReference _metadataReference;
+            private readonly Solution _solution;
 
             public MetadataSearchScope(
                 Solution solution,
@@ -61,19 +63,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken cancellationToken)
                 : base(ignoreCase, cancellationToken)
             {
-                this.solution = solution;
-                this.assembly = assembly;
-                this.metadataReference = metadataReference;
+                _solution = solution;
+                _assembly = assembly;
+                _metadataReference = metadataReference;
             }
 
             public override SymbolReference CreateReference(INamespaceOrTypeSymbol symbol)
             {
-                return new MetadataSymbolReference(symbol, metadataReference);
+                return new MetadataSymbolReference(symbol, _metadataReference);
             }
 
             public override Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter)
             {
-                return SymbolFinder.FindDeclarationsAsync(solution, assembly, metadataReference.FilePath, name, ignoreCase, filter, cancellationToken);
+                return SymbolFinder.FindDeclarationsAsync(_solution, _assembly, _metadataReference.FilePath, name, ignoreCase, filter, cancellationToken);
             }
         }
     }
