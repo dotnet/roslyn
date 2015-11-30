@@ -62,17 +62,19 @@ deployed.
   language features, you may wish to consider building both the
   CompilerExtension and VisualStudioSetup projects to ensure the real build and
   live analysis are synchronized.
-- **ExpressionEvaluatorPackage**: this deploys the expression evaluator and
+- **ExpressionEvaluatorPackage**: this project builds ExpressionEvaluatorPackage.vsix.
+  This deploys the expression evaluator and
   result providers, the components that are used by the debugger to parse and
-  evaluate C# and VB expressions in the watch window, immediate window, and
+  evaluate C# and VB expressions in the Watch window, Immediate window, and
   more. These components are only used when debugging.
-- **VisualStudioInteractiveWindow**: this deploys the "base" interactive window
-  experience that is shared by Roslyn, Python, and other languages. This code
-  is core support only and doesn't include any language specific logic.
-- **VisualStudioInteractiveSetup**: this deploys the Roslyn (i.e. C# and VB)
-  specific parts of the interactive window. If you're working on the
-  interactive experience, this is the project you want to use as your startup
-  project.
+- **VisualStudioInteractiveWindow**: this project builds Microsoft.VisualStudio.VsInteractiveWindow.vsix.
+  This includes the "base" interactive window experience that is shared by
+  Roslyn, Python, and other languages. This code is core support only and
+  doesn't include any language-specific logic.
+- **VisualStudioInteractiveSetup**: this project builds Roslyn.VisualStudio.Setup.Interactive.vsix.
+  It deploys the Roslyn (i.e. C# and VB) specific parts of the interactive
+  window. If you're working on the interactive experience, this is the project
+  you want to use as your startup project.
 
 The experimental instance used by Roslyn is an entirely separate instance of
 Visual Studio with it's own settings and installed extensions. It's also, by
