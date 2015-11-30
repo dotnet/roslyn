@@ -31,3 +31,5 @@
 [Interactive Window Documentation](https://github.com/dotnet/roslyn/wiki/Interactive-Window)
 
 [Scripting API Samples](https://github.com/dotnet/roslyn/wiki/Scripting-API-Samples)
+
+[C# Interactive Walkthrough](https://github.com/dotnet/roslyn/wiki/C%23-Interactive-Walkthrough)
