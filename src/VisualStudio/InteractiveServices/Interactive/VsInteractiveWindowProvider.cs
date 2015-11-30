@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Interactive;
-using Microsoft.VisualStudio.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
@@ -16,6 +15,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
            IContentTypeRegistryService contentTypeRegistry,
            IInteractiveWindowCommandsFactory commandsFactory,
            IInteractiveWindowCommand[] commands,
+           string specializedContentType,
            VisualStudioWorkspace workspace)
         {
             _vsServiceProvider = serviceProvider;
@@ -47,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _contentTypeRegistry = contentTypeRegistry;
             _vsWorkspace = workspace;
             _commands = GetApplicableCommands(commands, coreContentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName,
-                specializedContentType: CSharpVBInteractiveCommandsContentTypes.CSharpVBInteractiveCommandContentTypeName);
+                specializedContentType: specializedContentType);
             _vsInteractiveWindowFactory = interactiveWindowFactory;
             _commandsFactory = commandsFactory;
         }
@@ -148,39 +149,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // get all commands of coreContentType - generic interactive window commands
             var interactiveCommands = commands.Where(
                 c => c.GetType().GetCustomAttributes(typeof(ContentTypeAttribute), inherit: true).Any(
-                    a => ((ContentTypeAttribute)a).ContentTypes == coreContentType)).ToArray();
+                    a => ((ContentTypeAttribute)a).ContentTypes == coreContentType));
 
             // get all commands of specializedContentType - smart C#/VB command implementations
             var specializedInteractiveCommands = commands.Where(
                 c => c.GetType().GetCustomAttributes(typeof(ContentTypeAttribute), inherit: true).Any(
-                    a => ((ContentTypeAttribute)a).ContentTypes == specializedContentType)).ToArray();
+                    a => ((ContentTypeAttribute)a).ContentTypes == specializedContentType));
 
-            // We should choose specialized C#/VB commands over generic core interactive window commands
-            // Build a map of names and associated core command first
-            Dictionary<string, int> interactiveCommandMap = new Dictionary<string, int>();
-            for (int i = 0; i < interactiveCommands.Length; i++)
+            var builder = ImmutableArray.CreateBuilder<IInteractiveWindowCommand>();
+            var seen = new HashSet<string>();
+
+            // We choose specialized C#/VB commands over generic core interactive window commands.
+            foreach (var command in specializedInteractiveCommands)
             {
-                foreach (var name in interactiveCommands[i].Names)
+                builder.Add(command);
+                foreach (var name in command.Names)
                 {
-                    interactiveCommandMap.Add(name, i);
+                    seen.Add(name);
                 }
             }
 
-            // swap core commands with specialized command if both exist
-            // Command can have multiple names. We need to compare every name to find match.
-            int value;
-            foreach (var command in specializedInteractiveCommands)
+            foreach (var command in interactiveCommands)
             {
                 foreach (var name in command.Names)
                 {
-                    if (interactiveCommandMap.TryGetValue(name, out value))
+                    if (seen.Contains(name))
                     {
-                        interactiveCommands[value] = command;
-                        break;
+                        // If any of the command's names has been seen before, skip the command.
+                        goto SkipCommand;
                     }
                 }
+
+                builder.Add(command);
+
+            SkipCommand:;
             }
-            return interactiveCommands.ToImmutableArray();
-            }
+
+            return builder.ToImmutable();
+        }
     }
 }

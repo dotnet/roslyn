@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Scripting
@@ -93,6 +94,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
                 script.GlobalsType)
 
             Return submission
+        End Function
+
+        Public Overrides Function GetGlobalImportStrings(script As Script) As ImmutableArray(Of String)
+            ' TODO (acasey): file bug
+            Return ImmutableArray(Of String).Empty
+        End Function
+
+        Public Overrides Function GetLocalImportStrings(script As Script) As ImmutableArray(Of String)
+            ' TODO (acasey): file bug
+            Return ImmutableArray(Of String).Empty
         End Function
     End Class
 

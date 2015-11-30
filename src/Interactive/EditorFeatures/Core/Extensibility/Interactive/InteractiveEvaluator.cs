@@ -106,6 +106,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _interactiveHost.ProcessStarting += ProcessStarting;
         }
 
+        internal Project CurrentSubmissionProject
+        {
+            get
+            {
+                return _workspace.CurrentSolution.GetProject(_currentSubmissionProjectId);
+            }
+        }
+
         public IContentType ContentType
         {
             get
@@ -419,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             var documentId = DocumentId.CreateNewId(project.Id, debugName: project.Name);
             var solution = project.Solution
-                .AddDocument(documentId, project.Name, buffer.CurrentSnapshot.AsText());
+                .AddDocument(documentId, project.Name, buffer.CurrentSnapshot.AsText(), filePath: "");
 
             _workspace.SetCurrentSolution(solution);
 

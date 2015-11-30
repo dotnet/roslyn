@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting
 {
@@ -13,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         public static readonly ScriptCompiler Instance = new CSharpScriptCompiler();
 
         private static readonly CSharpParseOptions s_defaultOptions = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Script);
+
+        private static readonly SymbolDisplayFormat s_importsCommandFormat = SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
 
         private CSharpScriptCompiler()
         {
@@ -72,5 +76,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
 
             return compilation;
         }
+
+        public override ImmutableArray<string> GetGlobalImportStrings(Script script)
+        {
+            Debug.Assert(script != null);
+
+            var compilation = (CSharpCompilation)script.GetCompilation();
+            return compilation == null 
+                ? ImmutableArray<string>.Empty
+                : GetImportStrings(compilation.GlobalImports);
+        }
+
+        public override ImmutableArray<string> GetLocalImportStrings(Script script)
+        {
+            Debug.Assert(script != null);
+
+            var compilation = (CSharpCompilation)script.GetCompilation();
+            return compilation == null
+                ? ImmutableArray<string>.Empty
+                : GetImportStrings(compilation.GetPreviousSubmissionImports().Concat(compilation.GetSubmissionImports()));
+        }
+
+        internal static ImmutableArray<string> GetImportStrings(Imports imports)
+        {
+            var builder = ArrayBuilder<string>.GetInstance();
+
+            foreach (var externAlias in imports.ExternAliases)
+            {
+                builder.Add($"extern alias {externAlias.Alias.Name};");
+            }
+
+            foreach (var @using in imports.Usings)
+            {
+                // TODO (acasey): handle cases where the target needs to be qualified with an extern alias.
+                builder.Add($"using {@using.NamespaceOrType.ToDisplayString(s_importsCommandFormat)};");
+            }
+
+            foreach (var usingAlias in imports.UsingAliases)
+            { 
+                // TODO (acasey): handle cases where the target needs to be qualified with an extern alias.
+                builder.Add($"using {usingAlias.Key} = {usingAlias.Value.Alias.Target.ToDisplayString(s_importsCommandFormat)};");
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
     }
 }

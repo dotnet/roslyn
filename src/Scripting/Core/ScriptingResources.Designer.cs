@@ -125,6 +125,51 @@ namespace Microsoft.CodeAnalysis.Scripting {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No files have been loaded..
+        /// </summary>
+        internal static string FoundNoFiles {
+            get {
+                return ResourceManager.GetString("FoundNoFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        internal static string FoundNoGlobalImports {
+            get {
+                return ResourceManager.GetString("FoundNoGlobalImports", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        internal static string FoundNoLocalImports {
+            get {
+                return ResourceManager.GetString("FoundNoLocalImports", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No assemblies have been referenced..
+        /// </summary>
+        internal static string FoundNoReferences {
+            get {
+                return ResourceManager.GetString("FoundNoReferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Global Imports:.
+        /// </summary>
+        internal static string GlobalImportsHeader {
+            get {
+                return ResourceManager.GetString("GlobalImportsHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The globals of type &apos;{0}&apos; is not assignable to &apos;{1}&apos;.
         /// </summary>
         internal static string GlobalsNotAssignable {
@@ -158,9 +203,8 @@ namespace Microsoft.CodeAnalysis.Scripting {
         ///  UpArrow       Replace the current submission with a previous submission.
         ///  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
         ///REPL commands:
-        ///  #help         Display help on available commands and key bindings.
-        ///Script directives:
-        ///  #r            Add a metad [rest of string was truncated]&quot;;.
+        ///  #files        Display a list of loaded files.
+        ///  #help         Display help on available commands and key bindings. [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string HelpText {
             get {
@@ -183,6 +227,15 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static string InvalidCharactersInAssemblyName {
             get {
                 return ResourceManager.GetString("InvalidCharactersInAssemblyName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local Imports:.
+        /// </summary>
+        internal static string LocalImportsHeader {
+            get {
+                return ResourceManager.GetString("LocalImportsHeader", resourceCulture);
             }
         }
         
@@ -228,6 +281,15 @@ namespace Microsoft.CodeAnalysis.Scripting {
         internal static string StartingStateIncompatible {
             get {
                 return ResourceManager.GetString("StartingStateIncompatible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unresolved.
+        /// </summary>
+        internal static string UnresolvedImport {
+            get {
+                return ResourceManager.GetString("UnresolvedImport", resourceCulture);
             }
         }
     }

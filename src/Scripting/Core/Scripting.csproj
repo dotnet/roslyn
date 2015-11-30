@@ -100,6 +100,7 @@
     <Compile Include="ScriptSourceResolver.cs" />
     <Compile Include="ScriptState.cs" />
     <Compile Include="ScriptVariable.cs" />
+    <Compile Include="Utilities\ScriptingCommandHelpers.cs" />
     <Compile Include="Utilities\ConsoleShims.cs" />
     <Compile Include="Utilities\IListExtensions.cs" />
     <Compile Include="Utilities\ParameterValidationHelpers.cs" />

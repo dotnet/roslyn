@@ -235,10 +235,20 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 string code = input.ToString();
 
-                if (IsHelpCommand(code))
+                switch (code.Trim())
                 {
-                    DisplayHelpText();
-                    continue;
+                    case "#help":
+                        DisplayHelpText(_console.Out);
+                        continue;
+                    case "#references":
+                        DisplayReferences(_console.Out, state);
+                        continue;
+                    case "#files":
+                        DisplayFiles(_console.Out, state);
+                        continue;
+                    case "#imports":
+                        DisplayImports(_console.Out, state, options, _scriptCompiler);
+                        continue;
                 }
 
                 Script<object> newScript;
@@ -387,17 +397,62 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return false;
         }
 
-        private static bool IsHelpCommand(string text)
+        private void DisplayHelpText(TextWriter writer)
         {
-            const string helpCommand = "#help";
-            Debug.Assert(text != null);
-            return text.Trim() == helpCommand;
+            writer.Write(ScriptingResources.HelpText);
+            writer.WriteLine();
         }
 
-        private void DisplayHelpText()
+        private static void DisplayReferences(TextWriter writer, ScriptState state)
         {
-            _console.Out.Write(ScriptingResources.HelpText);
-            _console.Out.WriteLine();
+            var compilation = state?.Script?.GetCompilation();
+            ScriptingCommandHelpers.WriteReferencesAsync(writer, compilation).Wait();
+        }
+
+        private static void DisplayFiles(TextWriter writer, ScriptState state)
+        {
+            var compilation = state?.Script?.GetCompilation();
+
+            var filePaths = ArrayBuilder<string>.GetInstance();
+
+            while (compilation != null)
+            {
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var filePath = tree.FilePath;
+                    if (filePath.Length > 0)
+                    {
+                        filePaths.Add(filePath);
+                    }
+                }
+
+                compilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            }
+
+            ScriptingCommandHelpers.WriteDistinctFilesAsync(writer, filePaths).Wait();
+
+            filePaths.Free();
+        }
+
+        private static void DisplayImports(TextWriter writer, ScriptState state, ScriptOptions scriptOptions, ScriptCompiler scriptCompiler)
+        {
+            var script = state?.Script;
+
+            ImmutableArray<string> globalImportStrings;
+            ImmutableArray<string> localImportStrings;
+
+            if (script != null)
+            {
+                globalImportStrings = scriptCompiler.GetGlobalImportStrings(script);
+                localImportStrings = scriptCompiler.GetLocalImportStrings(script);
+            }
+            else
+            {
+                globalImportStrings = scriptOptions.Imports.SelectAsArray(i => $"{ScriptingResources.UnresolvedImport}: {i}");
+                localImportStrings = ImmutableArray<string>.Empty;
+            }
+
+            ScriptingCommandHelpers.WriteImportsAsync(writer, globalImportStrings, localImportStrings).Wait();
         }
 
         private void DisplayDiagnostics(IEnumerable<Diagnostic> diagnostics)

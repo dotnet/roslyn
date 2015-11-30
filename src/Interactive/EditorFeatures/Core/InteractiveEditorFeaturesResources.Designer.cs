@@ -61,20 +61,38 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Print a list of referenced assemblies..
+        ///   Looks up a localized string similar to The {0} command is not supported by this execution engine..
         /// </summary>
-        internal static string ReferencesCommandDescription {
+        internal static string EvaluatorRequired {
             get {
-                return ResourceManager.GetString("ReferencesCommandDescription", resourceCulture);
+                return ResourceManager.GetString("EvaluatorRequired", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The references command is not supported in this Interactive Window implementation..
+        ///   Looks up a localized string similar to Display a list of loaded files..
         /// </summary>
-        internal static string ReferencesCommandEvaluatorError {
+        internal static string FilesCommandDescription {
             get {
-                return ResourceManager.GetString("ReferencesCommandEvaluatorError", resourceCulture);
+                return ResourceManager.GetString("FilesCommandDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Display of a list of imported namespaces and types..
+        /// </summary>
+        internal static string ImportsCommandDescription {
+            get {
+                return ResourceManager.GetString("ImportsCommandDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Display a list of referenced assemblies..
+        /// </summary>
+        internal static string ReferencesCommandDescription {
+            get {
+                return ResourceManager.GetString("ReferencesCommandDescription", resourceCulture);
             }
         }
         
