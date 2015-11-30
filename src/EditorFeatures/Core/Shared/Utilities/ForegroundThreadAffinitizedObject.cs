@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
             else
             {
-                return Task.Factory.SafeStartNew(action, cancellationToken, ForegroundTaskScheduler); 
+                return Task.Factory.SafeStartNew(action, cancellationToken, ForegroundTaskScheduler);
             }
         }
 

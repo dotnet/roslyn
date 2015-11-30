@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             const string text = @"public $$";
             VerifyKeyword(SourceCodeKind.Script, text);
-        }  
+        }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void ExpressionContext()

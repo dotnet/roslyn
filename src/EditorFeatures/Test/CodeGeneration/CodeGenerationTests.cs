@@ -798,12 +798,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 string expected,
                 bool compareTokens,
                 bool ignoreResult,
-                string language, 
+                string language,
                 TestWorkspace workspace)
             {
                 _expected = expected.NormalizeLineEndings();
                 _language = language;
-                this.IsVisualBasic =  _language == LanguageNames.VisualBasic;
+                this.IsVisualBasic = _language == LanguageNames.VisualBasic;
                 _compareTokens = compareTokens;
                 _ignoreResult = ignoreResult;
                 _workspace = workspace;

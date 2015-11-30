@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +17,8 @@ namespace Roslyn.Test.Utilities
     public class WpfTestCase : XunitTestCase
     {
         public WpfTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, object[] testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments) { }
+            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
+        { }
 
         public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
         {
@@ -68,7 +71,6 @@ namespace Roslyn.Test.Utilities
                     // Cleanup the synchronization context even if the test is failing exceptionally
                     SynchronizationContext.SetSynchronizationContext(null);
                 }
-
             }, cancellationTokenSource.Token, TaskCreationOptions.None, sta);
 
             return task.Unwrap();
