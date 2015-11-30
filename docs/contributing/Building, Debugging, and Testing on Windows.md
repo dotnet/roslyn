@@ -30,7 +30,7 @@ give it a try.
 
 # Trying Your Changes in Visual Studio
 
-Starting with Update 1, it is now possible to run your changes inside Visual
+Starting with Visual Studio 2015 Update 1, it is now possible to run your changes inside Visual
 Studio to try them out. Some projects in Roslyn.sln, listed below, build Visual
 Studio extensions. When you build those projects, they automatically deploy
 into an experimental instance of Visual Studio. The first time you clone, you
