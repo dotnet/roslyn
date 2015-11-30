@@ -172,6 +172,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\App.config" />

@@ -70,6 +70,9 @@
     <CodeAnalysisRuleSet>..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Services.Desktop.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Editting\SyntaxEditorTests.cs" />
     <Compile Include="ExtensionOrdererTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestProjectCacheService.cs" />
