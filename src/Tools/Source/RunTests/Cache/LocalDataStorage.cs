@@ -26,6 +26,7 @@ namespace RunTests.Cache
             Content
         }
 
+        internal const int MaxStorageCount = 200;
         internal const string DirectoryName = "RunTestsStorage";
 
         private readonly string _storagePath;
@@ -128,6 +129,33 @@ namespace RunTests.Cache
         {
             var filePath = GetStoragePath(checksum, kind);
             return File.ReadAllText(filePath);
+        }
+
+        private void CleanupStorage()
+        {
+            try
+            {
+                var files = Directory.GetFiles(_storagePath);
+                if (files.Length < MaxStorageCount)
+                {
+                    return;
+                }
+
+                var clean = files.Length - (MaxStorageCount / 2);
+                var items = files
+                    .Select(x => new DirectoryInfo(x))
+                    .OrderBy(x => x.CreationTimeUtc)
+                    .Take(clean);
+
+                foreach (var item in items)
+                {
+                    FileUtil.DeleteDirectory(item.Name);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unable to cleanup storage {ex.Message}");
+            }
         }
     }
 }
