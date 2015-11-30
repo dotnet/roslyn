@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static byte[] GetResourceBytes(string fileName)
         {
             var fullName = @"Microsoft.CodeAnalysis.UnitTests.TestFiles." + fileName;
-            var resourceStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(fullName);
+            var resourceStream = typeof(WorkspaceTestBase).GetTypeInfo().Assembly.GetManifestResourceStream(fullName);
             if (resourceStream != null)
             {
                 using (resourceStream)
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static string GetResourceText(string fileName)
         {
             var fullName = @"Microsoft.CodeAnalysis.UnitTests.TestFiles." + fileName;
-            var resourceStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(fullName);
+            var resourceStream = typeof(WorkspaceTestBase).GetTypeInfo().Assembly.GetManifestResourceStream(fullName);
             if (resourceStream != null)
             {
                 using (var streamReader = new StreamReader(resourceStream))

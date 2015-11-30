@@ -1,6 +1,6 @@
-{
+﻿{
   "dependencies": { },
   "frameworks": {
-    "net45": { }
+    "net46": { }
   }
 }

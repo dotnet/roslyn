@@ -59,6 +59,57 @@
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
           Condition="'$(OS)' != 'Windows_NT'" />
 
+  <!-- HACK: the current targets have a bug where they can try to
+       treat unadorned assembly references coming from
+       project.lock.json as filenames when trying to remove redundant
+       assembly references, so for example if a NuGet package
+       introduces a reference to "System.Xml", that results in the
+       targets removing any reference to just "System".
+       See: https://github.com/dotnet/roslyn/pull/6951#issuecomment-160182686
+
+       So we override it with a version with the problematic element
+       commented out.
+
+       It will be safe to remove this once we have a way to ensure
+       that a fixed version of "MSBuild/NuGet Integration" is in use. -->
+    <Target Name="ResolveNuGetPackageAssets" DependsOnTargets="$(ResolveNuGetPackageAssetsDependsOn)" Condition="'$(ResolveNuGetPackages)' == 'true' and exists('$(ProjectLockFile)')">
+    <ResolveNuGetPackageAssets AllowFallbackOnTargetSelection="$(DesignTimeBuild)"
+                               ContinueOnError="$(ContinueOnError)"
+                               IncludeFrameworkReferences="$(IncludeFrameworkReferencesFromNuGet)"
+                               NuGetPackagesDirectory="$(NuGetPackagesDirectory)"
+                               RuntimeIdentifier="$(NuGetRuntimeIdentifier)"
+                               ProjectLanguage="$(Language)"
+                               ProjectLockFile="$(ProjectLockFile)"
+                               TargetMonikers="$(NuGetTargetMoniker);$(_NuGetTargetFallbackMoniker)">
+
+      <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
+      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
+      <Output TaskParameter="ResolvedReferences" ItemName="_ReferencesFromNuGetPackages" />
+      <Output TaskParameter="ReferencedPackages" ItemName="ReferencedNuGetPackages" />
+    </ResolveNuGetPackageAssets>
+
+    <ItemGroup>
+      <!-- Remove exact references, such as if a package had a framework reference to 'System' that we already have -->
+      <Reference Remove="@(_ReferencesFromNuGetPackages)" />
+
+      <!-- Remove simple name references if we're directly providing a reference assembly to the compiler. For example,
+           consider a project with an Reference Include="System", and some NuGet package is providing System.dll -->
+      <!-- HACK: avoid collateral damage -->
+      <!-- <Reference Remove="%(_ReferencesFromNuGetPackages.FileName)" /> -->
+
+      <!-- Remove simple name references that are already implicitly added -->
+      <_ReferencesFromNuGetPackages Remove="%(ReferencePath.FileName)" Condition="'%(ReferencePath.ResolvedFrom)' == 'ImplicitlyExpandTargetFramework'" />
+
+      <Reference Include="@(_ReferencesFromNuGetPackages)" />
+    </ItemGroup>
+
+    <PropertyGroup Condition=" '$(AutoUnifyAssemblyReferences)' == 'true' ">
+      <!-- Normally Design Time Assembly Resolution (DTAR) won't consider these references.
+           Put DTAR in a mode where it will prefer the output of RAR and unify. -->
+      <DTARUseReferencesFromProject>true</DTARUseReferencesFromProject>
+    </PropertyGroup>
+  </Target>
+
   <PropertyGroup Condition="
       '$(TargetFrameworkIdentifier)' == '.NETPortable' AND
       '$(TargetFrameworkVersion)' == 'v5.0' AND

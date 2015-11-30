@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24627.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -324,9 +324,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTask.Desktop", "src\
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "MSBuildTask.Shared", "src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.shproj", "{D87F0E46-DD1B-46EA-8425-9E185D9B602E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicesTest.Desktop", "src\Workspaces\CoreTest.Desktop\ServicesTest.Desktop.csproj", "{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\Test\Utilities\Shared\TestUtilities.projitems*{76c6f005-c89d-4348-bb4a-391898dbeb52}*SharedItemsImports = 4
 		src\Compilers\Server\ServerShared\ServerShared.projitems*{32691768-af9c-4cae-9d0f-10721091b9aa}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{edc68a0e-c68d-4a74-91b7-bf38ec909888}*SharedItemsImports = 4
 		src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.projitems*{d87f0e46-dd1b-46ea-8425-9e185d9b602e}*SharedItemsImports = 13
@@ -2777,6 +2778,26 @@ Global
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Release|x64.Build.0 = Release|Any CPU
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Release|x86.ActiveCfg = Release|Any CPU
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Release|x86.Build.0 = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|ARM.Build.0 = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|x64.Build.0 = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Debug|x86.Build.0 = Debug|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|ARM.ActiveCfg = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|ARM.Build.0 = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|x64.ActiveCfg = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|x64.Build.0 = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|x86.ActiveCfg = Release|Any CPU
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2928,5 +2949,6 @@ Global
 		{7AD4FE65-9A30-41A6-8004-AA8F89BCB7F3} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{D87F0E46-DD1B-46EA-8425-9E185D9B602E} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{77BA28CE-A33C-4395-9F97-B5AE5F1F06C0} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 	EndGlobalSection
 EndGlobal
