@@ -88,8 +88,8 @@ extension. You can double-click the extension to install it into your main
 Visual Studio hive. This will replace the base installed version. Once it's
 installed, you'll see it marked as "Experimental" in Tools > Extensions and
 Updates to indicate you're running your experimental version. You can uninstall
-your version and go back to the "real" version choosing your version and
-clicking Uninstall.
+your version and go back to the originally installed version by choosing your
+version and clicking Uninstall.
 
 # Contributing
 
