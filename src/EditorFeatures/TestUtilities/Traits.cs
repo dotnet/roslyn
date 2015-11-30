@@ -25,6 +25,7 @@ namespace Roslyn.Test.Utilities
             public const string CaseCorrection = "CaseCorrection";
             public const string ChangeSignature = "ChangeSignature";
             public const string Classification = "Classification";
+            public const string ClassView = "ClassView";
             public const string CodeActionsAddConstructorParameters = "CodeActions.AddConstructorParameters";
             public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
