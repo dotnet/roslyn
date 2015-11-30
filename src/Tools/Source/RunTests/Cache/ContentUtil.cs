@@ -41,6 +41,13 @@ namespace RunTests.Cache
         {
             var builder = new StringBuilder();
             builder.AppendLine($"Assembly: {Path.GetFileName(assemblyPath)} {GetFileChecksum(assemblyPath)}");
+
+            var configFilePath = $"{assemblyPath}.config";
+            var configFileChecksum = File.Exists(configFilePath)
+                ? GetFileChecksum(configFilePath)
+                : "<no config file>";
+            builder.AppendLine($"Config: {Path.GetFileName(configFilePath)} {configFileChecksum}");
+
             builder.AppendLine($"Xunit: {Path.GetFileName(_options.XunitPath)} {GetFileChecksum(_options.XunitPath)}");
             AppendReferences(builder, assemblyPath);
             builder.AppendLine("Options:");
