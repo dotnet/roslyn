@@ -1,12 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Collections.ObjectModel
-Imports System.Threading
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -53,11 +47,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim symbol = TryCast(obj, BoundLambdaParameterSymbol)
-            Return symbol IsNot Nothing AndAlso Equals(symbol._lambdaSymbol, Me._lambdaSymbol) AndAlso symbol.Ordinal = Me.Ordinal
+            Return symbol IsNot Nothing AndAlso Equals(symbol._lambdaSymbol, _lambdaSymbol) AndAlso symbol.Ordinal = Ordinal
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me._lambdaSymbol.GetHashCode(), Me.Ordinal)
+            Return Hash.Combine(_lambdaSymbol.GetHashCode(), Ordinal)
         End Function
 
     End Class

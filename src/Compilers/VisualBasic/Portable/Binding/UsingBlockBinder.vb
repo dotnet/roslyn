@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -54,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' if this is not an AsNew declaration with multiple names and an initializer (error case), then only use
                         ' the initializer for the last variable.
-                        localsBuilder.Add(LocalSymbol.Create(Me.ContainingMember, Me,
+                        localsBuilder.Add(LocalSymbol.Create(ContainingMember, Me,
                                                              name.Identifier, name, variableDeclarator.AsClause,
                                                              If(isNotAsNewAndHasInitializer AndAlso i = names.Count - 1,
                                                                 variableDeclarator.Initializer,

@@ -4,7 +4,6 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -178,11 +177,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Friend NotOverridable Overrides Function SynthesizeAttribute(attributeConstructor As WellKnownMember) As Cci.ICustomAttribute
-            Return Me.Compilation.TrySynthesizeAttribute(attributeConstructor)
+            Return Compilation.TrySynthesizeAttribute(attributeConstructor)
         End Function
 
         Friend NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(Me.CompilationState, emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
+            Return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(CompilationState, emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
 
         Friend NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)
@@ -190,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend NotOverridable Overrides Function GetSourceModuleAttributes() As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.GetCustomAttributesToEmit(Me.CompilationState)
+            Return SourceModule.GetCustomAttributesToEmit(CompilationState)
         End Function
 
         Protected Overrides Function GetSymbolToLocationMap() As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation)
@@ -278,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Sub AddSymbolLocation(result As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation), location As Location, definition As Cci.IDefinition)
             Dim span As FileLinePositionSpan = location.GetLineSpan()
 
-            Dim doc As Cci.DebugSourceDocument = Me.TryGetDebugDocument(span.Path, basePath:=location.SourceTree.FilePath)
+            Dim doc As Cci.DebugSourceDocument = TryGetDebugDocument(span.Path, basePath:=location.SourceTree.FilePath)
             If (doc IsNot Nothing) Then
                 result.Add(doc,
                        New Cci.DefinitionWithLocation(
@@ -609,13 +608,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public Sub SetDisableJITOptimization(methodSymbol As MethodSymbol)
-            Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
+            Debug.Assert(methodSymbol.ContainingModule Is SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
 
             _disableJITOptimization.TryAdd(methodSymbol, True)
         End Sub
 
         Public Function JITOptimizationIsDisabled(methodSymbol As MethodSymbol) As Boolean
-            Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
+            Debug.Assert(methodSymbol.ContainingModule Is SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
             Return _disableJITOptimization.ContainsKey(methodSymbol)
         End Function
 
@@ -640,8 +639,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Friend Sub SetMethodTestData(methods As ConcurrentDictionary(Of String, CompilationTestData.MethodData))
-            Me._testData = methods
-            Me._testDataKeyFormat = New SymbolDisplayFormat(
+            _testData = methods
+            _testDataKeyFormat = New SymbolDisplayFormat(
                 compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames Or SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers,
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -664,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             '   Operator op_Implicit(Type) As Integer
             '   Operator op_Implicit(Type) As Single
             '   ... etc ...
-            Me._testDataOperatorKeyFormat = New SymbolDisplayFormat(
+            _testDataOperatorKeyFormat = New SymbolDisplayFormat(
                 _testDataKeyFormat.CompilerInternalOptions,
                 _testDataKeyFormat.GlobalNamespaceStyle,
                 _testDataKeyFormat.TypeQualificationStyle,

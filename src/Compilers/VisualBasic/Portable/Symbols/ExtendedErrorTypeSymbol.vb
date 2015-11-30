@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 
 
@@ -90,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        name As String,
                        arity As Integer)
             Me.New(DirectCast(Nothing, DiagnosticInfo), name, arity)
-            Me._containingSymbol = containingSymbol
+            _containingSymbol = containingSymbol
         End Sub
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
@@ -122,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
             If _reportErrorWhenReferenced Then
-                Return Me.ErrorInfo
+                Return ErrorInfo
             End If
 
             Return Nothing
@@ -153,13 +150,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Return Object.Equals(Me.ContainingSymbol, other.ContainingSymbol) AndAlso String.Equals(Me.Name, other.Name, StringComparison.Ordinal) AndAlso Me.Arity = other.Arity
+            Return Object.Equals(ContainingSymbol, other.ContainingSymbol) AndAlso String.Equals(Name, other.Name, StringComparison.Ordinal) AndAlso Arity = other.Arity
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me.Arity,
-                    Hash.Combine(If(Me.ContainingSymbol Is Nothing, 0, Me.ContainingSymbol.GetHashCode()),
-                                 If(Me.Name Is Nothing, 0, Me.Name.GetHashCode())))
+            Return Hash.Combine(Arity,
+                    Hash.Combine(If(ContainingSymbol Is Nothing, 0, ContainingSymbol.GetHashCode()),
+                                 If(Name Is Nothing, 0, Name.GetHashCode())))
         End Function
     End Class
 End Namespace

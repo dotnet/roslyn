@@ -1,12 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class DataFlowPass
@@ -35,11 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(Me.Symbol.GetHashCode, Me.ContainingSlot.GetHashCode)
+                Return Hash.Combine(Symbol.GetHashCode, ContainingSlot.GetHashCode)
             End Function
 
             Public Overloads Function Equals(obj As VariableIdentifier) As Boolean Implements IEquatable(Of VariableIdentifier).Equals
-                Return Me.Symbol.Equals(obj.Symbol) AndAlso Me.ContainingSlot = obj.ContainingSlot
+                Return Symbol.Equals(obj.Symbol) AndAlso ContainingSlot = obj.ContainingSlot
             End Function
 
             Public Overrides Function Equals(obj As Object) As Boolean

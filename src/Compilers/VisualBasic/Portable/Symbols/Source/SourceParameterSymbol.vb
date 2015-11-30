@@ -1,16 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Binder
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SourceParameterSymbol
@@ -95,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If IsImplicitlyDeclared Then
                     Return ImmutableArray(Of SyntaxReference).Empty
                 Else
-                    Return GetDeclaringSyntaxReferenceHelper(Of ParameterSyntax)(Me.Locations)
+                    Return GetDeclaringSyntaxReferenceHelper(Of ParameterSyntax)(Locations)
                 End If
             End Get
         End Property
@@ -103,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return (GetMatchingPropertyParameter() IsNot Nothing) OrElse (Me.ContainingSymbol.IsImplicitlyDeclared)
+                Return (GetMatchingPropertyParameter() IsNot Nothing) OrElse (ContainingSymbol.IsImplicitlyDeclared)
             End Get
         End Property
 
@@ -172,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns an empty array if there are no attributes.
         ''' </summary>
         Public NotOverridable Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me.GetAttributesBag().Attributes
+            Return GetAttributesBag().Attributes
         End Function
 
         Friend Overrides Function EarlyDecodeWellKnownAttribute(ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation)) As VisualBasicAttributeData

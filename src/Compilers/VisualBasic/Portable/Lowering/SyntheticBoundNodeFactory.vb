@@ -1,18 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Text
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -36,13 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Property CurrentType As NamedTypeSymbol
             Get
-                Return Me._currentClass
+                Return _currentClass
             End Get
         End Property
 
         Public ReadOnly Property Compilation As VisualBasicCompilation
             Get
-                Return Me.CompilationState.Compilation
+                Return CompilationState.Compilation
             End Get
         End Property
 
@@ -57,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property EmitModule As PEModuleBuilder
             Get
-                Return If(Me.CompilationState IsNot Nothing, Me.CompilationState.ModuleBuilderOpt, Nothing)
+                Return CompilationState?.ModuleBuilderOpt
             End Get
         End Property
 
@@ -69,13 +62,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.CompilationState = compilationState
             Me.CurrentMethod = currentMethod
             Me.TopLevelMethod = topLevelMethod
-            Me._currentClass = currentClass
-            Me._syntax = node
+            _currentClass = currentClass
+            _syntax = node
             Me.Diagnostics = diagnostics
         End Sub
 
         Public Sub AddNestedType(nestedType As NamedTypeSymbol)
-            Dim [module] As PEModuleBuilder = Me.EmitModule
+            Dim [module] As PEModuleBuilder = EmitModule
             If [module] IsNot Nothing Then
                 [module].AddSynthesizedDefinition(_currentClass, nestedType)
             End If
@@ -83,45 +76,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Sub OpenNestedType(nestedType As NamedTypeSymbol)
             AddNestedType(nestedType)
-            Me._currentClass = nestedType
-            Me.CurrentMethod = Nothing
+            _currentClass = nestedType
+            CurrentMethod = Nothing
         End Sub
 
         Public Sub AddField(containingType As NamedTypeSymbol, field As FieldSymbol)
-            Dim [module] As PEModuleBuilder = Me.EmitModule
-            If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(containingType, field)
-            End If
+            Dim [module] As PEModuleBuilder = EmitModule
+            [module]?.AddSynthesizedDefinition(containingType, field)
         End Sub
 
         Public Sub AddMethod(containingType As NamedTypeSymbol, method As MethodSymbol)
-            Dim [module] As PEModuleBuilder = Me.EmitModule
-            If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(containingType, method)
-            End If
+            Dim [module] As PEModuleBuilder = EmitModule
+            [module]?.AddSynthesizedDefinition(containingType, method)
         End Sub
 
         Public Sub AddProperty(containingType As NamedTypeSymbol, prop As PropertySymbol)
-            Dim [module] As PEModuleBuilder = Me.EmitModule
-            If [module] IsNot Nothing Then
-                [module].AddSynthesizedDefinition(containingType, prop)
-            End If
+            Dim [module] As PEModuleBuilder = EmitModule
+            [module]?.AddSynthesizedDefinition(containingType, prop)
         End Sub
 
         Public Function StateMachineField(type As TypeSymbol, implicitlyDefinedBy As Symbol, name As String, Optional accessibility As Accessibility = Accessibility.Private) As SynthesizedFieldSymbol
-            Dim result As New StateMachineFieldSymbol(Me.CurrentType, implicitlyDefinedBy, type, name, accessibility:=accessibility)
+            Dim result As New StateMachineFieldSymbol(CurrentType, implicitlyDefinedBy, type, name, accessibility:=accessibility)
             AddField(CurrentType, result)
             Return result
         End Function
 
         Public Function StateMachineField(type As TypeSymbol, implicitlyDefinedBy As Symbol, name As String, synthesizedKind As SynthesizedLocalKind, slotIndex As Integer, Optional accessibility As Accessibility = Accessibility.Private) As SynthesizedFieldSymbol
-            Dim result As New StateMachineFieldSymbol(Me.CurrentType, implicitlyDefinedBy, type, name, synthesizedKind, slotIndex, accessibility)
+            Dim result As New StateMachineFieldSymbol(CurrentType, implicitlyDefinedBy, type, name, synthesizedKind, slotIndex, accessibility)
             AddField(CurrentType, result)
             Return result
         End Function
 
         Public Function StateMachineField(type As TypeSymbol, implicitlyDefinedBy As Symbol, name As String, slotDebugInfo As LocalSlotDebugInfo, slotIndex As Integer, Optional accessibility As Accessibility = Accessibility.Private) As SynthesizedFieldSymbol
-            Dim result As New StateMachineFieldSymbol(Me.CurrentType, implicitlyDefinedBy, type, name, slotDebugInfo, slotIndex, accessibility)
+            Dim result As New StateMachineFieldSymbol(CurrentType, implicitlyDefinedBy, type, name, slotDebugInfo, slotIndex, accessibility)
             AddField(CurrentType, result)
             Return result
         End Function
@@ -150,20 +137,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function [Me]() As BoundMeReference
-            Debug.Assert(Me.CurrentMethod IsNot Nothing AndAlso Not Me.CurrentMethod.IsShared)
-            Dim boundNode = New BoundMeReference(_syntax, Me.CurrentMethod.MeParameter.Type)
+            Debug.Assert(CurrentMethod IsNot Nothing AndAlso Not CurrentMethod.IsShared)
+            Dim boundNode = New BoundMeReference(_syntax, CurrentMethod.MeParameter.Type)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
 
         Public Function ReferenceOrByrefMe() As BoundExpression
-            Debug.Assert(Me.CurrentMethod IsNot Nothing AndAlso Not Me.CurrentMethod.IsShared)
+            Debug.Assert(CurrentMethod IsNot Nothing AndAlso Not CurrentMethod.IsShared)
 
-            Dim type = Me.CurrentMethod.MeParameter.Type
+            Dim type = CurrentMethod.MeParameter.Type
 
             Dim boundNode = If(type.IsReferenceType,
-                                DirectCast(Me.Me, BoundExpression),
-                                New BoundValueTypeMeReference(_syntax, Me.CurrentMethod.MeParameter.Type))
+                                DirectCast([Me](), BoundExpression),
+                                New BoundValueTypeMeReference(_syntax, CurrentMethod.MeParameter.Type))
 
             boundNode.SetWasCompilerGenerated()
             Return boundNode
@@ -171,8 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Public Function Base() As BoundMyBaseReference
-            Debug.Assert(Me.CurrentMethod IsNot Nothing AndAlso Not Me.CurrentMethod.IsShared)
-            Dim boundNode = New BoundMyBaseReference(_syntax, Me.CurrentMethod.MeParameter.Type.BaseTypeNoUseSiteDiagnostics)
+            Debug.Assert(CurrentMethod IsNot Nothing AndAlso Not CurrentMethod.IsShared)
+            Dim boundNode = New BoundMyBaseReference(_syntax, CurrentMethod.MeParameter.Type.BaseTypeNoUseSiteDiagnostics)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
@@ -221,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function SpecialType(st As SpecialType) As NamedTypeSymbol
-            Dim typeSymbol = Me.Compilation.GetSpecialType(st)
+            Dim typeSymbol = Compilation.GetSpecialType(st)
 
             If typeSymbol.TypeKind = TypeKind.Error AndAlso TypeOf typeSymbol Is MissingMetadataTypeSymbol.TopLevel Then
                 Dim missing = DirectCast(typeSymbol, MissingMetadataTypeSymbol.TopLevel)
@@ -252,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function WellKnownType(wt As WellKnownType) As NamedTypeSymbol
-            Dim typeSymbol = Me.Compilation.GetWellKnownType(wt)
+            Dim typeSymbol = Compilation.GetWellKnownType(wt)
             Debug.Assert(typeSymbol IsNot Nothing)
 
             Dim useSiteError = typeSymbol.GetUseSiteErrorInfo()
@@ -264,12 +251,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Sub ReportDiagnostic(diagInfo As DiagnosticInfo)
-            Me.Diagnostics.Add(diagInfo, _syntax.GetLocation())
+            Diagnostics.Add(diagInfo, _syntax.GetLocation())
         End Sub
 
         Public Function WellKnownMember(Of T As Symbol)(wm As WellKnownMember, Optional isOptional As Boolean = False) As T
             Dim useSiteError As DiagnosticInfo = Nothing
-            Dim member = DirectCast(Binder.GetWellKnownTypeMember(Me.Compilation, wm, useSiteError), T)
+            Dim member = DirectCast(Binder.GetWellKnownTypeMember(Compilation, wm, useSiteError), T)
 
             If useSiteError IsNot Nothing Then
                 If isOptional Then
@@ -283,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function SpecialMember(sm As SpecialMember) As Symbol
-            Dim memberSymbol As Symbol = Me.Compilation.GetSpecialTypeMember(sm)
+            Dim memberSymbol As Symbol = Compilation.GetSpecialTypeMember(sm)
             Dim diagInfo As DiagnosticInfo = Nothing
 
             If memberSymbol Is Nothing Then
@@ -361,12 +348,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If expression IsNot Nothing Then
                 ' If necessary, add a conversion on the return expression.
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim conversion = Conversions.ClassifyDirectCastConversion(expression.Type, Me.CurrentMethod.ReturnType, useSiteDiagnostics)
+                Dim conversion = Conversions.ClassifyDirectCastConversion(expression.Type, CurrentMethod.ReturnType, useSiteDiagnostics)
                 Debug.Assert(Conversions.IsWideningConversion(conversion))
                 Diagnostics.Add(expression, useSiteDiagnostics)
 
                 If Not Conversions.IsIdentityConversion(conversion) Then
-                    expression = New BoundDirectCast(Me.Syntax, expression, conversion, Me.CurrentMethod.ReturnType)
+                    expression = New BoundDirectCast(Syntax, expression, conversion, CurrentMethod.ReturnType)
                 End If
             End If
 
@@ -409,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 #End If
         Public Function SynthesizedLocal(type As TypeSymbol, Optional kind As SynthesizedLocalKind = SynthesizedLocalKind.LoweringTemp, Optional syntax As SyntaxNode = Nothing) As LocalSymbol
-            Return New SynthesizedLocal(Me.CurrentMethod, type, kind, syntax)
+            Return New SynthesizedLocal(CurrentMethod, type, kind, syntax)
         End Function
 
         Public Function SynthesizedParameter(type As TypeSymbol, name As String, Optional container As MethodSymbol = Nothing, Optional ordinal As Integer = 0) As ParameterSymbol
@@ -602,7 +589,7 @@ nextm:
         Public Function TernaryConditionalExpression(condition As BoundExpression, ifTrue As BoundExpression, ifFalse As BoundExpression) As BoundTernaryConditionalExpression
             Debug.Assert(ifTrue IsNot Nothing)
             Debug.Assert(ifFalse IsNot Nothing)
-            Return New BoundTernaryConditionalExpression(Me.Syntax, condition, ifTrue, ifFalse, Nothing, ifTrue.Type).MakeCompilerGenerated()
+            Return New BoundTernaryConditionalExpression(Syntax, condition, ifTrue, ifFalse, Nothing, ifTrue.Type).MakeCompilerGenerated()
         End Function
 
         Public Function [TryCast](expression As BoundExpression, type As TypeSymbol) As BoundTryCast
@@ -613,7 +600,7 @@ nextm:
             Debug.Assert(Not expression.Type.IsErrorType)
             Debug.Assert(Not type.IsErrorType)
 
-            Return New BoundTryCast(Me.Syntax, expression, Conversions.ClassifyTryCastConversion(expression.Type, type, Nothing), type)
+            Return New BoundTryCast(Syntax, expression, Conversions.ClassifyTryCastConversion(expression.Type, type, Nothing), type)
         End Function
 
         Public Function [DirectCast](expression As BoundExpression, type As TypeSymbol) As BoundDirectCast
@@ -623,7 +610,7 @@ nextm:
             Debug.Assert(expression.Type Is Nothing OrElse Not expression.Type.IsErrorType)
             Debug.Assert(Not type.IsErrorType)
 
-            Return New BoundDirectCast(Me.Syntax,
+            Return New BoundDirectCast(Syntax,
                                        expression,
                                        If(expression.IsNothingLiteral,
                                           ConversionKind.WideningNothingLiteral,
@@ -677,13 +664,13 @@ nextm:
             Dim sectionsArray = ImmutableArray.CreateRange(Of BoundCaseBlock)(sections)
 
             If sectionsArray.Length = 0 Then
-                Return Me.ExpressionStatement(ex)
+                Return ExpressionStatement(ex)
             End If
 
             Dim breakLabel As GeneratedLabelSymbol = New GeneratedLabelSymbol("break")
             CheckSwitchSections(sectionsArray)
 
-            Dim boundNode = New BoundSelectStatement(_syntax, Me.ExpressionStatement(ex), Nothing, sectionsArray, True, breakLabel)
+            Dim boundNode = New BoundSelectStatement(_syntax, ExpressionStatement(ex), Nothing, sectionsArray, True, breakLabel)
 
             boundNode.SetWasCompilerGenerated()
             Return boundNode
@@ -789,7 +776,7 @@ nextm:
 
         Public Function BaseInitialization(ParamArray args As BoundExpression()) As BoundStatement
             ' TODO: add diagnostics for when things fall apart
-            Dim ctor = Me.CurrentMethod.MeParameter.Type.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(Function(c) c.ParameterCount = args.Length)
+            Dim ctor = CurrentMethod.MeParameter.Type.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(Function(c) c.ParameterCount = args.Length)
             Dim boundNode = New BoundExpressionStatement(_syntax, [Call](Base(), ctor, args))
             boundNode.SetWasCompilerGenerated()
             Return boundNode
@@ -814,7 +801,7 @@ nextm:
             Else
                 Dim nullLiteral As BoundExpression = New BoundLiteral(_syntax, ConstantValue.Null, Nothing)
                 nullLiteral.SetWasCompilerGenerated()
-                Return Me.Convert(type, nullLiteral)
+                Return Convert(type, nullLiteral)
             End If
         End Function
 
@@ -932,7 +919,7 @@ nextm:
         End Function
 
         Public Function Array(elementType As TypeSymbol, elements As ImmutableArray(Of BoundExpression)) As BoundExpression
-            Dim arrayType = Me.Compilation.CreateArrayTypeSymbol(elementType)
+            Dim arrayType = Compilation.CreateArrayTypeSymbol(elementType)
             Dim boundArrayInit = New BoundArrayInitialization(_syntax, elements, arrayType)
             boundArrayInit.SetWasCompilerGenerated()
             Return New BoundArrayCreation(_syntax, ImmutableArray.Create(Of BoundExpression)(Literal(elements.Length)), boundArrayInit, arrayType)
@@ -960,14 +947,14 @@ nextm:
 
         Public Function ReferenceIsNothing(operand As BoundExpression) As BoundBinaryOperator
             Debug.Assert(operand.Type.IsReferenceType)
-            Dim boundNode = Binary(BinaryOperatorKind.Is, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), operand, Me.Null(operand.Type))
+            Dim boundNode = Binary(BinaryOperatorKind.Is, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), operand, Null(operand.Type))
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
 
         Public Function ReferenceIsNotNothing(operand As BoundExpression) As BoundBinaryOperator
             Debug.Assert(operand.Type.IsReferenceType)
-            Dim boundNode = Binary(BinaryOperatorKind.IsNot, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), operand, Me.Null(operand.Type))
+            Dim boundNode = Binary(BinaryOperatorKind.IsNot, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), operand, Null(operand.Type))
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
@@ -1009,22 +996,22 @@ nextm:
         End Function
 
         Public Function NoOp(Optional flavor As NoOpStatementFlavor = NoOpStatementFlavor.Default) As BoundStatement
-            Return New BoundNoOpStatement(Me.Syntax, flavor).MakeCompilerGenerated
+            Return New BoundNoOpStatement(Syntax, flavor).MakeCompilerGenerated
         End Function
 
         Public Sub CloseMethod(body As BoundStatement)
-            Debug.Assert(Me.CurrentMethod IsNot Nothing)
+            Debug.Assert(CurrentMethod IsNot Nothing)
             If body.Kind <> BoundKind.Block Then
-                body = Me.Block(body)
+                body = Block(body)
             End If
-            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body)
-            Me.CurrentMethod = Nothing
+            CompilationState.AddSynthesizedMethod(CurrentMethod, body)
+            CurrentMethod = Nothing
         End Sub
 
         Public Function SpillSequence(locals As ImmutableArray(Of LocalSymbol), fields As ImmutableArray(Of FieldSymbol), statements As ImmutableArray(Of BoundStatement), valueOpt As BoundExpression) As BoundSpillSequence
-            Return New BoundSpillSequence(Me.Syntax, locals, fields, statements, valueOpt,
+            Return New BoundSpillSequence(Syntax, locals, fields, statements, valueOpt,
                                           If(valueOpt Is Nothing,
-                                             Me.SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Void),
+                                             SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Void),
                                              valueOpt.Type)).MakeCompilerGenerated()
         End Function
 

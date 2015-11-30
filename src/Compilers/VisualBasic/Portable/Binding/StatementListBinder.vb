@@ -1,12 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -70,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             ' if this is not an AsNew declaration with multiple names and an initializer (error case), then only use
                             ' the initializer for the last variable.
-                            Dim localVar = LocalSymbol.Create(Me.ContainingMember, Me,
+                            Dim localVar = LocalSymbol.Create(ContainingMember, Me,
                                                              modifiedIdentifier.Identifier, modifiedIdentifier, asClauseOptSyntax,
                                                              If(isNotAsNewAndHasInitializer AndAlso i = names.Count - 1,
                                                                 declarator.Initializer,

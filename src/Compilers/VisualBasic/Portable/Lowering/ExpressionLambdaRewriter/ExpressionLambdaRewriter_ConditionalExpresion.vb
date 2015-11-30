@@ -1,17 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Runtime.InteropServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class ExpressionLambdaRewriter
@@ -60,33 +50,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateCoalesceLambdaParameterSymbol(paramType As TypeSymbol) As ParameterSymbol
-            Return Me._factory.SynthesizedParameter(paramType, s_coalesceLambdaParameterName)
+            Return _factory.SynthesizedParameter(paramType, s_coalesceLambdaParameterName)
         End Function
 
         Private Function CreateCoalesceLambdaParameter(paramSymbol As ParameterSymbol) As BoundExpression
-            Return Me._factory.Parameter(paramSymbol).MakeRValue()
+            Return _factory.Parameter(paramSymbol).MakeRValue()
         End Function
 
         Private Function BuildLambdaForCoalesceCall(toType As TypeSymbol, lambdaParameter As ParameterSymbol, body As BoundExpression) As BoundExpression
             Dim parameterExpressionType As TypeSymbol = _factory.WellKnownType(WellKnownType.System_Linq_Expressions_ParameterExpression)
 
-            Dim paramLocalSymbol As LocalSymbol = Me._factory.SynthesizedLocal(parameterExpressionType)
-            Dim parameterReference As BoundLocal = Me._factory.Local(paramLocalSymbol, True)
+            Dim paramLocalSymbol As LocalSymbol = _factory.SynthesizedLocal(parameterExpressionType)
+            Dim parameterReference As BoundLocal = _factory.Local(paramLocalSymbol, True)
             Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](lambdaParameter.Type), _factory.Literal(s_coalesceLambdaParameterName))
 
-            Me._parameterMap(lambdaParameter) = parameterReference.MakeRValue
+            _parameterMap(lambdaParameter) = parameterReference.MakeRValue
             Dim convertedValue As BoundExpression = Visit(body)
-            Me._parameterMap.Remove(lambdaParameter)
+            _parameterMap.Remove(lambdaParameter)
 
             Dim result As BoundExpression =
-                Me._factory.Sequence(ImmutableArray.Create(Of LocalSymbol)(
+                _factory.Sequence(ImmutableArray.Create(Of LocalSymbol)(
                                         paramLocalSymbol),
                                      ImmutableArray.Create(Of BoundExpression)(
-                                         Me._factory.AssignmentExpression(parameterReference, parameter)),
+                                         _factory.AssignmentExpression(parameterReference, parameter)),
                                      ConvertRuntimeHelperToExpressionTree(
                                          "Lambda",
                                          convertedValue,
-                                         Me._factory.Array(
+                                         _factory.Array(
                                              parameterExpressionType,
                                              ImmutableArray.Create(Of BoundExpression)(
                                                  parameterReference.MakeRValue))))
@@ -107,9 +97,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If convKind = ConversionKind.NarrowingNullable AndAlso Not toType.IsNullableType Then
                     ' Convert to non-nullable type first to mimic Dev11
-                    Return Me._factory.Convert(toType, CreateUserDefinedNullableToUnderlyingConversion(parameter, parameterType, isChecked), isChecked)
+                    Return _factory.Convert(toType, CreateUserDefinedNullableToUnderlyingConversion(parameter, parameterType, isChecked), isChecked)
                 Else
-                    Return Me._factory.Convert(toType, parameter, isChecked)
+                    Return _factory.Convert(toType, parameter, isChecked)
                 End If
             End If
 
@@ -121,12 +111,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(nullableType.IsNullableType)
             Dim underlyingType As TypeSymbol = nullableType.GetNullableUnderlyingType
 
-            Dim helper As MethodSymbol = DirectCast(Me._factory.SpecialMember(
+            Dim helper As MethodSymbol = DirectCast(_factory.SpecialMember(
                         SpecialMember.System_Nullable_T__op_Explicit_ToT), MethodSymbol)
 
             If helper Is Nothing Then
                 ' Method not found, fall back on default conversion
-                Return Me._factory.Convert(underlyingType, expression, isChecked)
+                Return _factory.Convert(underlyingType, expression, isChecked)
             End If
 
             ' Get real method
@@ -206,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: in simple cases where inner conversion is (T? -> T) and outer conversion is (S -> S?),
                 '       Dev11 does generate simplified lifted conversion
 
-                parameter = Me._factory.Convert(expectedParameterType, parameter, isChecked)
+                parameter = _factory.Convert(expectedParameterType, parameter, isChecked)
 
                 'Else
                 '    ' NOTE: Otherwise Dev11 emits conversion explicitly referencing 

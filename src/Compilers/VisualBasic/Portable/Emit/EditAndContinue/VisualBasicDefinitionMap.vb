@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
-Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
@@ -29,15 +28,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New([module], edits, mapToMetadata, mapToPrevious)
 
             Debug.Assert(metadataDecoder IsNot Nothing)
-            Me._metadataDecoder = metadataDecoder
+            _metadataDecoder = metadataDecoder
         End Sub
 
         Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
-            Return Me.mapToPrevious.TryGetAnonymousTypeName(template, name, index)
+            Return mapToPrevious.TryGetAnonymousTypeName(template, name, index)
         End Function
 
         Friend Overrides Function TryGetTypeHandle(def As Cci.ITypeDefinition, <Out> ByRef handle As TypeDefinitionHandle) As Boolean
-            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PENamedTypeSymbol)
+            Dim other = TryCast(mapToMetadata.MapDefinition(def), PENamedTypeSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -48,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetEventHandle(def As Cci.IEventDefinition, <Out> ByRef handle As EventDefinitionHandle) As Boolean
-            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEEventSymbol)
+            Dim other = TryCast(mapToMetadata.MapDefinition(def), PEEventSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -59,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetFieldHandle(def As Cci.IFieldDefinition, <Out> ByRef handle As FieldDefinitionHandle) As Boolean
-            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEFieldSymbol)
+            Dim other = TryCast(mapToMetadata.MapDefinition(def), PEFieldSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -70,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetMethodHandle(def As Cci.IMethodDefinition, <Out> ByRef handle As MethodDefinitionHandle) As Boolean
-            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEMethodSymbol)
+            Dim other = TryCast(mapToMetadata.MapDefinition(def), PEMethodSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -81,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetPropertyHandle(def As Cci.IPropertyDefinition, <Out> ByRef handle As PropertyDefinitionHandle) As Boolean
-            Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEPropertySymbol)
+            Dim other = TryCast(mapToMetadata.MapDefinition(def), PEPropertySymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -188,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' Let's guard against such case.
                 Dim slotCount = Math.Min(localSlots.Length, slotMetadata.Length)
 
-                Dim map = New Dictionary(Of EncLocalInfo, Integer)()
+                Dim map As New Dictionary(Of EncLocalInfo, Integer)()
 
                 For slotIndex = 0 To slotCount - 1
 
@@ -199,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         ' We do Not emit custom modifiers on locals so ignore the
                         ' previous version of the local if it had custom modifiers.
                         If metadata.CustomModifiers.IsDefaultOrEmpty Then
-                            Dim local = New EncLocalInfo(slot, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, metadata.SignatureOpt)
+                            Dim local As New EncLocalInfo(slot, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, metadata.SignatureOpt)
                             map.Add(local, slotIndex)
                         End If
                     End If

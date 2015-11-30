@@ -7,8 +7,6 @@ Option Compare Binary
 Option Strict On
 
 Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -752,31 +750,31 @@ CleanUp:
 
                         Return XmlMakeLessToken(precedingTrivia)
 
-                    ' TODO: review 
+                        ' TODO: review 
 
-                    '    If Not m_State.m_ScannedElement OrElse c = "?"c OrElse c = "!"c Then
-                    '        ' // Remove tEOL from token ring if any exists
+                        '    If Not m_State.m_ScannedElement OrElse c = "?"c OrElse c = "!"c Then
+                        '        ' // Remove tEOL from token ring if any exists
 
-                    '        If tEOL IsNot Nothing Then
-                    '            m_FirstFreeToken = tEOL
-                    '        End If
+                        '        If tEOL IsNot Nothing Then
+                        '            m_FirstFreeToken = tEOL
+                        '        End If
 
-                    '        m_State.m_LexicalState = LexicalState.XmlMarkup
-                    '        MakeToken(tokens.tkLT, 1)
-                    '        m_InputStreamPosition += 1
-                    '        Return
-                    '    End If
-                    'End If
+                        '        m_State.m_LexicalState = LexicalState.XmlMarkup
+                        '        MakeToken(tokens.tkLT, 1)
+                        '        m_InputStreamPosition += 1
+                        '        Return
+                        '    End If
+                        'End If
 
-                    'm_State.EndXmlState()
+                        'm_State.EndXmlState()
 
-                    'If tEOL IsNot Nothing Then
-                    '    tEOL.m_EOL.m_NextLineAlreadyScanned = True
-                    'Else
-                    '    MakeToken(tokens.tkLT, 1)
-                    '    m_InputStreamPosition += 1
-                    'End If
-                    'Return
+                        'If tEOL IsNot Nothing Then
+                        '    tEOL.m_EOL.m_NextLineAlreadyScanned = True
+                        'Else
+                        '    MakeToken(tokens.tkLT, 1)
+                        '    m_InputStreamPosition += 1
+                        'End If
+                        'Return
                     Case Else
                         Return SyntaxFactory.Token(precedingTrivia.Node, SyntaxKind.EndOfXmlToken, Nothing, String.Empty)
 

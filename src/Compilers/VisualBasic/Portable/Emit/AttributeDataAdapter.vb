@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property AllowMultiple1 As Boolean Implements Cci.ICustomAttribute.AllowMultiple
             Get
-                Return Me.AttributeClass.GetAttributeUsageInfo().AllowMultiple
+                Return AttributeClass.GetAttributeUsageInfo().AllowMultiple
             End Get
         End Property
 

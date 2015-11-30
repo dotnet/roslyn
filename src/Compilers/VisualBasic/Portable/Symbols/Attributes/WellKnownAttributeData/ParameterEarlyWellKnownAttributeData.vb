@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property HasMarshalAsAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._hasMarshalAsAttribute
+                Return _hasMarshalAsAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._hasMarshalAsAttribute = value
+                _hasMarshalAsAttribute = value
                 SetDataStored()
             End Set
         End Property
@@ -32,11 +32,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property HasParamArrayAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._hasParamArrayAttribute
+                Return _hasParamArrayAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._hasParamArrayAttribute = value
+                _hasParamArrayAttribute = value
                 SetDataStored()
             End Set
         End Property

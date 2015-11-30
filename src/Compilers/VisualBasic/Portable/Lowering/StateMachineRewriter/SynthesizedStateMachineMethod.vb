@@ -32,24 +32,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(syntax, stateMachineType, name, isShared:=False)
 
-            Me._locations = ImmutableArray.Create(syntax.GetLocation())
-            Me._accessibility = declaredAccessibility
-            Me._generateDebugInfo = generateDebugInfo
-            Me._hasMethodBodyDependency = hasMethodBodyDependency
+            _locations = ImmutableArray.Create(syntax.GetLocation())
+            _accessibility = declaredAccessibility
+            _generateDebugInfo = generateDebugInfo
+            _hasMethodBodyDependency = hasMethodBodyDependency
 
             Debug.Assert(Not interfaceMethod.IsGenericMethod)
-            Me._interfaceMethod = interfaceMethod
+            _interfaceMethod = interfaceMethod
 
-            Dim params(Me._interfaceMethod.ParameterCount - 1) As ParameterSymbol
+            Dim params(_interfaceMethod.ParameterCount - 1) As ParameterSymbol
             For i = 0 To params.Length - 1
-                Dim curParam = Me._interfaceMethod.Parameters(i)
+                Dim curParam = _interfaceMethod.Parameters(i)
                 Debug.Assert(Not curParam.IsOptional)
                 Debug.Assert(Not curParam.HasExplicitDefaultValue)
                 params(i) = SynthesizedMethod.WithNewContainerAndType(Me, curParam.Type, curParam)
             Next
-            Me._parameters = params.AsImmutableOrNull()
+            _parameters = params.AsImmutableOrNull()
 
-            Me._associatedProperty = associatedProperty
+            _associatedProperty = associatedProperty
         End Sub
 
         Public ReadOnly Property StateMachineType As StateMachineTypeSymbol
@@ -72,19 +72,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me._locations
+                Return _locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return Me._parameters
+                Return _parameters
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return Me._interfaceMethod.ReturnType
+                Return _interfaceMethod.ReturnType
             End Get
         End Property
 
@@ -96,13 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
-                Return Me._interfaceMethod.IsSub
+                Return _interfaceMethod.IsSub
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsVararg As Boolean
             Get
-                Return Me._interfaceMethod.IsVararg
+                Return _interfaceMethod.IsVararg
             End Get
 
         End Property
@@ -115,13 +115,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return Me._accessibility
+                Return _accessibility
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ParameterCount As Integer
             Get
-                Return Me._parameters.Length
+                Return _parameters.Length
             End Get
         End Property
 
@@ -133,13 +133,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                Return ImmutableArray.Create(Me._interfaceMethod)
+                Return ImmutableArray.Create(_interfaceMethod)
             End Get
         End Property
 
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
-                Return Me._associatedProperty
+                Return _associatedProperty
             End Get
         End Property
 
@@ -149,12 +149,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
             Get
-                Return Me._generateDebugInfo
+                Return _generateDebugInfo
             End Get
         End Property
 
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
-            Return Me.StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree)
+            Return StateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree)
         End Function
 
         Public ReadOnly Property HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
-            Dim compilation = Me.DeclaringCompilation
+            Dim compilation = DeclaringCompilation
             AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
         End Sub
 
@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor))
-            Dim compilation = Me.DeclaringCompilation
+            Dim compilation = DeclaringCompilation
             AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerNonUserCodeAttribute())
         End Sub
     End Class

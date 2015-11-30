@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(TypeKind = TypeKind.Class OrElse TypeKind = TypeKind.Delegate)
 
                 Me.Manager = manager
-                Me.TypeDescriptor = typeDescr
+                TypeDescriptor = typeDescr
             End Sub
 
             Public NotOverridable Overrides ReadOnly Property Name As String
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return Me.Manager.ContainingModule.GlobalNamespace
+                    Return Manager.ContainingModule.GlobalNamespace
                 End Get
             End Property
 
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
-                    Return ImmutableArray.Create(Of Location)(Me.TypeDescriptor.Location)
+                    Return ImmutableArray.Create(Of Location)(TypeDescriptor.Location)
                 End Get
             End Property
 
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public NotOverridable Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
                 Get
-                    Return Me.TypeDescriptor.IsImplicitlyDeclared
+                    Return TypeDescriptor.IsImplicitlyDeclared
                 End Get
             End Property
 

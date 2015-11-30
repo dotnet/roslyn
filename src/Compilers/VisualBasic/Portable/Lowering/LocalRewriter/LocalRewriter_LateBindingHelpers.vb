@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -69,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MakeNullLiteral(node, booleanArrayType)
 
             Else
-                Dim intType = Me.GetSpecialType(SpecialType.System_Int32)
+                Dim intType = GetSpecialType(SpecialType.System_Int32)
                 Dim bounds As BoundExpression = New BoundLiteral(node, ConstantValue.Create(flags.Length), intType)
 
                 Dim initializers = ArrayBuilder(Of BoundExpression).GetInstance
@@ -109,11 +105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(objectType.IsObjectType)
             Debug.Assert(Not rewrittenArguments.IsDefaultOrEmpty)
 
-            Dim intType = Me.GetSpecialType(SpecialType.System_Int32)
+            Dim intType = GetSpecialType(SpecialType.System_Int32)
             Dim bounds As BoundExpression = New BoundLiteral(node, ConstantValue.Create(rewrittenArguments.Length), intType)
 
             Dim arrayCreation = New BoundArrayCreation(node, ImmutableArray.Create(bounds), Nothing, objectArrayType)
-            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(_currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
             Dim arrayTempRef = New BoundLocal(node, arrayTemp, arrayTemp.Type)
 
             Dim arrayInit = New BoundAssignmentOperator(node, arrayTempRef, arrayCreation, suppressObjectClone:=True)
@@ -198,11 +194,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not rewrittenArguments.IsDefaultOrEmpty)
 
-            Dim intType = Me.GetSpecialType(SpecialType.System_Int32)
+            Dim intType = GetSpecialType(SpecialType.System_Int32)
             Dim bounds As BoundExpression = New BoundLiteral(node, ConstantValue.Create(rewrittenArguments.Length + 1), intType)
 
             Dim arrayCreation = New BoundArrayCreation(node, ImmutableArray.Create(bounds), Nothing, objectArrayType)
-            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim arrayTemp As LocalSymbol = New SynthesizedLocal(_currentMethodOrLambda, arrayCreation.Type, SynthesizedLocalKind.LoweringTemp)
             Dim arrayTempRef = New BoundLocal(node, arrayTemp, arrayTemp.Type)
 
             Dim arrayInit = New BoundAssignmentOperator(node, arrayTempRef, arrayCreation, suppressObjectClone:=True)
@@ -265,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim arrayType = DirectCast(objectArrayType, ArrayTypeSymbol)
             Dim objectType = arrayType.ElementType
-            Dim intType = Me.GetSpecialType(SpecialType.System_Int32)
+            Dim intType = GetSpecialType(SpecialType.System_Int32)
 
             Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(objectType.IsObjectType)
@@ -323,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim initializer = New BoundArrayInitialization(node, initializers.ToImmutableAndFree, Nothing)
 
-                Dim intType = Me.GetSpecialType(SpecialType.System_Int32)
+                Dim intType = GetSpecialType(SpecialType.System_Int32)
                 Dim bounds As BoundExpression = New BoundLiteral(node, ConstantValue.Create(initializer.Initializers.Length), intType)
 
                 Return New BoundArrayCreation(node, ImmutableArray.Create(bounds), initializer, stringArrayType)
@@ -341,7 +337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      argNum As Integer) As BoundExpression
 
             Dim syntax = assignmentTarget.Syntax
-            Dim intType = Me.GetSpecialType(SpecialType.System_Int32)
+            Dim intType = GetSpecialType(SpecialType.System_Int32)
 
             Dim index As BoundExpression = New BoundLiteral(syntax, ConstantValue.Create(argNum), intType)
             Dim indices = ImmutableArray.Create(index)
@@ -392,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             ImmutableArray(Of LocalSymbol).Empty,
                                                             ImmutableArray(Of BoundExpression).Empty,
                                                             Nothing,
-                                                            Me.GetSpecialType(SpecialType.System_Void))
+                                                            GetSpecialType(SpecialType.System_Void))
 
             Dim voidAssignment As BoundExpression = LateMakeCopyback(syntax,
                                                                 assignmentTarget,
@@ -451,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     ImmutableArray(Of LocalSymbol).Empty,
                                                     ImmutableArray.Create(assignment),
                                                     Nothing,
-                                                    Me.GetSpecialType(SpecialType.System_Void))
+                                                    GetSpecialType(SpecialType.System_Void))
 
             Return voidAssignment
         End Function
@@ -475,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             '
             Dim lateIndexGetMethod As MethodSymbol = Nothing
-            If Not Me.TryGetWellknownMember(lateIndexGetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateIndexGet, syntax) Then
+            If Not TryGetWellknownMember(lateIndexGetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateIndexGet, syntax) Then
                 Return node
             End If
 
@@ -516,14 +512,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isComplex As Boolean = isCopyBack OrElse baseIsNotLValue
 
             If isComplex Then
-                If Not Me.TryGetWellknownMember(lateSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateSetComplex, syntax) Then
+                If Not TryGetWellknownMember(lateSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateSetComplex, syntax) Then
                     ' need to return something void
-                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(memberAccess), Nothing, Me.GetSpecialType(SpecialType.System_Void))
+                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(memberAccess), Nothing, GetSpecialType(SpecialType.System_Void))
                 End If
             Else
-                If Not Me.TryGetWellknownMember(lateSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateSet, syntax) Then
+                If Not TryGetWellknownMember(lateSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateSet, syntax) Then
                     ' need to return something void
-                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(memberAccess), Nothing, Me.GetSpecialType(SpecialType.System_Void))
+                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(memberAccess), Nothing, GetSpecialType(SpecialType.System_Void))
                 End If
             End If
 
@@ -587,14 +583,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isComplex As Boolean = isCopyBack OrElse baseIsNotLValue
 
             If isComplex Then
-                If Not Me.TryGetWellknownMember(lateIndexSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateIndexSetComplex, syntax) Then
+                If Not TryGetWellknownMember(lateIndexSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateIndexSetComplex, syntax) Then
                     ' need to return something void
-                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, Me.GetSpecialType(SpecialType.System_Void))
+                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, GetSpecialType(SpecialType.System_Void))
                 End If
             Else
-                If Not Me.TryGetWellknownMember(lateIndexSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateIndexSet, syntax) Then
+                If Not TryGetWellknownMember(lateIndexSetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateIndexSet, syntax) Then
                     ' need to return something void
-                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, Me.GetSpecialType(SpecialType.System_Void))
+                    Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, GetSpecialType(SpecialType.System_Void))
                 End If
             End If
 
@@ -662,11 +658,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lateCallOrGetMethod As MethodSymbol = Nothing
 
             If useLateCall Then
-                If Not Me.TryGetWellknownMember(lateCallOrGetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateCall, syntax) Then
+                If Not TryGetWellknownMember(lateCallOrGetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateCall, syntax) Then
                     Return memberAccess
                 End If
             Else
-                If Not Me.TryGetWellknownMember(lateCallOrGetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateGet, syntax) Then
+                If Not TryGetWellknownMember(lateCallOrGetMethod, WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateGet, syntax) Then
                     Return memberAccess
                 End If
             End If
@@ -722,11 +718,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If copyBackFlagArrayTemp Is Nothing Then
                         ' since we may have copybacks, we need a temp for the flags array to examine its content after the call
-                        copyBackFlagArrayTemp = New SynthesizedLocal(Me._currentMethodOrLambda, copyBackFlagArray.Type, SynthesizedLocalKind.LoweringTemp)
+                        copyBackFlagArrayTemp = New SynthesizedLocal(_currentMethodOrLambda, copyBackFlagArray.Type, SynthesizedLocalKind.LoweringTemp)
                         copyBackFlagArrayRef = (New BoundLocal(syntax, copyBackFlagArrayTemp, copyBackFlagArrayTemp.Type)).MakeRValue
 
                         ' since we may have copybacks, we need a temp for the arguments array to access it after the call
-                        valueArrayTemp = New SynthesizedLocal(Me._currentMethodOrLambda, argumentsArray.Type, SynthesizedLocalKind.LoweringTemp)
+                        valueArrayTemp = New SynthesizedLocal(_currentMethodOrLambda, argumentsArray.Type, SynthesizedLocalKind.LoweringTemp)
                         valueArrayRef = New BoundLocal(syntax, valueArrayTemp, valueArrayTemp.Type)
                         argumentsArray = (New BoundAssignmentOperator(syntax, valueArrayRef, argumentsArray, suppressObjectClone:=True)).MakeRValue
                         valueArrayRef = valueArrayRef.MakeRValue
@@ -801,7 +797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' process copybacks
             If copyBackFlagArrayTemp IsNot Nothing Then
-                Dim valueTemp = New SynthesizedLocal(Me._currentMethodOrLambda, callerInvocation.Type, SynthesizedLocalKind.LoweringTemp)
+                Dim valueTemp = New SynthesizedLocal(_currentMethodOrLambda, callerInvocation.Type, SynthesizedLocalKind.LoweringTemp)
                 Dim valueRef = New BoundLocal(syntax, valueTemp, valueTemp.Type)
                 Dim store = New BoundAssignmentOperator(syntax, valueRef, callerInvocation, suppressObjectClone:=True)
 
@@ -824,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            ByRef arguments As ImmutableArray(Of BoundExpression),
                            <Out> ByRef writeTargets As ImmutableArray(Of BoundExpression))
 
-            Dim container = Me._currentMethodOrLambda
+            Dim container = _currentMethodOrLambda
 
             If temps Is Nothing Then
                 temps = ArrayBuilder(Of SynthesizedLocal).GetInstance
@@ -914,7 +910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        types As ImmutableArray(Of TypeSymbol),
                                        typeArrayType As TypeSymbol) As BoundArrayCreation
 
-            Dim intType = Me.GetSpecialType(SpecialType.System_Int32)
+            Dim intType = GetSpecialType(SpecialType.System_Int32)
             Dim bounds As BoundExpression = New BoundLiteral(node, ConstantValue.Create(types.Length), intType)
 
             Dim typeType = DirectCast(typeArrayType, ArrayTypeSymbol).ElementType
@@ -934,7 +930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                Optional isOptional As Boolean = False) As Boolean
 
             Dim diagInfo As DiagnosticInfo = Nothing
-            Dim memberSymbol = Binder.GetWellKnownTypeMember(Me.Compilation, memberId, diagInfo)
+            Dim memberSymbol = Binder.GetWellKnownTypeMember(Compilation, memberId, diagInfo)
 
             If diagInfo IsNot Nothing Then
                 If Not isOptional Then
@@ -956,7 +952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        syntax As VisualBasicSyntaxNode) As Boolean
 
             Dim diagInfo As DiagnosticInfo = Nothing
-            Dim memberSymbol = Binder.GetSpecialTypeMember(Me._topMethod.ContainingAssembly, memberId, diagInfo)
+            Dim memberSymbol = Binder.GetSpecialTypeMember(_topMethod.ContainingAssembly, memberId, diagInfo)
 
             If diagInfo IsNot Nothing Then
                 Binder.ReportDiagnostic(_diagnostics, New VBDiagnostic(diagInfo, syntax.GetLocation()))

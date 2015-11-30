@@ -3,9 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
     Friend NotInheritable Class RetargetingPropertySymbol
         Inherits PropertySymbol
@@ -248,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 If _lazyExplicitInterfaceImplementations.IsDefault Then
                     ImmutableInterlocked.InterlockedCompareExchange(
                         _lazyExplicitInterfaceImplementations,
-                        Me.RetargetExplicitInterfaceImplementations(),
+                        RetargetExplicitInterfaceImplementations(),
                         Nothing)
                 End If
 
@@ -257,14 +254,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Private Function RetargetExplicitInterfaceImplementations() As ImmutableArray(Of PropertySymbol)
-            Dim impls = Me.UnderlyingProperty.ExplicitInterfaceImplementations
+            Dim impls = UnderlyingProperty.ExplicitInterfaceImplementations
             If impls.IsEmpty Then
                 Return impls
             End If
 
             Dim builder = ArrayBuilder(Of PropertySymbol).GetInstance()
             For i = 0 To impls.Length - 1
-                Dim retargeted = Me.RetargetingModule.RetargetingTranslator.Retarget(impls(i), PropertySignatureComparer.RetargetedExplicitPropertyImplementationComparer)
+                Dim retargeted = RetargetingModule.RetargetingTranslator.Retarget(impls(i), PropertySignatureComparer.RetargetedExplicitPropertyImplementationComparer)
                 If retargeted IsNot Nothing Then
                     builder.Add(retargeted)
                 End If

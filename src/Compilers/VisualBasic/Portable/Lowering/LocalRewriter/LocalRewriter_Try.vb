@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -59,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             finallyBlockOpt As BoundBlock,
             exitLabelOpt As LabelSymbol
         ) As BoundStatement
-            If Not Me.OptimizationLevelIsDebug Then
+            If Not OptimizationLevelIsDebug Then
                 ' When optimizing and the try block has no side effects, we can discard the catch blocks.
                 If Not HasSideEffects(tryBlock) Then
                     catchBlocks = ImmutableArray(Of BoundCatchBlock).Empty
@@ -83,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Add a sequence point for End Try
             ' Note that scope the point is outside of Try/Catch/Finally 
-            If Me.GenerateDebugInfo Then
+            If GenerateDebugInfo Then
                 Dim syntax = TryCast(syntaxNode, TryBlockSyntax)
 
                 If syntax IsNot Nothing Then
@@ -157,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If node.ErrorLineNumberOpt IsNot Nothing Then
                 Debug.Assert(_currentLineTemporary Is Nothing)
-                Debug.Assert((Me._flags And RewritingFlags.AllowCatchWithErrorLineNumberReference) <> 0)
+                Debug.Assert((_flags And RewritingFlags.AllowCatchWithErrorLineNumberReference) <> 0)
 
                 errorLineNumber = VisitExpressionNode(node.ErrorLineNumberOpt)
 

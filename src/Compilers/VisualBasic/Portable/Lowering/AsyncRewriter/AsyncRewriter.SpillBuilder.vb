@@ -15,80 +15,80 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _statements As ArrayBuilder(Of BoundStatement)
 
             Friend Sub Free()
-                If Me._locals IsNot Nothing Then
-                    Me._locals.Free()
-                    Me._locals = Nothing
+                If _locals IsNot Nothing Then
+                    _locals.Free()
+                    _locals = Nothing
                 End If
 
-                If Me._statements IsNot Nothing Then
-                    Me._statements.Free()
-                    Me._statements = Nothing
+                If _statements IsNot Nothing Then
+                    _statements.Free()
+                    _statements = Nothing
                 End If
 
-                If Me._fields IsNot Nothing Then
-                    Me._fields.Free()
-                    Me._fields = Nothing
+                If _fields IsNot Nothing Then
+                    _fields.Free()
+                    _fields = Nothing
                 End If
             End Sub
 
             Friend Function BuildSequenceAndFree(F As SyntheticBoundNodeFactory, expression As BoundExpression) As BoundExpression
-                If Not Me.IsEmpty Then
+                If Not IsEmpty Then
                     expression =
-                        F.SpillSequence(If(Me._locals Is Nothing, ImmutableArray(Of LocalSymbol).Empty, Me._locals.ToImmutableAndFree()),
-                                        If(Me._fields Is Nothing, ImmutableArray(Of FieldSymbol).Empty, Me._fields.ToImmutableAndFree()),
-                                        If(Me._statements Is Nothing, ImmutableArray(Of BoundStatement).Empty, Me._statements.ToImmutableAndFree()),
+                        F.SpillSequence(If(_locals Is Nothing, ImmutableArray(Of LocalSymbol).Empty, _locals.ToImmutableAndFree()),
+                                        If(_fields Is Nothing, ImmutableArray(Of FieldSymbol).Empty, _fields.ToImmutableAndFree()),
+                                        If(_statements Is Nothing, ImmutableArray(Of BoundStatement).Empty, _statements.ToImmutableAndFree()),
                                         expression)
-                    Me._locals = Nothing
-                    Me._statements = Nothing
-                    Me._fields = Nothing
+                    _locals = Nothing
+                    _statements = Nothing
+                    _fields = Nothing
                 End If
                 Return expression
             End Function
 
             Public ReadOnly Property IsEmpty As Boolean
                 Get
-                    Return Me._locals Is Nothing AndAlso Me._statements Is Nothing AndAlso Me._fields Is Nothing
+                    Return _locals Is Nothing AndAlso _statements Is Nothing AndAlso _fields Is Nothing
                 End Get
             End Property
 
             Friend Sub AddSpill(<[In]> ByRef spill As SpillBuilder)
                 If Not spill.IsEmpty Then
-                    AddRange(Me._locals, spill._locals)
-                    AddRange(Me._fields, spill._fields)
-                    AddRange(Me._statements, spill._statements)
+                    AddRange(_locals, spill._locals)
+                    AddRange(_fields, spill._fields)
+                    AddRange(_statements, spill._statements)
                 End If
             End Sub
 
             Friend Sub AddSpill(spill As BoundSpillSequence)
-                AddRange(Me._locals, spill.Locals)
-                AddRange(Me._fields, spill.SpillFields)
-                AddRange(Me._statements, spill.Statements)
+                AddRange(_locals, spill.Locals)
+                AddRange(_fields, spill.SpillFields)
+                AddRange(_statements, spill.Statements)
             End Sub
 
             Friend Sub AddFieldWithInitialization(field As FieldSymbol, init As BoundStatement)
                 Debug.Assert(field IsNot Nothing)
                 Debug.Assert(init IsNot Nothing)
 
-                Add(Me._fields, field)
-                Add(Me._statements, init)
+                Add(_fields, field)
+                Add(_statements, init)
             End Sub
 
             Friend Sub AddLocal(local As LocalSymbol)
-                Add(Me._locals, local)
+                Add(_locals, local)
             End Sub
 
             Friend Sub AddLocals(locals As ImmutableArray(Of LocalSymbol))
-                AddRange(Me._locals, locals)
+                AddRange(_locals, locals)
             End Sub
 
             Friend Sub AddStatement(statement As BoundStatement)
-                Add(Me._statements, statement)
+                Add(_statements, statement)
             End Sub
 
             Friend Sub AssumeFieldsIfNeeded(<[In], Out> ByRef expression As BoundSpillSequence)
                 Debug.Assert(expression IsNot Nothing)
                 If Not expression.SpillFields.IsEmpty Then
-                    AddRange(Me._fields, expression.SpillFields)
+                    AddRange(_fields, expression.SpillFields)
                     expression = expression.Update(expression.Locals,
                                                    ImmutableArray(Of FieldSymbol).Empty,
                                                    expression.Statements,

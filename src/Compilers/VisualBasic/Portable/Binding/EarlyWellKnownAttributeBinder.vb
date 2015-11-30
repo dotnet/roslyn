@@ -1,14 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -23,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _owner As Symbol
         Friend Sub New(owner As Symbol, containingBinder As Binder)
             MyBase.New(containingBinder, isEarlyAttributeBinder:=True)
-            Me._owner = owner
+            _owner = owner
         End Sub
 
         Public Overrides ReadOnly Property ContainingMember As Symbol

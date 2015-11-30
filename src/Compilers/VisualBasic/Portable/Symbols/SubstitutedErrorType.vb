@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SubstitutedErrorType
         Inherits ErrorTypeSymbol
@@ -64,19 +61,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me
                 End If
 
-                If Me.ContainingSymbol Is Nothing OrElse Me.ContainingSymbol.IsDefinition Then
+                If ContainingSymbol Is Nothing OrElse ContainingSymbol.IsDefinition Then
                     Return _fullInstanceType
                 End If
 
                 Dim substitution As TypeSubstitution = _substitution.Parent
 
-                Debug.Assert(substitution IsNot Nothing AndAlso substitution.TargetGenericDefinition Is Me.ContainingType.OriginalDefinition)
+                Debug.Assert(substitution IsNot Nothing AndAlso substitution.TargetGenericDefinition Is ContainingType.OriginalDefinition)
 
                 ' We don't alpha-rename type parameters of error type symbols because they don't have constraints
                 ' and, therefore, have nothing to substitute. Just use identity substitution.
                 substitution = VisualBasic.Symbols.TypeSubstitution.Concat(_fullInstanceType, substitution, Nothing)
 
-                Return New SubstitutedErrorType(Me.ContainingSymbol, _fullInstanceType, substitution)
+                Return New SubstitutedErrorType(ContainingSymbol, _fullInstanceType, substitution)
             End Get
         End Property
 

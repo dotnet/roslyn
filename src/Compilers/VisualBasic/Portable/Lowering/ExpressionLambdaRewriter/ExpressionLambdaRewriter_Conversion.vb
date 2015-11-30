@@ -1,23 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Runtime.InteropServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class ExpressionLambdaRewriter
 
         Private Function VisitConversion(node As BoundConversion) As BoundExpression
             If Conversions.IsIdentityConversion(node.ConversionKind) AndAlso Not node.Type.IsFloatingType() Then
-                Return Me.VisitInternal(node.Operand)
+                Return VisitInternal(node.Operand)
             End If
 
             Debug.Assert(node.RelaxationLambdaOpt Is Nothing)
@@ -27,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function VisitDirectCast(node As BoundDirectCast) As BoundExpression
             If Conversions.IsIdentityConversion(node.ConversionKind) Then
-                Return Me.VisitInternal(node.Operand)
+                Return VisitInternal(node.Operand)
             End If
 
             Debug.Assert(node.RelaxationLambdaOpt Is Nothing)
@@ -36,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function VisitTryCast(node As BoundTryCast) As BoundExpression
             If Conversions.IsIdentityConversion(node.ConversionKind) Then
-                Return Me.VisitInternal(node.Operand)
+                Return VisitInternal(node.Operand)
             End If
 
             Debug.Assert(node.RelaxationLambdaOpt Is Nothing)
@@ -69,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If notNullableTo.IsTypeParameter() Then
                     If toIsNullable Then
-                        Return Convert(VisitInternal(Me._factory.Null(Me.ObjectType)), typeTo, False)
+                        Return Convert(VisitInternal(_factory.Null(ObjectType)), typeTo, False)
                     Else
                         Return [Default](typeTo)
                     End If
@@ -99,8 +89,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ElseIf typeTo.IsInterfaceType AndAlso typeFrom.IsValueType Then
                 ' When converting from value type to interface type, we convert to System.Object first
-                Dim objectValue As BoundExpression = CreateBuiltInConversion(typeFrom, Me.ObjectType, Visit(operand), isChecked, explicitCastInCode, semantics)
-                Return CreateBuiltInConversion(Me.ObjectType, typeTo, objectValue, isChecked, explicitCastInCode, semantics)
+                Dim objectValue As BoundExpression = CreateBuiltInConversion(typeFrom, ObjectType, Visit(operand), isChecked, explicitCastInCode, semantics)
+                Return CreateBuiltInConversion(ObjectType, typeTo, objectValue, isChecked, explicitCastInCode, semantics)
 
             Else
                 Return CreateBuiltInConversion(typeFrom, typeTo, Visit(operand), isChecked, explicitCastInCode, semantics)
@@ -108,8 +98,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function ConvertLambda(node As BoundLambda, type As TypeSymbol) As BoundExpression
-            If type.IsExpressionTree(Me._binder) Then
-                type = type.ExpressionTargetDelegate(Me._factory.Compilation)
+            If type.IsExpressionTree(_binder) Then
+                type = type.ExpressionTargetDelegate(_factory.Compilation)
                 Dim result = VisitLambdaInternal(node, DirectCast(type, NamedTypeSymbol))
                 Return ConvertRuntimeHelperToExpressionTree("Quote", result)
             Else
@@ -208,12 +198,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If specialHelper IsNot Nothing Then
                 Dim helperOperandType As TypeSymbol = specialHelper.Parameters(0).Type
                 If fromIsNullable Then
-                    helperOperandType = Me._factory.NullableOf(helperOperandType)
+                    helperOperandType = _factory.NullableOf(helperOperandType)
                 End If
 
                 Dim helperReturnType As TypeSymbol = specialHelper.ReturnType
                 If toIsNullable Then
-                    helperReturnType = Me._factory.NullableOf(helperReturnType)
+                    helperReturnType = _factory.NullableOf(helperReturnType)
                 End If
 
                 Dim underlyingOperand = ConvertIfNeeded(rewrittenOperand, typeFrom, helperOperandType,
@@ -231,18 +221,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return CreateTypeAs(rewrittenOperand, typeTo)
 
                     Case Else
-                        Dim helper As MethodSymbol = Me._factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.Microsoft_VisualBasic_CompilerServices_Conversions__ToGenericParameter_T_Object)
+                        Dim helper As MethodSymbol = _factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.Microsoft_VisualBasic_CompilerServices_Conversions__ToGenericParameter_T_Object)
                         Return [Call](_factory.Null(), helper.Construct(typeTo), rewrittenOperand)
                 End Select
 
             ElseIf underlyingFrom.IsTypeParameter() Then
                 If semantics = ConversionSemantics.TryCast Then
                     Return CreateTypeAs(If(typeTo.SpecialType = SpecialType.System_Object,
-                                           rewrittenOperand, Convert(rewrittenOperand, Me.ObjectType, False)),
+                                           rewrittenOperand, Convert(rewrittenOperand, ObjectType, False)),
                                         typeTo)
                 Else
                     ' Converting from type parameter to something besides object is done as double conversion; first to object, then to final type (if not object).
-                    Dim objectConversion = Convert(rewrittenOperand, Me.ObjectType, False)
+                    Dim objectConversion = Convert(rewrittenOperand, ObjectType, False)
                     Return ConvertIfNeeded(objectConversion, _factory.SpecialType(SpecialType.System_Object), typeTo, False)
                 End If
 
@@ -280,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If fromIsNullable AndAlso Not (typeBeforeNegation IsNot underlyingTo) Then
-                    typeBeforeNegation = Me._factory.NullableOf(typeBeforeNegation)
+                    typeBeforeNegation = _factory.NullableOf(typeBeforeNegation)
                 End If
 
                 Dim converted = Convert(rewrittenOperand, typeBeforeNegation, isChecked AndAlso IsIntegralType(typeBeforeNegation))
@@ -308,13 +298,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetSignedVersionOfNumericType(type As TypeSymbol) As TypeSymbol
             Select Case type.SpecialType
                 Case SpecialType.System_Byte
-                    Return Me._factory.SpecialType(SpecialType.System_SByte)
+                    Return _factory.SpecialType(SpecialType.System_SByte)
                 Case SpecialType.System_UInt16
-                    Return Me._factory.SpecialType(SpecialType.System_Int16)
+                    Return _factory.SpecialType(SpecialType.System_Int16)
                 Case SpecialType.System_UInt32
-                    Return Me._factory.SpecialType(SpecialType.System_Int32)
+                    Return _factory.SpecialType(SpecialType.System_Int32)
                 Case SpecialType.System_UInt64
-                    Return Me._factory.SpecialType(SpecialType.System_Int64)
+                    Return _factory.SpecialType(SpecialType.System_Int64)
                 Case Else
                     Return type
             End Select
@@ -325,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isChecked = False
             End If
 
-            Dim helper As MethodSymbol = DirectCast(Me._factory.SpecialMember(
+            Dim helper As MethodSymbol = DirectCast(_factory.SpecialMember(
                         SpecialMember.System_Nullable_T__op_Implicit_FromT), MethodSymbol)
 
             If helper IsNot Nothing Then
@@ -344,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isChecked = False
             End If
 
-            Dim helper As MethodSymbol = DirectCast(Me._factory.SpecialMember(
+            Dim helper As MethodSymbol = DirectCast(_factory.SpecialMember(
                         SpecialMember.System_Nullable_T__op_Explicit_ToT), MethodSymbol)
 
             If helper IsNot Nothing Then
@@ -586,7 +576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
             If wellKnownHelper >= 0 Then
-                Return Me._factory.WellKnownMember(Of MethodSymbol)(wellKnownHelper)
+                Return _factory.WellKnownMember(Of MethodSymbol)(wellKnownHelper)
             ElseIf specialHelper >= 0 Then
                 Return DirectCast(_factory.SpecialMember(specialHelper), MethodSymbol)
             Else

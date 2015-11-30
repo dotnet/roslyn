@@ -48,8 +48,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyClass.New(New Scanner(text, options))
             Debug.Assert(text IsNot Nothing)
             Debug.Assert(options IsNot Nothing)
-            Me._disposeScanner = True
-            Me._cancellationToken = cancellationToken
+            _disposeScanner = True
+            _cancellationToken = cancellationToken
         End Sub
 
         Friend Sub New(scanner As Scanner)
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub Dispose() Implements IDisposable.Dispose
             If _disposeScanner Then
-                Me._scanner.Dispose()
+                _scanner.Dispose()
             End If
         End Sub
 
@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' HRESULT .Parser::ParseDecls( [ _In_ Scanner* InputStream ] [ ErrorTable* Errors ] [ SourceFile* InputFile ] [  ParseTree::FileBlockStatement** Result ] [ _Inout_ NorlsAllocator* ConditionalCompilationSymbolsStorage ] [ BCSYM_Container* ProjectLevelCondCompScope ] [ _Out_opt_ BCSYM_Container** ConditionalCompilationConstants ] [ _In_ LineMarkerTable* LineMarkerTableForConditionals ] )
         Friend Function ParseCompilationUnit() As CompilationUnitSyntax
             Return ParseWithStackGuard(Of CompilationUnitSyntax)(
-                AddressOf Me.ParseCompilationUnitCore,
+                AddressOf ParseCompilationUnitCore,
                 Function() SyntaxFactory.CompilationUnit(
                     New SyntaxList(Of VisualBasicSyntaxNode)(),
                     New SyntaxList(Of VisualBasicSyntaxNode)(),
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Function ParseExecutableStatement() As StatementSyntax
             Return ParseWithStackGuard(Of StatementSyntax)(
-                AddressOf Me.ParseExecutableStatementCore,
+                AddressOf ParseExecutableStatementCore,
                 Function() InternalSyntaxFactory.EmptyStatement())
         End Function
 
@@ -1234,7 +1234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.QuestionToken
 
-                    If CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=False) Then
+                    If CanStartConsequenceExpression(PeekToken(1).Kind, qualified:=False) Then
                         Return ParseAssignmentOrInvocationStatement()
                     Else
                         Return ParsePrintStatement()
@@ -3390,7 +3390,7 @@ checkNullable:
 
             Dim implementsKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim ImplementsClauses As SeparatedSyntaxListBuilder(Of QualifiedNameSyntax) =
-                Me._pool.AllocateSeparated(Of QualifiedNameSyntax)()
+                _pool.AllocateSeparated(Of QualifiedNameSyntax)()
 
             Dim comma As PunctuationSyntax
 
@@ -3427,7 +3427,7 @@ checkNullable:
             Loop
 
             Dim result = ImplementsClauses.ToList
-            Me._pool.Free(ImplementsClauses)
+            _pool.Free(ImplementsClauses)
 
             Return SyntaxFactory.ImplementsClause(implementsKeyword, result)
         End Function
@@ -3440,7 +3440,7 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.HandlesKeyword, "Handles list parsing lost.")
 
             Dim handlesKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            Dim handlesClauseItems As SeparatedSyntaxListBuilder(Of HandlesClauseItemSyntax) = Me._pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
+            Dim handlesClauseItems As SeparatedSyntaxListBuilder(Of HandlesClauseItemSyntax) = _pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
             Dim comma As PunctuationSyntax
 
             GetNextToken() ' get off the handles / comma token
@@ -3511,7 +3511,7 @@ checkNullable:
             Loop
 
             Dim result = handlesClauseItems.ToList
-            Me._pool.Free(handlesClauseItems)
+            _pool.Free(handlesClauseItems)
 
             Return SyntaxFactory.HandlesClause(handlesKeyword, result)
         End Function
@@ -4230,7 +4230,7 @@ checkNullable:
             ' Consume Of keyword
             TryGetTokenAndEatNewLine(SyntaxKind.OfKeyword, ofKeyword, createIfMissing:=True)
 
-            Dim typeParameters = Me._pool.AllocateSeparated(Of TypeParameterSyntax)()
+            Dim typeParameters = _pool.AllocateSeparated(Of TypeParameterSyntax)()
             Dim asKeyword As KeywordSyntax
 
             Do
@@ -4283,7 +4283,7 @@ checkNullable:
                     Dim openBrace As PunctuationSyntax = Nothing
 
                     If TryGetTokenAndEatNewLine(SyntaxKind.OpenBraceToken, openBrace) Then
-                        Dim constraints = Me._pool.AllocateSeparated(Of ConstraintSyntax)()
+                        Dim constraints = _pool.AllocateSeparated(Of ConstraintSyntax)()
 
                         Do
                             Dim constraint = ParseConstraintSyntax()
@@ -4306,7 +4306,7 @@ checkNullable:
                         TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
 
                         Dim constraintList = constraints.ToList
-                        Me._pool.Free(constraints)
+                        _pool.Free(constraints)
 
                         typeParameterConstraintClause = SyntaxFactory.TypeParameterMultipleConstraintClause(asKeyword, openBrace, constraintList, closeBrace)
 
@@ -4346,7 +4346,7 @@ checkNullable:
             End If
 
             Dim separatedTypeParameters = typeParameters.ToList
-            Me._pool.Free(typeParameters)
+            _pool.Free(typeParameters)
 
             Dim result As TypeParameterListSyntax = SyntaxFactory.TypeParameterList(openParen, ofKeyword, separatedTypeParameters, closeParen)
 
@@ -4502,7 +4502,7 @@ checkNullable:
         ' ParameterSpecifierList* .Parser::ParseParameterSpecifiers( [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseParameterSpecifiers(ByRef specifiers As ParameterSpecifiers) As SyntaxList(Of KeywordSyntax)
-            Dim keywords = Me._pool.Allocate(Of KeywordSyntax)()
+            Dim keywords = _pool.Allocate(Of KeywordSyntax)()
 
             specifiers = 0
 
@@ -4549,7 +4549,7 @@ checkNullable:
 
                     Case Else
                         Dim result = keywords.ToList
-                        Me._pool.Free(keywords)
+                        _pool.Free(keywords)
 
                         Return result
                 End Select
@@ -4643,7 +4643,7 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.ImportsKeyword, "called on wrong token")
 
             Dim importsKeyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
-            Dim importsClauses = Me._pool.AllocateSeparated(Of ImportsClauseSyntax)()
+            Dim importsClauses = _pool.AllocateSeparated(Of ImportsClauseSyntax)()
 
             GetNextToken()
 
@@ -4662,7 +4662,7 @@ checkNullable:
             Loop
 
             Dim result = importsClauses.ToList
-            Me._pool.Free(importsClauses)
+            _pool.Free(importsClauses)
             Dim statement As ImportsStatementSyntax = SyntaxFactory.ImportsStatement(importsKeyword, result)
 
             Return statement
@@ -4800,7 +4800,7 @@ checkNullable:
                 "ParseInheritsImplementsStatement called on the wrong token.")
 
             Dim keyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
-            Dim typeNames = Me._pool.AllocateSeparated(Of TypeSyntax)()
+            Dim typeNames = _pool.AllocateSeparated(Of TypeSyntax)()
 
             GetNextToken()
 
@@ -4823,7 +4823,7 @@ checkNullable:
             Loop
 
             Dim separatedTypeNames = typeNames.ToList
-            Me._pool.Free(typeNames)
+            _pool.Free(typeNames)
 
             Dim result As InheritsOrImplementsStatementSyntax = Nothing
             Select Case (keyword.Kind)
@@ -6036,10 +6036,10 @@ checkNullable:
         End Function
 
         Friend Function ConsumeUnexpectedTokens(Of TNode As VisualBasicSyntaxNode)(node As TNode) As TNode
-            If Me.CurrentToken.Kind = SyntaxKind.EndOfFileToken Then Return node
+            If CurrentToken.Kind = SyntaxKind.EndOfFileToken Then Return node
             Dim b As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
-            While (Me.CurrentToken.Kind <> SyntaxKind.EndOfFileToken)
-                b.Add(Me.CurrentToken)
+            While (CurrentToken.Kind <> SyntaxKind.EndOfFileToken)
+                b.Add(CurrentToken)
                 GetNextToken()
             End While
 

@@ -1,15 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -44,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected NotOverridable Overrides ReadOnly Property OriginalSymbolDefinition As Symbol
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
@@ -65,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property HasAssociatedField As Boolean
             Get
-                Return Me.AssociatedField IsNot Nothing
+                Return AssociatedField IsNot Nothing
             End Get
         End Property
 
@@ -74,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <returns>Returns an array of <see cref="VisualBasicAttributeData"/> or an empty array if there are no attributes.</returns>
         Public Function GetFieldAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Dim field = Me.AssociatedField
+            Dim field = AssociatedField
             Return If(field Is Nothing, ImmutableArray(Of VisualBasicAttributeData).Empty, field.GetAttributes())
         End Function
 
@@ -88,12 +80,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property OverriddenEvent As EventSymbol
             Get
-                If Me.IsOverrides Then
+                If IsOverrides Then
                     If IsDefinition Then
                         Return OverriddenOrHiddenMembers.OverriddenMember
                     End If
 
-                    Return OverriddenMembersResult(Of EventSymbol).GetOverriddenMember(Me, Me.OriginalDefinition.OverriddenEvent)
+                    Return OverriddenMembersResult(Of EventSymbol).GetOverriddenMember(Me, OriginalDefinition.OverriddenEvent)
                 End If
 
                 Return Nothing
@@ -187,17 +179,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #Region "Use-site Diagnostics"
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If Me.IsDefinition Then
+            If IsDefinition Then
                 Return MyBase.GetUseSiteErrorInfo()
             End If
 
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return OriginalDefinition.GetUseSiteErrorInfo()
         End Function
 
         Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
-            Debug.Assert(Me.IsDefinition)
+            Debug.Assert(IsDefinition)
             ' Check event type.
-            Dim errorInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
+            Dim errorInfo = DeriveUseSiteErrorInfoFromType(Type)
 
             If errorInfo IsNot Nothing Then
                 Select Case errorInfo.Code
@@ -225,10 +217,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case Else
                         ' Nothing to do, simply use the same error info.
                 End Select
-            ElseIf Me.ContainingModule.HasUnifiedReferences Then
+            ElseIf ContainingModule.HasUnifiedReferences Then
                 ' If the member is in an assembly with unified references, 
                 ' we check if its definition depends on a type from a unified reference.
-                errorInfo = Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, checkedTypes:=Nothing)
+                errorInfo = Type.GetUnificationUseSiteDiagnosticRecursive(Me, checkedTypes:=Nothing)
             End If
 
             Return errorInfo
@@ -251,49 +243,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
-                Return Me.ContainingSymbol.EmbeddedSymbolKind
+                Return ContainingSymbol.EmbeddedSymbolKind
             End Get
         End Property
 
         Private ReadOnly Property IEventSymbol_Type As ITypeSymbol Implements IEventSymbol.Type
             Get
-                Return Me.Type
+                Return Type
             End Get
         End Property
 
         Private ReadOnly Property IEventSymbol_AddMethod As IMethodSymbol Implements IEventSymbol.AddMethod
             Get
-                Return Me.AddMethod
+                Return AddMethod
             End Get
         End Property
 
         Private ReadOnly Property IEventSymbol_RemoveMethod As IMethodSymbol Implements IEventSymbol.RemoveMethod
             Get
-                Return Me.RemoveMethod
+                Return RemoveMethod
             End Get
         End Property
 
         Private ReadOnly Property IEventSymbol_RaiseMethod As IMethodSymbol Implements IEventSymbol.RaiseMethod
             Get
-                Return Me.RaiseMethod
+                Return RaiseMethod
             End Get
         End Property
 
         Private ReadOnly Property IEventSymbol_OriginalDefinition As IEventSymbol Implements IEventSymbol.OriginalDefinition
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
         Private ReadOnly Property IEventSymbol_OverriddenEvent As IEventSymbol Implements IEventSymbol.OverriddenEvent
             Get
-                Return Me.OverriddenEvent
+                Return OverriddenEvent
             End Get
         End Property
 
         Private ReadOnly Property IEventSymbol_ExplicitInterfaceImplementations As ImmutableArray(Of IEventSymbol) Implements IEventSymbol.ExplicitInterfaceImplementations
             Get
-                Return StaticCast(Of IEventSymbol).From(Me.ExplicitInterfaceImplementations)
+                Return StaticCast(Of IEventSymbol).From(ExplicitInterfaceImplementations)
             End Get
         End Property
 
@@ -323,13 +315,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
 
-            Return Me.ContainingType = other.ContainingType AndAlso Me.OriginalDefinition Is other.OriginalDefinition
+            Return ContainingType = other.ContainingType AndAlso OriginalDefinition Is other.OriginalDefinition
         End Function
 
         Public Overrides Function GetHashCode() As Integer
             Dim code As Integer = 1
-            code = Hash.Combine(Me.ContainingType, code)
-            code = Hash.Combine(Me.Name, code)
+            code = Hash.Combine(ContainingType, code)
+            code = Hash.Combine(Name, code)
             Return code
         End Function
 

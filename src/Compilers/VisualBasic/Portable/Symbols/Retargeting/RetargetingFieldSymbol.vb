@@ -1,13 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
@@ -158,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Friend Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData
             Get
-                Return Me.RetargetingTranslator.Retarget(Me.UnderlyingField.MarshallingInformation)
+                Return RetargetingTranslator.Retarget(UnderlyingField.MarshallingInformation)
             End Get
         End Property
 
@@ -177,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol
             Get
                 Dim associated As Symbol = _underlyingField.AssociatedSymbol
-                Return If(associated Is Nothing, Nothing, Me.RetargetingTranslator.Retarget(associated))
+                Return If(associated Is Nothing, Nothing, RetargetingTranslator.Retarget(associated))
             End Get
         End Property
 

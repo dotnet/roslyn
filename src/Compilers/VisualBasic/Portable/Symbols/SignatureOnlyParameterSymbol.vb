@@ -1,11 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -29,13 +24,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        ByVal isOut As Boolean,
                        ByVal isOptional As Boolean)
 
-            Me._type = type
-            Me._customModifiers = customModifiers
-            Me._defaultValue = defaultConstantValue
-            Me._isParamArray = isParamArray
-            Me._isByRef = isByRef
-            Me._isOut = isOut
-            Me._isOptional = isOptional
+            _type = type
+            _customModifiers = customModifiers
+            _defaultValue = defaultConstantValue
+            _isParamArray = isParamArray
+            _isByRef = isByRef
+            _isOut = isOut
+            _isOptional = isOptional
         End Sub
 
         Public Overrides ReadOnly Property Type() As TypeSymbol

@@ -6,8 +6,6 @@
 '-----------------------------------------------------------------------------------------------------------
 
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -479,9 +477,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Public Sub New(preserveExistingDiagnostics As Boolean,
                            addDiagnosticsToFirstTokenOnly As Boolean,
                            diagnosticsToAdd As IEnumerable(Of DiagnosticInfo))
-                Me._addDiagnosticsToFirstTokenOnly = addDiagnosticsToFirstTokenOnly
-                Me._preserveExistingDiagnostics = preserveExistingDiagnostics
-                Me._diagnosticsToAdd = diagnosticsToAdd
+                _addDiagnosticsToFirstTokenOnly = addDiagnosticsToFirstTokenOnly
+                _preserveExistingDiagnostics = preserveExistingDiagnostics
+                _diagnosticsToAdd = diagnosticsToAdd
             End Sub
 
             ' Process a token. and add to the list of trivia/tokens we're accumulating.

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Sub New(underlyingParameter As ParameterSymbol)
             Debug.Assert(underlyingParameter IsNot Nothing)
-            Me._underlyingParameter = underlyingParameter
+            _underlyingParameter = underlyingParameter
         End Sub
 
         Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.IParameterTypeInformation.CustomModifiers

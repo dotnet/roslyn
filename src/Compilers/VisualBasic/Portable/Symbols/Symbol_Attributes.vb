@@ -1,16 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Globalization
 Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -199,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </para>
         ''' </remarks>
         Friend Overridable Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
-            Dim compilation = Me.DeclaringCompilation
+            Dim compilation = DeclaringCompilation
             MarkEmbeddedAttributeTypeReference(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation)
             ReportExtensionAttributeUseSiteError(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation, arguments.Diagnostics)
         End Sub
@@ -244,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              Optional symbolPart As AttributeLocation = 0)
 
             Dim diagnostics = DiagnosticBag.GetInstance()
-            Dim sourceAssembly = DirectCast(If(Me.Kind = SymbolKind.Assembly, Me, Me.ContainingAssembly), SourceAssemblySymbol)
+            Dim sourceAssembly = DirectCast(If(Kind = SymbolKind.Assembly, Me, ContainingAssembly), SourceAssemblySymbol)
             Dim sourceModule = sourceAssembly.SourceModule
             Dim compilation = sourceAssembly.DeclaringCompilation
 
@@ -268,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim attributeBuilder = New VisualBasicAttributeData(boundAttributeTypes.Length - 1) {}
 
                 ' Early bind and decode some well-known attributes.
-                Dim earlyData As EarlyWellKnownAttributeData = Me.EarlyDecodeWellKnownAttributes(binders, boundAttributeTypes, attributesToBind, attributeBuilder, symbolPart)
+                Dim earlyData As EarlyWellKnownAttributeData = EarlyDecodeWellKnownAttributes(binders, boundAttributeTypes, attributesToBind, attributeBuilder, symbolPart)
 
                 ' Store data decoded from early bound well-known attributes.
                 lazyCustomAttributesBag.SetEarlyDecodedWellKnownAttributeData(earlyData)
@@ -278,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundAttributes = attributeBuilder.AsImmutableOrNull
 
                 ' Validate attribute usage and Decode remaining well-known attributes.
-                wellKnownAttrData = Me.ValidateAttributeUsageAndDecodeWellKnownAttributes(binders, attributesToBind, boundAttributes, diagnostics, symbolPart)
+                wellKnownAttrData = ValidateAttributeUsageAndDecodeWellKnownAttributes(binders, attributesToBind, boundAttributes, diagnostics, symbolPart)
 
                 ' Store data decoded from remaining well-known attributes.
                 lazyCustomAttributesBag.SetDecodedWellKnownAttributeData(wellKnownAttrData)
@@ -288,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Interlocked.CompareExchange(lazyCustomAttributesBag, CustomAttributesBag(Of VisualBasicAttributeData).WithEmptyData(), Nothing)
             End If
 
-            Me.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttrData)
+            PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttrData)
 
             ' Store attributes into the bag.
             sourceModule.AtomicStoreAttributesAndDiagnostics(lazyCustomAttributesBag, boundAttributes, diagnostics)
@@ -431,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     arguments.Binder = New EarlyWellKnownAttributeBinder(Me, binders(i))
                     arguments.AttributeType = attributeType
                     arguments.AttributeSyntax = attributesToBind(i)
-                    attributeBuilder(i) = Me.EarlyDecodeWellKnownAttribute(arguments)
+                    attributeBuilder(i) = EarlyDecodeWellKnownAttribute(arguments)
                 End If
             Next
 
@@ -473,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     arguments.Attribute = boundAttribute
                     arguments.AttributeSyntaxOpt = attributeSyntax
                     arguments.Index = i
-                    Me.DecodeWellKnownAttribute(arguments)
+                    DecodeWellKnownAttribute(arguments)
                 End If
             Next
 
@@ -514,17 +508,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim attributeTarget As AttributeTargets
             If symbolPart = AttributeLocation.Return Then
-                Debug.Assert(Me.Kind = SymbolKind.Method OrElse Me.Kind = SymbolKind.Property)
+                Debug.Assert(Kind = SymbolKind.Method OrElse Kind = SymbolKind.Property)
                 attributeTarget = AttributeTargets.ReturnValue
             Else
-                attributeTarget = Me.GetAttributeTarget()
+                attributeTarget = GetAttributeTarget()
             End If
 
             ' VB allows NonSerialized on events even though the NonSerialized does not have this attribute usage specified. 
             ' See Dev 10 Bindable::VerifyCustomAttributesOnSymbol
             Dim applicationIsValid As Boolean
             If attributeType Is compilation.GetWellKnownType(WellKnownType.System_NonSerializedAttribute) AndAlso
-               Me.Kind = SymbolKind.Event AndAlso DirectCast(Me, SourceEventSymbol).AssociatedField IsNot Nothing Then
+               Kind = SymbolKind.Event AndAlso DirectCast(Me, SourceEventSymbol).AssociatedField IsNot Nothing Then
                 applicationIsValid = True
             Else
                 Dim validOn = attributeUsage.ValidTargets
@@ -540,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         diagnostics.Add(ERRID.ERR_InvalidModuleAttribute1, node.Name.GetLocation, CustomSymbolDisplayFormatter.ShortErrorName(attributeType))
 
                     Case AttributeTargets.Method
-                        If Me.Kind = SymbolKind.Method Then
+                        If Kind = SymbolKind.Method Then
                             Dim method = DirectCast(Me, SourceMethodSymbol)
 
                             Dim accessorName = TryGetAccessorDisplayName(method.MethodKind)
@@ -581,7 +575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If attribute.IsSecurityAttribute(compilation) Then
-                Select Case Me.Kind
+                Select Case Kind
                     Case SymbolKind.Assembly, SymbolKind.NamedType, SymbolKind.Method
                         Exit Select
                     Case Else
@@ -610,7 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Mark embedded attribute type reference only if the owner is itself not
             ' embedded and the attribute syntax is actually from the current compilation.
-            If Not Me.IsEmbedded AndAlso
+            If Not IsEmbedded AndAlso
                attribute.AttributeClass.IsEmbedded AndAlso
                nodeOpt IsNot Nothing AndAlso
                compilation.ContainsSyntaxTree(nodeOpt.SyntaxTree) Then
@@ -627,10 +621,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Ensure that attributes are bound and the ObsoleteState of this symbol is known.
         ''' </summary>
         Friend Sub ForceCompleteObsoleteAttribute()
-            If Me.ObsoleteState = ThreeState.Unknown Then
-                Me.GetAttributes()
+            If ObsoleteState = ThreeState.Unknown Then
+                GetAttributes()
             End If
-            Debug.Assert(Me.ObsoleteState <> ThreeState.Unknown, "ObsoleteState should be true or false now.")
+            Debug.Assert(ObsoleteState <> ThreeState.Unknown, "ObsoleteState should be true or false now.")
         End Sub
     End Class
 End Namespace

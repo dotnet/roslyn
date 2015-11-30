@@ -1,10 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -24,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '''       correspondent local/field references
             ''' </summary>
             Friend Overridable Sub AddProxyFieldsForStateMachineScope(proxyFields As ArrayBuilder(Of FieldSymbol))
-                Debug.Assert(False, "This method should not be called for " + Me.GetType.Name)
+                Debug.Assert(False, "This method should not be called for " + [GetType].Name)
             End Sub
 
             ''' <summary>
@@ -43,8 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub New(constValue As ConstantValue, type As TypeSymbol)
                 Debug.Assert(constValue IsNot Nothing)
                 Debug.Assert(type IsNot Nothing)
-                Me._constValue = constValue
-                Me._type = type
+                _constValue = constValue
+                _type = type
             End Sub
 
             Friend Overloads Overrides Sub CreateCaptureInitializationCode(rewriter As AsyncRewriter.AsyncMethodToClassRewriter, prologue As ArrayBuilder(Of BoundExpression))
@@ -52,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Friend Overloads Overrides Function Materialize(rewriter As AsyncMethodToClassRewriter, isLValue As Boolean) As BoundExpression
                 Debug.Assert(Not isLValue)
-                Return New BoundLiteral(rewriter.F.Syntax, Me._constValue, Me._type)
+                Return New BoundLiteral(rewriter.F.Syntax, _constValue, _type)
             End Function
         End Class
 
@@ -68,8 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Friend Overloads Overrides Function Materialize(rewriter As AsyncRewriter.AsyncMethodToClassRewriter, isLValue As Boolean) As BoundExpression
                 Dim syntax As VisualBasicSyntaxNode = rewriter.F.Syntax
-                Dim framePointer As BoundExpression = rewriter.FramePointer(syntax, Me.Field.ContainingType)
-                Dim proxyFieldParented = Me.Field.AsMember(DirectCast(framePointer.Type, NamedTypeSymbol))
+                Dim framePointer As BoundExpression = rewriter.FramePointer(syntax, Field.ContainingType)
+                Dim proxyFieldParented = Field.AsMember(DirectCast(framePointer.Type, NamedTypeSymbol))
                 Return rewriter.F.Field(framePointer, proxyFieldParented, isLValue)
             End Function
         End Class
@@ -98,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Friend Overrides Sub AddProxyFieldsForStateMachineScope(proxyFields As ArrayBuilder(Of FieldSymbol))
-                proxyFields.Add(Me.Field)
+                proxyFields.Add(Field)
             End Sub
 
             Friend Overloads Overrides Sub CreateCaptureInitializationCode(rewriter As AsyncRewriter.AsyncMethodToClassRewriter, prologue As ArrayBuilder(Of BoundExpression))
@@ -115,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MyBase.New(field)
 
                 Debug.Assert(Not expr.IsLValue)
-                Me.Expression = expr
+                Expression = expr
             End Sub
 
             Friend Overloads Overrides Sub CreateCaptureInitializationCode(rewriter As AsyncRewriter.AsyncMethodToClassRewriter, prologue As ArrayBuilder(Of BoundExpression))
@@ -123,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 prologue.Add(
                     rewriter.ProcessRewrittenAssignmentOperator(
                         rewriter.F.AssignmentExpression(
-                            Me.Materialize(rewriter, True),
+                            Materialize(rewriter, True),
                             rewriter.VisitExpression(Expression))))
             End Sub
         End Class
@@ -141,17 +138,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Friend Overloads Overrides Sub CreateCaptureInitializationCode(rewriter As AsyncRewriter.AsyncMethodToClassRewriter, prologue As ArrayBuilder(Of BoundExpression))
-                If Me.ReceiverOpt IsNot Nothing Then
-                    Me.ReceiverOpt.CreateCaptureInitializationCode(rewriter, prologue)
+                If ReceiverOpt IsNot Nothing Then
+                    ReceiverOpt.CreateCaptureInitializationCode(rewriter, prologue)
                 End If
             End Sub
 
             Friend Overloads Overrides Function Materialize(rewriter As AsyncMethodToClassRewriter, isLValue As Boolean) As BoundExpression
                 Dim newReceiverOpt As BoundExpression = Nothing
-                If Me.ReceiverOpt IsNot Nothing Then
-                    newReceiverOpt = Me.ReceiverOpt.Materialize(rewriter, Me.Field.ContainingType.IsValueType)
+                If ReceiverOpt IsNot Nothing Then
+                    newReceiverOpt = ReceiverOpt.Materialize(rewriter, Field.ContainingType.IsValueType)
                 End If
-                Return rewriter.F.Field(newReceiverOpt, Me.Field, isLValue)
+                Return rewriter.F.Field(newReceiverOpt, Field, isLValue)
             End Function
         End Class
 
@@ -170,8 +167,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Friend Overloads Overrides Sub CreateCaptureInitializationCode(rewriter As AsyncRewriter.AsyncMethodToClassRewriter, prologue As ArrayBuilder(Of BoundExpression))
-                Me.ArrayPointer.CreateCaptureInitializationCode(rewriter, prologue)
-                For Each index In Me.Indices
+                ArrayPointer.CreateCaptureInitializationCode(rewriter, prologue)
+                For Each index In Indices
                     index.CreateCaptureInitializationCode(rewriter, prologue)
                 Next
             End Sub

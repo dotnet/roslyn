@@ -1,16 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Globalization
 Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -403,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return ImmutableArray(Of TypeParameterSymbol).Empty
                     End If
 
-                    Return Me.ConstructedFrom.TypeParameters
+                    Return ConstructedFrom.TypeParameters
                 End Get
             End Property
 
@@ -432,22 +425,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim container As Symbol = ContainingSymbol
                         Dim containerAsConstructed = TryCast(container, UnboundGenericType.ConstructedSymbol)
 
-                        Debug.Assert(Not Me.HasTypeArgumentsCustomModifiers)
+                        Debug.Assert(Not HasTypeArgumentsCustomModifiers)
 
                         If containerAsConstructed IsNot Nothing Then
                             If OriginalDefinition.Arity = 0 Then
-                                result = VisualBasic.Symbols.TypeSubstitution.Concat(OriginalDefinition,
-                                                                             containerAsConstructed.TypeSubstitution,
-                                                                             Nothing)
+                                result = TypeSubstitution.Concat(OriginalDefinition, containerAsConstructed.TypeSubstitution, Nothing)
                             Else
-                                result = VisualBasic.Symbols.TypeSubstitution.Create(containerAsConstructed.TypeSubstitution,
-                                                                             OriginalDefinition,
-                                                                             Me.TypeArgumentsNoUseSiteDiagnostics)
+                                result = TypeSubstitution.Create(containerAsConstructed.TypeSubstitution, OriginalDefinition, TypeArgumentsNoUseSiteDiagnostics)
                             End If
                         Else
                             Debug.Assert(Not (TypeOf container Is NamedTypeSymbol AndAlso
                                          DirectCast(container, NamedTypeSymbol).IsGenericType))
-                            result = VisualBasic.Symbols.TypeSubstitution.Create(OriginalDefinition, OriginalDefinition.TypeParameters, Me.TypeArgumentsNoUseSiteDiagnostics)
+                            result = TypeSubstitution.Create(OriginalDefinition, OriginalDefinition.TypeParameters, TypeArgumentsNoUseSiteDiagnostics)
                         End If
 
                         Interlocked.CompareExchange(_lazyTypeSubstitution, result, Nothing)

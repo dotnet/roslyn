@@ -1,15 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -136,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="obj">An object to compare with this object</param>
         ''' <returns>A boolean value.  True if the current object is equal to the other parameter; otherwise, False.</returns>
         Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me.Equals(TryCast(obj, GlobalImport))
+            Return Equals(TryCast(obj, GlobalImport))
         End Function
 
 
@@ -154,8 +149,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Return String.Equals(Me.Name, other.Name, StringComparison.Ordinal) AndAlso
-                String.Equals(Me.Clause.ToFullString(), other.Clause.ToFullString(), StringComparison.Ordinal)
+            Return String.Equals(Name, other.Name, StringComparison.Ordinal) AndAlso
+                String.Equals(Clause.ToFullString(), other.Clause.ToFullString(), StringComparison.Ordinal)
         End Function
 
         ''' <summary>
@@ -163,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <returns>A hashcode representing this instance.</returns>
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me.Name.GetHashCode(), StringComparer.Ordinal.GetHashCode(Me.Clause.ToFullString()))
+            Return Hash.Combine(Name.GetHashCode(), StringComparer.Ordinal.GetHashCode(Clause.ToFullString()))
         End Function
 
         ''' <summary>

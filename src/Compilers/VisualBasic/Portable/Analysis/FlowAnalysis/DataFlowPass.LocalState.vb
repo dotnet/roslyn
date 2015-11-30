@@ -1,12 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class DataFlowPass
@@ -15,8 +8,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function IntersectWith(ByRef self As LocalState, ByRef other As LocalState) As Boolean
             If self.Reachable = other.Reachable Then
                 If self.Assigned.Capacity <> other.Assigned.Capacity Then
-                    Me.Normalize(self)
-                    Me.Normalize(other)
+                    Normalize(self)
+                    Normalize(other)
                 End If
                 Return IntersectBitArrays(self.Assigned, other.Assigned)
 
@@ -95,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim oldNext As Integer = _state.Assigned.Capacity
             _state.Assigned.EnsureCapacity(nextVariableSlot)
             For i = oldNext To nextVariableSlot - 1
-                Dim id As VariableIdentifier = Me.variableBySlot(i)
+                Dim id As VariableIdentifier = variableBySlot(i)
                 If id.ContainingSlot >= SlotKind.FirstAvailable AndAlso _state.Assigned(id.ContainingSlot) Then
                     _state.Assign(i)
                 End If
@@ -117,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             ''' <returns></returns>
             Public Function Clone() As LocalState Implements AbstractFlowPass(Of LocalState).AbstractLocalState.Clone
-                Return New LocalState(Me.Assigned.Clone())
+                Return New LocalState(Assigned.Clone())
             End Function
 
             Public Function IsAssigned(slot As Integer) As Boolean
@@ -128,19 +121,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub Assign(slot As Integer)
                 If slot <> SlotKind.NotTracked Then
-                    Me.Assigned(slot) = True
+                    Assigned(slot) = True
                 End If
             End Sub
 
             Public Sub Unassign(slot As Integer)
                 If slot <> SlotKind.NotTracked Then
-                    Me.Assigned(slot) = False
+                    Assigned(slot) = False
                 End If
             End Sub
 
             Public ReadOnly Property Reachable As Boolean
                 Get
-                    Return Me.Assigned.Capacity <= 0 OrElse Not Me.IsAssigned(SlotKind.Unreachable)
+                    Return Assigned.Capacity <= 0 OrElse Not IsAssigned(SlotKind.Unreachable)
                 End Get
             End Property
 

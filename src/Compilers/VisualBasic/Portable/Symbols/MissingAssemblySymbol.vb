@@ -1,14 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Reflection
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -163,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub New()
             MyBase.New(New AssemblyIdentity("<Missing Core Assembly>"))
-            Me.SetCorLibrary(Me)
+            SetCorLibrary(Me)
         End Sub
 
         ''' <summary>
@@ -173,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="type"></param>
         Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
 #If DEBUG Then
-            For Each [module] In Me.Modules
+            For Each [module] In Modules
                 Debug.Assert([module].GetReferencedAssemblies().Length = 0)
             Next
 #End If

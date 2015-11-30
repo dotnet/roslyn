@@ -39,12 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
             ' Overridden method returns a BadExpression.
-            Return Me.ContainingBinder.BindGroupAggregationExpression(group, diagnostics)
+            Return ContainingBinder.BindGroupAggregationExpression(group, diagnostics)
         End Function
 
         Friend Overrides Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
             ' Overridden method returns a BadExpression.
-            Return Me.ContainingBinder.BindFunctionAggregationExpression([function], diagnostics)
+            Return ContainingBinder.BindFunctionAggregationExpression([function], diagnostics)
         End Function
     End Class
 

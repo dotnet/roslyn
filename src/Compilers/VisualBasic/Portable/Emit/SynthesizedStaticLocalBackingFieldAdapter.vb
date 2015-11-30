@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(metadataWriter Is _metadataWriter)
 
             If _nameToEmit Is Nothing Then
-                Dim declaringMethod = DirectCast(Me.ImplicitlyDefinedBy.ContainingSymbol, MethodSymbol)
+                Dim declaringMethod = DirectCast(ImplicitlyDefinedBy.ContainingSymbol, MethodSymbol)
                 Dim signature = GeneratedNames.MakeSignatureString(metadataWriter.GetMethodSignature(declaringMethod))
                 _nameToEmit = GeneratedNames.MakeStaticLocalFieldName(declaringMethod.Name, signature, Name)
             End If

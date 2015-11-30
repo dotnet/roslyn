@@ -99,11 +99,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim other As PreprocessingSymbol = TryCast(obj, PreprocessingSymbol)
 
             Return other IsNot Nothing AndAlso
-                IdentifierComparison.Equals(Me.Name, other.Name)
+                IdentifierComparison.Equals(Name, other.Name)
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Me.Name.GetHashCode()
+            Return Name.GetHashCode()
         End Function
 
         Public Overloads Overrides Sub Accept(visitor As SymbolVisitor)

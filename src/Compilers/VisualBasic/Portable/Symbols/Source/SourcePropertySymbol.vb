@@ -1,16 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Globalization
-Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -283,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Sub CloneParametersForAccessor(method As MethodSymbol, parameterBuilder As ArrayBuilder(Of ParameterSymbol))
             Dim overriddenMethod As MethodSymbol = method.OverriddenMethod
 
-            For Each parameter In Me.Parameters
+            For Each parameter In Parameters
                 Dim clone As ParameterSymbol = New SourceClonedParameterSymbol(DirectCast(parameter, SourceParameterSymbol), method, parameter.Ordinal)
 
                 If overriddenMethod IsNot Nothing Then
@@ -425,7 +420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            Return New LexicalSortKey(_location, Me.DeclaringCompilation)
+            Return New LexicalSortKey(_location, DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -441,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
-            Dim propertyStatementSyntax = Me.Syntax
+            Dim propertyStatementSyntax = Syntax
             Return propertyStatementSyntax IsNot Nothing AndAlso IsDefinedInSourceTree(propertyStatementSyntax.Parent, tree, definedWithinSpan, cancellationToken)
         End Function
 
@@ -452,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function GetAttributeDeclarations() As OneOrMany(Of SyntaxList(Of AttributeListSyntax))
-            If Me.IsWithEvents Then
+            If IsWithEvents Then
                 Return Nothing
             End If
 
@@ -460,11 +455,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetReturnTypeAttributeDeclarations() As OneOrMany(Of SyntaxList(Of AttributeListSyntax))
-            If Me.IsWithEvents Then
+            If IsWithEvents Then
                 Return Nothing
             End If
 
-            Dim asClauseOpt = DirectCast(Me.Syntax, PropertyStatementSyntax).AsClause
+            Dim asClauseOpt = DirectCast(Syntax, PropertyStatementSyntax).AsClause
             If asClauseOpt Is Nothing Then
                 Return Nothing
             End If
@@ -474,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function GetAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
             If _lazyCustomAttributesBag Is Nothing OrElse Not _lazyCustomAttributesBag.IsSealed Then
-                LoadAndValidateAttributes(Me.GetAttributeDeclarations(), _lazyCustomAttributesBag)
+                LoadAndValidateAttributes(GetAttributeDeclarations(), _lazyCustomAttributesBag)
             End If
             Return _lazyCustomAttributesBag
         End Function
@@ -495,22 +490,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If you want to override attribute binding logic for a sub-class, then override <see cref="GetAttributesBag"/> method.
         ''' </remarks>
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me.GetAttributesBag().Attributes
+            Return GetAttributesBag().Attributes
         End Function
 
         Private Function GetDecodedWellKnownAttributeData() As CommonPropertyWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = _lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
-                attributesBag = Me.GetAttributesBag()
+                attributesBag = GetAttributesBag()
             End If
 
             Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonPropertyWellKnownAttributeData)
         End Function
 
         Private Function GetDecodedReturnTypeWellKnownAttributeData() As CommonReturnTypeWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyReturnTypeCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = _lazyReturnTypeCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
-                attributesBag = Me.GetReturnTypeAttributesBag()
+                attributesBag = GetReturnTypeAttributesBag()
             End If
 
             Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonReturnTypeWellKnownAttributeData)
@@ -708,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' For an overriding property, we need to copy custom modifiers from the property we override.
                 Dim overriddenMembers As OverriddenMembersResult(Of PropertySymbol)
 
-                If Not Me.IsOverrides OrElse Not OverrideHidingHelper.CanOverrideOrHide(Me) Then
+                If Not IsOverrides OrElse Not OverrideHidingHelper.CanOverrideOrHide(Me) Then
                     overriddenMembers = OverriddenMembersResult(Of PropertySymbol).Empty
                 Else
                     ' Since we cannot expose parameters and return type to the outside world yet,
@@ -726,12 +721,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Next
 
                     overriddenMembers = OverrideHidingHelper(Of PropertySymbol).
-                        MakeOverriddenMembers(New SignatureOnlyPropertySymbol(Me.Name, _containingType,
-                                                                            Me.IsReadOnly, Me.IsWriteOnly,
+                        MakeOverriddenMembers(New SignatureOnlyPropertySymbol(Name, _containingType,
+                                                                            IsReadOnly, IsWriteOnly,
                                                                             fakeParamsBuilder.ToImmutableAndFree(),
                                                                             retType,
                                                                             ImmutableArray(Of CustomModifier).Empty,
-                                                                            isOverrides:=True, isWithEvents:=Me.IsWithEvents))
+                                                                            isOverrides:=True, isWithEvents:=IsWithEvents))
                 End If
 
                 Debug.Assert(IsDefinition)
@@ -770,11 +765,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ParameterCount As Integer
             Get
-                If Not Me._lazyParameters.IsDefault Then
-                    Return Me._lazyParameters.Length
+                If Not _lazyParameters.IsDefault Then
+                    Return _lazyParameters.Length
                 End If
 
-                Dim decl = Me.DeclarationSyntax
+                Dim decl = DeclarationSyntax
 
                 If decl.Kind = SyntaxKind.PropertyStatement Then
                     Dim paramList As ParameterListSyntax = DirectCast(decl, PropertyStatementSyntax).ParameterList
@@ -787,7 +782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function ComputeParameters(diagnostics As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
 
-            If Me.IsWithEvents Then
+            If IsWithEvents Then
                 ' no parameters
                 Return ImmutableArray(Of ParameterSymbol).Empty
             End If
@@ -829,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyImplementedProperties.IsDefault Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
-                    Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                    Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
                     sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedProperties,
                                                                 ComputeExplicitInterfaceImplementations(diagnostics),
                                                                 diagnostics,
@@ -876,13 +871,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property OverriddenMembers As OverriddenMembersResult(Of PropertySymbol)
             Get
                 EnsureSignature()
-                Return Me._lazyOverriddenProperties
+                Return _lazyOverriddenProperties
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Dim overridden = Me.OverriddenProperty
+                Dim overridden = OverriddenProperty
 
                 If overridden Is Nothing Then
                     Return ImmutableArray(Of CustomModifier).Empty
@@ -935,24 +930,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property SyntaxReference As SyntaxReference
             Get
-                Return Me._syntaxRef
+                Return _syntaxRef
             End Get
         End Property
 
         Friend ReadOnly Property BlockSyntaxReference As SyntaxReference
             Get
-                Return Me._blockRef
+                Return _blockRef
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' If there are no attributes then this symbol is not Obsolete.
-                If (Not Me._containingType.AnyMemberHasAttributes) Then
+                If (Not _containingType.AnyMemberHasAttributes) Then
                     Return Nothing
                 End If
 
-                Dim lazyCustomAttributesBag = Me._lazyCustomAttributesBag
+                Dim lazyCustomAttributesBag = _lazyCustomAttributesBag
                 If (lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed) Then
                     Dim data = DirectCast(_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonPropertyEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
@@ -1167,13 +1162,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
             ' Ensure return type attributes are bound
-            Dim unusedType = Me.Type
-            Dim unusedParameters = Me.Parameters
-            Me.GetReturnTypeAttributesBag()
-            Dim unusedImplementations = Me.ExplicitInterfaceImplementations
+            Dim unusedType = Type
+            Dim unusedParameters = Parameters
+            GetReturnTypeAttributesBag()
+            Dim unusedImplementations = ExplicitInterfaceImplementations
 
             If DeclaringCompilation.EventQueue IsNot Nothing Then
-                DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicSetFlagAndRaiseSymbolDeclaredEvent(_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
+                DirectCast(ContainingModule, SourceModuleSymbol).AtomicSetFlagAndRaiseSymbolDeclaredEvent(_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
             End If
         End Sub
 

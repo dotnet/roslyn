@@ -5,10 +5,6 @@
 '-----------------------------------------------------------------------------
 Option Compare Binary
 Option Strict On
-
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -33,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private ReadOnly Property ShouldReportXmlError As Boolean
             Get
-                Return Not Me._IsScanningXmlDoc OrElse
-                    Me._options.DocumentationMode = DocumentationMode.Diagnose
+                Return Not _IsScanningXmlDoc OrElse
+                    _options.DocumentationMode = DocumentationMode.Diagnose
             End Get
         End Property
 
@@ -42,9 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' This method is only to be used for parsing Cref and Name attributes as stand-alone entities
         ''' </summary>
         Friend Sub ForceScanningXmlDocMode()
-            Me.IsScanningXmlDoc = True
-            Me._isStartingFirstXmlDocLine = False
-            Me._doNotRequireXmlDocCommentPrefix = True
+            IsScanningXmlDoc = True
+            _isStartingFirstXmlDocLine = False
+            _doNotRequireXmlDocCommentPrefix = True
         End Sub
 
         Private Function TryScanXmlDocComment(tList As SyntaxListBuilder) As Boolean
@@ -64,20 +60,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' since we do not have lookahead tokens, this just 
             ' resets current token to _lineBufferOffset 
-            Me.GetNextTokenInState(ScannerState.Content)
+            GetNextTokenInState(ScannerState.Content)
 
-            Dim currentNonterminal = Me.GetCurrentSyntaxNode()
+            Dim currentNonterminal = GetCurrentSyntaxNode()
             Dim docCommentSyntax = TryCast(currentNonterminal, DocumentationCommentTriviaSyntax)
 
             ' if we are lucky to get whole doc comment, we can just reuse it.
             If docCommentSyntax IsNot Nothing Then
-                Me.MoveToNextSyntaxNodeInTrivia()
+                MoveToNextSyntaxNodeInTrivia()
 
             Else
                 Dim parser As New Parser(Me)
 
-                Me.IsScanningXmlDoc = True
-                Me._isStartingFirstXmlDocLine = True
+                IsScanningXmlDoc = True
+                _isStartingFirstXmlDocLine = True
 
                 ' NOTE: Documentation comment syntax trivia must have at least one child xml node, because 
                 '       all the ['''] trivia are created as leading trivia for appropriate tokens.
@@ -100,22 +96,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 '       Then we merge the results and create resulting DocumentationCommentTrivia
 
                 ' The first phase
-                Me._endOfXmlInsteadOfLastDocCommentLineBreak = True
+                _endOfXmlInsteadOfLastDocCommentLineBreak = True
                 Dim nodes = parser.ParseXmlContent(ScannerState.Content)
 
                 ' The second phase
-                Me._endOfXmlInsteadOfLastDocCommentLineBreak = False
+                _endOfXmlInsteadOfLastDocCommentLineBreak = False
                 If nodes.Count = 0 AndAlso parser.CurrentToken.Kind = SyntaxKind.EndOfXmlToken Then
                     ' This must be an empty documentation comment, we need to reset scanner so 
                     ' that the doc comment exterior trivia ([''']) lands on the final XmlNode
 
                     ResetLineBufferOffset()
                     restorePoint.RestoreTokens(includeLookAhead:=False)
-                    Me._isStartingFirstXmlDocLine = True
+                    _isStartingFirstXmlDocLine = True
                 End If
 
                 nodes = parser.ParseRestOfDocCommentContent(nodes)
-                Me.IsScanningXmlDoc = False
+                IsScanningXmlDoc = False
 
                 Debug.Assert(nodes.Any)
                 Debug.Assert(nodes(0).FullWidth > 0, "should at least get {'''EoL} ")
@@ -126,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 docCommentSyntax = SyntaxFactory.DocumentationCommentTrivia(nodes)
 
-                If Me.Options.DocumentationMode < DocumentationMode.Diagnose Then
+                If Options.DocumentationMode < DocumentationMode.Diagnose Then
                     ' All diagnostics coming from documentation comment are ignored
                     docCommentSyntax.ClearFlags(GreenNode.NodeFlags.ContainsDiagnostics)
                 End If
@@ -136,8 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             restorePoint.RestoreTokens(includeLookAhead:=True)
 
 #If DEBUG Then
-            Debug.Assert(Me._lineBufferOffset = origPosition + docCommentSyntax.FullWidth OrElse
-                         Me._endOfTerminatorTrivia = origPosition + docCommentSyntax.FullWidth)
+            Debug.Assert(_lineBufferOffset = origPosition + docCommentSyntax.FullWidth OrElse
+                         _endOfTerminatorTrivia = origPosition + docCommentSyntax.FullWidth)
 #End If
 
             tList.Add(docCommentSyntax)
@@ -453,7 +449,7 @@ CleanUp:
 
             Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
 
-            If IsAtNewLine() AndAlso Not Me._doNotRequireXmlDocCommentPrefix Then
+            If IsAtNewLine() AndAlso Not _doNotRequireXmlDocCommentPrefix Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
@@ -462,7 +458,7 @@ CleanUp:
             End If
 
             While CanGet()
-                If Not precedingTrivia.Any AndAlso IsAtNewLine() AndAlso Not Me._doNotRequireXmlDocCommentPrefix Then
+                If Not precedingTrivia.Any AndAlso IsAtNewLine() AndAlso Not _doNotRequireXmlDocCommentPrefix Then
                     ' this would indicate that we looked at Trivia, but did not find
                     ' XmlDoc prefix (or we would not be at the line start)
                     ' must terminate XmlDoc scanning

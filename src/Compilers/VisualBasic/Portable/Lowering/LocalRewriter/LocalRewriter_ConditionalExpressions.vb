@@ -1,19 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class LocalRewriter
 
         Public Overrides Function VisitBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundNode
-            If Me._inExpressionLambda Then
+            If _inExpressionLambda Then
                 ' If we are inside expression lambda we want to keep binary conditional expression
                 Return RewriteBinaryConditionalExpressionInExpressionLambda(node)
             End If
@@ -67,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case Else
                     '  create a temp variable
-                    tempVariableSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, rewrittenTestExpressionType, SynthesizedLocalKind.LoweringTemp)
+                    tempVariableSymbol = New SynthesizedLocal(_currentMethodOrLambda, rewrittenTestExpressionType, SynthesizedLocalKind.LoweringTemp)
                     '  temp variable reference
                     placeholderSubstitute = New BoundLocal(rewrittenTestExpression.Syntax,
                                                       tempVariableSymbol,
@@ -208,12 +203,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function RewriteNullableBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundNode
             ' == rewrite operands and check for trivial cases
-            Dim rewrittenLeft = Me.VisitExpressionNode(node.TestExpression)
+            Dim rewrittenLeft = VisitExpressionNode(node.TestExpression)
             If HasValue(rewrittenLeft) Then
                 Return MakeResultFromNonNullLeft(rewrittenLeft, node.ConvertedTestExpression, node.TestExpressionPlaceholder)
             End If
 
-            Dim rewrittenRight = Me.VisitExpressionNode(node.ElseExpression)
+            Dim rewrittenRight = VisitExpressionNode(node.ElseExpression)
             If HasNoValue(rewrittenLeft) Then
                 Return rewrittenRight
             End If

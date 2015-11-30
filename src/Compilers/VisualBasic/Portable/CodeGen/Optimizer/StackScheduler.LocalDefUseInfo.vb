@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     Partial Friend Class StackScheduler
@@ -36,12 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ''' </summary>
             Public ReadOnly Property CannotSchedule As Boolean
                 Get
-                    Return Me._cannotSchedule
+                    Return _cannotSchedule
                 End Get
             End Property
 
             Public Sub ShouldNotSchedule()
-                Me._cannotSchedule = True
+                _cannotSchedule = True
             End Sub
 
             Public Sub New(stackAtDeclaration As Integer)

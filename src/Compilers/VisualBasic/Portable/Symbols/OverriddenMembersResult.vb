@@ -1,11 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -69,9 +65,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub New(overriddenMembers As ImmutableArray(Of TSymbol),
                         inexactOverriddenMembers As ImmutableArray(Of TSymbol),
                         inaccessibleMembers As ImmutableArray(Of TSymbol))
-            Me._overriddenMembers = overriddenMembers
-            Me._inexactOverriddenMembers = inexactOverriddenMembers
-            Me._inaccessibleMembers = inaccessibleMembers
+            _overriddenMembers = overriddenMembers
+            _inexactOverriddenMembers = inexactOverriddenMembers
+            _inaccessibleMembers = inaccessibleMembers
         End Sub
 
         Public Shared Function Create(overriddenMembers As ImmutableArray(Of TSymbol),

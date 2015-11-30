@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -58,11 +55,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub LeaveRegion()
-            If Me.IsConditionalState Then
+            If IsConditionalState Then
                 ' If the region is in a condition, then the state will be split and 
                 ' State.Assigned(will) be null. Merge to get sensible results.
-                _endOfRegionState = Me.StateWhenTrue.Clone()
-                IntersectWith(_endOfRegionState, Me.StateWhenFalse)
+                _endOfRegionState = StateWhenTrue.Clone()
+                IntersectWith(_endOfRegionState, StateWhenFalse)
             Else
                 _endOfRegionState = MyBase.State.Clone()
             End If

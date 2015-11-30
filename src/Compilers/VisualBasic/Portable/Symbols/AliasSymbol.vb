@@ -1,12 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -68,11 +62,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 sourceNs = merged.GetConstituentForCompilation(compilation)
             End If
 
-            Me._aliasContainer = If(sourceNs, aliasContainer)
+            _aliasContainer = If(sourceNs, aliasContainer)
 
-            Me._aliasTarget = aliasTarget
-            Me._aliasName = aliasName
-            Me._aliasLocations = ImmutableArray.Create(aliasLocation)
+            _aliasTarget = aliasTarget
+            _aliasName = aliasName
+            _aliasLocations = ImmutableArray.Create(aliasLocation)
         End Sub
 
         ''' <summary>
@@ -100,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property Target As NamespaceOrTypeSymbol
             Get
-                Return Me._aliasTarget
+                Return _aliasTarget
             End Get
         End Property
 
@@ -240,15 +234,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim other As AliasSymbol = TryCast(obj, AliasSymbol)
 
             Return other IsNot Nothing AndAlso
-                Equals(Me.Locations.FirstOrDefault(), other.Locations.FirstOrDefault()) AndAlso
-                Me.ContainingAssembly Is other.ContainingAssembly
+                Equals(Locations.FirstOrDefault(), other.Locations.FirstOrDefault()) AndAlso
+                ContainingAssembly Is other.ContainingAssembly
         End Function
 
         ''' <summary>
         ''' Returns a hash code for the current object.
         ''' </summary>
         Public Overrides Function GetHashCode() As Integer
-            Return If(Me.Locations.Length > 0, Me.Locations(0).GetHashCode(), Me.Name.GetHashCode())
+            Return If(Locations.Length > 0, Locations(0).GetHashCode(), Name.GetHashCode())
         End Function
 
         Friend Overrides Function Accept(Of TArg, TResult)(visitor As VisualBasicSymbolVisitor(Of TArg, TResult), a As TArg) As TResult

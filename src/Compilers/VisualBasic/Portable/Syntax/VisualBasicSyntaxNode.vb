@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
-Imports System.ComponentModel
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'TODO: may be eventually not needed
         Friend ReadOnly Property VbGreen As InternalSyntax.VisualBasicSyntaxNode
             Get
-                Return DirectCast(Me.Green, InternalSyntax.VisualBasicSyntaxNode)
+                Return DirectCast(Green, InternalSyntax.VisualBasicSyntaxNode)
             End Get
         End Property
 
@@ -63,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows ReadOnly Property SyntaxTree As SyntaxTree
             Get
-                If Me._syntaxTree Is Nothing Then
+                If _syntaxTree Is Nothing Then
                     Dim stack = ArrayBuilder(Of SyntaxNode).GetInstance()
                     Dim tree As SyntaxTree = Nothing
 
@@ -98,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     stack.Free()
                 End If
 
-                Return Me._syntaxTree
+                Return _syntaxTree
             End Get
         End Property
 
@@ -110,12 +109,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns the <see cref="SyntaxKind"/> of the node.
         ''' </summary>
         Public Function Kind() As SyntaxKind
-            Return CType(Me.Green.RawKind, SyntaxKind)
+            Return CType(Green.RawKind, SyntaxKind)
         End Function
 
         Protected Overrides ReadOnly Property KindText As String
             Get
-                Return Me.Kind.ToString()
+                Return Kind.ToString()
             End Get
         End Property
 
@@ -144,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The string representation of this node, not including its leading and trailing trivia.</returns>
         ''' <remarks>The length of the returned string is always the same as Span.Length</remarks>
         Public NotOverridable Overrides Function ToString() As String
-            Return Me.Green.ToString()
+            Return Green.ToString()
         End Function
 
         ''' <summary>
@@ -153,14 +152,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>The full string representation of this node including its leading and trailing trivia.</returns>
         ''' <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
         Public NotOverridable Overrides Function ToFullString() As String
-            Return Me.Green.ToFullString()
+            Return Green.ToFullString()
         End Function
 
         ''' <summary>
         ''' Writes the full text of this node to the specified TextWriter
         ''' </summary>
         Public Overrides Sub WriteTo(writer As IO.TextWriter)
-            Me.Green.WriteTo(writer)
+            Green.WriteTo(writer)
         End Sub
 
 #Region "Serialization"
@@ -171,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overrides Sub SerializeTo(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing)
             Using writer = New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=s_binder, cancellationToken:=cancellationToken)
-                writer.WriteValue(Me.Green)
+                writer.WriteValue(Green)
             End Using
         End Sub
 
@@ -244,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property IsDirective As Boolean
             Get
-                Return Me.Green.IsDirective
+                Return Green.IsDirective
             End Get
         End Property
 
@@ -256,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Public Shadows ReadOnly Property SpanStart As Integer
             Get
-                Return Position + Me.Green.GetLeadingTriviaWidth()
+                Return Position + Green.GetLeadingTriviaWidth()
             End Get
         End Property
 
@@ -287,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property HasErrors As Boolean
             Get
                 ' TODO (tomat): share impl with C#
-                Return Me.ContainsDiagnostics AndAlso Me.GetSyntaxErrors(Me.SyntaxTree).Any(Function(i) i.Severity = DiagnosticSeverity.Error)
+                Return ContainsDiagnostics AndAlso GetSyntaxErrors(SyntaxTree).Any(Function(i) i.Severity = DiagnosticSeverity.Error)
             End Get
         End Property
 
@@ -407,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Return Me.Green.IsEquivalentTo(other.Green)
+            Return Green.IsEquivalentTo(other.Green)
         End Function
 
         ''' <summary>
@@ -422,18 +421,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim errorInfos() As DiagnosticInfo
 
             ' If the green node already has errors, add those on.
-            If Me.Green.GetDiagnostics Is Nothing Then
+            If Green.GetDiagnostics Is Nothing Then
                 errorInfos = {err}
             Else
                 ' Add the error to the error list.
-                errorInfos = Me.Green.GetDiagnostics
+                errorInfos = Green.GetDiagnostics
                 Dim length As Integer = errorInfos.Length
                 ReDim Preserve errorInfos(length)
                 errorInfos(length) = err
             End If
 
             ' Get a new green node with the errors added on.
-            Dim greenWithDiagnostics = Me.Green.SetDiagnostics(errorInfos)
+            Dim greenWithDiagnostics = Green.SetDiagnostics(errorInfos)
 
             ' convert to red node with no parent.
             Dim result = greenWithDiagnostics.CreateRed(Nothing, 0)
@@ -461,7 +460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetFirstDirective(Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
             Dim child As SyntaxNodeOrToken
-            For Each child In Me.ChildNodesAndTokens()
+            For Each child In ChildNodesAndTokens()
                 If child.ContainsDirectives Then
                     If child.IsNode Then
                         Dim d As DirectiveTriviaSyntax = DirectCast(child.AsNode, VisualBasicSyntaxNode).GetFirstDirective(predicate)
@@ -487,7 +486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetLastDirective(Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
             Dim child As SyntaxNodeOrToken
-            For Each child In Me.ChildNodesAndTokens().Reverse
+            For Each child In ChildNodesAndTokens().Reverse
                 If child.ContainsDirectives Then
                     If child.IsNode Then
                         Dim d As DirectiveTriviaSyntax = DirectCast(child.AsNode, VisualBasicSyntaxNode).GetLastDirective(predicate)
@@ -577,7 +576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Core Overloads"
         Protected NotOverridable Overrides Function EquivalentToCore(other As SyntaxNode) As Boolean
-            Return Me.IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))
+            Return IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))
         End Function
 
         Protected NotOverridable Overrides Function FindTokenCore(position As Integer, findInsideTrivia As Boolean) As SyntaxToken
@@ -594,7 +593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property SyntaxTreeCore As SyntaxTree
             Get
-                Return Me.SyntaxTree
+                Return SyntaxTree
             End Get
         End Property
 
@@ -646,12 +645,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shadows Function GetLocation() As Location
             ' Note that we want to return 'no location' for all nodes from embedded syntax trees
-            If Me.SyntaxTree IsNot Nothing Then
-                Dim tree = Me.SyntaxTree
+            If SyntaxTree IsNot Nothing Then
+                Dim tree = SyntaxTree
                 If tree.IsEmbeddedSyntaxTree Then
-                    Return New EmbeddedTreeLocation(tree.GetEmbeddedKind, Me.Span)
+                    Return New EmbeddedTreeLocation(tree.GetEmbeddedKind, Span)
                 ElseIf tree.IsMyTemplate Then
-                    Return New MyTemplateLocation(tree, Me.Span)
+                    Return New MyTemplateLocation(tree, Span)
                 End If
             End If
             Return New SourceLocation(Me)

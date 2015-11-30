@@ -1,9 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -18,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly Property AnonymousType As AnonymousTypeTemplateSymbol
                 Get
-                    Return DirectCast(Me.m_containingType, AnonymousTypeTemplateSymbol)
+                    Return DirectCast(m_containingType, AnonymousTypeTemplateSymbol)
                 End Get
             End Property
 
@@ -30,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property OverriddenMethod As MethodSymbol
                 Get
-                    Return Me.AnonymousType.Manager.System_Object__ToString
+                    Return AnonymousType.Manager.System_Object__ToString
                 End Get
             End Property
 
@@ -56,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                 ' May call user-defined method.
-                Dim compilation = DirectCast(Me.ContainingType, AnonymousTypeTemplateSymbol).Manager.Compilation
+                Dim compilation = DirectCast(ContainingType, AnonymousTypeTemplateSymbol).Manager.Compilation
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())
             End Sub
 

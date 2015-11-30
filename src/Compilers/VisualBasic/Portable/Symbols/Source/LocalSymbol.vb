@@ -129,8 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property ConstHasType As Boolean
             Get
-                Debug.Assert(Me.IsConst)
-                Return Me._lazyType IsNot Nothing
+                Debug.Assert(IsConst)
+                Return _lazyType IsNot Nothing
             End Get
         End Property
 
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub SetType(type As TypeSymbol)
             If _lazyType Is Nothing Then
                 Interlocked.CompareExchange(_lazyType, type, Nothing)
-                Debug.Assert((Me.IsFunctionValue AndAlso _container.Kind = SymbolKind.Method AndAlso DirectCast(_container, MethodSymbol).MethodKind = MethodKind.LambdaMethod) OrElse type.Equals(ComputeType()))
+                Debug.Assert((IsFunctionValue AndAlso _container.Kind = SymbolKind.Method AndAlso DirectCast(_container, MethodSymbol).MethodKind = MethodKind.LambdaMethod) OrElse type.Equals(ComputeType()))
             Else
                 Debug.Assert(type.Equals(_lazyType), "Attempted to set a local variable with a different type")
             End If
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return ImmutableArray.Create(Me.IdentifierLocation)
+                Return ImmutableArray.Create(IdentifierLocation)
             End Get
         End Property
 
@@ -238,19 +238,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property IsUsing As Boolean
             Get
-                Return Me.DeclarationKind = LocalDeclarationKind.Using
+                Return DeclarationKind = LocalDeclarationKind.Using
             End Get
         End Property
 
         Public ReadOnly Property IsCatch As Boolean
             Get
-                Return Me.DeclarationKind = LocalDeclarationKind.Catch
+                Return DeclarationKind = LocalDeclarationKind.Catch
             End Get
         End Property
 
         Public ReadOnly Property IsConst As Boolean
             Get
-                Return Me.DeclarationKind = LocalDeclarationKind.Constant
+                Return DeclarationKind = LocalDeclarationKind.Constant
             End Get
         End Property
 
@@ -264,19 +264,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property IsStatic As Boolean
             Get
-                Return Me.DeclarationKind = LocalDeclarationKind.Static
+                Return DeclarationKind = LocalDeclarationKind.Static
             End Get
         End Property
 
         Public ReadOnly Property IsFor As Boolean
             Get
-                Return Me.DeclarationKind = LocalDeclarationKind.For
+                Return DeclarationKind = LocalDeclarationKind.For
             End Get
         End Property
 
         Public ReadOnly Property IsForEach As Boolean
             Get
-                Return Me.DeclarationKind = LocalDeclarationKind.ForEach
+                Return DeclarationKind = LocalDeclarationKind.ForEach
             End Get
         End Property
 
@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property IsCompilerGenerated As Boolean
             Get
-                Return Me.DeclarationKind = LocalDeclarationKind.None
+                Return DeclarationKind = LocalDeclarationKind.None
             End Get
         End Property
 
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return Me.DeclarationKind = LocalDeclarationKind.ImplicitVariable
+                Return DeclarationKind = LocalDeclarationKind.ImplicitVariable
             End Get
         End Property
 
@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property HasConstantValue As Boolean Implements ILocalSymbol.HasConstantValue
             Get
-                If Not Me.IsConst Then
+                If Not IsConst Then
                     Return Nothing
                 End If
 
@@ -326,11 +326,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property ConstantValue As Object Implements ILocalSymbol.ConstantValue
             Get
-                If Not Me.IsConst Then
+                If Not IsConst Then
                     Return Nothing
                 End If
 
-                Dim constant As ConstantValue = Me.GetConstantValue(Nothing)
+                Dim constant As ConstantValue = GetConstantValue(Nothing)
                 Return If(constant Is Nothing, Nothing, constant.Value)
             End Get
         End Property
@@ -367,13 +367,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ILocalSymbol_Type As ITypeSymbol Implements ILocalSymbol.Type
             Get
-                Return Me.Type
+                Return Type
             End Get
         End Property
 
         Private ReadOnly Property ILocalSymbol_IsConst As Boolean Implements ILocalSymbol.IsConst
             Get
-                Return Me.IsConst
+                Return IsConst
             End Get
         End Property
 
@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected Overrides ReadOnly Property ISymbol_IsStatic As Boolean
             Get
-                Return Me.IsStatic
+                Return IsStatic
             End Get
         End Property
 
@@ -410,18 +410,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ILocalSymbolInternal_IsImportedFromMetadata As Boolean Implements ILocalSymbolInternal.IsImportedFromMetadata
             Get
-                Return Me.IsImportedFromMetadata
+                Return IsImportedFromMetadata
             End Get
         End Property
 
         Private ReadOnly Property ILocalSymbolInternal_SynthesizedKind As SynthesizedLocalKind Implements ILocalSymbolInternal.SynthesizedKind
             Get
-                Return Me.SynthesizedKind
+                Return SynthesizedKind
             End Get
         End Property
 
         Private Function ILocalSymbolInternal_GetDeclaratorSyntax() As SyntaxNode Implements ILocalSymbolInternal.GetDeclaratorSyntax
-            Return Me.GetDeclaratorSyntax()
+            Return GetDeclaratorSyntax()
         End Function
 
 #End Region
@@ -481,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Function GetDeclaratorSyntax() As SyntaxNode
                 Dim node As SyntaxNode
 
-                Select Case Me.DeclarationKind
+                Select Case DeclarationKind
                     Case LocalDeclarationKind.Variable,
                          LocalDeclarationKind.Constant,
                          LocalDeclarationKind.Using,
@@ -525,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(Me.DeclarationKind)
+                        Throw ExceptionUtilities.UnexpectedValue(DeclarationKind)
                 End Select
 
                 Return node
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    If Me.DeclarationKind = LocalDeclarationKind.FunctionValue Then
+                    If DeclarationKind = LocalDeclarationKind.FunctionValue Then
                         Return ImmutableArray(Of SyntaxReference).Empty
                     End If
 
@@ -571,11 +571,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim other = TryCast(obj, SourceLocalSymbol)
 
-                Return other IsNot Nothing AndAlso other._identifierToken.Equals(Me._identifierToken) AndAlso Equals(other._container, Me._container) AndAlso String.Equals(other.Name, Me.Name)
+                Return other IsNot Nothing AndAlso other._identifierToken.Equals(_identifierToken) AndAlso Equals(other._container, _container) AndAlso String.Equals(other.Name, Name)
             End Function
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(_identifierToken.GetHashCode(), Me._container.GetHashCode())
+                Return Hash.Combine(_identifierToken.GetHashCode(), _container.GetHashCode())
             End Function
         End Class
 #End Region
@@ -684,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    Return GetDeclaringSyntaxReferenceHelper(Of ForEachStatementSyntax)(Me.Locations)
+                    Return GetDeclaringSyntaxReferenceHelper(Of ForEachStatementSyntax)(Locations)
                 End Get
             End Property
         End Class
@@ -754,7 +754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    Return GetDeclaringSyntaxReferenceHelper(Of ForStatementSyntax)(Me.Locations)
+                    Return GetDeclaringSyntaxReferenceHelper(Of ForStatementSyntax)(Locations)
                 End Get
             End Property
         End Class

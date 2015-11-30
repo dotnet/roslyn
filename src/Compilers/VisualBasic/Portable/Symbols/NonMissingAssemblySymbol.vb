@@ -1,14 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Collections.Concurrent
-Imports System.Collections.ObjectModel
-Imports System.Reflection
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -170,24 +164,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function LookupTopLevelMetadataTypeInCache(
-            ByRef emittedName As MetadataTypeName
-        ) As NamedTypeSymbol
+        Private Function LookupTopLevelMetadataTypeInCache(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
             Dim result As NamedTypeSymbol = Nothing
 
-            If Me._emittedNameToTypeMap.TryGetValue(emittedName.ToKey(), result) Then
+            If _emittedNameToTypeMap.TryGetValue(emittedName.ToKey(), result) Then
                 Return result
             End If
 
             Return Nothing
         End Function
 
-        Private Sub CacheTopLevelMetadataType(
-            ByRef emittedName As MetadataTypeName,
-            result As NamedTypeSymbol
-        )
+        Private Sub CacheTopLevelMetadataType(ByRef emittedName As MetadataTypeName, result As NamedTypeSymbol)
             Dim result1 As NamedTypeSymbol = Nothing
-            result1 = Me._emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result)
+            result1 = _emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result)
             Debug.Assert(result1.Equals(result)) ' object identity may differ in error cases
         End Sub
 

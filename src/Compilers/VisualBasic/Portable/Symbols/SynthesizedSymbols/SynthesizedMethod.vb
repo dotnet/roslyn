@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -26,9 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 isShared As Boolean
             )
             MyBase.New(containingSymbol)
-            Me._syntaxNodeOpt = syntaxNode
-            Me._isShared = isShared
-            Me._name = name
+            _syntaxNodeOpt = syntaxNode
+            _isShared = isShared
+            _name = name
         End Sub
 
         Private Shared ReadOnly s_typeSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
@@ -97,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Dim sourceType = TryCast(ContainingSymbol, SourceMemberContainerTypeSymbol)
@@ -175,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Dim node As VisualBasicSyntaxNode = Me.Syntax
+                Dim node As VisualBasicSyntaxNode = Syntax
                 Dim asLambda = TryCast(node, LambdaExpressionSyntax)
                 If asLambda IsNot Nothing Then
                     node = asLambda.SubOrFunctionHeader

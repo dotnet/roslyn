@@ -1,13 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Partial Class CharacterLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
-                Return Me.Value
+                Return Value
             End Get
         End Property
     End Class
@@ -15,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Partial Class DateLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
-                Return Me.Value
+                Return Value
             End Get
         End Property
     End Class
@@ -23,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Partial Class DecimalLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
-                Return Me.Value
+                Return Value
             End Get
         End Property
     End Class
@@ -31,13 +28,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Partial Class StringLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
-                Return Me.Value
+                Return Value
             End Get
         End Property
 
         Friend NotOverridable Overrides ReadOnly Property ValueText As String
             Get
-                Return Me.Value
+                Return Value
             End Get
         End Property
     End Class
@@ -49,17 +46,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, base As LiteralBase, typeSuffix As TypeCharacter, value As T)
             MyBase.New(kind, text, leadingTrivia, trailingTrivia, base, typeSuffix)
-            Me._value = value
+            _value = value
         End Sub
 
         Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, base As LiteralBase, typeSuffix As TypeCharacter, value As T)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia, base, typeSuffix)
-            Me._value = value
+            _value = value
         End Sub
 
         Friend Sub New(reader As ObjectReader)
             MyBase.New(reader)
-            Me._value = CType(reader.ReadValue(), T)
+            _value = CType(reader.ReadValue(), T)
         End Sub
 
         Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
@@ -68,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
-            writer.WriteValue(Me._value)
+            writer.WriteValue(_value)
         End Sub
 
         ''' <summary>
@@ -76,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend ReadOnly Property Value As T
             Get
-                Return Me._value
+                Return _value
             End Get
         End Property
 
@@ -88,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Overrides ReadOnly Property ObjectValue As Object
             Get
-                Return Me.Value
+                Return Value
             End Get
         End Property
 
@@ -120,26 +117,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, base As LiteralBase, typeSuffix As TypeCharacter)
             MyBase.New(kind, text, leadingTrivia, trailingTrivia)
-            Me._base = base
-            Me._typeSuffix = typeSuffix
+            _base = base
+            _typeSuffix = typeSuffix
         End Sub
 
         Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, base As LiteralBase, typeSuffix As TypeCharacter)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
-            Me._base = base
-            Me._typeSuffix = typeSuffix
+            _base = base
+            _typeSuffix = typeSuffix
         End Sub
 
         Friend Sub New(reader As ObjectReader)
             MyBase.New(reader)
-            Me._base = CType(reader.ReadByte(), LiteralBase)
-            Me._typeSuffix = CType(reader.ReadByte(), TypeCharacter)
+            _base = CType(reader.ReadByte(), LiteralBase)
+            _typeSuffix = CType(reader.ReadByte(), TypeCharacter)
         End Sub
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
-            writer.WriteByte(CType(Me._base, Byte))
-            writer.WriteByte(CType(Me._typeSuffix, Byte))
+            writer.WriteByte(CType(_base, Byte))
+            writer.WriteByte(CType(_typeSuffix, Byte))
         End Sub
 
         ''' <summary>
@@ -147,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend ReadOnly Property Base As LiteralBase
             Get
-                Return Me._base
+                Return _base
             End Get
         End Property
 
@@ -157,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend ReadOnly Property TypeSuffix As TypeCharacter
             Get
-                Return Me._typeSuffix
+                Return _typeSuffix
             End Get
         End Property
 
@@ -173,17 +170,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, typeSuffix As TypeCharacter, value As T)
             MyBase.New(kind, text, leadingTrivia, trailingTrivia, typeSuffix)
-            Me._value = value
+            _value = value
         End Sub
 
         Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, typeSuffix As TypeCharacter, value As T)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia, typeSuffix)
-            Me._value = value
+            _value = value
         End Sub
 
         Friend Sub New(reader As ObjectReader)
             MyBase.New(reader)
-            Me._value = CType(reader.ReadValue(), T)
+            _value = CType(reader.ReadValue(), T)
         End Sub
 
         Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
@@ -192,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
-            writer.WriteValue(Me._value)
+            writer.WriteValue(_value)
         End Sub
 
         ''' <summary>
@@ -200,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend ReadOnly Property Value As T
             Get
-                Return Me._value
+                Return _value
             End Get
         End Property
 
@@ -212,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Overrides ReadOnly Property ObjectValue As Object
             Get
-                Return Me.Value
+                Return Value
             End Get
         End Property
 
@@ -243,22 +240,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(kind As SyntaxKind, text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, typeSuffix As TypeCharacter)
             MyBase.New(kind, text, leadingTrivia, trailingTrivia)
-            Me._typeSuffix = typeSuffix
+            _typeSuffix = typeSuffix
         End Sub
 
         Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode, typeSuffix As TypeCharacter)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
-            Me._typeSuffix = typeSuffix
+            _typeSuffix = typeSuffix
         End Sub
 
         Friend Sub New(reader As ObjectReader)
             MyBase.New(reader)
-            Me._typeSuffix = CType(reader.ReadByte(), TypeCharacter)
+            _typeSuffix = CType(reader.ReadByte(), TypeCharacter)
         End Sub
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
-            writer.WriteByte(CType(Me._typeSuffix, Byte))
+            writer.WriteByte(CType(_typeSuffix, Byte))
         End Sub
 
         ''' <summary>
@@ -267,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend ReadOnly Property TypeSuffix As TypeCharacter
             Get
-                Return Me._typeSuffix
+                Return _typeSuffix
             End Get
         End Property
     End Class

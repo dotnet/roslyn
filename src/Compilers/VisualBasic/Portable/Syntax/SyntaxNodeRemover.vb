@@ -1,11 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -40,10 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Public Sub New(nodes As SyntaxNode(), options As SyntaxRemoveOptions)
                 MyBase.New(nodes.Any(Function(n) n.IsPartOfStructuredTrivia()))
-                Me._nodesToRemove = New HashSet(Of SyntaxNode)(nodes)
-                Me._options = options
-                Me._searchSpan = ComputeTotalSpan(nodes)
-                Me._residualTrivia = SyntaxTriviaListBuilder.Create()
+                _nodesToRemove = New HashSet(Of SyntaxNode)(nodes)
+                _options = options
+                _searchSpan = ComputeTotalSpan(nodes)
+                _residualTrivia = SyntaxTriviaListBuilder.Create()
             End Sub
 
             Private Shared Function ComputeTotalSpan(nodes As SyntaxNode()) As TextSpan
@@ -64,8 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Friend ReadOnly Property ResidualTrivia As SyntaxTriviaList
                 Get
-                    If Me._residualTrivia IsNot Nothing Then
-                        Return Me._residualTrivia.ToList()
+                    If _residualTrivia IsNot Nothing Then
+                        Return _residualTrivia.ToList()
                     Else
                         Return Nothing
                     End If
@@ -77,12 +72,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     AddEndOfLine()
                 End If
 
-                Me._residualTrivia.Add(trivia)
+                _residualTrivia.Add(trivia)
             End Sub
 
             Private Sub AddEndOfLine()
-                If Me._residualTrivia.Count = 0 OrElse Not IsEndOfLine(Me._residualTrivia(Me._residualTrivia.Count - 1)) Then
-                    Me._residualTrivia.Add(SyntaxFactory.CarriageReturnLineFeed)
+                If _residualTrivia.Count = 0 OrElse Not IsEndOfLine(_residualTrivia(_residualTrivia.Count - 1)) Then
+                    _residualTrivia.Add(SyntaxFactory.CarriageReturnLineFeed)
                 End If
             End Sub
             Private Shared Function IsEndOfLine(trivia As SyntaxTrivia) As Boolean
@@ -94,21 +89,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Function
 
             Private Function IsForRemoval(node As SyntaxNode) As Boolean
-                Return Me._nodesToRemove.Contains(node)
+                Return _nodesToRemove.Contains(node)
             End Function
 
             Private Function ShouldVisit(node As SyntaxNode) As Boolean
-                Return node.FullSpan.IntersectsWith(Me._searchSpan) OrElse (Me._residualTrivia IsNot Nothing AndAlso Me._residualTrivia.Count > 0)
+                Return node.FullSpan.IntersectsWith(_searchSpan) OrElse (_residualTrivia IsNot Nothing AndAlso _residualTrivia.Count > 0)
             End Function
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
                 Dim result = node
 
                 If node IsNot Nothing Then
-                    If Me.IsForRemoval(node) Then
-                        Me.AddTrivia(node)
+                    If IsForRemoval(node) Then
+                        AddTrivia(node)
                         result = Nothing
-                    ElseIf Me.ShouldVisit(node) Then
+                    ElseIf ShouldVisit(node) Then
                         result = MyBase.Visit(node)
                     End If
                 End If
@@ -119,15 +114,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
                 Dim result = token
 
-                If Me.VisitIntoStructuredTrivia Then ' only bother visiting trivia if we are removing a node in structured trivia
+                If VisitIntoStructuredTrivia Then ' only bother visiting trivia if we are removing a node in structured trivia
                     result = MyBase.VisitToken(token)
                 End If
 
                 ' the next token gets the accrued trivia.
-                If result.Kind <> SyntaxKind.None AndAlso Me._residualTrivia IsNot Nothing AndAlso Me._residualTrivia.Count > 0 Then
-                    Me._residualTrivia.Add(result.LeadingTrivia)
-                    result = result.WithLeadingTrivia(Me._residualTrivia.ToList())
-                    Me._residualTrivia.Clear()
+                If result.Kind <> SyntaxKind.None AndAlso _residualTrivia IsNot Nothing AndAlso _residualTrivia.Count > 0 Then
+                    _residualTrivia.Add(result.LeadingTrivia)
+                    result = result.WithLeadingTrivia(_residualTrivia.ToList())
+                    _residualTrivia.Clear()
                 End If
 
                 Return result
@@ -150,12 +145,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                             removeNextSeparator = False
                             visited = Nothing
                         Else
-                            visited = Me.VisitListSeparator(item.AsToken())
+                            visited = VisitListSeparator(item.AsToken())
                         End If
                     Else
                         Dim node = DirectCast(DirectCast(item.AsNode(), SyntaxNode), TNode)
 
-                        If Me.IsForRemoval(node) Then
+                        If IsForRemoval(node) Then
                             If alternate Is Nothing Then
                                 alternate = New SyntaxNodeOrTokenListBuilder(n)
                                 alternate.AddRange(withSeps, 0, i)
@@ -164,20 +159,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                             If alternate.Count > 0 AndAlso alternate(alternate.Count - 1).IsToken Then
                                 ' remove preceding separator if any
                                 Dim separator = alternate(alternate.Count - 1).AsToken()
-                                Me.AddTrivia(separator, node)
+                                AddTrivia(separator, node)
                                 alternate.RemoveLast()
                             ElseIf i + 1 < n AndAlso withSeps(i + 1).IsToken Then
                                 ' otherwise remove trailing separator if any
                                 Dim separator = withSeps(i + 1).AsToken()
-                                Me.AddTrivia(node, separator)
+                                AddTrivia(node, separator)
                                 removeNextSeparator = True
                             Else
-                                Me.AddTrivia(node)
+                                AddTrivia(node)
                             End If
 
                             visited = Nothing
                         Else
-                            visited = Me.VisitListElement(node)
+                            visited = VisitListElement(node)
                         End If
                     End If
 
@@ -199,87 +194,87 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Function
 
             Private Sub AddTrivia(node As SyntaxNode)
-                If (Me._options And SyntaxRemoveOptions.KeepLeadingTrivia) <> 0 Then
-                    Me.AddResidualTrivia(node.GetLeadingTrivia())
-                ElseIf (Me._options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetLeadingTrivia()) Then
-                    Me.AddEndOfLine()
+                If (_options And SyntaxRemoveOptions.KeepLeadingTrivia) <> 0 Then
+                    AddResidualTrivia(node.GetLeadingTrivia())
+                ElseIf (_options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetLeadingTrivia()) Then
+                    AddEndOfLine()
                 End If
 
-                If (Me._options And (SyntaxRemoveOptions.KeepDirectives Or SyntaxRemoveOptions.KeepUnbalancedDirectives)) <> 0 Then
-                    Me.AddDirectives(node, GetRemovedSpan(node.Span, node.FullSpan))
+                If (_options And (SyntaxRemoveOptions.KeepDirectives Or SyntaxRemoveOptions.KeepUnbalancedDirectives)) <> 0 Then
+                    AddDirectives(node, GetRemovedSpan(node.Span, node.FullSpan))
                 End If
 
-                If (Me._options And SyntaxRemoveOptions.KeepTrailingTrivia) <> 0 Then
-                    Me.AddResidualTrivia(node.GetTrailingTrivia())
-                ElseIf (Me._options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetTrailingTrivia()) Then
-                    Me.AddEndOfLine()
+                If (_options And SyntaxRemoveOptions.KeepTrailingTrivia) <> 0 Then
+                    AddResidualTrivia(node.GetTrailingTrivia())
+                ElseIf (_options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetTrailingTrivia()) Then
+                    AddEndOfLine()
                 End If
 
-                If (Me._options And SyntaxRemoveOptions.AddElasticMarker) <> 0 Then
-                    Me.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
+                If (_options And SyntaxRemoveOptions.AddElasticMarker) <> 0 Then
+                    AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
                 End If
             End Sub
 
             Private Sub AddTrivia(token As SyntaxToken, node As SyntaxNode)
-                If (Me._options And SyntaxRemoveOptions.KeepLeadingTrivia) <> 0 Then
-                    Me.AddResidualTrivia(token.LeadingTrivia)
-                    Me.AddResidualTrivia(token.TrailingTrivia)
-                    Me.AddResidualTrivia(node.GetLeadingTrivia())
-                ElseIf (Me._options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso
+                If (_options And SyntaxRemoveOptions.KeepLeadingTrivia) <> 0 Then
+                    AddResidualTrivia(token.LeadingTrivia)
+                    AddResidualTrivia(token.TrailingTrivia)
+                    AddResidualTrivia(node.GetLeadingTrivia())
+                ElseIf (_options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso
                     (HasEndOfLine(token.LeadingTrivia) OrElse HasEndOfLine(token.TrailingTrivia) OrElse HasEndOfLine(node.GetLeadingTrivia())) Then
-                    Me.AddEndOfLine()
+                    AddEndOfLine()
                 End If
 
-                If (Me._options And (SyntaxRemoveOptions.KeepDirectives Or SyntaxRemoveOptions.KeepUnbalancedDirectives)) <> 0 Then
+                If (_options And (SyntaxRemoveOptions.KeepDirectives Or SyntaxRemoveOptions.KeepUnbalancedDirectives)) <> 0 Then
                     Dim fullSpan = TextSpan.FromBounds(token.FullSpan.Start, node.FullSpan.End)
                     Dim span = TextSpan.FromBounds(token.Span.Start, node.Span.End)
-                    Me.AddDirectives(node.Parent, GetRemovedSpan(span, fullSpan))
+                    AddDirectives(node.Parent, GetRemovedSpan(span, fullSpan))
                 End If
 
-                If (Me._options And SyntaxRemoveOptions.KeepTrailingTrivia) <> 0 Then
-                    Me.AddResidualTrivia(node.GetTrailingTrivia())
-                ElseIf (Me._options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetTrailingTrivia()) Then
-                    Me.AddEndOfLine()
+                If (_options And SyntaxRemoveOptions.KeepTrailingTrivia) <> 0 Then
+                    AddResidualTrivia(node.GetTrailingTrivia())
+                ElseIf (_options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetTrailingTrivia()) Then
+                    AddEndOfLine()
                 End If
 
-                If (Me._options And SyntaxRemoveOptions.AddElasticMarker) <> 0 Then
-                    Me.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
+                If (_options And SyntaxRemoveOptions.AddElasticMarker) <> 0 Then
+                    AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
                 End If
             End Sub
 
             Private Sub AddTrivia(node As SyntaxNode, token As SyntaxToken)
-                If (Me._options And SyntaxRemoveOptions.KeepLeadingTrivia) <> 0 Then
-                    Me.AddResidualTrivia(node.GetLeadingTrivia())
-                ElseIf (Me._options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetLeadingTrivia()) Then
-                    Me.AddEndOfLine()
+                If (_options And SyntaxRemoveOptions.KeepLeadingTrivia) <> 0 Then
+                    AddResidualTrivia(node.GetLeadingTrivia())
+                ElseIf (_options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetLeadingTrivia()) Then
+                    AddEndOfLine()
                 End If
 
-                If (Me._options And (SyntaxRemoveOptions.KeepDirectives Or SyntaxRemoveOptions.KeepUnbalancedDirectives)) <> 0 Then
+                If (_options And (SyntaxRemoveOptions.KeepDirectives Or SyntaxRemoveOptions.KeepUnbalancedDirectives)) <> 0 Then
                     Dim fullSpan = TextSpan.FromBounds(node.FullSpan.Start, token.FullSpan.End)
                     Dim span = TextSpan.FromBounds(node.Span.Start, token.Span.End)
-                    Me.AddDirectives(node.Parent, GetRemovedSpan(span, fullSpan))
+                    AddDirectives(node.Parent, GetRemovedSpan(span, fullSpan))
                 End If
 
-                If (Me._options And SyntaxRemoveOptions.KeepTrailingTrivia) <> 0 Then
-                    Me.AddResidualTrivia(node.GetTrailingTrivia())
-                    Me.AddResidualTrivia(token.LeadingTrivia)
-                    Me.AddResidualTrivia(token.TrailingTrivia)
-                ElseIf (Me._options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso
+                If (_options And SyntaxRemoveOptions.KeepTrailingTrivia) <> 0 Then
+                    AddResidualTrivia(node.GetTrailingTrivia())
+                    AddResidualTrivia(token.LeadingTrivia)
+                    AddResidualTrivia(token.TrailingTrivia)
+                ElseIf (_options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso
                         (HasEndOfLine(node.GetTrailingTrivia()) OrElse HasEndOfLine(token.LeadingTrivia) OrElse HasEndOfLine(token.TrailingTrivia)) Then
-                    Me.AddEndOfLine()
+                    AddEndOfLine()
                 End If
 
-                If (Me._options And SyntaxRemoveOptions.AddElasticMarker) <> 0 Then
-                    Me.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
+                If (_options And SyntaxRemoveOptions.AddElasticMarker) <> 0 Then
+                    AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
                 End If
             End Sub
 
             Private Function GetRemovedSpan(span As TextSpan, fullSpan As TextSpan) As TextSpan
                 Dim removedSpan = fullSpan
-                If (Me._options And SyntaxRemoveOptions.KeepLeadingTrivia) <> 0 Then
+                If (_options And SyntaxRemoveOptions.KeepLeadingTrivia) <> 0 Then
                     removedSpan = TextSpan.FromBounds(span.Start, removedSpan.End)
                 End If
-                If (Me._options And SyntaxRemoveOptions.KeepTrailingTrivia) <> 0 Then
+                If (_options And SyntaxRemoveOptions.KeepTrailingTrivia) <> 0 Then
                     removedSpan = TextSpan.FromBounds(removedSpan.Start, span.End)
                 End If
                 Return removedSpan
@@ -287,10 +282,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Private Sub AddDirectives(node As SyntaxNode, span As TextSpan)
                 If node.ContainsDirectives Then
-                    If Me._directivesToKeep Is Nothing Then
-                        Me._directivesToKeep = New HashSet(Of SyntaxNode)()
+                    If _directivesToKeep Is Nothing Then
+                        _directivesToKeep = New HashSet(Of SyntaxNode)()
                     Else
-                        Me._directivesToKeep.Clear()
+                        _directivesToKeep.Clear()
                     End If
 
                     Dim directivesInSpan = node.DescendantTrivia(span, Function(n) n.ContainsDirectives, descendIntoTrivia:=True) _
@@ -298,8 +293,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                                                 .Select(Function(tr) DirectCast(tr.GetStructure(), DirectiveTriviaSyntax))
 
                     For Each directive In directivesInSpan
-                        If (Me._options And SyntaxRemoveOptions.KeepDirectives) <> 0 Then
-                            Me._directivesToKeep.Add(directive)
+                        If (_options And SyntaxRemoveOptions.KeepDirectives) <> 0 Then
+                            _directivesToKeep.Add(directive)
                         ElseIf HasRelatedDirectives(directive) Then
                             ' a balanced directive with respect to a given node has all related directives rooted under that node
                             Dim relatedDirectives = directive.GetRelatedDirectives()
@@ -308,12 +303,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                             If Not balanced Then
                                 ' if not fully balanced, all related directives under the node are considered unbalanced.
                                 For Each unbalancedDirective In relatedDirectives.Where(Function(rd) rd.FullSpan.OverlapsWith(span))
-                                    Me._directivesToKeep.Add(unbalancedDirective)
+                                    _directivesToKeep.Add(unbalancedDirective)
                                 Next
                             End If
                         End If
 
-                        If Me._directivesToKeep.Contains(directive) Then
+                        If _directivesToKeep.Contains(directive) Then
                             AddResidualTrivia(SyntaxFactory.TriviaList(directive.ParentTrivia), requiresNewLine:=True)
                         End If
                     Next

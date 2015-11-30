@@ -1,10 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -25,9 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            visitNestedTypes As Boolean,
                            cancellationToken As CancellationToken)
 
-                Me._entryPointCandidates = entryPointCandidates
-                Me._visitNestedTypes = visitNestedTypes
-                Me._cancellationToken = cancellationToken
+                _entryPointCandidates = entryPointCandidates
+                _visitNestedTypes = visitNestedTypes
+                _cancellationToken = cancellationToken
             End Sub
 
             Public Overrides Function VisitNamespace(symbol As NamespaceSymbol, filter As Predicate(Of Symbol)) As Boolean
@@ -57,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each member In symbol.GetMembersUnordered()
                     ' process all members that are not methods as usual
                     If member.Kind = SymbolKind.NamedType Then
-                        If Me._visitNestedTypes Then
+                        If _visitNestedTypes Then
                             member.Accept(Me, filter)
                         End If
                     ElseIf member.Kind = SymbolKind.Method Then

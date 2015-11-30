@@ -1,18 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Friend MustInherit Class SynthesizedPropertyAccessorBase(Of T As PropertySymbol)
 
         Friend Overloads Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Return GetBoundMethodBody(Me, Me.BackingFieldSymbol, methodBodyBinder)
+            Return GetBoundMethodBody(Me, BackingFieldSymbol, methodBodyBinder)
         End Function
 
         Friend Overloads Shared Function GetBoundMethodBody(accessor As MethodSymbol,
@@ -48,15 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 myBaseReference = New BoundMyBaseReference(syntax, meSymbol.Type)
                 Dim baseGetSym = propertySymbol.GetMethod.OverriddenMethod
 
-                baseGet = New BoundCall(
-                    syntax,
-                    baseGetSym,
-                    Nothing,
-                    myBaseReference,
-                    ImmutableArray(Of BoundExpression).Empty,
-                    Nothing,
-                    True,
-                    baseGetSym.ReturnType)
+                baseGet = New BoundCall(syntax, baseGetSym, Nothing, myBaseReference, ImmutableArray(Of BoundExpression).Empty, Nothing, True, baseGetSym.ReturnType)
             Else
                 ' not overriding property operates with field
                 field = backingField

@@ -2,8 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Text
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -24,9 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(Not kind.IsLongLived OrElse syntaxOpt IsNot Nothing)
 
-            Me._kind = kind
-            Me._syntaxOpt = syntaxOpt
-            Me._isByRef = isByRef
+            _kind = kind
+            _syntaxOpt = syntaxOpt
+            _isByRef = isByRef
         End Sub
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -93,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             builder.Append(_kind.ToString())
             builder.Append(" ")
-            builder.Append(Me.Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            builder.Append(Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             Return builder.ToString()
         End Function

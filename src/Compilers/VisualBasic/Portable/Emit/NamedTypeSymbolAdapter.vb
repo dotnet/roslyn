@@ -24,36 +24,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
-                Return Me.TypeKind = TYPEKIND.Enum
+                Debug.Assert(Not IsAnonymousType)
+                Return TypeKind = TypeKind.Enum
             End Get
         End Property
 
         Private ReadOnly Property ITypeReferenceIsValueType As Boolean Implements ITypeReference.IsValueType
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
-                Return Me.IsValueType
+                Debug.Assert(Not IsAnonymousType)
+                Return IsValueType
             End Get
         End Property
 
         Private Function ITypeReferenceGetResolvedType(context As EmitContext) As ITypeDefinition Implements ITypeReference.GetResolvedType
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return AsTypeDefinitionImpl(moduleBeingBuilt)
         End Function
 
         Private Function ITypeReferenceTypeCode(context As EmitContext) As Cci.PrimitiveTypeCode Implements ITypeReference.TypeCode
-            Debug.Assert(Not Me.IsAnonymousType)
-            Debug.Assert(Me.IsDefinitionOrDistinct())
-            If Me.IsDefinition Then
-                Return Me.PrimitiveTypeCode
+            Debug.Assert(Not IsAnonymousType)
+            Debug.Assert(IsDefinitionOrDistinct())
+            If IsDefinition Then
+                Return PrimitiveTypeCode
             End If
             Return Cci.PrimitiveTypeCode.NotPrimitive
         End Function
 
         Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements ITypeReference.TypeDef
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 Dim peNamedType As PENamedTypeSymbol = TryCast(Me, PENamedTypeSymbol)
                 If peNamedType IsNot Nothing Then
                     Return peNamedType.Handle
@@ -65,16 +65,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeReferenceAsGenericMethodParameterReference As IGenericMethodParameterReference Implements ITypeReference.AsGenericMethodParameterReference
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 Return Nothing
             End Get
         End Property
 
         Private ReadOnly Property ITypeReferenceAsGenericTypeInstanceReference As IGenericTypeInstanceReference Implements ITypeReference.AsGenericTypeInstanceReference
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
-                Debug.Assert(Me.IsDefinitionOrDistinct())
-                If Not Me.IsDefinition AndAlso Me.Arity > 0 AndAlso Me.ConstructedFrom IsNot Me Then
+                Debug.Assert(Not IsAnonymousType)
+                Debug.Assert(IsDefinitionOrDistinct())
+                If Not IsDefinition AndAlso Arity > 0 AndAlso ConstructedFrom IsNot Me Then
                     Return Me
                 End If
                 Return Nothing
@@ -83,16 +83,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeReferenceAsGenericTypeParameterReference As IGenericTypeParameterReference Implements ITypeReference.AsGenericTypeParameterReference
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 Return Nothing
             End Get
         End Property
 
         Private ReadOnly Property ITypeReferenceAsNamespaceTypeReference As INamespaceTypeReference Implements ITypeReference.AsNamespaceTypeReference
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
-                Debug.Assert(Me.IsDefinitionOrDistinct())
-                If Me.IsDefinition AndAlso Me.ContainingType Is Nothing Then
+                Debug.Assert(Not IsAnonymousType)
+                Debug.Assert(IsDefinitionOrDistinct())
+                If IsDefinition AndAlso ContainingType Is Nothing Then
                     Return Me
                 End If
                 Return Nothing
@@ -100,10 +100,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function ITypeReferenceAsNamespaceTypeDefinition(context As EmitContext) As INamespaceTypeDefinition Implements ITypeReference.AsNamespaceTypeDefinition
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Debug.Assert(Me.IsDefinitionOrDistinct())
-            If Me.ContainingType Is Nothing AndAlso Me.IsDefinition AndAlso Me.ContainingModule.Equals(moduleBeingBuilt.SourceModule) Then
+            Debug.Assert(IsDefinitionOrDistinct())
+            If ContainingType Is Nothing AndAlso IsDefinition AndAlso ContainingModule.Equals(moduleBeingBuilt.SourceModule) Then
                 Return Me
             End If
             Return Nothing
@@ -111,8 +111,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeReferenceAsNestedTypeReference As INestedTypeReference Implements ITypeReference.AsNestedTypeReference
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
-                If Me.ContainingType IsNot Nothing Then
+                Debug.Assert(Not IsAnonymousType)
+                If ContainingType IsNot Nothing Then
                     Return Me
                 End If
                 Return Nothing
@@ -120,14 +120,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function ITypeReferenceAsNestedTypeDefinition(context As EmitContext) As INestedTypeDefinition Implements ITypeReference.AsNestedTypeDefinition
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return AsNestedTypeDefinitionImpl(moduleBeingBuilt)
         End Function
 
         Private Function AsNestedTypeDefinitionImpl(moduleBeingBuilt As PEModuleBuilder) As INestedTypeDefinition
-            Debug.Assert(Me.IsDefinitionOrDistinct())
-            If Me.ContainingType IsNot Nothing AndAlso Me.IsDefinition AndAlso Me.ContainingModule.Equals(moduleBeingBuilt.SourceModule) Then
+            Debug.Assert(IsDefinitionOrDistinct())
+            If ContainingType IsNot Nothing AndAlso IsDefinition AndAlso ContainingModule.Equals(moduleBeingBuilt.SourceModule) Then
                 Return Me
             End If
             Return Nothing
@@ -135,10 +135,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeReferenceAsSpecializedNestedTypeReference As ISpecializedNestedTypeReference Implements ITypeReference.AsSpecializedNestedTypeReference
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
-                Debug.Assert(Me.IsDefinitionOrDistinct())
-                If Not Me.IsDefinition AndAlso (Me.Arity = 0 OrElse Me.ConstructedFrom Is Me) Then
-                    Debug.Assert(Me.ContainingType IsNot Nothing AndAlso Me.ContainingType.IsOrInGenericType())
+                Debug.Assert(Not IsAnonymousType)
+                Debug.Assert(IsDefinitionOrDistinct())
+                If Not IsDefinition AndAlso (Arity = 0 OrElse ConstructedFrom Is Me) Then
+                    Debug.Assert(ContainingType IsNot Nothing AndAlso ContainingType.IsOrInGenericType())
                     Return Me
                 End If
                 Return Nothing
@@ -146,28 +146,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function ITypeReferenceAsTypeDefinition(context As EmitContext) As ITypeDefinition Implements ITypeReference.AsTypeDefinition
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Return AsTypeDefinitionImpl(moduleBeingBuilt)
         End Function
 
         Private Function AsTypeDefinitionImpl(moduleBeingBuilt As PEModuleBuilder) As ITypeDefinition
-            Debug.Assert(Me.IsDefinitionOrDistinct())
+            Debug.Assert(IsDefinitionOrDistinct())
 
             ' Can't be generic instantiation
             ' must be declared in the module we are building
-            If Me.IsDefinition AndAlso
-                Me.ContainingModule.Equals(moduleBeingBuilt.SourceModule) Then
+            If IsDefinition AndAlso
+                ContainingModule.Equals(moduleBeingBuilt.SourceModule) Then
                 Return Me
             End If
             Return Nothing
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As MetadataVisitor) ' Implements IReference.Dispatch
-            Debug.Assert(Me.IsDefinitionOrDistinct())
+            Debug.Assert(IsDefinitionOrDistinct())
 
-            If Not Me.IsDefinition Then
-                If Me.Arity > 0 AndAlso Me.ConstructedFrom IsNot Me Then
+            If Not IsDefinition Then
+                If Arity > 0 AndAlso ConstructedFrom IsNot Me Then
                     Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
                     visitor.Visit(DirectCast(Me, IGenericTypeInstanceReference))
                 Else
@@ -176,8 +176,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Else
                 Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(visitor.Context.Module, PEModuleBuilder)
-                Dim asDefinition As Boolean = (Me.ContainingModule.Equals(moduleBeingBuilt.SourceModule))
-                If Me.ContainingType Is Nothing Then
+                Dim asDefinition As Boolean = (ContainingModule.Equals(moduleBeingBuilt.SourceModule))
+                If ContainingType Is Nothing Then
                     If asDefinition Then
                         Debug.Assert((DirectCast(Me, ITypeReference)).AsNamespaceTypeDefinition(visitor.Context) IsNot Nothing)
                         visitor.Visit(DirectCast(Me, INamespaceTypeDefinition))
@@ -211,16 +211,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function ITypeDefinitionGetBaseClass(context As EmitContext) As ITypeReference Implements ITypeDefinition.GetBaseClass
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
 
-            Dim baseType As NamedTypeSymbol = Me.BaseTypeNoUseSiteDiagnostics
+            Dim baseType As NamedTypeSymbol = BaseTypeNoUseSiteDiagnostics
 
-            If Me.TypeKind = TypeKind.Submission Then
+            If TypeKind = TypeKind.Submission Then
                 ' although submission semantically doesn't have a base we need to emit one into metadata:
                 Debug.Assert(baseType Is Nothing)
-                baseType = Me.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object)
+                baseType = ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object)
             End If
 
             If baseType IsNot Nothing Then
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionEvents As IEnumerable(Of IEventDefinition) Implements ITypeDefinition.Events
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable Iterator Function GetEventsToEmit() As IEnumerable(Of EventSymbol)
             CheckDefinitionInvariant()
 
-            For Each member In Me.GetMembersForCci()
+            For Each member In GetMembersForCci()
                 If member.Kind = SymbolKind.Event Then
                     Yield DirectCast(member, EventSymbol)
                 End If
@@ -254,14 +254,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function ITypeDefinitionGetExplicitImplementationOverrides(context As EmitContext) As IEnumerable(Of Cci.MethodImplementation) Implements ITypeDefinition.GetExplicitImplementationOverrides
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
             ' can't be generic instantiation
             ' must be declared in the module we are building
             CheckDefinitionInvariant()
 
-            If Me.IsInterface Then
+            If IsInterface Then
                 Return SpecializedCollections.EmptyEnumerable(Of Cci.MethodImplementation)()
             End If
 
@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim sourceNamedType = TryCast(Me, SourceNamedTypeSymbol)
             Dim explicitImplements As ArrayBuilder(Of Cci.MethodImplementation) = ArrayBuilder(Of Cci.MethodImplementation).GetInstance()
 
-            For Each member In Me.GetMembersForCci()
+            For Each member In GetMembersForCci()
                 If member.Kind = SymbolKind.Method Then
                     AddExplicitImplementations(context, DirectCast(member, MethodSymbol), explicitImplements, sourceNamedType, moduleBeingBuilt)
                 End If
@@ -320,14 +320,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Iterator Function ITypeDefinitionGetFields(context As EmitContext) As IEnumerable(Of IFieldDefinition) Implements ITypeDefinition.GetFields
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition(moduleBeingBuilt) != null);
 
             ' can't be generic instantiation
             ' must be declared in the module we are building
             CheckDefinitionInvariant()
 
-            For Each field In Me.GetFieldsToEmit()
+            For Each field In GetFieldsToEmit()
                 Yield field
             Next
 
@@ -343,20 +343,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionGenericParameters As IEnumerable(Of IGenericTypeParameter) Implements ITypeDefinition.GenericParameters
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition(moduleBeingBuilt) != null);
 
                 ' can't be generic instantiation
                 ' must be declared in the module we are building
                 CheckDefinitionInvariant()
 
-                Return Me.TypeParameters
+                Return TypeParameters
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionGenericParameterCount As UShort Implements ITypeDefinition.GenericParameterCount
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
@@ -369,19 +369,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property GenericParameterCountImpl As UShort
             Get
-                Return CType(Me.Arity, UShort)
+                Return CType(Arity, UShort)
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionHasDeclarativeSecurity As Boolean Implements ITypeDefinition.HasDeclarativeSecurity
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
                 ' must be declared in the module we are building
                 CheckDefinitionInvariant()
-                Return Me.HasDeclarativeSecurity
+                Return HasDeclarativeSecurity
             End Get
         End Property
 
@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) As IEnumerable(Of ITypeReference) Implements ITypeDefinition.Interfaces
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
@@ -416,17 +416,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' If this type implements I, and the base class also implements interface I, and this class
             ' does not implement all the members of I, then do not emit I as an interface. This prevents
             ' the CLR from using implicit interface implementation.
-            Dim interfaces = Me.InterfacesNoUseSiteDiagnostics
+            Dim interfaces = InterfacesNoUseSiteDiagnostics
             If interfaces.IsEmpty Then
                 Return If(synthesized, SpecializedCollections.EmptyEnumerable(Of NamedTypeSymbol)())
             End If
 
-            Dim base = Me.BaseTypeNoUseSiteDiagnostics
+            Dim base = BaseTypeNoUseSiteDiagnostics
             Dim result As IEnumerable(Of NamedTypeSymbol) =
                 interfaces.Where(Function(sym As NamedTypeSymbol) As Boolean
                                      Return Not (base IsNot Nothing AndAlso
                                                  base.ImplementsInterface(sym, Nothing) AndAlso
-                                                 Not Me.ImplementsAllMembersOfInterface(sym))
+                                                 Not ImplementsAllMembersOfInterface(sym))
                                  End Function)
 
             Return If(synthesized Is Nothing, result, synthesized.Concat(result))
@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionIsAbstract As Boolean Implements ITypeDefinition.IsAbstract
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
@@ -447,13 +447,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable ReadOnly Property IsMetadataAbstract As Boolean
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsMustInherit OrElse Me.IsInterface
+                Return IsMustInherit OrElse IsInterface
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionIsBeforeFieldInit As Boolean Implements ITypeDefinition.IsBeforeFieldInit
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
@@ -461,17 +461,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 CheckDefinitionInvariant()
 
                 ' enums or interfaces or delegates are not BeforeFieldInit
-                Select Case Me.TypeKind
+                Select Case TypeKind
                     Case TypeKind.Enum, TypeKind.Interface, TypeKind.Delegate
                         Return False
                 End Select
 
                 ' apply the beforefieldinit attribute only if there is an implicitly specified static constructor (e.g. caused by
                 ' a Decimal or DateTime field with an initialization).
-                Dim cctor = Me.SharedConstructors.FirstOrDefault
+                Dim cctor = SharedConstructors.FirstOrDefault
                 If cctor IsNot Nothing Then
 
-                    Debug.Assert(Me.SharedConstructors.Length = 1)
+                    Debug.Assert(SharedConstructors.Length = 1)
 
                     ' NOTE: Partial methods without implementation should be skipped in the 
                     '       analysis above, see native compiler: PRBuilder.cpp, 'DWORD PEBuilder::GetTypeDefFlags'
@@ -516,7 +516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionIsComObject As Boolean Implements ITypeDefinition.IsComObject
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
@@ -529,33 +529,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionIsGeneric As Boolean Implements ITypeDefinition.IsGeneric
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
                 ' must be declared in the module we are building
                 CheckDefinitionInvariant()
 
-                Return Me.Arity <> 0
+                Return Arity <> 0
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionIsInterface As Boolean Implements ITypeDefinition.IsInterface
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
                 ' must be declared in the module we are building
                 CheckDefinitionInvariant()
 
-                Return Me.IsInterface
+                Return IsInterface
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionIsRuntimeSpecial As Boolean Implements ITypeDefinition.IsRuntimeSpecial
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
@@ -568,20 +568,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionIsSerializable As Boolean Implements ITypeDefinition.IsSerializable
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
                 ' must be declared in the module we are building
                 CheckDefinitionInvariant()
 
-                Return Me.IsSerializable
+                Return IsSerializable
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionIsSpecialName As Boolean Implements ITypeDefinition.IsSpecialName
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
@@ -594,20 +594,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionIsWindowsRuntimeImport As Boolean Implements ITypeDefinition.IsWindowsRuntimeImport
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
                 ' must be declared in the module we are building
                 CheckDefinitionInvariant()
 
-                Return Me.IsWindowsRuntimeImport
+                Return IsWindowsRuntimeImport
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionIsSealed As Boolean Implements ITypeDefinition.IsSealed
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
@@ -621,11 +621,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
 
-                If Me.IsNotInheritable Then
+                If IsNotInheritable Then
                     Return True
                 End If
 
-                Select Case Me.TypeKind
+                Select Case TypeKind
                     Case TypeKind.Module, TypeKind.Enum, TypeKind.Structure
                         Return True
                     Case Else
@@ -636,26 +636,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionLayout As LayoutKind Implements ITypeDefinition.Layout
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 CheckDefinitionInvariant()
 
-                Return Me.Layout.Kind
+                Return Layout.Kind
             End Get
         End Property
 
         Friend Overridable Function GetMembersForCci() As ImmutableArray(Of Symbol)
-            Return Me.GetMembers()
+            Return GetMembers()
         End Function
 
         Private Iterator Function ITypeDefinitionGetMethods(context As EmitContext) As IEnumerable(Of IMethodDefinition) Implements ITypeDefinition.GetMethods
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             ' Debug.Assert(((ITypeReference)this).AsTypeDefinition(moduleBeingBuilt) != null);
 
             ' can't be generic instantiation
             ' must be declared in the module we are building
             CheckDefinitionInvariant()
 
-            For Each method In Me.GetMethodsToEmit()
+            For Each method In GetMethodsToEmit()
                 Yield method
             Next
 
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overridable Iterator Function GetMethodsToEmit() As IEnumerable(Of MethodSymbol)
-            For Each member In Me.GetMembersForCci()
+            For Each member In GetMembersForCci()
                 If member.Kind = SymbolKind.Method Then
                     Dim method As MethodSymbol = DirectCast(member, MethodSymbol)
 
@@ -683,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function ITypeDefinitionGetNestedTypes(context As EmitContext) As IEnumerable(Of INestedTypeDefinition) Implements ITypeDefinition.GetNestedTypes
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition(moduleBeingBuilt) != null);
 
             ' can't be generic instantiation
@@ -693,10 +693,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim containingModule = DirectCast(context.Module, PEModuleBuilder)
 
             Dim result As IEnumerable(Of INestedTypeDefinition)
-            Dim nestedTypes = Me.GetTypeMembers() ' Ordered.
+            Dim nestedTypes = GetTypeMembers() ' Ordered.
             If nestedTypes.Length = 0 Then
                 result = SpecializedCollections.EmptyEnumerable(Of INestedTypeDefinition)()
-            ElseIf Me.IsEmbedded Then
+            ElseIf IsEmbedded Then
                 ' filter out embedded nested types that are not referenced
                 result = nestedTypes.Where(containingModule.SourceModule.ContainingSourceAssembly.DeclaringCompilation.EmbeddedSymbolManager.IsReferencedPredicate)
             Else
@@ -712,14 +712,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Iterator Function ITypeDefinitionGetProperties(context As EmitContext) As IEnumerable(Of IPropertyDefinition) Implements ITypeDefinition.GetProperties
-            Debug.Assert(Not Me.IsAnonymousType)
+            Debug.Assert(Not IsAnonymousType)
             'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
             ' can't be generic instantiation
             ' must be declared in the module we are building
             CheckDefinitionInvariant()
 
-            For Each [property] In Me.GetPropertiesToEmit()
+            For Each [property] In GetPropertiesToEmit()
                 Debug.Assert([property] IsNot Nothing)
                 Yield [property]
             Next
@@ -735,7 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable Iterator Function GetPropertiesToEmit() As IEnumerable(Of PropertySymbol)
             CheckDefinitionInvariant()
 
-            For Each member In Me.GetMembersForCci()
+            For Each member In GetMembersForCci()
                 If member.Kind = SymbolKind.Property Then
                     Yield DirectCast(member, PropertySymbol)
                 End If
@@ -744,15 +744,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionSecurityAttributes As IEnumerable(Of SecurityAttribute) Implements ITypeDefinition.SecurityAttributes
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
                 ' can't be generic instantiation
                 ' must be declared in the module we are building
                 CheckDefinitionInvariant()
 
-                Debug.Assert(Me.HasDeclarativeSecurity)
-                Dim securityAttributes As IEnumerable(Of SecurityAttribute) = Me.GetSecurityInformation()
+                Debug.Assert(HasDeclarativeSecurity)
+                Dim securityAttributes As IEnumerable(Of SecurityAttribute) = GetSecurityInformation()
                 Debug.Assert(securityAttributes IsNot Nothing)
                 Return securityAttributes
             End Get
@@ -760,19 +760,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ITypeDefinitionSizeOf As UInteger Implements ITypeDefinition.SizeOf
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 CheckDefinitionInvariant()
 
-                Return CUInt(Me.Layout.Size)
+                Return CUInt(Layout.Size)
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionStringFormat As CharSet Implements ITypeDefinition.StringFormat
             Get
-                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Not IsAnonymousType)
                 CheckDefinitionInvariant()
 
-                Return Me.MarshallingCharSet
+                Return MarshallingCharSet
             End Get
         End Property
 
@@ -791,20 +791,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property INamedEntityName As String Implements INamedEntity.Name
             Get
                 ' CCI automatically adds the arity suffix, so we return Name, not MetadataName here.
-                Return Me.Name
+                Return Name
             End Get
         End Property
 
         Private Function INamespaceTypeReferenceGetUnit(context As EmitContext) As IUnitReference Implements INamespaceTypeReference.GetUnit
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsNamespaceTypeReference IsNot Nothing)
-            Return moduleBeingBuilt.Translate(Me.ContainingModule, context.Diagnostics)
+            Return moduleBeingBuilt.Translate(ContainingModule, context.Diagnostics)
         End Function
 
         Private ReadOnly Property INamespaceTypeReferenceNamespaceName As String Implements INamespaceTypeReference.NamespaceName
             Get
                 Debug.Assert((DirectCast(Me, ITypeReference)).AsNamespaceTypeReference IsNot Nothing)
-                Return If(Me.GetEmittedNamespaceName(), Me.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
+                Return If(GetEmittedNamespaceName(), ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
             End Get
         End Property
 
@@ -820,30 +820,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Debug.Assert((DirectCast(Me, ITypeReference)).AsNestedTypeReference IsNot Nothing)
-            Debug.Assert(Me.IsDefinitionOrDistinct())
+            Debug.Assert(IsDefinitionOrDistinct())
 
-            If Not Me.IsDefinition Then
-                Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            If Not IsDefinition Then
+                Return moduleBeingBuilt.Translate(ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             End If
 
-            Return Me.ContainingType
+            Return ContainingType
         End Function
 
         Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition
             Get
                 'Debug.Assert(((ITypeReference)this).AsNestedTypeDefinition != null);
                 'return (ITypeDefinition)moduleBeingBuilt.Translate(this.ContainingType, true);
-                Debug.Assert(Me.ContainingType IsNot Nothing)
+                Debug.Assert(ContainingType IsNot Nothing)
                 CheckDefinitionInvariant()
 
-                Return Me.ContainingType
+                Return ContainingType
             End Get
         End Property
 
         Private ReadOnly Property ITypeDefinitionMemberVisibility As TypeMemberVisibility Implements ITypeDefinitionMember.Visibility
             Get
                 'Debug.Assert(((ITypeReference)this).AsNestedTypeDefinition != null);
-                Debug.Assert(Me.ContainingType IsNot Nothing)
+                Debug.Assert(ContainingType IsNot Nothing)
                 CheckDefinitionInvariant()
 
                 Return PEModuleBuilder.MemberVisibility(Me)
@@ -856,12 +856,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)) = Nothing
 
-            If Me.HasTypeArgumentsCustomModifiers Then
-                modifiers = Me.TypeArgumentsCustomModifiers
+            If HasTypeArgumentsCustomModifiers Then
+                modifiers = TypeArgumentsCustomModifiers
             End If
 
             Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
-            Dim arguments = Me.TypeArgumentsNoUseSiteDiagnostics
+            Dim arguments = TypeArgumentsNoUseSiteDiagnostics
             For i As Integer = 0 To arguments.Length - 1
                 Dim arg = moduleBeingBuilt.Translate(arguments(i), syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
@@ -884,7 +884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property GenericTypeImpl As INamedTypeReference
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 

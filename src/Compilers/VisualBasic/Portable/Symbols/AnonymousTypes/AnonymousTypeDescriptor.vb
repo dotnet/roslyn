@@ -1,10 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -49,9 +46,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Sub New(fields As ImmutableArray(Of AnonymousTypeField), _location As Location, _isImplicitlyDeclared As Boolean)
             Me.Fields = fields
-            Me.Location = _location
-            Me.IsImplicitlyDeclared = _isImplicitlyDeclared
-            Me.Key = ComputeKey(fields, Function(f) f.Name, Function(f) f.IsKey)
+            Location = _location
+            IsImplicitlyDeclared = _isImplicitlyDeclared
+            Key = ComputeKey(fields, Function(f) f.Name, Function(f) f.IsKey)
         End Sub
 
         Friend Shared Function ComputeKey(Of T)(fields As ImmutableArray(Of T), getName As Func(Of T, String), getIsKey As Func(Of T, Boolean)) As String
@@ -84,12 +81,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads Function Equals(other As AnonymousTypeDescriptor) As Boolean Implements IEquatable(Of AnonymousTypeDescriptor).Equals
             ' Comparing keys ensures field count, field names and keyness are equal
-            If Not Me.Key.Equals(other.Key) Then
+            If Not Key.Equals(other.Key) Then
                 Return False
             End If
 
             ' Compare field types
-            Dim myFields As ImmutableArray(Of AnonymousTypeField) = Me.Fields
+            Dim myFields As ImmutableArray(Of AnonymousTypeField) = Fields
             Dim count As Integer = myFields.Length
             Dim otherFields As ImmutableArray(Of AnonymousTypeField) = other.Fields
             For i = 0 To count - 1
@@ -106,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Me.Key.GetHashCode()
+            Return Key.GetHashCode()
         End Function
 
         ''' <summary>
@@ -114,12 +111,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' if any of the fields was changed, in which case a new descriptor is returned in newDescriptor
         ''' </summary>
         Public Function SubstituteTypeParametersIfNeeded(substitution As TypeSubstitution, <Out> ByRef newDescriptor As AnonymousTypeDescriptor) As Boolean
-            Dim fieldCount = Me.Fields.Length
+            Dim fieldCount = Fields.Length
             Dim newFields(fieldCount - 1) As AnonymousTypeField
             Dim anyChange As Boolean = False
 
             For i = 0 To fieldCount - 1
-                Dim current As AnonymousTypeField = Me.Fields(i)
+                Dim current As AnonymousTypeField = Fields(i)
                 newFields(i) = New AnonymousTypeField(current.Name,
                                                       current.Type.InternalSubstituteTypeParameters(substitution).Type,
                                                       current.Location,
@@ -130,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             If anyChange Then
-                newDescriptor = New AnonymousTypeDescriptor(newFields.AsImmutableOrNull(), Me.Location, Me.IsImplicitlyDeclared)
+                newDescriptor = New AnonymousTypeDescriptor(newFields.AsImmutableOrNull(), Location, IsImplicitlyDeclared)
             Else
                 newDescriptor = Nothing
             End If
@@ -156,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the field is passed to anonymous type descriptor </summary>
         Public ReadOnly Property Type As TypeSymbol
             Get
-                Return Me._type
+                Return _type
             End Get
         End Property
 
@@ -181,8 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Sub New(name As String, type As TypeSymbol, location As Location, Optional isKeyOrByRef As Boolean = False)
             Me.Name = If(String.IsNullOrWhiteSpace(name), "<Empty Name>", name)
-            Me._type = type
-            Me.IsKey = isKeyOrByRef
+            _type = type
+            IsKey = isKeyOrByRef
             Me.Location = location
         End Sub
 
@@ -195,13 +192,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Conditional("DEBUG")>
         Friend Sub AssertGood()
-            Debug.Assert(Name IsNot Nothing AndAlso Me.Type IsNot Nothing AndAlso Me.Location IsNot Nothing)
+            Debug.Assert(Name IsNot Nothing AndAlso Type IsNot Nothing AndAlso Location IsNot Nothing)
         End Sub
 
         Friend Sub AssignFieldType(newType As TypeSymbol)
             Debug.Assert(newType IsNot Nothing)
-            Debug.Assert(Me._type Is Nothing)
-            Me._type = newType
+            Debug.Assert(_type Is Nothing)
+            _type = newType
         End Sub
 
     End Structure

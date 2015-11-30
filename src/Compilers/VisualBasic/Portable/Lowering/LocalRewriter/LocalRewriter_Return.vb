@@ -1,19 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitReturnStatement(node As BoundReturnStatement) As BoundNode
             Debug.Assert(node.FunctionLocalOpt Is Nothing OrElse
-                         (Not Me._currentMethodOrLambda.IsIterator AndAlso
-                            Not (Me._currentMethodOrLambda.IsAsync AndAlso Me._currentMethodOrLambda.ReturnType.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)))))
+                         (Not _currentMethodOrLambda.IsIterator AndAlso
+                            Not (_currentMethodOrLambda.IsAsync AndAlso _currentMethodOrLambda.ReturnType.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)))))
 
             Dim rewritten = RewriteReturnStatement(node)
 
@@ -82,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New BoundGotoStatement(node.Syntax, node.ExitLabelOpt, Nothing)
                 End If
 
-            ElseIf Me._currentMethodOrLambda.IsAsync AndAlso (Me._flags And RewritingFlags.AllowEndOfMethodReturnWithExpression) = 0 Then
+            ElseIf _currentMethodOrLambda.IsAsync AndAlso (_flags And RewritingFlags.AllowEndOfMethodReturnWithExpression) = 0 Then
 
                 ' This is a synthesized end-of-method return, in case it is inside Async method/lambda it needs
                 ' to be rewritten so it does not return any value. Reasoning: all Return statements will be 

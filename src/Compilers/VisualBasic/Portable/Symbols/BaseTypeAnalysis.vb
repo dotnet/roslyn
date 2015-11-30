@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Text
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -91,10 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' we should not call this for Implements.
             Debug.Assert(this.IsInterface OrElse Not base.IsInterfaceType())
 
-            Dim dependency = GetDependenceChain(
-                New HashSet(Of Symbol),
-                DirectCast(this.OriginalDefinition, SourceNamedTypeSymbol),
-                base)
+            Dim dependency = GetDependenceChain(New HashSet(Of Symbol), DirectCast(this.OriginalDefinition, SourceNamedTypeSymbol), base)
 
             ' common case - not dependent
             If dependency Is Nothing Then
@@ -272,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             While fast IsNot Nothing
 
-                fast = TryCast(fast.OriginalDefinition, NamedTypeSymbol)
+                fast = fast.OriginalDefinition
                 If slow Is fast Then
                     Return ErrorFactory.ErrorInfo(ERRID.ERR_InheritanceCycleInImportedType1, this)
                 End If
@@ -283,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Exit While
                 End If
 
-                fast = TryCast(fast.OriginalDefinition, NamedTypeSymbol)
+                fast = fast.OriginalDefinition
                 If slow Is fast Then
                     Return ErrorFactory.ErrorInfo(ERRID.ERR_InheritanceCycleInImportedType1, this)
                 End If
@@ -307,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' however multiple inheritance makes things a bit more complicated 
             ' we use DFS to search for loops in the hierarchy
 
-            base = TryCast(base.OriginalDefinition, NamedTypeSymbol)
+            base = base.OriginalDefinition
             If base Is Nothing Then
                 Return Nothing
             End If
@@ -334,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim bases = [interface].GetDeclaredInterfacesNoUseSiteDiagnostics(Nothing)
             If Not bases.IsEmpty Then
                 For Each base In bases
-                    base = TryCast(base.OriginalDefinition, NamedTypeSymbol)
+                    base = base.OriginalDefinition
 
                     If (base Is Nothing) Then
                         Continue For   ' not a named type

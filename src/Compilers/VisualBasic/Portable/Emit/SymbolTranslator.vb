@@ -1,14 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -36,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return
             End If
 
-            Debug.Assert(symbol.ContainingModule Is Me.SourceModule)
+            Debug.Assert(symbol.ContainingModule Is SourceModule)
 
             If _addedEmbeddedSymbols Is Nothing Then
                 Interlocked.CompareExchange(_addedEmbeddedSymbols, New ConcurrentSet(Of Symbol)(ReferenceEqualityComparer.Instance), Nothing)
@@ -143,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return Microsoft.CodeAnalysis.Emit.ErrorType.Singleton
             End If
 
-            Me.ProcessReferencedSymbol(namedTypeSymbol)
+            ProcessReferencedSymbol(namedTypeSymbol)
 
             If namedTypeSymbol IsNot namedTypeSymbol.OriginalDefinition Then
                 ' generic instantiation for sure
@@ -235,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(fieldSymbol Is fieldSymbol.OriginalDefinition OrElse
                                             Not fieldSymbol.Equals(fieldSymbol.OriginalDefinition))
 
-            Me.ProcessReferencedSymbol(fieldSymbol)
+            ProcessReferencedSymbol(fieldSymbol)
 
             If fieldSymbol IsNot fieldSymbol.OriginalDefinition Then
                 Debug.Assert(Not needDeclaration)
@@ -339,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol)
             End If
 
-            Me.ProcessReferencedSymbol(methodSymbol)
+            ProcessReferencedSymbol(methodSymbol)
 
             If methodSymbol.OriginalDefinition IsNot methodSymbol Then
 
@@ -454,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim reference As Object = Nothing
             Dim paramRef As Microsoft.Cci.IParameterTypeInformation
 
-            If (Me._genericInstanceMap.TryGetValue(param, reference)) Then
+            If (_genericInstanceMap.TryGetValue(param, reference)) Then
                 Return DirectCast(reference, Microsoft.Cci.IParameterTypeInformation)
             End If
 

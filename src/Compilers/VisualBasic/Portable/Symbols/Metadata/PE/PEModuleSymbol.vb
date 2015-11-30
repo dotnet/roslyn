@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             If _lazyCustomAttributes.IsDefault Then
                 'TODO - Create a Module.Token to return token similar to Assembly.Token
-                Me.LoadCustomAttributes(EntityHandle.ModuleDefinition, _lazyCustomAttributes)
+                LoadCustomAttributes(EntityHandle.ModuleDefinition, _lazyCustomAttributes)
             End If
             Return _lazyCustomAttributes
         End Function
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             filteredOutAttribute2 = Nothing
 
             Try
-                For Each customAttributeHandle In Me.Module.GetCustomAttributesOrThrow(token)
+                For Each customAttributeHandle In [Module].GetCustomAttributesOrThrow(token)
                     If builder Is Nothing Then
                         builder = ArrayBuilder(Of VisualBasicAttributeData).GetInstance()
                     End If
@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return StaticCast(Of Location).From(Me.MetadataLocation)
+                Return StaticCast(Of Location).From(MetadataLocation)
             End Get
         End Property
 
@@ -334,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding:=True)
 
             ' First, check this module
-            Dim currentModuleResult As NamedTypeSymbol = Me.LookupTopLevelMetadataType(emittedName)
+            Dim currentModuleResult As NamedTypeSymbol = LookupTopLevelMetadataType(emittedName)
 
             If IsAcceptableSystemTypeSymbol(currentModuleResult) Then
                 ' It doesn't matter if there's another System.Type in a referenced assembly -
@@ -344,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' If we didn't find it in this module, check the referenced assemblies
             Dim referencedAssemblyResult As NamedTypeSymbol = Nothing
-            For Each assembly As AssemblySymbol In Me.GetReferencedAssemblySymbols()
+            For Each assembly As AssemblySymbol In GetReferencedAssemblySymbols()
                 Dim currResult As NamedTypeSymbol = assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
                 If IsAcceptableSystemTypeSymbol(currResult) Then
                     If referencedAssemblyResult Is Nothing Then
@@ -434,20 +434,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' The returned assembly may also forward the type.
         ''' </remarks>
         Friend Function GetAssemblyForForwardedType(ByRef fullName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As AssemblySymbol
-            Dim assemblyRef As AssemblyReferenceHandle = Me.Module.GetAssemblyForForwardedType(fullName.FullName, ignoreCase, matchedName)
+            Dim assemblyRef As AssemblyReferenceHandle = [Module].GetAssemblyForForwardedType(fullName.FullName, ignoreCase, matchedName)
             Try
-                Return If(assemblyRef.IsNil, Nothing, Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(assemblyRef)))
+                Return If(assemblyRef.IsNil, Nothing, GetReferencedAssemblySymbols()([Module].GetAssemblyReferenceIndexOrThrow(assemblyRef)))
             Catch mrEx As BadImageFormatException
                 Return Nothing
             End Try
         End Function
 
         Friend Iterator Function GetForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
-            For Each forwarder As KeyValuePair(Of String, AssemblyReferenceHandle) In Me.Module.GetForwardedTypes()
+            For Each forwarder As KeyValuePair(Of String, AssemblyReferenceHandle) In [Module].GetForwardedTypes()
                 Dim assembly As AssemblySymbol
 
                 Try
-                    assembly = Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(forwarder.Value))
+                    assembly = GetReferencedAssemblySymbols()([Module].GetAssemblyReferenceIndexOrThrow(forwarder.Value))
                 Catch ex As BadImageFormatException
                     Continue For
                 End Try

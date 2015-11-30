@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
@@ -8,7 +7,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SourceEventSymbol
@@ -141,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' if this is a concrete class, add a backing field too
                 If Not containingType.IsInterfaceType Then
-                    _backingField = New SynthesizedEventBackingFieldSymbol(Me, Me.Name & EVENT_VARIABLE_SUFFIX, Me.IsShared)
+                    _backingField = New SynthesizedEventBackingFieldSymbol(Me, Name & EVENT_VARIABLE_SUFFIX, IsShared)
                 End If
             End If
         End Sub
@@ -158,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' TODO: why AsClause is not a SimpleAsClause in events? There can't be "As New"
 
             ' WinRT events require either an as-clause or an implements-clause.
-            Dim requiresDelegateType As Boolean = syntax.ImplementsClause Is Nothing AndAlso Me.IsWindowsRuntimeEvent
+            Dim requiresDelegateType As Boolean = syntax.ImplementsClause Is Nothing AndAlso IsWindowsRuntimeEvent
 
             ' if there is an As clause we use its type as event's type
             If syntax.AsClause IsNot Nothing Then
@@ -215,14 +213,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Else
                     ' get event's type from the containing type
-                    Dim types = _containingType.GetTypeMembers(Me.Name & EVENT_DELEGATE_SUFFIX)
+                    Dim types = _containingType.GetTypeMembers(Name & EVENT_DELEGATE_SUFFIX)
                     Debug.Assert(Not types.IsDefault)
 
                     If Not types.IsEmpty Then
                         type = types(0)
                     Else
                         ' if we still do not know the type, get a temporary one (it is not a member of the containing class)
-                        type = New SynthesizedEventDelegateSymbol(Me._syntaxRef, _containingType)
+                        type = New SynthesizedEventDelegateSymbol(_syntaxRef, _containingType)
                     End If
 
                     isTypeInferred = True
@@ -330,9 +328,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(syntax.Modifiers.IsEmpty, "event accessors cannot have modifiers")
 
             ' Include modifiers from the containing event.
-            Dim flags = Me._memberFlags
+            Dim flags = _memberFlags
 
-            If Me.IsImplementing Then
+            If IsImplementing() Then
                 flags = flags Or SourceMemberFlags.Overrides Or SourceMemberFlags.NotOverridable
             End If
 
@@ -354,9 +352,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim location = syntax.GetLocation()
             ' Event symbols aren't affected if the output kind is winmd, mark false
             Dim method As New CustomEventAccessorSymbol(
-                Me._containingType,
+                _containingType,
                 Me,
-                binder.GetAccessorName(Me.Name, flags.ToMethodKind(), isWinMd:=False),
+                Binder.GetAccessorName(Name, flags.ToMethodKind(), isWinMd:=False),
                 flags,
                 binder.GetSyntaxReference(syntax),
                 location)
@@ -427,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            Return New LexicalSortKey(_location, Me.DeclaringCompilation)
+            Return New LexicalSortKey(_location, DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -443,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend NotOverridable Overrides Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
-            Dim eventBlock = Me._syntaxRef.GetSyntax(cancellationToken).Parent
+            Dim eventBlock = _syntaxRef.GetSyntax(cancellationToken).Parent
             Return IsDefinedInSourceTree(eventBlock, tree, definedWithinSpan, cancellationToken)
         End Function
 
@@ -515,7 +513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property SyntaxReference As SyntaxReference
             Get
-                Return Me._syntaxRef
+                Return _syntaxRef
             End Get
         End Property
 
@@ -580,11 +578,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' If there are no attributes then this symbol is not Obsolete.
-                If (Not Me._containingType.AnyMemberHasAttributes) Then
+                If (Not _containingType.AnyMemberHasAttributes) Then
                     Return Nothing
                 End If
 
-                Dim lazyCustomAttributesBag = Me._lazyCustomAttributesBag
+                Dim lazyCustomAttributesBag = _lazyCustomAttributesBag
                 If (lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed) Then
                     Dim data = DirectCast(_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonEventEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
@@ -603,20 +601,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If you want to override attribute binding logic for a sub-class, then override <see cref="GetAttributesBag"/> method.
         ''' </remarks>
         Public NotOverridable Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me.GetAttributesBag().Attributes
+            Return GetAttributesBag().Attributes
         End Function
 
         Private Function GetAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
             If _lazyCustomAttributesBag Is Nothing OrElse Not _lazyCustomAttributesBag.IsSealed Then
-                LoadAndValidateAttributes(OneOrMany.Create(Me.AttributeDeclarationSyntaxList), _lazyCustomAttributesBag)
+                LoadAndValidateAttributes(OneOrMany.Create(AttributeDeclarationSyntaxList), _lazyCustomAttributesBag)
             End If
             Return _lazyCustomAttributesBag
         End Function
 
         Friend Function GetDecodedWellKnownAttributeData() As EventWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = _lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
-                attributesBag = Me.GetAttributesBag()
+                attributesBag = GetAttributesBag()
             End If
 
             Return DirectCast(attributesBag.DecodedWellKnownAttributeData, EventWellKnownAttributeData)
@@ -648,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Although NonSerialized attribute is only applicable on fields we relax that restriction and allow application on events as well
                 ' to allow making the backing field non-serializable.
 
-                If Me.ContainingType.IsSerializable Then
+                If ContainingType.IsSerializable Then
                     arguments.GetOrCreateData(Of EventWellKnownAttributeData).HasNonSerializedAttribute = True
                 Else
                     arguments.Diagnostics.Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
@@ -725,12 +723,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
-            Dim unusedType = Me.Type
-            Dim unusedImplementations = Me.ExplicitInterfaceImplementations
-            Me.CheckExplicitImplementationTypes()
+            Dim unusedType = Type
+            Dim unusedImplementations = ExplicitInterfaceImplementations
+            CheckExplicitImplementationTypes()
 
             If DeclaringCompilation.EventQueue IsNot Nothing Then
-                Me.ContainingSourceModule.AtomicSetFlagAndRaiseSymbolDeclaredEvent(_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
+                ContainingSourceModule.AtomicSetFlagAndRaiseSymbolDeclaredEvent(_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
             End If
         End Sub
 
@@ -741,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim implementedEvents As ImmutableArray(Of EventSymbol) = ExplicitInterfaceImplementations
                 Return If(implementedEvents.Any,
                             implementedEvents(0).IsWindowsRuntimeEvent,
-                            Me.IsCompilationOutputWinMdObj())
+                            IsCompilationOutputWinMdObj())
             End Get
         End Property
 

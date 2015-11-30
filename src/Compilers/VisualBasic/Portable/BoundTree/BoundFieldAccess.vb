@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -15,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.FieldSymbol
+                Return FieldSymbol
             End Get
         End Property
 
@@ -25,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function MakeRValue() As BoundFieldAccess
             If _IsLValue Then
-                Return Update(_ReceiverOpt, _FieldSymbol, False, Me.SuppressVirtualCalls, Me.ConstantsInProgressOpt, Type)
+                Return Update(_ReceiverOpt, _FieldSymbol, False, SuppressVirtualCalls, ConstantsInProgressOpt, Type)
             End If
 
             Return Me
@@ -41,15 +38,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim result As ConstantValue
 
-                Dim constantsInProgress = Me.ConstantsInProgressOpt
+                Dim constantsInProgress = ConstantsInProgressOpt
                 If constantsInProgress IsNot Nothing Then
-                    result = Me.FieldSymbol.GetConstantValue(constantsInProgress)
+                    result = FieldSymbol.GetConstantValue(constantsInProgress)
                 Else
-                    result = Me.FieldSymbol.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                    result = FieldSymbol.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
                 End If
 
 #If DEBUG Then
-                ValidateConstantValue(Me.Type, result)
+                ValidateConstantValue(Type, result)
 #End If
                 Return result
             End Get

@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports System.IO
 Imports System.Text
-Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -22,20 +17,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _temporaryStringBuilders As Stack(Of TemporaryStringBuilder)
 
                 Public Sub New(writer As TextWriter)
-                    Me._writer = writer
-                    Me._indentDepth = 0
-                    Me._temporaryStringBuilders = Nothing
+                    _writer = writer
+                    _indentDepth = 0
+                    _temporaryStringBuilders = Nothing
                 End Sub
 
                 Public ReadOnly Property IsSpecified As Boolean
                     Get
-                        Return Me._writer IsNot Nothing
+                        Return _writer IsNot Nothing
                     End Get
                 End Property
 
                 Public ReadOnly Property IndentDepth As Integer
                     Get
-                        Return Me._indentDepth
+                        Return _indentDepth
                     End Get
                 End Property
 
@@ -49,65 +44,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' NOTE: Dev11 does not seem to try pretty-indenting of the document tags
                     '       which is reasonable because we don't want to add extra indents in XML
                     'Me._indentDepth -= 1
-                    Debug.Assert(Me._indentDepth >= 0)
+                    Debug.Assert(_indentDepth >= 0)
                 End Sub
 
                 Public Sub WriteLine(message As String)
                     If IsSpecified Then
-                        If Me._temporaryStringBuilders IsNot Nothing AndAlso Me._temporaryStringBuilders.Count > 0 Then
-                            Dim builder As StringBuilder = Me._temporaryStringBuilders.Peek().Pooled.Builder
-                            builder.Append(MakeIndent(Me._indentDepth))
+                        If _temporaryStringBuilders IsNot Nothing AndAlso _temporaryStringBuilders.Count > 0 Then
+                            Dim builder As StringBuilder = _temporaryStringBuilders.Peek().Pooled.Builder
+                            builder.Append(MakeIndent(_indentDepth))
                             builder.AppendLine(message)
 
-                        ElseIf Me._writer IsNot Nothing Then
-                            Me._writer.Write(MakeIndent(Me._indentDepth))
-                            Me._writer.WriteLine(message)
+                        ElseIf _writer IsNot Nothing Then
+                            _writer.Write(MakeIndent(_indentDepth))
+                            _writer.WriteLine(message)
                         End If
                     End If
                 End Sub
 
                 Public Sub Write(message As String)
                     If IsSpecified Then
-                        If Me._temporaryStringBuilders IsNot Nothing AndAlso Me._temporaryStringBuilders.Count > 0 Then
-                            Dim builder As StringBuilder = Me._temporaryStringBuilders.Peek().Pooled.Builder
-                            builder.Append(MakeIndent(Me._indentDepth))
+                        If _temporaryStringBuilders IsNot Nothing AndAlso _temporaryStringBuilders.Count > 0 Then
+                            Dim builder As StringBuilder = _temporaryStringBuilders.Peek().Pooled.Builder
+                            builder.Append(MakeIndent(_indentDepth))
                             builder.Append(message)
 
-                        ElseIf Me._writer IsNot Nothing Then
-                            Me._writer.Write(MakeIndent(Me._indentDepth))
-                            Me._writer.Write(message)
+                        ElseIf _writer IsNot Nothing Then
+                            _writer.Write(MakeIndent(_indentDepth))
+                            _writer.Write(message)
                         End If
                     End If
                 End Sub
 
                 Public Sub WriteSubString(message As String, start As Integer, length As Integer, Optional appendNewLine As Boolean = True)
-                    If Me._temporaryStringBuilders IsNot Nothing AndAlso Me._temporaryStringBuilders.Count > 0 Then
-                        Dim builder As StringBuilder = Me._temporaryStringBuilders.Peek().Pooled.Builder
+                    If _temporaryStringBuilders IsNot Nothing AndAlso _temporaryStringBuilders.Count > 0 Then
+                        Dim builder As StringBuilder = _temporaryStringBuilders.Peek().Pooled.Builder
                         builder.Append(MakeIndent(IndentDepth))
                         builder.Append(message, start, length)
                         If appendNewLine Then
                             builder.AppendLine()
                         End If
 
-                    ElseIf Me._writer IsNot Nothing Then
-                        Me._writer.Write(MakeIndent(IndentDepth))
+                    ElseIf _writer IsNot Nothing Then
+                        _writer.Write(MakeIndent(IndentDepth))
                         For i = 0 To length - 1
-                            Me._writer.Write(message(start + i))
+                            _writer.Write(message(start + i))
                         Next
                         If appendNewLine Then
-                            Me._writer.WriteLine()
+                            _writer.WriteLine()
                         End If
                     End If
                 End Sub
 
                 Public Function GetAndEndTemporaryString() As String
-                    Dim t As TemporaryStringBuilder = Me._temporaryStringBuilders.Pop()
-                    Debug.Assert(Me._indentDepth = t.InitialIndentDepth,
+                    Dim t As TemporaryStringBuilder = _temporaryStringBuilders.Pop()
+                    Debug.Assert(_indentDepth = t.InitialIndentDepth,
                                  String.Format("Temporary strings should be indent-neutral (was {0}, is {1})",
                                                t.InitialIndentDepth,
-                                               Me._indentDepth))
+                                               _indentDepth))
 
-                    Me._indentDepth = t.InitialIndentDepth
+                    _indentDepth = t.InitialIndentDepth
                     Return t.Pooled.ToStringAndFree()
                 End Function
 
@@ -129,11 +124,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Sub BeginTemporaryString()
-                    If Me._temporaryStringBuilders Is Nothing Then
-                        Me._temporaryStringBuilders = New Stack(Of TemporaryStringBuilder)()
+                    If _temporaryStringBuilders Is Nothing Then
+                        _temporaryStringBuilders = New Stack(Of TemporaryStringBuilder)()
                     End If
 
-                    Me._temporaryStringBuilders.Push(New TemporaryStringBuilder(Me._indentDepth))
+                    _temporaryStringBuilders.Push(New TemporaryStringBuilder(_indentDepth))
                 End Sub
 
                 Private Structure TemporaryStringBuilder
@@ -141,8 +136,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Public ReadOnly InitialIndentDepth As Integer
 
                     Public Sub New(indentDepth As Integer)
-                        Me.InitialIndentDepth = indentDepth
-                        Me.Pooled = PooledStringBuilder.GetInstance()
+                        InitialIndentDepth = indentDepth
+                        Pooled = PooledStringBuilder.GetInstance()
                     End Sub
                 End Structure
 

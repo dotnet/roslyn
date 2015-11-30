@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
@@ -21,10 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                If Me.CommentedSymbol IsNot Nothing Then
-                    Select Case Me.CommentedSymbol.Kind
+                If CommentedSymbol IsNot Nothing Then
+                    Select Case CommentedSymbol.Kind
                         Case SymbolKind.NamedType
-                            Dim namedType = DirectCast(Me.CommentedSymbol, NamedTypeSymbol)
+                            Dim namedType = DirectCast(CommentedSymbol, NamedTypeSymbol)
                             If namedType.TypeKind = TypeKind.Delegate Then
                                 Dim method As MethodSymbol = namedType.DelegateInvokeMethod
                                 If method IsNot Nothing Then
@@ -33,13 +32,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                         Case SymbolKind.Method
-                            Return DirectCast(Me.CommentedSymbol, MethodSymbol).Parameters
+                            Return DirectCast(CommentedSymbol, MethodSymbol).Parameters
 
                         Case SymbolKind.Property
-                            Return DirectCast(Me.CommentedSymbol, PropertySymbol).Parameters
+                            Return DirectCast(CommentedSymbol, PropertySymbol).Parameters
 
                         Case SymbolKind.Event
-                            Return DirectCast(Me.CommentedSymbol, EventSymbol).DelegateParameters
+                            Return DirectCast(CommentedSymbol, EventSymbol).DelegateParameters
 
                     End Select
                 End If
@@ -49,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
-            If Me.CommentedSymbol Is Nothing Then
+            If CommentedSymbol Is Nothing Then
                 Return ImmutableArray(Of Symbol).Empty
             End If
 
@@ -58,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ImmutableArray(Of Symbol).Empty
             End If
 
-            Return FindSymbolInSymbolArray(name, Me.Parameters)
+            Return FindSymbolInSymbolArray(name, Parameters)
         End Function
 
         Private Const s_invalidLookupOptions As LookupOptions =
@@ -77,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
-            For Each parameter In Me.Parameters
+            For Each parameter In Parameters
                 If originalBinder.CanAddLookupSymbolInfo(parameter, options, Nothing) Then
                     nameSet.AddSymbol(parameter, parameter.Name, 0)
                 End If
@@ -96,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
-            For Each parameter In Me.Parameters
+            For Each parameter In Parameters
                 If IdentifierComparison.Equals(parameter.Name, name) Then
                     lookupResult.SetFrom(CheckViability(parameter, arity, options, Nothing, useSiteDiagnostics))
                 End If

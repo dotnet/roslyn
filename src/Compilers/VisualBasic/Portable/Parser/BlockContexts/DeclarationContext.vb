@@ -1,7 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 '-----------------------------------------------------------------------------
 ' Contains the definition of the DeclarationContext
 '-----------------------------------------------------------------------------
@@ -48,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         node = Parser.ReportSyntaxError(node, ERRID.ERR_NamespaceNotAtNamespace)
                     End If
 
-                    Dim context = Me.PrevBlock
+                    Dim context = PrevBlock
                     RecoverFromMissingEnd(context)
 
                     'Let the outer context process this statement
@@ -100,7 +98,7 @@ HandleMethodBase:
 
                     ' It is a syntax error to have an operator in a module
                     ' This error is reported in declared in Dev10
-                    If Me.BlockKind = SyntaxKind.ModuleBlock Then
+                    If BlockKind = SyntaxKind.ModuleBlock Then
                         node = Parser.ReportSyntaxError(node, ERRID.ERR_OperatorDeclaredInModule)
                     End If
 
@@ -308,7 +306,7 @@ HandleMethodBase:
                     Return UseSyntax(node, newContext, DirectCast(node, MethodBlockBaseSyntax).End.IsMissing)
 
                 Case SyntaxKind.OperatorBlock
-                    If Me.BlockKind = SyntaxKind.ModuleBlock Then
+                    If BlockKind = SyntaxKind.ModuleBlock Then
                         ' Crumble if this is in a module block for correct error processing
                         newContext = Me
                         Return LinkResult.Crumble
@@ -346,7 +344,7 @@ HandleMethodBase:
                     node = Parser.ReportSyntaxError(node, ERRID.ERR_ExecutableAsDeclaration)
                     Return TryUseStatement(node, newContext)
 
-                ' by default statements are not handled in declaration context
+                    ' by default statements are not handled in declaration context
                 Case Else
                     newContext = Me
                     Return LinkResult.NotUsed

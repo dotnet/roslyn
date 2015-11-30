@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -228,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 tempsArray = ArrayBuilder(Of SynthesizedLocal).GetInstance()
             End If
 
-            Dim temp = New SynthesizedLocal(Me._currentMethodOrLambda, rewrittenArgument.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim temp = New SynthesizedLocal(_currentMethodOrLambda, rewrittenArgument.Type, SynthesizedLocalKind.LoweringTemp)
             tempsArray.Add(temp)
 
             Dim boundTemp = New BoundLocal(rewrittenArgument.Syntax, temp, temp.Type)
@@ -292,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim firstUse As BoundExpression
             Dim secondUse As BoundExpression
 
-            Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, originalArgument, tempsArray)
+            Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(_currentMethodOrLambda, originalArgument, tempsArray)
 
             If originalArgument.IsPropertyOrXmlPropertyAccess Then
                 firstUse = useTwice.First.SetAccessKind(PropertyAccessKind.Get)
@@ -312,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inputValue As BoundExpression = VisitAndGenerateObjectCloneIfNeeded(argument.InConversion)
             RemovePlaceholderReplacement(argument.InPlaceholder)
 
-            Dim temp = New SynthesizedLocal(Me._currentMethodOrLambda, argument.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim temp = New SynthesizedLocal(_currentMethodOrLambda, argument.Type, SynthesizedLocalKind.LoweringTemp)
             tempsArray.Add(temp)
 
             Dim boundTemp = New BoundLocal(argument.Syntax, temp, temp.Type)

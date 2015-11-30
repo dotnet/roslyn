@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -54,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, node, ERRID.WRN_LateBindingResolution)
             End If
 
-            Dim objType = Me.GetSpecialType(SpecialType.System_Object, node, diagnostics)
+            Dim objType = GetSpecialType(SpecialType.System_Object, node, diagnostics)
 
             If receiver IsNot Nothing AndAlso
                 receiver.Kind = BoundKind.MeReference AndAlso
@@ -214,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = MakeRValue(receiver, diagnostics)
             End If
 
-            Dim objType = Me.GetSpecialType(SpecialType.System_Object, node, diagnostics)
+            Dim objType = GetSpecialType(SpecialType.System_Object, node, diagnostics)
             Return New BoundLateInvocation(node, receiver, arguments, argumentNames, LateBoundAccessKind.Unknown, groupOpt, objType)
         End Function
 

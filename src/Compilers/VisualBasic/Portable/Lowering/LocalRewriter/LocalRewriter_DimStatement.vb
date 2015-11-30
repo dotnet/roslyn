@@ -1,11 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -13,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inits As ArrayBuilder(Of BoundStatement) = Nothing
 
             For Each decl In node.LocalDeclarations
-                Dim init As BoundNode = Me.Visit(decl)
+                Dim init As BoundNode = Visit(decl)
                 If init IsNot Nothing Then
                     If inits Is Nothing Then
                         inits = ArrayBuilder(Of BoundStatement).GetInstance

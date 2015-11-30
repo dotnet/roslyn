@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 underlyingNonArrayType = DirectCast(underlyingNonArrayType, IArrayTypeSymbol).ElementType
             End While
 
-            underlyingNonArrayType.Accept(Me.NotFirstVisitor())
+            underlyingNonArrayType.Accept(NotFirstVisitor())
 
             Dim arrayType As IArrayTypeSymbol = symbol
             While arrayType IsNot Nothing
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitPointerType(symbol As IPointerTypeSymbol)
-            symbol.PointedAtType.Accept(Me.NotFirstVisitor())
+            symbol.PointedAtType.Accept(NotFirstVisitor())
             AddPunctuation(SyntaxKind.AsteriskToken)
         End Sub
 
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitNamedType(symbol As INamedTypeSymbol)
-            If Me.IsMinimizing AndAlso TryAddAlias(symbol, builder) Then
+            If IsMinimizing AndAlso TryAddAlias(symbol, builder) Then
                 Return
             End If
 
@@ -96,14 +96,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandNullable) Then
                     If IsNullableType(symbol) AndAlso symbol IsNot symbol.OriginalDefinition Then
-                        symbol.TypeArguments(0).Accept(Me.NotFirstVisitor())
+                        symbol.TypeArguments(0).Accept(NotFirstVisitor())
                         AddPunctuation(SyntaxKind.QuestionToken)
                         Return
                     End If
                 End If
             End If
 
-            If Me.IsMinimizing Then
+            If IsMinimizing Then
                 MinimallyQualify(symbol)
                 Return
             End If
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim containingType = symbol.ContainingType
                 If containingType IsNot Nothing Then
                     visitedParents = True
-                    containingType.Accept(Me.NotFirstVisitor())
+                    containingType.Accept(NotFirstVisitor())
                     AddOperator(SyntaxKind.DotToken)
                 End If
             End If
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddSpace()
                         AddKeyword(SyntaxKind.AsKeyword)
                         AddSpace()
-                        invokeMethod.ReturnType.Accept(Me.NotFirstVisitor())
+                        invokeMethod.ReturnType.Accept(NotFirstVisitor())
                     End If
                 End If
             End If
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     ' TODO: Rewrite access to custom modifiers in terms of an interface
                     AddTypeArguments(symbol.TypeArguments,
-                                     If(Me.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers),
+                                     If(format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers),
                                         TryCast(symbol, NamedTypeSymbol)?.TypeArgumentsCustomModifiers, Nothing).GetValueOrDefault())
                 End If
             End If
@@ -377,13 +377,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If typeArg.Kind = SymbolKind.TypeParameter Then
                     Dim typeParam = DirectCast(typeArg, ITypeParameterSymbol)
                     AddTypeParameterVarianceIfRequired(typeParam)
-                    typeParam.Accept(Me.NotFirstVisitor())
+                    typeParam.Accept(NotFirstVisitor())
 
                     If format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeConstraints) Then
                         AddTypeParameterConstraints(typeParam)
                     End If
                 Else
-                    typeArg.Accept(Me.NotFirstVisitor())
+                    typeArg.Accept(NotFirstVisitor())
                 End If
 
                 If Not modifiers.IsDefaultOrEmpty Then
@@ -439,7 +439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddSpace()
                 End If
 
-                baseType.Accept(Me.NotFirstVisitor())
+                baseType.Accept(NotFirstVisitor())
                 needComma = True
             Next
 

@@ -25,12 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim parameters As ImmutableArray(Of ParameterSymbol)
-            parameters = DecodeParameterList(Me.ContainingMember, True, modifiers, node.SubOrFunctionHeader.ParameterList, diagnostics)
+            parameters = DecodeParameterList(ContainingMember, True, modifiers, node.SubOrFunctionHeader.ParameterList, diagnostics)
 
             For Each param In parameters
                 ' Look up in container binders for name clashes with other locals and parameters.
                 Dim identifierSyntax As SyntaxNodeOrToken = DirectCast(param, UnboundLambdaParameterSymbol).IdentifierSyntax
-                Me.VerifyNameShadowingInMethodBody(param, identifierSyntax, identifierSyntax, diagnostics)
+                VerifyNameShadowingInMethodBody(param, identifierSyntax, identifierSyntax, diagnostics)
             Next
 
             Dim returnType As TypeSymbol = Nothing
@@ -825,7 +825,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             parameterDescriptors(i) = New AnonymousTypeField(returnParamName, returnType, source.Syntax.GetLocation(), False)
 
             Dim typeDescriptor As New AnonymousTypeDescriptor(parameterDescriptors.AsImmutableOrNull(), source.Syntax.GetLocation(), True)
-            Return Me.Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescriptor)
+            Return Compilation.AnonymousTypeManager.ConstructAnonymousDelegateSymbol(typeDescriptor)
         End Function
 
         Friend Function BindLambdaForErrorRecovery(source As UnboundLambda) As BoundLambda
@@ -1033,8 +1033,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _isIterator As Boolean
 
             Private Sub New(builder As ArrayBuilder(Of BoundExpression), isIterator As Boolean)
-                Me._builder = builder
-                Me._isIterator = isIterator
+                _builder = builder
+                _isIterator = isIterator
             End Sub
 
             ''' <summary>

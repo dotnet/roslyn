@@ -1,16 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -53,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If currentResult.IsGoodOrAmbiguous AndAlso Not originalBinder.IsSemanticModelBinder Then
-                    Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, importedSym.ImportsClausePosition)
+                    Compilation.MarkImportDirectiveAsUsed(SyntaxTree, importedSym.ImportsClausePosition)
                 End If
 
                 ' If lookup in an import produces an ambiguous result, return that ambiguity.
@@ -135,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     DirectCast(importedSym.NamespaceOrType, NamedTypeSymbol).AppendProbableExtensionMethods(name, methods)
 
                     If methods.Count <> 0 AndAlso Not originalBinder.IsSemanticModelBinder Then
-                        Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, importedSym.ImportsClausePosition)
+                        Compilation.MarkImportDirectiveAsUsed(SyntaxTree, importedSym.ImportsClausePosition)
                     End If
                 End If
             Next

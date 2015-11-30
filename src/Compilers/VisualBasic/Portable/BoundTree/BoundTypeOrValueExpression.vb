@@ -1,11 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Structure BoundTypeOrValueData
@@ -14,28 +8,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _valueExpression As BoundExpression
         Public ReadOnly Property ValueExpression As BoundExpression
             Get
-                Return Me._valueExpression
+                Return _valueExpression
             End Get
         End Property
 
         Private ReadOnly _valueDiagnostics As DiagnosticBag
         Public ReadOnly Property ValueDiagnostics As DiagnosticBag
             Get
-                Return Me._valueDiagnostics
+                Return _valueDiagnostics
             End Get
         End Property
 
         Private ReadOnly _typeExpression As BoundExpression
         Public ReadOnly Property TypeExpression As BoundExpression
             Get
-                Return Me._typeExpression
+                Return _typeExpression
             End Get
         End Property
 
         Private ReadOnly _typeDiagnostics As DiagnosticBag
         Public ReadOnly Property TypeDiagnostics As DiagnosticBag
             Get
-                Return Me._typeDiagnostics
+                Return _typeDiagnostics
             End Get
         End Property
 
@@ -45,10 +39,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(typeExpression IsNot Nothing, "Field 'typeExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(typeDiagnostics IsNot Nothing, "Field 'typeDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
-            Me._valueExpression = valueExpression
-            Me._valueDiagnostics = valueDiagnostics
-            Me._typeExpression = typeExpression
-            Me._typeDiagnostics = typeDiagnostics
+            _valueExpression = valueExpression
+            _valueDiagnostics = valueDiagnostics
+            _typeExpression = typeExpression
+            _typeDiagnostics = typeDiagnostics
         End Sub
 
         ' Operator=, Operator<>, GetHashCode, and Equals are needed by the generated bound tree.

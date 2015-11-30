@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' Information decoded from well-known custom attributes applied on a method.
@@ -19,11 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property HasSTAThreadAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._hasSTAThreadAttribute
+                Return _hasSTAThreadAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._hasSTAThreadAttribute = value
+                _hasSTAThreadAttribute = value
                 SetDataStored()
             End Set
         End Property
@@ -34,11 +31,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property HasMTAThreadAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._hasMTAThreadAttribute
+                Return _hasMTAThreadAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._hasMTAThreadAttribute = value
+                _hasMTAThreadAttribute = value
                 SetDataStored()
             End Set
         End Property
@@ -49,11 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Property IsPropertyAccessorWithDebuggerHiddenAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me._isPropertyAccessorWithDebuggerHiddenAttribute
+                Return _isPropertyAccessorWithDebuggerHiddenAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me._isPropertyAccessorWithDebuggerHiddenAttribute = value
+                _isPropertyAccessorWithDebuggerHiddenAttribute = value
                 SetDataStored()
             End Set
         End Property

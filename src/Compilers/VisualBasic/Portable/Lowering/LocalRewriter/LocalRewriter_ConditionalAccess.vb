@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -61,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim first As BoundExpression
 
                     If ShouldCaptureConditionalAccessReceiver(rewrittenReceiver) Then
-                        temp = New SynthesizedLocal(Me._currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
+                        temp = New SynthesizedLocal(_currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
 
                         assignment = factory.AssignmentExpression(factory.Local(temp, isLValue:=True), rewrittenReceiver.MakeRValue())
                         first = factory.Local(temp, isLValue:=True)
@@ -97,8 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' if( receiver IsNot Nothing, receiver. ... -> to Nullable, Nothing) 
                     receiverOrCondition = rewrittenReceiver
                     captureReceiver = ShouldCaptureConditionalAccessReceiver(rewrittenReceiver)
-                    Me._conditionalAccessReceiverPlaceholderId += 1
-                    newPlaceholderId = Me._conditionalAccessReceiverPlaceholderId
+                    _conditionalAccessReceiverPlaceholderId += 1
+                    newPlaceholderId = _conditionalAccessReceiverPlaceholderId
                     Debug.Assert(newPlaceholderId <> 0)
                     newPlaceHolder = New BoundConditionalAccessReceiverPlaceholder(node.Placeholder.Syntax, newPlaceholderId, node.Placeholder.Type)
                     placeholderReplacement = newPlaceHolder

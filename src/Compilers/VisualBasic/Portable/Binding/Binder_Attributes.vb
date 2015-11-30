@@ -1,15 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class Binder
@@ -435,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             LookupMember(result, container, identifierName.Identifier.ValueText, 0, LookupOptions.IgnoreExtensionMethods, useSiteDiagnostics)
 
             ' Validating the expression is done when the bound expression is converted to a TypedConstant
-            Dim rValue As BoundExpression = Me.BindValue(namedArg.Expression, diagnostics)
+            Dim rValue As BoundExpression = BindValue(namedArg.Expression, diagnostics)
             MarkEmbeddedTypeReferenceIfNeeded(rValue)
             Dim lValue As BoundExpression = Nothing
 
@@ -475,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ReportDiagnostic(diagnostics, identifierName, ERRID.ERR_InaccessibleMember3,
                                                    propertySym.ContainingSymbol,
                                                    propertySym,
-                                                   AccessCheck.GetAccessibilityForErrorMessage(setMethod, Me.Compilation.Assembly))
+                                                   AccessCheck.GetAccessibilityForErrorMessage(setMethod, Compilation.Assembly))
                                 hasErrors = True
                             End If
                         End If
@@ -545,11 +539,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub MarkEmbeddedTypeReferenceIfNeeded(expression As BoundExpression)
             ' If we are embedding code and also there are no errors
-            If (Me.Compilation.EmbeddedSymbolManager.Embedded <> 0) AndAlso Not expression.HasErrors Then
+            If (Compilation.EmbeddedSymbolManager.Embedded <> 0) AndAlso Not expression.HasErrors Then
 
                 ' And also is the expression comes from compilation syntax trees
                 If expression.Syntax.SyntaxTree IsNot Nothing AndAlso
-                    Me.Compilation.ContainsSyntaxTree(expression.Syntax.SyntaxTree) Then
+                    Compilation.ContainsSyntaxTree(expression.Syntax.SyntaxTree) Then
 
                     ' Mark type if it is referenced in expression like 'GetType(Microsoft.VisualBasic.Strings)'
                     If expression.Kind = BoundKind.GetType Then
@@ -578,9 +572,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Note that none of the embedded symbols from referenced 
                 ' assemblies or compilations should be found/referenced
-                Debug.Assert(sourceType.ContainingAssembly Is Me.Compilation.Assembly)
+                Debug.Assert(sourceType.ContainingAssembly Is Compilation.Assembly)
 
-                Me.Compilation.EmbeddedSymbolManager.MarkSymbolAsReferenced(sourceType)
+                Compilation.EmbeddedSymbolManager.MarkSymbolAsReferenced(sourceType)
             End If
         End Sub
 
@@ -637,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' 2. object, system.type, public enumerated types
         ' 3. one dimensional arrays of (1) and (2) above
         Private Function IsValidTypeForAttributeArgument(type As TypeSymbol) As Boolean
-            Return type.IsValidTypeForAttributeArgument(Me.Compilation)
+            Return type.IsValidTypeForAttributeArgument(Compilation)
         End Function
 
 #End Region
@@ -654,13 +648,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _hasErrors As Boolean
 
             Public Sub New(binder As Binder, hasErrors As Boolean)
-                Me._binder = binder
-                Me._hasErrors = hasErrors
+                _binder = binder
+                _hasErrors = hasErrors
             End Sub
 
             Public ReadOnly Property HasErrors As Boolean
                 Get
-                    Return Me._hasErrors
+                    Return _hasErrors
                 End Get
             End Property
 

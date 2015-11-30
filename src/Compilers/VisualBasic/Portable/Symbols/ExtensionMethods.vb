@@ -1,11 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -13,11 +8,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected Function ValidateGenericConstraintsOnExtensionMethodDefinition() As Boolean
 
-            If Me.Arity = 0 Then
+            If Arity = 0 Then
                 Return True
             End If
 
-            Dim firstParam As ParameterSymbol = Me.Parameters(0)
+            Dim firstParam As ParameterSymbol = Parameters(0)
 
             Dim typeParameters As New HashSet(Of TypeParameterSymbol)
 

@@ -1,13 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Linq
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class MeParameterSymbol
@@ -17,13 +11,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _type As TypeSymbol
 
         Friend Sub New(memberSymbol As Symbol)
-            Me._container = memberSymbol
-            Me._type = _container.ContainingType
+            _container = memberSymbol
+            _type = _container.ContainingType
         End Sub
 
         Friend Sub New(memberSymbol As Symbol, type As TypeSymbol)
-            Me._container = memberSymbol
-            Me._type = type
+            _container = memberSymbol
+            _type = type
         End Sub
 
         Public Overrides ReadOnly Property Name As String

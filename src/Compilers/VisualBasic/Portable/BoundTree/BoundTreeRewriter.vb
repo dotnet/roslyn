@@ -1,9 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend MustInherit Class BoundTreeRewriter
@@ -22,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim item As T = list.Item(i)
                 Debug.Assert(item IsNot Nothing)
 
-                Dim visited = Me.Visit(item)
+                Dim visited = Visit(item)
 
                 If item IsNot visited AndAlso newList Is Nothing Then
                     newList = ArrayBuilder(Of T).GetInstance
@@ -125,13 +123,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Loop
 
 
-            Dim left = DirectCast(Me.Visit(child), BoundExpression)
+            Dim left = DirectCast(Visit(child), BoundExpression)
 
             Do
                 binary = stack.Pop()
 
-                Dim right = DirectCast(Me.Visit(binary.Right), BoundExpression)
-                Dim type As TypeSymbol = Me.VisitType(binary.Type)
+                Dim right = DirectCast(Visit(binary.Right), BoundExpression)
+                Dim type As TypeSymbol = VisitType(binary.Type)
                 left = binary.Update(binary.OperatorKind, left, right, binary.Checked, binary.ConstantValueOpt, type)
             Loop While stack.Count > 0
 

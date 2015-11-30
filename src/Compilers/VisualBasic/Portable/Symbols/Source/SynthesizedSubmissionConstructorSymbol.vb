@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim node As VisualBasicSyntaxNode = Me.Syntax
+            Dim node As VisualBasicSyntaxNode = Syntax
             Return New BoundBlock(
                 node,
                 Nothing,

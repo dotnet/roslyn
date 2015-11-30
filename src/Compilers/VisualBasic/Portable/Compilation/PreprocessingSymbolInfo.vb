@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Structure VisualBasicPreprocessingSymbolInfo
@@ -43,14 +42,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Operator
 
         Friend Sub New(symbol As PreprocessingSymbol, constantValueOpt As Object, isDefined As Boolean)
-            Me._symbol = symbol
-            Me._constantValue = constantValueOpt
-            Me._isDefined = isDefined
+            _symbol = symbol
+            _constantValue = constantValueOpt
+            _isDefined = isDefined
         End Sub
 
         Public Overloads Function Equals(other As VisualBasicPreprocessingSymbolInfo) As Boolean Implements IEquatable(Of VisualBasicPreprocessingSymbolInfo).Equals
             Return _isDefined = other._isDefined AndAlso _symbol = other._symbol AndAlso
-                Equals(Me._constantValue, other._constantValue)
+                Equals(_constantValue, other._constantValue)
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean

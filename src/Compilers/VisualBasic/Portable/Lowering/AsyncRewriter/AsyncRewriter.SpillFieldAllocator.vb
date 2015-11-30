@@ -1,13 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Threading
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -27,13 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _nextHoistedFieldId As Integer
 
             Friend Sub New(f As SyntheticBoundNodeFactory)
-                Me._F = f
-                Me._nextHoistedFieldId = 0
+                _F = f
+                _nextHoistedFieldId = 0
             End Sub
 
             Friend Function AllocateField(type As TypeSymbol) As FieldSymbol
                 Dim field As FieldSymbol = Nothing
-                If Not Me._allocatedFields.TryPop(type, field) Then
+                If Not _allocatedFields.TryPop(type, field) Then
                     _nextHoistedFieldId += 1
 
                     field = _F.StateMachineField(type,
@@ -41,14 +35,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               GeneratedNames.ReusableHoistedLocalFieldName(_nextHoistedFieldId),
                                               Accessibility.Friend)
                 End If
-                Me._realizedSpills.Add(field)
+                _realizedSpills.Add(field)
                 Return field
             End Function
 
             Friend Sub FreeField(field As FieldSymbol)
-                Debug.Assert(Me._realizedSpills.Contains(field))
-                Me._realizedSpills.Remove(field)
-                Me._allocatedFields.Push(field.Type, field)
+                Debug.Assert(_realizedSpills.Contains(field))
+                _realizedSpills.Remove(field)
+                _allocatedFields.Push(field.Type, field)
             End Sub
 
         End Class

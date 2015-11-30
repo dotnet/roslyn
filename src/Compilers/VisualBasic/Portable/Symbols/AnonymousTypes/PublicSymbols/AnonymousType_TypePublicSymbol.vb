@@ -1,11 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -69,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' Add optional 'Inherits IEquatable'
                     Dim equatableInterface As NamedTypeSymbol = Me.Manager.System_IEquatable_T.Construct(ImmutableArray.Create(Of TypeSymbol)(Me))
-                    Me._interfaces = ImmutableArray.Create(Of NamedTypeSymbol)(equatableInterface)
+                    _interfaces = ImmutableArray.Create(Of NamedTypeSymbol)(equatableInterface)
 
                     ' Add 'IEquatable.Equals'
                     Dim method As Symbol = DirectCast(equatableInterface, SubstitutedNamedType).GetMemberForDefinition(Me.Manager.System_IEquatable_T_Equals)
@@ -90,10 +86,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private Function CreateConstructorSymbol() As MethodSymbol
                 Dim constructor As New SynthesizedSimpleConstructorSymbol(Me)
 
-                Dim fieldsCount As Integer = Me._properties.Length
+                Dim fieldsCount As Integer = _properties.Length
                 Dim paramsArr = New ParameterSymbol(fieldsCount - 1) {}
                 For index = 0 To fieldsCount - 1
-                    Dim [property] As PropertySymbol = Me._properties(index)
+                    Dim [property] As PropertySymbol = _properties(index)
                     paramsArr(index) = New SynthesizedParameterSimpleSymbol(constructor, [property].Type, index, [property].Name)
                 Next
                 constructor.SetParameters(paramsArr.AsImmutableOrNull())
@@ -102,19 +98,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Private Function CreateEqualsMethod() As MethodSymbol
-                Dim method As New SynthesizedSimpleMethodSymbol(Me, WellKnownMemberNames.ObjectEquals, Me.Manager.System_Boolean,
-                                                                overriddenMethod:=Me.Manager.System_Object__Equals,
+                Dim method As New SynthesizedSimpleMethodSymbol(Me, WellKnownMemberNames.ObjectEquals, Manager.System_Boolean,
+                                                                overriddenMethod:=Manager.System_Object__Equals,
                                                                 isOverloads:=True)
 
                 method.SetParameters(ImmutableArray.Create(Of ParameterSymbol)(
-                                        New SynthesizedParameterSimpleSymbol(method, Me.Manager.System_Object, 0, "obj")
+                                        New SynthesizedParameterSimpleSymbol(method, Manager.System_Object, 0, "obj")
                                     ))
 
                 Return method
             End Function
 
             Private Function CreateIEquatableEqualsMethod(iEquatableEquals As MethodSymbol) As MethodSymbol
-                Dim method As New SynthesizedSimpleMethodSymbol(Me, WellKnownMemberNames.ObjectEquals, Me.Manager.System_Boolean,
+                Dim method As New SynthesizedSimpleMethodSymbol(Me, WellKnownMemberNames.ObjectEquals, Manager.System_Boolean,
                                                                 interfaceMethod:=iEquatableEquals,
                                                                 isOverloads:=True)
 
@@ -126,16 +122,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Private Function CreateGetHashCodeMethod() As MethodSymbol
-                Dim method As New SynthesizedSimpleMethodSymbol(Me, WellKnownMemberNames.ObjectGetHashCode, Me.Manager.System_Int32,
-                                                                overriddenMethod:=Me.Manager.System_Object__GetHashCode)
+                Dim method As New SynthesizedSimpleMethodSymbol(Me, WellKnownMemberNames.ObjectGetHashCode, Manager.System_Int32,
+                                                                overriddenMethod:=Manager.System_Object__GetHashCode)
 
                 method.SetParameters(ImmutableArray(Of ParameterSymbol).Empty)
                 Return method
             End Function
 
             Private Function CreateToStringMethod() As MethodSymbol
-                Dim method As New SynthesizedSimpleMethodSymbol(Me, WellKnownMemberNames.ObjectToString, Me.Manager.System_String,
-                                                                overriddenMethod:=Me.Manager.System_Object__ToString)
+                Dim method As New SynthesizedSimpleMethodSymbol(Me, WellKnownMemberNames.ObjectToString, Manager.System_String,
+                                                                overriddenMethod:=Manager.System_Object__ToString)
 
                 method.SetParameters(ImmutableArray(Of ParameterSymbol).Empty)
                 Return method
@@ -155,17 +151,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public ReadOnly Property Properties As ImmutableArray(Of AnonymousTypePropertyPublicSymbol)
                 Get
-                    Return Me._properties
+                    Return _properties
                 End Get
             End Property
 
             Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
                 Dim newDescriptor As New AnonymousTypeDescriptor
-                If Not Me.TypeDescriptor.SubstituteTypeParametersIfNeeded(substitution, newDescriptor) Then
+                If Not TypeDescriptor.SubstituteTypeParametersIfNeeded(substitution, newDescriptor) Then
                     Return New TypeWithModifiers(Me)
                 End If
 
-                Return New TypeWithModifiers(Me.Manager.ConstructAnonymousTypeSymbol(newDescriptor))
+                Return New TypeWithModifiers(Manager.ConstructAnonymousTypeSymbol(newDescriptor))
             End Function
 
             Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
@@ -173,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
-                Return Me.Manager.System_Object
+                Return Manager.System_Object
             End Function
 
             Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
@@ -181,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Public Overrides Function MapToImplementationSymbol() As NamedTypeSymbol
-                Return Me.Manager.ConstructAnonymousTypeImplementationSymbol(Me)
+                Return Manager.ConstructAnonymousTypeImplementationSymbol(Me)
             End Function
 
             Public Overrides Function Equals(obj As Object) As Boolean
@@ -189,16 +185,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return True
                 End If
                 Dim other = TryCast(obj, AnonymousTypePublicSymbol)
-                Return other IsNot Nothing AndAlso Me.TypeDescriptor.Equals(other.TypeDescriptor)
+                Return other IsNot Nothing AndAlso TypeDescriptor.Equals(other.TypeDescriptor)
             End Function
 
             Public Overrides Function GetHashCode() As Integer
-                Return Me.TypeDescriptor.GetHashCode()
+                Return TypeDescriptor.GetHashCode()
             End Function
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    Return GetDeclaringSyntaxReferenceHelper(Of AnonymousObjectCreationExpressionSyntax)(Me.Locations)
+                    Return GetDeclaringSyntaxReferenceHelper(Of AnonymousObjectCreationExpressionSyntax)(Locations)
                 End Get
             End Property
         End Class

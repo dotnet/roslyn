@@ -1,12 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Threading
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -129,15 +126,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 Debug.Assert(constructorArgs IsNot Nothing AndAlso namedArgs IsNot Nothing)
 
-                Interlocked.CompareExchange(Of KeyValuePair(Of String, TypedConstant)())(
-                      _lazyNamedArguments,
-                      namedArgs,
-                      Nothing)
+                Interlocked.CompareExchange(_lazyNamedArguments, namedArgs, Nothing)
 
-                Interlocked.CompareExchange(Of TypedConstant())(
-                    _lazyConstructorArguments,
-                    constructorArgs,
-                    Nothing)
+                Interlocked.CompareExchange(_lazyConstructorArguments, constructorArgs, Nothing)
             End If
         End Sub
 
@@ -150,10 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 If Not _decoder.GetCustomAttribute(_handle, attributeClass, attributeCtor) OrElse
                     attributeClass Is Nothing Then
 
-                    Interlocked.CompareExchange(Of NamedTypeSymbol)(
-                         _attributeClass,
-                         ErrorTypeSymbol.UnknownResultType,
-                         Nothing)
+                    Interlocked.CompareExchange(_attributeClass, ErrorTypeSymbol.UnknownResultType, Nothing)
 
                     ' Method symbol is null when there is an error.
 
@@ -165,15 +153,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     _lazyHasErrors = ThreeState.True
                 End If
 
-                Interlocked.CompareExchange(Of MethodSymbol)(
-                    _attributeConstructor,
-                    attributeCtor,
-                    Nothing)
+                Interlocked.CompareExchange(_attributeConstructor, attributeCtor, Nothing)
 
-                Interlocked.CompareExchange(Of NamedTypeSymbol)(
-                      _attributeClass,
-                      DirectCast(attributeClass, NamedTypeSymbol),
-                      Nothing)
+                Interlocked.CompareExchange(_attributeClass, DirectCast(attributeClass, NamedTypeSymbol), Nothing)
             End If
         End Sub
 

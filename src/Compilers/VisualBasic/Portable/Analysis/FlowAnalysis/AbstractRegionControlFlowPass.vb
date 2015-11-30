@@ -1,13 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -28,15 +21,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Control flow analysis does not normally scan the body of a lambda, but region analysis does.
         Public Overrides Function VisitLambda(node As BoundLambda) As BoundNode
             Dim oldPending As SavedPending = SavePending()
-            Dim oldSymbol = Me.symbol
-            Me.symbol = node.LambdaSymbol
-            Dim finalState As LocalState = Me.State
-            Me.SetState(Me.ReachableState())
+            Dim oldSymbol = symbol
+            symbol = node.LambdaSymbol
+            Dim finalState As LocalState = State
+            SetState(ReachableState())
             VisitBlock(node.Body)
-            Me.symbol = oldSymbol
+            symbol = oldSymbol
             RestorePending(oldPending)
-            Me.IntersectWith(finalState, Me.State)
-            Me.SetState(finalState)
+            IntersectWith(finalState, State)
+            SetState(finalState)
             Return Nothing
         End Function
 

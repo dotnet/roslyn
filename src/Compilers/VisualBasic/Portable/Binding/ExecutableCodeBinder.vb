@@ -1,16 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -72,10 +66,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property LabelsMap As MultiDictionary(Of String, SourceLabelSymbol)
             Get
-                If Me._labelsMap Is Nothing Then
-                    Interlocked.CompareExchange(Me._labelsMap, BuildLabelsMap(Me.Labels), Nothing)
+                If _labelsMap Is Nothing Then
+                    Interlocked.CompareExchange(_labelsMap, BuildLabelsMap(Labels), Nothing)
                 End If
-                Return Me._labelsMap
+                Return _labelsMap
             End Get
         End Property
 
@@ -99,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function LookupLabelByNameToken(labelName As SyntaxToken) As LabelSymbol
             Dim name As String = labelName.ValueText
 
-            For Each labelSymbol As LabelSymbol In Me.LabelsMap(name)
+            For Each labelSymbol As LabelSymbol In LabelsMap(name)
                 If labelSymbol.LabelName = labelName Then
                     Return labelSymbol
                 End If
@@ -117,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(lookupResult.IsClear)
 
             If (options And LookupOptions.LabelsOnly) = LookupOptions.LabelsOnly AndAlso LabelsMap IsNot Nothing Then
-                Dim labels = Me.LabelsMap(name)
+                Dim labels = LabelsMap(name)
 
                 Select Case labels.Count
                     Case 0
@@ -134,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For Each symbol In labels
                             Debug.Assert(symbol.Locations.Length = 1)
                             Dim sourceLocation As Location = symbol.Locations(0)
-                            If bestSymbol Is Nothing OrElse Me.Compilation.CompareSourceLocations(bestLocation, sourceLocation) > 0 Then
+                            If bestSymbol Is Nothing OrElse Compilation.CompareSourceLocations(bestLocation, sourceLocation) > 0 Then
                                 bestSymbol = symbol
                                 bestLocation = sourceLocation
                             End If
@@ -249,9 +243,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _binder As Binder
 
             Public Sub New(labels As ArrayBuilder(Of SourceLabelSymbol), containingMethod As MethodSymbol, binder As Binder)
-                Me._labels = labels
-                Me._containingMethod = containingMethod
-                Me._binder = binder
+                _labels = labels
+                _containingMethod = containingMethod
+                _binder = binder
             End Sub
 
             Public Overrides Sub VisitLabelStatement(node As LabelStatementSyntax)

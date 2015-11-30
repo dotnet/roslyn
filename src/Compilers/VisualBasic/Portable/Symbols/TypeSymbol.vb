@@ -1,13 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -150,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result = AllInterfacesNoUseSiteDiagnostics
 
             ' Since bases affect content of AllInterfaces set, we need to make sure they all are good.
-            Me.AddUseSiteDiagnosticsForBaseDefinitions(useSiteDiagnostics)
+            AddUseSiteDiagnosticsForBaseDefinitions(useSiteDiagnostics)
 
             For Each iface In result
                 iface.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
@@ -207,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend ReadOnly Property InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics As ImmutableHashSet(Of NamedTypeSymbol)
             Get
                 If _lazyInterfacesAndTheirBaseInterfaces Is Nothing Then
-                    Interlocked.CompareExchange(_lazyInterfacesAndTheirBaseInterfaces, MakeInterfacesAndTheirBaseInterfaces(Me.InterfacesNoUseSiteDiagnostics), Nothing)
+                    Interlocked.CompareExchange(_lazyInterfacesAndTheirBaseInterfaces, MakeInterfacesAndTheirBaseInterfaces(InterfacesNoUseSiteDiagnostics), Nothing)
                 End If
 
                 Return _lazyInterfacesAndTheirBaseInterfaces
@@ -219,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' AllInterfaces for its implementation, so it will pick up all changes to MakeAllInterfaces
         ' indirectly.
         Private Shared Function MakeInterfacesAndTheirBaseInterfaces(declaredInterfaces As ImmutableArray(Of NamedTypeSymbol)) As ImmutableHashSet(Of NamedTypeSymbol)
-            Dim resultBuilder = New HashSet(Of NamedTypeSymbol)()
+            Dim resultBuilder As New HashSet(Of NamedTypeSymbol)()
             For Each [interface] In declaredInterfaces
                 If Not resultBuilder.Contains([interface]) Then
                     resultBuilder.Add([interface])
@@ -317,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim namedType As NamedTypeSymbol = Nothing
 
-            If Me.Kind <> SymbolKind.ErrorType Then
+            If Kind <> SymbolKind.ErrorType Then
                 Dim typeMembers As ImmutableArray(Of NamedTypeSymbol)
 
                 If emittedTypeName.IsMangled Then
@@ -325,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If emittedTypeName.ForcedArity = -1 OrElse emittedTypeName.ForcedArity = emittedTypeName.InferredArity Then
                         ' Let's handle mangling case first.
-                        typeMembers = Me.GetTypeMembers(emittedTypeName.UnmangledTypeName)
+                        typeMembers = GetTypeMembers(emittedTypeName.UnmangledTypeName)
 
                         For Each named In typeMembers
                             If emittedTypeName.InferredArity = named.Arity AndAlso named.MangleName AndAlso String.Equals(named.Name, emittedTypeName.UnmangledTypeName, StringComparison.Ordinal) Then
@@ -359,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
 
-                typeMembers = Me.GetTypeMembers(emittedTypeName.TypeName)
+                typeMembers = GetTypeMembers(emittedTypeName.TypeName)
 
                 For Each named In typeMembers
                     ' If the name of the type must include generic mangling, it cannot be our match.
@@ -430,31 +427,31 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_AllInterfaces As ImmutableArray(Of INamedTypeSymbol) Implements ITypeSymbol.AllInterfaces
             Get
-                Return StaticCast(Of INamedTypeSymbol).From(Me.AllInterfacesNoUseSiteDiagnostics)
+                Return StaticCast(Of INamedTypeSymbol).From(AllInterfacesNoUseSiteDiagnostics)
             End Get
         End Property
 
         Private ReadOnly Property ITypeSymbol_BaseType As INamedTypeSymbol Implements ITypeSymbol.BaseType
             Get
-                Return Me.BaseTypeNoUseSiteDiagnostics
+                Return BaseTypeNoUseSiteDiagnostics
             End Get
         End Property
 
         Private ReadOnly Property ITypeSymbol_Interfaces As ImmutableArray(Of INamedTypeSymbol) Implements ITypeSymbol.Interfaces
             Get
-                Return StaticCast(Of INamedTypeSymbol).From(Me.InterfacesNoUseSiteDiagnostics)
+                Return StaticCast(Of INamedTypeSymbol).From(InterfacesNoUseSiteDiagnostics)
             End Get
         End Property
 
         Private ReadOnly Property ITypeSymbol_OriginalDefinition As ITypeSymbol Implements ITypeSymbol.OriginalDefinition
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
         Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
             Get
-                Return Me.TypeKind.ToCommon()
+                Return TypeKind.ToCommon()
             End Get
         End Property
 
@@ -479,7 +476,7 @@ Done:
             End If
 
             If Not interfaceMember.ContainingType.IsInterfaceType() OrElse
-                Not Me.ImplementsInterface(interfaceMember.ContainingType, Nothing) Then
+                Not ImplementsInterface(interfaceMember.ContainingType, Nothing) Then
                 Return Nothing
             End If
 
@@ -541,7 +538,7 @@ Done:
         ' Does NOT look into base types for implementations.
         Friend Function GetExplicitImplementationForInterfaceMember(Of T As Symbol)(interfaceMethod As T) As T
             Dim implementingMethod As Symbol = Nothing
-            Me.ExplicitInterfaceImplementationMap.TryGetValue(interfaceMethod, implementingMethod)
+            ExplicitInterfaceImplementationMap.TryGetValue(interfaceMethod, implementingMethod)
 
             Return DirectCast(implementingMethod, T)
         End Function
@@ -553,7 +550,7 @@ Done:
         Friend Overridable ReadOnly Property ExplicitInterfaceImplementationMap As Dictionary(Of Symbol, Symbol)
             Get
                 If m_lazyExplicitInterfaceImplementationMap Is Nothing Then
-                    Interlocked.CompareExchange(Me.m_lazyExplicitInterfaceImplementationMap, MakeExplicitInterfaceImplementationMap(), Nothing)
+                    Interlocked.CompareExchange(m_lazyExplicitInterfaceImplementationMap, MakeExplicitInterfaceImplementationMap(), Nothing)
                 End If
 
                 Return m_lazyExplicitInterfaceImplementationMap
@@ -566,9 +563,9 @@ Done:
         ' Build the explicit interface map for this type. 
         ' This implementation is not used by source symbols, which additionally diagnose errors.
         Private Function MakeExplicitInterfaceImplementationMap() As Dictionary(Of Symbol, Symbol)
-            If Me.IsClassType() OrElse Me.IsStructureType() Then
+            If IsClassType() OrElse IsStructureType() Then
                 Dim map = New Dictionary(Of Symbol, Symbol)()
-                For Each implementingMember In Me.GetMembersUnordered()
+                For Each implementingMember In GetMembersUnordered()
                     For Each interfaceMember In GetExplicitInterfaceImplementations(implementingMember)
                         If Not map.ContainsKey(interfaceMember) Then
                             map.Add(interfaceMember, implementingMember) ' use first implementation found, even though duplicate is an error it could happen.

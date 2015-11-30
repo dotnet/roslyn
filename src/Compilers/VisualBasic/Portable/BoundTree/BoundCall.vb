@@ -1,9 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundCall
@@ -25,14 +23,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
-                Return Me.Method
+                Return Method
             End Get
         End Property
 
 #If DEBUG Then
         Private Sub Validate()
             ' if method group is specified it should not have receiver if it was moved to a bound call
-            Debug.Assert(Me.ReceiverOpt Is Nothing OrElse Me.MethodGroupOpt Is Nothing OrElse Me.MethodGroupOpt.ReceiverOpt Is Nothing)
+            Debug.Assert(ReceiverOpt Is Nothing OrElse MethodGroupOpt Is Nothing OrElse MethodGroupOpt.ReceiverOpt Is Nothing)
 
             ValidateConstantValue()
 

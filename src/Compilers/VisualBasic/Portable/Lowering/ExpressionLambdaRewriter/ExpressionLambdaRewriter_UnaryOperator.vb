@@ -1,17 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Runtime.InteropServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class ExpressionLambdaRewriter
@@ -42,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim method As MethodSymbol = GetHelperForObjectUnaryOperation(opKind)
-                    Return If(method Is Nothing, argument, ConvertRuntimeHelperToExpressionTree("UnaryPlus", argument, Me._factory.MethodInfo(method)))
+                    Return If(method Is Nothing, argument, ConvertRuntimeHelperToExpressionTree("UnaryPlus", argument, _factory.MethodInfo(method)))
 
                 Case UnaryOperatorKind.Minus
                     helperName = If(isChecked, "NegateChecked", "Negate")
@@ -62,7 +52,7 @@ lNotAndMinus:
                     End If
 
                     If method IsNot Nothing Then
-                        Return ConvertRuntimeHelperToExpressionTree(helperName, argument, Me._factory.MethodInfo(method))
+                        Return ConvertRuntimeHelperToExpressionTree(helperName, argument, _factory.MethodInfo(method))
                     End If
 
                     ' No standard method
@@ -83,7 +73,7 @@ lNotAndMinus:
 
                     ' convert i4 back to i1, u1 
                     If needToCastBackToByteOrSByte Then
-                        result = Convert(result, If(origArgTypeIsNullable, Me._factory.NullableOf(origArgUnderlyingType), origArgUnderlyingType), isChecked)
+                        result = Convert(result, If(origArgTypeIsNullable, _factory.NullableOf(origArgUnderlyingType), origArgUnderlyingType), isChecked)
                     End If
 
                     ' back to nullable
@@ -122,7 +112,7 @@ lNotAndMinus:
                     Dim paramSymbol As ParameterSymbol = CreateCoalesceLambdaParameterSymbol(udoOperandType)
                     Dim lambdaBody As BoundExpression = BuildLambdaBodyForCoalesce(userDefinedOperator.OperatorKind, [call], node.Type, paramSymbol)
                     Dim coalesceLambda As BoundExpression = BuildLambdaForCoalesceCall(node.Type, paramSymbol, lambdaBody)
-                    Return ConvertRuntimeHelperToExpressionTree("Coalesce", Visit(userDefinedOperator.Operand), Visit(Me._factory.Literal(False)), coalesceLambda)
+                    Return ConvertRuntimeHelperToExpressionTree("Coalesce", Visit(userDefinedOperator.Operand), Visit(_factory.Literal(False)), coalesceLambda)
             End Select
 
             If operand.Kind = BoundKind.ObjectCreationExpression Then
@@ -133,7 +123,7 @@ lNotAndMinus:
                 End If
             End If
 
-            Return ConvertRuntimeHelperToExpressionTree("Coalesce", Visit(operand), Visit(Me._factory.Literal(False)))
+            Return ConvertRuntimeHelperToExpressionTree("Coalesce", Visit(operand), Visit(_factory.Literal(False)))
         End Function
 
         Private Function BuildLambdaBodyForCoalesce(opKind As UnaryOperatorKind, [call] As BoundCall, resultType As TypeSymbol, lambdaParameter As ParameterSymbol) As BoundExpression
@@ -227,7 +217,7 @@ lNotAndMinus:
                     Throw ExceptionUtilities.UnexpectedValue(opKind)
             End Select
 
-            Return Me._factory.WellKnownMember(Of MethodSymbol)(wellKnownHelper)
+            Return _factory.WellKnownMember(Of MethodSymbol)(wellKnownHelper)
         End Function
 
         ''' <summary>

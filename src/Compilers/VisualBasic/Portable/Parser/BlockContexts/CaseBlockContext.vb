@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
 '-----------------------------------------------------------------------------
@@ -56,9 +53,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim result As VisualBasicSyntaxNode
             If BlockKind = SyntaxKind.CaseBlock Then
-                result = SyntaxFactory.CaseBlock(DirectCast(BeginStatement, CaseStatementSyntax), Me.Body())
+                result = SyntaxFactory.CaseBlock(DirectCast(BeginStatement, CaseStatementSyntax), Body())
             Else
-                result = SyntaxFactory.CaseElseBlock(DirectCast(BeginStatement, CaseStatementSyntax), Me.Body())
+                result = SyntaxFactory.CaseElseBlock(DirectCast(BeginStatement, CaseStatementSyntax), Body())
             End If
 
             FreeStatements()

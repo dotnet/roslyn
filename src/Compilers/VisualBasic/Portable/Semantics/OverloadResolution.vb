@@ -1,14 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -88,14 +83,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ByRef maxCount As Integer,
                 ByRef hasParamArray As Boolean
             )
-                maxCount = Me.ParameterCount
+                maxCount = ParameterCount
                 hasParamArray = False
                 requiredCount = -1
 
                 Dim last = maxCount - 1
 
                 For i As Integer = 0 To last Step 1
-                    Dim param As ParameterSymbol = Me.Parameters(i)
+                    Dim param As ParameterSymbol = Parameters(i)
 
                     If i = last AndAlso param.IsParamArray Then
                         hasParamArray = True
@@ -108,8 +103,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Friend Function TryGetNamedParamIndex(name As String, ByRef index As Integer) As Boolean
-                For i As Integer = 0 To Me.ParameterCount - 1 Step 1
-                    Dim param As ParameterSymbol = Me.Parameters(i)
+                For i As Integer = 0 To ParameterCount - 1 Step 1
+                    Dim param As ParameterSymbol = Parameters(i)
 
                     If IdentifierComparison.Equals(name, param.Name) Then
                         index = i
@@ -145,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub New(method As MethodSymbol)
                 Debug.Assert(method IsNot Nothing)
-                Debug.Assert(method.ReducedFrom Is Nothing OrElse Me.IsExtensionMethod)
+                Debug.Assert(method.ReducedFrom Is Nothing OrElse IsExtensionMethod)
                 m_Method = method
             End Sub
 
@@ -511,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Conversion As KeyValuePair(Of ConversionKind, MethodSymbol)
 
             Public Sub New(value As BoundExpression, conversion As KeyValuePair(Of ConversionKind, MethodSymbol))
-                Me.DefaultValue = value
+                DefaultValue = value
                 Me.Conversion = conversion
             End Sub
         End Structure
@@ -710,7 +705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Sub New(candidate As Candidate)
                 Me.Candidate = candidate
-                Me.State = CandidateAnalysisResultState.Applicable
+                State = CandidateAnalysisResultState.Applicable
             End Sub
         End Structure
 
@@ -726,15 +721,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Sub New(allResults As ImmutableArray(Of CandidateAnalysisResult), resolutionIsLateBound As Boolean,
                            remainingCandidatesRequireNarrowingConversion As Boolean,
                            asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression))
-                Me._allResults = allResults
-                Me._resolutionIsLateBound = resolutionIsLateBound
-                Me._remainingCandidatesRequireNarrowingConversion = remainingCandidatesRequireNarrowingConversion
+                _allResults = allResults
+                _resolutionIsLateBound = resolutionIsLateBound
+                _remainingCandidatesRequireNarrowingConversion = remainingCandidatesRequireNarrowingConversion
                 Me.AsyncLambdaSubToFunctionMismatch = If(asyncLambdaSubToFunctionMismatch Is Nothing,
                                                          ImmutableArray(Of BoundExpression).Empty,
                                                          asyncLambdaSubToFunctionMismatch.ToArray().AsImmutableOrNull())
 
                 If Not resolutionIsLateBound Then
-                    Me._bestResult = GetBestResult(allResults)
+                    _bestResult = GetBestResult(allResults)
                 End If
             End Sub
 

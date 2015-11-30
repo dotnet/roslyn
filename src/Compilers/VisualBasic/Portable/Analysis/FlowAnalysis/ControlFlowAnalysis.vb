@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -38,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property EntryPoints As ImmutableArray(Of SyntaxNode)
             Get
                 If _entryPoints.IsDefault Then
-                    Me._succeeded = Not Me._context.Failed
-                    Dim result = If(Me._context.Failed, ImmutableArray(Of SyntaxNode).Empty,
+                    _succeeded = Not _context.Failed
+                    Dim result = If(_context.Failed, ImmutableArray(Of SyntaxNode).Empty,
                                     DirectCast(EntryPointsWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo, _succeeded), IEnumerable(Of SyntaxNode)).ToImmutableArray())
                     ImmutableInterlocked.InterlockedCompareExchange(_entryPoints, result, Nothing)
                 End If
@@ -53,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ExitPoints As ImmutableArray(Of SyntaxNode)
             Get
                 If _exitPoints.IsDefault Then
-                    Dim result = If(Me._context.Failed, ImmutableArray(Of SyntaxNode).Empty,
+                    Dim result = If(_context.Failed, ImmutableArray(Of SyntaxNode).Empty,
                                     DirectCast(ExitPointsWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo), IEnumerable(Of SyntaxNode)).ToImmutableArray())
                     ImmutableInterlocked.InterlockedCompareExchange(_exitPoints, result, Nothing)
                 End If
@@ -87,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim startPointIsReachable As Boolean = False
             Dim endPointIsReachable As Boolean = False
 
-            If Me._context.Failed Then
+            If _context.Failed Then
                 startPointIsReachable = True
                 endPointIsReachable = True
             Else
@@ -115,11 +110,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public NotOverridable Overrides ReadOnly Property Succeeded As Boolean
             Get
-                If Me._succeeded Is Nothing Then
+                If _succeeded Is Nothing Then
                     Dim discarded = EntryPoints
                 End If
 
-                Return Me._succeeded.Value
+                Return _succeeded.Value
             End Get
         End Property
 

@@ -1,7 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -42,10 +41,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Sub MakeBinder(node As VisualBasicSyntaxNode, containingBinder As Binder)
-            Dim oldContainingBinder As Binder = Me._containingBinder
-            Me._containingBinder = containingBinder
+            Dim oldContainingBinder As Binder = _containingBinder
+            _containingBinder = containingBinder
             MyBase.Visit(node)
-            Me._containingBinder = oldContainingBinder
+            _containingBinder = oldContainingBinder
         End Sub
 
         Public ReadOnly Property NodeToBinderMap As ImmutableDictionary(Of VisualBasicSyntaxNode, BlockBaseBinder)

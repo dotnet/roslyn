@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return OriginalDefinition.ReceiverType
                 End If
 
-                Return Me.ContainingType
+                Return ContainingType
             End Get
         End Property
 
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Return Me.OriginalDefinition.ObsoleteAttributeData
+                Return OriginalDefinition.ObsoleteAttributeData
             End Get
         End Property
 
@@ -293,13 +293,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return OriginalDefinition.ReturnType.InternalSubstituteTypeParameters(Me.TypeSubstitution).Type
+                Return OriginalDefinition.ReturnType.InternalSubstituteTypeParameters(TypeSubstitution).Type
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me.TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.ReturnType, OriginalDefinition.ReturnTypeCustomModifiers)
+                Return TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.ReturnType, OriginalDefinition.ReturnTypeCustomModifiers)
             End Get
         End Property
 
@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
                 Return ImplementsHelper.SubstituteExplicitInterfaceImplementations(OriginalDefinition.ExplicitInterfaceImplementations,
-                                                                                   Me.TypeSubstitution)
+                                                                                   TypeSubstitution)
             End Get
         End Property
 
@@ -335,9 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 meParameter = Nothing
                 Return False
             End If
-            meParameter = If(originalMeParameter IsNot Nothing,
-                New MeParameterSymbol(Me),
-                Nothing)
+            meParameter = If(originalMeParameter IsNot Nothing, New MeParameterSymbol(Me), Nothing)
             Return True
         End Function
 
@@ -421,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Function SetAssociatedPropertyOrEvent(propertyOrEventSymbol As Symbol) As Boolean
             If _propertyOrEventSymbolOpt Is Nothing Then
-                Debug.Assert(propertyOrEventSymbol.ContainingType = Me.ContainingType)
+                Debug.Assert(propertyOrEventSymbol.ContainingType = ContainingType)
 
                 ' No locking required since SetAssociatedProperty will only be called by the
                 ' thread that created the method symbol (and will be called before the method
@@ -821,13 +819,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property ConstructedFrom As MethodSymbol
                 Get
-                    Return Me.OriginalDefinition
+                    Return OriginalDefinition
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return Me.OriginalDefinition.ContainingSymbol
+                    Return OriginalDefinition.ContainingSymbol
                 End Get
             End Property
 
@@ -839,25 +837,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
                 Get
-                    Return Me.OriginalDefinition.TypeParameters
+                    Return OriginalDefinition.TypeParameters
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property CallsiteReducedFromMethod As MethodSymbol
                 Get
-                    Dim reducedDef As MethodSymbol = Me.ReducedFrom
+                    Dim reducedDef As MethodSymbol = ReducedFrom
 
                     If reducedDef Is Nothing Then
                         Return Nothing
                     End If
 
-                    If Me.Arity = reducedDef.Arity Then
+                    If Arity = reducedDef.Arity Then
                         Return reducedDef.Construct(Me.TypeArguments)
                     End If
 
                     Dim resultTypeArguments(reducedDef.Arity - 1) As TypeSymbol
 
-                    For Each pair As KeyValuePair(Of TypeParameterSymbol, TypeSymbol) In Me.FixedTypeParameters
+                    For Each pair As KeyValuePair(Of TypeParameterSymbol, TypeSymbol) In FixedTypeParameters
                         resultTypeArguments(pair.Key.Ordinal) = pair.Value
                     Next
 

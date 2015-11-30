@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -40,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Create the ParamArrayAttribute
             If IsParamArray AndAlso Not HasParamArrayAttribute Then
-                Dim compilation = Me.DeclaringCompilation
+                Dim compilation = DeclaringCompilation
                 AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_ParamArrayAttribute__ctor))
             End If
@@ -49,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If HasExplicitDefaultValue AndAlso Not HasDefaultValueAttribute Then
                 ' Synthesize DateTimeConstantAttribute or DecimalConstantAttribute when the default
                 ' value is either DateTime or Decimal and there is not an explicit custom attribute.
-                Dim compilation = Me.DeclaringCompilation
+                Dim compilation = DeclaringCompilation
                 Dim defaultValue = ExplicitDefaultConstantValue
 
                 Select Case defaultValue.SpecialType

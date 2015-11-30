@@ -1,10 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -33,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(lowestBound As BoundNode,
                        highestBound As BoundNode,
                        lowestBoundOfSyntacticParent As BoundNode)
-            Me.LowestBoundNode = lowestBound
-            Me.HighestBoundNode = highestBound
-            Me.LowestBoundNodeOfSyntacticParent = lowestBoundOfSyntacticParent
+            LowestBoundNode = lowestBound
+            HighestBoundNode = highestBound
+            LowestBoundNodeOfSyntacticParent = lowestBoundOfSyntacticParent
         End Sub
     End Structure
 End Namespace

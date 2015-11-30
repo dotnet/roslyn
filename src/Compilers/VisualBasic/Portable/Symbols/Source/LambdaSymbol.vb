@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -338,16 +337,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim symbol = TryCast(obj, LambdaSymbol)
 
             Return symbol IsNot Nothing AndAlso
-                symbol._syntaxNode Is Me._syntaxNode AndAlso
-                Equals(symbol.ContainingSymbol, Me.ContainingSymbol) AndAlso
+                symbol._syntaxNode Is _syntaxNode AndAlso
+                Equals(symbol.ContainingSymbol, ContainingSymbol) AndAlso
                 MethodSignatureComparer.AllAspectsSignatureComparer.Equals(symbol, Me)
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Dim hc As Integer = Hash.Combine(Me.Syntax.GetHashCode(), Me._parameters.Length)
-            hc = Hash.Combine(hc, Me.ReturnType.GetHashCode())
-            For i = 0 To Me._parameters.Length - 1
-                hc = Hash.Combine(hc, Me._parameters(i).Type.GetHashCode())
+            Dim hc As Integer = Hash.Combine(Syntax.GetHashCode(), _parameters.Length)
+            hc = Hash.Combine(hc, ReturnType.GetHashCode())
+            For i = 0 To _parameters.Length - 1
+                hc = Hash.Combine(hc, _parameters(i).Type.GetHashCode())
             Next
             Return hc
         End Function

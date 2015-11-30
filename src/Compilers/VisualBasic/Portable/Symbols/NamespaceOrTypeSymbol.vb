@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -274,23 +269,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #Region "INamespaceOrTypeSymbol"
 
         Private Function INamespaceOrTypeSymbol_GetMembers() As ImmutableArray(Of ISymbol) Implements INamespaceOrTypeSymbol.GetMembers
-            Return StaticCast(Of ISymbol).From(Me.GetMembers())
+            Return StaticCast(Of ISymbol).From(GetMembers())
         End Function
 
         Private Function INamespaceOrTypeSymbol_GetMembers(name As String) As ImmutableArray(Of ISymbol) Implements INamespaceOrTypeSymbol.GetMembers
-            Return StaticCast(Of ISymbol).From(Me.GetMembers(name))
+            Return StaticCast(Of ISymbol).From(GetMembers(name))
         End Function
 
         Private Function INamespaceOrTypeSymbol_GetTypeMembers() As ImmutableArray(Of INamedTypeSymbol) Implements INamespaceOrTypeSymbol.GetTypeMembers
-            Return StaticCast(Of INamedTypeSymbol).From(Me.GetTypeMembers())
+            Return StaticCast(Of INamedTypeSymbol).From(GetTypeMembers())
         End Function
 
         Private Function INamespaceOrTypeSymbol_GetTypeMembers(name As String) As ImmutableArray(Of INamedTypeSymbol) Implements INamespaceOrTypeSymbol.GetTypeMembers
-            Return StaticCast(Of INamedTypeSymbol).From(Me.GetTypeMembers(name))
+            Return StaticCast(Of INamedTypeSymbol).From(GetTypeMembers(name))
         End Function
 
         Public Function INamespaceOrTypeSymbol_GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of INamedTypeSymbol) Implements INamespaceOrTypeSymbol.GetTypeMembers
-            Return StaticCast(Of INamedTypeSymbol).From(Me.GetTypeMembers(name, arity))
+            Return StaticCast(Of INamedTypeSymbol).From(GetTypeMembers(name, arity))
         End Function
 
 #End Region

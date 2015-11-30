@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -23,13 +19,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim type As TypeSymbol = rewrittenExpression.Type
             Dim statementSyntax = DirectCast(node.Syntax, WithBlockSyntax).WithStatement
 
-            Dim doNotUseByRefLocal = Me._currentMethodOrLambda.IsIterator OrElse
-                                    Me._currentMethodOrLambda.IsAsync OrElse
+            Dim doNotUseByRefLocal = _currentMethodOrLambda.IsIterator OrElse
+                                    _currentMethodOrLambda.IsAsync OrElse
                                     node.Binder.ExpressionIsAccessedFromNestedLambda
 
             ' What the placeholder should be replaced with
             Dim result As WithExpressionRewriter.Result =
-                (New WithExpressionRewriter(statementSyntax)).AnalyzeWithExpression(Me._currentMethodOrLambda,
+                (New WithExpressionRewriter(statementSyntax)).AnalyzeWithExpression(_currentMethodOrLambda,
                                                              rewrittenExpression,
                                                              doNotUseByRefLocal,
                                                              Nothing)

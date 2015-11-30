@@ -1,16 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports System.Globalization
 Imports System.Threading
 
@@ -79,13 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             _underlyingModule = underlyingModule
             RetargetingTranslator = New RetargetingSymbolTranslator(Me)
 
-            Me._createRetargetingMethod = AddressOf CreateRetargetingMethod
-            Me._createRetargetingNamespace = AddressOf CreateRetargetingNamespace
-            Me._createRetargetingNamedType = AddressOf CreateRetargetingNamedType
-            Me._createRetargetingField = AddressOf CreateRetargetingField
-            Me._createRetargetingTypeParameter = AddressOf CreateRetargetingTypeParameter
-            Me._createRetargetingProperty = AddressOf CreateRetargetingProperty
-            Me._createRetargetingEvent = AddressOf CreateRetargetingEvent
+            _createRetargetingMethod = AddressOf CreateRetargetingMethod
+            _createRetargetingNamespace = AddressOf CreateRetargetingNamespace
+            _createRetargetingNamedType = AddressOf CreateRetargetingNamedType
+            _createRetargetingField = AddressOf CreateRetargetingField
+            _createRetargetingTypeParameter = AddressOf CreateRetargetingTypeParameter
+            _createRetargetingProperty = AddressOf CreateRetargetingProperty
+            _createRetargetingEvent = AddressOf CreateRetargetingEvent
         End Sub
 
         Friend Overrides ReadOnly Property Ordinal As Integer

@@ -1,13 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Threading
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -22,26 +14,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim expression As BoundExpression = rewritten.ExpressionOpt
 
                 If expression IsNot Nothing Then
-                    Debug.Assert(Me._asyncMethodKind = AsyncMethodKind.GenericTaskFunction)
+                    Debug.Assert(_asyncMethodKind = AsyncMethodKind.GenericTaskFunction)
 
                     If expression.Kind = BoundKind.SpillSequence Then
                         Dim spill = DirectCast(expression, BoundSpillSequence)
                         Debug.Assert(spill.ValueOpt IsNot Nothing)
-                        Return Me.F.Block(
+                        Return F.Block(
                                     RewriteSpillSequenceIntoBlock(
                                         spill,
                                         False,
-                                        Me.F.Assignment(Me.F.Local(Me._exprRetValue, True), spill.ValueOpt)),
-                                    Me.F.Goto(Me._exprReturnLabel))
+                                        F.Assignment(F.Local(_exprRetValue, True), spill.ValueOpt)),
+                                    F.Goto(_exprReturnLabel))
                     Else
-                        Return Me.F.Block(
-                                    Me.F.Assignment(
-                                        Me.F.Local(Me._exprRetValue, True), expression),
-                                    Me.F.Goto(Me._exprReturnLabel))
+                        Return F.Block(
+                                    F.Assignment(
+                                        F.Local(_exprRetValue, True), expression),
+                                    F.Goto(_exprReturnLabel))
                     End If
                 End If
 
-                Return F.Goto(Me._exprReturnLabel)
+                Return F.Goto(_exprReturnLabel)
             End Function
 
             Public Overrides Function VisitExpressionStatement(node As BoundExpressionStatement) As BoundNode

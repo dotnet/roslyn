@@ -1,12 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -16,14 +10,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements ILabelSymbol
 
         Public Sub New(name As String)
-            Me._name = name
+            _name = name
         End Sub
 
         Private ReadOnly _name As String
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me._name
+                Return _name
             End Get
         End Property
 

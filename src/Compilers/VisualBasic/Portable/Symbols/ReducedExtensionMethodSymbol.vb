@@ -1,11 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -272,8 +269,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _curriedFromMethod
                 End If
 
-                If _curriedFromMethod.Arity = Me.Arity Then
-                    Return New SubstitutedMethodSymbol.ConstructedNotSpecializedGenericMethod(_curryTypeSubstitution, Me.TypeArguments)
+                If _curriedFromMethod.Arity = Arity Then
+                    Return New SubstitutedMethodSymbol.ConstructedNotSpecializedGenericMethod(_curryTypeSubstitution, TypeArguments)
                 End If
 
                 Dim resultTypeArguments(_curriedFromMethod.Arity - 1) As TypeSymbol
@@ -751,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Sub
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(_ordinal.GetHashCode(), Me.ContainingSymbol.GetHashCode())
+                Return Hash.Combine(_ordinal.GetHashCode(), ContainingSymbol.GetHashCode())
             End Function
 
             Public Overrides Function Equals(obj As Object) As Boolean
@@ -762,7 +759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim other = TryCast(obj, ReducedTypeParameterSymbol)
 
-                Return other IsNot Nothing AndAlso Me._ordinal = other._ordinal AndAlso Me.ContainingSymbol.Equals(other.ContainingSymbol)
+                Return other IsNot Nothing AndAlso _ordinal = other._ordinal AndAlso ContainingSymbol.Equals(other.ContainingSymbol)
             End Function
 
         End Class

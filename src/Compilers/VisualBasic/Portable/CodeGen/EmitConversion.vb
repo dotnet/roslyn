@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Debug.Assert(Not (typeFrom.IsFloatingPoint() AndAlso typeTo.IsIntegral() AndAlso
                               Not (conversion.Operand.Kind = BoundKind.Call AndAlso
                                    DirectCast(conversion.Operand, BoundCall).Method.Equals(
-                                       Me._module.SourceModule.ContainingSourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble)))),
+                                       _module.SourceModule.ContainingSourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble)))),
                          "About to ignore VB rules for rounding float numbers.")
 
             _builder.EmitNumericConversion(typeFrom, typeTo, checked)

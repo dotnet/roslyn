@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -13,12 +12,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _factory As BinderFactory
 
             Public Sub New(factory As BinderFactory)
-                Me._factory = factory
+                _factory = factory
             End Sub
 
             Friend WriteOnly Property Position As Integer
                 Set(value As Integer)
-                    Me._position = value
+                    _position = value
                 End Set
             End Property
 

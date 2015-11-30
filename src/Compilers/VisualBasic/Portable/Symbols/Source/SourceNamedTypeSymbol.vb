@@ -1,15 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -74,9 +71,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' check if this is one of the COR library types
             If containingSymbol.Kind = SymbolKind.Namespace AndAlso
                containingSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes AndAlso
-               Me.DeclaredAccessibility = Accessibility.Public Then
+               DeclaredAccessibility = Accessibility.Public Then
 
-                Dim emittedName As String = If(Me.GetEmittedNamespaceName(), Me.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
+                Dim emittedName As String = If(GetEmittedNamespaceName(), ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
 
                 Debug.Assert((Arity <> 0) = MangleName)
                 emittedName = MetadataHelpers.BuildQualifiedName(emittedName, MetadataName)
@@ -144,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' for cases where constraint checking may result in a recursive binding attempt.
         Private Function CreateLocationSpecificBinderForType(tree As SyntaxTree, location As BindingLocation) As Binder
             Debug.Assert(location <> BindingLocation.None)
-            Dim binder As binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
+            Dim binder As Binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
             Return New LocationSpecificBinder(location, binder)
         End Function
 #End Region
@@ -164,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim node = syntaxRef.GetVisualBasicSyntax()
 
                 ' Set up a binder for this part of the type.
-                Dim binder As binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, syntaxRef.SyntaxTree, Me)
+                Dim binder As Binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, syntaxRef.SyntaxTree, Me)
 
                 ' Script and implicit classes are syntactically represented by CompilationUnitSyntax or NamespaceBlockSyntax nodes.
                 Dim staticInitializers As ArrayBuilder(Of FieldOrPropertyInitializer) = Nothing
@@ -290,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            If Me.IsNotInheritable Then
+            If IsNotInheritable Then
 
                 ' 'MustInherit' cannot be specified for partial type '|1' because it cannot be combined with 'NotInheritable'
                 '  specified for one of its other partial types.
@@ -325,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         If (foundModifiers And DeclarationModifiers.InvalidInInterface) <> 0 Then
                             Dim err As ERRID = ERRID.ERR_None
 
-                            Select Case Me.DeclarationKind
+                            Select Case DeclarationKind
                                 Case VisualBasic.Symbols.DeclarationKind.Class
                                     err = ERRID.ERR_BadInterfaceClassSpecifier1
                                 Case VisualBasic.Symbols.DeclarationKind.Delegate
@@ -466,20 +463,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             binder.DisallowTypeCharacter(id, diagBag)
 
-            Dim _6thArg As Object = Me.ContainingSymbol.ToErrorMessageArgument()
+            Dim _6thArg As Object = ContainingSymbol.ToErrorMessageArgument()
 
-            Dim thisTypeIsEmbedded As Boolean = Me.IsEmbedded
+            Dim thisTypeIsEmbedded As Boolean = IsEmbedded
 
             ' Check name for duplicate type declarations in this container
-            Dim container = TryCast(Me.ContainingSymbol, NamespaceOrTypeSymbol)
+            Dim container = TryCast(ContainingSymbol, NamespaceOrTypeSymbol)
             If container IsNot Nothing Then
 
                 ' Get all type or namespace symbols with this name. 
                 Dim symbols As ImmutableArray(Of Symbol)
                 If container.IsNamespace Then
-                    symbols = container.GetMembers(Me.Name)
+                    symbols = container.GetMembers(Name)
                 Else
-                    symbols = StaticCast(Of Symbol).From(container.GetTypeMembers(Me.Name))
+                    symbols = StaticCast(Of Symbol).From(container.GetTypeMembers(Name))
                 End If
 
                 Dim arity As Integer = Me.Arity
@@ -518,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             ' This non-embedded type conflicts with an embedded type or namespace
                             Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_TypeClashesWithVbCoreType4,
-                                                    Me.GetKindText(), id.ToString, _3rdArg, s.Name)
+                                                    GetKindText(), id.ToString, _3rdArg, s.Name)
 
                         ElseIf thisTypeIsEmbedded Then
                             ' Embedded type conflicts with non-embedded type or namespace.
@@ -531,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 For Each location In s.Locations
                                     If location.IsInSource AndAlso Not DirectCast(location.SourceTree, VisualBasicSyntaxTree).IsEmbeddedSyntaxTree Then
                                         Binder.ReportDiagnostic(diagBag, location, ERRID.ERR_TypeClashesWithVbCoreType4,
-                                                                _3rdArg, s.Name, Me.GetKindText(), id.ToString)
+                                                                _3rdArg, s.Name, GetKindText(), id.ToString)
                                         errorReported = True
                                         Exit For
                                     End If
@@ -545,12 +542,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         Else
                             ' Neither of types is embedded.
-                            If (Me.ContainingType Is Nothing OrElse
+                            If (ContainingType Is Nothing OrElse
                                     container.Locations.Length = 1 OrElse
                                     Not (TypeOf container Is SourceMemberContainerTypeSymbol) OrElse
                                     CType(container, SourceMemberContainerTypeSymbol).IsPartial) Then
                                 Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_TypeConflict6,
-                                                        Me.GetKindText(), id.ToString, _3rdArg, s.Name,
+                                                        GetKindText(), id.ToString, _3rdArg, s.Name,
                                                         container.GetKindText(), _6thArg)
                             End If
 
@@ -561,13 +558,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 Next
 
-                If Not nodeNameIsAlreadyDeclared AndAlso container.IsNamespace AndAlso Me.ContainingAssembly.Modules.Length > 1 Then
+                If Not nodeNameIsAlreadyDeclared AndAlso container.IsNamespace AndAlso ContainingAssembly.Modules.Length > 1 Then
                     ' Check for collision with types from added modules
                     Dim containingNamespace = DirectCast(container, NamespaceSymbol)
-                    Dim mergedAssemblyNamespace = TryCast(Me.ContainingAssembly.GetAssemblyNamespace(containingNamespace), MergedNamespaceSymbol)
+                    Dim mergedAssemblyNamespace = TryCast(ContainingAssembly.GetAssemblyNamespace(containingNamespace), MergedNamespaceSymbol)
 
                     If mergedAssemblyNamespace IsNot Nothing Then
-                        Dim targetQualifiedNamespaceName As String = If(Me.GetEmittedNamespaceName(),
+                        Dim targetQualifiedNamespaceName As String = If(GetEmittedNamespaceName(),
                                                                         containingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
 
                         Dim collision As NamedTypeSymbol = Nothing
@@ -581,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 Continue For
                             End If
 
-                            Dim contenders As ImmutableArray(Of NamedTypeSymbol) = constituent.GetTypeMembers(Me.Name, arity)
+                            Dim contenders As ImmutableArray(Of NamedTypeSymbol) = constituent.GetTypeMembers(Name, arity)
 
                             If contenders.Length = 0 Then
                                 Continue For
@@ -590,11 +587,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Dim constituentQualifiedName As String = constituent.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)
 
                             For Each namedType In contenders
-                                If namedType.DeclaredAccessibility = Accessibility.Public AndAlso namedType.MangleName = Me.MangleName Then
+                                If namedType.DeclaredAccessibility = Accessibility.Public AndAlso namedType.MangleName = MangleName Then
                                     ' Because namespaces are merged case-insensitively,
                                     ' we need to make sure that we have a match for
                                     ' full emitted name of the type.
-                                    If String.Equals(Me.Name, namedType.Name, StringComparison.Ordinal) AndAlso
+                                    If String.Equals(Name, namedType.Name, StringComparison.Ordinal) AndAlso
                                        String.Equals(targetQualifiedNamespaceName, If(namedType.GetEmittedNamespaceName(), constituentQualifiedName), StringComparison.Ordinal) Then
                                         collision = namedType
                                         Exit For
@@ -612,9 +609,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Check name against type parameters of immediate container
             Dim containingSourceType = TryCast(container, SourceNamedTypeSymbol)
-            If containingSourceType IsNot Nothing AndAlso containingSourceType.TypeParameters.MatchesAnyName(Me.Name) Then
+            If containingSourceType IsNot Nothing AndAlso containingSourceType.TypeParameters.MatchesAnyName(Name) Then
                 ' "'|1' has the same name as a type parameter."
-                Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ShadowingGenericParamWithMember1, Me.Name)
+                Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ShadowingGenericParamWithMember1, Name)
             End If
 
             ' Check the source symbol type parameters for duplicates and shadowing
@@ -666,16 +663,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' VB allows one class declaration with partial and one declaration without partial because designer generated code
                 ' may not have specified partial. This allows user-code to force it. However, VB does not allow more than one declaration
                 ' to not have partial as this would (erroneously) make what would have been a error (duplicate declarations) compile.
-                Dim _6thArg As Object = Me.ContainingSymbol.ToErrorMessageArgument()
+                Dim _6thArg As Object = ContainingSymbol.ToErrorMessageArgument()
 
                 Dim identifier As String = GetTypeIdentifierToken(firstNode).ToString
 
-                Dim nodeKindText = Me.GetKindText()
+                Dim nodeKindText = GetKindText()
 
                 Binder.ReportDiagnostic(diagBag, id, If(foundPartial, ERRID.WRN_TypeConflictButMerged6, ERRID.ERR_TypeConflict6),
                                              nodeKindText, id.ToString,
                                              nodeKindText, identifier,
-                                             Me.ContainingSymbol.GetKindText(),
+                                             ContainingSymbol.GetKindText(),
                                              _6thArg)
             End If
 
@@ -689,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim valField = New SynthesizedFieldSymbol(
                         Me,
                         Me,
-                        Me.EnumUnderlyingType,
+                        EnumUnderlyingType,
                         WellKnownMemberNames.EnumBackingFieldName,
                         accessibility:=Accessibility.Public,
                         isSpecialNameAndRuntimeSpecial:=True)
@@ -752,7 +749,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public ReadOnly Property Initialized As Boolean
                 Get
-                    Return Not Me.Constraints.IsDefault
+                    Return Not Constraints.IsDefault
                 End Get
             End Property
         End Structure
@@ -810,7 +807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                          ByRef info As TypeParameterInfo,
                                                          diagBag As DiagnosticBag)
             Debug.Assert(typeParamListSyntax IsNot Nothing)
-            Debug.Assert(typeParamListSyntax.Parameters.Count = Me.Arity) ' If this is false, something is really wrong with the declaration tree.
+            Debug.Assert(typeParamListSyntax.Parameters.Count = Arity) ' If this is false, something is really wrong with the declaration tree.
 
             ' Set up a binder for this part of the type.
             Dim binder As Binder = CreateLocationSpecificBinderForType(tree, BindingLocation.GenericConstraintsClause)
@@ -1103,7 +1100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim diagInfo As DiagnosticInfo = Nothing
             Select Case baseClassType.TypeKind
                 Case TypeKind.TypeParameter
-                    Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_GenericParamBase2, "Class", Me.Name)
+                    Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_GenericParamBase2, "Class", Name)
                     Return Nothing
 
                 Case TypeKind.Interface, TypeKind.Enum, TypeKind.Delegate, TypeKind.Structure, TypeKind.Module, TypeKind.Array ' array can't really occur
@@ -1119,7 +1116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return Nothing
 
                     ElseIf DirectCast(baseClassType, NamedTypeSymbol).IsNotInheritable Then
-                        Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromCantInherit3, Me.Name, baseClassType.Name, baseClassType.GetKindText())
+                        Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InheritsFromCantInherit3, Name, baseClassType.Name, baseClassType.GetKindText())
                         Return Nothing
                     End If
             End Select
@@ -1128,7 +1125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If baseInOtherPartial IsNot Nothing Then
                 If Not baseClassType.Equals(baseInOtherPartial) Then
                     Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_BaseMismatchForPartialClass3,
-                                             baseClassType, Me.Name, baseInOtherPartial)
+                                             baseClassType, Name, baseInOtherPartial)
                     Return Nothing
                 End If
 
@@ -1178,7 +1175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' Check to make sure the base interfaces are valid.
                         Select Case typeSymbol.TypeKind
                             Case TypeKind.TypeParameter
-                                Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_GenericParamBase2, "Interface", Me.Name)
+                                Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_GenericParamBase2, "Interface", Name)
                                 Continue For
 
                             Case TypeKind.Unknown
@@ -1230,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' Check to make sure the base interfaces are valid.
                         Select Case typeSymbol.TypeKind
                             Case TypeKind.TypeParameter
-                                Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_ImplementsGenericParam, "Interface", Me.Name)
+                                Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_ImplementsGenericParam, "Interface", Name)
                                 Continue For
 
                             Case TypeKind.Unknown
@@ -1283,7 +1280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Go through all the parts of this type, and declare the information in that part, 
             ' reporting errors appropriately.
-            For Each decl In Me.TypeDeclaration.Declarations
+            For Each decl In TypeDeclaration.Declarations
                 If decl.HasBaseDeclarations Then
                     Dim syntaxRef = decl.SyntaxReference
                     MakeDeclaredBaseInPart(syntaxRef.SyntaxTree, syntaxRef.GetVisualBasicSyntax(), baseType, basesBeingResolved, diagnostics)
@@ -1354,9 +1351,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
-            Dim compilation As VisualBasicCompilation = Me.DeclaringCompilation
+            Dim compilation As VisualBasicCompilation = DeclaringCompilation
 
-            Dim declaredBase As NamedTypeSymbol = Me.GetDeclaredBase(Nothing)
+            Dim declaredBase As NamedTypeSymbol = GetDeclaredBase(Nothing)
             If declaredBase IsNot Nothing Then
                 Dim diag As DiagnosticInfo = If(m_baseCycleDiagnosticInfo, BaseTypeAnalysis.GetDependenceDiagnosticForBase(Me, declaredBase))
                 If diag IsNot Nothing Then
@@ -1373,13 +1370,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim declaredOrDefaultBase As NamedTypeSymbol = declaredBase
 
             ' Get the default base type if none was declared
-            If declaredOrDefaultBase Is Nothing AndAlso Me.SpecialType <> Microsoft.CodeAnalysis.SpecialType.System_Object Then
+            If declaredOrDefaultBase Is Nothing AndAlso SpecialType <> Microsoft.CodeAnalysis.SpecialType.System_Object Then
 
                 Select Case TypeKind
                     Case TypeKind.Submission
                         ' check that System.Object is available. 
                         ' Although the submission semantically doesn't have a base class we need to emit one.
-                        ReportUseSiteDiagnosticsForBaseType(Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Object), declaredBase, diagnostics)
+                        ReportUseSiteDiagnosticsForBaseType(DeclaringCompilation.GetSpecialType(SpecialType.System_Object), declaredBase, diagnostics)
                         declaredOrDefaultBase = Nothing
 
                     Case TypeKind.Class
@@ -1423,7 +1420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim current As NamedTypeSymbol = baseType
 
             Do
-                If current.DeclaringCompilation Is Me.DeclaringCompilation Then
+                If current.DeclaringCompilation Is DeclaringCompilation Then
                     Exit Do
                 End If
 
@@ -1453,7 +1450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim declaredInterfaces As ImmutableArray(Of NamedTypeSymbol) = GetDeclaredInterfacesNoUseSiteDiagnostics(Nothing)
 
-            Dim isInterface As Boolean = Me.IsInterfaceType()
+            Dim isInterface As Boolean = IsInterfaceType()
 
             Dim result As ArrayBuilder(Of NamedTypeSymbol) = If(isInterface, ArrayBuilder(Of NamedTypeSymbol).GetInstance(), Nothing)
 
@@ -1469,11 +1466,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Not t.IsErrorType() Then
                         Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
-                        If t.DeclaringCompilation IsNot Me.DeclaringCompilation Then
+                        If t.DeclaringCompilation IsNot DeclaringCompilation Then
                             t.AddUseSiteDiagnostics(useSiteDiagnostics)
 
                             For Each [interface] In t.AllInterfacesNoUseSiteDiagnostics
-                                If [interface].DeclaringCompilation IsNot Me.DeclaringCompilation Then
+                                If [interface].DeclaringCompilation IsNot DeclaringCompilation Then
                                     [interface].AddUseSiteDiagnostics(useSiteDiagnostics)
                                 End If
                             Next
@@ -1495,7 +1492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
-            Debug.Assert(Me.TypeKind <> TypeKind.Interface)
+            Debug.Assert(TypeKind <> TypeKind.Interface)
 
             If TypeKind = TypeKind.Enum Then
                 ' Base type has the underlying type instead.
@@ -1505,7 +1502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return GetSpecialType(SpecialType.System_MulticastDelegate)
             Else
                 If basesBeingResolved Is Nothing Then
-                    Return Me.BaseTypeNoUseSiteDiagnostics
+                    Return BaseTypeNoUseSiteDiagnostics
                 Else
                     Return GetDeclaredBaseSafe(basesBeingResolved)
                 End If
@@ -1741,11 +1738,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overrides ReadOnly Property EnumUnderlyingType As NamedTypeSymbol
             Get
-                If Not Me.IsEnumType Then
+                If Not IsEnumType Then
                     Return Nothing
                 End If
 
-                Dim underlyingType = Me._lazyEnumUnderlyingType
+                Dim underlyingType = _lazyEnumUnderlyingType
 
                 If underlyingType Is Nothing Then
                     Dim tempDiags = DiagnosticBag.GetInstance
@@ -1755,11 +1752,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim binder As Binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
                     underlyingType = BindEnumUnderlyingType(syntax, binder, tempDiags)
 
-                    If Interlocked.CompareExchange(Me._lazyEnumUnderlyingType, underlyingType, Nothing) Is Nothing Then
+                    If Interlocked.CompareExchange(_lazyEnumUnderlyingType, underlyingType, Nothing) Is Nothing Then
                         ContainingSourceModule.AddDiagnostics(tempDiags, CompilationStage.Declare)
                     Else
-                        Debug.Assert(underlyingType = Me._lazyEnumUnderlyingType)
-                        underlyingType = Me._lazyEnumUnderlyingType
+                        Debug.Assert(underlyingType = _lazyEnumUnderlyingType)
+                        underlyingType = _lazyEnumUnderlyingType
                     End If
 
                     tempDiags.Free()
@@ -1799,7 +1796,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function GetAttributeDeclarations() As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
             Dim result = TypeDeclaration.GetAttributeDeclarations()
 
-            Debug.Assert(result.Length = 0 OrElse (Not Me.IsScriptClass AndAlso Not Me.IsImplicitClass))  ' Should be handled by above test.
+            Debug.Assert(result.Length = 0 OrElse (Not IsScriptClass AndAlso Not IsImplicitClass))  ' Should be handled by above test.
 
             Return result
         End Function
@@ -1818,13 +1815,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns an empty array if there are no attributes.
         ''' </summary>
         Public NotOverridable Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me.GetAttributesBag().Attributes
+            Return GetAttributesBag().Attributes
         End Function
 
         Private Function GetDecodedWellKnownAttributeData() As CommonTypeWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.m_lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = m_lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
-                attributesBag = Me.GetAttributesBag()
+                attributesBag = GetAttributesBag()
             End If
 
             Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonTypeWellKnownAttributeData)
@@ -1848,13 +1845,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function DecodeIsExtensibleInterface() As Boolean
-            If Me.IsInterfaceType() Then
+            If IsInterfaceType() Then
                 Dim data As TypeEarlyWellKnownAttributeData = GetEarlyDecodedWellKnownAttributeData()
                 If data IsNot Nothing AndAlso data.HasAttributeForExtensibleInterface Then
                     Return True
                 End If
 
-                For Each [interface] In Me.AllInterfacesNoUseSiteDiagnostics
+                For Each [interface] In AllInterfacesNoUseSiteDiagnostics
                     If [interface].IsExtensibleInterfaceNoUseSiteDiagnostics Then
                         Return True
                     End If
@@ -1871,9 +1868,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Forces binding and decoding of attributes.
         ''' </remarks>
         Private Function GetEarlyDecodedWellKnownAttributeData() As TypeEarlyWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.m_lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = m_lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
-                attributesBag = Me.GetAttributesBag()
+                attributesBag = GetAttributesBag()
             End If
 
             Return DirectCast(attributesBag.EarlyDecodedWellKnownAttributeData, TypeEarlyWellKnownAttributeData)
@@ -1889,8 +1886,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property CoClassType As TypeSymbol
             Get
                 If _lazyCoClassType Is ErrorTypeSymbol.UnknownResultType Then
-                    If Not Me.IsInterface Then
-                        Interlocked.CompareExchange(_lazyCoClassType, Nothing, DirectCast(ErrorTypeSymbol.UnknownResultType, TypeSymbol))
+                    If Not IsInterface Then
+                        Interlocked.CompareExchange(_lazyCoClassType, Nothing, ErrorTypeSymbol.UnknownResultType)
                     Else
                         Dim dummy As CommonTypeWellKnownAttributeData = GetDecodedWellKnownAttributeData()
                         If _lazyCoClassType Is ErrorTypeSymbol.UnknownResultType Then
@@ -1903,14 +1900,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Debug.Assert(_lazyCoClassType IsNot ErrorTypeSymbol.UnknownResultType)
-                Debug.Assert(Me.IsInterface OrElse _lazyCoClassType Is Nothing)
+                Debug.Assert(IsInterface OrElse _lazyCoClassType Is Nothing)
                 Return _lazyCoClassType
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsWindowsRuntimeImport As Boolean
             Get
-                Dim typeData As CommonTypeWellKnownAttributeData = Me.GetDecodedWellKnownAttributeData()
+                Dim typeData As CommonTypeWellKnownAttributeData = GetDecodedWellKnownAttributeData()
                 Return typeData IsNot Nothing AndAlso typeData.HasWindowsRuntimeImportAttribute
             End Get
         End Property
@@ -1923,7 +1920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property HasSecurityCriticalAttributes As Boolean
             Get
-                Dim typeData As CommonTypeWellKnownAttributeData = Me.GetDecodedWellKnownAttributeData()
+                Dim typeData As CommonTypeWellKnownAttributeData = GetDecodedWellKnownAttributeData()
                 Return typeData IsNot Nothing AndAlso typeData.HasSecurityCriticalAttributes
             End Get
         End Property
@@ -2025,7 +2022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End If
 
-            If Me.IsInterfaceType() Then
+            If IsInterfaceType() Then
                 If VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.InterfaceTypeAttribute) Then
                     Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
                     If Not attrdata.HasErrors Then
@@ -2060,7 +2057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend NotOverridable Overrides Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
-            Dim data As CommonTypeEarlyWellKnownAttributeData = Me.GetEarlyDecodedWellKnownAttributeData()
+            Dim data As CommonTypeEarlyWellKnownAttributeData = GetEarlyDecodedWellKnownAttributeData()
             Return If(data IsNot Nothing, data.ConditionalSymbols, ImmutableArray(Of String).Empty)
         End Function
 
@@ -2085,26 +2082,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend NotOverridable Overrides Function GetAttributeUsageInfo() As AttributeUsageInfo
-            Debug.Assert(Me.IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, DeclaringCompilation, Nothing) OrElse Me.SpecialType = Microsoft.CodeAnalysis.SpecialType.System_Object)
+            Debug.Assert(IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, DeclaringCompilation, Nothing) OrElse SpecialType = Microsoft.CodeAnalysis.SpecialType.System_Object)
 
-            Dim data As TypeEarlyWellKnownAttributeData = Me.GetEarlyDecodedWellKnownAttributeData()
+            Dim data As TypeEarlyWellKnownAttributeData = GetEarlyDecodedWellKnownAttributeData()
             If data IsNot Nothing AndAlso Not data.AttributeUsageInfo.IsNull Then
                 Return data.AttributeUsageInfo
             Else
-                Dim baseType = Me.BaseTypeNoUseSiteDiagnostics
+                Dim baseType = BaseTypeNoUseSiteDiagnostics
                 Return If(baseType IsNot Nothing, baseType.GetAttributeUsageInfo(), AttributeUsageInfo.Default)
             End If
         End Function
 
         Friend NotOverridable Overrides ReadOnly Property HasDeclarativeSecurity As Boolean
             Get
-                Dim data As CommonTypeWellKnownAttributeData = Me.GetDecodedWellKnownAttributeData()
+                Dim data As CommonTypeWellKnownAttributeData = GetDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasDeclarativeSecurity
             End Get
         End Property
 
         Friend NotOverridable Overrides Function GetSecurityInformation() As IEnumerable(Of Microsoft.Cci.SecurityAttribute)
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me.GetAttributesBag()
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = GetAttributesBag()
             Dim wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonTypeWellKnownAttributeData)
             If wellKnownAttributeData IsNot Nothing Then
                 Dim securityData As SecurityWellKnownAttributeData = wellKnownAttributeData.SecurityInformation
@@ -2130,15 +2127,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim decoded As Boolean = False
 
-            Select Case Me.TypeKind
+            Select Case TypeKind
                 Case TypeKind.Class
                     If attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Me.Locations(0))
+                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Locations(0))
                         decoded = True
 
                     ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.VisualBasicComClassAttribute) Then
-                        If Me.IsGenericType Then
-                            arguments.Diagnostics.Add(ERRID.ERR_ComClassOnGeneric, Me.Locations(0))
+                        If IsGenericType Then
+                            arguments.Diagnostics.Add(ERRID.ERR_ComClassOnGeneric, Locations(0))
                         Else
                             Interlocked.CompareExchange(_comClassData, New ComClassData(attrData), Nothing)
                         End If
@@ -2171,7 +2168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' generate an error as if CoClassAttribute attribute was not defined on 
                         ' the interface; this behavior matches Dev11, but we should probably 
                         ' revise it later
-                        Interlocked.CompareExchange(Me._lazyCoClassType,
+                        Interlocked.CompareExchange(_lazyCoClassType,
                                                     DirectCast(argument.Value, TypeSymbol),
                                                     DirectCast(ErrorTypeSymbol.UnknownResultType, TypeSymbol))
 
@@ -2186,7 +2183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.VisualBasicComClassAttribute) Then
                         ' Can't apply ComClassAttribute to a Module
-                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidAttributeUsage2, AttributeDescription.VisualBasicComClassAttribute.Name, Me.Name), Me.Locations(0))
+                        arguments.Diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidAttributeUsage2, AttributeDescription.VisualBasicComClassAttribute.Name, Name), Locations(0))
                         decoded = True
                     End If
             End Select
@@ -2212,19 +2209,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.StructLayoutAttribute) Then
                     Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
-                    Dim defaultAutoLayoutSize = If(Me.TypeKind = TypeKind.Structure, 1, 0)
+                    Dim defaultAutoLayoutSize = If(TypeKind = TypeKind.Structure, 1, 0)
                     AttributeData.DecodeStructLayoutAttribute(Of CommonTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(
-                        arguments, Me.DefaultMarshallingCharSet, defaultAutoLayoutSize, MessageProvider.Instance)
+                        arguments, DefaultMarshallingCharSet, defaultAutoLayoutSize, MessageProvider.Instance)
 
-                    If Me.IsGenericType Then
+                    If IsGenericType Then
                         arguments.Diagnostics.Add(ERRID.ERR_StructLayoutAttributeNotAllowed, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                     End If
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
 
-                ElseIf attrData.IsSecurityAttribute(Me.DeclaringCompilation) Then
-                    attrData.DecodeSecurityAttribute(Of CommonTypeWellKnownAttributeData)(Me, Me.DeclaringCompilation, arguments)
+                ElseIf attrData.IsSecurityAttribute(DeclaringCompilation) Then
+                    attrData.DecodeSecurityAttribute(Of CommonTypeWellKnownAttributeData)(Me, DeclaringCompilation, arguments)
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ClassInterfaceAttribute) Then
                     attrData.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics)
@@ -2313,11 +2310,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Roslyn now used the more general use site errors, which also reports diagnostics if the type or the constructor
             ' is missing.
 
-            If Me.TypeKind = TypeKind.Module Then
+            If TypeKind = TypeKind.Module Then
                 Dim useSiteError As DiagnosticInfo = Nothing
 
                 Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.Microsoft_VisualBasic_CompilerServices_StandardModuleAttribute__ctor,
-                                                                 Me.DeclaringCompilation,
+                                                                 DeclaringCompilation,
                                                                  Locations(0),
                                                                  diagnostics)
             End If
@@ -2338,7 +2335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function HasInstanceFields() As Boolean
-            Dim members = Me.GetMembersUnordered()
+            Dim members = GetMembersUnordered()
             For i = 0 To members.Length - 1
                 Dim m = members(i)
                 If Not m.IsShared And m.Kind = SymbolKind.Field Then
@@ -2356,13 +2353,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return data.Layout
                 End If
 
-                If Me.TypeKind = TypeKind.Structure Then
+                If TypeKind = TypeKind.Structure Then
                     ' CLI spec 22.37.16:
                     ' "A ValueType shall have a non-zero size - either by defining at least one field, or by providing a non-zero ClassSize"
                     ' 
                     ' Dev11 compiler sets the value to 1 for structs with no fields and no size specified.
                     ' It does not change the size value if it was explicitly specified to be 0, nor does it report an error.
-                    Return New TypeLayout(LayoutKind.Sequential, If(Me.HasInstanceFields(), 0, 1), alignment:=0)
+                    Return New TypeLayout(LayoutKind.Sequential, If(HasInstanceFields(), 0, 1), alignment:=0)
                 End If
 
                 Return Nothing
@@ -2383,10 +2380,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-            Dim compilation = Me.DeclaringCompilation
+            Dim compilation = DeclaringCompilation
 
             If Not String.IsNullOrEmpty(DefaultPropertyName) AndAlso Not HasDefaultMemberAttribute() Then
                 Dim stringType = GetSpecialType(SpecialType.System_String)
@@ -2399,7 +2396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         New TypedConstant(stringType, TypedConstantKind.Primitive, DefaultPropertyName))))
             End If
 
-            If Me.TypeKind = TypeKind.Module Then
+            If TypeKind = TypeKind.Module Then
                 'TODO check that there's not a user supplied instance already. This attribute is AllowMultiple:=False.
 
                 AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
@@ -2452,13 +2449,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End Region
 
         Friend Function GetOrAddWithEventsOverride(baseProperty As PropertySymbol) As SynthesizedOverridingWithEventsProperty
-            Dim overridesDict = Me._lazyWithEventsOverrides
+            Dim overridesDict = _lazyWithEventsOverrides
             If overridesDict Is Nothing Then
-                Interlocked.CompareExchange(Me._lazyWithEventsOverrides,
+                Interlocked.CompareExchange(_lazyWithEventsOverrides,
                                             New ConcurrentDictionary(Of PropertySymbol, SynthesizedOverridingWithEventsProperty),
                                             Nothing)
 
-                overridesDict = Me._lazyWithEventsOverrides
+                overridesDict = _lazyWithEventsOverrides
             End If
 
             Dim result As SynthesizedOverridingWithEventsProperty = Nothing
@@ -2472,17 +2469,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Protected Overrides Sub AddEntryPointIfNeeded(membersBuilder As MembersAndInitializersBuilder)
-            If Me.TypeKind = TypeKind.Class AndAlso Not Me.IsGenericType Then
+            If TypeKind = TypeKind.Class AndAlso Not IsGenericType Then
                 Dim mainTypeName As String = DeclaringCompilation.Options.MainTypeName
 
                 If mainTypeName IsNot Nothing AndAlso
-                   IdentifierComparison.EndsWith(mainTypeName, Me.Name) AndAlso
-                   IdentifierComparison.Equals(mainTypeName, Me.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)) Then
+                   IdentifierComparison.EndsWith(mainTypeName, Name) AndAlso
+                   IdentifierComparison.Equals(mainTypeName, ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)) Then
 
                     ' Must derive from Windows.Forms.Form
                     Dim formClass As NamedTypeSymbol = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Windows_Forms_Form)
 
-                    If formClass.IsErrorType() OrElse Not Me.IsOrDerivedFrom(formClass, useSiteDiagnostics:=Nothing) Then
+                    If formClass.IsErrorType() OrElse Not IsOrDerivedFrom(formClass, useSiteDiagnostics:=Nothing) Then
                         Return
                     End If
 

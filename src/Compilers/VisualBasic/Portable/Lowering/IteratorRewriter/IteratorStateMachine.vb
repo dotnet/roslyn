@@ -30,12 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim intType = DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)
 
-            Me._constructor = New SynthesizedSimpleConstructorSymbol(Me)
+            _constructor = New SynthesizedSimpleConstructorSymbol(Me)
             Dim parameters = ImmutableArray.Create(Of ParameterSymbol)(
-                New SynthesizedParameterSymbol(Me._constructor, intType, 0, False, GeneratedNames.MakeStateMachineStateFieldName()))
+                New SynthesizedParameterSymbol(_constructor, intType, 0, False, GeneratedNames.MakeStateMachineStateFieldName()))
 
-            Me._constructor.SetParameters(parameters)
-            Me._iteratorMethod = iteratorMethod
+            _constructor.SetParameters(parameters)
+            _iteratorMethod = iteratorMethod
         End Sub
 
         Private Shared Function GetIteratorInterfaces(elementType As TypeSymbol,
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Friend Overrides ReadOnly Property Constructor As MethodSymbol
             Get
-                Return Me._constructor
+                Return _constructor
             End Get
         End Property
     End Class

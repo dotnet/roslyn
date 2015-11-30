@@ -1,15 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbolExtensions
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -239,8 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The object to compare with the current object. 
         ''' </param>
         Public Overloads Overrides Function Equals(obj As Object) As Boolean
-            Return TypeOf obj Is Conversion AndAlso
-                Me = DirectCast(obj, Conversion)
+            Return TypeOf obj Is Conversion AndAlso (Me = DirectCast(obj, Conversion))
         End Function
 
         ''' <summary>
@@ -250,14 +243,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The object to compare with the current object. 
         ''' </param>
         Public Overloads Function Equals(other As Conversion) As Boolean Implements IEquatable(Of Conversion).Equals
-            Return Me._convKind = other._convKind AndAlso Me.Method = other.Method
+            Return (_convKind = other._convKind) AndAlso (Method = other.Method)
         End Function
 
         ''' <summary>
         ''' Returns a hash code for the current object.
         ''' </summary>
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Method, CInt(_convKind))
+            Return Hash.Combine(Method, _convKind)
         End Function
 
         ''' <summary>
@@ -4317,7 +4310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create a new ArrayTypeSymbol.
         ''' </summary>
         Friend Sub New(arrayLiteral As BoundArrayLiteral)
-            Me._arrayLiteral = arrayLiteral
+            _arrayLiteral = arrayLiteral
         End Sub
 
         Friend ReadOnly Property ArrayLiteral As BoundArrayLiteral

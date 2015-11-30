@@ -1,19 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
-Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Friend NotInheritable Class EmbeddedSymbolManager
-        Friend ReadOnly IsReferencedPredicate As Func(Of Symbol, Boolean) = Function(t) Not t.IsEmbedded OrElse Me.IsSymbolReferenced(t)
+        Friend ReadOnly IsReferencedPredicate As Func(Of Symbol, Boolean) = Function(t) Not t.IsEmbedded OrElse IsSymbolReferenced(t)
 
         Private ReadOnly _embedded As EmbeddedSymbolKind
 
@@ -73,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Mark all deferred types as referenced
         ''' </summary>
         Public Sub MarkAllDeferredSymbolsAsReferenced(compilation As VisualBasicCompilation)
-            If Me._standardModuleAttributeReferenced Then
+            If _standardModuleAttributeReferenced Then
                 MarkSymbolAsReferenced(
                     compilation.GetWellKnownType(
                         WellKnownType.Microsoft_VisualBasic_CompilerServices_StandardModuleAttribute))
@@ -88,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Conditional("DEBUG")>
         Friend Sub AssertMarkAllDeferredSymbolsAsReferencedIsCalled()
 #If DEBUG Then
-            Debug.Assert(Me._markAllDeferredSymbolsAsReferencedIsCalled = ThreeState.True)
+            Debug.Assert(_markAllDeferredSymbolsAsReferencedIsCalled = ThreeState.True)
 #End If
         End Sub
 
@@ -99,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property IsAnySymbolReferenced As Boolean
             Get
-                Me.AssertMarkAllDeferredSymbolsAsReferencedIsCalled()
+                AssertMarkAllDeferredSymbolsAsReferencedIsCalled()
                 Return (_symbols IsNot Nothing) AndAlso Not _symbols.IsEmpty
             End Get
         End Property
@@ -129,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' it actually works.
         ''' </summary>
         Public Sub MarkSymbolAsReferenced(symbol As Symbol, allSymbols As ConcurrentSet(Of Symbol))
-#If Not Debug Then
+#If Not DEBUG Then
             ' In RELEASE don't add anything if the collection is sealed
             If _sealed = 0 Then
 #End If
@@ -138,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(symbol.IsEmbedded)
             AddReferencedSymbolWithDependents(symbol, allSymbols)
 
-#If Not Debug Then
+#If Not DEBUG Then
             End If
 #End If
         End Sub
@@ -152,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Function IsSymbolReferenced(symbol As Symbol) As Boolean
             Debug.Assert(symbol.IsEmbedded)
-            Me.AssertMarkAllDeferredSymbolsAsReferencedIsCalled()
+            AssertMarkAllDeferredSymbolsAsReferencedIsCalled()
             Return _symbols.TryGetValue(symbol, Nothing)
         End Function
 

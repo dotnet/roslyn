@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -49,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseSelectList() As SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
 
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
 
             Do
                 Dim rangeVar = ParseSelectListInitializer()
@@ -74,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
+            _pool.Free(RangeVariables)
 
             Return result
         End Function
@@ -237,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AllowGroupName As Boolean,
             IsGroupJoinProjection As Boolean) As SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
 
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
 
             Do
                 Dim rangeVar = ParseAggregateListInitializer(AllowGroupName)
@@ -271,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
+            _pool.Free(RangeVariables)
 
             Return result
         End Function
@@ -283,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' TODO: Merge with ParseFromControlVars. The two methods are almost identical.
         Private Function ParseLetList() As SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
 
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
 
             Do
                 Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
@@ -398,13 +395,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
+            _pool.Free(RangeVariables)
 
             Return result
         End Function
 
         Private Function ParseFromControlVars() As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of CollectionRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of CollectionRangeVariableSyntax)()
 
             Do
                 Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
@@ -515,7 +512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
+            _pool.Free(RangeVariables)
 
             Return result
         End Function
@@ -649,10 +646,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' // parse key selector
                 keys = ParseSelectList()
             Else
-                Dim rangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
+                Dim rangeVariables = _pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
                 rangeVariables.Add(InternalSyntaxFactory.ExpressionRangeVariable(Nothing, InternalSyntaxFactory.MissingExpression()))
                 keys = rangeVariables.ToList
-                Me._pool.Free(rangeVariables)
+                _pool.Free(rangeVariables)
             End If
 
             Dim intoKw As KeywordSyntax = Nothing
@@ -662,17 +659,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' // parse result selector
                 Aggregation = ParseAggregateList(True, False)
             Else
-                Aggregation = Me.MissingAggregationRangeVariables()
+                Aggregation = MissingAggregationRangeVariables()
             End If
 
             Return SyntaxFactory.GroupByClause(groupKw, elements, byKw, keys, intoKw, Aggregation)
         End Function
 
         Private Function MissingAggregationRangeVariables() As SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
-            Dim rangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
+            Dim rangeVariables = _pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
             rangeVariables.Add(InternalSyntaxFactory.AggregationRangeVariable(Nothing, SyntaxFactory.FunctionAggregation(InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing)))
             Dim result As SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = rangeVariables.ToList
-            Me._pool.Free(rangeVariables)
+            _pool.Free(rangeVariables)
             Return result
         End Function
 
@@ -728,7 +725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' // parse result selector
                     Aggregation = ParseAggregateList(True, True)
                 Else
-                    Aggregation = Me.MissingAggregationRangeVariables()
+                    Aggregation = MissingAggregationRangeVariables()
                 End If
 
                 Return SyntaxFactory.GroupJoinClause(groupKw, joinKw, joinVarList, moreJoins, onKw, Predicate, intoKw, Aggregation)
@@ -857,7 +854,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseJoinPredicateExpression() As SeparatedSyntaxList(Of JoinConditionSyntax)
 
-            Dim Exprs = Me._pool.AllocateSeparated(Of JoinConditionSyntax)()
+            Dim Exprs = _pool.AllocateSeparated(Of JoinConditionSyntax)()
             Dim AndTk As KeywordSyntax = Nothing
 
             Do
@@ -921,7 +918,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             Dim result = Exprs.ToList
-            Me._pool.Free(Exprs)
+            _pool.Free(Exprs)
 
             ' // try to recover
             If result.Node.ContainsDiagnostics Then
@@ -967,7 +964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseOrderByList() As SeparatedSyntaxList(Of OrderingSyntax)
 
-            Dim exprs = Me._pool.AllocateSeparated(Of OrderingSyntax)()
+            Dim exprs = _pool.AllocateSeparated(Of OrderingSyntax)()
 
             Do
                 Dim OrderExpression = ParseExpressionCore()
@@ -1002,7 +999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             Dim result = exprs.ToList
-            Me._pool.Free(exprs)
+            _pool.Free(exprs)
 
             Return result
         End Function
@@ -1173,13 +1170,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseFromQueryExpression(fromKw As KeywordSyntax) As QueryExpressionSyntax
             Debug.Assert(fromKw IsNot Nothing)
 
-            Dim operators = Me._pool.Allocate(Of QueryClauseSyntax)()
+            Dim operators = _pool.Allocate(Of QueryClauseSyntax)()
 
             operators.Add(ParseFromOperator(fromKw))
             ParseMoreQueryOperators(operators)
 
             Dim result = operators.ToList
-            Me._pool.Free(operators)
+            _pool.Free(operators)
 
             Return SyntaxFactory.QueryExpression(result)
         End Function
@@ -1187,12 +1184,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseAggregateQueryExpression(AggregateKw As KeywordSyntax) As QueryExpressionSyntax
             Debug.Assert(AggregateKw IsNot Nothing)
 
-            Dim operators = Me._pool.Allocate(Of QueryClauseSyntax)()
+            Dim operators = _pool.Allocate(Of QueryClauseSyntax)()
 
             operators.Add(ParseAggregateClause(AggregateKw))
 
             Dim result = operators.ToList
-            Me._pool.Free(operators)
+            _pool.Free(operators)
 
             Return SyntaxFactory.QueryExpression(result)
         End Function
@@ -1204,10 +1201,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim controlVariables = ParseFromControlVars()
 
-            Dim moreOperators = Me._pool.Allocate(Of QueryClauseSyntax)()
+            Dim moreOperators = _pool.Allocate(Of QueryClauseSyntax)()
             ParseMoreQueryOperators(moreOperators)
             Dim operatorList = moreOperators.ToList
-            Me._pool.Free(moreOperators)
+            _pool.Free(moreOperators)
 
             Dim intoKw As KeywordSyntax = Nothing
             Dim variables As SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = Nothing
@@ -1218,7 +1215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' // parse result selector
                 variables = ParseAggregateList(False, False)
             Else
-                variables = Me.MissingAggregationRangeVariables()
+                variables = MissingAggregationRangeVariables()
             End If
 
             Return SyntaxFactory.AggregateClause(AggregateKw, controlVariables, operatorList, intoKw, variables)

@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -37,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim result = _propertyOrEvent.Type
 
                     If _propertyOrEvent.IsWindowsRuntimeEvent Then
-                        Dim tokenType = Me.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T)
+                        Dim tokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T)
                         Dim info = Binder.GetUseSiteErrorForWellKnownType(tokenType)
                         If info IsNot Nothing Then
                             diagnostics.Add(info, _propertyOrEvent.Locations(0))
@@ -58,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
             cancellationToken.ThrowIfCancellationRequested()
-            Dim unusedType = Me.Type
+            Dim unusedType = Type
         End Sub
     End Class
 End Namespace

@@ -1,11 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Diagnostics
-Imports System.Linq
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -16,16 +10,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Graph As Graph(Of TGraphNode)
             Public IsAddedToVertices As Boolean
 
-            Public ReadOnly IncomingEdges As ArrayBuilder(Of TGraphNode)
-            Public ReadOnly OutgoingEdges As ArrayBuilder(Of TGraphNode)
+            Public ReadOnly IncomingEdges As New ArrayBuilder(Of TGraphNode)()
+            Public ReadOnly OutgoingEdges As New ArrayBuilder(Of TGraphNode)()
 
             Public AlgorithmData As GraphAlgorithmData(Of TGraphNode)
 
             Protected Sub New(graph As Graph(Of TGraphNode))
                 Me.Graph = graph
-                Me.IsAddedToVertices = False
-                Me.IncomingEdges = New ArrayBuilder(Of TGraphNode)()
-                Me.OutgoingEdges = New ArrayBuilder(Of TGraphNode)()
+                IsAddedToVertices = False
             End Sub
 
         End Class
@@ -64,10 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Vertices = New ArrayBuilder(Of TGraphNode)()
             End Sub
 
-            Public Sub AddEdge(
-                source As TGraphNode,
-                target As TGraphNode
-            )
+            Public Sub AddEdge(source As TGraphNode, target As TGraphNode)
                 AddNode(source)
                 AddNode(target)
 
@@ -75,9 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 target.IncomingEdges.Add(source)
             End Sub
 
-            Public Sub AddNode(
-                node As TGraphNode
-            )
+            Public Sub AddNode(node As TGraphNode)
                 Debug.Assert(node.Graph Is Me)
 
                 If Not node.IsAddedToVertices Then
@@ -86,10 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Sub
 
-            Public Sub RemoveEdge(
-                source As TGraphNode,
-                target As TGraphNode
-            )
+            Public Sub RemoveEdge(source As TGraphNode, target As TGraphNode)
                 Debug.Assert(Contains(source))
                 Debug.Assert(Contains(target))
 
@@ -163,10 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return sccGraph
             End Function
 
-            Private Sub CollectSccChildren(
-                node As TGraphNode,
-                sccNode As StronglyConnectedComponent(Of TGraphNode)
-            )
+            Private Sub CollectSccChildren(node As TGraphNode, sccNode As StronglyConnectedComponent(Of TGraphNode))
                 node.AlgorithmData.Color = DFSColor.Grey
 
                 For Each current As TGraphNode In node.IncomingEdges
@@ -206,11 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(insertAt = oldListSize - 1)
             End Sub
 
-            Private Sub DfsVisit(
-                node As TGraphNode,
-                resultList As ArrayBuilder(Of TGraphNode),
-                ByRef insertAt As Integer
-            )
+            Private Sub DfsVisit(node As TGraphNode, resultList As ArrayBuilder(Of TGraphNode), ByRef insertAt As Integer)
                 node.AlgorithmData.Color = DFSColor.Grey
 
                 For Each current As TGraphNode In node.OutgoingEdges

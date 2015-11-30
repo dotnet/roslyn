@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -59,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(declarator.Names.Count = 1)
 
                 Dim modifiedIdentifier As ModifiedIdentifierSyntax = declarator.Names(0)
-                localVar = LocalSymbol.Create(Me.ContainingMember, Me,
+                localVar = LocalSymbol.Create(ContainingMember, Me,
                                                modifiedIdentifier.Identifier, modifiedIdentifier, declarator.AsClause,
                                                declarator.Initializer,
                                                If(_syntax.Kind = SyntaxKind.ForEachBlock,
@@ -106,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If _syntax.Kind = SyntaxKind.ForBlock Then
                 Dim forStatementSyntax = DirectCast(_syntax.ForOrForEachStatement, ForStatementSyntax)
 
-                Dim localVar = LocalSymbol.CreateInferredForFromTo(Me.ContainingMember,
+                Dim localVar = LocalSymbol.CreateInferredForFromTo(ContainingMember,
                                                      Me,
                                                      identifier,
                                                      forStatementSyntax.FromValue,
@@ -117,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Dim forEachStatementSyntax = DirectCast(_syntax.ForOrForEachStatement, ForEachStatementSyntax)
 
-                Dim localVar = LocalSymbol.CreateInferredForEach(Me.ContainingMember,
+                Dim localVar = LocalSymbol.CreateInferredForEach(ContainingMember,
                                                          Me,
                                                          identifier,
                                                          forEachStatementSyntax.Expression)

@@ -2,12 +2,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -54,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''   c) "Me", "MyClass", or "MyBase" is the receiver.
         ''' </summary>
         Private Function IsConstructorCallAllowed(invocationExpression As InvocationExpressionSyntax, boundMemberGroup As BoundMethodOrPropertyGroup) As Boolean
-            If Me.ContainingMember.Kind = SymbolKind.Method AndAlso DirectCast(Me.ContainingMember, MethodSymbol).MethodKind = MethodKind.Constructor Then
+            If ContainingMember.Kind = SymbolKind.Method AndAlso DirectCast(ContainingMember, MethodSymbol).MethodKind = MethodKind.Constructor Then
                 ' (a) we are in an instance constructor body
 
                 Dim node As VisualBasicSyntaxNode = invocationExpression.Parent
@@ -177,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundArguments As ImmutableArray(Of BoundExpression) = Nothing
             Dim argumentNames As ImmutableArray(Of String) = Nothing
             Dim argumentNamesLocations As ImmutableArray(Of Location) = Nothing
-            Me.BindArgumentsAndNames(node.ArgumentList, boundArguments, argumentNames, argumentNamesLocations, diagnostics)
+            BindArgumentsAndNames(node.ArgumentList, boundArguments, argumentNames, argumentNamesLocations, diagnostics)
 
             If target.Kind = BoundKind.MethodGroup OrElse target.Kind = BoundKind.PropertyGroup Then
                 Return BindInvocationExpressionPossiblyWithoutArguments(
@@ -884,7 +881,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         receiver = MakeRValue(receiver, diagnostics)
                     End If
 
-                    If method.IsUserDefinedOperator() AndAlso Me.ContainingMember Is method Then
+                    If method.IsUserDefinedOperator() AndAlso ContainingMember Is method Then
                         ReportDiagnostic(diagnostics, target, ERRID.WRN_RecursiveOperatorCall, method)
                     End If
 
@@ -1771,7 +1768,7 @@ ProduceBoundNode:
                 If isDelegateContext Then
                     If bestSymbolIsExtension Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate2, bestSymbol, bestSymbol.ContainingType))
-                    ElseIf withContainingTypeInDiagnostics
+                    ElseIf withContainingTypeInDiagnostics Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate1, CustomSymbolDisplayFormatter.WithContainingType(bestSymbol)))
                     Else
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate1, bestSymbol))
@@ -1779,7 +1776,7 @@ ProduceBoundNode:
                 Else
                     If bestSymbolIsExtension Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3, bestSymbol, bestSymbol.ContainingType, notMostSpecificMessage))
-                    ElseIf withContainingTypeInDiagnostics
+                    ElseIf withContainingTypeInDiagnostics Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, CustomSymbolDisplayFormatter.WithContainingType(bestSymbol), notMostSpecificMessage))
                     Else
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, bestSymbol, notMostSpecificMessage))
@@ -3075,7 +3072,7 @@ ProduceBoundNode:
                             End If
                         Else
                             Debug.Assert(isCallerFilePath)
-                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
+                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Compilation.Options.SourceReferenceResolver))
                         End If
 
                         If callerInfoValue IsNot Nothing Then
@@ -3122,7 +3119,7 @@ ProduceBoundNode:
                     ' then use the setting for Option Compare [Binary|Text]
                     ' Other languages will use the default value specified.
 
-                    If Me.OptionCompareText Then
+                    If OptionCompareText Then
                         defaultConstantValue = ConstantValue.Create(1)
                     Else
                         defaultConstantValue = ConstantValue.Default(SpecialType.System_Int32)

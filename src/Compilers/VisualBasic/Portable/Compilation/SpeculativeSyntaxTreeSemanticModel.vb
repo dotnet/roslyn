@@ -48,13 +48,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property OriginalPositionForSpeculation As Integer
             Get
-                Return Me._position
+                Return _position
             End Get
         End Property
 
         Public Overrides ReadOnly Property ParentModel As SemanticModel
             Get
-                Return Me._parentSemanticModel
+                Return _parentSemanticModel
             End Get
         End Property
 
@@ -89,15 +89,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function GetExpressionSymbolInfo(node As ExpressionSyntax, options As VBSemanticModel.SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
             If (options And VBSemanticModel.SymbolInfoOptions.PreserveAliases) <> 0 Then
                 Debug.Assert(TypeOf node Is IdentifierNameSyntax)
-                Dim aliasSymbol = _parentSemanticModel.GetSpeculativeAliasInfo(_position, DirectCast(node, IdentifierNameSyntax), Me.GetSpeculativeBindingOption(node))
+                Dim aliasSymbol = _parentSemanticModel.GetSpeculativeAliasInfo(_position, DirectCast(node, IdentifierNameSyntax), GetSpeculativeBindingOption(node))
                 Return SymbolInfoFactory.Create(ImmutableArray.Create(Of ISymbol)(aliasSymbol), If(aliasSymbol IsNot Nothing, LookupResultKind.Good, LookupResultKind.Empty))
             End If
 
-            Return _parentSemanticModel.GetSpeculativeSymbolInfo(_position, node, Me.GetSpeculativeBindingOption(node))
+            Return _parentSemanticModel.GetSpeculativeSymbolInfo(_position, node, GetSpeculativeBindingOption(node))
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
-            Return _parentSemanticModel.GetSpeculativeTypeInfoWorker(_position, node, Me.GetSpeculativeBindingOption(node))
+            Return _parentSemanticModel.GetSpeculativeTypeInfoWorker(_position, node, GetSpeculativeBindingOption(node))
         End Function
 
         Friend Overrides Function GetExpressionMemberGroup(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Symbol)

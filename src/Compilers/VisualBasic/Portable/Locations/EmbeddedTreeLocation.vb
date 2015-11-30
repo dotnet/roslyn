@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -34,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property PossiblyEmbeddedOrMySourceTree As SyntaxTree
             Get
-                Return EmbeddedSymbolManager.GetEmbeddedTree(Me._embeddedKind)
+                Return EmbeddedSymbolManager.GetEmbeddedTree(_embeddedKind)
             End Get
         End Property
 
@@ -52,11 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Return other IsNot Nothing AndAlso other.EmbeddedKind = Me._embeddedKind AndAlso other._span.Equals(Me._span)
+            Return other IsNot Nothing AndAlso other.EmbeddedKind = _embeddedKind AndAlso other._span.Equals(_span)
         End Function
 
         Public Overloads Overrides Function Equals(obj As Object) As Boolean
-            Return Me.Equals(TryCast(obj, EmbeddedTreeLocation))
+            Return Equals(TryCast(obj, EmbeddedTreeLocation))
         End Function
 
         Public Overrides Function GetHashCode() As Integer

@@ -1,16 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -21,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits StateMachineMethodToClassRewriter
 
             Public Function VisitExpression(expression As BoundExpression) As BoundExpression
-                Return DirectCast(Me.Visit(expression), BoundExpression)
+                Return DirectCast(Visit(expression), BoundExpression)
             End Function
 
             Public Overrides Function VisitSpillSequence(node As BoundSpillSequence) As BoundNode
-                Dim statements As ImmutableArray(Of BoundStatement) = Me.VisitList(node.Statements)
-                Dim valueOpt As BoundExpression = Me.VisitExpression(node.ValueOpt)
+                Dim statements As ImmutableArray(Of BoundStatement) = VisitList(node.Statements)
+                Dim valueOpt As BoundExpression = VisitExpression(node.ValueOpt)
                 Dim rewrittenType As TypeSymbol = VisitType(node.Type)
 
                 If valueOpt Is Nothing OrElse valueOpt.Kind <> BoundKind.SpillSequence Then
@@ -73,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     valueOpt = spill.ValueOpt
                 End If
 
-                Return builder.BuildSequenceAndFree(Me.F, valueOpt)
+                Return builder.BuildSequenceAndFree(F, valueOpt)
             End Function
 
             Private Function MakeExpressionStatement(expression As BoundExpression, ByRef builder As SpillBuilder) As BoundStatement
@@ -81,9 +74,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(expression.Kind = BoundKind.SpillSequence)
                     Dim spill = DirectCast(expression, BoundSpillSequence)
                     builder.AssumeFieldsIfNeeded(spill)
-                    Return Me.RewriteSpillSequenceIntoBlock(spill, True)
+                    Return RewriteSpillSequenceIntoBlock(spill, True)
                 Else
-                    Return Me.F.ExpressionStatement(expression)
+                    Return F.ExpressionStatement(expression)
                 End If
             End Function
 
@@ -100,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim result = SpillExpressionsWithReceiver(receiverOpt, isReceiverOfAMethodCall:=True, expressions:=arguments, spillBuilder:=builder)
 
-                Return builder.BuildSequenceAndFree(Me.F,
+                Return builder.BuildSequenceAndFree(F,
                                                     rewritten.Update(rewritten.Method,
                                                                      rewritten.MethodGroupOpt,
                                                                      result.ReceiverOpt,
@@ -122,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim builder As New SpillBuilder()
                 arguments = SpillExpressionList(builder, arguments, firstArgumentIsAReceiverOfAMethodCall:=False)
 
-                Return builder.BuildSequenceAndFree(Me.F,
+                Return builder.BuildSequenceAndFree(F,
                                                     rewritten.Update(rewritten.ConstructorOpt,
                                                                      arguments,
                                                                      rewritten.InitializerOpt,
@@ -164,24 +157,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' NOTE: Short circuit operators need to evaluate the right optionally
                     Dim spilledLeft = SpillValue(left, builder)
 
-                    Dim tempLocal As LocalSymbol = Me.F.SynthesizedLocal(rewritten.Type)
+                    Dim tempLocal As LocalSymbol = F.SynthesizedLocal(rewritten.Type)
                     builder.AddLocal(tempLocal)
 
                     builder.AddStatement(
                         If(rewritten.OperatorKind = BinaryOperatorKind.AndAlso,
-                           Me.F.If(condition:=spilledLeft,
+                           F.If(condition:=spilledLeft,
                                    thenClause:=MakeAssignmentStatement(right, tempLocal, builder),
-                                   elseClause:=MakeAssignmentStatement(Me.F.Literal(False), tempLocal)),
-                           Me.F.If(condition:=spilledLeft,
-                                   thenClause:=MakeAssignmentStatement(Me.F.Literal(True), tempLocal),
+                                   elseClause:=MakeAssignmentStatement(F.Literal(False), tempLocal)),
+                           F.If(condition:=spilledLeft,
+                                   thenClause:=MakeAssignmentStatement(F.Literal(True), tempLocal),
                                    elseClause:=MakeAssignmentStatement(right, tempLocal, builder))))
 
-                    Return builder.BuildSequenceAndFree(Me.F,
-                                                        Me.F.Local(tempLocal, False))
+                    Return builder.BuildSequenceAndFree(F,
+                                                        F.Local(tempLocal, False))
                 Else
                     ' Regular binary operator
                     Dim newArgs As ImmutableArray(Of BoundExpression) = SpillExpressionList(builder, left, right)
-                    Return builder.BuildSequenceAndFree(Me.F,
+                    Return builder.BuildSequenceAndFree(F,
                                                         rewritten.Update(rewritten.OperatorKind,
                                                                          newArgs(0),
                                                                          newArgs(1),
@@ -231,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim rightAsSpillSequence = DirectCast(right, BoundSpillSequence)
                 builder.AddSpill(rightAsSpillSequence)
-                Return builder.BuildSequenceAndFree(Me.F,
+                Return builder.BuildSequenceAndFree(F,
                                                     rewritten.Update(spilledLeft,
                                                                      rewritten.LeftOnTheRightOpt,
                                                                      rightAsSpillSequence.ValueOpt,
@@ -244,11 +237,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim local As LocalSymbol = origByRefLocal.LocalSymbol
                 Dim rewrittenType As TypeSymbol = VisitType(node.Type)
 
-                If Not Me.Proxies.ContainsKey(local) Then
+                If Not Proxies.ContainsKey(local) Then
                     ' ByRef local was not captured
-                    Dim rewrittenLeft As BoundLocal = DirectCast(Me.VisitExpression(origByRefLocal), BoundLocal)
+                    Dim rewrittenLeft As BoundLocal = DirectCast(VisitExpression(origByRefLocal), BoundLocal)
 
-                    Dim rewrittenRight As BoundExpression = Me.VisitExpression(node.LValue)
+                    Dim rewrittenRight As BoundExpression = VisitExpression(node.LValue)
                     Debug.Assert(rewrittenRight.IsLValue)
                     Dim rightRequiresSpill As Boolean = NeedsSpill(rewrittenRight)
 
@@ -275,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Here we have an assignment expression that is initializing a ref 
                 ' local variable, and the ref local variable is to be lifted.
-                Dim capturedLocal As CapturedSymbolOrExpression = Me.Proxies(local)
+                Dim capturedLocal As CapturedSymbolOrExpression = Proxies(local)
 
                 ' This builder will collect initializers for the captured local, 
                 ' these initializers are supposed to make sure all the parts of 
@@ -295,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 initializersBuilder.Add(materializedCapture)
-                Return Me.F.Sequence(initializersBuilder.ToArrayAndFree)
+                Return F.Sequence(initializersBuilder.ToArrayAndFree)
             End Function
 
             Public Overrides Function VisitFieldAccess(node As BoundFieldAccess) As BoundNode
@@ -425,20 +418,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim sequenceValueOpt As BoundExpression
 
                 If Not rewritten.Type.IsVoidType() Then
-                    Dim tempLocal As LocalSymbol = Me.F.SynthesizedLocal(rewritten.Type)
+                    Dim tempLocal As LocalSymbol = F.SynthesizedLocal(rewritten.Type)
 
                     builder.AddLocal(tempLocal)
 
                     builder.AddStatement(
-                        Me.F.If(
+                        F.If(
                             condition:=condition,
                             thenClause:=MakeAssignmentStatement(whenTrue, tempLocal, builder),
                             elseClause:=MakeAssignmentStatement(whenFalse, tempLocal, builder)))
 
-                    sequenceValueOpt = Me.F.Local(tempLocal, False)
+                    sequenceValueOpt = F.Local(tempLocal, False)
                 Else
                     builder.AddStatement(
-                        Me.F.If(
+                        F.If(
                             condition:=condition,
                             thenClause:=MakeExpressionStatement(whenTrue, builder),
                             elseClause:=MakeExpressionStatement(whenFalse, builder)))
@@ -446,7 +439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     sequenceValueOpt = Nothing
                 End If
 
-                Return builder.BuildSequenceAndFree(Me.F, sequenceValueOpt)
+                Return builder.BuildSequenceAndFree(F, sequenceValueOpt)
             End Function
 
             Private Function MakeAssignmentStatement(expression As BoundExpression, temp As LocalSymbol, <[In], Out> ByRef builder As SpillBuilder) As BoundStatement
@@ -454,15 +447,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(expression.Kind = BoundKind.SpillSequence)
                     Dim spill = DirectCast(expression, BoundSpillSequence)
                     builder.AssumeFieldsIfNeeded(spill)
-                    Return RewriteSpillSequenceIntoBlock(spill, False, Me.F.Assignment(Me.F.Local(temp, True), spill.ValueOpt))
+                    Return RewriteSpillSequenceIntoBlock(spill, False, F.Assignment(F.Local(temp, True), spill.ValueOpt))
                 Else
-                    Return Me.F.Assignment(Me.F.Local(temp, True), expression)
+                    Return F.Assignment(F.Local(temp, True), expression)
                 End If
             End Function
 
             Private Function MakeAssignmentStatement(expression As BoundExpression, temp As LocalSymbol) As BoundStatement
                 Debug.Assert(Not NeedsSpill(expression))
-                Return Me.F.Assignment(Me.F.Local(temp, True), expression)
+                Return F.Assignment(F.Local(temp, True), expression)
             End Function
 
             Private Class ConditionalAccessReceiverPlaceholderReplacementInfo
@@ -471,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Sub New(placeholderId As Integer)
                     Me.PlaceholderId = placeholderId
-                    Me.IsSpilled = False
+                    IsSpilled = False
                 End Sub
 
             End Class
@@ -479,9 +472,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _conditionalAccessReceiverPlaceholderReplacementInfo As ConditionalAccessReceiverPlaceholderReplacementInfo = Nothing
 
             Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
-                Dim type As TypeSymbol = Me.VisitType(node.Type)
+                Dim type As TypeSymbol = VisitType(node.Type)
 
-                Dim receiverOrCondition As BoundExpression = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
+                Dim receiverOrCondition As BoundExpression = DirectCast(Visit(node.ReceiverOrCondition), BoundExpression)
                 Dim receiverOrConditionNeedsSpill = NeedsSpill(receiverOrCondition)
 
                 Dim saveConditionalAccessReceiverPlaceholderReplacementInfo = _conditionalAccessReceiverPlaceholderReplacementInfo
@@ -495,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 _conditionalAccessReceiverPlaceholderReplacementInfo = conditionalAccessReceiverPlaceholderReplacementInfo
 
-                Dim whenNotNull As BoundExpression = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
+                Dim whenNotNull As BoundExpression = DirectCast(Visit(node.WhenNotNull), BoundExpression)
                 Dim whenNotNullNeedsSpill = NeedsSpill(whenNotNull)
 
                 Debug.Assert(conditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse
@@ -503,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 _conditionalAccessReceiverPlaceholderReplacementInfo = Nothing
 
-                Dim whenNullOpt As BoundExpression = DirectCast(Me.Visit(node.WhenNullOpt), BoundExpression)
+                Dim whenNullOpt As BoundExpression = DirectCast(Visit(node.WhenNullOpt), BoundExpression)
                 Dim whenNullNeedsSpill = If(whenNullOpt IsNot Nothing, NeedsSpill(whenNullOpt), False)
 
                 _conditionalAccessReceiverPlaceholderReplacementInfo = saveConditionalAccessReceiverPlaceholderReplacementInfo
@@ -570,11 +563,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 capturedReceiver = nullCheckTarget
                             Else
                                 Dim receiverLocal As LocalSymbol = Nothing
-                                receiverLocal = Me.F.SynthesizedLocal(receiver.Type)
+                                receiverLocal = F.SynthesizedLocal(receiver.Type)
                                 builder.AddLocal(receiverLocal)
 
-                                nullCheckTarget = Me.F.AssignmentExpression(Me.F.Local(receiverLocal, isLValue:=True), receiver.MakeRValue())
-                                capturedReceiver = Me.F.Local(receiverLocal, isLValue:=True)
+                                nullCheckTarget = F.AssignmentExpression(F.Local(receiverLocal, isLValue:=True), receiver.MakeRValue())
+                                capturedReceiver = F.Local(receiverLocal, isLValue:=True)
                             End If
 
                             If nullCheckTarget.Type.IsReferenceType Then
@@ -588,7 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' should be the target of the access. However, when receiver is a value type, in order to preserve
                                 ' side-effects, the original receiver should be the target of the access. That is why we don't even
                                 ' capture it at run-time.
-                                placeholderReplacement = New BoundComplexConditionalAccessReceiver(Me.F.Syntax,
+                                placeholderReplacement = New BoundComplexConditionalAccessReceiver(F.Syntax,
                                                                                                    receiver,
                                                                                                    capturedReceiver,
                                                                                                    receiver.Type)
@@ -610,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' We need to a add a null check for the receiver
                     If nullCheckTarget.Type.IsReferenceType Then
-                        condition = Me.F.ReferenceIsNotNothing(nullCheckTarget)
+                        condition = F.ReferenceIsNotNothing(nullCheckTarget)
                     Else
                         Debug.Assert(Not nullCheckTarget.Type.IsValueType)
                         Debug.Assert(nullCheckTarget.Type.IsTypeParameter())
@@ -619,35 +612,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Not <receiver's type is reference type> OrElse receiver IsNot Nothing 
                         ' The <receiver's type is reference type> is performed by boxing default value of receiver's type and checking if it is a null reference. 
 
-                        Dim notReferenceType = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(),
+                        Dim notReferenceType = F.ReferenceIsNotNothing(F.DirectCast(F.DirectCast(F.Null(),
                                                                                                           nullCheckTarget.Type),
-                                                                                          Me.F.SpecialType(SpecialType.System_Object)))
+                                                                                          F.SpecialType(SpecialType.System_Object)))
 
 
-                        condition = Me.F.LogicalOrElse(notReferenceType,
-                                                       Me.F.ReferenceIsNotNothing(Me.F.DirectCast(nullCheckTarget,
-                                                                                                  Me.F.SpecialType(SpecialType.System_Object))))
+                        condition = F.LogicalOrElse(notReferenceType,
+                                                       F.ReferenceIsNotNothing(F.DirectCast(nullCheckTarget,
+                                                                                                  F.SpecialType(SpecialType.System_Object))))
                     End If
                 End If
 
                 If whenNullOpt Is Nothing Then
                     Debug.Assert(type.IsVoidType())
                     builder.AddStatement(
-                    Me.F.If(condition:=condition,
+                    F.If(condition:=condition,
                             thenClause:=MakeExpressionStatement(whenNotNull, builder)))
 
-                    Return builder.BuildSequenceAndFree(Me.F, expression:=Nothing)
+                    Return builder.BuildSequenceAndFree(F, expression:=Nothing)
                 Else
                     Debug.Assert(Not type.IsVoidType())
-                    Dim tempLocal As LocalSymbol = Me.F.SynthesizedLocal(type)
+                    Dim tempLocal As LocalSymbol = F.SynthesizedLocal(type)
 
                     builder.AddLocal(tempLocal)
 
-                    builder.AddStatement(Me.F.If(condition:=condition,
+                    builder.AddStatement(F.If(condition:=condition,
                                                  thenClause:=MakeAssignmentStatement(whenNotNull, tempLocal, builder),
                                                  elseClause:=MakeAssignmentStatement(whenNullOpt, tempLocal, builder)))
 
-                    Return builder.BuildSequenceAndFree(Me.F, expression:=Me.F.Local(tempLocal, False))
+                    Return builder.BuildSequenceAndFree(F, expression:=F.Local(tempLocal, False))
                 End If
             End Function
 
@@ -660,8 +653,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Sub New(placeholderId As Integer, replaceWith As BoundExpression, recursionDepth As Integer)
                     MyBase.New(recursionDepth)
-                    Me._placeholderId = placeholderId
-                    Me._replaceWith = replaceWith
+                    _placeholderId = placeholderId
+                    _replaceWith = replaceWith
                 End Sub
 
                 Public ReadOnly Property Replaced As Boolean
@@ -704,9 +697,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitArrayCreation(node As BoundArrayCreation) As BoundNode
                 Debug.Assert(node.ArrayLiteralOpt Is Nothing)
 
-                Dim bounds As ImmutableArray(Of BoundExpression) = Me.VisitList(node.Bounds)
-                Dim rewrittenInitializer As BoundArrayInitialization = DirectCast(Me.Visit(node.InitializerOpt), BoundArrayInitialization)
-                Dim rewrittenType As TypeSymbol = Me.VisitType(node.Type)
+                Dim bounds As ImmutableArray(Of BoundExpression) = VisitList(node.Bounds)
+                Dim rewrittenInitializer As BoundArrayInitialization = DirectCast(Visit(node.InitializerOpt), BoundArrayInitialization)
+                Dim rewrittenType As TypeSymbol = VisitType(node.Type)
 
                 Dim boundsRequiresSpill As Boolean = NeedsSpill(bounds)
                 Dim initRequiresSpill As Boolean = ArrayInitializerNeedsSpill(rewrittenInitializer)
@@ -730,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 rewrittenInitializer.Type)
                 End If
 
-                Return builder.BuildSequenceAndFree(Me.F,
+                Return builder.BuildSequenceAndFree(F,
                                                     node.Update(node.IsParamArrayArgument,
                                                                 bounds,
                                                                 DirectCast(rewrittenInitializer, BoundArrayInitialization),
@@ -780,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim builder As New SpillBuilder()
                 Dim result = SpillExpressionsWithReceiver(expression, isReceiverOfAMethodCall:=False, expressions:=indices, spillBuilder:=builder)
-                Return builder.BuildSequenceAndFree(Me.F,
+                Return builder.BuildSequenceAndFree(F,
                                                     rewritten.Update(result.ReceiverOpt,
                                                                      result.Arguments,
                                                                      rewritten.IsLValue,
@@ -833,18 +826,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim builder As New SpillBuilder()
 
-                Dim tempLocal As LocalSymbol = Me.F.SynthesizedLocal(rewritten.Type)
+                Dim tempLocal As LocalSymbol = F.SynthesizedLocal(rewritten.Type)
                 builder.AddLocal(tempLocal)
 
                 builder.AddStatement(MakeAssignmentStatement(testExpression, tempLocal, builder))
 
                 builder.AddStatement(
-                    Me.F.If(
-                        condition:=Me.F.ReferenceIsNothing(Me.F.Local(tempLocal, False)),
+                    F.If(
+                        condition:=F.ReferenceIsNothing(F.Local(tempLocal, False)),
                         thenClause:=MakeAssignmentStatement(elseExpression, tempLocal, builder)))
 
-                Return builder.BuildSequenceAndFree(Me.F,
-                                                    Me.F.Local(tempLocal, False))
+                Return builder.BuildSequenceAndFree(F,
+                                                    F.Local(tempLocal, False))
             End Function
 
             Public Overrides Function VisitTypeOf(node As BoundTypeOf) As BoundNode

@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -42,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
 
             If setNode Is Nothing AndAlso node.LeftOnTheRightOpt Is Nothing Then
-                Return Me.VisitAssignmentOperatorSimple(node)
+                Return VisitAssignmentOperatorSimple(node)
             End If
 
             Debug.Assert(node.Left.Kind <> BoundKind.FieldAccess OrElse
@@ -61,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
-                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, temporaries)
+                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(_currentMethodOrLambda, assignmentTarget, temporaries)
                 temps = temporaries.ToImmutableAndFree()
 
                 Dim leftOnTheRight As BoundExpression
@@ -153,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return Me.VisitExpressionNode(leftNode)
+            Return VisitExpressionNode(leftNode)
         End Function
 
         Private Function RewritePropertyAssignmentAsSetCall(node As BoundAssignmentOperator, setNode As BoundExpression) As BoundExpression
@@ -195,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim setMethod = [property].GetMostDerivedSetMethod()
 
             If (setMethod Is Nothing) Then
-                AssertIsWriteableFromMember(setNode, Me._currentMethodOrLambda)
+                AssertIsWriteableFromMember(setNode, _currentMethodOrLambda)
 
                 Dim backingField = setNode.PropertySymbol.AssociatedField
                 Debug.Assert(backingField IsNot Nothing, "autoproperty must have a backing field")
@@ -245,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assignmentTarget = assignmentTarget.SetLateBoundAccessKind(LateBoundAccessKind.Unknown)
 
                 Dim temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
-                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, temporaries)
+                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(_currentMethodOrLambda, assignmentTarget, temporaries)
                 temps = temporaries.ToImmutableAndFree()
 
                 Dim leftOnTheRight As BoundExpression
@@ -325,13 +320,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Apply GetObjectValue call if needed.
         ''' </summary>
         Private Function GenerateObjectCloneIfNeeded(expression As BoundExpression, rewrittenExpression As BoundExpression) As BoundExpression
-            If expression.HasErrors OrElse rewrittenExpression.HasErrors OrElse Me._inExpressionLambda Then
+            If expression.HasErrors OrElse rewrittenExpression.HasErrors OrElse _inExpressionLambda Then
                 Return rewrittenExpression
             End If
 
             Dim result As BoundExpression = rewrittenExpression
 
-            If Not result.HasErrors AndAlso result.Type.IsObjectType() AndAlso Not Me.ContainingAssembly.IsVbRuntime Then
+            If Not result.HasErrors AndAlso result.Type.IsObjectType() AndAlso Not ContainingAssembly.IsVbRuntime Then
 
                 ' There are a series of object operations which we know don't require a call to GetObjectValue.
                 ' These operations are math and logic operators.
@@ -491,7 +486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Need to allocate a temp, store original string in it, pass it by ref to MidStmtStr and return its value after the call.
             ' We will achieve this by synthesizing and rewriting trivial Mid assignment with the temp as the target.
 
-            Dim temp = New SynthesizedLocal(Me._currentMethodOrLambda, node.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim temp = New SynthesizedLocal(_currentMethodOrLambda, node.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localRef = New BoundLocal(node.Syntax, temp, node.Type)
             Dim placeholder = New BoundCompoundAssignmentTargetPlaceholder(node.Syntax, node.Type)
 

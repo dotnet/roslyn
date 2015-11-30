@@ -1,15 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -51,51 +46,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Debug.Assert(addMethod IsNot Nothing)
             Debug.Assert(removeMethod IsNot Nothing)
 
-            Me._containingType = containingType
+            _containingType = containingType
 
             Dim [module] = moduleSymbol.Module
             Dim eventType As EntityHandle
 
             Try
-                [module].GetEventDefPropsOrThrow(handle, Me._name, Me._flags, eventType)
+                [module].GetEventDefPropsOrThrow(handle, _name, _flags, eventType)
             Catch mrEx As BadImageFormatException
-                If Me._name Is Nothing Then
-                    Me._name = String.Empty
+                If _name Is Nothing Then
+                    _name = String.Empty
                 End If
 
                 _lazyUseSiteErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedEvent1, Me)
 
                 If eventType.IsNil Then
-                    Me._eventType = New UnsupportedMetadataTypeSymbol(mrEx)
+                    _eventType = New UnsupportedMetadataTypeSymbol(mrEx)
                 End If
             End Try
 
-            Me._addMethod = addMethod
-            Me._removeMethod = removeMethod
-            Me._raiseMethod = raiseMethod
-            Me._handle = handle
+            _addMethod = addMethod
+            _removeMethod = removeMethod
+            _raiseMethod = raiseMethod
+            _handle = handle
 
             If _eventType Is Nothing Then
                 Dim metadataDecoder = New MetadataDecoder(moduleSymbol, containingType)
-                Me._eventType = MetadataDecoder.GetTypeOfToken(eventType)
+                _eventType = metadataDecoder.GetTypeOfToken(eventType)
             End If
 
-            If Me._addMethod IsNot Nothing Then
-                Me._addMethod.SetAssociatedEvent(Me, MethodKind.EventAdd)
+            If _addMethod IsNot Nothing Then
+                _addMethod.SetAssociatedEvent(Me, MethodKind.EventAdd)
             End If
 
-            If Me._removeMethod IsNot Nothing Then
-                Me._removeMethod.SetAssociatedEvent(Me, MethodKind.EventRemove)
+            If _removeMethod IsNot Nothing Then
+                _removeMethod.SetAssociatedEvent(Me, MethodKind.EventRemove)
             End If
 
-            If Me._raiseMethod IsNot Nothing Then
-                Me._raiseMethod.SetAssociatedEvent(Me, MethodKind.EventRaise)
+            If _raiseMethod IsNot Nothing Then
+                _raiseMethod.SetAssociatedEvent(Me, MethodKind.EventRaise)
             End If
         End Sub
 
         Public Overrides ReadOnly Property IsWindowsRuntimeEvent As Boolean
             Get
-                Dim evt = DirectCast(Me.ContainingModule, PEModuleSymbol).GetEventRegistrationTokenType()
+                Dim evt = DirectCast(ContainingModule, PEModuleSymbol).GetEventRegistrationTokenType()
                 ' WinRT events look different from normal events.
                 ' The add method returns an EventRegistrationToken,
                 ' and the remove method takes an EventRegistrationToken
@@ -152,71 +147,71 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                If Me._lazyDeclaredAccessibility = s_unsetAccessibility Then
-                    Dim accessibility As accessibility = PEPropertyOrEventHelpers.GetDeclaredAccessibilityFromAccessors(Me.AddMethod, Me.RemoveMethod)
-                    Interlocked.CompareExchange(Me._lazyDeclaredAccessibility, DirectCast(accessibility, Integer), s_unsetAccessibility)
+                If _lazyDeclaredAccessibility = s_unsetAccessibility Then
+                    Dim accessibility As Accessibility = PEPropertyOrEventHelpers.GetDeclaredAccessibilityFromAccessors(AddMethod, RemoveMethod)
+                    Interlocked.CompareExchange(_lazyDeclaredAccessibility, DirectCast(accessibility, Integer), s_unsetAccessibility)
                 End If
 
-                Return DirectCast(Me._lazyDeclaredAccessibility, Accessibility)
+                Return DirectCast(_lazyDeclaredAccessibility, Accessibility)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Dim method = Me.AddMethod
+                Dim method = AddMethod
                 Return (method IsNot Nothing) AndAlso method.IsMustOverride
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Dim method = Me.AddMethod
+                Dim method = AddMethod
                 Return (method IsNot Nothing) AndAlso method.IsNotOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Dim method = Me.AddMethod
+                Dim method = AddMethod
                 Return (method IsNot Nothing) AndAlso method.IsOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Dim method = Me.AddMethod
+                Dim method = AddMethod
                 Return (method IsNot Nothing) AndAlso method.IsOverrides
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Dim method = Me.AddMethod
+                Dim method = AddMethod
                 Return method Is Nothing OrElse method.IsShared
             End Get
         End Property
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return Me._eventType
+                Return _eventType
             End Get
         End Property
 
         Public Overrides ReadOnly Property AddMethod As MethodSymbol
             Get
-                Return Me._addMethod
+                Return _addMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property RemoveMethod As MethodSymbol
             Get
-                Return Me._removeMethod
+                Return _removeMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property RaiseMethod As MethodSymbol
             Get
-                Return Me._raiseMethod
+                Return _raiseMethod
             End Get
         End Property
 
@@ -259,12 +254,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
             Get
-                If Me.AddMethod.ExplicitInterfaceImplementations.Length = 0 AndAlso Me.RemoveMethod.ExplicitInterfaceImplementations.Length = 0 Then
+                If AddMethod.ExplicitInterfaceImplementations.Length = 0 AndAlso RemoveMethod.ExplicitInterfaceImplementations.Length = 0 Then
                     Return ImmutableArray(Of EventSymbol).Empty
                 End If
 
-                Dim implementedEvents = PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(Me.AddMethod)
-                implementedEvents.IntersectWith(PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(Me.RemoveMethod))
+                Dim implementedEvents = PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(AddMethod)
+                implementedEvents.IntersectWith(PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(RemoveMethod))
                 Dim builder = ArrayBuilder(Of EventSymbol).GetInstance()
                 For Each [event] In implementedEvents
                     builder.Add([event])

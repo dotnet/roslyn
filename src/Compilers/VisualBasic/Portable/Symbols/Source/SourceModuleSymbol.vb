@@ -1,16 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -184,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' or may be another namespace. This is a non-merged, source only namespace.
         Friend ReadOnly Property RootNamespace As NamespaceSymbol
             Get
-                Dim result = Me.GlobalNamespace.LookupNestedNamespace(Me.Options.GetRootNamespaceParts())
+                Dim result = GlobalNamespace.LookupNestedNamespace(Options.GetRootNamespaceParts())
                 Debug.Assert(result IsNot Nothing, "Something is deeply wrong with the declaration table or the symbol table")
                 Return result
             End Get
@@ -223,21 +220,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If you want to override attribute binding logic for a sub-class, then override <see cref="GetAttributesBag"/> method.
         ''' </remarks>
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me.GetAttributesBag().Attributes
+            Return GetAttributesBag().Attributes
         End Function
 
         Private Function GetAttributesBag() As CustomAttributesBag(Of VisualBasicAttributeData)
             If _lazyCustomAttributesBag Is Nothing OrElse Not _lazyCustomAttributesBag.IsSealed Then
-                Dim mergedAttributes = DirectCast(Me.ContainingAssembly, SourceAssemblySymbol).GetAttributeDeclarations()
+                Dim mergedAttributes = DirectCast(ContainingAssembly, SourceAssemblySymbol).GetAttributeDeclarations()
                 LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), _lazyCustomAttributesBag)
             End If
             Return _lazyCustomAttributesBag
         End Function
 
         Friend Function GetDecodedWellKnownAttributeData() As CommonModuleWellKnownAttributeData
-            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = _lazyCustomAttributesBag
             If attributesBag Is Nothing OrElse Not attributesBag.IsDecodedWellKnownAttributeDataComputed Then
-                attributesBag = Me.GetAttributesBag()
+                attributesBag = GetAttributesBag()
             End If
 
             Return DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonModuleWellKnownAttributeData)
@@ -365,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Dim data = New ModuleImportData(globalImport, membersMap, aliasesMap, membersBuilder, membersInfoBuilder, aliasesBuilder, aliasesInfoBuilder, xmlNamespaces)
                     Dim diagBagForThisImport = DiagnosticBag.GetInstance()
-                    Dim binder As binder = BinderBuilder.CreateBinderForProjectImports(Me, VisualBasicSyntaxTree.Dummy)
+                    Dim binder As Binder = BinderBuilder.CreateBinderForProjectImports(Me, VisualBasicSyntaxTree.Dummy)
                     binder.BindImportClause(globalImport.Clause, data, diagBagForThisImport)
 
                     ' Map diagnostics to new ones.
@@ -546,8 +543,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Force bind module and assembly attributes
-            Me.GetAttributes()
-            Me.ContainingAssembly.GetAttributes()
+            GetAttributes()
+            ContainingAssembly.GetAttributes()
 
             ' Force all types to generate errors.
             Dim tasks As ConcurrentStack(Of Task) = If(ContainingSourceAssembly.DeclaringCompilation.Options.ConcurrentBuild, New ConcurrentStack(Of Task)(), Nothing)
@@ -605,7 +602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim trees = ArrayBuilder(Of SyntaxTree).GetInstance()
                 trees.AddRange(SyntaxTrees)
 
-                Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
+                Dim options As New ParallelOptions() With {.CancellationToken = cancellationToken}
                 Parallel.For(0, trees.Count, options,
                     UICultureUtilities.WithCurrentUICulture(
                         Sub(i As Integer)
@@ -621,8 +618,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Force bind module and assembly attributes
-            Dim unused = Me.GetAttributes()
-            unused = Me.ContainingAssembly.GetAttributes()
+            Dim unused = GetAttributes()
+            unused = ContainingAssembly.GetAttributes()
 
             EnsureLinkedAssembliesAreValidated(cancellationToken)
 
@@ -657,9 +654,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Accumulate all the errors that were generated.
             Dim builder = DiagnosticBag.GetInstance()
-            builder.AddRange(Me._diagnosticBagDeclare)
-            builder.AddRange(Me._lazyBoundImports.Diagnostics)
-            builder.AddRange(Me._lazyLinkedAssemblyDiagnostics)
+            builder.AddRange(_diagnosticBagDeclare)
+            builder.AddRange(_lazyBoundImports.Diagnostics)
+            builder.AddRange(_lazyLinkedAssemblyDiagnostics)
 
             For Each tree In SyntaxTrees
                 builder.AddRange(GetSourceFile(tree).DeclarationErrors)
@@ -670,7 +667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Visit all of the source types within this source module.
         Private Sub VisitAllSourceTypesAndNamespaces(visitor As Action(Of NamespaceOrTypeSymbol), tasks As ConcurrentStack(Of Task), cancellationToken As CancellationToken)
-            VisitTypesAndNamespacesWithin(Me.GlobalNamespace, visitor, tasks, cancellationToken)
+            VisitTypesAndNamespacesWithin(GlobalNamespace, visitor, tasks, cancellationToken)
         End Sub
 
         ' Visit all source types and namespaces within this source namespace or type, inclusive of this source namespace or type
@@ -885,12 +882,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                mask As Integer,
                                                comparand As Integer,
                                                symbol As Symbol) As Boolean
-            Debug.Assert(Me.DeclaringCompilation.EventQueue IsNot Nothing)
+            Debug.Assert(DeclaringCompilation.EventQueue IsNot Nothing)
 
             SyncLock _diagnosticLock
                 Dim change = (variable And mask) = comparand
                 If change Then
-                    Me.DeclaringCompilation.SymbolDeclaredEvent(symbol)
+                    DeclaringCompilation.SymbolDeclaredEvent(symbol)
 
                     If Not ThreadSafeFlagOperations.Set(variable, mask) Then
                         ' If this gets hit, then someone wrote to variable without going through this
@@ -999,7 +996,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim sourceFile = GetSourceFile(tree)
                         sourceFile.AddDiagnostic(d, stage)
                     Else
-                        Me.AddDiagnostic(d, stage)
+                        AddDiagnostic(d, stage)
                     End If
                 Next
             End If
@@ -1070,14 +1067,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property HasAssemblyCompilationRelaxationsAttribute() As Boolean
             Get
-                Dim decodedData As CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol) = DirectCast(Me.ContainingAssembly, SourceAssemblySymbol).GetSourceDecodedWellKnownAttributeData()
+                Dim decodedData As CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol) = DirectCast(ContainingAssembly, SourceAssemblySymbol).GetSourceDecodedWellKnownAttributeData()
                 Return decodedData IsNot Nothing AndAlso decodedData.HasCompilationRelaxationsAttribute
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasAssemblyRuntimeCompatibilityAttribute() As Boolean
             Get
-                Dim decodedData As CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol) = DirectCast(Me.ContainingAssembly, SourceAssemblySymbol).GetSourceDecodedWellKnownAttributeData()
+                Dim decodedData As CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol) = DirectCast(ContainingAssembly, SourceAssemblySymbol).GetSourceDecodedWellKnownAttributeData()
                 Return decodedData IsNot Nothing AndAlso decodedData.HasRuntimeCompatibilityAttribute
             End Get
         End Property

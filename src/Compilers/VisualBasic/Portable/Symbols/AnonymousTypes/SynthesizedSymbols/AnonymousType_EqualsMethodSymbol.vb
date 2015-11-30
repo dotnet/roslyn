@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly Property AnonymousType As AnonymousTypeTemplateSymbol
                 Get
-                    Return DirectCast(Me.m_containingType, AnonymousTypeTemplateSymbol)
+                    Return DirectCast(m_containingType, AnonymousTypeTemplateSymbol)
                 End Get
             End Property
 
@@ -51,13 +51,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
                 Get
-                    Return Me._parameters
+                    Return _parameters
                 End Get
             End Property
 
             Public Overrides ReadOnly Property OverriddenMethod As MethodSymbol
                 Get
-                    Return Me.AnonymousType.Manager.System_Object__Equals
+                    Return AnonymousType.Manager.System_Object__Equals
                 End Get
             End Property
 
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                 MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-                Dim compilation = DirectCast(Me.ContainingType, AnonymousTypeTemplateSymbol).Manager.Compilation
+                Dim compilation = DirectCast(ContainingType, AnonymousTypeTemplateSymbol).Manager.Compilation
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())
             End Sub
 

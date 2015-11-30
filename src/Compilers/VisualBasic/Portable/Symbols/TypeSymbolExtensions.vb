@@ -657,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' now check if the type argument is compatible with the given type
                     For Each matchingInterface In matchingInterfaces
-                        Call Global.System.Diagnostics.Debug.Assert(matchingInterface.Arity = 1)
+                        Debug.Assert(matchingInterface.Arity = 1)
                         Dim matchingTypeArgument = matchingInterface.TypeArgumentWithDefinitionUseSiteDiagnostics(0, useSiteDiagnostics)
 
                         If matchingTypeArgument.IsErrorType Then
@@ -665,7 +665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         Dim conversion = Global.Microsoft.CodeAnalysis.VisualBasic.Conversions.ClassifyDirectCastConversion(matchingTypeArgument, typeArgument, useSiteDiagnostics)
-                        If Global.Microsoft.CodeAnalysis.VisualBasic.Conversions.IsWideningConversion(conversion) Then
+                        If Conversions.IsWideningConversion(conversion) Then
                             Return True
                         End If
                     Next
@@ -887,10 +887,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns Nothing for identity substitution.
         ''' </summary>
         <Extension()>
-        Friend Function TransformToCanonicalFormFor(
-            typeArguments As ImmutableArray(Of TypeSymbol),
-            genericType As SubstitutedNamedType.SpecializedGenericType
-        ) As ImmutableArray(Of TypeSymbol)
+        Friend Function TransformToCanonicalFormFor(typeArguments As ImmutableArray(Of TypeSymbol),
+                                                    genericType As SubstitutedNamedType.SpecializedGenericType
+                                                   ) As ImmutableArray(Of TypeSymbol)
             Return TransformToCanonicalFormFor(typeArguments, genericType, genericType.TypeParameters)
         End Function
 
@@ -898,18 +897,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns Nothing for identity substitution.
         ''' </summary>
         <Extension()>
-        Friend Function TransformToCanonicalFormFor(
-            typeArguments As ImmutableArray(Of TypeSymbol),
-            genericMethod As SubstitutedMethodSymbol.SpecializedGenericMethod
-        ) As ImmutableArray(Of TypeSymbol)
+        Friend Function TransformToCanonicalFormFor(typeArguments As ImmutableArray(Of TypeSymbol),
+                                                    genericMethod As SubstitutedMethodSymbol.SpecializedGenericMethod
+                                                   ) As ImmutableArray(Of TypeSymbol)
             Return TransformToCanonicalFormFor(typeArguments, genericMethod, genericMethod.TypeParameters)
         End Function
 
-        Private Function TransformToCanonicalFormFor(
-            typeArguments As ImmutableArray(Of TypeSymbol),
-            specializedGenericTypeOrMethod As Symbol,
-            specializedTypeParameters As ImmutableArray(Of TypeParameterSymbol)
-        ) As ImmutableArray(Of TypeSymbol)
+        Private Function TransformToCanonicalFormFor(typeArguments As ImmutableArray(Of TypeSymbol),
+                                                     specializedGenericTypeOrMethod As Symbol,
+                                                     specializedTypeParameters As ImmutableArray(Of TypeParameterSymbol)
+                                                    ) As ImmutableArray(Of TypeSymbol)
 
             ' Check for type arguments equal to type parameters of this type,
             ' but not contained by it ("cross-pollination"). Replace them with 

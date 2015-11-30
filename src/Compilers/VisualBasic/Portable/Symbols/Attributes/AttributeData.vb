@@ -1,16 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Text
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -42,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Shadows ReadOnly Property ConstructorArguments As IEnumerable(Of TypedConstant)
             Get
-                Return Me.CommonConstructorArguments
+                Return CommonConstructorArguments
             End Get
         End Property
 
@@ -51,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Shadows ReadOnly Property NamedArguments As IEnumerable(Of KeyValuePair(Of String, TypedConstant))
             Get
-                Return Me.CommonNamedArguments
+                Return CommonNamedArguments
             End Get
         End Property
 
@@ -98,10 +94,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <returns>A <see cref="System.String"/> that represents the current AttributeData.</returns>
         Public Overrides Function ToString() As String
-            If Me.AttributeClass IsNot Nothing Then
-                Dim className As String = Me.AttributeClass.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)
+            If AttributeClass IsNot Nothing Then
+                Dim className As String = AttributeClass.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)
 
-                If Not Me.CommonConstructorArguments.Any() And Not Me.CommonNamedArguments.Any() Then
+                If Not CommonConstructorArguments.Any() And Not CommonNamedArguments.Any() Then
                     Return className
                 End If
 
@@ -113,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim first As Boolean = True
 
-                For Each constructorArgument In Me.CommonConstructorArguments
+                For Each constructorArgument In CommonConstructorArguments
                     If Not first Then
                         stringBuilder.Append(", ")
                     End If
@@ -122,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     first = False
                 Next
 
-                For Each namedArgument In Me.CommonNamedArguments
+                For Each namedArgument In CommonNamedArguments
                     If Not first Then
                         stringBuilder.Append(", ")
                     End If
@@ -179,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' SPEC:    it is a security custom attribute and requires special treatment.
 
             If _lazyIsSecurityAttribute = ThreeState.Unknown Then
-                _lazyIsSecurityAttribute = Me.AttributeClass.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAttribute, comp, useSiteDiagnostics:=Nothing).ToThreeState()
+                _lazyIsSecurityAttribute = AttributeClass.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAttribute, comp, useSiteDiagnostics:=Nothing).ToThreeState()
             End If
 
             Return _lazyIsSecurityAttribute.Value
@@ -187,14 +183,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim hasErrors As Boolean = False
-            Dim action As DeclarativeSecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, arguments.Diagnostics)
+            Dim action As DeclarativeSecurityAction = DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, arguments.Diagnostics)
             If Not hasErrors Then
                 Dim data As T = arguments.GetOrCreateData(Of T)()
                 Dim securityData As SecurityWellKnownAttributeData = data.GetOrCreateData()
                 securityData.SetSecurityAttribute(arguments.Index, action, arguments.AttributesCount)
 
-                If Me.IsTargetAttribute(targetSymbol, AttributeDescription.PermissionSetAttribute) Then
-                    Dim resolvedPathForFixup As String = Me.DecodePermissionSetAttribute(compilation, arguments)
+                If IsTargetAttribute(targetSymbol, AttributeDescription.PermissionSetAttribute) Then
+                    Dim resolvedPathForFixup As String = DecodePermissionSetAttribute(compilation, arguments)
                     If resolvedPathForFixup IsNot Nothing Then
                         securityData.SetPathForPermissionSetAttributeFixup(arguments.Index, resolvedPathForFixup, arguments.AttributesCount)
                     End If
@@ -210,10 +206,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             diagnostics As DiagnosticBag
         ) As DeclarativeSecurityAction
             Debug.Assert(Not hasErrors)
-            Debug.Assert(Me.IsSecurityAttribute(compilation))
+            Debug.Assert(IsSecurityAttribute(compilation))
             Debug.Assert(targetSymbol.Kind = SymbolKind.Assembly OrElse targetSymbol.Kind = SymbolKind.NamedType OrElse targetSymbol.Kind = SymbolKind.Method)
 
-            If Me.AttributeConstructor.ParameterCount = 0 Then
+            If AttributeConstructor.ParameterCount = 0 Then
                 ' NOTE:    Security custom attributes must have a valid SecurityAction as its first argument, we have none here.
                 ' NOTE:    Ideally, we should always generate 'BC31205: First argument to a security attribute must be a valid SecurityAction' for this case.
                 ' NOTE:    However, native compiler allows applying System.Security.Permissions.HostProtectionAttribute attribute without any argument and uses 
@@ -226,11 +222,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' attribute argument to have the above mentioned behavior, even though the comment clearly mentions that this behavior was intended only for the HostProtectionAttribute.
                 ' We currently allow this case only for the HostProtectionAttribute. In future if need arises, we can exactly match native compiler's behavior.
 
-                If Me.IsTargetAttribute(targetSymbol, AttributeDescription.HostProtectionAttribute) Then
+                If IsTargetAttribute(targetSymbol, AttributeDescription.HostProtectionAttribute) Then
                     Return DeclarativeSecurityAction.LinkDemand
                 End If
             Else
-                Dim firstArg As TypedConstant = Me.CommonConstructorArguments.FirstOrDefault()
+                Dim firstArg As TypedConstant = CommonConstructorArguments.FirstOrDefault()
                 Dim firstArgType = DirectCast(firstArg.Type, TypeSymbol)
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 If firstArgType IsNot Nothing AndAlso firstArgType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAction, compilation, useSiteDiagnostics) Then
@@ -242,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' BC31205: First argument to a security attribute must be a valid SecurityAction
             diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_SecurityAttributeMissingAction,
-                                                   Me.AttributeClass),
+                                                   AttributeClass),
                             If(nodeOpt IsNot Nothing, nodeOpt.Name.GetLocation, NoLocation.Singleton))
 
             hasErrors = True
@@ -267,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case DeclarativeSecurityAction.InheritanceDemand,
                      DeclarativeSecurityAction.LinkDemand
 
-                    If Me.IsTargetAttribute(targetSymbol, AttributeDescription.PrincipalPermissionAttribute) Then
+                    If IsTargetAttribute(targetSymbol, AttributeDescription.PrincipalPermissionAttribute) Then
                         ' BC31209: SecurityAction value '{0}' is invalid for PrincipalPermission attribute
                         diagnostics.Add(ERRID.ERR_PrincipalPermissionInvalidAction,
                                         If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton),
@@ -355,11 +351,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns>String containing the resolved file path if PermissionSetAttribute needs fixup during codegen, null otherwise.</returns>
         Friend Function DecodePermissionSetAttribute(compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation)) As String
             Dim resolvedFilePath As String = Nothing
-            Dim namedArgs = Me.CommonNamedArguments
+            Dim namedArgs = CommonNamedArguments
 
             If namedArgs.Length = 1 Then
                 Dim namedArg = namedArgs(0)
-                Dim attrType As NamedTypeSymbol = Me.AttributeClass
+                Dim attrType As NamedTypeSymbol = AttributeClass
                 Dim filePropName As String = PermissionSetAttributeWithFileReference.FilePropertyName
                 Dim hexPropName As String = PermissionSetAttributeWithFileReference.HexPropertyName
 
@@ -413,9 +409,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Sub DecodeClassInterfaceAttribute(nodeOpt As AttributeSyntax, diagnostics As DiagnosticBag)
-            Debug.Assert(Not Me.HasErrors)
+            Debug.Assert(Not HasErrors)
 
-            Dim ctorArgument As TypedConstant = Me.CommonConstructorArguments(0)
+            Dim ctorArgument As TypedConstant = CommonConstructorArguments(0)
             Debug.Assert(ctorArgument.Kind = TypedConstantKind.Enum OrElse ctorArgument.Kind = TypedConstantKind.Primitive)
 
             Dim interfaceType As ClassInterfaceType = If(ctorArgument.Kind = TypedConstantKind.Enum,
@@ -426,21 +422,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case ClassInterfaceType.None, ClassInterfaceType.AutoDispatch, ClassInterfaceType.AutoDual
                     Exit Select
                 Case Else
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton), Me.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton), AttributeClass)
             End Select
         End Sub
 
         Friend Sub DecodeInterfaceTypeAttribute(node As AttributeSyntax, diagnostics As DiagnosticBag)
             Dim discarded As ComInterfaceType = Nothing
             If Not DecodeInterfaceTypeAttribute(discarded) Then
-                diagnostics.Add(ERRID.ERR_BadAttribute1, node.ArgumentList.Arguments(0).GetLocation(), Me.AttributeClass)
+                diagnostics.Add(ERRID.ERR_BadAttribute1, node.ArgumentList.Arguments(0).GetLocation(), AttributeClass)
             End If
         End Sub
 
         Friend Function DecodeInterfaceTypeAttribute(<Out> ByRef interfaceType As ComInterfaceType) As Boolean
-            Debug.Assert(Not Me.HasErrors)
+            Debug.Assert(Not HasErrors)
 
-            Dim ctorArgument As TypedConstant = Me.CommonConstructorArguments(0)
+            Dim ctorArgument As TypedConstant = CommonConstructorArguments(0)
             Debug.Assert(ctorArgument.Kind = TypedConstantKind.Enum OrElse ctorArgument.Kind = TypedConstantKind.Primitive)
 
             interfaceType = If(ctorArgument.Kind = TypedConstantKind.Enum,
@@ -456,9 +452,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Function DecodeTypeLibTypeAttribute() As Cci.TypeLibTypeFlags
-            Debug.Assert(Not Me.HasErrors)
+            Debug.Assert(Not HasErrors)
 
-            Dim ctorArgument As TypedConstant = Me.CommonConstructorArguments(0)
+            Dim ctorArgument As TypedConstant = CommonConstructorArguments(0)
             Debug.Assert(ctorArgument.Kind = TypedConstantKind.Enum OrElse ctorArgument.Kind = TypedConstantKind.Primitive)
 
             Return If(ctorArgument.Kind = TypedConstantKind.Enum,
@@ -467,23 +463,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Sub DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As DiagnosticBag)
-            Debug.Assert(Not Me.HasErrors)
+            Debug.Assert(Not HasErrors)
 
-            Dim guidString As String = Me.GetConstructorArgument(Of String)(0, SpecialType.System_String)
+            Dim guidString As String = GetConstructorArgument(Of String)(0, SpecialType.System_String)
 
             ' Native compiler allows only a specific GUID format: "D" format (32 digits separated by hyphens)
             Dim guidVal As Guid
             If Not Guid.TryParseExact(guidString, "D", guidVal) Then
                 diagnostics.Add(ERRID.ERR_BadAttributeUuid2,
                                 If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton),
-                                Me.AttributeClass, If(guidString, ObjectDisplay.NullLiteral))
+                                AttributeClass, If(guidString, ObjectDisplay.NullLiteral))
             End If
         End Sub
 
         Friend Function DecodeDefaultMemberAttribute() As String
-            Debug.Assert(Not Me.HasErrors)
+            Debug.Assert(Not HasErrors)
 
-            Return Me.GetConstructorArgument(Of String)(0, SpecialType.System_String)
+            Return GetConstructorArgument(Of String)(0, SpecialType.System_String)
         End Function
 #End Region
 
@@ -501,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Attribute type is conditionally omitted if both the following are true:
             '  (a) It has at least one applied conditional attribute AND
             '  (b) None of conditional symbols are true at the attribute source location.
-            If Me.IsConditionallyOmitted Then
+            If IsConditionallyOmitted Then
                 Return False
             End If
 
@@ -521,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        (IsTargetAttribute(target, AttributeDescription.CLSCompliantAttribute) AndAlso
                             target.DeclaringCompilation.Options.OutputKind = OutputKind.NetModule) OrElse
                        IsTargetAttribute(target, AttributeDescription.TypeForwardedToAttribute) OrElse
-                       Me.IsSecurityAttribute(target.DeclaringCompilation) Then
+                       IsSecurityAttribute(target.DeclaringCompilation) Then
                         Return False
                     End If
 
@@ -549,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                            IsTargetAttribute(target, AttributeDescription.MethodImplAttribute) OrElse
                            IsTargetAttribute(target, AttributeDescription.DllImportAttribute) OrElse
                            IsTargetAttribute(target, AttributeDescription.PreserveSigAttribute) OrElse
-                           Me.IsSecurityAttribute(target.DeclaringCompilation) Then
+                           IsSecurityAttribute(target.DeclaringCompilation) Then
                             Return False
                         End If
                     End If
@@ -565,7 +561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        IsTargetAttribute(target, AttributeDescription.SerializableAttribute) OrElse
                        IsTargetAttribute(target, AttributeDescription.StructLayoutAttribute) OrElse
                        IsTargetAttribute(target, AttributeDescription.WindowsRuntimeImportAttribute) OrElse
-                       Me.IsSecurityAttribute(target.DeclaringCompilation) Then
+                       IsSecurityAttribute(target.DeclaringCompilation) Then
                         Return False
                     End If
 

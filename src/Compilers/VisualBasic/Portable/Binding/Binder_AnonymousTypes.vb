@@ -2,13 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -41,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                Optional hasErrors As Boolean = False) As BoundExpression
             '  Get or create an anonymous type
             Dim anonymousType As AnonymousTypeManager.AnonymousTypePublicSymbol =
-                Me.Compilation.AnonymousTypeManager.ConstructAnonymousTypeSymbol(typeDescr)
+                Compilation.AnonymousTypeManager.ConstructAnonymousTypeSymbol(typeDescr)
 
             ' get constructor
             Dim constructor As MethodSymbol = anonymousType.InstanceConstructors.First()
@@ -133,11 +128,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(initializersCount > 0)
 
                 ' Initialize binder fields
-                Me._fieldName2index = New Dictionary(Of String, Integer)(initializersCount, CaseInsensitiveComparison.Comparer)
-                Me._fields = New AnonymousTypeField(initializersCount - 1) {}
-                Me._fieldDeclarations = Nothing
-                Me._locals = New LocalSymbol(initializersCount - 1) {}
-                Me._propertySymbols = New PropertySymbol(initializersCount - 1) {}
+                _fieldName2index = New Dictionary(Of String, Integer)(initializersCount, CaseInsensitiveComparison.Comparer)
+                _fields = New AnonymousTypeField(initializersCount - 1) {}
+                _fieldDeclarations = Nothing
+                _locals = New LocalSymbol(initializersCount - 1) {}
+                _propertySymbols = New PropertySymbol(initializersCount - 1) {}
 
                 '  Process field initializers
                 For fieldIndex = 0 To initializersCount - 1
@@ -188,15 +183,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Else
                         ' check the name for duplications (in System.Object and in the list of fields)
-                        If objectType.GetMembers(fieldName).Any() OrElse Me._fieldName2index.ContainsKey(fieldName) Then
+                        If objectType.GetMembers(fieldName).Any() OrElse _fieldName2index.ContainsKey(fieldName) Then
                             ' report the error 
                             ReportDiagnostic(diagnostics, fieldSyntax, ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateAnonTypeMemberName1, fieldName))
                         End If
                     End If
 
                     ' build anonymous type field descriptor
-                    Me._fields(fieldIndex) = New AnonymousTypeField(fieldName, fieldNode.GetLocation(), fieldIsKey)
-                    Me._fieldName2index(fieldName) = fieldIndex ' This might overwrite fields in error-cases
+                    _fields(fieldIndex) = New AnonymousTypeField(fieldName, fieldNode.GetLocation(), fieldIsKey)
+                    _fieldName2index(fieldName) = fieldIndex ' This might overwrite fields in error-cases
                 Next
             End Sub
 
@@ -208,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 initializerSyntax As ObjectMemberInitializerSyntax,
                                                                 diagnostics As DiagnosticBag,
                                                                 typeLocationToken As SyntaxToken) As BoundExpression
-                Dim fieldsCount As Integer = Me._fields.Length
+                Dim fieldsCount As Integer = _fields.Length
 
                 ' Try to bind expressions from field initializers one-by-one; after each of the 
                 ' expression is bound successfully assign the type of the field in 'fields'.
@@ -253,17 +248,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' always assign the type, event if there were errors in binding and/or 
                     ' the type is an error type, we are going to use it for anonymous type fields
-                    Me._fields(index).AssignFieldType(fieldType)
+                    _fields(index).AssignFieldType(fieldType)
 
                     If namedFieldInitializer IsNot Nothing Then
                         ' create an instance of BoundAnonymousTypePropertyAccess to 
                         ' guarantee semantic info on the identifier
 
-                        If Me._fieldDeclarations Is Nothing Then
-                            Me._fieldDeclarations = ArrayBuilder(Of BoundAnonymousTypePropertyAccess).GetInstance()
+                        If _fieldDeclarations Is Nothing Then
+                            _fieldDeclarations = ArrayBuilder(Of BoundAnonymousTypePropertyAccess).GetInstance()
                         End If
 
-                        Me._fieldDeclarations.Add(
+                        _fieldDeclarations.Add(
                                         New BoundAnonymousTypePropertyAccess(
                                             namedFieldInitializer.Name,
                                             Me, index, fieldType))
@@ -273,14 +268,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 ' just return a new bound anonymous type creation node
-                Dim result As BoundExpression = Me.CreateAnonymousObjectCreationExpression(owningSyntax,
+                Dim result As BoundExpression = CreateAnonymousObjectCreationExpression(owningSyntax,
                                                                 New AnonymousTypeDescriptor(
-                                                                    Me._fields.AsImmutableOrNull(),
+                                                                    _fields.AsImmutableOrNull(),
                                                                     typeLocationToken.GetLocation(),
                                                                     False),
                                                                 boundInitializers.AsImmutableOrNull())
 
-                Me._freeze = True
+                _freeze = True
 
                 Return result
             End Function
@@ -290,23 +285,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                  initExpressions As ImmutableArray(Of BoundExpression),
                                                                                  Optional hasErrors As Boolean = False) As BoundAnonymousTypeCreationExpression
                 ' cache anonymous type property symbols created
-                For index = 0 To Me._fields.Length - 1
+                For index = 0 To _fields.Length - 1
 
-                    Dim name As String = Me._fields(index).Name
+                    Dim name As String = _fields(index).Name
 
                     ' NOTE: we use the following criteria as an indicator of the fact that 
                     '       the name of the field is not correct, so we don't want to return 
                     '       symbols of such fields to semantic API
                     If name(0) <> "$"c Then
-                        Me._propertySymbols(index) = anonymousType.Properties(index)
+                        _propertySymbols(index) = anonymousType.Properties(index)
                     End If
                 Next
 
                 ' create a node
                 Return New BoundAnonymousTypeCreationExpression(node, Me,
-                                                                If(Me._fieldDeclarations Is Nothing,
+                                                                If(_fieldDeclarations Is Nothing,
                                                                    ImmutableArray(Of BoundAnonymousTypePropertyAccess).Empty,
-                                                                   Me._fieldDeclarations.ToImmutableAndFree()),
+                                                                   _fieldDeclarations.ToImmutableAndFree()),
                                                                 initExpressions, anonymousType, hasErrors)
             End Function
 
@@ -315,16 +310,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "Accessors for anonymous type creation bound nodes "
 
             Friend Function GetAnonymousTypePropertySymbol(index As Integer) As PropertySymbol
-                Return Me._propertySymbols(index)
+                Return _propertySymbols(index)
             End Function
 
             Friend Function GetAnonymousTypePropertyLocal(index As Integer) As LocalSymbol
-                Return Me._locals(index)
+                Return _locals(index)
             End Function
 
             Friend Function TryGetField(name As String, <Out()> ByRef field As AnonymousTypeField, <Out()> ByRef fieldIndex As Integer) As Boolean
-                If Me._fieldName2index.TryGetValue(name, fieldIndex) Then
-                    field = Me._fields(fieldIndex)
+                If _fieldName2index.TryGetValue(name, fieldIndex) Then
+                    field = _fields(fieldIndex)
                     Return True
                 End If
 
@@ -333,16 +328,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Friend Sub RegisterFieldReference(fieldIndex As Integer)
-                Debug.Assert(Me._fields(fieldIndex).Type IsNot Nothing)
+                Debug.Assert(_fields(fieldIndex).Type IsNot Nothing)
 
                 If Not _freeze Then
                     ' check if there is already a local symbol created for this field
 
-                    Dim local = Me._locals(fieldIndex)
+                    Dim local = _locals(fieldIndex)
                     If local Is Nothing Then
                         ' create a local
-                        local = New SynthesizedLocal(Me.ContainingMember, Me._fields(fieldIndex).Type, SynthesizedLocalKind.LoweringTemp)
-                        Me._locals(fieldIndex) = local
+                        local = New SynthesizedLocal(ContainingMember, _fields(fieldIndex).Type, SynthesizedLocalKind.LoweringTemp)
+                        _locals(fieldIndex) = local
                     End If
                 End If
             End Sub
@@ -428,7 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         creationBinder.RegisterFieldReference(fieldIndex)
 
-                        If Me.ContainingMember IsNot accessingBinder.ContainingMember Then
+                        If ContainingMember IsNot accessingBinder.ContainingMember Then
                             ReportDiagnostic(diagnostics, node, ERRID.ERR_CannotLiftAnonymousType1, node.Name.Identifier.ValueText)
                         End If
 

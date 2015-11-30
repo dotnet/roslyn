@@ -280,10 +280,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 isQueryClause As Boolean,
                 canFollowExpr As Boolean)
 
-                Me.kdNew7To8kwd = New7To8
-                Me.kdOperPrec = Precedence
-                Me.kdIsQueryClause = isQueryClause
-                Me.kdCanFollowExpr = canFollowExpr
+                kdNew7To8kwd = New7To8
+                kdOperPrec = Precedence
+                kdIsQueryClause = isQueryClause
+                kdCanFollowExpr = canFollowExpr
             End Sub
         End Structure
 

@@ -1,13 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 ' NOTE: VB does not support constant expressions in flow analysis during command-line compilation, but supports them when 
 '       analysis is being called via public API. This distinction is governed by 'suppressConstantExpressions' flag
@@ -42,26 +35,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected ReadOnly Property IsInside As Boolean
             Get
-                Return Me._regionPlace = RegionPlace.Inside
+                Return _regionPlace = RegionPlace.Inside
             End Get
         End Property
 
         ''' <summary> Checks if the text span passed is inside the region </summary>
         Protected Function IsInsideRegion(span As TextSpan) As Boolean
             ' Ensuring this method only being used in region analysis
-            Debug.Assert(Me._firstInRegion IsNot Nothing)
+            Debug.Assert(_firstInRegion IsNot Nothing)
             If span.Length = 0 Then
-                Return Me._region.Contains(span.Start)
+                Return _region.Contains(span.Start)
             End If
-            Return Me._region.Contains(span)
+            Return _region.Contains(span)
         End Function
 
         ''' <summary>
         ''' Subclasses may override EnterRegion to perform any actions at the entry to the region.
         ''' </summary>
         Protected Overridable Sub EnterRegion()
-            Debug.Assert(Me._regionPlace = RegionPlace.Before)
-            Me._regionPlace = RegionPlace.Inside
+            Debug.Assert(_regionPlace = RegionPlace.Before)
+            _regionPlace = RegionPlace.Inside
         End Sub
 
         ''' <summary>
@@ -69,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected Overridable Sub LeaveRegion()
             Debug.Assert(IsInside)
-            Me._regionPlace = RegionPlace.After
+            _regionPlace = RegionPlace.After
         End Sub
 
         ''' <summary>

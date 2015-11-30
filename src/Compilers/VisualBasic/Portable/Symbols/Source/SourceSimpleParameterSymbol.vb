@@ -1,13 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Collections.ObjectModel
-Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Binder
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Collections.Immutable
 
@@ -36,10 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetCorrespondingPartialParameter() As SourceComplexParameterSymbol
             ' the attributes for partial method implementation are stored on the corresponding definition:
-            Dim method = TryCast(Me.ContainingSymbol, SourceMemberMethodSymbol)
+            Dim method = TryCast(ContainingSymbol, SourceMemberMethodSymbol)
             If method IsNot Nothing AndAlso method.IsPartialImplementation Then
                 ' partial definition always has complex parameters:
-                Return DirectCast(method.SourcePartialDefinition.Parameters(Me.Ordinal), SourceComplexParameterSymbol)
+                Return DirectCast(method.SourcePartialDefinition.Parameters(Ordinal), SourceComplexParameterSymbol)
             End If
 
             Return Nothing
@@ -148,10 +140,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
             If customModifiers.IsDefaultOrEmpty Then
-                Return New SourceSimpleParameterSymbol(Me.ContainingSymbol, Me.Name, Me.Ordinal, type, Me.Location)
+                Return New SourceSimpleParameterSymbol(ContainingSymbol, Name, Ordinal, type, Location)
             End If
 
-            Return New SourceSimpleParameterSymbolWithCustomModifiers(Me.ContainingSymbol, Me.Name, Me.Ordinal, type, Me.Location, customModifiers, countOfCustomModifiersPrecedingByRef)
+            Return New SourceSimpleParameterSymbolWithCustomModifiers(ContainingSymbol, Name, Ordinal, type, Location, customModifiers, countOfCustomModifiersPrecedingByRef)
         End Function
 
         Friend NotInheritable Class SourceSimpleParameterSymbolWithCustomModifiers

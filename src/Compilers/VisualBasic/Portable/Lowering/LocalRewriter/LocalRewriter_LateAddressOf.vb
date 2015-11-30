@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -17,9 +12,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim targetType = DirectCast(node.Type, NamedTypeSymbol)
-            Dim lambda = BuildDelegateRelaxationLambda(node.Syntax, targetType, node.MemberAccess, node.Binder, Me._diagnostics)
+            Dim lambda = BuildDelegateRelaxationLambda(node.Syntax, targetType, node.MemberAccess, node.Binder, _diagnostics)
 
-            Return Me.VisitExpressionNode(lambda)
+            Return VisitExpressionNode(lambda)
         End Function
 
 

@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -36,10 +33,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub Free()
-            Me._branchesOutOf.Free()
-            Me._branchesOutOf = Nothing
-            Me._labelsInside.Free()
-            Me._labelsInside = Nothing
+            _branchesOutOf.Free()
+            _branchesOutOf = Nothing
+            _labelsInside.Free()
+            _labelsInside = Nothing
             MyBase.Free()
         End Sub
 
@@ -95,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub LeaveRegion()
             '  Process the pending returns only from this region. 
-            For Each pending In Me.PendingBranches
+            For Each pending In PendingBranches
                 If IsInsideRegion(pending.Branch.Syntax.Span) Then
                     Select Case pending.Branch.Kind
                         Case BoundKind.GotoStatement

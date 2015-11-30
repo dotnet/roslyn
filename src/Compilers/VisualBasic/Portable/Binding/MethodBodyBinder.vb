@@ -1,15 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
-Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -44,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim methodBlock = TryCast(root, MethodBlockBaseSyntax)
 
             Debug.Assert(Not TypeOf methodSymbol Is SourceMethodSymbol OrElse
-                         Me.IsSemanticModelBinder OrElse
+                         IsSemanticModelBinder OrElse
                          (methodBlock Is DirectCast(methodSymbol, SourceMethodSymbol).BlockSyntax AndAlso
                           methodBlock IsNot Nothing))
 

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub New(modifier As NamedTypeSymbol)
             Debug.Assert(modifier IsNot Nothing)
-            Me.m_Modifier = modifier
+            m_Modifier = modifier
         End Sub
 
         ''' <summary>

@@ -5,17 +5,13 @@
 ' base node SyntaxNode, which is in a different file.)
 '-----------------------------------------------------------------------------------------------------------
 
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Public Partial Class DocumentationCommentTriviaSyntax
         Friend Function GetInteriorXml() As String
             ' NOTE: is only used in parse tests
-            Return DirectCast(Me.Green, InternalSyntax.DocumentationCommentTriviaSyntax).GetInteriorXml
+            Return DirectCast(Green, InternalSyntax.DocumentationCommentTriviaSyntax).GetInteriorXml
         End Function
     End Class
 
@@ -91,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend ReadOnly Property AsClauseInternal As AsClauseSyntax
             Get
-                Select Case Me.Kind
+                Select Case Kind
                     Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
                         Return DirectCast(Me, MethodStatementSyntax).AsClause
 
@@ -122,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         Return Nothing
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(Me.Kind)
+                        Throw ExceptionUtilities.UnexpectedValue(Kind)
                 End Select
             End Get
         End Property

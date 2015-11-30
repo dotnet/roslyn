@@ -1,15 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Globalization
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -50,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _setter As SynthesizedWithEventsAccessorSymbol
 
         Friend Sub New(baseProperty As PropertySymbol, container As SourceNamedTypeSymbol)
-            Me._baseProperty = baseProperty
-            Me._containingType = container
+            _baseProperty = baseProperty
+            _containingType = container
 
             _getter = New SynthesizedWithEventsGetAccessorSymbol(
                 container,

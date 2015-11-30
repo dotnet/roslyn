@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' NOTE: The CreateSourceAssemblyFullBind is going to replace compilation's reference manager with newManager.
 
-                    Dim newManager = New ReferenceManager(Me.SimpleAssemblyName, Me.IdentityComparer, Me.ObservedMetadata)
+                    Dim newManager = New ReferenceManager(SimpleAssemblyName, IdentityComparer, ObservedMetadata)
                     Dim successful = newManager.CreateAndSetSourceAssemblyFullBind(compilation)
 
                     ' The new manager isn't shared with any other compilation so there is no other 
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not HasCircularReference)
 
                 Dim referencedAssembliesByIdentity = New Dictionary(Of AssemblyIdentity, AssemblySymbol)()
-                For Each symbol In Me.ReferencedAssemblies
+                For Each symbol In ReferencedAssemblies
                     referencedAssembliesByIdentity.Add(symbol.Identity, symbol)
                 Next
 
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies)
 
                 If assembly.ContainsNoPiaLocalTypes() Then
-                    assemblySymbol.SetNoPiaResolutionAssemblies(Me.ReferencedAssemblies)
+                    assemblySymbol.SetNoPiaResolutionAssemblies(ReferencedAssemblies)
                 End If
 
                 Return assemblySymbol
@@ -223,9 +223,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not HasCircularReference)
 
                 Dim moduleName As String = compilation.MakeSourceModuleName()
-                Dim assemblySymbol = New SourceAssemblySymbol(compilation, Me.SimpleAssemblyName, moduleName, Me.ReferencedModules)
+                Dim assemblySymbol = New SourceAssemblySymbol(compilation, SimpleAssemblyName, moduleName, ReferencedModules)
 
-                InitializeAssemblyReuseData(assemblySymbol, Me.ReferencedAssemblies, Me.UnifiedAssemblies)
+                InitializeAssemblyReuseData(assemblySymbol, ReferencedAssemblies, UnifiedAssemblies)
 
                 If compilation._lazyAssemblySymbol Is Nothing Then
                     SyncLock SymbolCacheAndReferenceManagerStateGuard
@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Sub InitializeAssemblyReuseData(assemblySymbol As AssemblySymbol, referencedAssemblies As ImmutableArray(Of AssemblySymbol), unifiedAssemblies As ImmutableArray(Of UnifiedAssembly(Of AssemblySymbol)))
                 AssertBound()
 
-                assemblySymbol.SetCorLibrary(If(Me.CorLibraryOpt, assemblySymbol))
+                assemblySymbol.SetCorLibrary(If(CorLibraryOpt, assemblySymbol))
 
                 Dim sourceModuleReferences = New ModuleReferences(Of AssemblySymbol)(referencedAssemblies.SelectAsArray(Function(a) a.Identity), referencedAssemblies, unifiedAssemblies)
                 assemblySymbol.Modules(0).SetReferences(sourceModuleReferences)
@@ -844,7 +844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return False
                     End If
 
-                    If peAssembly.Assembly IsNot Me.Assembly Then
+                    If peAssembly.Assembly IsNot Assembly Then
                         Return False
                     End If
 

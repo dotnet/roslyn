@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     Partial Friend Class StackScheduler
@@ -25,17 +22,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Property
 
             Public Sub New(assigned As Integer)
-                Me.Start = assigned
-                Me._end = assigned
+                Start = assigned
+                _end = assigned
             End Sub
 
             Public Sub SetEnd(newEnd As Integer)
-                Debug.Assert(Me._end <= newEnd)
-                Me._end = newEnd
+                Debug.Assert(_end <= newEnd)
+                _end = newEnd
             End Sub
 
             Public Overrides Function ToString() As String
-                Return "[" & Me.Start.ToString() & ", " & Me.End.ToString() & ")"
+                Return "[" & Start.ToString() & ", " & [End].ToString() & ")"
             End Function
 
             ''' <summary>
@@ -54,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Private Function Contains(val As Integer) As Boolean
-                Return Me.Start < val AndAlso Me.End > val
+                Return Start < val AndAlso [End] > val
             End Function
 
             ''' <summary>
@@ -71,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Private Function Includes(val As Integer) As Boolean
-                Return Me.Start <= val AndAlso Me.End >= val
+                Return Start <= val AndAlso [End] >= val
             End Function
 
 

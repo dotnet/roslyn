@@ -1,13 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -40,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected NotOverridable Overrides ReadOnly Property OriginalSymbolDefinition As Symbol
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
@@ -96,8 +90,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </value>
         Friend ReadOnly Property IsMetadataConstant As Boolean
             Get
-                If Me.IsConst Then
-                    Dim specialType = Me.Type.SpecialType
+                If IsConst Then
+                    Dim specialType = Type.SpecialType
                     Return specialType <> Microsoft.CodeAnalysis.SpecialType.System_DateTime AndAlso specialType <> Microsoft.CodeAnalysis.SpecialType.System_Decimal
                 End If
 
@@ -114,9 +108,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </value>
         Friend ReadOnly Property IsConstButNotMetadataConstant As Boolean
             Get
-                If Me.IsConst Then
-                    Dim specialType = Me.Type.SpecialType
-                    Return specialType = Microsoft.CodeAnalysis.SpecialType.System_DateTime OrElse specialType = Microsoft.CodeAnalysis.SpecialType.System_Decimal
+                If IsConst Then
+                    Dim specialType = Type.SpecialType
+                    Return specialType = SpecialType.System_DateTime OrElse specialType = SpecialType.System_Decimal
                 End If
 
                 Return False
@@ -129,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overridable ReadOnly Property HasConstantValue As Boolean
             Get
-                If Not Me.IsConst Then
+                If Not IsConst Then
                     Return False
                 End If
 
@@ -265,11 +259,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If Me.IsDefinition Then
+            If IsDefinition Then
                 Return MyBase.GetUseSiteErrorInfo()
             End If
 
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return OriginalDefinition.GetUseSiteErrorInfo()
         End Function
 
         Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
@@ -277,14 +271,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(IsDefinition)
 
             ' Check type.
-            Dim typeErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
+            Dim typeErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Type)
 
             If typeErrorInfo IsNot Nothing AndAlso typeErrorInfo.Code = ERRID.ERR_UnsupportedField1 Then
                 Return typeErrorInfo
             End If
 
             ' Check custom modifiers.
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.CustomModifiers)
+            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(CustomModifiers)
 
             If modifiersErrorInfo IsNot Nothing AndAlso modifiersErrorInfo.Code = ERRID.ERR_UnsupportedField1 Then
                 Return modifiersErrorInfo
@@ -294,11 +288,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
-            If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
+            If result Is Nothing AndAlso ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
 
-                result = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.CustomModifiers, Me, unificationCheckedTypes))
+                result = If(Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                            GetUnificationUseSiteDiagnosticRecursive(CustomModifiers, Me, unificationCheckedTypes))
             End If
 
             Return result
@@ -322,27 +316,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
-                Return Me.ContainingSymbol.EmbeddedSymbolKind
+                Return ContainingSymbol.EmbeddedSymbolKind
             End Get
         End Property
 
         Friend Function AsMember(newOwner As NamedTypeSymbol) As FieldSymbol
-            Debug.Assert(Me Is Me.OriginalDefinition)
-            Debug.Assert(newOwner.OriginalDefinition Is Me.ContainingSymbol.OriginalDefinition)
-            Return If(newOwner = Me.ContainingSymbol, Me, DirectCast(DirectCast(newOwner, SubstitutedNamedType).GetMemberForDefinition(Me), FieldSymbol))
+            Debug.Assert(Me Is OriginalDefinition)
+            Debug.Assert(newOwner.OriginalDefinition Is ContainingSymbol.OriginalDefinition)
+            Return If(newOwner = ContainingSymbol, Me, DirectCast(DirectCast(newOwner, SubstitutedNamedType).GetMemberForDefinition(Me), FieldSymbol))
         End Function
 
 #Region "IFieldSymbol"
 
         Private ReadOnly Property IFieldSymbol_AssociatedSymbol As ISymbol Implements IFieldSymbol.AssociatedSymbol
             Get
-                Return Me.AssociatedSymbol
+                Return AssociatedSymbol
             End Get
         End Property
 
         Private ReadOnly Property IFieldSymbol_IsConst As Boolean Implements IFieldSymbol.IsConst
             Get
-                Return Me.IsConst
+                Return IsConst
             End Get
         End Property
 
@@ -354,31 +348,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IFieldSymbol_Type As ITypeSymbol Implements IFieldSymbol.Type
             Get
-                Return Me.Type
+                Return Type
             End Get
         End Property
 
         Private ReadOnly Property IFieldSymbol_HasConstantValue As Boolean Implements IFieldSymbol.HasConstantValue
             Get
-                Return Me.HasConstantValue
+                Return HasConstantValue
             End Get
         End Property
 
         Private ReadOnly Property IFieldSymbol_ConstantValue As Object Implements IFieldSymbol.ConstantValue
             Get
-                Return Me.ConstantValue
+                Return ConstantValue
             End Get
         End Property
 
         Private ReadOnly Property IFieldSymbol_CustomModifiers As ImmutableArray(Of CustomModifier) Implements IFieldSymbol.CustomModifiers
             Get
-                Return Me.CustomModifiers
+                Return CustomModifiers
             End Get
         End Property
 
         Private ReadOnly Property IFieldSymbol_OriginalDefinition As IFieldSymbol Implements IFieldSymbol.OriginalDefinition
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 

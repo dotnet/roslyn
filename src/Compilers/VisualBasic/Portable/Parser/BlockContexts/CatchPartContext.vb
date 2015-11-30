@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 '-----------------------------------------------------------------------------
 ' Contains the definition of the BlockContext
 '-----------------------------------------------------------------------------
@@ -50,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(statement Is Nothing)
             Debug.Assert(BeginStatement IsNot Nothing)
 
-            Dim result = SyntaxFactory.CatchBlock(DirectCast(BeginStatement, CatchStatementSyntax), Me.Body())
+            Dim result = SyntaxFactory.CatchBlock(DirectCast(BeginStatement, CatchStatementSyntax), Body())
 
             FreeStatements()
 

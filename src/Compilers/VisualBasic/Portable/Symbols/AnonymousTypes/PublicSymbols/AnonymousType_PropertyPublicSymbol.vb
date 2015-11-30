@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -21,12 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend ReadOnly PropertyIndex As Integer
 
             Public Sub New(container As AnonymousTypePublicSymbol, index As Integer)
-                Me._container = container
-                Me.PropertyIndex = index
+                _container = container
+                PropertyIndex = index
 
-                Me._getMethod = New AnonymousTypePropertyGetAccessorPublicSymbol(Me)
+                _getMethod = New AnonymousTypePropertyGetAccessorPublicSymbol(Me)
                 If Not container.TypeDescriptor.Fields(index).IsKey Then
-                    Me._setMethod = New AnonymousTypePropertySetAccessorPublicSymbol(Me, container.Manager.System_Void)
+                    _setMethod = New AnonymousTypePropertySetAccessorPublicSymbol(Me, container.Manager.System_Void)
                 End If
             End Sub
 
@@ -38,25 +35,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property SetMethod As MethodSymbol
                 Get
-                    Return Me._setMethod
+                    Return _setMethod
                 End Get
             End Property
 
             Public Overrides ReadOnly Property GetMethod As MethodSymbol
                 Get
-                    Return Me._getMethod
+                    Return _getMethod
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Type As TypeSymbol
                 Get
-                    Return Me._container.TypeDescriptor.Fields(Me.PropertyIndex).Type
+                    Return _container.TypeDescriptor.Fields(PropertyIndex).Type
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Name As String
                 Get
-                    Return Me._container.TypeDescriptor.Fields(Me.PropertyIndex).Name
+                    Return _container.TypeDescriptor.Fields(PropertyIndex).Name
                 End Get
             End Property
 
@@ -74,13 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
-                    Return ImmutableArray.Create(Me._container.TypeDescriptor.Fields(Me.PropertyIndex).Location)
+                    Return ImmutableArray.Create(_container.TypeDescriptor.Fields(PropertyIndex).Location)
                 End Get
             End Property
 
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
-                    Return GetDeclaringSyntaxReferenceHelper(Of FieldInitializerSyntax)(Me.Locations)
+                    Return GetDeclaringSyntaxReferenceHelper(Of FieldInitializerSyntax)(Locations)
                 End Get
             End Property
 
@@ -88,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
                 Get
                     ' The same as owning type
-                    Return Me.ContainingType.IsImplicitlyDeclared
+                    Return ContainingType.IsImplicitlyDeclared
                 End Get
             End Property
 
@@ -107,12 +104,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 '  consider properties the same is the owning types are the 
                 '  same and the names are equal
                 Return other IsNot Nothing AndAlso
-                       IdentifierComparison.Equals(other.Name, Me.Name) AndAlso
-                       other.ContainingType.Equals(Me.ContainingType)
+                       IdentifierComparison.Equals(other.Name, Name) AndAlso
+                       other.ContainingType.Equals(ContainingType)
             End Function
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(Me.ContainingType.GetHashCode(), IdentifierComparison.GetHashCode(Me.Name))
+                Return Hash.Combine(ContainingType.GetHashCode(), IdentifierComparison.GetHashCode(Name))
             End Function
 
         End Class

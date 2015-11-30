@@ -1,13 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -30,16 +25,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(ByVal name As String, ByVal m_containingType As TypeSymbol, ByVal methodKind As MethodKind, ByVal callingConvention As CallingConvention, ByVal typeParameters As ImmutableArray(Of TypeParameterSymbol), ByVal parameters As ImmutableArray(Of ParameterSymbol),
          ByVal returnType As TypeSymbol, ByVal returnTypeCustomModifiers As ImmutableArray(Of CustomModifier), ByVal explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol),
                        Optional isOverrides As Boolean = False)
-            Me._callingConvention = callingConvention
-            Me._typeParameters = typeParameters
-            Me._returnType = returnType
-            Me._returnTypeCustomModifiers = returnTypeCustomModifiers
-            Me._parameters = parameters
-            Me._explicitInterfaceImplementations = If(explicitInterfaceImplementations.IsDefault, ImmutableArray(Of MethodSymbol).Empty, explicitInterfaceImplementations)
-            Me._containingType = m_containingType
-            Me._methodKind = methodKind
-            Me._name = name
-            Me._isOverrides = isOverrides
+            _callingConvention = callingConvention
+            _typeParameters = typeParameters
+            _returnType = returnType
+            _returnTypeCustomModifiers = returnTypeCustomModifiers
+            _parameters = parameters
+            _explicitInterfaceImplementations = If(explicitInterfaceImplementations.IsDefault, ImmutableArray(Of MethodSymbol).Empty, explicitInterfaceImplementations)
+            _containingType = m_containingType
+            _methodKind = methodKind
+            _name = name
+            _isOverrides = isOverrides
         End Sub
 
         Friend Overrides ReadOnly Property CallingConvention() As CallingConvention

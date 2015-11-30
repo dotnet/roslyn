@@ -1,12 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -68,12 +62,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
             Dim symbol = TryCast(obj, SourceLabelSymbol)
-            Return symbol IsNot Nothing AndAlso symbol._labelName.Equals(Me._labelName) AndAlso
-                Equals(symbol._containingMethod, Me._containingMethod)
+            Return symbol IsNot Nothing AndAlso symbol._labelName.Equals(_labelName) AndAlso
+                Equals(symbol._containingMethod, _containingMethod)
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Me._labelName.GetHashCode()
+            Return _labelName.GetHashCode()
         End Function
     End Class
 End Namespace

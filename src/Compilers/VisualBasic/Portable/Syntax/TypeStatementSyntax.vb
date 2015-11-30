@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public ReadOnly Property Arity As Integer
             Get
-                Return If(Me.TypeParameterList Is Nothing, 0, Me.TypeParameterList.Parameters.Count)
+                Return If(TypeParameterList Is Nothing, 0, TypeParameterList.Parameters.Count)
             End Get
         End Property
 

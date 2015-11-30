@@ -2,9 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -60,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' Bubble up public accessibility
                     If _lazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Public Then
-                        Dim parent = TryCast(Me.ContainingSymbol, PEOrSourceOrMergedNamespaceSymbol)
+                        Dim parent = TryCast(ContainingSymbol, PEOrSourceOrMergedNamespaceSymbol)
 
                         While parent IsNot Nothing AndAlso
                               parent._lazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Private
@@ -89,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _lazyExtensionMethodsMap Is Nothing Then
                 ' Do not force collection of all extension methods as that might be expensive
                 ' unless we see a lot of traffic here
-                Dim cnt = Interlocked.Increment(Me._extQueryCnt)
+                Dim cnt = Interlocked.Increment(_extQueryCnt)
 
                 ' 40 is a rough threshold when we consider current namespace to be popular enough to build a complete
                 ' cache of extension methods. Bigger number would favor dynamic scenarios like typing (vs. static compiling)

@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend MustInherit Class BoundNode
@@ -104,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overloads Function MemberwiseClone(Of T As BoundNode)() As T
-            Return DirectCast(Me.MemberwiseClone(), T)
+            Return DirectCast(MemberwiseClone(), T)
         End Function
 #End If
     End Class

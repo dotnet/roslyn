@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Reflection.Metadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -26,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Sub New(moduleSymbol As PEModuleSymbol, containingType As TypeSymbol)
             MyBase.New(moduleSymbol, TryCast(containingType, PENamedTypeSymbol))
             Debug.Assert(containingType IsNot Nothing)
-            Me._containingType = containingType
+            _containingType = containingType
         End Sub
 
         ''' <summary>
@@ -46,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         '''     2) Handle non-PE types.
         ''' </summary>
         Protected Overrides Function GetGenericTypeParamSymbol(position As Integer) As TypeSymbol
-            Dim peType As PENamedTypeSymbol = TryCast(Me._containingType, PENamedTypeSymbol)
+            Dim peType As PENamedTypeSymbol = TryCast(_containingType, PENamedTypeSymbol)
             If peType IsNot Nothing Then
                 While peType IsNot Nothing AndAlso (peType.MetadataArity - peType.Arity) > position
                     peType = TryCast(peType.ContainingSymbol, PENamedTypeSymbol)
@@ -62,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return peType.TypeArgumentsNoUseSiteDiagnostics(position)
             End If
 
-            Dim namedType As NamedTypeSymbol = TryCast(Me._containingType, NamedTypeSymbol)
+            Dim namedType As NamedTypeSymbol = TryCast(_containingType, NamedTypeSymbol)
             If namedType IsNot Nothing Then
                 Dim cumulativeArity As Integer
                 Dim typeArgument As TypeSymbol = Nothing
@@ -116,12 +114,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim memberName As String = [Module].GetMemberRefNameOrThrow(memberRef)
                 Dim signatureHandle = [Module].GetSignatureOrThrow(memberRef)
                 Dim signatureHeader As SignatureHeader
-                Dim signaturePointer As BlobReader = Me.DecodeSignatureHeaderOrThrow(signatureHandle, signatureHeader)
+                Dim signaturePointer As BlobReader = DecodeSignatureHeaderOrThrow(signatureHandle, signatureHeader)
 
                 Select Case signatureHeader.RawValue And SignatureHeader.CallingConventionOrKindMask
                     Case SignatureCallingConvention.Default, SignatureCallingConvention.VarArgs
                         Dim typeParamCount As Integer
-                        Dim targetParamInfo As ParamInfo(Of TypeSymbol)() = Me.DecodeSignatureParametersOrThrow(signaturePointer, signatureHeader, typeParamCount)
+                        Dim targetParamInfo As ParamInfo(Of TypeSymbol)() = DecodeSignatureParametersOrThrow(signaturePointer, signatureHeader, typeParamCount)
                         Return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo)
 
                     Case SignatureKind.Field
@@ -132,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                         Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
                         Dim isVolatile As Boolean
-                        Dim type As TypeSymbol = Me.DecodeFieldSignature(signaturePointer, isVolatile, customModifiers)
+                        Dim type As TypeSymbol = DecodeFieldSignature(signaturePointer, isVolatile, customModifiers)
                         Return FindFieldBySignature(targetTypeSymbol, memberName, customModifiers, type)
 
                     Case Else

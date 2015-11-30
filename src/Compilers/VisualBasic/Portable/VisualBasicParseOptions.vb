@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 symbols = ImmutableArray(Of KeyValuePair(Of String, Object)).Empty
             End If
 
-            If symbols.Equals(Me.PreprocessorSymbols) Then
+            If symbols.Equals(PreprocessorSymbols) Then
                 Return Me
             End If
 
@@ -308,11 +308,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            If Me.LanguageVersion <> other.LanguageVersion Then
+            If LanguageVersion <> other.LanguageVersion Then
                 Return False
             End If
 
-            If Not Me.PreprocessorSymbols.SequenceEqual(other.PreprocessorSymbols) Then
+            If Not PreprocessorSymbols.SequenceEqual(other.PreprocessorSymbols) Then
                 Return False
             End If
 
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <returns>A hashcode representing this instance.</returns>
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(MyBase.GetHashCodeHelper(), CInt(Me.LanguageVersion))
+            Return Hash.Combine(MyBase.GetHashCodeHelper(), CInt(LanguageVersion))
         End Function
     End Class
 End Namespace

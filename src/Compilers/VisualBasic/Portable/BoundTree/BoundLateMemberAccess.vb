@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -23,10 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Function SetAccessKind(newAccessKind As LateBoundAccessKind) As BoundLateMemberAccess
             Debug.Assert(newAccessKind = LateBoundAccessKind.Unknown OrElse
-                    Me.AccessKind = LateBoundAccessKind.Unknown OrElse
-                    Me.AccessKind = newAccessKind)
+                    AccessKind = LateBoundAccessKind.Unknown OrElse
+                    AccessKind = newAccessKind)
 
-            Return Me.Update(Me.NameOpt, Me.ContainerTypeOpt, Me.ReceiverOpt, Me.TypeArgumentsOpt, newAccessKind, Me.Type)
+            Return Update(NameOpt, ContainerTypeOpt, ReceiverOpt, TypeArgumentsOpt, newAccessKind, Type)
         End Function
 
 #If DEBUG Then

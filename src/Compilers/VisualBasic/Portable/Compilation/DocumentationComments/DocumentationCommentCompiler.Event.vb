@@ -1,15 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Globalization
-Imports System.IO
-Imports System.Text
-Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -21,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits VisualBasicSymbolVisitor
 
             Public Overrides Sub VisitEvent(symbol As EventSymbol)
-                Me._cancellationToken.ThrowIfCancellationRequested()
+                _cancellationToken.ThrowIfCancellationRequested()
 
                 If Not ShouldSkipSymbol(symbol) Then
                     Dim sourceEvent = TryCast(symbol, SourceEventSymbol)
@@ -35,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim docCommentTrivia As DocumentationCommentTriviaSyntax =
                     TryGetDocCommentTriviaAndGenerateDiagnostics(
-                        [event].SyntaxReference.GetVisualBasicSyntax(Me._cancellationToken))
+                        [event].SyntaxReference.GetVisualBasicSyntax(_cancellationToken))
 
                 If docCommentTrivia Is Nothing Then
                     Return

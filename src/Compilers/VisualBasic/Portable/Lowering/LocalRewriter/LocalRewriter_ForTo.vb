@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -126,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Rewrite decimal literal if needed 
                     If literalUnderlyingType.IsDecimalType Then
-                        literal = RewriteDecimalConstant(literal, literal.ConstantValueOpt, Me._topMethod, Me._diagnostics)
+                        literal = RewriteDecimalConstant(literal, literal.ConstantValueOpt, _topMethod, _diagnostics)
                     End If
 
                     Dim isUp As BoundExpression = TransformRewrittenBinaryOperator(
@@ -411,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Compilation.GetSpecialType(SpecialType.System_Object) Is rewrittenControlVariable.Type)
             Dim objType = rewrittenControlVariable.Type
-            Dim loopObjLocal = New SynthesizedLocal(Me._currentMethodOrLambda, objType, SynthesizedLocalKind.ForInitialValue, blockSyntax)
+            Dim loopObjLocal = New SynthesizedLocal(_currentMethodOrLambda, objType, SynthesizedLocalKind.ForInitialValue, blockSyntax)
             locals.Add(loopObjLocal)
 
             Dim loopObj = New BoundLocal(blockSyntax, loopObjLocal, isLValue:=True, type:=loopObjLocal.Type)

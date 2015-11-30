@@ -1,11 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
-Imports System.Collections.Generic
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -20,15 +16,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        delegateCreation As BoundExpression,
                        hookupMethod As MethodSymbol)
 
-            Me._kind = kind
+            _kind = kind
 
             Debug.Assert(eventSymbol IsNot Nothing)
-            Me._eventSymbol = eventSymbol
+            _eventSymbol = eventSymbol
 
             Debug.Assert((withEventsContainerOpt Is Nothing) Or kind = HandledEventKind.WithEvents)
-            Me._WithEventsContainerOpt = withEventsContainerOpt
+            _WithEventsContainerOpt = withEventsContainerOpt
 
-            Me._WithEventsSourcePropertyOpt = withEventsSourcePropertyOpt
+            _WithEventsSourcePropertyOpt = withEventsSourcePropertyOpt
 
             Me.delegateCreation = delegateCreation
             Me.hookupMethod = hookupMethod

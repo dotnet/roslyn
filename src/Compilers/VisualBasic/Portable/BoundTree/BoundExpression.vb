@@ -1,15 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend MustInherit Class BoundExpression
 
         Public ReadOnly Property IsConstant As Boolean
             Get
-                Return Me.ConstantValueOpt IsNot Nothing
+                Return ConstantValueOpt IsNot Nothing
             End Get
         End Property
 
@@ -65,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Protected Sub ValidateConstantValue()
-            ValidateConstantValue(Me.Type, Me.ConstantValueOpt)
+            ValidateConstantValue(Type, ConstantValueOpt)
         End Sub
 
         Protected Shared Sub ValidateConstantValue(type As TypeSymbol, constValue As ConstantValue)

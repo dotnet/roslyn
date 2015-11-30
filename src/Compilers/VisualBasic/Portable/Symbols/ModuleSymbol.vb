@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If namespaceSymbol.IsGlobalNamespace Or namespaceSymbol.ContainingNamespace Is Nothing Then
-                Return Me.GlobalNamespace
+                Return GlobalNamespace
             Else
                 Dim cns = GetModuleNamespace(namespaceSymbol.ContainingNamespace)
                 If cns IsNot Nothing Then
@@ -280,12 +280,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #Region "IModuleSymbol"
         Private ReadOnly Property IModuleSymbol_GlobalNamespace As INamespaceSymbol Implements IModuleSymbol.GlobalNamespace
             Get
-                Return Me.GlobalNamespace
+                Return GlobalNamespace
             End Get
         End Property
 
         Private Function IModuleSymbol_GetModuleNamespace(namespaceSymbol As INamespaceSymbol) As INamespaceSymbol Implements IModuleSymbol.GetModuleNamespace
-            Return Me.GetModuleNamespace(namespaceSymbol)
+            Return GetModuleNamespace(namespaceSymbol)
         End Function
 
         Private ReadOnly Property IModuleSymbol_ReferencedAssemblySymbols As ImmutableArray(Of IAssemblySymbol) Implements IModuleSymbol.ReferencedAssemblySymbols

@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(builder, format, True, semanticModelOpt, positionOpt)
             Debug.Assert(format IsNot Nothing, "Format must not be null")
 
-            Me._escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
+            _escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
         End Sub
 
         Private Sub New(
@@ -38,18 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
 
-            Me._escapeKeywordIdentifiers = escapeKeywordIdentifiers
+            _escapeKeywordIdentifiers = escapeKeywordIdentifiers
         End Sub
 
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
         Protected Overrides Function MakeNotFirstVisitor() As AbstractSymbolDisplayVisitor(Of SemanticModel)
-            Return New SymbolDisplayVisitor(
-                    Me.builder,
-                        Me.format,
-                    Me.semanticModelOpt,
-                    Me.positionOpt,
-                        Me._escapeKeywordIdentifiers,
-                    isFirstSymbolVisited:=False)
+            Return New SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt, _escapeKeywordIdentifiers, isFirstSymbolVisited:=False)
         End Function
 
         Friend Function CreatePart(kind As SymbolDisplayPartKind,
@@ -110,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The minimal flag is e.g. used by the service layer when generating code (example: simplify name).
             ' Unfortunately we do not know in what context the identifier is used and we need to assume the worst case here
             ' to avoid ambiguities while parsing the resulting code.
-            If Me.IsMinimizing Then
+            If IsMinimizing Then
                 Dim contextualKeywordKind As SyntaxKind = SyntaxFacts.GetContextualKeywordKind(identifier)
 
                 ' Leading implicit line continuation is allowed before query operators (Aggregate, Distinct, From, Group By, 
@@ -195,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If Me.IsMinimizing Then
+            If IsMinimizing Then
                 If TryAddAlias(symbol, builder) Then
                     Return
                 End If
@@ -235,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolDisplayGlobalNamespaceStyle.Included
                     builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), True))
                 Case SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining
-                    Debug.Assert(Me.isFirstSymbolVisited, "Don't call with IsFirstSymbolVisited = false if OmittedAsContaining")
+                    Debug.Assert(isFirstSymbolVisited, "Don't call with IsFirstSymbolVisited = false if OmittedAsContaining")
                     builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, SyntaxFacts.GetText(SyntaxKind.GlobalKeyword), True))
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(format.GlobalNamespaceStyle)

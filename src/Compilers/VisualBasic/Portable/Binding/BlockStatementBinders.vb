@@ -1,10 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -22,14 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        exitKind As SyntaxKind)
             MyBase.New(enclosing)
 
-            Me._continueKind = continueKind
+            _continueKind = continueKind
             If continueKind <> SyntaxKind.None Then
-                Me._continueLabel = New GeneratedLabelSymbol("continue")
+                _continueLabel = New GeneratedLabelSymbol("continue")
             End If
 
-            Me._exitKind = exitKind
+            _exitKind = exitKind
             If exitKind <> SyntaxKind.None Then
-                Me._exitLabel = New GeneratedLabelSymbol("exit")
+                _exitLabel = New GeneratedLabelSymbol("exit")
             End If
         End Sub
 

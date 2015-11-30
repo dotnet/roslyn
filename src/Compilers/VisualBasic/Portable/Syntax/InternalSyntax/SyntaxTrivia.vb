@@ -1,11 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.ObjectModel
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
@@ -16,32 +10,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String)
             MyBase.New(kind, errors, annotations, text.Length)
-            Me._text = text
+            _text = text
             If text.Length > 0 Then
-                Me.SetFlags(NodeFlags.IsNotMissing)
+                SetFlags(NodeFlags.IsNotMissing)
             End If
         End Sub
 
         Friend Sub New(kind As SyntaxKind, text As String, context As ISyntaxFactoryContext)
             Me.New(kind, text)
-            Me.SetFactoryContext(context)
+            SetFactoryContext(context)
         End Sub
 
         Friend Sub New(kind As SyntaxKind, text As String)
             MyBase.New(kind, text.Length)
-            Me._text = text
+            _text = text
             If text.Length > 0 Then
-                Me.SetFlags(NodeFlags.IsNotMissing)
+                SetFlags(NodeFlags.IsNotMissing)
             End If
         End Sub
 
         Friend Sub New(reader As ObjectReader)
             MyBase.New(reader)
 
-            Me._text = reader.ReadString()
-            Me.FullWidth = Me._text.Length
+            _text = reader.ReadString()
+            FullWidth = _text.Length
             If Text.Length > 0 Then
-                Me.SetFlags(NodeFlags.IsNotMissing)
+                SetFlags(NodeFlags.IsNotMissing)
             End If
         End Sub
 
@@ -51,12 +45,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
-            writer.WriteString(Me._text)
+            writer.WriteString(_text)
         End Sub
 
         Friend ReadOnly Property Text As String
             Get
-                Return Me._text
+                Return _text
             End Get
         End Property
 
@@ -85,16 +79,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Public NotOverridable Overrides Function ToFullString() As String
-            Return Me._text
+            Return _text
         End Function
 
         Public Overrides Function ToString() As String
-            Return Me._text
+            Return _text
         End Function
 
         Friend NotOverridable Overrides Sub AddSyntaxErrors(accumulatedErrors As List(Of DiagnosticInfo))
-            If Me.GetDiagnostics IsNot Nothing Then
-                accumulatedErrors.AddRange(Me.GetDiagnostics)
+            If GetDiagnostics IsNot Nothing Then
+                accumulatedErrors.AddRange(GetDiagnostics)
             End If
         End Sub
 
@@ -112,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim otherTrivia = DirectCast(other, SyntaxTrivia)
-            Return String.Equals(Me.Text, otherTrivia.Text, StringComparison.Ordinal)
+            Return String.Equals(Text, otherTrivia.Text, StringComparison.Ordinal)
         End Function
 
         Friend Overrides Function CreateRed(parent As SyntaxNode, position As Integer) As SyntaxNode

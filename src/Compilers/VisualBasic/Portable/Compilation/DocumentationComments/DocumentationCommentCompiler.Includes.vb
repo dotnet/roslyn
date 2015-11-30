@@ -46,23 +46,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 diagnostics As DiagnosticBag,
                                 cancellationToken As CancellationToken)
 
-                    Me._symbol = symbol
-                    Me._tagsSupport = New WellKnownTagsSupport(symbol)
-                    Me._sourceIncludeElementNodes = sourceIncludeElementNodes
-                    Me._compilation = compilation
-                    Me._onlyDiagnosticsFromTree = onlyDiagnosticsFromTree
-                    Me._filterSpanWithinTree = filterSpanWithinTree
-                    Me._diagnostics = diagnostics
-                    Me._cancellationToken = cancellationToken
+                    _symbol = symbol
+                    _tagsSupport = New WellKnownTagsSupport(symbol)
+                    _sourceIncludeElementNodes = sourceIncludeElementNodes
+                    _compilation = compilation
+                    _onlyDiagnosticsFromTree = onlyDiagnosticsFromTree
+                    _filterSpanWithinTree = filterSpanWithinTree
+                    _diagnostics = diagnostics
+                    _cancellationToken = cancellationToken
 
-                    Me._tree = If(sourceIncludeElementNodes Is Nothing OrElse
+                    _tree = If(sourceIncludeElementNodes Is Nothing OrElse
                                     sourceIncludeElementNodes.Count = 0,
                                   Nothing,
                                   sourceIncludeElementNodes(0).SyntaxTree)
 
-                    Me._includedFileCache = includedFileCache
+                    _includedFileCache = includedFileCache
 
-                    Me._nextSourceIncludeElementIndex = 0
+                    _nextSourceIncludeElementIndex = 0
                 End Sub
 
                 Private Structure WellKnownTagsSupport
@@ -79,66 +79,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Public ReadOnly SymbolName As String
 
                     Public Sub New(symbol As Symbol)
-                        Me.ExceptionSupported = False
-                        Me.ReturnsSupported = False
-                        Me.ParamAndParamRefSupported = False
-                        Me.ValueSupported = False
-                        Me.TypeParamSupported = False
-                        Me.TypeParamRefSupported = False
+                        ExceptionSupported = False
+                        ReturnsSupported = False
+                        ParamAndParamRefSupported = False
+                        ValueSupported = False
+                        TypeParamSupported = False
+                        TypeParamRefSupported = False
 
-                        Me.IsDeclareMethod = False
-                        Me.IsWriteOnlyProperty = False
+                        IsDeclareMethod = False
+                        IsWriteOnlyProperty = False
 
-                        Me.SymbolName = GetSymbolName(symbol)
+                        SymbolName = GetSymbolName(symbol)
 
                         Select Case symbol.Kind
                             Case SymbolKind.Field
-                                Me.TypeParamRefSupported = True
+                                TypeParamRefSupported = True
 
                             Case SymbolKind.Event
-                                Me.ExceptionSupported = True
-                                Me.ParamAndParamRefSupported = True
-                                Me.TypeParamRefSupported = True
+                                ExceptionSupported = True
+                                ParamAndParamRefSupported = True
+                                TypeParamRefSupported = True
 
                             Case SymbolKind.Method
                                 Dim method = DirectCast(symbol, MethodSymbol)
-                                Me.IsDeclareMethod = method.MethodKind = MethodKind.DeclareMethod
+                                IsDeclareMethod = method.MethodKind = MethodKind.DeclareMethod
 
-                                Me.ExceptionSupported = True
-                                Me.ParamAndParamRefSupported = True
-                                Me.TypeParamSupported = Not Me.IsDeclareMethod AndAlso method.MethodKind <> MethodKind.UserDefinedOperator
-                                Me.TypeParamRefSupported = True
+                                ExceptionSupported = True
+                                ParamAndParamRefSupported = True
+                                TypeParamSupported = Not IsDeclareMethod AndAlso method.MethodKind <> MethodKind.UserDefinedOperator
+                                TypeParamRefSupported = True
 
                                 If Not method.IsSub Then
-                                    Me.ReturnsSupported = True
+                                    ReturnsSupported = True
                                 End If
 
                             Case SymbolKind.NamedType
                                 Dim namedType = DirectCast(symbol, NamedTypeSymbol)
                                 Dim invokeMethod As MethodSymbol = namedType.DelegateInvokeMethod
 
-                                If namedType.TypeKind = TYPEKIND.Delegate Then
+                                If namedType.TypeKind = TypeKind.Delegate Then
                                     If invokeMethod IsNot Nothing AndAlso Not invokeMethod.IsSub Then
-                                        Me.ReturnsSupported = True
+                                        ReturnsSupported = True
                                     Else
-                                        Me.SymbolName = "delegate sub"
+                                        SymbolName = "delegate sub"
                                     End If
                                 End If
 
-                                Me.ParamAndParamRefSupported = namedType.TypeKind = TYPEKIND.Delegate
-                                Me.TypeParamSupported = namedType.TypeKind <> TYPEKIND.Enum AndAlso namedType.TypeKind <> TYPEKIND.Module
-                                Me.TypeParamRefSupported = namedType.TypeKind <> TYPEKIND.Module
+                                ParamAndParamRefSupported = namedType.TypeKind = TypeKind.Delegate
+                                TypeParamSupported = namedType.TypeKind <> TypeKind.Enum AndAlso namedType.TypeKind <> TypeKind.Module
+                                TypeParamRefSupported = namedType.TypeKind <> TypeKind.Module
 
                             Case SymbolKind.Property
                                 Dim prop = DirectCast(symbol, PropertySymbol)
 
-                                Me.ExceptionSupported = True
-                                Me.ParamAndParamRefSupported = True
-                                Me.TypeParamRefSupported = True
-                                Me.ValueSupported = True
+                                ExceptionSupported = True
+                                ParamAndParamRefSupported = True
+                                TypeParamRefSupported = True
+                                ValueSupported = True
 
-                                Me.IsWriteOnlyProperty = prop.IsWriteOnly
-                                Me.ReturnsSupported = Not Me.IsWriteOnlyProperty
+                                IsWriteOnlyProperty = prop.IsWriteOnly
+                                ReturnsSupported = Not IsWriteOnlyProperty
 
                             Case Else
                                 Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
@@ -205,33 +205,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Private ReadOnly Property ProduceDiagnostics As Boolean
                     Get
-                        Return Me._tree.ReportDocumentationCommentDiagnostics
+                        Return _tree.ReportDocumentationCommentDiagnostics
                     End Get
                 End Property
 
                 Private ReadOnly Property ProduceXmlDiagnostics As Boolean
                     Get
-                        Return Me._tree.ReportDocumentationCommentDiagnostics AndAlso Me._onlyDiagnosticsFromTree Is Nothing
+                        Return _tree.ReportDocumentationCommentDiagnostics AndAlso _onlyDiagnosticsFromTree Is Nothing
                     End Get
                 End Property
 
                 Private ReadOnly Property [Module] As SourceModuleSymbol
                     Get
-                        Return DirectCast(Me._compilation.SourceModule, SourceModuleSymbol)
+                        Return DirectCast(_compilation.SourceModule, SourceModuleSymbol)
                     End Get
                 End Property
 
                 Private Function GetOrCreateBinder(type As DocumentationCommentBinder.BinderType) As Binder
-                    If Me._binders Is Nothing Then
-                        Me._binders = New Dictionary(Of DocumentationCommentBinder.BinderType, Binder)()
+                    If _binders Is Nothing Then
+                        _binders = New Dictionary(Of DocumentationCommentBinder.BinderType, Binder)()
                     End If
 
                     Dim result As Binder = Nothing
-                    If Not Me._binders.TryGetValue(type, result) Then
+                    If Not _binders.TryGetValue(type, result) Then
 
-                        Debug.Assert(Me._tree IsNot Nothing)
-                        result = CreateDocumentationCommentBinderForSymbol(Me.Module, Me._symbol, Me._tree, type)
-                        Me._binders.Add(type, result)
+                        Debug.Assert(_tree IsNot Nothing)
+                        result = CreateDocumentationCommentBinderForSymbol([Module], _symbol, _tree, type)
+                        _binders.Add(type, result)
                     End If
 
                     Return result
@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Private Function Rewrite(node As XNode, currentXmlFilePath As String, originatingSyntax As XmlNodeSyntax) As XNode()
-                    Me._cancellationToken.ThrowIfCancellationRequested()
+                    _cancellationToken.ThrowIfCancellationRequested()
 
                     Dim commentMessage As String = Nothing
 
@@ -307,31 +307,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' Check element first for well-known names
                         If ElementNameIs(element, DocumentationCommentXmlNames.ExceptionElementName) Then
-                            If Not Me._tagsSupport.ExceptionSupported Then
+                            If Not _tagsSupport.ExceptionSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
                                                                     elementName.LocalName,
-                                                                    Me._tagsSupport.SymbolName)
+                                                                    _tagsSupport.SymbolName)
 
                             Else
                                 elementIsException = True
                             End If
 
                         ElseIf ElementNameIs(element, DocumentationCommentXmlNames.ReturnsElementName) Then
-                            If Not Me._tagsSupport.ReturnsSupported Then
+                            If Not _tagsSupport.ReturnsSupported Then
 
                                 ' NOTE: different messages in two cases:
-                                If Me._tagsSupport.IsDeclareMethod Then
+                                If _tagsSupport.IsDeclareMethod Then
                                     commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath), ERRID.WRN_XMLDocReturnsOnADeclareSub)
 
-                                ElseIf Me._tagsSupport.IsWriteOnlyProperty Then
+                                ElseIf _tagsSupport.IsWriteOnlyProperty Then
                                     commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath), ERRID.WRN_XMLDocReturnsOnWriteOnlyProperty)
 
                                 Else
                                     commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                         ERRID.WRN_XMLDocIllegalTagOnElement2,
                                                                         elementName.LocalName,
-                                                                        Me._tagsSupport.SymbolName)
+                                                                        _tagsSupport.SymbolName)
                                 End If
                             End If
 
@@ -339,37 +339,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     ElementNameIs(element, DocumentationCommentXmlNames.ParameterReferenceElementName) Then
 
                             binderType = DocumentationCommentBinder.BinderType.NameInParamOrParamRef
-                            If Not Me._tagsSupport.ParamAndParamRefSupported Then
+                            If Not _tagsSupport.ParamAndParamRefSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
                                                                     elementName.LocalName,
-                                                                    Me._tagsSupport.SymbolName)
+                                                                    _tagsSupport.SymbolName)
                             End If
 
                         ElseIf ElementNameIs(element, DocumentationCommentXmlNames.ValueElementName) Then
-                            If Not Me._tagsSupport.ValueSupported Then
+                            If Not _tagsSupport.ValueSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
                                                                     elementName.LocalName,
-                                                                    Me._tagsSupport.SymbolName)
+                                                                    _tagsSupport.SymbolName)
                             End If
 
                         ElseIf ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterElementName) Then
                             binderType = DocumentationCommentBinder.BinderType.NameInTypeParam
-                            If Not Me._tagsSupport.TypeParamSupported Then
+                            If Not _tagsSupport.TypeParamSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
                                                                     elementName.LocalName,
-                                                                    Me._tagsSupport.SymbolName)
+                                                                    _tagsSupport.SymbolName)
                             End If
 
                         ElseIf ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterReferenceElementName) Then
                             binderType = DocumentationCommentBinder.BinderType.NameInTypeParamRef
-                            If Not Me._tagsSupport.TypeParamRefSupported Then
+                            If Not _tagsSupport.TypeParamRefSupported Then
                                 commentMessage = GenerateDiagnostic(XmlLocation.Create(element, currentXmlFilePath),
                                                                     ERRID.WRN_XMLDocIllegalTagOnElement2,
                                                                     elementName.LocalName,
-                                                                    Me._tagsSupport.SymbolName)
+                                                                    _tagsSupport.SymbolName)
                             End If
                         End If
 
@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Private Function RewriteIncludeElement(includeElement As XElement, currentXmlFilePath As String, originatingSyntax As XmlNodeSyntax, <Out> ByRef commentMessage As String) As XNode()
-                    Dim location As location = GetIncludeElementLocation(includeElement, currentXmlFilePath, originatingSyntax)
+                    Dim location As Location = GetIncludeElementLocation(includeElement, currentXmlFilePath, originatingSyntax)
                     Debug.Assert(originatingSyntax IsNot Nothing)
 
                     If Not AddIncludeElementLocation(location) Then
@@ -541,15 +541,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Private Function ShouldProcessLocation(loc As Location) As Boolean
-                    Return Me._onlyDiagnosticsFromTree Is Nothing OrElse
-                        loc.Kind = LocationKind.SourceFile AndAlso DirectCast(loc, SourceLocation).SourceTree Is Me._onlyDiagnosticsFromTree AndAlso
-                        (Not Me._filterSpanWithinTree.HasValue OrElse Me._filterSpanWithinTree.Value.Contains(loc.SourceSpan))
+                    Return _onlyDiagnosticsFromTree Is Nothing OrElse
+                        loc.Kind = LocationKind.SourceFile AndAlso DirectCast(loc, SourceLocation).SourceTree Is _onlyDiagnosticsFromTree AndAlso
+                        (Not _filterSpanWithinTree.HasValue OrElse _filterSpanWithinTree.Value.Contains(loc.SourceSpan))
                 End Function
 
                 Private Function GenerateDiagnostic(suppressDiagnostic As Boolean, loc As Location, id As ERRID, ParamArray arguments As Object()) As String
                     Dim info As DiagnosticInfo = ErrorFactory.ErrorInfo(id, arguments)
-                    If Not suppressDiagnostic AndAlso Me.ProduceDiagnostics AndAlso ShouldProcessLocation(loc) Then
-                        Me._diagnostics.Add(New VBDiagnostic(info, loc))
+                    If Not suppressDiagnostic AndAlso ProduceDiagnostics AndAlso ShouldProcessLocation(loc) Then
+                        _diagnostics.Add(New VBDiagnostic(info, loc))
                     End If
                     Return info.ToString()
                 End Function
@@ -559,22 +559,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Private Function AddIncludeElementLocation(location As Location) As Boolean
-                    If Me._inProgressIncludeElementNodes Is Nothing Then
-                        Me._inProgressIncludeElementNodes = New HashSet(Of location)()
+                    If _inProgressIncludeElementNodes Is Nothing Then
+                        _inProgressIncludeElementNodes = New HashSet(Of Location)()
                     End If
 
-                    Return Me._inProgressIncludeElementNodes.Add(location)
+                    Return _inProgressIncludeElementNodes.Add(location)
                 End Function
 
                 Private Function RemoveIncludeElementLocation(location As Location) As Boolean
-                    Debug.Assert(Me._inProgressIncludeElementNodes IsNot Nothing)
-                    Dim result As Boolean = Me._inProgressIncludeElementNodes.Remove(location)
+                    Debug.Assert(_inProgressIncludeElementNodes IsNot Nothing)
+                    Dim result As Boolean = _inProgressIncludeElementNodes.Remove(location)
                     Debug.Assert(result)
                     Return result
                 End Function
 
                 Private Function GetIncludeElementLocation(includeElement As XElement, ByRef currentXmlFilePath As String, ByRef originatingSyntax As XmlNodeSyntax) As Location
-                    Dim location As location = includeElement.Annotation(Of location)()
+                    Dim location As Location = includeElement.Annotation(Of Location)()
 
                     If location IsNot Nothing Then
                         Return location
@@ -588,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         originatingSyntax = _sourceIncludeElementNodes(_nextSourceIncludeElementIndex)
                         location = originatingSyntax.GetLocation()
-                        Me._nextSourceIncludeElementIndex += 1
+                        _nextSourceIncludeElementIndex += 1
                         includeElement.AddAnnotation(location)
 
                         currentXmlFilePath = location.GetLineSpan().Path
@@ -615,19 +615,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Select Case attr.Kind
 
                         Case SyntaxKind.XmlCrefAttribute
-                            Dim binder As binder = Me.GetOrCreateBinder(DocumentationCommentBinder.BinderType.Cref)
+                            Dim binder As Binder = GetOrCreateBinder(DocumentationCommentBinder.BinderType.Cref)
                             Dim reference As CrefReferenceSyntax = DirectCast(attr, XmlCrefAttributeSyntax).Reference
                             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                             Dim diagnostics = DiagnosticBag.GetInstance
                             Dim bindResult As ImmutableArray(Of Symbol) = binder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, diagnosticBag:=diagnostics, useSiteDiagnostics:=useSiteDiagnostics)
 
                             Dim errorLocations = diagnostics.ToReadOnlyAndFree().SelectAsArray(Function(x) x.Location).WhereAsArray(Function(x) x IsNot Nothing)
-                            If Me.ProduceXmlDiagnostics AndAlso Not useSiteDiagnostics.IsNullOrEmpty Then
+                            If ProduceXmlDiagnostics AndAlso Not useSiteDiagnostics.IsNullOrEmpty Then
                                 ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), Nothing, useSiteDiagnostics, errorLocations, Nothing)
                             End If
 
                             If bindResult.IsDefaultOrEmpty Then
-                                If Me.ProduceXmlDiagnostics Then
+                                If ProduceXmlDiagnostics Then
                                     ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToFullString().TrimEnd(Nothing), useSiteDiagnostics, errorLocations, ERRID.WRN_XMLDocCrefAttributeNotFound1)
                                 End If
                                 attribute.Value = "?:" + attribute.Value
@@ -655,7 +655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         ' note that we want to ignore the cases when there are more than one symbol 
                                         ' can be found by the name, just deterministically choose which one to use
                                         If symbolCommentId Is Nothing OrElse
-                                                Me._compilation.CompareSourceLocations(
+                                                _compilation.CompareSourceLocations(
                                                     smallestSymbol.Locations(0), symbol.Locations(0)) > 0 Then
 
                                             symbolCommentId = id
@@ -665,7 +665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Next
 
                                 If symbolCommentId Is Nothing Then
-                                    If Me.ProduceXmlDiagnostics Then
+                                    If ProduceXmlDiagnostics Then
                                         ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToString(), Nothing, errorLocations, errid)
                                     End If
                                     attribute.Value = "?:" + attribute.Value
@@ -689,8 +689,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim value As String = attribute.Value.Trim()
                             If value.Length < 2 OrElse value(0) = ":"c OrElse value(1) <> ":"c Then
                                 ' Case (b) from above
-                                If Me.ProduceXmlDiagnostics Then
-                                    Me._diagnostics.Add(ERRID.WRN_XMLDocCrefAttributeNotFound1, XmlLocation.Create(attribute, currentXmlFilePath), value)
+                                If ProduceXmlDiagnostics Then
+                                    _diagnostics.Add(ERRID.WRN_XMLDocCrefAttributeNotFound1, XmlLocation.Create(attribute, currentXmlFilePath), value)
                                 End If
                                 attribute.Value = "?:" + value
                             End If
@@ -704,17 +704,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private Sub ProcessErrorLocations(currentXmlLocation As XmlLocation, referenceName As String, useSiteDiagnostics As HashSet(Of DiagnosticInfo), errorLocations As ImmutableArray(Of Location), errid As Nullable(Of ERRID))
                     If errorLocations.Length = 0 Then
                         If useSiteDiagnostics IsNot Nothing Then
-                            Me._diagnostics.Add(currentXmlLocation, useSiteDiagnostics)
+                            _diagnostics.Add(currentXmlLocation, useSiteDiagnostics)
                         ElseIf errid.HasValue Then
-                            Me._diagnostics.Add(errid.Value, currentXmlLocation, referenceName)
+                            _diagnostics.Add(errid.Value, currentXmlLocation, referenceName)
                         End If
                     ElseIf errid.HasValue Then
                         For Each location In errorLocations
-                            Me._diagnostics.Add(errid.Value, location, referenceName)
+                            _diagnostics.Add(errid.Value, location, referenceName)
                         Next
                     Else
                         For Each location In errorLocations
-                            Me._diagnostics.Add(location, useSiteDiagnostics)
+                            _diagnostics.Add(location, useSiteDiagnostics)
                         Next
                     End If
                 End Sub
@@ -747,25 +747,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Select Case attr.Kind
 
                         Case SyntaxKind.XmlNameAttribute
-                            Dim binder As binder = Me.GetOrCreateBinder(type)
+                            Dim binder As Binder = GetOrCreateBinder(type)
                             Dim identifier As IdentifierNameSyntax = DirectCast(attr, XmlNameAttributeSyntax).Reference
                             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                             Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(identifier, useSiteDiagnostics)
 
-                            If Me.ProduceDiagnostics AndAlso Not useSiteDiagnostics.IsNullOrEmpty Then
+                            If ProduceDiagnostics AndAlso Not useSiteDiagnostics.IsNullOrEmpty Then
                                 Dim loc As Location = XmlLocation.Create(attribute, currentXmlFilePath)
                                 If ShouldProcessLocation(loc) Then
-                                    Me._diagnostics.Add(loc, useSiteDiagnostics)
+                                    _diagnostics.Add(loc, useSiteDiagnostics)
                                 End If
                             End If
 
                             If bindResult.IsDefaultOrEmpty Then
-                                commentMessage = GenerateDiagnostic(XmlLocation.Create(attribute, currentXmlFilePath), badNameValueError, attributeValue, Me._tagsSupport.SymbolName)
+                                commentMessage = GenerateDiagnostic(XmlLocation.Create(attribute, currentXmlFilePath), badNameValueError, attributeValue, _tagsSupport.SymbolName)
                             End If
 
                         Case SyntaxKind.XmlAttribute
                             ' 'name=' attribute can get here if parsing of identifier went wrong, we need to generate a diagnostic
-                            commentMessage = GenerateDiagnostic(XmlLocation.Create(attribute, currentXmlFilePath), badNameValueError, attributeValue, Me._tagsSupport.SymbolName)
+                            commentMessage = GenerateDiagnostic(XmlLocation.Create(attribute, currentXmlFilePath), badNameValueError, attributeValue, _tagsSupport.SymbolName)
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(attr.Kind)

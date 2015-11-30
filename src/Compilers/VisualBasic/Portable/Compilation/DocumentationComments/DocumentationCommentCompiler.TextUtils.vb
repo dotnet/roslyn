@@ -13,19 +13,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits VisualBasicSymbolVisitor
 
             Private Sub Indent()
-                Me._writer.Indent()
+                _writer.Indent()
             End Sub
 
             Private Sub Unindent()
-                Me._writer.Unindent()
+                _writer.Unindent()
             End Sub
 
             Private Sub WriteLine(message As String)
-                Me._writer.WriteLine(message)
+                _writer.WriteLine(message)
             End Sub
 
             Private Sub Write(message As String)
-                Me._writer.Write(message)
+                _writer.Write(message)
             End Sub
 
             ''' <summary>
@@ -33,9 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' punctuation (''') and add appropriate indentations.
             ''' </summary>
             Private Function FormatComment(substitutedText As String) As String
-                Me._writer.BeginTemporaryString()
+                _writer.BeginTemporaryString()
                 WriteFormattedComment(substitutedText)
-                Return Me._writer.GetAndEndTemporaryString()
+                Return _writer.GetAndEndTemporaryString()
             End Function
 
             ''' <summary>
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         trimStart += substringStart
                     End If
 
-                    Me._writer.WriteSubString(text, trimStart, [end] - trimStart, appendNewLine:=True)
+                    _writer.WriteSubString(text, trimStart, [end] - trimStart, appendNewLine:=True)
                     start = [end] + newLineLength
                 End While
             End Sub

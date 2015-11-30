@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property IsLValue As Boolean
             Get
-                Return If(Me.ValueOpt IsNot Nothing, Me.ValueOpt.IsLValue, False)
+                Return If(ValueOpt IsNot Nothing, ValueOpt.IsLValue, False)
             End Get
         End Property
 
@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function MakeRValue() As BoundSpillSequence
-            If Me.IsLValue Then
-                Debug.Assert(Me.ValueOpt IsNot Nothing)
+            If IsLValue Then
+                Debug.Assert(ValueOpt IsNot Nothing)
                 Return Update(Locals, SpillFields, Statements, ValueOpt.MakeRValue(), Type)
             End If
 
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(Me.ValueOpt Is Nothing OrElse Me.ValueOpt.Kind <> BoundKind.SpillSequence)
+            Debug.Assert(ValueOpt Is Nothing OrElse ValueOpt.Kind <> BoundKind.SpillSequence)
         End Sub
 #End If
 

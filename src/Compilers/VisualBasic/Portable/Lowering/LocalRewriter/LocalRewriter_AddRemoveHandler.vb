@@ -1,11 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -76,14 +72,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundTemp As BoundLocal = Nothing
             If Not eventSymbol.IsShared AndAlso EventReceiverNeedsTemp(rewrittenReceiverOpt) Then
                 Dim receiverType As TypeSymbol = rewrittenReceiverOpt.Type
-                boundTemp = New BoundLocal(syntax, New SynthesizedLocal(Me._currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp), receiverType)
+                boundTemp = New BoundLocal(syntax, New SynthesizedLocal(_currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp), receiverType)
                 tempAssignment = New BoundAssignmentOperator(syntax, boundTemp, GenerateObjectCloneIfNeeded(unwrappedEventAccess.ReceiverOpt, rewrittenReceiverOpt.MakeRValue), True)
             End If
 
-            Dim tokenType As NamedTypeSymbol = Me.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
-            Dim marshalType As NamedTypeSymbol = Me.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal)
+            Dim tokenType As NamedTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
+            Dim marshalType As NamedTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal)
 
-            Dim actionType As NamedTypeSymbol = Me.Compilation.GetWellKnownType(WellKnownType.System_Action_T)
+            Dim actionType As NamedTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Action_T)
 
             Dim eventType As TypeSymbol = eventSymbol.Type
             actionType = actionType.Construct(tokenType)
@@ -103,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim marshalMethodId As WellKnownMember
             Dim marshalArguments As ImmutableArray(Of BoundExpression)
             If isAddition Then
-                Dim func2Type As NamedTypeSymbol = Me.Compilation.GetWellKnownType(WellKnownType.System_Func_T2)
+                Dim func2Type As NamedTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Func_T2)
                 func2Type = func2Type.Construct(eventType, tokenType)
 
                 Dim addDelegate As BoundDelegateCreationExpression =
@@ -221,8 +217,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim statement As BoundStatement = New BoundExpressionStatement(node.Syntax, expr)
 
-            If Me.GenerateDebugInfo AndAlso Not node.WasCompilerGenerated Then
-                statement = Me.MarkStatementWithSequencePoint(statement)
+            If GenerateDebugInfo AndAlso Not node.WasCompilerGenerated Then
+                statement = MarkStatementWithSequencePoint(statement)
             End If
 
             Return statement

@@ -3,10 +3,8 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -22,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Reference to an expression from With statement </summary>
         Private ReadOnly Property Expression As ExpressionSyntax
             Get
-                Return Me._withBlockSyntax.WithStatement.Expression
+                Return _withBlockSyntax.WithStatement.Expression
             End Get
         End Property
 
@@ -44,8 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend ReadOnly Property ExpressionIsAccessedFromNestedLambda As Boolean
             Get
-                Debug.Assert(Me._withBlockInfo IsNot Nothing)
-                Return Me._withBlockInfo.ExpressionIsAccessedFromNestedLambda
+                Debug.Assert(_withBlockInfo IsNot Nothing)
+                Return _withBlockInfo.ExpressionIsAccessedFromNestedLambda
             End Get
         End Property
 
@@ -56,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend ReadOnly Property ExpressionPlaceholder As BoundValuePlaceholderBase
             Get
-                Debug.Assert(Me._withBlockInfo IsNot Nothing)
-                Return Me._withBlockInfo.ExpressionPlaceholder
+                Debug.Assert(_withBlockInfo IsNot Nothing)
+                Return _withBlockInfo.ExpressionPlaceholder
             End Get
         End Property
 
@@ -73,8 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend ReadOnly Property DraftInitializers As ImmutableArray(Of BoundExpression)
             Get
-                Debug.Assert(Me._withBlockInfo IsNot Nothing)
-                Return Me._withBlockInfo.DraftInitializers
+                Debug.Assert(_withBlockInfo IsNot Nothing)
+                Return _withBlockInfo.DraftInitializers
             End Get
         End Property
 
@@ -87,8 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend ReadOnly Property DraftPlaceholderSubstitute As BoundExpression
             Get
-                Debug.Assert(Me._withBlockInfo IsNot Nothing)
-                Return Me._withBlockInfo.DraftSubstitute
+                Debug.Assert(_withBlockInfo IsNot Nothing)
+                Return _withBlockInfo.DraftSubstitute
             End Get
         End Property
 
@@ -141,13 +139,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property ExpressionIsAccessedFromNestedLambda As Boolean
                 Get
-                    Return Me._exprAccessedFromNestedLambda = ThreeState.True
+                    Return _exprAccessedFromNestedLambda = ThreeState.True
                 End Get
             End Property
 
             Public Sub RegisterAccessFromNestedLambda()
-                If Me._exprAccessedFromNestedLambda <> ThreeState.True Then
-                    Dim oldValue = Interlocked.CompareExchange(Me._exprAccessedFromNestedLambda, ThreeState.True, ThreeState.Unknown)
+                If _exprAccessedFromNestedLambda <> ThreeState.True Then
+                    Dim oldValue = Interlocked.CompareExchange(_exprAccessedFromNestedLambda, ThreeState.True, ThreeState.Unknown)
                     Debug.Assert(oldValue = ThreeState.Unknown OrElse oldValue = ThreeState.True)
                 End If
             End Sub
@@ -160,16 +158,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' in few scenarios, this flag is being calculated lazily.
             ''' </summary>
             Public Function ExpressionHasByRefMeReference(recursionDepth As Integer) As Boolean
-                If Me._exprHasByRefMeReference = ThreeState.Unknown Then
+                If _exprHasByRefMeReference = ThreeState.Unknown Then
                     ' Analyze the expression which will be used instead of placeholder
-                    Dim value As Boolean = ValueTypedMeReferenceFinder.HasByRefMeReference(Me.DraftSubstitute, recursionDepth)
+                    Dim value As Boolean = ValueTypedMeReferenceFinder.HasByRefMeReference(DraftSubstitute, recursionDepth)
                     Dim newValue As Integer = If(value, ThreeState.True, ThreeState.False)
-                    Dim oldValue = Interlocked.CompareExchange(Me._exprHasByRefMeReference, newValue, ThreeState.Unknown)
+                    Dim oldValue = Interlocked.CompareExchange(_exprHasByRefMeReference, newValue, ThreeState.Unknown)
                     Debug.Assert(newValue = oldValue OrElse oldValue = ThreeState.Unknown)
                 End If
 
-                Debug.Assert(Me._exprHasByRefMeReference <> ThreeState.Unknown)
-                Return Me._exprHasByRefMeReference = ThreeState.True
+                Debug.Assert(_exprHasByRefMeReference <> ThreeState.Unknown)
+                Return _exprHasByRefMeReference = ThreeState.True
             End Function
 
             Private _exprHasByRefMeReference As Integer = ThreeState.Unknown
@@ -183,61 +181,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(syntax IsNot Nothing)
             Debug.Assert(syntax.WithStatement IsNot Nothing)
             Debug.Assert(syntax.WithStatement.Expression IsNot Nothing)
-            Me._withBlockSyntax = syntax
+            _withBlockSyntax = syntax
         End Sub
 
 #Region "Implementation"
 
         Friend Overrides Function GetWithStatementPlaceholderSubstitute(placeholder As BoundValuePlaceholderBase) As BoundExpression
-            Me.EnsureExpressionAndPlaceholder()
-            If placeholder Is Me.ExpressionPlaceholder Then
-                Return Me.DraftPlaceholderSubstitute
+            EnsureExpressionAndPlaceholder()
+            If placeholder Is ExpressionPlaceholder Then
+                Return DraftPlaceholderSubstitute
             End If
             Return MyBase.GetWithStatementPlaceholderSubstitute(placeholder)
         End Function
 
         Private Sub EnsureExpressionAndPlaceholder()
 
-            If Me._withBlockInfo Is Nothing Then
+            If _withBlockInfo Is Nothing Then
                 ' Because we cannot guarantee that diagnostics will be freed we 
                 ' don't allocate this diagnostics bag from a pool
                 Dim diagnostics As New DiagnosticBag()
 
                 ' Bind the expression as a value
-                Dim boundExpression As BoundExpression = Me.ContainingBinder.BindValue(Me.Expression, diagnostics)
+                Dim boundExpression As BoundExpression = ContainingBinder.BindValue(Expression, diagnostics)
 
                 ' NOTE: If the expression is not an l-value we should make an r-value of it
                 If Not boundExpression.IsLValue Then
-                    boundExpression = Me.MakeRValue(boundExpression, diagnostics)
+                    boundExpression = MakeRValue(boundExpression, diagnostics)
                 End If
 
                 ' Prepare draft substitute/initializers for expression placeholder;
                 ' note that those substitute/initializers will be based on initial bound 
                 ' form of the original expression captured without using ByRef locals
                 Dim result As WithExpressionRewriter.Result =
-                    (New WithExpressionRewriter(Me._withBlockSyntax.WithStatement)).AnalyzeWithExpression(Me.ContainingMember, boundExpression,
+                    (New WithExpressionRewriter(_withBlockSyntax.WithStatement)).AnalyzeWithExpression(ContainingMember, boundExpression,
                                                                  doNotUseByRefLocal:=True,
-                                                                 binder:=Me.ContainingBinder,
+                                                                 binder:=ContainingBinder,
                                                                  preserveIdentityOfLValues:=True)
 
                 ' Create a placeholder if needed
                 Dim placeholder As BoundValuePlaceholderBase = Nothing
                 If boundExpression.IsLValue OrElse boundExpression.IsMeReference Then
-                    placeholder = New BoundWithLValueExpressionPlaceholder(Me.Expression, boundExpression.Type)
+                    placeholder = New BoundWithLValueExpressionPlaceholder(Expression, boundExpression.Type)
                 Else
-                    placeholder = New BoundWithRValueExpressionPlaceholder(Me.Expression, boundExpression.Type)
+                    placeholder = New BoundWithRValueExpressionPlaceholder(Expression, boundExpression.Type)
                 End If
                 placeholder.SetWasCompilerGenerated()
 
                 ' It is assumed that the binding result in case of race should still be the same in all racing threads, 
                 ' so if the following call fails we can just drop the bound node and diagnostics on the floor
-                Interlocked.CompareExchange(Me._withBlockInfo,
+                Interlocked.CompareExchange(_withBlockInfo,
                                             New WithBlockInfo(boundExpression, placeholder,
                                                               result.Expression, result.Initializers, diagnostics),
                                             Nothing)
             End If
 
-            Debug.Assert(Me._withBlockInfo IsNot Nothing)
+            Debug.Assert(_withBlockInfo IsNot Nothing)
         End Sub
 
         ''' <summary>
@@ -271,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim type As TypeSymbol = node.Type
                 Debug.Assert(Not type.IsTypeParameter)
                 Debug.Assert(type.IsValueType)
-                Me._found = True
+                _found = True
                 Return Nothing
             End Function
 
@@ -279,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim type As TypeSymbol = node.Type
                 Debug.Assert(Not type.IsTypeParameter)
                 Debug.Assert(type.IsValueType)
-                Me._found = True
+                _found = True
                 Return Nothing
             End Function
 
@@ -290,19 +288,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "With block binding"
 
         Protected Overrides Function CreateBoundWithBlock(node As WithBlockSyntax, boundBlockBinder As Binder, diagnostics As DiagnosticBag) As BoundStatement
-            Debug.Assert(node Is Me._withBlockSyntax)
+            Debug.Assert(node Is _withBlockSyntax)
 
             ' Bind With statement expression
-            Me.EnsureExpressionAndPlaceholder()
+            EnsureExpressionAndPlaceholder()
 
             ' We need to take care of possible diagnostics that might be produced 
             ' by EnsureExpressionAndPlaceholder call, note that this call might have
             ' been before in which case the diagnostics were stored in '_withBlockInfo'
             ' See also comment in PrepareBindingOfOmittedLeft(...)
-            diagnostics.AddRange(Me._withBlockInfo.Diagnostics)
+            diagnostics.AddRange(_withBlockInfo.Diagnostics)
 
             Return New BoundWithStatement(node,
-                                          Me._withBlockInfo.OriginalExpression,
+                                          _withBlockInfo.OriginalExpression,
                                           boundBlockBinder.BindBlock(node, node.Statements, diagnostics),
                                           Me)
         End Function
@@ -315,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Conditional("DEBUG")>
         Private Sub AssertExpressionIsNotFromStatementExpression(node As VisualBasicSyntaxNode)
             While node IsNot Nothing
-                Debug.Assert(node IsNot Me.Expression)
+                Debug.Assert(node IsNot Expression)
                 node = node.Parent
             End While
         End Sub
@@ -343,13 +341,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          (node.Kind = SyntaxKind.XmlDescendantAccessExpression) OrElse
                          (node.Kind = SyntaxKind.ConditionalAccessExpression))
 
-            Me.EnsureExpressionAndPlaceholder()
+            EnsureExpressionAndPlaceholder()
             ' NOTE: In case the call above produced diagnostics they were stored in 
             '       '_withBlockInfo' and will be reported in later call to CreateBoundWithBlock(...)
 
-            Dim info As WithBlockInfo = Me._withBlockInfo
+            Dim info As WithBlockInfo = _withBlockInfo
 
-            If Me.ContainingMember IsNot accessingBinder.ContainingMember Then
+            If ContainingMember IsNot accessingBinder.ContainingMember Then
                 ' The expression placeholder from With statement may be captured
                 info.RegisterAccessFromNestedLambda()
             End If
@@ -363,26 +361,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
 
             wholeMemberAccessExpressionBound = False
-            Return Me._withBlockInfo.ExpressionPlaceholder
+            Return _withBlockInfo.ExpressionPlaceholder
         End Function
 
         Protected Overrides Function TryBindOmittedLeftForDictionaryAccess(node As MemberAccessExpressionSyntax,
                                                                            accessingBinder As Binder,
                                                                            diagnostics As DiagnosticBag) As BoundExpression
             PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
-            Return Me._withBlockInfo.ExpressionPlaceholder
+            Return _withBlockInfo.ExpressionPlaceholder
         End Function
 
         Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression
             PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
-            Return Me._withBlockInfo.ExpressionPlaceholder
+            Return _withBlockInfo.ExpressionPlaceholder
         End Function
 
         Protected Friend Overrides Function TryBindOmittedLeftForXmlMemberAccess(node As XmlMemberAccessExpressionSyntax,
                                                                                  diagnostics As DiagnosticBag,
                                                                                  accessingBinder As Binder) As BoundExpression
             PrepareBindingOfOmittedLeft(node, diagnostics, accessingBinder)
-            Return Me._withBlockInfo.ExpressionPlaceholder
+            Return _withBlockInfo.ExpressionPlaceholder
         End Function
 
         Friend Overrides ReadOnly Property Locals As ImmutableArray(Of LocalSymbol)

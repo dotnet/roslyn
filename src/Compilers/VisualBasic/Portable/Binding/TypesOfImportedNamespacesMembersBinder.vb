@@ -1,16 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -42,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim currentResult = LookupResult.GetInstance()
                     originalBinder.LookupMemberInModules(currentResult, DirectCast(importedSym.NamespaceOrType, NamespaceSymbol), name, arity, options, useSiteDiagnostics)
                     If currentResult.IsGood AndAlso Not originalBinder.IsSemanticModelBinder Then
-                        Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, importedSym.ImportsClausePosition)
+                        Compilation.MarkImportDirectiveAsUsed(SyntaxTree, importedSym.ImportsClausePosition)
                     End If
 
                     lookupResult.MergeAmbiguous(currentResult, ImportedTypesAndNamespacesMembersBinder.GenerateAmbiguityError)
@@ -66,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim count = methods.Count
                     DirectCast(importedSym.NamespaceOrType, NamespaceSymbol).AppendProbableExtensionMethods(name, methods)
                     If methods.Count <> count AndAlso Not originalBinder.IsSemanticModelBinder Then
-                        Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, importedSym.ImportsClausePosition)
+                        Compilation.MarkImportDirectiveAsUsed(SyntaxTree, importedSym.ImportsClausePosition)
                     End If
                 End If
             Next

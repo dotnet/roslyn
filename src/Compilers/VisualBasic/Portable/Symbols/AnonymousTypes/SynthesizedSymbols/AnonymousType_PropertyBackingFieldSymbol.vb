@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -16,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property IsReadOnly As Boolean
                 Get
-                    Return Me._propertyOrEvent.IsReadOnly
+                    Return _propertyOrEvent.IsReadOnly
                 End Get
             End Property
 
@@ -24,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Get
                     ' To be sure that when we emitting the name, it's 
                     ' casing is in sync with that of the property
-                    Return "$" & Me._propertyOrEvent.Name
+                    Return "$" & _propertyOrEvent.Name
                 End Get
             End Property
 

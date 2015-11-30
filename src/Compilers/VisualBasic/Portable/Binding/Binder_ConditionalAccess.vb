@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -40,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' NOTE: If the expression is not an l-value we should make an r-value of it
                 If Not boundExpression.IsLValue Then
-                    boundExpression = Me.MakeRValue(boundExpression, diagnostics)
+                    boundExpression = MakeRValue(boundExpression, diagnostics)
                 End If
             End If
 
@@ -67,8 +63,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overridable Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax,
                                                                              accessingBinder As Binder,
                                                                              diagnostics As DiagnosticBag) As BoundExpression
-            Debug.Assert(Me.ContainingBinder IsNot Nothing)
-            Return Me.ContainingBinder.TryBindOmittedLeftForConditionalAccess(node, accessingBinder, diagnostics)
+            Debug.Assert(ContainingBinder IsNot Nothing)
+            Return ContainingBinder.TryBindOmittedLeftForConditionalAccess(node, accessingBinder, diagnostics)
         End Function
 
         Protected Function GetConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax) As BoundExpression
@@ -84,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overridable Function TryGetConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax) As BoundExpression
-            Return Me.ContainingBinder.TryGetConditionalAccessReceiver(node)
+            Return ContainingBinder.TryGetConditionalAccessReceiver(node)
         End Function
     End Class
 

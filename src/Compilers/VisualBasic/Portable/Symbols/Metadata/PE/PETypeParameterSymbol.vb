@@ -1,12 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -88,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
             Get
-                Return If(Me.ContainingSymbol.Kind = SymbolKind.Method,
+                Return If(ContainingSymbol.Kind = SymbolKind.Method,
                           TypeParameterKind.Method,
                           TypeParameterKind.Type)
             End Get
@@ -108,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend ReadOnly Property Handle As GenericParameterHandle
             Get
-                Return Me._handle
+                Return _handle
             End Get
         End Property
 
@@ -183,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
 
                 For Each constraint In constraints
-                    Dim typeSymbol As typeSymbol = tokenDecoder.GetTypeOfToken(constraint)
+                    Dim typeSymbol As TypeSymbol = tokenDecoder.GetTypeOfToken(constraint)
 
                     ' Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
                     If ((_flags And GenericParameterAttributes.NotNullableValueTypeConstraint) <> 0) AndAlso
@@ -261,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' which cannot be satisfied if A and B are from different hierarchies.) It also isn't
                 ' necessary to report redundant constraints since redundant constraints are still
                 ' valid. Redundant constraints are dropped silently.
-                Dim constraints = Me.RemoveDirectConstraintConflicts(GetDeclaredConstraints(), inProgress.Prepend(Me), DirectConstraintConflictKind.None, diagnosticsBuilder)
+                Dim constraints = RemoveDirectConstraintConflicts(GetDeclaredConstraints(), inProgress.Prepend(Me), DirectConstraintConflictKind.None, diagnosticsBuilder)
                 Dim errorInfo = If(diagnosticsBuilder.Count > 0, diagnosticsBuilder(0).DiagnosticInfo, Nothing)
                 diagnosticsBuilder.Free()
 

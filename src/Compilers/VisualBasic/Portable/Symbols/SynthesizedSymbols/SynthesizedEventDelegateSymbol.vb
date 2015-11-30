@@ -37,12 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _reportedAllDeclarationErrors As Integer = 0 ' An integer to be able to do Interlocked operations.
 
         Friend Sub New(syntaxRef As SyntaxReference, containingSymbol As NamedTypeSymbol)
-            Me._containingType = containingSymbol
-            Me._syntaxRef = syntaxRef
+            _containingType = containingSymbol
+            _syntaxRef = syntaxRef
 
-            Dim eventName = Me.EventSyntax.Identifier.ValueText
-            Me._eventName = eventName
-            Me._name = _eventName & EVENT_DELEGATE_SUFFIX
+            Dim eventName = EventSyntax.Identifier.ValueText
+            _eventName = eventName
+            _name = _eventName & EVENT_DELEGATE_SUFFIX
         End Sub
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
@@ -50,12 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _lazyMembers
             End If
 
-            Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            Dim binder As binder = BinderBuilder.CreateBinderForType(sourceModule, _syntaxRef.SyntaxTree, Me.ContainingType)
+            Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
+            Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, _syntaxRef.SyntaxTree, ContainingType)
 
             Dim diagBag = DiagnosticBag.GetInstance()
 
-            Dim syntax = Me.EventSyntax
+            Dim syntax = EventSyntax
             Dim paramListOpt = syntax.ParameterList
 
             Dim ctor As MethodSymbol = Nothing
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim endInvoke As MethodSymbol = Nothing
             Dim invoke As MethodSymbol = Nothing
 
-            SourceDelegateMethodSymbol.MakeDelegateMembers(Me, Me.EventSyntax, syntax.ParameterList, binder, ctor, beginInvoke, endInvoke, invoke, diagBag)
+            SourceDelegateMethodSymbol.MakeDelegateMembers(Me, EventSyntax, syntax.ParameterList, binder, ctor, beginInvoke, endInvoke, invoke, diagBag)
 
             ' We shouldn't need to check if this is a winmd compilation because 
             ' winmd output requires that all events be declared Event ... As ...,
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property EventSyntax As EventStatementSyntax
             Get
-                Return DirectCast(Me._syntaxRef.GetSyntax, EventStatementSyntax)
+                Return DirectCast(_syntaxRef.GetSyntax, EventStatementSyntax)
             End Get
         End Property
 
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            Return New LexicalSortKey(_syntaxRef, Me.DeclaringCompilation)
+            Return New LexicalSortKey(_syntaxRef, DeclaringCompilation)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property TypeKind As TYPEKIND
+        Public Overrides ReadOnly Property TypeKind As TypeKind
             Get
                 Return TypeKind.Delegate
             End Get
@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Force parameters and return value of Invoke method to be bound and errors reported.
             ' Parameters on other delegate methods are derived from Invoke so we don't need to call those.
-            Me.DelegateInvokeMethod.GenerateDeclarationErrors(cancellationToken)
+            DelegateInvokeMethod.GenerateDeclarationErrors(cancellationToken)
 
             Dim container = _containingType
             Dim outermostVariantInterface As NamedTypeSymbol = Nothing
@@ -422,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
-                Return Me.ContainingType.EmbeddedSymbolKind
+                Return ContainingType.EmbeddedSymbolKind
             End Get
         End Property
 

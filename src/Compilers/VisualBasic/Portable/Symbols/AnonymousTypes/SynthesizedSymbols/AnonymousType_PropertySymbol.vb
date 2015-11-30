@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -86,13 +85,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Name As String
                 Get
-                    Return Me._name
+                    Return _name
                 End Get
             End Property
 
             Public Overrides ReadOnly Property MetadataName As String
                 Get
-                    Return Me.AnonymousType.GetAdjustedName(Me.PropertyIndex)
+                    Return AnonymousType.GetAdjustedName(PropertyIndex)
                 End Get
             End Property
 

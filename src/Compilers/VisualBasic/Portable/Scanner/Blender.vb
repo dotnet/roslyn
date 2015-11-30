@@ -5,13 +5,8 @@
 '-----------------------------------------------------------------------------
 Option Compare Binary
 Option Strict On
-
-Imports System.Collections.ObjectModel
-Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class Blender
@@ -457,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' sometimes nodes contain linebreaks in leading trivia
             ' if we are in VBAllowLeadingMultilineTrivia state (common case), it is ok.
             ' otherwise nodes with leading trivia containing linebreaks should be rejected.
-            If Not Me._currentToken.State = ScannerState.VBAllowLeadingMultilineTrivia AndAlso
+            If Not _currentToken.State = ScannerState.VBAllowLeadingMultilineTrivia AndAlso
                 ContainsLeadingLineBreaks(node) Then
 
                 Return False
@@ -551,9 +546,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private _nextState As PreprocessorState
 
             Public Sub New(state As PreprocessorState, node As VisualBasicSyntaxNode)
-                Me._state = state
-                Me._node = node
-                Me._nextState = Nothing
+                _state = state
+                _node = node
+                _nextState = Nothing
             End Sub
 
             Public ReadOnly Property Valid As Boolean
@@ -564,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Public Function State() As PreprocessorState
                 If _nextState Is Nothing Then
-                    _nextState = ApplyDirectives(Me._state, Me._node)
+                    _nextState = ApplyDirectives(_state, _node)
                 End If
 
                 Return _nextState

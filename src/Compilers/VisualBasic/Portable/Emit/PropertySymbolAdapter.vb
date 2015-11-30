@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
 
-                If Me.GetMethod IsNot Nothing And Me.SetMethod IsNot Nothing Then
-                    Return {Me.GetMethod, Me.SetMethod}
-                ElseIf Me.GetMethod IsNot Nothing Then
-                    Return SpecializedCollections.SingletonEnumerable(Me.GetMethod)
-                ElseIf Me.SetMethod IsNot Nothing Then
-                    Return SpecializedCollections.SingletonEnumerable(Me.SetMethod)
+                If GetMethod IsNot Nothing And SetMethod IsNot Nothing Then
+                    Return {GetMethod, SetMethod}
+                ElseIf GetMethod IsNot Nothing Then
+                    Return SpecializedCollections.SingletonEnumerable(GetMethod)
+                ElseIf SetMethod IsNot Nothing Then
+                    Return SpecializedCollections.SingletonEnumerable(SetMethod)
                 Else
                     Return SpecializedCollections.EmptyEnumerable(Of IMethodReference)()
                 End If
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertyDefinitionGetter As IMethodReference Implements IPropertyDefinition.Getter
             Get
                 CheckDefinitionInvariant()
-                Return Me.GetMethod
+                Return GetMethod
             End Get
         End Property
 
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertyDefinitionIsRuntimeSpecial As Boolean Implements IPropertyDefinition.IsRuntimeSpecial
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasRuntimeSpecialName
+                Return HasRuntimeSpecialName
             End Get
         End Property
 
@@ -64,47 +64,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertyDefinitionIsSpecialName As Boolean Implements IPropertyDefinition.IsSpecialName
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasSpecialName
+                Return HasSpecialName
             End Get
         End Property
 
         Private ReadOnly Property IPropertyDefinitionParameters As ImmutableArray(Of IParameterDefinition) Implements IPropertyDefinition.Parameters
             Get
                 CheckDefinitionInvariant()
-                Return StaticCast(Of IParameterDefinition).From(Me.Parameters)
+                Return StaticCast(Of IParameterDefinition).From(Parameters)
             End Get
         End Property
 
         Private ReadOnly Property IPropertyDefinitionSetter As IMethodReference Implements IPropertyDefinition.Setter
             Get
                 CheckDefinitionInvariant()
-                Return Me.SetMethod
+                Return SetMethod
             End Get
         End Property
 
         Private ReadOnly Property ISignatureCallingConvention As CallingConvention Implements ISignature.CallingConvention
             Get
                 CheckDefinitionInvariant()
-                Return Me.CallingConvention
+                Return CallingConvention
             End Get
         End Property
 
         Private ReadOnly Property ISignatureParameterCount As UShort Implements ISignature.ParameterCount
             Get
                 CheckDefinitionInvariant()
-                Return CType(Me.ParameterCount, UShort)
+                Return CType(ParameterCount, UShort)
             End Get
         End Property
 
         Private Function ISignatureGetParameters(context As EmitContext) As ImmutableArray(Of IParameterTypeInformation) Implements ISignature.GetParameters
             CheckDefinitionInvariant()
-            Return StaticCast(Of IParameterTypeInformation).From(Me.Parameters)
+            Return StaticCast(Of IParameterTypeInformation).From(Parameters)
         End Function
 
         Private ReadOnly Property ISignatureReturnValueCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements ISignature.ReturnValueCustomModifiers
             Get
                 CheckDefinitionInvariant()
-                Return Me.TypeCustomModifiers.As(Of Cci.ICustomModifier)
+                Return TypeCustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
@@ -117,13 +117,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function ISignatureGetType(context As EmitContext) As ITypeReference Implements ISignature.GetType
             CheckDefinitionInvariant()
-            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition
             Get
                 CheckDefinitionInvariant()
-                Return Me.ContainingType
+                Return ContainingType
             End Get
         End Property
 
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As ITypeReference Implements ITypeMemberReference.GetContainingType
             CheckDefinitionInvariant()
-            Return Me.ContainingType
+            Return ContainingType
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As MetadataVisitor) ' Implements IReference.Dispatch
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property INamedEntityName As String Implements INamedEntity.Name
             Get
                 CheckDefinitionInvariant()
-                Return Me.MetadataName
+                Return MetadataName
             End Get
         End Property
     End Class

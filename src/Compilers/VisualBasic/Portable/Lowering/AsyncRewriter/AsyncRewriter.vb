@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
@@ -32,33 +31,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
-            Me._binder = CreateMethodBinder(method)
-            Me._lookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
+            _binder = CreateMethodBinder(method)
+            _lookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
 
             If compilationState.ModuleBuilderOpt.IgnoreAccessibility Then
-                Me._binder = New IgnoreAccessibilityBinder(Me._binder)
-                Me._lookupOptions = Me._lookupOptions Or LookupOptions.IgnoreAccessibility
+                _binder = New IgnoreAccessibilityBinder(_binder)
+                _lookupOptions = _lookupOptions Or LookupOptions.IgnoreAccessibility
             End If
 
             Debug.Assert(asyncKind <> AsyncMethodKind.None)
             Debug.Assert(asyncKind = GetAsyncMethodKind(method))
-            Me._asyncMethodKind = asyncKind
+            _asyncMethodKind = asyncKind
 
-            Select Case Me._asyncMethodKind
+            Select Case _asyncMethodKind
                 Case AsyncMethodKind.Sub
-                    Me._resultType = Me.F.SpecialType(SpecialType.System_Void)
-                    Me._builderType = Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder)
+                    _resultType = F.SpecialType(SpecialType.System_Void)
+                    _builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder)
 
                 Case AsyncMethodKind.TaskFunction
-                    Me._resultType = Me.F.SpecialType(SpecialType.System_Void)
-                    Me._builderType = Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder)
+                    _resultType = F.SpecialType(SpecialType.System_Void)
+                    _builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder)
 
                 Case AsyncMethodKind.GenericTaskFunction
-                    Me._resultType = DirectCast(Me.Method.ReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(Me.TypeMap).Type
-                    Me._builderType = Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T).Construct(Me._resultType)
+                    _resultType = DirectCast(Me.Method.ReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(TypeMap).Type
+                    _builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T).Construct(_resultType)
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(Me._asyncMethodKind)
+                    Throw ExceptionUtilities.UnexpectedValue(_asyncMethodKind)
             End Select
         End Sub
 
@@ -128,23 +127,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub GenerateControlFields()
             ' The fields are initialized from async method, so they need to be public:
-            Me.StateField = Me.F.StateMachineField(Me.F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Public)
-            Me._builderField = Me.F.StateMachineField(Me._builderType, Me.Method, GeneratedNames.MakeStateMachineBuilderFieldName(), Accessibility.Public)
+            StateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Public)
+            _builderField = F.StateMachineField(_builderType, Method, GeneratedNames.MakeStateMachineBuilderFieldName(), Accessibility.Public)
         End Sub
 
         Protected Overrides Sub InitializeStateMachine(bodyBuilder As ArrayBuilder(Of BoundStatement), frameType As NamedTypeSymbol, stateMachineLocal As LocalSymbol)
             If frameType.TypeKind = TypeKind.Class Then
                 ' Dim stateMachineLocal = new AsyncImplementationClass()
                 bodyBuilder.Add(
-                    Me.F.Assignment(
-                        Me.F.Local(stateMachineLocal, True),
-                        Me.F.[New](StateMachineType.Constructor.AsMember(frameType))))
+                    F.Assignment(
+                        F.Local(stateMachineLocal, True),
+                        F.[New](StateMachineType.Constructor.AsMember(frameType))))
             Else
                 ' STAT:   localStateMachine = Nothing ' Initialization
                 bodyBuilder.Add(
-                    Me.F.Assignment(
-                        Me.F.Local(stateMachineLocal, True),
-                        Me.F.Null(stateMachineLocal.Type)))
+                    F.Assignment(
+                        F.Local(stateMachineLocal, True),
+                        F.Null(stateMachineLocal.Type)))
             End If
         End Sub
 
@@ -156,19 +155,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property TypeMap As TypeSubstitution
             Get
-                Return Me.StateMachineType.TypeSubstitution
+                Return StateMachineType.TypeSubstitution
             End Get
         End Property
 
         Protected Overrides Sub GenerateMethodImplementations()
             ' Add IAsyncStateMachine.MoveNext()
             GenerateMoveNext(
-                Me.OpenMoveNextMethodImplementation(
+                OpenMoveNextMethodImplementation(
                     WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext,
                     Accessibility.Friend))
 
             'Add IAsyncStateMachine.SetStateMachine()
-            Me.OpenMethodImplementation(
+            OpenMethodImplementation(
                     WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine,
                     "System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine",
                     Accessibility.Private,
@@ -177,24 +176,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
             ' If the state machine is a class there is no copy made and thus the initialization is not necessary. 
             ' In fact it is an error to reinitialize the builder since it already is initialized.
-            If Me.F.CurrentType.TypeKind = TypeKind.Class Then
-                Me.F.CloseMethod(F.Return())
+            If F.CurrentType.TypeKind = TypeKind.Class Then
+                F.CloseMethod(F.Return())
             Else
-                Me.CloseMethod(
-                Me.F.Block(
-                    Me.F.ExpressionStatement(
-                        Me.GenerateMethodCall(
-                            Me.F.Field(Me.F.Me(), Me._builderField, False),
-                            Me._builderType,
+                CloseMethod(
+                F.Block(
+                    F.ExpressionStatement(
+                        GenerateMethodCall(
+                            F.Field(F.Me(), _builderField, False),
+                            _builderType,
                             "SetStateMachine",
-                            {Me.F.Parameter(Me.F.CurrentMethod.Parameters(0))})),
-                    Me.F.Return()))
+                            {F.Parameter(F.CurrentMethod.Parameters(0))})),
+                    F.Return()))
             End If
 
             ' Constructor
             If StateMachineType.TypeKind = TypeKind.Class Then
-                Me.F.CurrentMethod = StateMachineType.Constructor
-                Me.F.CloseMethod(F.Block(ImmutableArray.Create(F.BaseInitialization(), F.Return())))
+                F.CurrentMethod = StateMachineType.Constructor
+                F.CloseMethod(F.Block(ImmutableArray.Create(F.BaseInitialization(), F.Return())))
             End If
 
         End Sub
@@ -204,62 +203,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' STAT:   localStateMachine.$stateField = NotStartedStateMachine
             Dim stateFieldAsLValue As BoundExpression =
-                Me.F.Field(
-                    Me.F.Local(stateMachineVariable, True),
-                    Me.StateField.AsMember(frameType), True)
+                F.Field(
+                    F.Local(stateMachineVariable, True),
+                    StateField.AsMember(frameType), True)
 
             bodyBuilder.Add(
-                Me.F.Assignment(
+                F.Assignment(
                     stateFieldAsLValue,
-                    Me.F.Literal(StateMachineStates.NotStartedStateMachine)))
+                    F.Literal(StateMachineStates.NotStartedStateMachine)))
 
             ' STAT:   localStateMachine.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of typeArgs).Create()
-            Dim constructedBuilderField As FieldSymbol = Me._builderField.AsMember(frameType)
-            Dim builderFieldAsLValue As BoundExpression = Me.F.Field(Me.F.Local(stateMachineVariable, True), constructedBuilderField, True)
+            Dim constructedBuilderField As FieldSymbol = _builderField.AsMember(frameType)
+            Dim builderFieldAsLValue As BoundExpression = F.Field(F.Local(stateMachineVariable, True), constructedBuilderField, True)
 
             ' All properties and methods will be searched in this type
             Dim builderType As TypeSymbol = constructedBuilderField.Type
 
             bodyBuilder.Add(
-                Me.F.Assignment(
+                F.Assignment(
                     builderFieldAsLValue,
-                    Me.GenerateMethodCall(Nothing, builderType, "Create")))
+                    GenerateMethodCall(Nothing, builderType, "Create")))
 
             ' STAT:   localStateMachine.$builder.Start(ref localStateMachine) -- binding to the method AsyncTaskMethodBuilder<typeArgs>.Start(...)
             bodyBuilder.Add(
-                Me.F.ExpressionStatement(
-                    Me.GenerateMethodCall(
+                F.ExpressionStatement(
+                    GenerateMethodCall(
                         builderFieldAsLValue,
                         builderType,
                         "Start",
                         ImmutableArray.Create(Of TypeSymbol)(frameType),
-                        Me.F.Local(stateMachineVariable, True))))
+                        F.Local(stateMachineVariable, True))))
 
             ' STAT:   Return
             '  or
             ' STAT:   Return localStateMachine.$builder.Task
             bodyBuilder.Add(
-                If(Me._asyncMethodKind = AsyncMethodKind.[Sub],
-                   Me.F.Return(),
-                   Me.F.Return(Me.GeneratePropertyGet(builderFieldAsLValue, builderType, "Task"))))
+                If(_asyncMethodKind = AsyncMethodKind.[Sub],
+                   F.Return(),
+                   F.Return(GeneratePropertyGet(builderFieldAsLValue, builderType, "Task"))))
 
-            Return RewriteBodyIfNeeded(Me.F.Block(ImmutableArray(Of LocalSymbol).Empty, bodyBuilder.ToImmutableAndFree()), Me.F.TopLevelMethod, Me.Method)
+            Return RewriteBodyIfNeeded(F.Block(ImmutableArray(Of LocalSymbol).Empty, bodyBuilder.ToImmutableAndFree()), F.TopLevelMethod, Method)
         End Function
 
         Private Sub GenerateMoveNext(moveNextMethod As MethodSymbol)
-            Dim rewriter = New AsyncMethodToClassRewriter(method:=Me.Method,
-                                                          F:=Me.F,
-                                                          state:=Me.StateField,
-                                                          builder:=Me._builderField,
-                                                          hoistedVariables:=Me.hoistedVariables,
-                                                          nonReusableLocalProxies:=Me.nonReusableLocalProxies,
-                                                          synthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
-                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
-                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
+            Dim rewriter = New AsyncMethodToClassRewriter(method:=Method,
+                                                          F:=F,
+                                                          state:=StateField,
+                                                          builder:=_builderField,
+                                                          hoistedVariables:=hoistedVariables,
+                                                          nonReusableLocalProxies:=nonReusableLocalProxies,
+                                                          synthesizedLocalOrdinals:=SynthesizedLocalOrdinals,
+                                                          slotAllocatorOpt:=SlotAllocatorOpt,
+                                                          nextFreeHoistedLocalSlot:=nextFreeHoistedLocalSlot,
                                                           owner:=Me,
                                                           diagnostics:=Diagnostics)
 
-            rewriter.GenerateMoveNext(Me.Body, moveNextMethod)
+            rewriter.GenerateMoveNext(Body, moveNextMethod)
         End Sub
 
         Friend Overrides Function RewriteBodyIfNeeded(body As BoundStatement, topMethod As MethodSymbol, currentMethod As MethodSymbol) As BoundStatement
@@ -272,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim symbolsCapturedWithoutCtor As ISet(Of Symbol) = Nothing
 
             If body.Kind <> BoundKind.Block Then
-                body = Me.F.Block(body)
+                body = F.Block(body)
             End If
 
             Const rewritingFlags As LocalRewriter.RewritingFlags =
@@ -284,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          topMethod,
                                          F.CompilationState,
                                          previousSubmissionFields:=Nothing,
-                                         diagnostics:=Me.Diagnostics,
+                                         diagnostics:=Diagnostics,
                                          rewrittenNodes:=rewrittenNodes,
                                          hasLambdas:=hasLambdas,
                                          symbolsCapturedWithoutCopyCtor:=symbolsCapturedWithoutCtor,
@@ -317,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: We don't ensure DebuggerStepThroughAttribute, it is just not emitted if not found
             ' EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor, hasErrors)
 
-            Select Case Me._asyncMethodKind
+            Select Case _asyncMethodKind
                 Case AsyncMethodKind.GenericTaskFunction
                     EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T, hasErrors)
                 Case AsyncMethodKind.TaskFunction
@@ -325,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case AsyncMethodKind.[Sub]
                     EnsureWellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder, hasErrors)
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(Me._asyncMethodKind)
+                    Throw ExceptionUtilities.UnexpectedValue(_asyncMethodKind)
             End Select
 
             Return hasErrors
@@ -404,13 +403,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return CaptureParameterSymbol(typeMap, DirectCast(expression, BoundParameter).ParameterSymbol)
 
                 Case BoundKind.MeReference
-                    Return CaptureParameterSymbol(typeMap, Me.Method.MeParameter)
+                    Return CaptureParameterSymbol(typeMap, Method.MeParameter)
 
                 Case BoundKind.MyClassReference
-                    Return CaptureParameterSymbol(typeMap, Me.Method.MeParameter)
+                    Return CaptureParameterSymbol(typeMap, Method.MeParameter)
 
                 Case BoundKind.MyBaseReference
-                    Return CaptureParameterSymbol(typeMap, Me.Method.MeParameter)
+                    Return CaptureParameterSymbol(typeMap, Method.MeParameter)
 
                 Case BoundKind.FieldAccess
                     If Not expression.IsLValue Then
@@ -443,12 +442,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
 lCaptureRValue:
                     Debug.Assert(Not expression.IsLValue, "Need to support LValues of type " + expression.GetType.Name)
-                    Me._lastExpressionCaptureNumber += 1
+                    _lastExpressionCaptureNumber += 1
                     Return New CapturedRValueExpression(
-                                    Me.F.StateMachineField(
+                                    F.StateMachineField(
                                         expression.Type,
-                                        Me.Method,
-                                        StringConstants.StateMachineExpressionCapturePrefix & Me._lastExpressionCaptureNumber,
+                                        Method,
+                                        StringConstants.StateMachineExpressionCapturePrefix & _lastExpressionCaptureNumber,
                                         Accessibility.Friend),
                                     expression)
             End Select
@@ -460,17 +459,17 @@ lCaptureRValue:
             Debug.Assert(TypeOf proxy Is CapturedParameterSymbol)
             Dim field As FieldSymbol = DirectCast(proxy, CapturedParameterSymbol).Field
 
-            Dim frameType As NamedTypeSymbol = If(Me.Method.IsGenericMethod,
-                                                  Me.StateMachineType.Construct(Me.Method.TypeArguments),
-                                                  Me.StateMachineType)
+            Dim frameType As NamedTypeSymbol = If(Method.IsGenericMethod,
+                                                  StateMachineType.Construct(Method.TypeArguments),
+                                                  StateMachineType)
 
             Dim expression As BoundExpression = If(parameter.IsMe,
-                                                   DirectCast(Me.F.[Me](), BoundExpression),
-                                                   Me.F.Parameter(parameter).MakeRValue())
+                                                   DirectCast(F.[Me](), BoundExpression),
+                                                   F.Parameter(parameter).MakeRValue())
             initializers.Add(
-                Me.F.AssignmentExpression(
-                    Me.F.Field(
-                        Me.F.Local(stateMachineVariable, True),
+                F.AssignmentExpression(
+                    F.Field(
+                        F.Local(stateMachineVariable, True),
                         field.AsMember(frameType),
                         True),
                     expression))
@@ -506,17 +505,17 @@ lCaptureRValue:
             If methodGroup Is Nothing OrElse
                 arguments.Any(Function(a) a.HasErrors) OrElse
                 (receiver IsNot Nothing AndAlso receiver.HasErrors) Then
-                Return Me.F.BadExpression(arguments)
+                Return F.BadExpression(arguments)
             End If
 
             ' Do overload resolution and bind an invocation of the method.
-            Dim result = _binder.BindInvocationExpression(Me.F.Syntax,
-                                                          Me.F.Syntax,
+            Dim result = _binder.BindInvocationExpression(F.Syntax,
+                                                          F.Syntax,
                                                           TypeCharacter.None,
                                                           methodGroup,
                                                           ImmutableArray.Create(Of BoundExpression)(arguments),
                                                           argumentNames:=Nothing,
-                                                          diagnostics:=Me.Diagnostics,
+                                                          diagnostics:=Diagnostics,
                                                           callerInfoOpt:=Nothing)
             Return result
         End Function
@@ -530,15 +529,15 @@ lCaptureRValue:
             Dim result = LookupResult.GetInstance()
 
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
-            Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
+            _binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
+            Diagnostics.Add(F.Syntax, useSiteDiagnostics)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)
                 Dim symbol0 = result.Symbols(0)
                 If result.Symbols(0).Kind = SymbolKind.Method Then
-                    group = New BoundMethodGroup(Me.F.Syntax,
-                                                 Me.F.TypeArguments(typeArgs),
+                    group = New BoundMethodGroup(F.Syntax,
+                                                 F.TypeArguments(typeArgs),
                                                  result.Symbols.ToDowncastedImmutable(Of MethodSymbol),
                                                  result.Kind,
                                                  receiver,
@@ -547,10 +546,10 @@ lCaptureRValue:
             End If
 
             If group Is Nothing Then
-                Me.Diagnostics.Add(If(result.HasDiagnostic,
+                Diagnostics.Add(If(result.HasDiagnostic,
                                       result.Diagnostic,
                                       ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, methodName, type)),
-                                   Me.F.Syntax.GetLocation())
+                                   F.Syntax.GetLocation())
             End If
 
             result.Free()
@@ -562,17 +561,17 @@ lCaptureRValue:
             Dim propertyGroup = FindPropertyAndReturnPropertyGroup(receiver, type, propertyName)
 
             If propertyGroup Is Nothing OrElse (receiver IsNot Nothing AndAlso receiver.HasErrors) Then
-                Return Me.F.BadExpression()
+                Return F.BadExpression()
             End If
 
             ' Do overload resolution and bind an invocation of the property.
-            Dim result = _binder.BindInvocationExpression(Me.F.Syntax,
-                                                          Me.F.Syntax,
+            Dim result = _binder.BindInvocationExpression(F.Syntax,
+                                                          F.Syntax,
                                                           TypeCharacter.None,
                                                           propertyGroup,
                                                           Nothing,
                                                           argumentNames:=Nothing,
-                                                          diagnostics:=Me.Diagnostics,
+                                                          diagnostics:=Diagnostics,
                                                           callerInfoOpt:=Nothing)
 
             ' reclassify property access as Get
@@ -589,14 +588,14 @@ lCaptureRValue:
             Dim result = LookupResult.GetInstance()
 
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
-            Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
+            _binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
+            Diagnostics.Add(F.Syntax, useSiteDiagnostics)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)
                 Dim symbol0 = result.Symbols(0)
                 If result.Symbols(0).Kind = SymbolKind.Property Then
-                    group = New BoundPropertyGroup(Me.F.Syntax,
+                    group = New BoundPropertyGroup(F.Syntax,
                                                    result.Symbols.ToDowncastedImmutable(Of PropertySymbol),
                                                    result.Kind,
                                                    receiver,
@@ -605,10 +604,10 @@ lCaptureRValue:
             End If
 
             If group Is Nothing Then
-                Me.Diagnostics.Add(If(result.HasDiagnostic,
+                Diagnostics.Add(If(result.HasDiagnostic,
                                       result.Diagnostic,
                                       ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, propertyName, type)),
-                                   Me.F.Syntax.GetLocation())
+                                   F.Syntax.GetLocation())
             End If
 
             result.Free()

@@ -1,13 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -61,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' Don't add Begin/EndInvoke members to winmd compilations.
                 ' Invoke must be the last member, regardless.
-                If Me.IsCompilationOutputWinMdObj() Then
+                If IsCompilationOutputWinMdObj() Then
                     delegateBeginInvoke = Nothing
                     delegateEndInvoke = Nothing
 
@@ -137,15 +131,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
                 Dim newDescriptor As New AnonymousTypeDescriptor
-                If Not Me.TypeDescriptor.SubstituteTypeParametersIfNeeded(substitution, newDescriptor) Then
+                If Not TypeDescriptor.SubstituteTypeParametersIfNeeded(substitution, newDescriptor) Then
                     Return New TypeWithModifiers(Me)
                 End If
 
-                Return New TypeWithModifiers(Me.Manager.ConstructAnonymousDelegateSymbol(newDescriptor))
+                Return New TypeWithModifiers(Manager.ConstructAnonymousDelegateSymbol(newDescriptor))
             End Function
 
             Public Overrides Function MapToImplementationSymbol() As NamedTypeSymbol
-                Return Me.Manager.ConstructAnonymousDelegateImplementationSymbol(Me)
+                Return Manager.ConstructAnonymousDelegateImplementationSymbol(Me)
             End Function
 
             Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
@@ -168,11 +162,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return True
                 End If
                 Dim other = TryCast(obj, AnonymousDelegatePublicSymbol)
-                Return other IsNot Nothing AndAlso Me.TypeDescriptor.Equals(other.TypeDescriptor)
+                Return other IsNot Nothing AndAlso TypeDescriptor.Equals(other.TypeDescriptor)
             End Function
 
             Public Overrides Function GetHashCode() As Integer
-                Return Me.TypeDescriptor.GetHashCode()
+                Return TypeDescriptor.GetHashCode()
             End Function
 
         End Class

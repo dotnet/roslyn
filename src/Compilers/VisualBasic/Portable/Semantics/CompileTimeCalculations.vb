@@ -3,11 +3,7 @@
 Option Strict On
 Option Explicit On
 Option Infer On
-
-Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -237,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case ConstantValueTypeDiscriminator.Char
                     resultValue = UncheckedCUShort(sourceValue)
-                ' // ?? overflow?
+                    ' // ?? overflow?
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(resultType)

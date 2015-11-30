@@ -1,10 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -201,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Create assignment for the rewritten object 
                 ' creation expression to the temp
                 '    temp = new CollectionType(param1)
-                tempLocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
+                tempLocalSymbol = New SynthesizedLocal(_currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
                 tempLocal = New BoundLocal(syntaxNode, tempLocalSymbol, expressionType)
                 Dim temporaryAssignment = New BoundAssignmentOperator(syntaxNode,
                                                                   tempLocal,
@@ -309,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.CreateTemporaryLocalForInitialization Then
                 ' create temporary
                 '    Dim temp as RefTypeName 
-                Dim tempLocalSymbol As LocalSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
+                Dim tempLocalSymbol As LocalSymbol = New SynthesizedLocal(_currentMethodOrLambda, expressionType, SynthesizedLocalKind.LoweringTemp)
                 sequenceType = expressionType
 
                 sequenceTemporaries = ImmutableArray.Create(Of LocalSymbol)(tempLocalSymbol)

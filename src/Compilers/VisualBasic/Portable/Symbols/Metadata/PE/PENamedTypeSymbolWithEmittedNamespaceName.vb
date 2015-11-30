@@ -1,10 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -31,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             _emittedNamespaceName = emittedNamespaceName
 
             ' check if this is one of the COR library types
-            If (Arity = 0 OrElse MangleName) AndAlso (moduleSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes) AndAlso Me.DeclaredAccessibility = Accessibility.Public Then
+            If (Arity = 0 OrElse MangleName) AndAlso (moduleSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes) AndAlso DeclaredAccessibility = Accessibility.Public Then
                 Debug.Assert(emittedNamespaceName.Length > 0)
                 _corTypeId = SpecialTypes.GetTypeFromMetadataName(MetadataHelpers.BuildQualifiedName(emittedNamespaceName, MetadataName))
             Else

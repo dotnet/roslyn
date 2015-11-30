@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -14,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property MemberName() As String
             Get
                 'NOTE: type characters are not included in method names.
-                Select Case Me.Kind
+                Select Case Kind
                     Case BoundKind.MethodGroup
                         Dim methods = DirectCast(Me, BoundMethodGroup).Methods
                         Dim name As String = methods(0).Name
@@ -30,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return name
                 End Select
 
-                Throw ExceptionUtilities.UnexpectedValue(Me.Kind)
+                Throw ExceptionUtilities.UnexpectedValue(Kind)
             End Get
         End Property
 
@@ -39,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend ReadOnly Property ContainerOfFirstInGroup() As TypeSymbol
             Get
-                Select Case Me.Kind
+                Select Case Kind
                     Case BoundKind.MethodGroup
                         Return DirectCast(Me, BoundMethodGroup).Methods(0).ContainingType
 
@@ -47,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return DirectCast(Me, BoundPropertyGroup).Properties(0).ContainingType
                 End Select
 
-                Throw ExceptionUtilities.UnexpectedValue(Me.Kind)
+                Throw ExceptionUtilities.UnexpectedValue(Kind)
             End Get
         End Property
     End Class

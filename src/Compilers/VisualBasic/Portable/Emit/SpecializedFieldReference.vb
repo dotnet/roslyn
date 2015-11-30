@@ -1,13 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -26,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Sub New(underlyingField As FieldSymbol)
             Debug.Assert(underlyingField IsNot Nothing)
-            Me._underlyingField = underlyingField
+            _underlyingField = underlyingField
         End Sub
 
         Protected Overrides ReadOnly Property UnderlyingSymbol As Symbol

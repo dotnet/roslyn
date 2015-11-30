@@ -15,14 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub New(declarations As ImmutableArray(Of SingleNamespaceDeclaration))
             MyBase.New(String.Empty)
             If declarations.Any() Then
-                Me.Name = SingleNamespaceDeclaration.BestName(Of SingleNamespaceDeclaration)(declarations, _multipleSpellings)
+                Name = SingleNamespaceDeclaration.BestName(Of SingleNamespaceDeclaration)(declarations, _multipleSpellings)
             End If
 
-            Me._declarations = declarations
+            _declarations = declarations
         End Sub
 
         Public Shared Function Create(declarations As IEnumerable(Of SingleNamespaceDeclaration)) As MergedNamespaceDeclaration
-            Return New MergedNamespaceDeclaration(ImmutableArray.CreateRange(Of SingleNamespaceDeclaration)(declarations))
+            Return New MergedNamespaceDeclaration(ImmutableArray.CreateRange(declarations))
         End Function
 
         Public Shared Function Create(ParamArray declarations As SingleNamespaceDeclaration()) As MergedNamespaceDeclaration
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Protected Overrides Function GetDeclarationChildren() As ImmutableArray(Of Declaration)
-            Return StaticCast(Of Declaration).From(Me.Children)
+            Return StaticCast(Of Declaration).From(Children)
         End Function
 
         Private Function MakeChildren() As ImmutableArray(Of MergedNamespaceOrTypeDeclaration)
@@ -152,11 +152,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overloads ReadOnly Property Children As ImmutableArray(Of MergedNamespaceOrTypeDeclaration)
             Get
-                If Me._children.IsDefault Then
-                    ImmutableInterlocked.InterlockedInitialize(Me._children, MakeChildren())
+                If _children.IsDefault Then
+                    ImmutableInterlocked.InterlockedInitialize(_children, MakeChildren())
                 End If
 
-                Return Me._children
+                Return _children
             End Get
         End Property
 

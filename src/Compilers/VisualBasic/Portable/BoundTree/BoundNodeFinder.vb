@@ -1,9 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -31,16 +27,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New(_nodeToFind As BoundNode, recursionDepth As Integer, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException As Boolean)
             MyBase.New(recursionDepth)
             Me._nodeToFind = _nodeToFind
-            Me._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = convertInsufficientExecutionStackExceptionToCancelledByStackGuardException
+            _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = convertInsufficientExecutionStackExceptionToCancelledByStackGuardException
         End Sub
 
         ''' <summary> Note: Nothing if node is found </summary>
         Private _nodeToFind As BoundNode
 
         Public Overrides Function Visit(node As BoundNode) As BoundNode
-            If Me._nodeToFind IsNot Nothing Then
-                If Me._nodeToFind Is node Then
-                    Me._nodeToFind = Nothing
+            If _nodeToFind IsNot Nothing Then
+                If _nodeToFind Is node Then
+                    _nodeToFind = Nothing
                 Else
                     MyBase.Visit(node)
                 End If

@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -57,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Sub EnterRegion()
-            Me.SetState(ResetState(Me.State))
-            Me._dataFlowsIn.Clear()
+            SetState(ResetState(State))
+            _dataFlowsIn.Clear()
             MyBase.EnterRegion()
         End Sub
 
@@ -96,8 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' in which case set a flag that the region is not valid
             If IsInside Then
                 Dim firstLocal As LocalSymbol = ambiguous.Locals(0)
-                If Not Me.State.IsAssigned(VariableSlot(firstLocal)) Then
-                    Me.SetInvalidRegion()
+                If Not State.IsAssigned(VariableSlot(firstLocal)) Then
+                    SetInvalidRegion()
                 End If
             End If
         End Sub

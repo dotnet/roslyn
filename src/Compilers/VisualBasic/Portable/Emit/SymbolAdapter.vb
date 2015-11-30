@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' only since it may include a deep comparison.
         ''' </summary>
         Friend Function IsDefinitionOrDistinct() As Boolean
-            Return Me.IsDefinition OrElse Not Me.Equals(Me.OriginalDefinition)
+            Return IsDefinition OrElse Not Equals(OriginalDefinition)
         End Function
 
         Private Function IReferenceGetAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState, emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
             Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
             AddSynthesizedAttributes(compilationState, synthesized)
-            Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule)
+            Return GetCustomAttributesToEmit(GetAttributes(), synthesized, isReturnType:=False, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule)
         End Function
 
         ''' <summary> 
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For i = 0 To userDefined.Length - 1
                 Dim attribute As VisualBasicAttributeData = userDefined(i)
 
-                If Me.Kind = SymbolKind.Assembly Then
+                If Kind = SymbolKind.Assembly Then
                     ' We need to filter out duplicate assembly attributes,
                     ' i.e. attributes that bind to the same constructor and have identical arguments.
                     If DirectCast(Me, SourceAssemblySymbol).IsIndexOfDuplicateAssemblyAttribute(i) Then
@@ -98,10 +98,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Conditional("DEBUG")>
         Protected Friend Sub CheckDefinitionInvariant()
             ' can't be generic instantiation
-            Debug.Assert(Me.IsDefinition)
+            Debug.Assert(IsDefinition)
 
             ' must be declared in the module we are building
-            Debug.Assert(TypeOf Me.ContainingModule Is SourceModuleSymbol)
+            Debug.Assert(TypeOf ContainingModule Is SourceModuleSymbol)
         End Sub
 
     End Class

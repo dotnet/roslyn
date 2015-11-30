@@ -1,13 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Collections.ObjectModel
-Imports System.Text
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -120,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Select
             Next
 
-            Return If(hasClass OrElse hasDelegate, Me.ReportMissingOrErroneousSymbols(diagnostics, hasClass, hasDelegate, hasKeys), True)
+            Return If(hasClass OrElse hasDelegate, ReportMissingOrErroneousSymbols(diagnostics, hasClass, hasDelegate, hasKeys), True)
         End Function
 
         Public ReadOnly Property System_Boolean As NamedTypeSymbol
@@ -185,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property System_Object__ToString As MethodSymbol
             Get
-                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__ToString), MethodSymbol)
+                Return DirectCast(ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__ToString), MethodSymbol)
             End Get
         End Property
 
@@ -209,13 +202,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property System_Object__GetHashCode As MethodSymbol
             Get
-                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode), MethodSymbol)
+                Return DirectCast(ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__GetHashCode), MethodSymbol)
             End Get
         End Property
 
         Public ReadOnly Property System_Object__Equals As MethodSymbol
             Get
-                Return DirectCast(Me.ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__Equals), MethodSymbol)
+                Return DirectCast(ContainingModule.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Object__Equals), MethodSymbol)
             End Get
         End Property
 

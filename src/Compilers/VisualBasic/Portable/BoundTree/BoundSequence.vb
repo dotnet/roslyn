@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -11,8 +8,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property IsLValue As Boolean
             Get
-                Debug.Assert(Me.ValueOpt IsNot Nothing OrElse Me.HasErrors OrElse Me.Type.SpecialType = SpecialType.System_Void)
-                Return Me.ValueOpt IsNot Nothing AndAlso Me.ValueOpt.IsLValue
+                Debug.Assert(ValueOpt IsNot Nothing OrElse HasErrors OrElse Type.SpecialType = SpecialType.System_Void)
+                Return ValueOpt IsNot Nothing AndAlso ValueOpt.IsLValue
             End Get
         End Property
 
@@ -21,9 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function MakeRValue() As BoundSequence
-            If Me.IsLValue Then
-                Debug.Assert(Me.ValueOpt IsNot Nothing)
-                Return Update(_Locals, _SideEffects, Me.ValueOpt.MakeRValue(), Type)
+            If IsLValue Then
+                Debug.Assert(ValueOpt IsNot Nothing)
+                Return Update(_Locals, _SideEffects, ValueOpt.MakeRValue(), Type)
             End If
 
             Return Me

@@ -1,7 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -29,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(symbol As Symbol, [next] As Binder, root As VisualBasicSyntaxNode)
             MyBase.New([next])
             Debug.Assert((symbol.Kind = SymbolKind.Field) OrElse (symbol.Kind = SymbolKind.Property) OrElse (symbol.Kind = SymbolKind.Parameter))
-            Me._symbol = symbol
+            _symbol = symbol
             Debug.Assert(root IsNot Nothing)
             _root = root
         End Sub
@@ -41,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
-                Return Me._symbol
+                Return _symbol
             End Get
         End Property
 

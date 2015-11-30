@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     ''' <summary>
@@ -26,8 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' The location should only be provided for type parameters from source.
             Debug.Assert((loc Is Nothing) OrElse loc.PossiblyEmbeddedOrMySourceTree IsNot Nothing)
             Me.Kind = kind
-            Me.TypeConstraint = type
-            Me.LocationOpt = loc
+            TypeConstraint = type
+            LocationOpt = loc
         End Sub
 
         Public Function AtLocation(loc As Location) As TypeParameterConstraint

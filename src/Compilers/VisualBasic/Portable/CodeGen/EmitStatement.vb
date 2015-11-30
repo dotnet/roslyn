@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
@@ -69,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Select
 
 #If DEBUG Then
-            If Me._stackLocals Is Nothing OrElse Not Me._stackLocals.Any Then
+            If _stackLocals Is Nothing OrElse Not _stackLocals.Any Then
                 _builder.AssertStackEmpty()
             End If
 #End If
@@ -121,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.OpenLocalScope(ScopeType.TryCatchFinally)
             _builder.OpenLocalScope(ScopeType.Try)
 
-            Me._tryNestingLevel += 1
+            _tryNestingLevel += 1
 
             If emitNestedScopes Then
                 EmitTryStatement(statement, emitCatchesOnly:=True)
@@ -129,8 +128,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 EmitBlock(statement.TryBlock)
             End If
 
-            Debug.Assert(Me._tryNestingLevel > 0)
-            Me._tryNestingLevel -= 1
+            Debug.Assert(_tryNestingLevel > 0)
+            _tryNestingLevel -= 1
 
             ' close Try scope
             _builder.CloseLocalScope()
@@ -192,10 +191,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim exceptionType As Cci.ITypeReference
 
             If exceptionSource IsNot Nothing Then
-                exceptionType = Me._module.Translate(exceptionSource.Type, exceptionSource.Syntax, _diagnostics)
+                exceptionType = _module.Translate(exceptionSource.Type, exceptionSource.Syntax, _diagnostics)
             Else
                 ' if type is not specified it is assumed to be System.Exception
-                exceptionType = Me._module.Translate(Me._module.Compilation.GetWellKnownType(WellKnownType.System_Exception), catchBlock.Syntax, _diagnostics)
+                exceptionType = _module.Translate(_module.Compilation.GetWellKnownType(WellKnownType.System_Exception), catchBlock.Syntax, _diagnostics)
             End If
 
             ' exception on stack
@@ -420,33 +419,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' Tells if we should emit [Set/Clear]ProjectErrors when entering/leaving handlers
         ''' </summary>
         Private Function ShouldNoteProjectErrors() As Boolean
-            Return Not Me._module.SourceModule.ContainingSourceAssembly.IsVbRuntime
+            Return Not _module.SourceModule.ContainingSourceAssembly.IsVbRuntime
         End Function
 
         Private Sub EmitSetProjectError(syntaxNode As VisualBasicSyntaxNode, errorLineNumberOpt As BoundExpression)
             Dim setProjectErrorMethod As MethodSymbol
 
             If errorLineNumberOpt Is Nothing Then
-                setProjectErrorMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError), MethodSymbol)
+                setProjectErrorMethod = DirectCast(_module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError), MethodSymbol)
                 ' consumes exception object from the stack
                 _builder.EmitOpCode(ILOpCode.Call, -1)
             Else
-                setProjectErrorMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError_Int32), MethodSymbol)
+                setProjectErrorMethod = DirectCast(_module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError_Int32), MethodSymbol)
                 EmitExpression(errorLineNumberOpt, used:=True)
                 ' consumes exception object from the stack and the error line number
                 _builder.EmitOpCode(ILOpCode.Call, -2)
             End If
 
-            Me.EmitSymbolToken(setProjectErrorMethod, syntaxNode)
+            EmitSymbolToken(setProjectErrorMethod, syntaxNode)
         End Sub
 
         Private Sub EmitClearProjectError(syntaxNode As VisualBasicSyntaxNode)
             Const clearProjectError As WellKnownMember = WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__ClearProjectError
-            Dim clearProjectErrorMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(clearProjectError), MethodSymbol)
+            Dim clearProjectErrorMethod = DirectCast(_module.Compilation.GetWellKnownTypeMember(clearProjectError), MethodSymbol)
 
             ' void static with no arguments
             _builder.EmitOpCode(ILOpCode.Call, 0)
-            Me.EmitSymbolToken(clearProjectErrorMethod, syntaxNode)
+            EmitSymbolToken(clearProjectErrorMethod, syntaxNode)
         End Sub
 
         ' specifies whether emitted conditional expression was a constant true/false or not a constant
@@ -821,19 +820,19 @@ OtherExpressions:
                 _builder.OpenLocalScope()
 
                 For Each local In sequence.Locals
-                    Me.DefineLocal(local, sequence.Syntax)
+                    DefineLocal(local, sequence.Syntax)
                 Next
             End If
 
-            Me.EmitSideEffects(sequence.SideEffects)
+            EmitSideEffects(sequence.SideEffects)
             Debug.Assert(sequence.ValueOpt IsNot Nothing)
-            Me.EmitCondBranch(sequence.ValueOpt, lazyDest, sense)
+            EmitCondBranch(sequence.ValueOpt, lazyDest, sense)
 
             If hasLocals Then
                 _builder.CloseLocalScope()
 
                 For Each local In sequence.Locals
-                    Me.FreeLocal(local)
+                    FreeLocal(local)
                 Next
             End If
         End Sub
@@ -867,7 +866,7 @@ OtherExpressions:
             Private _found As Boolean = False
 
             Private Sub New(label As LabelSymbol)
-                Me._label = label
+                _label = label
             End Sub
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
@@ -879,7 +878,7 @@ OtherExpressions:
             End Function
 
             Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode
-                If node.Label Is Me._label Then
+                If node.Label Is _label Then
                     _found = True
                 End If
 
@@ -895,7 +894,7 @@ OtherExpressions:
         End Class
 
         Private Sub EmitReturnStatement(boundReturnStatement As BoundReturnStatement)
-            Me.EmitExpression(boundReturnStatement.ExpressionOpt, True)
+            EmitExpression(boundReturnStatement.ExpressionOpt, True)
             _builder.EmitRet(boundReturnStatement.ExpressionOpt Is Nothing)
         End Sub
 
@@ -1107,14 +1106,14 @@ OtherExpressions:
             End If
 
             ' Prefer embedded version of the member if present
-            Dim embeddedOperatorsType As NamedTypeSymbol = Me._module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators)
+            Dim embeddedOperatorsType As NamedTypeSymbol = _module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators)
             Dim compareStringMember As WellKnownMember =
                 If(embeddedOperatorsType.IsErrorType AndAlso TypeOf embeddedOperatorsType Is MissingMetadataTypeSymbol,
                    WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean,
                    WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean)
 
-            Dim stringCompareMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(compareStringMember), MethodSymbol)
-            Dim stringCompareMethodRef As Cci.IReference = Me._module.Translate(stringCompareMethod, needDeclaration:=False, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics)
+            Dim stringCompareMethod = DirectCast(_module.Compilation.GetWellKnownTypeMember(compareStringMember), MethodSymbol)
+            Dim stringCompareMethodRef As Cci.IReference = _module.Translate(stringCompareMethod, needDeclaration:=False, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics)
 
             Dim compareDelegate As SwitchStringJumpTableEmitter.EmitStringCompareAndBranch =
                 Sub(keyArg, stringConstant, targetLabel)
@@ -1153,10 +1152,10 @@ OtherExpressions:
 
 #If DEBUG Then
             Dim assertDiagnostics = DiagnosticBag.GetInstance()
-            Debug.Assert(stringCompareMethodRef Is Me._module.Translate(DirectCast(
-                                                        If(TypeOf Me._module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators) Is MissingMetadataTypeSymbol,
-                                                           Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean),
-                                                           Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean)), MethodSymbol), needDeclaration:=False,
+            Debug.Assert(stringCompareMethodRef Is _module.Translate(DirectCast(
+                                                        If(TypeOf _module.Compilation.GetWellKnownType(WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators) Is MissingMetadataTypeSymbol,
+                                                           _module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean),
+                                                           _module.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean)), MethodSymbol), needDeclaration:=False,
                                                            syntaxNodeOpt:=DirectCast(syntaxNode, VisualBasicSyntaxNode), diagnostics:=assertDiagnostics))
             assertDiagnostics.Free()
 #End If
@@ -1224,7 +1223,7 @@ OtherExpressions:
 
                 For Each local In scope.Locals
                     Dim declNodes = local.DeclaringSyntaxReferences
-                    Me.DefineLocal(local, If(declNodes.IsEmpty, scope.Syntax, declNodes(0).GetVisualBasicSyntax()))
+                    DefineLocal(local, If(declNodes.IsEmpty, scope.Syntax, declNodes(0).GetVisualBasicSyntax()))
                 Next
             End If
 
@@ -1259,7 +1258,7 @@ OtherExpressions:
                 Return Nothing
             End If
 
-            If Me.IsStackLocal(local) Then
+            If IsStackLocal(local) Then
                 Return Nothing
             End If
 
@@ -1374,7 +1373,7 @@ OtherExpressions:
         ''' </summary>
         Private Function AllocateTemp(type As TypeSymbol, syntaxNode As VisualBasicSyntaxNode) As LocalDefinition
             Return _builder.LocalSlotManager.AllocateSlot(
-                Me._module.Translate(type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics),
+                _module.Translate(type, syntaxNodeOpt:=syntaxNode, diagnostics:=_diagnostics),
                 LocalSlotConstraints.None)
         End Function
 

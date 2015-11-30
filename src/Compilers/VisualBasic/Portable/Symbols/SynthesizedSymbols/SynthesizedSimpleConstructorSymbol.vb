@@ -25,20 +25,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="parameters">The parameters.</param>
         Friend Sub SetParameters(parameters As ImmutableArray(Of ParameterSymbol))
             Debug.Assert(Not parameters.IsDefault)
-            Debug.Assert(Me._parameters.IsDefault)
+            Debug.Assert(_parameters.IsDefault)
 
-            Me._parameters = parameters
+            _parameters = parameters
         End Sub
 
         Friend NotOverridable Overrides ReadOnly Property ParameterCount As Integer
             Get
-                Return Me._parameters.Length
+                Return _parameters.Length
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return Me._parameters
+                Return _parameters
             End Get
         End Property
 

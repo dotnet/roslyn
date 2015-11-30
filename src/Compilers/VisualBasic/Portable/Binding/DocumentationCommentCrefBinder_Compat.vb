@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
@@ -95,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     allowColorColor = False
 
                 Case SyntaxKind.GlobalName
-                    symbols.Add(Me.Compilation.GlobalNamespace)
+                    symbols.Add(Compilation.GlobalNamespace)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(left.Kind)
@@ -259,7 +258,7 @@ lAgain:
             Dim lookupResult As LookupResult = LookupResult.GetInstance()
 
             If containingSymbol Is Nothing Then
-                Me.Lookup(lookupResult, name, arity, options, useSiteDiagnostics)
+                Lookup(lookupResult, name, arity, options, useSiteDiagnostics)
             Else
                 LookupSimpleNameInContainingSymbol(containingSymbol,
                                                allowColorColor,
@@ -387,7 +386,7 @@ lAgain:
 
             ' We discard diagnostics in case 
             Dim diagnostics = DiagnosticBag.GetInstance
-            symbols.Add(Me.GetSpecialType(type, node, diagnostics))
+            symbols.Add(GetSpecialType(type, node, diagnostics))
             diagnostics.Free()
         End Sub
 
@@ -416,7 +415,7 @@ lAgain:
             Dim result(args.Count - 1) As TypeSymbol
             Dim diagBag = DiagnosticBag.GetInstance
             For i = 0 To args.Count - 1
-                result(i) = Me.BindTypeSyntax(args(i), diagBag)
+                result(i) = BindTypeSyntax(args(i), diagBag)
             Next
             diagBag.Free()
             Return result.AsImmutableOrNull()

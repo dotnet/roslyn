@@ -1,15 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Reflection.Metadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -32,13 +24,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        ByVal namedArgs As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)),
                        ByVal isConditionallyOmitted As Boolean,
                        ByVal hasErrors As Boolean)
-            Me._applicationNode = applicationNode
-            Me._attributeClass = attrClass
-            Me._attributeConstructor = attrMethod
-            Me._constructorArguments = If(constructorArgs.IsDefault, ImmutableArray(Of TypedConstant).Empty, constructorArgs)
-            Me._namedArguments = If(namedArgs.IsDefault, ImmutableArray.Create(Of KeyValuePair(Of String, TypedConstant))(), namedArgs)
-            Me._isConditionallyOmitted = isConditionallyOmitted
-            Me._hasErrors = hasErrors
+            _applicationNode = applicationNode
+            _attributeClass = attrClass
+            _attributeConstructor = attrMethod
+            _constructorArguments = If(constructorArgs.IsDefault, ImmutableArray(Of TypedConstant).Empty, constructorArgs)
+            _namedArguments = If(namedArgs.IsDefault, ImmutableArray.Create(Of KeyValuePair(Of String, TypedConstant))(), namedArgs)
+            _isConditionallyOmitted = isConditionallyOmitted
+            _hasErrors = hasErrors
         End Sub
 
         Public Overrides ReadOnly Property AttributeClass As NamedTypeSymbol
@@ -82,13 +74,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me
             End If
 
-            Return New SourceAttributeData(Me.ApplicationSyntaxReference,
-                                           Me.AttributeClass,
-                                           Me.AttributeConstructor,
-                                           Me.CommonConstructorArguments,
-                                           Me.CommonNamedArguments,
+            Return New SourceAttributeData(ApplicationSyntaxReference,
+                                           AttributeClass,
+                                           AttributeConstructor,
+                                           CommonConstructorArguments,
+                                           CommonNamedArguments,
                                            isConditionallyOmitted,
-                                           Me.HasErrors)
+                                           HasErrors)
         End Function
 
         Friend NotOverridable Overrides ReadOnly Property HasErrors As Boolean
@@ -165,67 +157,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Exit For
                         End If
 
-                        targetType = CByte(targetInfo.Underlying)
+                        targetType = targetInfo.Underlying
                     End If
 
                     Select Case targetType
-                        Case CByte(SignatureTypeCode.Boolean)
+                        Case SignatureTypeCode.Boolean
                             foundMatch = specType = SpecialType.System_Boolean
                             k += 1
 
-                        Case CByte(SignatureTypeCode.Char)
+                        Case SignatureTypeCode.Char
                             foundMatch = specType = SpecialType.System_Char
                             k += 1
 
-                        Case CByte(SignatureTypeCode.SByte)
+                        Case SignatureTypeCode.SByte
                             foundMatch = specType = SpecialType.System_SByte
                             k += 1
 
-                        Case CByte(SignatureTypeCode.Byte)
+                        Case SignatureTypeCode.Byte
                             foundMatch = specType = SpecialType.System_Byte
                             k += 1
 
-                        Case CByte(SignatureTypeCode.Int16)
+                        Case SignatureTypeCode.Int16
                             foundMatch = specType = SpecialType.System_Int16
                             k += 1
 
-                        Case CByte(SignatureTypeCode.UInt16)
+                        Case SignatureTypeCode.UInt16
                             foundMatch = specType = SpecialType.System_UInt16
                             k += 1
 
-                        Case CByte(SignatureTypeCode.Int32)
+                        Case SignatureTypeCode.Int32
                             foundMatch = specType = SpecialType.System_Int32
                             k += 1
 
-                        Case CByte(SignatureTypeCode.UInt32)
+                        Case SignatureTypeCode.UInt32
                             foundMatch = specType = SpecialType.System_UInt32
                             k += 1
 
-                        Case CByte(SignatureTypeCode.Int64)
+                        Case SignatureTypeCode.Int64
                             foundMatch = specType = SpecialType.System_Int64
                             k += 1
 
-                        Case CByte(SignatureTypeCode.UInt64)
+                        Case SignatureTypeCode.UInt64
                             foundMatch = specType = SpecialType.System_UInt64
                             k += 1
 
-                        Case CByte(SignatureTypeCode.Single)
+                        Case SignatureTypeCode.Single
                             foundMatch = specType = SpecialType.System_Single
                             k += 1
 
-                        Case CByte(SignatureTypeCode.Double)
+                        Case SignatureTypeCode.Double
                             foundMatch = specType = SpecialType.System_Double
                             k += 1
 
-                        Case CByte(SignatureTypeCode.String)
+                        Case SignatureTypeCode.String
                             foundMatch = specType = SpecialType.System_String
                             k += 1
 
-                        Case CByte(SignatureTypeCode.Object)
+                        Case SignatureTypeCode.Object
                             foundMatch = specType = SpecialType.System_Object
                             k += 1
 
-                        Case CByte(SerializationTypeCode.Type)
+                        Case SerializationTypeCode.Type
                             If lazySystemType Is Nothing Then
                                 lazySystemType = GetSystemType(targetSymbol)
                             End If

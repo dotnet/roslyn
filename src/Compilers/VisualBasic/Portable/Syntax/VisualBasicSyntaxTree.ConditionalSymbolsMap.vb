@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 Next
 #End If
-                Me._conditionalsMap = conditionalsMap
+                _conditionalsMap = conditionalsMap
             End Sub
 
 #Region "Build conditional symbols map"
@@ -63,24 +63,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _preprocessorState As PreprocessorState
 
                 Friend Function Build(root As SyntaxNodeOrToken, options As VisualBasicParseOptions) As ImmutableDictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))
-                    Me._conditionalsMap = New Dictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))(IdentifierComparison.Comparer)
+                    _conditionalsMap = New Dictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))(IdentifierComparison.Comparer)
 
                     ' Process command line preprocessor symbol definitions.
                     Dim preprocessorSymbolsMap As ImmutableDictionary(Of String, InternalSyntax.CConst) = Scanner.GetPreprocessorConstants(options)
-                    Me.ProcessCommandLinePreprocessorSymbols(preprocessorSymbolsMap)
-                    Me._preprocessorState = New PreprocessorState(preprocessorSymbolsMap)
+                    ProcessCommandLinePreprocessorSymbols(preprocessorSymbolsMap)
+                    _preprocessorState = New PreprocessorState(preprocessorSymbolsMap)
 
                     ' Get and process source directives.
                     Dim directives As IEnumerable(Of DirectiveTriviaSyntax) = root.GetDirectives(Of DirectiveTriviaSyntax)()
                     Debug.Assert(directives IsNot Nothing)
                     ProcessSourceDirectives(directives)
 
-                    Return If(Me._conditionalsMap.Any(), ImmutableDictionary.CreateRange(IdentifierComparison.Comparer, Me._conditionalsMap), Nothing)
+                    Return If(_conditionalsMap.Any(), ImmutableDictionary.CreateRange(IdentifierComparison.Comparer, _conditionalsMap), Nothing)
                 End Function
 
                 Private Sub ProcessCommandLinePreprocessorSymbols(preprocessorSymbolsMap As ImmutableDictionary(Of String, InternalSyntax.CConst))
                     For Each kvPair In preprocessorSymbolsMap
-                        Me.ProcessConditionalSymbolDefinition(kvPair.Key, kvPair.Value, 0)
+                        ProcessConditionalSymbolDefinition(kvPair.Key, kvPair.Value, 0)
                     Next
                 End Sub
 

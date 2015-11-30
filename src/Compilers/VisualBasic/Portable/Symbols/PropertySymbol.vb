@@ -1,10 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -37,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected NotOverridable Overrides ReadOnly Property OriginalSymbolDefinition As Symbol
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
@@ -66,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Public Overridable ReadOnly Property ParameterCount As Integer
             Get
-                Return Me.Parameters.Length
+                Return Parameters.Length
             End Get
         End Property
 
@@ -85,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overridable ReadOnly Property IsReadOnly As Boolean Implements IPropertySymbol.IsReadOnly
             Get
-                Return (Me.SetMethod Is Nothing)
+                Return (SetMethod Is Nothing)
             End Get
         End Property
 
@@ -95,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property IsReadable As Boolean
             Get
-                Return Me.GetMostDerivedGetMethod() IsNot Nothing
+                Return GetMostDerivedGetMethod() IsNot Nothing
             End Get
         End Property
 
@@ -104,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overridable ReadOnly Property IsWriteOnly As Boolean Implements IPropertySymbol.IsWriteOnly
             Get
-                Return (Me.GetMethod Is Nothing)
+                Return (GetMethod Is Nothing)
             End Get
         End Property
 
@@ -113,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property HasSet As Boolean
             Get
-                Return Me.GetMostDerivedSetMethod() IsNot Nothing
+                Return GetMostDerivedSetMethod() IsNot Nothing
             End Get
         End Property
 
@@ -123,12 +120,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' in a corresponding constructor or initializer
         ''' </summary>
         Friend Function IsWritable(receiver As BoundExpression, containingBinder As Binder) As Boolean
-            If Me.HasSet Then
+            If HasSet Then
                 Return True
             End If
 
             Dim sourceProperty As SourcePropertySymbol = TryCast(Me, SourcePropertySymbol)
-            Dim propertyIsStatic As Boolean = Me.IsShared
+            Dim propertyIsStatic As Boolean = IsShared
             Dim fromMember = containingBinder.ContainingMember
 
             Return sourceProperty IsNot Nothing AndAlso
@@ -212,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Only WithEvent property may have any attributes applied on its backing field.
         ''' </remarks>
         Public Function GetFieldAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Dim field = Me.AssociatedField
+            Dim field = AssociatedField
             Return If(field Is Nothing, ImmutableArray(Of VisualBasicAttributeData).Empty, field.GetAttributes())
         End Function
 
@@ -232,12 +229,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property OverriddenProperty As PropertySymbol
             Get
-                If Me.IsOverrides Then
+                If IsOverrides Then
                     If IsDefinition Then
                         Return OverriddenMembers.OverriddenMember
                     End If
 
-                    Return OverriddenMembersResult(Of PropertySymbol).GetOverriddenMember(Me, Me.OriginalDefinition.OverriddenProperty)
+                    Return OverriddenMembersResult(Of PropertySymbol).GetOverriddenMember(Me, OriginalDefinition.OverriddenProperty)
                 End If
 
                 Return Nothing
@@ -251,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="getter">True to get overridden getters, False to get overridden setters</param>
         ''' <returns>All the accessors of the given kind implemented by this property.</returns>
         Friend Function GetAccessorOverride(getter As Boolean) As MethodSymbol
-            Dim overriddenProp = Me.OverriddenProperty
+            Dim overriddenProp = OverriddenProperty
             If overriddenProp IsNot Nothing Then
                 Return If(getter, overriddenProp.GetMethod, overriddenProp.SetMethod)
             Else
@@ -314,11 +311,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If Me.IsDefinition Then
+            If IsDefinition Then
                 Return MyBase.GetUseSiteErrorInfo()
             End If
 
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return OriginalDefinition.GetUseSiteErrorInfo()
         End Function
 
         Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
@@ -326,14 +323,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(IsDefinition)
 
             ' Check return type.
-            Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
+            Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Type)
 
             If errorInfo IsNot Nothing AndAlso errorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
                 Return errorInfo
             End If
 
             ' Check return type custom modifiers.
-            Dim paramsErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.TypeCustomModifiers)
+            Dim paramsErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(TypeCustomModifiers)
 
             If paramsErrorInfo IsNot Nothing Then
                 If paramsErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
@@ -346,15 +343,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Check parameters.
-            Dim result = MergeUseSiteErrorInfo(errorInfo, DeriveUseSiteErrorInfoFromParameters(Me.Parameters))
+            Dim result = MergeUseSiteErrorInfo(errorInfo, DeriveUseSiteErrorInfoFromParameters(Parameters))
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
-            If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
+            If result Is Nothing AndAlso ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
-                result = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
-                         If(GetUnificationUseSiteDiagnosticRecursive(Me.TypeCustomModifiers, Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes)))
+                result = If(Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                         If(GetUnificationUseSiteDiagnosticRecursive(TypeCustomModifiers, Me, unificationCheckedTypes),
+                            GetUnificationUseSiteDiagnosticRecursive(Parameters, Me, unificationCheckedTypes)))
             End If
 
             Return result
@@ -382,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overridable ReadOnly Property IsWithEvents As Boolean Implements IPropertySymbol.IsWithEvents
             Get
-                Dim overridden = Me.OverriddenProperty
+                Dim overridden = OverriddenProperty
                 If overridden Is Nothing Then
                     Return False
                 End If
@@ -393,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
-                Return Me.ContainingSymbol.EmbeddedSymbolKind
+                Return ContainingSymbol.EmbeddedSymbolKind
             End Get
         End Property
 
@@ -423,49 +420,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IPropertySymbol_ExplicitInterfaceImplementations As ImmutableArray(Of IPropertySymbol) Implements IPropertySymbol.ExplicitInterfaceImplementations
             Get
-                Return ImmutableArrayExtensions.Cast(Of PropertySymbol, IPropertySymbol)(Me.ExplicitInterfaceImplementations)
+                Return ImmutableArrayExtensions.Cast(Of PropertySymbol, IPropertySymbol)(ExplicitInterfaceImplementations)
             End Get
         End Property
 
         Private ReadOnly Property IPropertySymbol_GetMethod As IMethodSymbol Implements IPropertySymbol.GetMethod
             Get
-                Return Me.GetMethod
+                Return GetMethod
             End Get
         End Property
 
         Private ReadOnly Property IPropertySymbol_OriginalDefinition As IPropertySymbol Implements IPropertySymbol.OriginalDefinition
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
         Private ReadOnly Property IPropertySymbol_OverriddenProperty As IPropertySymbol Implements IPropertySymbol.OverriddenProperty
             Get
-                Return Me.OverriddenProperty
+                Return OverriddenProperty
             End Get
         End Property
 
         Private ReadOnly Property IPropertySymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IPropertySymbol.Parameters
             Get
-                Return StaticCast(Of IParameterSymbol).From(Me.Parameters)
+                Return StaticCast(Of IParameterSymbol).From(Parameters)
             End Get
         End Property
 
         Private ReadOnly Property IPropertySymbol_SetMethod As IMethodSymbol Implements IPropertySymbol.SetMethod
             Get
-                Return Me.SetMethod
+                Return SetMethod
             End Get
         End Property
 
         Private ReadOnly Property IPropertySymbol_Type As ITypeSymbol Implements IPropertySymbol.Type
             Get
-                Return Me.Type
+                Return Type
             End Get
         End Property
 
         Private ReadOnly Property IPropertySymbol_TypeCustomModifiers As ImmutableArray(Of CustomModifier) Implements IPropertySymbol.TypeCustomModifiers
             Get
-                Return Me.TypeCustomModifiers
+                Return TypeCustomModifiers
             End Get
         End Property
 

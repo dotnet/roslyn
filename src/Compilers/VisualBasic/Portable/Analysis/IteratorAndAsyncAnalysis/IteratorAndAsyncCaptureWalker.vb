@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -31,16 +26,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly ByRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
 
             Friend Sub New(cl As OrderedSet(Of Symbol), initializers As Dictionary(Of LocalSymbol, BoundExpression))
-                Me.CapturedLocals = cl
-                Me.ByRefLocalsInitializers = initializers
+                CapturedLocals = cl
+                ByRefLocalsInitializers = initializers
             End Sub
         End Structure
 
         Public Sub New(info As FlowAnalysisInfo)
             MyBase.New(info, Nothing, suppressConstExpressionsSupport:=False, trackStructsWithIntrinsicTypedFields:=True, trackUnassignments:=True)
 
-            Me._variablesToHoist = New OrderedSet(Of Symbol)()
-            Me._byRefLocalsInitializers = New Dictionary(Of LocalSymbol, BoundExpression)()
+            _variablesToHoist = New OrderedSet(Of Symbol)()
+            _byRefLocalsInitializers = New Dictionary(Of LocalSymbol, BoundExpression)()
         End Sub
 
         ' Returns deterministically ordered list of variables that ought to be hoisted.
@@ -119,9 +114,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function Scan() As Boolean
-            Me._variablesToHoist.Clear()
-            Me._byRefLocalsInitializers.Clear()
-            Me._lazyDisallowedCaptures?.Clear()
+            _variablesToHoist.Clear()
+            _byRefLocalsInitializers.Clear()
+            _lazyDisallowedCaptures?.Clear()
 
             Return MyBase.Scan()
         End Function
@@ -140,9 +135,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 _lazyDisallowedCaptures.Add(variable, syntax)
 
-            ElseIf compilation.Options.OptimizationLevel = OptimizationLevel.Release
+            ElseIf compilation.Options.OptimizationLevel = OptimizationLevel.Release Then
                 ' In debug build we hoist all locals and parameters after walk:
-                Me._variablesToHoist.Add(variable)
+                _variablesToHoist.Add(variable)
             End If
 
         End Sub
@@ -177,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function UnreachableState() As DataFlowPass.LocalState
             ' The iterator transformation causes some unreachable code to become
             ' reachable from the code gen's point of view, so we analyze the unreachable code too.
-            Return Me.State
+            Return State
         End Function
 
         Protected Overrides ReadOnly Property IgnoreOutSemantics As Boolean
@@ -239,8 +234,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitReferenceAssignment(node As BoundReferenceAssignment) As BoundNode
             Dim local As LocalSymbol = node.ByRefLocal.LocalSymbol
 
-            Debug.Assert(Not Me._byRefLocalsInitializers.ContainsKey(local))
-            Me._byRefLocalsInitializers.Add(local, node.LValue)
+            Debug.Assert(Not _byRefLocalsInitializers.ContainsKey(local))
+            _byRefLocalsInitializers.Add(local, node.LValue)
 
             Return MyBase.VisitReferenceAssignment(node)
         End Function

@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             diagnostics As DiagnosticBag
         )
             MyBase.New(syntaxReference, container, isShared, binder, diagnostics)
-            Me._debuggable = isDebuggable
+            _debuggable = isDebuggable
         End Sub
 
         Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))

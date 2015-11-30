@@ -1,11 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -24,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Body As BoundStatement
 
             Friend Sub New(_method As MethodSymbol, _body As BoundStatement)
-                Me.Method = _method
-                Me.Body = _body
+                Method = _method
+                Body = _body
             End Sub
         End Structure
 
@@ -111,9 +108,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary> Free resources </summary>
         Public Sub Free()
-            If Me._synthesizedMethods IsNot Nothing Then
-                Me._synthesizedMethods.Free()
-                Me._synthesizedMethods = Nothing
+            If _synthesizedMethods IsNot Nothing Then
+                _synthesizedMethods.Free()
+                _synthesizedMethods = Nothing
             End If
 
             If _methodWrappers IsNot Nothing Then

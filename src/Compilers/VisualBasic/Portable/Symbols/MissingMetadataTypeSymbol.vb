@@ -1,11 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Reflection
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -228,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MyBase.New(moduleSymbol, emittedName, typeId)
 
                 Debug.Assert(errorInfo IsNot Nothing)
-                Me._errorInfo = errorInfo
+                _errorInfo = errorInfo
             End Sub
 
             Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
@@ -295,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private Function GetDebuggerDisplay() As String
                 Dim fullName As String
 
-                fullName = _containingType.ToString() & "." & Me.Name
+                fullName = _containingType.ToString() & "." & Name
 
                 If _arity > 0 Then
                     fullName = fullName & "(Of " & New String(","c, _arity - 1) & ")"

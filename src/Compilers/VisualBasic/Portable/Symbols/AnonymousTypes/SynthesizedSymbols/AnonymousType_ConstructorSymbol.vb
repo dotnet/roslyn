@@ -21,25 +21,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim [property] As PropertySymbol = container.Properties(index)
                     paramsArr(index) = New SynthesizedParameterSimpleSymbol(Me, [property].Type, index, [property].Name)
                 Next
-                Me._parameters = paramsArr.AsImmutableOrNull()
+                _parameters = paramsArr.AsImmutableOrNull()
             End Sub
 
             Friend Overrides ReadOnly Property ParameterCount As Integer
                 Get
-                    Return Me._parameters.Length
+                    Return _parameters.Length
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
                 Get
-                    Return Me._parameters
+                    Return _parameters
                 End Get
             End Property
 
             Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                 MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
-                Dim compilation = DirectCast(Me.ContainingType, AnonymousTypeTemplateSymbol).Manager.Compilation
+                Dim compilation = DirectCast(ContainingType, AnonymousTypeTemplateSymbol).Manager.Compilation
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())
             End Sub
 

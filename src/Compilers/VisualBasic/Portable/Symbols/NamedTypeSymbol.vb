@@ -1,14 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -107,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return TryCast(Me.ContainingSymbol, NamedTypeSymbol)
+                Return TryCast(ContainingSymbol, NamedTypeSymbol)
             End Get
         End Property
 
@@ -164,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' When working with such APIs, names with dots become ambiguous since metadata 
                 ' consumer cannot figure where namespace ends and actual type name starts.
                 ' Therefore it is a good practice to avoid type names with dots.
-                Debug.Assert(Me.IsErrorType OrElse Not (TypeOf Me Is SourceNamedTypeSymbol) OrElse Not Name.Contains("."), "type name contains dots: " + Name)
+                Debug.Assert(IsErrorType OrElse Not (TypeOf Me Is SourceNamedTypeSymbol) OrElse Not Name.Contains("."), "type name contains dots: " + Name)
 
                 Return If(MangleName, MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity), Name)
             End Get
@@ -285,8 +280,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' declared within this named type. Overridden by RetargetingNamedTypeSymbol.
         ''' </summary>
         Friend Overridable Sub AppendProbableExtensionMethods(name As String, methods As ArrayBuilder(Of MethodSymbol))
-            If Me.MightContainExtensionMethods Then
-                For Each member As Symbol In Me.GetMembers(name)
+            If MightContainExtensionMethods Then
+                For Each member As Symbol In GetMembers(name)
                     If member.Kind = SymbolKind.Method Then
                         Dim method = DirectCast(member, MethodSymbol)
 
@@ -309,11 +304,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             map As Dictionary(Of String, ArrayBuilder(Of MethodSymbol)),
             appendThrough As NamespaceSymbol
         )
-            If Me.MightContainExtensionMethods Then
+            If MightContainExtensionMethods Then
                 Debug.Assert(False, "Possibly using inefficient implementation of AppendProbableExtensionMethods(map As Dictionary(Of String, ArrayBuilder(Of MethodSymbol)))")
                 appendThrough.BuildExtensionMethodsMap(map,
-                                         From name As String In Me.MemberNames
-                                         Select New KeyValuePair(Of String, ImmutableArray(Of Symbol))(name, Me.GetMembers(name)))
+                                         From name As String In MemberNames
+                                         Select New KeyValuePair(Of String, ImmutableArray(Of Symbol))(name, GetMembers(name)))
             End If
         End Sub
 
@@ -322,9 +317,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             appendThrough As NamespaceSymbol,
             Name As String
         )
-            If Me.MightContainExtensionMethods Then
+            If MightContainExtensionMethods Then
 
-                Dim candidates = Me.GetSimpleNonTypeMembers(Name)
+                Dim candidates = GetSimpleNonTypeMembers(Name)
 
                 For Each member In candidates
                     appendThrough.AddMemberIfExtension(methods, member)
@@ -352,11 +347,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                               options As LookupOptions,
                                                                               originalBinder As Binder,
                                                                               appendThrough As NamedTypeSymbol)
-            If Me.MightContainExtensionMethods Then
+            If MightContainExtensionMethods Then
                 Debug.Assert(False, "Possibly using inefficient implementation of AppendExtensionMethodNames(nameSet As HashSet(Of String), options As LookupOptions, originalBinder As Binder, appendThrough As NamespaceOrTypeSymbol)")
                 appendThrough.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder,
-                                                             From name As String In Me.MemberNames
-                                                             Select New KeyValuePair(Of String, ImmutableArray(Of Symbol))(name, Me.GetMembers(name)))
+                                                             From name As String In MemberNames
+                                                             Select New KeyValuePair(Of String, ImmutableArray(Of Symbol))(name, GetMembers(name)))
             End If
         End Sub
 
@@ -482,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Check type arguments
-            typeArguments.CheckTypeArguments(Me.Arity)
+            typeArguments.CheckTypeArguments(Arity)
         End Sub
 
         ''' <summary>
@@ -492,8 +487,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' of its containing types. See comments for TypeSubstitution type for more information.
         ''' </summary>
         Friend Function Construct(substitution As TypeSubstitution) As NamedTypeSymbol
-            Debug.Assert(Me.IsDefinition)
-            Debug.Assert(Me.IsOrInGenericType())
+            Debug.Assert(IsDefinition)
+            Debug.Assert(IsOrInGenericType())
 
             If substitution Is Nothing Then
                 Return Me
@@ -511,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns an unbound generic type of this generic named type.
         ''' </summary>
         Public Function ConstructUnboundGenericType() As NamedTypeSymbol
-            Return Me.AsUnboundGenericType()
+            Return AsUnboundGenericType()
         End Function
 
         ''' <summary>
@@ -675,7 +670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Friend ReadOnly Property IsConditional As Boolean
             Get
-                Return Me.GetAppliedConditionalSymbols().Any()
+                Return GetAppliedConditionalSymbols().Any()
             End Get
         End Property
 
@@ -752,7 +747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If diagBag Is Nothing OrElse diagBag.IsEmptyWithoutResolution Then
                 Interlocked.CompareExchange(variable, value, comparand)
             Else
-                Dim sourceModule = TryCast(Me.ContainingModule, SourceModuleSymbol)
+                Dim sourceModule = TryCast(ContainingModule, SourceModuleSymbol)
                 If sourceModule IsNot Nothing Then
                     sourceModule.AtomicStoreReferenceAndDiagnostics(variable, value, diagBag, CompilationStage.Declare, comparand)
                 End If
@@ -767,7 +762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If diagBag Is Nothing OrElse diagBag.IsEmptyWithoutResolution Then
                 ImmutableInterlocked.InterlockedCompareExchange(variable, value, Nothing)
             Else
-                Dim sourceModule = TryCast(Me.ContainingModule, SourceModuleSymbol)
+                Dim sourceModule = TryCast(ContainingModule, SourceModuleSymbol)
                 If sourceModule IsNot Nothing Then
                     sourceModule.AtomicStoreArrayAndDiagnostics(variable, value, diagBag, CompilationStage.Declare)
                 End If
@@ -802,9 +797,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Function GetDirectBaseInterfacesNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As ImmutableArray(Of NamedTypeSymbol)
-            If Me.TypeKind = TypeKind.Interface Then
+            If TypeKind = TypeKind.Interface Then
                 If basesBeingResolved Is Nothing Then
-                    Return Me.InterfacesNoUseSiteDiagnostics
+                    Return InterfacesNoUseSiteDiagnostics
                 Else
                     Return GetDeclaredBaseInterfacesSafe(basesBeingResolved)
                 End If
@@ -847,7 +842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend NotOverridable Overrides ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
             Get
-                If Me._lazyBaseType Is ErrorTypeSymbol.UnknownResultType Then
+                If _lazyBaseType Is ErrorTypeSymbol.UnknownResultType Then
                     ' force resolution of bases in containing type
                     ' to make base resolution errors more deterministic
                     If ContainingType IsNot Nothing Then
@@ -855,13 +850,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                     Dim diagnostics = DiagnosticBag.GetInstance
-                    Dim acyclicBase = Me.MakeAcyclicBaseType(diagnostics)
+                    Dim acyclicBase = MakeAcyclicBaseType(diagnostics)
 
-                    AtomicStoreReferenceAndDiagnostics(Me._lazyBaseType, acyclicBase, diagnostics, ErrorTypeSymbol.UnknownResultType)
+                    AtomicStoreReferenceAndDiagnostics(_lazyBaseType, acyclicBase, diagnostics, ErrorTypeSymbol.UnknownResultType)
                     diagnostics.Free()
                 End If
 
-                Return Me._lazyBaseType
+                Return _lazyBaseType
             End Get
         End Property
 
@@ -870,15 +865,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend NotOverridable Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
-                If Me._lazyInterfaces.IsDefault Then
+                If _lazyInterfaces.IsDefault Then
                     Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance
-                    Dim acyclicInterfaces As ImmutableArray(Of NamedTypeSymbol) = Me.MakeAcyclicInterfaces(diagnostics)
+                    Dim acyclicInterfaces As ImmutableArray(Of NamedTypeSymbol) = MakeAcyclicInterfaces(diagnostics)
 
-                    AtomicStoreArrayAndDiagnostics(Me._lazyInterfaces, acyclicInterfaces, diagnostics)
+                    AtomicStoreArrayAndDiagnostics(_lazyInterfaces, acyclicInterfaces, diagnostics)
                     diagnostics.Free()
                 End If
 
-                Return Me._lazyInterfaces
+                Return _lazyInterfaces
             End Get
         End Property
 
@@ -895,7 +890,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '
             ' For now we decided that this is something we can live with.
 
-            Dim base = Me._lazyBaseType
+            Dim base = _lazyBaseType
             If base IsNot ErrorTypeSymbol.UnknownResultType Then
                 Return base
             End If
@@ -909,7 +904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' while not forcing actual Interfaces to be realized.
         ''' </summary>
         Friend Function GetBestKnownInterfacesNoUseSiteDiagnostics() As ImmutableArray(Of NamedTypeSymbol)
-            Dim interfaces = Me._lazyInterfaces
+            Dim interfaces = _lazyInterfaces
             If Not interfaces.IsDefault Then
                 Return interfaces
             End If
@@ -947,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected NotOverridable Overrides ReadOnly Property OriginalTypeSymbolDefinition As TypeSymbol
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
@@ -976,7 +971,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If Me.IsDefinition Then
+            If IsDefinition Then
                 Return MyBase.GetUseSiteErrorInfo()
             End If
 
@@ -984,7 +979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' constructed non-error and error type symbols.
 
             ' Check definition.
-            Dim definitionErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.OriginalDefinition)
+            Dim definitionErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(OriginalDefinition)
 
             If definitionErrorInfo IsNot Nothing AndAlso definitionErrorInfo.Code = ERRID.ERR_UnsupportedType1 Then
                 Return definitionErrorInfo
@@ -999,7 +994,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function DeriveUseSiteErrorInfoFromTypeArguments() As DiagnosticInfo
             Dim argsErrorInfo As DiagnosticInfo = Nothing
 
-            For Each arg As TypeSymbol In Me.TypeArgumentsNoUseSiteDiagnostics
+            For Each arg As TypeSymbol In TypeArgumentsNoUseSiteDiagnostics
                 Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(arg)
 
                 If errorInfo IsNot Nothing Then
@@ -1013,10 +1008,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Next
 
-            If Me.HasTypeArgumentsCustomModifiers Then
+            If HasTypeArgumentsCustomModifiers Then
                 Dim modifiersErrorInfo As DiagnosticInfo = Nothing
 
-                For Each modifiers In Me.TypeArgumentsCustomModifiers
+                For Each modifiers In TypeArgumentsCustomModifiers
                     modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(modifiers))
                 Next
 
@@ -1084,61 +1079,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property INamedTypeSymbol_Arity As Integer Implements INamedTypeSymbol.Arity
             Get
-                Return Me.Arity
+                Return Arity
             End Get
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_ConstructedFrom As INamedTypeSymbol Implements INamedTypeSymbol.ConstructedFrom
             Get
-                Return Me.ConstructedFrom
+                Return ConstructedFrom
             End Get
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_DelegateInvokeMethod As IMethodSymbol Implements INamedTypeSymbol.DelegateInvokeMethod
             Get
-                Return Me.DelegateInvokeMethod
+                Return DelegateInvokeMethod
             End Get
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_EnumUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.EnumUnderlyingType
             Get
-                Return Me.EnumUnderlyingType
+                Return EnumUnderlyingType
             End Get
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_MemberNames As IEnumerable(Of String) Implements INamedTypeSymbol.MemberNames
             Get
-                Return Me.MemberNames
+                Return MemberNames
             End Get
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_IsUnboundGenericType As Boolean Implements INamedTypeSymbol.IsUnboundGenericType
             Get
-                Return Me.IsUnboundGenericType
+                Return IsUnboundGenericType
             End Get
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_OriginalDefinition As INamedTypeSymbol Implements INamedTypeSymbol.OriginalDefinition
             Get
-                Return Me.OriginalDefinition
+                Return OriginalDefinition
             End Get
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_TypeArguments As ImmutableArray(Of ITypeSymbol) Implements INamedTypeSymbol.TypeArguments
             Get
-                Return StaticCast(Of ITypeSymbol).From(Me.TypeArgumentsNoUseSiteDiagnostics)
+                Return StaticCast(Of ITypeSymbol).From(TypeArgumentsNoUseSiteDiagnostics)
             End Get
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_TypeParameters As ImmutableArray(Of ITypeParameterSymbol) Implements INamedTypeSymbol.TypeParameters
             Get
-                Return StaticCast(Of ITypeParameterSymbol).From(Me.TypeParameters)
+                Return StaticCast(Of ITypeParameterSymbol).From(TypeParameters)
             End Get
         End Property
 
         Private ReadOnly Property INamedTypeSymbol_IsScriptClass As Boolean Implements INamedTypeSymbol.IsScriptClass
             Get
-                Return Me.IsScriptClass
+                Return IsScriptClass
             End Get
         End Property
 
@@ -1181,7 +1176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property INamedTypeSymbol_AssociatedSymbol As ISymbol Implements INamedTypeSymbol.AssociatedSymbol
             Get
-                Return Me.AssociatedSymbol
+                Return AssociatedSymbol
             End Get
         End Property
 
@@ -1191,13 +1186,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected Overrides ReadOnly Property ISymbol_IsAbstract As Boolean
             Get
-                Return Me.IsMustInherit
+                Return IsMustInherit
             End Get
         End Property
 
         Protected Overrides ReadOnly Property ISymbol_IsSealed As Boolean
             Get
-                Return Me.IsNotInheritable
+                Return IsNotInheritable
             End Get
         End Property
 

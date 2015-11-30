@@ -1,17 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -238,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Lookups labels by label names, returns a label or Nothing
         ''' </summary>
         Friend Overridable Function LookupLabelByNameToken(labelName As SyntaxToken) As LabelSymbol
-            Return Me.ContainingBinder.LookupLabelByNameToken(labelName)
+            Return ContainingBinder.LookupLabelByNameToken(labelName)
         End Function
 
         ' Lookup the names that are available in this binder, given the options.
@@ -332,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' If there's a containing member, it either is or has a containing module.
                 ' Otherwise, we'll just use the compilation's source module.
                 Dim containingMember = Me.ContainingMember
-                Return If(TryCast(containingMember, ModuleSymbol), If(containingMember?.ContainingModule, Me.Compilation.SourceModule))
+                Return If(TryCast(containingMember, ModuleSymbol), If(containingMember?.ContainingModule, Compilation.SourceModule))
             End Get
         End Property
 
@@ -447,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' type isn't found.
         ''' </summary>
         Friend Function GetWellKnownType(type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
-            Dim typeSymbol As NamedTypeSymbol = Me.Compilation.GetWellKnownType(type)
+            Dim typeSymbol As NamedTypeSymbol = Compilation.GetWellKnownType(type)
             Debug.Assert(typeSymbol IsNot Nothing)
 
             Dim useSiteError = GetUseSiteErrorForWellKnownType(typeSymbol)
@@ -477,13 +471,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Const globalMetadataName = "My.InternalXmlHelper"
             Dim metadataName = globalMetadataName
 
-            Dim rootNamespace = Me.Compilation.Options.RootNamespace
+            Dim rootNamespace = Compilation.Options.RootNamespace
             If Not String.IsNullOrEmpty(rootNamespace) Then
                 metadataName = $"{rootNamespace}.{metadataName}"
             End If
 
             Dim emittedName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding:=True)
-            Return Me.ContainingModule.LookupTopLevelMetadataType(emittedName)
+            Return ContainingModule.LookupTopLevelMetadataType(emittedName)
         End Function
 
         ''' <summary>
@@ -510,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim parameterType = parameter.Type
                 If parameterType.OriginalDefinition.SpecialType <> SpecialType.System_Collections_Generic_IEnumerable_T OrElse
-                        DirectCast(parameterType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0) <> Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement) Then
+                        DirectCast(parameterType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0) <> Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement) Then
                     Continue For
                 End If
 
@@ -527,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Function GetSpecialTypeMember(member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
-            Dim specialMemberSymbol As Symbol = GetSpecialTypeMember(Me.ContainingMember.ContainingAssembly, member, useSiteError)
+            Dim specialMemberSymbol As Symbol = GetSpecialTypeMember(ContainingMember.ContainingAssembly, member, useSiteError)
 
             If useSiteError IsNot Nothing Then
                 ReportDiagnostic(diagnostics, syntax, useSiteError)
@@ -555,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Function GetWellKnownTypeMember(member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
-            Dim memberSymbol As Symbol = GetWellKnownTypeMember(Me.Compilation, member, useSiteError)
+            Dim memberSymbol As Symbol = GetWellKnownTypeMember(Compilation, member, useSiteError)
 
             If useSiteError IsNot Nothing Then
                 ReportDiagnostic(diagBag, syntax, useSiteError)
@@ -618,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Get the Location associated with a given TextSpan.
         ''' </summary>
         Public Function GetLocation(span As TextSpan) As Location
-            Return Me.SyntaxTree.GetLocation(span)
+            Return SyntaxTree.GetLocation(span)
         End Function
 
         ''' <summary>
@@ -744,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' by the type character (if any) on the variable.
         ''' </summary>
         Public Overridable Function DeclareImplicitLocalVariable(nameSyntax As IdentifierNameSyntax, diagnostics As DiagnosticBag) As LocalSymbol
-            Debug.Assert(Not Me.AllImplicitVariableDeclarationsAreHandled)
+            Debug.Assert(Not AllImplicitVariableDeclarationsAreHandled)
             Return m_containingBinder.DeclareImplicitLocalVariable(nameSyntax, diagnostics)
         End Function
 
@@ -862,8 +856,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' can be reported at a later stage.
         ''' </summary>
         Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As VisualBasicSyntaxNode)
-            If Not Me.SuppressObsoleteDiagnostics Then
-                ReportDiagnosticsIfObsolete(diagnostics, Me.ContainingMember, symbol, node)
+            If Not SuppressObsoleteDiagnostics Then
+                ReportDiagnosticsIfObsolete(diagnostics, ContainingMember, symbol, node)
             End If
         End Sub
 
@@ -942,7 +936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend ReadOnly Property ShouldCheckConstraints As Boolean
             Get
-                Select Case Me.BindingLocation
+                Select Case BindingLocation
                     Case BindingLocation.BaseTypes,
                          BindingLocation.MethodSignature,
                          BindingLocation.GenericConstraintsClause,
@@ -991,7 +985,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As Boolean
             Dim useSiteError As DiagnosticInfo = Nothing
 
-            Dim ctor As Symbol = GetWellKnownTypeMember(Me.Compilation, attributeCtor, useSiteError)
+            Dim ctor As Symbol = GetWellKnownTypeMember(Compilation, attributeCtor, useSiteError)
 
             If Not WellKnownMembers.IsSynthesizedAttributeOptional(attributeCtor) Then
                 Debug.Assert(diagnostics IsNot Nothing)

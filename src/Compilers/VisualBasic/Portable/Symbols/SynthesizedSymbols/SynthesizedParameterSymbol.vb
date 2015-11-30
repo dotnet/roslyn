@@ -1,9 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -26,10 +24,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="ordinal">The ordinal number of this parameter</param>
         ''' <param name="name">The name of this parameter</param>
         Public Sub New(container As MethodSymbol, type As TypeSymbol, ordinal As Integer, name As String)
-            Me._container = container
-            Me._type = type
-            Me._ordinal = ordinal
-            Me._name = name
+            _container = container
+            _type = type
+            _ordinal = ordinal
+            _name = name
         End Sub
 
         ''' <summary>
@@ -37,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public NotOverridable Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return Me._container
+                Return _container
             End Get
         End Property
 
@@ -102,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 ' Dev11 uses marshalling data of a return type of the containing method for the Value parameter 
                 ' of an interface property setter.
-                Dim method = DirectCast(Me.ContainingSymbol, MethodSymbol)
+                Dim method = DirectCast(ContainingSymbol, MethodSymbol)
                 If method.MethodKind = MethodKind.PropertySet AndAlso
                    IsMarshalAsAttributeApplicable(method) Then
 
@@ -268,9 +266,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(container As MethodSymbol, type As TypeSymbol, ordinal As Integer, isByRef As Boolean, name As String, isOptional As Boolean, defaultValue As ConstantValue)
             MyBase.New(container, type, ordinal, name)
 
-            Me._isByRef = isByRef
-            Me._isOptional = isOptional
-            Me._defaultValue = defaultValue
+            _isByRef = isByRef
+            _isOptional = isOptional
+            _defaultValue = defaultValue
         End Sub
 
         Friend Shared Function CreateSetAccessorValueParameter(setter As MethodSymbol, propertySymbol As PropertySymbol, parameterName As String) As ParameterSymbol
@@ -363,11 +361,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort)
             MyBase.New(container, type, ordinal, isByRef, name, isOptional:=False, defaultValue:=Nothing)
 
-            Me._customModifiers = customModifiers.NullToEmpty()
-            Me._countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+            _customModifiers = customModifiers.NullToEmpty()
+            _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
 
-            Debug.Assert(Me._countOfCustomModifiersPrecedingByRef = 0 OrElse Me.IsByRef)
-            Debug.Assert(Me._countOfCustomModifiersPrecedingByRef <= Me._customModifiers.Length)
+            Debug.Assert(_countOfCustomModifiersPrecedingByRef = 0 OrElse Me.IsByRef)
+            Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length)
         End Sub
 
         ''' <summary>
@@ -375,13 +373,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public NotOverridable Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return Me._customModifiers
+                Return _customModifiers
             End Get
         End Property
 
         Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return Me._countOfCustomModifiersPrecedingByRef
+                Return _countOfCustomModifiersPrecedingByRef
             End Get
         End Property
     End Class
@@ -396,12 +394,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Sub New(container As MethodSymbol, type As TypeSymbol, ordinal As Integer, isByRef As Boolean, name As String, location As Location)
             MyBase.New(container, type, ordinal, isByRef, name)
-            Me._locations = ImmutableArray.Create(Of location)(location)
+            _locations = ImmutableArray.Create(Of Location)(location)
         End Sub
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me._locations
+                Return _locations
             End Get
         End Property
 

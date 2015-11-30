@@ -1,13 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports System.Collections.Immutable
-Imports System.Reflection
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -145,14 +138,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Symbol for the type, or MissingMetadataSymbol if the type isn't found.
         ''' </returns>
         ''' <remarks></remarks>
-        Friend NotOverridable Overrides Function LookupTopLevelMetadataType(
-            ByRef emittedName As MetadataTypeName
-        ) As NamedTypeSymbol
+        Friend NotOverridable Overrides Function LookupTopLevelMetadataType(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
 
             Dim result As NamedTypeSymbol = Nothing
             Dim scope As NamespaceSymbol
 
-            scope = Me.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments)
+            scope = GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments)
 
             If scope Is Nothing Then
                 ' We failed to locate the namespace
@@ -169,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 ' Only primary module of an assembly marked with an Extension attribute
                 ' can contain extension methods recognized by the language (Dev10 behavior).
-                Dim assembly As AssemblySymbol = Me.ContainingAssembly
+                Dim assembly As AssemblySymbol = ContainingAssembly
                 Return assembly.Modules(0) Is Me AndAlso assembly.MightContainExtensionMethods
             End Get
         End Property

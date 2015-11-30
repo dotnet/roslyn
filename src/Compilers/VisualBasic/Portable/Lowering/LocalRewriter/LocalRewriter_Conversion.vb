@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -123,10 +118,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          node.Type.IsDelegateType() AndAlso
                          node.Type.SpecialType <> SpecialType.System_MulticastDelegate)
 
-            Dim F As New SyntheticBoundNodeFactory(Me._topMethod, Me._currentMethodOrLambda, node.Syntax, Me._compilationState, Me._diagnostics)
+            Dim F As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics)
             If (node.Operand.IsDefaultValueConstant) Then
                 Return F.Null(node.Type)
-            ElseIf (Not Me._inExpressionLambda AndAlso CouldPossiblyBeNothing(F, node.Operand)) Then
+            ElseIf (Not _inExpressionLambda AndAlso CouldPossiblyBeNothing(F, node.Operand)) Then
                 Dim savedOriginalValue = F.SynthesizedLocal(node.Operand.Type)
                 Dim checkIfNothing = F.ReferenceIsNothing(F.Local(savedOriginalValue, False))
                 Dim conversionIfNothing = F.Null(node.Type)
@@ -175,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function RewriteNullableConversion(node As BoundConversion) As BoundExpression
             Debug.Assert(Not _inExpressionLambda)
 
-            Dim rewrittenOperand = DirectCast(Me.Visit(node.Operand), BoundExpression)
+            Dim rewrittenOperand = DirectCast(Visit(node.Operand), BoundExpression)
 
             If Conversions.IsIdentityConversion(node.ConversionKind) Then
                 Debug.Assert(rewrittenOperand.Type.IsSameTypeIgnoringCustomModifiers(node.Type))
@@ -505,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' === START REWRITE
 
-            Dim rewrittenOperand = Me.VisitExpressionNode(operand)
+            Dim rewrittenOperand = VisitExpressionNode(operand)
 
             ' this is what we return when operand has no value
             Dim whenHasNoValue As BoundExpression = NullableNull(node.Syntax, resultType)
@@ -683,11 +678,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If constr.ParameterCount = 0 Then
 
                     '  check 'constr' 
-                    If AccessCheck.IsSymbolAccessible(constr, Me._topMethod.ContainingType, typeTo, useSiteDiagnostics:=Nothing) Then
+                    If AccessCheck.IsSymbolAccessible(constr, _topMethod.ContainingType, typeTo, useSiteDiagnostics:=Nothing) Then
                         ' before we use constructor symbol we need to report use site error if any
                         Dim useSiteError = constr.GetUseSiteErrorInfo()
                         If useSiteError IsNot Nothing Then
-                            ReportDiagnostic(node, useSiteError, Me._diagnostics)
+                            ReportDiagnostic(node, useSiteError, _diagnostics)
                         End If
 
                         ' update bound node

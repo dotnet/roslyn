@@ -1,13 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -24,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(_symbol IsNot Nothing)
             Debug.Assert(_node IsNot Nothing)
 
-            Me.Compilation = _compilation
-            Me.Symbol = _symbol
-            Me.Node = _node
+            Compilation = _compilation
+            Symbol = _symbol
+            Node = _node
         End Sub
 
     End Structure
@@ -46,9 +39,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(_firstInRegion IsNot Nothing)
             Debug.Assert(_lastInRegion IsNot Nothing)
 
-            Me.FirstInRegion = _firstInRegion
-            Me.LastInRegion = _lastInRegion
-            Me.Region = _region
+            FirstInRegion = _firstInRegion
+            LastInRegion = _lastInRegion
+            Region = _region
         End Sub
 
     End Structure

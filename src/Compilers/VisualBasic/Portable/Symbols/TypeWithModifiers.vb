@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(type As TypeSymbol)
             Debug.Assert(type IsNot Nothing)
             Me.Type = type
-            Me.CustomModifiers = ImmutableArray(Of CustomModifier).Empty
+            CustomModifiers = ImmutableArray(Of CustomModifier).Empty
         End Sub
 
         <Obsolete("Use the strongly typed overload.", True)>
@@ -28,10 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Overloads Function Equals(other As TypeWithModifiers) As Boolean Implements IEquatable(Of TypeWithModifiers).Equals
-            Return Me.Type = other.Type AndAlso
-                   If(Me.CustomModifiers.IsDefault,
+            Return Type = other.Type AndAlso
+                   If(CustomModifiers.IsDefault,
                       other.CustomModifiers.IsDefault,
-                      Not other.CustomModifiers.IsDefault AndAlso Me.CustomModifiers.SequenceEqual(other.CustomModifiers))
+                      Not other.CustomModifiers.IsDefault AndAlso CustomModifiers.SequenceEqual(other.CustomModifiers))
         End Function
 
         Shared Operator =(x As TypeWithModifiers, y As TypeWithModifiers) As Boolean
@@ -43,16 +43,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Operator
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me.Type, Hash.CombineValues(Me.CustomModifiers))
+            Return Hash.Combine(Type, Hash.CombineValues(CustomModifiers))
         End Function
 
         Function [Is](other As TypeSymbol) As Boolean
-            Return Me.Type = other AndAlso Me.CustomModifiers.IsEmpty
+            Return Type = other AndAlso CustomModifiers.IsEmpty
         End Function
 
         <Obsolete("Use Is method.", True)>
         Overloads Function Equals(other As TypeSymbol) As Boolean
-            Return Me.Is(other)
+            Return [Is](other)
         End Function
 
         ''' <summary>
@@ -61,14 +61,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <returns></returns>
         Function AsTypeSymbolOnly() As TypeSymbol
-            Debug.Assert(Me.CustomModifiers.IsEmpty)
-            Return Me.Type
+            Debug.Assert(CustomModifiers.IsEmpty)
+            Return Type
         End Function
 
         Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
-            Dim newCustomModifiers = If(substitution IsNot Nothing, substitution.SubstituteCustomModifiers(Me.CustomModifiers), Me.CustomModifiers)
-            Dim newTypeWithModifiers As TypeWithModifiers = Me.Type.InternalSubstituteTypeParameters(substitution)
-            If Not newTypeWithModifiers.Is(Me.Type) OrElse newCustomModifiers <> Me.CustomModifiers Then
+            Dim newCustomModifiers = If(substitution IsNot Nothing, substitution.SubstituteCustomModifiers(CustomModifiers), CustomModifiers)
+            Dim newTypeWithModifiers As TypeWithModifiers = Type.InternalSubstituteTypeParameters(substitution)
+            If Not newTypeWithModifiers.Is(Type) OrElse newCustomModifiers <> CustomModifiers Then
                 Return New TypeWithModifiers(newTypeWithModifiers.Type, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers))
             Else
                 Return Me ' substitution had no effect on the type or modifiers

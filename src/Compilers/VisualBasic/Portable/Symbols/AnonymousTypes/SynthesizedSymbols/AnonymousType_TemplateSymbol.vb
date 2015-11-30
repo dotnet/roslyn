@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
@@ -43,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                     ' Add a property
-                    Dim [property] As New AnonymousTypePropertySymbol(Me, field, fieldIndex, Me.TypeParameters(fieldIndex))
+                    Dim [property] As New AnonymousTypePropertySymbol(Me, field, fieldIndex, TypeParameters(fieldIndex))
                     propertiesArray(fieldIndex) = [property]
 
                     ' Property related symbols
@@ -103,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public ReadOnly Property Properties As ImmutableArray(Of AnonymousTypePropertySymbol)
                 Get
-                    Return Me._properties
+                    Return _properties
                 End Get
             End Property
 
@@ -120,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
-                Return Me.Manager.System_Object
+                Return Manager.System_Object
             End Function
 
             Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
@@ -153,14 +152,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private Function SynthesizeDebuggerDisplayAttribute() As SynthesizedAttributeData
                 ' VB doesn't allow empty anon types
-                Debug.Assert(Me.Properties.Length > 0)
+                Debug.Assert(Properties.Length > 0)
 
                 Dim builder = PooledStringBuilder.GetInstance()
                 Dim sb = builder.Builder
-                Dim displayCount As Integer = Math.Min(Me.Properties.Length, 4)
+                Dim displayCount As Integer = Math.Min(Properties.Length, 4)
 
                 For fieldIndex = 0 To displayCount - 1
-                    Dim fieldName As String = Me.Properties(fieldIndex).Name
+                    Dim fieldName As String = Properties(fieldIndex).Name
                     If fieldIndex > 0 Then
                         sb.Append(", ")
                     End If
@@ -171,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     sb.Append("}")
                 Next
 
-                If Me.Properties.Length > displayCount Then
+                If Properties.Length > displayCount Then
                     sb.Append(", ...")
                 End If
 

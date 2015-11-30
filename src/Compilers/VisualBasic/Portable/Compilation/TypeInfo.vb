@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Structure VisualBasicTypeInfo
@@ -51,9 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Operator
 
         Friend Sub New(type As TypeSymbol, convertedType As TypeSymbol, implicitConversion As Conversion)
-            Me._type = GetPossibleGuessForErrorType(type)
-            Me._convertedType = GetPossibleGuessForErrorType(convertedType)
-            Me._implicitConversion = implicitConversion
+            _type = GetPossibleGuessForErrorType(type)
+            _convertedType = GetPossibleGuessForErrorType(convertedType)
+            _implicitConversion = implicitConversion
         End Sub
 
         Public Overloads Function Equals(other As VisualBasicTypeInfo) As Boolean Implements IEquatable(Of VisualBasicTypeInfo).Equals

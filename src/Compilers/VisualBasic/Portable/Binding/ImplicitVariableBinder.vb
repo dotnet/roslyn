@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -69,12 +65,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
             ' Need this for ImplicitVariableBinder created by SpeculativeBinder.
-            Return Me.ContainingBinder.BindGroupAggregationExpression(group, diagnostics)
+            Return ContainingBinder.BindGroupAggregationExpression(group, diagnostics)
         End Function
 
         Friend Overrides Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
             ' Need this for ImplicitVariableBinder created by SpeculativeBinder.
-            Return Me.ContainingBinder.BindFunctionAggregationExpression([function], diagnostics)
+            Return ContainingBinder.BindFunctionAggregationExpression([function], diagnostics)
         End Function
 
         ''' <summary>

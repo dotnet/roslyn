@@ -1,9 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Friend NotInheritable Class AnonymousTypeManager
@@ -20,12 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Friend NotOverridable Overrides ReadOnly Property BackingFieldSymbol As FieldSymbol
                 Get
-                    Return DirectCast(Me.m_propertyOrEvent, AnonymousTypePropertySymbol).AssociatedField
+                    Return DirectCast(m_propertyOrEvent, AnonymousTypePropertySymbol).AssociatedField
                 End Get
             End Property
 
             Protected Overrides Function GenerateMetadataName() As String
-                Return Binder.GetAccessorName(m_propertyOrEvent.MetadataName, Me.MethodKind, Me.IsCompilationOutputWinMdObj())
+                Return Binder.GetAccessorName(m_propertyOrEvent.MetadataName, MethodKind, IsCompilationOutputWinMdObj())
             End Function
 
             Public Overrides ReadOnly Property ReturnType As TypeSymbol

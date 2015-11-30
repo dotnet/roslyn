@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The lambda rewriter will then take care of the code generation later on.
 
             If node.RelaxationLambdaOpt Is Nothing Then
-                Debug.Assert(node.RelaxationReceiverPlaceholderOpt Is Nothing OrElse Me._inExpressionLambda)
+                Debug.Assert(node.RelaxationReceiverPlaceholderOpt Is Nothing OrElse _inExpressionLambda)
                 Return MyBase.VisitDelegateCreationExpression(node)
 
             Else
@@ -22,19 +22,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim captureTemp As SynthesizedLocal = Nothing
 
                 If placeholderOpt IsNot Nothing Then
-                    If Me._inExpressionLambda Then
-                        Me.AddPlaceholderReplacement(placeholderOpt, VisitExpression(node.ReceiverOpt))
+                    If _inExpressionLambda Then
+                        AddPlaceholderReplacement(placeholderOpt, VisitExpression(node.ReceiverOpt))
                     Else
-                        captureTemp = New SynthesizedLocal(Me._currentMethodOrLambda, placeholderOpt.Type, SynthesizedLocalKind.DelegateRelaxationReceiver, syntaxOpt:=placeholderOpt.Syntax)
+                        captureTemp = New SynthesizedLocal(_currentMethodOrLambda, placeholderOpt.Type, SynthesizedLocalKind.DelegateRelaxationReceiver, syntaxOpt:=placeholderOpt.Syntax)
                         Dim actualReceiver = New BoundLocal(placeholderOpt.Syntax, captureTemp, captureTemp.Type).MakeRValue
-                        Me.AddPlaceholderReplacement(placeholderOpt, actualReceiver)
+                        AddPlaceholderReplacement(placeholderOpt, actualReceiver)
                     End If
                 End If
 
-                Dim relaxationLambda = DirectCast(Me.Visit(node.RelaxationLambdaOpt), BoundLambda)
+                Dim relaxationLambda = DirectCast(Visit(node.RelaxationLambdaOpt), BoundLambda)
 
                 If placeholderOpt IsNot Nothing Then
-                    Me.RemovePlaceholderReplacement(placeholderOpt)
+                    RemovePlaceholderReplacement(placeholderOpt)
                 End If
 
                 Dim result As BoundExpression = New BoundConversion(

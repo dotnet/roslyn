@@ -1,15 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -48,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim res = CheckViability([alias].Alias, arity, options, Nothing, useSiteDiagnostics)
                 If res.IsGoodOrAmbiguous AndAlso Not originalBinder.IsSemanticModelBinder Then
-                    Me.Compilation.MarkImportDirectiveAsUsed(Me.SyntaxTree, [alias].ImportsClausePosition)
+                    Compilation.MarkImportDirectiveAsUsed(SyntaxTree, [alias].ImportsClausePosition)
                 End If
 
                 lookupResult.SetFrom(res) ' -1 for arity: don't check arity.
@@ -69,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
-                Return Me.Compilation.SourceModule
+                Return Compilation.SourceModule
             End Get
         End Property
     End Class

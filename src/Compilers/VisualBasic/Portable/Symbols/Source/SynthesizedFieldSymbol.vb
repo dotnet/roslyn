@@ -1,11 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -34,20 +29,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(implicitlyDefinedBy IsNot Nothing)
             Debug.Assert(type IsNot Nothing)
 
-            Me._containingType = containingType
-            Me._implicitlyDefinedBy = implicitlyDefinedBy
-            Me._type = type
-            Me._name = name
-            Me._flags = CType(accessibility, SourceMemberFlags) Or
+            _containingType = containingType
+            _implicitlyDefinedBy = implicitlyDefinedBy
+            _type = type
+            _name = name
+            _flags = CType(accessibility, SourceMemberFlags) Or
                         If(isReadOnly, SourceMemberFlags.ReadOnly, SourceMemberFlags.None) Or
                         If(isShared, SourceMemberFlags.Shared, SourceMemberFlags.None)
 
-            Me._isSpecialNameAndRuntimeSpecial = isSpecialNameAndRuntimeSpecial
+            _isSpecialNameAndRuntimeSpecial = isSpecialNameAndRuntimeSpecial
         End Sub
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return Me._type
+                Return _type
             End Get
         End Property
 
@@ -102,13 +97,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return Me._containingType
+                Return _containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return Me._containingType
+                Return _containingType
             End Get
         End Property
 
@@ -148,25 +143,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property ImplicitlyDefinedBy(Optional membersInProgress As Dictionary(Of String, ArrayBuilder(Of Symbol)) = Nothing) As Symbol
             Get
-                Return Me._implicitlyDefinedBy
+                Return _implicitlyDefinedBy
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Me._name
+                Return _name
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return Me._isSpecialNameAndRuntimeSpecial
+                Return _isSpecialNameAndRuntimeSpecial
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
-                Return Me._isSpecialNameAndRuntimeSpecial
+                Return _isSpecialNameAndRuntimeSpecial
             End Get
         End Property
 

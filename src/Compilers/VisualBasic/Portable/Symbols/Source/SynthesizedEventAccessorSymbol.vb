@@ -3,10 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.RuntimeMembers
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -34,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If _lazyExplicitImplementations.IsDefault Then
                     ImmutableInterlocked.InterlockedInitialize(
                         _lazyExplicitImplementations,
-                        SourceEvent.GetAccessorImplementations(Me.MethodKind))
+                        SourceEvent.GetAccessorImplementations(MethodKind))
                 End If
 
                 Return _lazyExplicitImplementations
@@ -47,11 +44,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim diagnostics = DiagnosticBag.GetInstance()
 
                     Dim parameterType As TypeSymbol
-                    If Me.MethodKind = MethodKind.EventRemove AndAlso m_propertyOrEvent.IsWindowsRuntimeEvent Then
-                        parameterType = Me.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
+                    If MethodKind = MethodKind.EventRemove AndAlso m_propertyOrEvent.IsWindowsRuntimeEvent Then
+                        parameterType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
                         Dim useSite = Binder.GetUseSiteErrorForWellKnownType(parameterType)
                         If useSite IsNot Nothing Then
-                            diagnostics.Add(useSite, Me.Locations(0))
+                            diagnostics.Add(useSite, Locations(0))
                         End If
                     Else
                         parameterType = SourceEvent.Type
@@ -60,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim parameter = New SynthesizedParameterSymbol(Me, parameterType, 0, False, "obj")
                     Dim parameterList = ImmutableArray.Create(Of ParameterSymbol)(parameter)
 
-                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreArrayAndDiagnostics(_lazyParameters, parameterList, diagnostics, CompilationStage.Declare)
+                    DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreArrayAndDiagnostics(_lazyParameters, parameterList, diagnostics, CompilationStage.Declare)
 
                     diagnostics.Free()
                 End If
@@ -74,22 +71,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If _lazyReturnType Is Nothing Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
 
-                    Dim compilation = Me.DeclaringCompilation
+                    Dim compilation = DeclaringCompilation
                     Dim type As TypeSymbol
                     Dim useSite As DiagnosticInfo
-                    If Me.IsSub Then
+                    If IsSub Then
                         type = compilation.GetSpecialType(SpecialType.System_Void)
                         ' Don't report on add, because it will be the same for remove.
-                        useSite = If(Me.MethodKind = MethodKind.EventRemove, Binder.GetUseSiteErrorForSpecialType(type), Nothing)
+                        useSite = If(MethodKind = MethodKind.EventRemove, Binder.GetUseSiteErrorForSpecialType(type), Nothing)
                     Else
                         type = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
                         useSite = Binder.GetUseSiteErrorForWellKnownType(type)
                     End If
                     If useSite IsNot Nothing Then
-                        diagnostics.Add(useSite, Me.Locations(0))
+                        diagnostics.Add(useSite, Locations(0))
                     End If
 
-                    DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyReturnType, type, diagnostics, CompilationStage.Declare)
+                    DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyReturnType, type, diagnostics, CompilationStage.Declare)
 
                     diagnostics.Free()
                 End If
@@ -101,13 +98,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
-                Return Not (Me.MethodKind = MethodKind.EventAdd AndAlso m_propertyOrEvent.IsWindowsRuntimeEvent)
+                Return Not (MethodKind = MethodKind.EventAdd AndAlso m_propertyOrEvent.IsWindowsRuntimeEvent)
             End Get
         End Property
 
         Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim compilation = Me.DeclaringCompilation
-            Return ConstructFieldLikeEventAccessorBody(Me.m_propertyOrEvent, Me.MethodKind = MethodKind.EventAdd, compilation, diagnostics)
+            Dim compilation = DeclaringCompilation
+            Return ConstructFieldLikeEventAccessorBody(m_propertyOrEvent, MethodKind = MethodKind.EventAdd, compilation, diagnostics)
         End Function
 
         Protected Shared Function ConstructFieldLikeEventAccessorBody(eventSymbol As SourceEventSymbol,
@@ -482,15 +479,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
             cancellationToken.ThrowIfCancellationRequested()
-            Dim unusedParameters = Me.Parameters
-            Dim unusedReturnType = Me.ReturnType
+            Dim unusedParameters = Parameters
+            Dim unusedReturnType = ReturnType
         End Sub
 
         Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(Not ContainingType.IsImplicitlyDeclared)
-            Dim compilation = Me.DeclaringCompilation
+            Dim compilation = DeclaringCompilation
             AddSynthesizedAttribute(attributes,
                                     compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 

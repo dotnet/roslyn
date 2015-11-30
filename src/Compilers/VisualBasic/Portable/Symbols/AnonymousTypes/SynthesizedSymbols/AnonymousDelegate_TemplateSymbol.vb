@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
@@ -37,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Me.TypeDescr = typeDescr
 
                 Dim parameterDescriptors As ImmutableArray(Of AnonymousTypeField) = typeDescr.Parameters
-                Dim returnType As TypeSymbol = If(parameterDescriptors.IsSubDescription(), DirectCast(manager.System_Void, TypeSymbol), Me.TypeParameters.Last)
+                Dim returnType As TypeSymbol = If(parameterDescriptors.IsSubDescription(), DirectCast(manager.System_Void, TypeSymbol), TypeParameters.Last)
                 Dim parameters = ArrayBuilder(Of ParameterSymbol).GetInstance(parameterDescriptors.Length + 1)
                 Dim i As Integer
 
@@ -50,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 For i = 0 To parameterDescriptors.Length - 2
                     parameters.Add(New AnonymousDelegateParameterSymbol(delegateInvoke,
-                                                                        Me.TypeParameters(i),
+                                                                        TypeParameters(i),
                                                                         i,
                                                                         parameterDescriptors(i).IsByRef,
                                                                         parameterDescriptors(i).Name,
@@ -77,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' Don't add Begin/EndInvoke members to winmd compilations.
                 ' Invoke must be the last member, regardless.
-                If Me.IsCompilationOutputWinMdObj() Then
+                If IsCompilationOutputWinMdObj() Then
                     delegateBeginInvoke = Nothing
                     delegateEndInvoke = Nothing
                     _members = ImmutableArray.Create(delegateCtor, delegateInvoke)
@@ -225,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim other = TryCast(obj, NonGenericAnonymousDelegateSymbol)
 
-                Return other IsNot Nothing AndAlso other.Manager Is Me.Manager
+                Return other IsNot Nothing AndAlso other.Manager Is Manager
             End Function
         End Class
 

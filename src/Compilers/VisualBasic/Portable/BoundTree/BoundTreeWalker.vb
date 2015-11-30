@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend MustInherit Class BoundTreeWalker
@@ -15,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Sub VisitList(Of T As BoundNode)(list As ImmutableArray(Of T))
             If Not list.IsDefault Then
                 For Each item In list
-                    Me.Visit(item)
+                    Visit(item)
                 Next
             End If
         End Sub
@@ -91,10 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 current = binary.Left
             End While
 
-            Me.Visit(current)
+            Visit(current)
 
             While rightOperands.Count > 0
-                Me.Visit(rightOperands.Pop())
+                Visit(rightOperands.Pop())
             End While
 
             rightOperands.Free()

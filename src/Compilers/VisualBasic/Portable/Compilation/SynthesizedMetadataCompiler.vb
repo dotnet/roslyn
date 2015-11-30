@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _cancellationToken As CancellationToken
 
         Private Sub New(moduleBeingBuilt As PEModuleBuilder, cancellationToken As CancellationToken)
-            Me._moduleBeingBuilt = moduleBeingBuilt
-            Me._cancellationToken = cancellationToken
+            _moduleBeingBuilt = moduleBeingBuilt
+            _cancellationToken = cancellationToken
         End Sub
 
         ''' <summary>
@@ -36,14 +36,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitNamespace(symbol As NamespaceSymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
+            _cancellationToken.ThrowIfCancellationRequested()
             For Each member In symbol.GetMembers()
                 member.Accept(Me)
             Next
         End Sub
 
         Public Overrides Sub VisitNamedType(symbol As NamedTypeSymbol)
-            Me._cancellationToken.ThrowIfCancellationRequested()
+            _cancellationToken.ThrowIfCancellationRequested()
 
             For Each member In symbol.GetMembers()
                 Select Case member.Kind

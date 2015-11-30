@@ -1,18 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Collections.ObjectModel
-Imports System.Diagnostics
 Imports System.IO
-Imports System.Linq
-Imports System.Runtime.InteropServices
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -69,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If MyBase.ResolveMetadataReferences(metadataResolver, diagnostics, messageProvider, resolved) Then
 
                 ' If there were no references, don't try to add default Cor library reference.
-                If Me.DefaultCoreLibraryReference IsNot Nothing AndAlso resolved.Count > 0 Then
+                If DefaultCoreLibraryReference IsNot Nothing AndAlso resolved.Count > 0 Then
                     ' All references from arguments were resolved successfully. Let's see if we have a reference that can be used as a Cor library.
                     For Each reference In resolved
                         Dim refProps = reference.Properties
@@ -104,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 
                     ' None of the supplied references could be used as a Cor library. Let's add a default one.
-                    Dim defaultCorLibrary = ResolveMetadataReference(Me.DefaultCoreLibraryReference.Value, metadataResolver, diagnostics, messageProvider).FirstOrDefault()
+                    Dim defaultCorLibrary = ResolveMetadataReference(DefaultCoreLibraryReference.Value, metadataResolver, diagnostics, messageProvider).FirstOrDefault()
 
                     If defaultCorLibrary Is Nothing OrElse defaultCorLibrary.IsUnresolved Then
                         Debug.Assert(diagnostics Is Nothing OrElse diagnostics.Any())

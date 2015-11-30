@@ -35,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 MyBase.New(F, state, hoistedVariables, localProxies, SynthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
 
-                Me._current = current
+                _current = current
 
-                Me._originalMethodDeclaration = method.DeclaringSyntaxReferences(0).GetVisualBasicSyntax
+                _originalMethodDeclaration = method.DeclaringSyntaxReferences(0).GetVisualBasicSyntax
             End Sub
 
             Public Sub GenerateMoveNextAndDispose(Body As BoundStatement,
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim initialState As Integer = initialStateInfo.Number
                 Dim initialLabel As GeneratedLabelSymbol = initialStateInfo.ResumeLabel
 
-                Me._methodValue = Me.F.SynthesizedLocal(F.CurrentMethod.ReturnType, SynthesizedLocalKind.StateMachineReturnValue, F.Syntax)
+                _methodValue = F.SynthesizedLocal(F.CurrentMethod.ReturnType, SynthesizedLocalKind.StateMachineReturnValue, F.Syntax)
 
                 Dim newBody = DirectCast(Visit(Body), BoundStatement)
                 ' Select Me.state
@@ -68,19 +68,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' [[rewritten body]]
                 F.CloseMethod(
                     F.Block(
-                        ImmutableArray.Create(Me._methodValue, Me.CachedState),
+                        ImmutableArray.Create(_methodValue, CachedState),
                         F.HiddenSequencePoint(),
-                        F.Assignment(Me.F.Local(Me.CachedState, True), F.Field(F.Me, Me.StateField, False)),
+                        F.Assignment(F.Local(CachedState, True), F.Field(F.Me, StateField, False)),
                         Dispatch(),
                         GenerateReturn(finished:=True),
                         F.Label(initialLabel),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.NotStartedStateMachine))),
+                        F.Assignment(F.Field(F.Me, StateField, True), F.AssignmentExpression(F.Local(CachedState, True), F.Literal(StateMachineStates.NotStartedStateMachine))),
                         newBody,
                         HandleReturn()
                     ))
 
-                Me._exitLabel = Nothing
-                Me._methodValue = Nothing
+                _exitLabel = Nothing
+                _methodValue = Nothing
 
                 ' Generate the body for Dispose().
                 F.CurrentMethod = disposeMethod
@@ -90,15 +90,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Group ft.Key By ft.Value Into Group
                                 Select F.SwitchSection(
                                     New List(Of Integer)(Group),
-                                    F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(Value)),
+                                    F.Assignment(F.Field(F.Me, StateField, True), F.Literal(Value)),
                                     F.Goto(breakLabel))).ToArray()
 
                 If (sections.Length > 0) Then
                     F.CloseMethod(F.Block(
                         F.Select(
-                            F.Field(F.Me, Me.StateField, False),
+                            F.Field(F.Me, StateField, False),
                             sections),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                        F.Assignment(F.Field(F.Me, StateField, True), F.Literal(StateMachineStates.NotStartedStateMachine)),
                         F.Label(breakLabel),
                         F.ExpressionStatement(F.Call(F.Me, moveNextMethod)),
                         F.Return()
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Private Function HandleReturn() As BoundStatement
-                If Me._exitLabel Is Nothing Then
+                If _exitLabel Is Nothing Then
                     ' did not see indirect returns
                     Return F.Block()
                 Else
@@ -118,9 +118,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '  Return _methodValue
                     Return F.Block(
                             F.HiddenSequencePoint(),
-                            F.Assignment(F.Local(Me._methodValue, True), F.Literal(True)),
-                            F.Label(Me._exitLabel),
-                            F.Return(Me.F.Local(Me._methodValue, False))
+                            F.Assignment(F.Local(_methodValue, True), F.Literal(True)),
+                            F.Label(_exitLabel),
+                            F.Return(F.Local(_methodValue, False))
                         )
                 End If
             End Function
@@ -128,28 +128,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Protected Overrides Function GenerateReturn(finished As Boolean) As BoundStatement
                 Dim result = F.Literal(Not finished)
 
-                If Me._tryNestingLevel = 0 Then
+                If _tryNestingLevel = 0 Then
                     ' direct return
                     Return F.Return(result)
 
                 Else
                     ' indirect return
 
-                    If Me._exitLabel Is Nothing Then
-                        Me._exitLabel = F.GenerateLabel("exitLabel")
+                    If _exitLabel Is Nothing Then
+                        _exitLabel = F.GenerateLabel("exitLabel")
                     End If
 
-                    Return Me.F.Block(
-                        Me.F.Assignment(Me.F.Local(Me._methodValue, True), result),
-                        Me.F.Goto(Me._exitLabel)
+                    Return F.Block(
+                        F.Assignment(F.Local(_methodValue, True), result),
+                        F.Goto(_exitLabel)
                     )
                 End If
             End Function
 
             Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
-                Me._tryNestingLevel += 1
+                _tryNestingLevel += 1
                 Dim result = MyBase.VisitTryStatement(node)
-                Me._tryNestingLevel -= 1
+                _tryNestingLevel -= 1
 
                 Return result
             End Function
@@ -184,11 +184,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return F.SequencePoint(
                     node.Syntax,
                     F.Block(
-                        F.Assignment(F.Field(F.Me, Me._current, True), DirectCast(Visit(node.Expression), BoundExpression)),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(newState.Number))),
+                        F.Assignment(F.Field(F.Me, _current, True), DirectCast(Visit(node.Expression), BoundExpression)),
+                        F.Assignment(F.Field(F.Me, StateField, True), F.AssignmentExpression(F.Local(CachedState, True), F.Literal(newState.Number))),
                         GenerateReturn(finished:=False),
                         F.Label(newState.ResumeLabel),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineStates.NotStartedStateMachine)))
+                        F.Assignment(F.Field(F.Me, StateField, True), F.AssignmentExpression(F.Local(CachedState, True), F.Literal(StateMachineStates.NotStartedStateMachine)))
                     )
                 )
 
@@ -201,10 +201,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Protected Overrides Function MaterializeProxy(origExpression As BoundExpression, proxy As FieldSymbol) As BoundNode
-                Dim syntax As VisualBasicSyntaxNode = Me.F.Syntax
+                Dim syntax As VisualBasicSyntaxNode = F.Syntax
                 Dim framePointer As BoundExpression = Me.FramePointer(syntax, proxy.ContainingType)
                 Dim proxyFieldParented = proxy.AsMember(DirectCast(framePointer.Type, NamedTypeSymbol))
-                Return Me.F.Field(framePointer, proxyFieldParented, origExpression.IsLValue)
+                Return F.Field(framePointer, proxyFieldParented, origExpression.IsLValue)
             End Function
         End Class
     End Class

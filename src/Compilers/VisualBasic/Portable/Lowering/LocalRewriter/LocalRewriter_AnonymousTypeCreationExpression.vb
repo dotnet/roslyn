@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -77,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '       must be present; see comments on bound node declaration
             Debug.Assert(local IsNot Nothing)
 
-            Return New BoundLocal(node.Syntax, local, False, Me.VisitType(local.Type))
+            Return New BoundLocal(node.Syntax, local, False, VisitType(local.Type))
         End Function
 
         Public Overrides Function VisitAnonymousTypeFieldInitializer(node As BoundAnonymousTypeFieldInitializer) As BoundNode

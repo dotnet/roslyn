@@ -1,14 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class ErrorTypeSymbol
@@ -27,8 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If Me.IsDefinition Then
-                Return Me.ErrorInfo
+            If IsDefinition Then
+                Return ErrorInfo
             End If
 
             ' Base class handles constructed types.
@@ -339,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property NonErrorGuessType As NamedTypeSymbol
             Get
-                Dim candidates = Me.CandidateSymbols
+                Dim candidates = CandidateSymbols
                 If candidates.Length = 1 Then  ' Only return a guess if its unambiguous.
                     Return TryCast(candidates(0), NamedTypeSymbol)
                 Else
@@ -406,7 +400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property IErrorTypeSymbol_CandidateSymbols As ImmutableArray(Of ISymbol) Implements IErrorTypeSymbol.CandidateSymbols
             Get
-                Return StaticCast(Of ISymbol).From(Me.CandidateSymbols)
+                Return StaticCast(Of ISymbol).From(CandidateSymbols)
             End Get
         End Property
 

@@ -3,9 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -154,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me.Ordinal.GetHashCode(), _containingSymbol.GetHashCode())
+            Return Hash.Combine(Ordinal.GetHashCode(), _containingSymbol.GetHashCode())
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
@@ -165,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim other = TryCast(obj, SubstitutedTypeParameterSymbol)
 
-            Return other IsNot Nothing AndAlso Me.Ordinal = other.Ordinal AndAlso Me.ContainingSymbol.Equals(other.ContainingSymbol)
+            Return (other IsNot Nothing) AndAlso (Ordinal = other.Ordinal) AndAlso ContainingSymbol.Equals(other.ContainingSymbol)
         End Function
 
         ''' <summary>

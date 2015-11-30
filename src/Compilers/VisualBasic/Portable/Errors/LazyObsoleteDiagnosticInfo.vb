@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub New(sym As Symbol, containingSymbol As Symbol)
             MyBase.New(VisualBasic.MessageProvider.Instance, ERRID.Unknown)
-            Me._symbol = sym
-            Me._containingSymbol = containingSymbol
+            _symbol = sym
+            _containingSymbol = containingSymbol
         End Sub
 
         Friend Overrides Function GetResolvedInfo() As DiagnosticInfo
@@ -32,15 +32,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If inObsoleteContext = ThreeState.False Then
                         Dim info As DiagnosticInfo = ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(_symbol)
                         If info IsNot Nothing Then
-                            Interlocked.CompareExchange(Me._lazyActualObsoleteDiagnostic, info, Nothing)
-                            Return Me._lazyActualObsoleteDiagnostic
+                            Interlocked.CompareExchange(_lazyActualObsoleteDiagnostic, info, Nothing)
+                            Return _lazyActualObsoleteDiagnostic
                         End If
                     End If
                 End If
 
                 ' If this symbol is not obsolete or is in an obsolete context, we don't want to report any diagnostics.
                 ' Therefore make this a Void diagnostic.
-                Interlocked.CompareExchange(Me._lazyActualObsoleteDiagnostic, ErrorFactory.VoidDiagnosticInfo, Nothing)
+                Interlocked.CompareExchange(_lazyActualObsoleteDiagnostic, ErrorFactory.VoidDiagnosticInfo, Nothing)
             End If
 
             Return _lazyActualObsoleteDiagnostic

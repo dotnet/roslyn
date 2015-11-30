@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -231,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function UseTwiceLValue(containingMember As Symbol, lvalue As BoundExpression, temporaries As ArrayBuilder(Of SynthesizedLocal)) As Result
             Debug.Assert(lvalue.IsLValue)
-            Dim temp = New SynthesizedLocal(containingMember, lvalue.Type, SynthesizedLocalKind.LoweringTemp, isByRef:=True)
+            Dim temp As New SynthesizedLocal(containingMember, lvalue.Type, SynthesizedLocalKind.LoweringTemp, isByRef:=True)
             Dim first = New BoundReferenceAssignment(lvalue.Syntax,
                                                   New BoundLocal(lvalue.Syntax, temp, temp.Type).MakeCompilerGenerated(),
                                                   lvalue, isLValue:=True, type:=lvalue.Type).MakeCompilerGenerated()
@@ -333,23 +328,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Generate PropertyAccess nodes.
-            Dim first = node.Update(
-                            propertySymbol,
-                            node.PropertyGroupOpt,
-                            node.AccessKind,
-                            node.IsWriteable,
-                            receiver.First,
-                            firstArgs,
-                            node.Type)
+            Dim first = node.Update(propertySymbol, node.PropertyGroupOpt,
+                                    node.AccessKind, node.IsWriteable, receiver.First, firstArgs, node.Type)
 
-            Dim second = node.Update(
-                            propertySymbol,
-                            node.PropertyGroupOpt,
-                            node.AccessKind,
-                            node.IsWriteable,
-                            receiver.Second,
-                            secondArgs,
-                            node.Type)
+            Dim second = node.Update(propertySymbol,
+                                     node.PropertyGroupOpt, node.AccessKind, node.IsWriteable, receiver.Second, secondArgs, node.Type)
 
             Return New Result(first, second)
         End Function
@@ -396,21 +379,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Generate nodes.
-            Dim first = node.Update(
-                            receiver.First,
-                            firstArgs,
-                            node.ArgumentNamesOpt,
-                            node.AccessKind,
-                            node.MethodOrPropertyGroupOpt,
-                            node.Type)
+            Dim first = node.Update(receiver.First, firstArgs,
+                                    node.ArgumentNamesOpt, node.AccessKind, node.MethodOrPropertyGroupOpt, node.Type)
 
-            Dim second = node.Update(
-                            receiver.Second,
-                            secondArgs,
-                            node.ArgumentNamesOpt,
-                            node.AccessKind,
-                            node.MethodOrPropertyGroupOpt,
-                            node.Type)
+            Dim second = node.Update(receiver.Second, secondArgs,
+                                     node.ArgumentNamesOpt, node.AccessKind, node.MethodOrPropertyGroupOpt, node.Type)
 
             Return New Result(first, second)
         End Function
@@ -420,19 +393,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim receiver As Result = UseTwiceLateBoundReceiver(containingMember, node.ReceiverOpt, arg)
 
             ' Generate nodes.
-            Dim first = node.Update(node.NameOpt,
-                                    node.ContainerTypeOpt,
-                                    receiver.First,
-                                    node.TypeArgumentsOpt,
-                                    node.AccessKind,
-                                    node.Type)
+            Dim first = node.Update(node.NameOpt, node.ContainerTypeOpt,
+                                    receiver.First, node.TypeArgumentsOpt, node.AccessKind, node.Type)
 
-            Dim second = node.Update(node.NameOpt,
-                                    node.ContainerTypeOpt,
-                                    receiver.Second,
-                                    node.TypeArgumentsOpt,
-                                    node.AccessKind,
-                                    node.Type)
+            Dim second = node.Update(node.NameOpt, node.ContainerTypeOpt,
+                                     receiver.Second, node.TypeArgumentsOpt, node.AccessKind, node.Type)
 
             Return New Result(first, second)
         End Function

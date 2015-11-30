@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
@@ -231,11 +230,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim result As TypeSymbol
 
             Try
-                Dim isInterface As Boolean = Me.Module.IsInterfaceOrThrow(typeDef)
+                Dim isInterface As Boolean = [Module].IsInterfaceOrThrow(typeDef)
                 Dim baseType As TypeSymbol = Nothing
 
                 If Not isInterface Then
-                    Dim baseToken As EntityHandle = Me.Module.GetBaseTypeOfTypeOrThrow(typeDef)
+                    Dim baseToken As EntityHandle = [Module].GetBaseTypeOfTypeOrThrow(typeDef)
 
                     If Not baseToken.IsNil() Then
                         baseType = GetTypeOfToken(baseToken)

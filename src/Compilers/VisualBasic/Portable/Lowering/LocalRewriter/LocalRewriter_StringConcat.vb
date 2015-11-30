@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -37,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim syntax = node.Syntax
             Dim loweredLeft = node.Left
             Dim loweredRight = node.Right
-            Dim factory = New SyntheticBoundNodeFactory(Me._topMethod, Me._currentMethodOrLambda, syntax, Me._compilationState, Me._diagnostics)
+            Dim factory = New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, syntax, _compilationState, _diagnostics)
 
             ' try fold two args without flattening.
             Dim folded As BoundExpression = TryFoldTwoConcatOperands(factory, loweredLeft, loweredRight)
@@ -117,16 +112,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim method As MethodSymbol = boundCall.Method
                     If method.IsShared AndAlso method.ContainingType.SpecialType = SpecialType.System_String Then
-                        If method Is Me.Compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) OrElse
-                            method Is Me.Compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) OrElse
-                            method Is Me.Compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) Then
+                        If method Is Compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) OrElse
+                            method Is Compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) OrElse
+                            method Is Compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) Then
 
                             flattened.AddRange(boundCall.Arguments)
                             Return
 
                         End If
 
-                        If method Is Me.Compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray) Then
+                        If method Is Compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray) Then
                             Dim args As BoundArrayCreation = TryCast(boundCall.Arguments(0), BoundArrayCreation)
                             If args IsNot Nothing Then
                                 Dim initializer As BoundArrayInitialization = args.InitializerOpt
@@ -169,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If leftConst IsNot Nothing AndAlso rightConst IsNot Nothing Then
                 ' const concat may fail to fold if strings are huge. 
                 ' This would be unusual.
-                Dim concatenated As ConstantValue = Me.TryFoldTwoConcatConsts(leftConst, rightConst)
+                Dim concatenated As ConstantValue = TryFoldTwoConcatConsts(leftConst, rightConst)
                 If concatenated IsNot Nothing Then
                     Return factory.StringLiteral(concatenated)
                 End If
@@ -179,10 +174,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsNullOrEmptyStringConstant(loweredRight) Then
                     Return factory.Literal("")
                 ElseIf Not _inExpressionLambda Then
-                    Return Me.RewriteStringConcatenationOneExpr(factory, loweredRight)
+                    Return RewriteStringConcatenationOneExpr(factory, loweredRight)
                 End If
             ElseIf Not _inExpressionLambda AndAlso IsNullOrEmptyStringConstant(loweredRight) Then
-                Return Me.RewriteStringConcatenationOneExpr(factory, loweredLeft)
+                Return RewriteStringConcatenationOneExpr(factory, loweredLeft)
             End If
 
             Return Nothing

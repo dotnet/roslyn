@@ -1,7 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -34,9 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub New(methodComparer As MethodSignatureComparer,
                         propertyComparer As PropertySignatureComparer,
                         eventComparer As EventSignatureComparer)
-            Me._methodComparer = methodComparer
-            Me._propertyComparer = propertyComparer
-            Me._eventComparer = eventComparer
+            _methodComparer = methodComparer
+            _propertyComparer = propertyComparer
+            _eventComparer = eventComparer
         End Sub
 
         Public Overloads Function Equals(sym1 As Symbol, sym2 As Symbol) As Boolean _

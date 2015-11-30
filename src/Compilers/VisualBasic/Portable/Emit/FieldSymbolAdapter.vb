@@ -30,9 +30,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function ResolvedFieldImpl(moduleBeingBuilt As PEModuleBuilder) As IFieldDefinition
-            Debug.Assert(Me.IsDefinitionOrDistinct())
+            Debug.Assert(IsDefinitionOrDistinct())
 
-            If Me.IsDefinition AndAlso Me.ContainingModule = moduleBeingBuilt.SourceModule Then
+            If IsDefinition AndAlso ContainingModule = moduleBeingBuilt.SourceModule Then
                 Return Me
             End If
 
@@ -41,9 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IFieldReferenceAsSpecializedFieldReference As ISpecializedFieldReference Implements IFieldReference.AsSpecializedFieldReference
             Get
-                Debug.Assert(Me.IsDefinitionOrDistinct())
+                Debug.Assert(IsDefinitionOrDistinct())
 
-                If Not Me.IsDefinition Then
+                If Not IsDefinition Then
                     Return Me
                 End If
 
@@ -53,22 +53,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As ITypeReference Implements ITypeMemberReference.GetContainingType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Debug.Assert(Me.IsDefinitionOrDistinct())
+            Debug.Assert(IsDefinitionOrDistinct())
 
-            If Not Me.IsDefinition Then
-                Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            If Not IsDefinition Then
+                Return moduleBeingBuilt.Translate(ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             End If
 
-            Return Me.ContainingType
+            Return ContainingType
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As MetadataVisitor) ' Implements IReference.Dispatch
-            Debug.Assert(Me.IsDefinitionOrDistinct())
+            Debug.Assert(IsDefinitionOrDistinct())
 
-            If Not Me.IsDefinition Then
+            If Not IsDefinition Then
                 visitor.Visit(DirectCast(Me, ISpecializedFieldReference))
             Else
-                If Me.ContainingModule = (DirectCast(visitor.Context.Module, PEModuleBuilder)).SourceModule Then
+                If ContainingModule = (DirectCast(visitor.Context.Module, PEModuleBuilder)).SourceModule Then
                     visitor.Visit(DirectCast(Me, IFieldDefinition))
                 Else
                     visitor.Visit(DirectCast(Me, IFieldReference))
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property INamedEntityName As String Implements INamedEntity.Name
             Get
-                Return Me.MetadataName
+                Return MetadataName
             End Get
         End Property
 
@@ -102,8 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetMetadataConstantValue(context As EmitContext) As IMetadataConstant
             ' do not return a compile time value for const fields of types DateTime or Decimal because they
             ' are only const from a VB point of view
-            If Me.IsMetadataConstant Then
-                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ConstantValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            If IsMetadataConstant Then
+                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Type, ConstantValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             End If
 
             Return Nothing
@@ -121,18 +121,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' const fields of types DateTime or Decimal are not compile time constant, because they are only const 
                 ' from a VB point of view
-                If Me.IsMetadataConstant Then
-                    Return True
-                End If
-
-                Return False
+                Return IsMetadataConstant
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionIsNotSerialized As Boolean Implements IFieldDefinition.IsNotSerialized
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsNotSerialized
+                Return IsNotSerialized
             End Get
         End Property
 
@@ -141,57 +137,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 CheckDefinitionInvariant()
 
                 ' a const field of type DateTime or Decimal is ReadOnly in IL.
-                Return Me.IsReadOnly OrElse
-                        Me.IsConstButNotMetadataConstant
+                Return IsReadOnly OrElse IsConstButNotMetadataConstant
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionIsRuntimeSpecial As Boolean Implements IFieldDefinition.IsRuntimeSpecial
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasRuntimeSpecialName
+                Return HasRuntimeSpecialName
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionIsSpecialName As Boolean Implements IFieldDefinition.IsSpecialName
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasSpecialName
+                Return HasSpecialName
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionIsStatic As Boolean Implements IFieldDefinition.IsStatic
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsShared
+                Return IsShared
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionIsMarshalledExplicitly As Boolean Implements IFieldDefinition.IsMarshalledExplicitly
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsMarshalledExplicitly
+                Return IsMarshalledExplicitly
             End Get
         End Property
 
         Friend Overridable ReadOnly Property IsMarshalledExplicitly As Boolean
             Get
                 CheckDefinitionInvariant()
-                Return Me.MarshallingInformation IsNot Nothing
+                Return MarshallingInformation IsNot Nothing
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionMarshallingInformation As IMarshallingInformation Implements IFieldDefinition.MarshallingInformation
             Get
                 CheckDefinitionInvariant()
-                Return Me.MarshallingInformation
+                Return MarshallingInformation
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionMarshallingDescriptor As ImmutableArray(Of Byte) Implements IFieldDefinition.MarshallingDescriptor
             Get
                 CheckDefinitionInvariant()
-                Return Me.MarshallingDescriptor
+                Return MarshallingDescriptor
             End Get
         End Property
 
@@ -205,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IFieldDefinitionOffset As UInteger Implements IFieldDefinition.Offset
             Get
                 CheckDefinitionInvariant()
-                Dim offset = Me.TypeLayoutOffset
+                Dim offset = TypeLayoutOffset
                 Return CUInt(If(offset, 0))
             End Get
         End Property
@@ -213,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition
             Get
                 CheckDefinitionInvariant()
-                Return Me.ContainingType
+                Return ContainingType
             End Get
         End Property
 
@@ -226,8 +221,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ISpecializedFieldReferenceUnspecializedVersion As IFieldReference Implements ISpecializedFieldReference.UnspecializedVersion
             Get
-                Debug.Assert(Not Me.IsDefinition)
-                Return Me.OriginalDefinition
+                Debug.Assert(Not IsDefinition)
+                Return OriginalDefinition
             End Get
         End Property
     End Class

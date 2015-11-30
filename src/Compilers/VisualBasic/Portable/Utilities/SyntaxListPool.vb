@@ -1,13 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class SyntaxListPool
@@ -25,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function AllocateSeparated(Of TNode As VisualBasicSyntaxNode)() As SeparatedSyntaxListBuilder(Of TNode)
-            Return New SeparatedSyntaxListBuilder(Of TNode)(Me.Allocate)
+            Return New SeparatedSyntaxListBuilder(Of TNode)(Allocate)
         End Function
 
         Friend Sub Free(item As SyntaxListBuilder)

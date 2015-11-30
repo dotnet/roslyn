@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 13452 - 13452
         ' ExpressionList** .Parser::ParseXmlMisc( [ _Inout_ ParseTree::ExpressionList** Prev ] [ bool IsProlog ] [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlMisc(IsProlog As Boolean, whitespaceChecker As XmlWhitespaceChecker, ByRef outerNode As VisualBasicSyntaxNode) As SyntaxList(Of XmlNodeSyntax)
-            Dim Content = Me._pool.Allocate(Of XmlNodeSyntax)()
+            Dim Content = _pool.Allocate(Of XmlNodeSyntax)()
 
             While True
                 Dim result As XmlNodeSyntax = Nothing
@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End While
 
             Dim ContentList = Content.ToList
-            Me._pool.Free(Content)
+            _pool.Free(Content)
 
             Return ContentList
         End Function
@@ -922,7 +922,7 @@ LessThanSlashTokenCase:
 
         Private Function ParseXmlAttributes(requireLeadingWhitespace As Boolean, xmlElementName As XmlNodeSyntax) As SyntaxList(Of XmlNodeSyntax)
 
-            Dim Attributes = Me._pool.Allocate(Of XmlNodeSyntax)()
+            Dim Attributes = _pool.Allocate(Of XmlNodeSyntax)()
 
             Do
                 Select Case CurrentToken.Kind
@@ -945,7 +945,7 @@ LessThanSlashTokenCase:
             Loop
 
             Dim result = Attributes.ToList
-            Me._pool.Free(Attributes)
+            _pool.Free(Attributes)
             Return result
         End Function
 
@@ -984,7 +984,7 @@ LessThanSlashTokenCase:
                         value = ParseXmlEmbedded(ScannerState.Element)
                         Result = SyntaxFactory.XmlAttribute(Name, equals, value)
 
-                    ElseIf Not Me._scanner.IsScanningXmlDoc OrElse
+                    ElseIf Not _scanner.IsScanningXmlDoc OrElse
                                 Not TryParseXmlCrefAttributeValue(Name, equals, Result) AndAlso
                                 Not TryParseXmlNameAttributeValue(Name, equals, Result, xmlElementName) Then
 
@@ -1040,7 +1040,7 @@ LessThanSlashTokenCase:
         End Function
 
         Private Function TryParseXmlCrefAttributeValue(name As XmlNodeSyntax, equals As PunctuationSyntax, <Out> ByRef crefAttribute As XmlNodeSyntax) As Boolean
-            Debug.Assert(Me._scanner.IsScanningXmlDoc)
+            Debug.Assert(_scanner.IsScanningXmlDoc)
 
             If name.Kind <> SyntaxKind.XmlName Then
                 Return False
@@ -1071,9 +1071,9 @@ LessThanSlashTokenCase:
 
             ' If we have any problems with parsing the name we want to restore the scanner and 
             ' fall back to a regular attribute scenario
-            Dim restorePoint As Scanner.RestorePoint = Me._scanner.CreateRestorePoint()
+            Dim restorePoint As Scanner.RestorePoint = _scanner.CreateRestorePoint()
 
-            Dim nextToken = Me.PeekNextToken(state)
+            Dim nextToken = PeekNextToken(state)
             If Not (nextToken.Kind = SyntaxKind.XmlTextLiteralToken OrElse nextToken.Kind = SyntaxKind.XmlEntityLiteralToken) Then
                 GoTo lFailed
             End If
@@ -1095,7 +1095,7 @@ LessThanSlashTokenCase:
 
             ' If can be either a VB intrinsic type or a proper optionally qualified name
             ' See also: XmlDocFile.cpp, XMLDocNode::PerformActualBinding
-            If SyntaxFacts.IsPredefinedTypeKeyword(Me.CurrentToken.Kind) Then
+            If SyntaxFacts.IsPredefinedTypeKeyword(CurrentToken.Kind) Then
                 Dim type As PredefinedTypeSyntax = SyntaxFactory.PredefinedType(DirectCast(CurrentToken, KeywordSyntax))
 
                 ' We need to move to the next token as ParseName(...) does 
@@ -1104,7 +1104,7 @@ LessThanSlashTokenCase:
                 crefReference = SyntaxFactory.CrefReference(type, Nothing, Nothing)
 
             Else
-                crefReference = Me.TryParseCrefReference()
+                crefReference = TryParseCrefReference()
             End If
 
             If crefReference Is Nothing Then
@@ -1114,10 +1114,10 @@ LessThanSlashTokenCase:
             ' We need to reset the current token and possibly peeked tokens because those 
             ' were created using default scanner state, but we want to see from this 
             ' point tokens received using custom scanner state saved in 'state'
-            Me.ResetCurrentToken(state)
+            ResetCurrentToken(state)
 
             Do
-                Select Case Me.CurrentToken.Kind
+                Select Case CurrentToken.Kind
                     Case SyntaxKind.SingleQuoteToken,
                          SyntaxKind.DoubleQuoteToken
 
@@ -1153,7 +1153,7 @@ LessThanSlashTokenCase:
 
 lFailed:
             restorePoint.Restore()
-            Me.ResetCurrentToken(ScannerState.Element)
+            ResetCurrentToken(ScannerState.Element)
             Return False
         End Function
 
@@ -1203,7 +1203,7 @@ lFailed:
             Dim firstType As Boolean = True
 
             Do
-                Dim currToken As SyntaxToken = Me.CurrentToken
+                Dim currToken As SyntaxToken = CurrentToken
 
                 If currToken.Kind <> SyntaxKind.CloseParenToken AndAlso currToken.Kind <> SyntaxKind.CommaToken AndAlso Not firstType Then
                     ' In case we expect ')' or ',' but don't find one, we consider this an end of 
@@ -1294,8 +1294,8 @@ lFailed:
                 ' while [cref="system.object.tostring"] is resolved into "M:System.Object.ToString", 
                 ' [cref="object.tostring"] produces an error. We fix this in Roslyn
                 result = SyntaxFactory.IdentifierName(
-                            Me._scanner.MakeIdentifier(
-                                DirectCast(Me.CurrentToken, KeywordSyntax)))
+                            _scanner.MakeIdentifier(
+                                DirectCast(CurrentToken, KeywordSyntax)))
                 GetNextToken()
 
             ElseIf CurrentToken.Kind = SyntaxKind.OperatorKeyword Then
@@ -1358,7 +1358,7 @@ lFailed:
         End Function
 
         Private Function TryParseXmlNameAttributeValue(name As XmlNodeSyntax, equals As PunctuationSyntax, <Out> ByRef nameAttribute As XmlNodeSyntax, xmlElementName As XmlNodeSyntax) As Boolean
-            Debug.Assert(Me._scanner.IsScanningXmlDoc)
+            Debug.Assert(_scanner.IsScanningXmlDoc)
 
             If name.Kind <> SyntaxKind.XmlName Then
                 Return False
@@ -1394,7 +1394,7 @@ lFailed:
 
             ' If we have any problems with parsing the name we want to restore the scanner and 
             ' fall back to a regular attribute scenario
-            Dim restorePoint As Scanner.RestorePoint = Me._scanner.CreateRestorePoint()
+            Dim restorePoint As Scanner.RestorePoint = _scanner.CreateRestorePoint()
 
             ' Eat the quotation mark, note that default context is being used here...
             GetNextToken()
@@ -1402,7 +1402,7 @@ lFailed:
             Dim identToken As SyntaxToken = CurrentToken
             If identToken.Kind <> SyntaxKind.IdentifierToken Then
                 If identToken.IsKeyword Then
-                    identToken = Me._scanner.MakeIdentifier(DirectCast(Me.CurrentToken, KeywordSyntax))
+                    identToken = _scanner.MakeIdentifier(DirectCast(CurrentToken, KeywordSyntax))
                 Else
                     GoTo lFailed
                 End If
@@ -1419,7 +1419,7 @@ lFailed:
             ' Move to the next token which is supposed to be a closing quote
             GetNextToken(state)
 
-            Dim closingToken As SyntaxToken = Me.CurrentToken
+            Dim closingToken As SyntaxToken = CurrentToken
             If closingToken.Kind = SyntaxKind.SingleQuoteToken OrElse closingToken.Kind = SyntaxKind.DoubleQuoteToken Then
                 Dim endQuote = DirectCast(CurrentToken, PunctuationSyntax)
                 GetNextToken(ScannerState.Element)
@@ -1433,7 +1433,7 @@ lFailed:
 
 lFailed:
             restorePoint.Restore()
-            Me.ResetCurrentToken(ScannerState.Element)
+            ResetCurrentToken(ScannerState.Element)
             Return False
         End Function
 
@@ -1694,7 +1694,7 @@ lFailed:
         End Function
 
         Friend Function ParseRestOfDocCommentContent(nodesSoFar As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxList(Of VisualBasicSyntaxNode)
-            Dim content = Me._pool.Allocate(Of XmlNodeSyntax)()
+            Dim content = _pool.Allocate(Of XmlNodeSyntax)()
 
             For Each node In nodesSoFar.Nodes
                 content.Add(DirectCast(node, XmlNodeSyntax))
@@ -1714,7 +1714,7 @@ lFailed:
             End If
 
             Dim result = content.ToList
-            Me._pool.Free(content)
+            _pool.Free(content)
 
             Return result
         End Function
@@ -1739,7 +1739,7 @@ lFailed:
                                  SyntaxKind.BadToken),
                              "ParseXmlContent called on wrong token.")
 
-            Dim Content = Me._pool.Allocate(Of XmlNodeSyntax)()
+            Dim Content = _pool.Allocate(Of XmlNodeSyntax)()
             Dim whitespaceChecker As New XmlWhitespaceChecker()
             Dim xml As XmlNodeSyntax
 
@@ -1814,7 +1814,7 @@ TryResync:
             Loop
 
             Dim result = Content.ToList
-            Me._pool.Free(Content)
+            _pool.Free(Content)
 
             Return result
         End Function
@@ -2013,7 +2013,7 @@ TryResync:
 
             Dim endXmlEmbedded As PunctuationSyntax = Nothing
             If Not TryEatNewLineAndGetToken(SyntaxKind.PercentGreaterThanToken, endXmlEmbedded, createIfMissing:=False, state:=enclosingState) Then
-                Dim skippedTokens = Me._pool.Allocate(Of SyntaxToken)()
+                Dim skippedTokens = _pool.Allocate(Of SyntaxToken)()
 
                 ResyncAt(skippedTokens, ScannerState.VB, {SyntaxKind.PercentGreaterThanToken,
                                         SyntaxKind.GreaterThanToken,
@@ -2032,7 +2032,7 @@ TryResync:
                 End If
 
                 Dim unexpectedSyntax = skippedTokens.ToList()
-                Me._pool.Free(skippedTokens)
+                _pool.Free(skippedTokens)
 
                 If unexpectedSyntax.Node IsNot Nothing Then
                     endXmlEmbedded = AddLeadingSyntax(endXmlEmbedded, unexpectedSyntax, ERRID.ERR_Syntax)

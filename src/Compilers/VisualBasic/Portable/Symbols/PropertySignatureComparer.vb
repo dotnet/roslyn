@@ -1,11 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -84,11 +79,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         considerReadWriteModifiers As Boolean,
                         considerOptionalParameters As Boolean,
                         considerCustomModifiers As Boolean)
-            Me._considerName = considerName
-            Me._considerType = considerType
-            Me._considerReadWriteModifiers = considerReadWriteModifiers
-            Me._considerOptionalParameters = considerOptionalParameters
-            Me._considerCustomModifiers = considerCustomModifiers
+            _considerName = considerName
+            _considerType = considerType
+            _considerReadWriteModifiers = considerReadWriteModifiers
+            _considerOptionalParameters = considerOptionalParameters
+            _considerCustomModifiers = considerCustomModifiers
         End Sub
 
 #Region "IEqualityComparer(Of PropertySymbol) Members"

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeContainingType) Then
                 Dim containingType = TryCast(symbol.ContainingSymbol, INamedTypeSymbol)
                 If containingType IsNot Nothing Then
-                    containingType.Accept(Me.NotFirstVisitor())
+                    containingType.Accept(NotFirstVisitor())
                     AddOperator(SyntaxKind.DotToken)
                     visitedParents = True
                 End If
@@ -27,19 +27,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name, visitedParents))
 
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) AndAlso
-               Me.isFirstSymbolVisited AndAlso
+               isFirstSymbolVisited AndAlso
                Not IsEnumMember(symbol) Then
 
                 AddSpace()
                 AddKeyword(SyntaxKind.AsKeyword)
                 AddSpace()
 
-                symbol.Type.Accept(Me.NotFirstVisitor())
+                symbol.Type.Accept(NotFirstVisitor())
 
                 AddCustomModifiersIfRequired(symbol.CustomModifiers)
             End If
 
-            If Me.isFirstSymbolVisited AndAlso
+            If isFirstSymbolVisited AndAlso
                 format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeConstantValue) AndAlso
                 symbol.IsConst AndAlso
                 symbol.HasConstantValue Then
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim includedContainingType = False
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeContainingType) AndAlso IncludeNamedType(symbol.ContainingType) Then
-                symbol.ContainingType.Accept(Me.NotFirstVisitor)
+                symbol.ContainingType.Accept(NotFirstVisitor)
                 AddOperator(SyntaxKind.DotToken)
                 includedContainingType = True
             End If
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddSpace()
                 AddKeyword(SyntaxKind.AsKeyword)
                 AddSpace()
-                symbol.Type.Accept(Me.NotFirstVisitor)
+                symbol.Type.Accept(NotFirstVisitor)
 
                 AddCustomModifiersIfRequired(symbol.TypeCustomModifiers)
             End If
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim visitedParents As Boolean = False
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeContainingType) AndAlso IncludeNamedType(symbol.ContainingType) Then
-                symbol.ContainingType.Accept(Me.NotFirstVisitor)
+                symbol.ContainingType.Accept(NotFirstVisitor)
                 AddOperator(SyntaxKind.DotToken)
                 visitedParents = True
             End If
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddSpace()
                     AddKeyword(SyntaxKind.AsKeyword)
                     AddSpace()
-                    symbol.Type.Accept(Me.NotFirstVisitor)
+                    symbol.Type.Accept(NotFirstVisitor)
                 End If
             End If
         End Sub
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If containingType IsNot Nothing Then
-                    containingType.Accept(Me.NotFirstVisitor())
+                    containingType.Accept(NotFirstVisitor())
                     AddOperator(SyntaxKind.DotToken)
                     visitedParents = True
                 End If
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             AddSpace()
                             AddKeyword(SyntaxKind.AsKeyword)
                             AddSpace()
-                            method.ReturnType.Accept(Me.NotFirstVisitor())
+                            method.ReturnType.Accept(NotFirstVisitor())
                         End If
                 End Select
 
@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddSpace()
                 End If
 
-                symbol.Type.Accept(Me.NotFirstVisitor())
+                symbol.Type.Accept(NotFirstVisitor())
 
                 If vbParameter IsNot Nothing Then
                     If vbParameter.IsByRef AndAlso IsExplicitByRefParameter(symbol) AndAlso vbParameter.CountOfCustomModifiersPrecedingByRef > 0 Then
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddCustomModifiersIfRequired(customModifiers As ImmutableArray(Of CustomModifier), Optional leadingSpace As Boolean = True, Optional trailingSpace As Boolean = False)
-            If Me.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers) AndAlso Not customModifiers.IsEmpty Then
+            If format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers) AndAlso Not customModifiers.IsEmpty Then
                 Const IL_KEYWORD_MODOPT = "modopt"
                 Const IL_KEYWORD_MODREQ = "modreq"
                 Dim first As Boolean = True
@@ -529,9 +529,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     first = False
 
-                    Me.builder.Add(CreatePart(InternalSymbolDisplayPartKind.Other, Nothing, If(customModifier.IsOptional, IL_KEYWORD_MODOPT, IL_KEYWORD_MODREQ), True))
+                    builder.Add(CreatePart(InternalSymbolDisplayPartKind.Other, Nothing, If(customModifier.IsOptional, IL_KEYWORD_MODOPT, IL_KEYWORD_MODREQ), True))
                     AddPunctuation(SyntaxKind.OpenParenToken)
-                    customModifier.Modifier.Accept(Me.NotFirstVisitor)
+                    customModifier.Modifier.Accept(NotFirstVisitor)
                     AddPunctuation(SyntaxKind.CloseParenToken)
                 Next
 
@@ -616,7 +616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 first = False
-                param.Accept(Me.NotFirstVisitor())
+                param.Accept(NotFirstVisitor())
             Next
         End Sub
 

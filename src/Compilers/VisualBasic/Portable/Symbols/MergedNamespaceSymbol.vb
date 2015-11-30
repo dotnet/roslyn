@@ -1,13 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -178,10 +173,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Constructor. Use static Create method to create instances.
         Private Sub New(containingNamespace As MergedNamespaceSymbol, namespacesToMerge As ImmutableArray(Of NamespaceSymbol))
             Debug.Assert(namespacesToMerge.Distinct().Count() = namespacesToMerge.Length)
-            Me._namespacesToMerge = namespacesToMerge
-            Me._containingNamespace = containingNamespace
+            _namespacesToMerge = namespacesToMerge
+            _containingNamespace = containingNamespace
 
-            Me._cachedLookup = New CachingDictionary(Of String, Symbol)(AddressOf SlowGetChildrenOfName, AddressOf SlowGetChildNames, IdentifierComparison.Comparer)
+            _cachedLookup = New CachingDictionary(Of String, Symbol)(AddressOf SlowGetChildrenOfName, AddressOf SlowGetChildNames, IdentifierComparison.Comparer)
         End Sub
 
         Friend Function GetConstituentForCompilation(compilation As VisualBasicCompilation) As NamespaceSymbol
@@ -276,9 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     moduleMembers.AddRange(nsSym.GetModuleMembers())
                 Next
 
-                ImmutableInterlocked.InterlockedCompareExchange(_lazyModuleMembers,
-                                                    moduleMembers.ToImmutableAndFree,
-                                                    Nothing)
+                ImmutableInterlocked.InterlockedCompareExchange(_lazyModuleMembers, moduleMembers.ToImmutableAndFree, Nothing)
             End If
 
             Return _lazyModuleMembers
@@ -320,11 +313,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
             Get
-                If Me.Extent.Kind = NamespaceKind.Module Then
-                    Return Me.Extent.Module.ContainingAssembly
+                If Extent.Kind = NamespaceKind.Module Then
+                    Return Extent.Module.ContainingAssembly
 
-                ElseIf Me.Extent.Kind = NamespaceKind.Assembly Then
-                    Return Me.Extent.Assembly
+                ElseIf Extent.Kind = NamespaceKind.Assembly Then
+                    Return Extent.Assembly
 
                 Else
                     Return Nothing
@@ -403,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Debug.Assert(namespacesToMerge.Length > 0)
                 Debug.Assert(containingNamespace Is Nothing OrElse containingNamespace._assembly Is assembly)
-                Me._assembly = assembly
+                _assembly = assembly
             End Sub
 
             Friend Overrides ReadOnly Property Extent As NamespaceExtent
@@ -459,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(namespacesToMerge.Length > 0)
                 Debug.Assert(containingNamespace Is Nothing OrElse containingNamespace._compilation Is compilation)
 
-                Me._compilation = compilation
+                _compilation = compilation
             End Sub
 
             Friend Overrides ReadOnly Property Extent As NamespaceExtent
@@ -486,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _containsAccessibleTypes = ThreeState.True
                 End If
 
-                If Me.RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Public Then
+                If RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Public Then
                     Return True
                 End If
 
@@ -503,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     _containsAccessibleTypes = ThreeState.True
 
                     ' Bubble up the value.
-                    Dim parent = TryCast(Me.ContainingSymbol, CompilationMergedNamespaceSymbol)
+                    Dim parent = TryCast(ContainingSymbol, CompilationMergedNamespaceSymbol)
 
                     While parent IsNot Nothing AndAlso
                           parent._containsAccessibleTypes = ThreeState.Unknown
@@ -535,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     _isDeclaredInSourceModule = ThreeState.True
 
                     ' Bubble up the value.
-                    Dim parent = TryCast(Me.ContainingSymbol, CompilationMergedNamespaceSymbol)
+                    Dim parent = TryCast(ContainingSymbol, CompilationMergedNamespaceSymbol)
 
                     While parent IsNot Nothing AndAlso
                           parent._isDeclaredInSourceModule = ThreeState.Unknown
