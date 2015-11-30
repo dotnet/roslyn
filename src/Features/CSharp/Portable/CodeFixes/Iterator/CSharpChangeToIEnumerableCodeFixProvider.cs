@@ -72,19 +72,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             var newReturnType = ienumerableGenericSymbol.GenerateTypeSyntax();
+            Document newDocument = null;
             var newMethodDeclarationSyntax = (node as MethodDeclarationSyntax)?.WithReturnType(newReturnType);
             if (newMethodDeclarationSyntax != null)
             {
-                root = root.ReplaceNode(node, newMethodDeclarationSyntax);
+                newDocument = document.WithSyntaxRoot(root.ReplaceNode(node, newMethodDeclarationSyntax));
+            }
+
+            var newOperator = (node as OperatorDeclarationSyntax)?.WithReturnType(newReturnType);
+            if (newOperator != null)
+            {
+                newDocument = document.WithSyntaxRoot(root.ReplaceNode(node, newOperator));
             }
 
             var oldAccessor = (node?.Parent?.Parent as PropertyDeclarationSyntax);
             if (oldAccessor != null)
             {
-                root = root.ReplaceNode(oldAccessor, oldAccessor.WithType(newReturnType));
+                newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldAccessor, oldAccessor.WithType(newReturnType)));
             }
 
-            var newDocument = document.WithSyntaxRoot(root);
+            var oldIndexer = (node?.Parent?.Parent as IndexerDeclarationSyntax);
+            if (oldIndexer != null)
+            {
+                newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldIndexer, oldIndexer.WithType(newReturnType)));
+            }
+
+            if (newDocument == null)
+            {
+                return null;
+            }
+
             return new MyCodeAction(
                 string.Format(CSharpFeaturesResources.ChangeReturnType,
                     type.ToMinimalDisplayString(model, node.SpanStart),
