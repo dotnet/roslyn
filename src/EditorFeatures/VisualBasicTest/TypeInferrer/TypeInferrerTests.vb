@@ -736,5 +736,16 @@ End Module"
 End Class"
             Await TestAsync(text, "System.Object", testNode:=False, testPosition:=True)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function AfterDot() As Task
+            Dim text = "Module Program
+    Sub Main(args As String())
+        Dim x As Integer
+        Dim y As String = x.[||]
+    End Sub
+End Module"
+            Await TestAsync(text, "System.String", testNode:=False, testPosition:=True)
+        End Function
     End Class
 End Namespace

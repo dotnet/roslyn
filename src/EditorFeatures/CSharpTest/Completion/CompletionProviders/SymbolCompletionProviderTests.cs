@@ -8465,5 +8465,20 @@ class Class2
             await VerifyNoItemsExistAsync("#!$$", sourceCodeKind: SourceCodeKind.Script);
             await VerifyNoItemsExistAsync("#! S$$", sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: true);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CompoundNameTargetTypePreselection()
+        {
+            var markup = @"
+class Class1
+{
+    void foo()
+    {
+        int x = 3;
+        string y = x.$$
+    }
+}";
+            VerifyItemExists(markup, "ToString", matchPriority: (int)MatchPriority.Prefer);
+        }
     }
 }

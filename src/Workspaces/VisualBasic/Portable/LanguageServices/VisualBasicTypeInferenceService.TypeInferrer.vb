@@ -145,6 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(token),
+                    Function(memberAccess As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccess),
                     Function(nameColonEquals As NameColonEqualsSyntax) InferTypeInArgumentList(TryCast(nameColonEquals.Parent.Parent, ArgumentListSyntax), DirectCast(nameColonEquals.Parent, ArgumentSyntax)),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
                     Function(objectCreation As ObjectCreationExpressionSyntax) InferTypes(objectCreation),
@@ -808,7 +809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return InferTypes(awaitExpression.Expression)
                 End If
 
-                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                Return InferTypes(expression)
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)

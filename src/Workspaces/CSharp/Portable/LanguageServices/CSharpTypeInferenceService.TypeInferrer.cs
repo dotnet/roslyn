@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (IfStatementSyntax ifStatement) => InferTypeInIfStatement(ifStatement, token),
                     (InitializerExpressionSyntax initializerExpression) => InferTypeInInitializerExpression(initializerExpression, previousToken: token),
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement, token),
+                    (MemberAccessExpressionSyntax memberAccessExpression) => InferTypeInMemberAccessExpression(memberAccessExpression),
                     (NameColonSyntax nameColon) => InferTypeInNameColon(nameColon, token),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals, token),
                     (ObjectCreationExpressionSyntax objectCreation) => InferTypeInObjectCreationExpression(objectCreation, token),
@@ -1416,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return InferTypes(awaitExpression.Expression);
                 }
 
-                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                return InferTypes(expression);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInNameEquals(NameEqualsSyntax nameEquals, SyntaxToken? previousToken = null)
