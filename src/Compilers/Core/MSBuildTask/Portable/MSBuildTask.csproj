@@ -21,6 +21,7 @@
     <TargetFrameworkProfile />
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <DefineConstants>$(DefineConstants);PORTABLE50</DefineConstants>
+    <!-- Remove when the Microsoft.Build.Framework package is updated. See issue #6986. -->
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
