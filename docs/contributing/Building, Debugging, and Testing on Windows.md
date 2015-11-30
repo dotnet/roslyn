@@ -69,7 +69,7 @@ deployed.
   is core support only and doesn't include any language specific logic.
 - **VisualStudioInteractiveSetup**: this deploys the Roslyn (i.e. C# and VB)
   specific parts of the interactive window. If you're working on the
-  interactive experience, this the project you want to use as your startup
+  interactive experience, this is the project you want to use as your startup
   project.
 
 The experimental instance used by Roslyn is an entirely separate instance of
