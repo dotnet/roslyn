@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private SyntaxNode WithoutConstraints(SyntaxNode declaration)
         {
             if (declaration.IsKind(SyntaxKind.MethodDeclaration))
-            { 
+            {
                 var method = (MethodDeclarationSyntax)declaration;
                 if (method.ConstraintClauses.Count > 0)
                 {

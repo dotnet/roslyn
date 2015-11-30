@@ -366,7 +366,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     switch (value)
                     {
-
                         case WellKnownDiagnosticTags.Build:
                             // any error from build is highest priority
                             return ErrorRank.Lexical;

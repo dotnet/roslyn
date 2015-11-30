@@ -69,7 +69,7 @@ class App : Application
 }");
         }
 
-        [Fact,Trait(Traits.Feature,Traits.Features.CodeActionsAddNew)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddNew)]
         public async Task TestAddNewToMember()
         {
             await TestAsync(

@@ -216,10 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
 
         internal override IMethodSymbol GetDelegatingConstructor(
             State state,
-            SemanticDocument document, 
-            int argumentCount, 
-            INamedTypeSymbol namedType, 
-            ISet<IMethodSymbol> candidates, 
+            SemanticDocument document,
+            int argumentCount,
+            INamedTypeSymbol namedType,
+            ISet<IMethodSymbol> candidates,
             CancellationToken cancellationToken)
         {
             var oldToken = state.Token;

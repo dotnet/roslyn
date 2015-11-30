@@ -219,12 +219,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     submissions.Add(
                         new TestHostProject(
-                            languageServices, 
-                            compilationOptions: null, 
-                            parseOptions: null, 
-                            assemblyName: submissionName, 
-                            references: null, 
-                            documents: documents, 
+                            languageServices,
+                            compilationOptions: null,
+                            parseOptions: null,
+                            assemblyName: submissionName,
+                            references: null,
+                            documents: documents,
                             isSubmission: true));
                     continue;
                 }
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     parseOptions,
                     submissionName,
                     references,
-                    documents, 
+                    documents,
                     isSubmission: true);
 
                 submissions.Add(project);

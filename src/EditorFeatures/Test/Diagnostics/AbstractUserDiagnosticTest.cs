@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             bool compareTokens, bool isLine)
         {
-            using (var workspace = isLine 
-                ? await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions) 
+            using (var workspace = isLine
+                ? await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions)
                 : await TestWorkspaceFactory.CreateWorkspaceAsync(initialMarkup))
             {
                 var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);

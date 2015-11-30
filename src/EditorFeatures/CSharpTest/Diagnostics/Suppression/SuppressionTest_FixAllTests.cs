@@ -532,7 +532,7 @@ class Class2
                     await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
-                [Fact(Skip ="TODO: File a GitHubIssue for test framework unable to handle multiple projects in solution with same file name.")]
+                [Fact(Skip = "TODO: File a GitHubIssue for test framework unable to handle multiple projects in solution with same file name.")]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInSolution()

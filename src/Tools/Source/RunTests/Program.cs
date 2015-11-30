@@ -15,7 +15,6 @@ namespace RunTests
     {
         internal static int Main(string[] args)
         {
-
             var options = Options.Parse(args);
             if (options == null)
             {

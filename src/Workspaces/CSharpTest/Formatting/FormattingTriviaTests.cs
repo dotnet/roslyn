@@ -1726,7 +1726,6 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatWithTabs()
         {
-
             var code = @"#region Assembly mscorlib
 // C:\
 #endregion
