@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
-Imports System.ComponentModel
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text

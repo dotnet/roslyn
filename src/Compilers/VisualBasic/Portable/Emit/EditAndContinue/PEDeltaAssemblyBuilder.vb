@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit

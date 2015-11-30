@@ -5,10 +5,6 @@
 '-----------------------------------------------------------------------------
 Option Compare Binary
 Option Strict On
-
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax

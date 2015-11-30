@@ -12,7 +12,6 @@ Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Microsoft.CodeAnalysis.Collections
 

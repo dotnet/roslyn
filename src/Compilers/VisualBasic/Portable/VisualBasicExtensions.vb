@@ -2,8 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
-Imports System.ComponentModel
-Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading

@@ -1,7 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 '-----------------------------------------------------------------------------
 ' Contains the definition of the DeclarationContext
 '-----------------------------------------------------------------------------
@@ -346,7 +344,7 @@ HandleMethodBase:
                     node = Parser.ReportSyntaxError(node, ERRID.ERR_ExecutableAsDeclaration)
                     Return TryUseStatement(node, newContext)
 
-                ' by default statements are not handled in declaration context
+                    ' by default statements are not handled in declaration context
                 Case Else
                     newContext = Me
                     Return LinkResult.NotUsed

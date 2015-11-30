@@ -2,14 +2,6 @@
 
 ' #Const STATS = True
 
-Imports Roslyn.Utilities
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Text
-Imports System.Threading
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     ''' <summary>

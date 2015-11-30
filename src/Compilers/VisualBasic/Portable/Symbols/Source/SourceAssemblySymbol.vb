@@ -3,8 +3,6 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection
-Imports System.Reflection.Metadata
-Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols

@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
-Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit

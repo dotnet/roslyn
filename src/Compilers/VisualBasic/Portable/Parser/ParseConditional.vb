@@ -5,7 +5,6 @@
 ' //
 
 ' // Parse a line containing a conditional compilation directive.
-Imports System.Globalization
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax

@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports System.IO
 Imports System.Text
-Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic

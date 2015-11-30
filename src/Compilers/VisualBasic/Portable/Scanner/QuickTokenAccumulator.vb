@@ -7,12 +7,6 @@
 Option Compare Binary
 Option Strict On
 
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     '' The QuickTokenAccumulator is a small mini-tokenizer that may fail. It consumes characters and
     '' eventually either decides that either it found a complete token (including the trivia on either

@@ -6,7 +6,6 @@ Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic

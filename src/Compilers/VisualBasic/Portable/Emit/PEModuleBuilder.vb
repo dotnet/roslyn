@@ -4,7 +4,6 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
