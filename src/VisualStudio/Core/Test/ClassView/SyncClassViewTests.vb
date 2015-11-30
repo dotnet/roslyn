@@ -30,16 +30,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -59,16 +52,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -88,16 +74,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -117,16 +96,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -149,16 +121,62 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function CSharp_TestClassInNestedNamespaces1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            namespace X.Y
+            {
+                class C
+                {  $$
+                    void M()
+                    {
+                    }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("CSharpTestAssembly"),
+                [Namespace]("X.Y"),
+                [Class]("C"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function CSharp_TestClassInNestedNamespaces2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            namespace X
+            {
+                namespace Y
+                {
+                    class C
+                    {  $$
+                        void M()
+                        {
+                        }
+                    }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("CSharpTestAssembly"),
+                [Namespace]("X.Y"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -181,18 +199,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -215,18 +225,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -249,18 +251,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -283,18 +277,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -317,18 +303,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("CSharpTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
 #End Region
@@ -351,16 +329,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -378,16 +349,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -405,16 +369,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -432,16 +389,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -461,16 +411,55 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function VisualBasic_TestClassInNestedNamespaces1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Namespace X.Y
+                Class C$$
+                    Sub M()
+                    End Sub
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("VBTestAssembly"),
+                [Namespace]("X.Y"),
+                [Class]("C"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function VisualBasic_TestClassInNestedNamespaces2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Namespace X
+                Namespace Y
+                    Class C$$
+                        Sub M()
+                        End Sub
+                    End Class
+                End Namespace
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("VBTestAssembly"),
+                [Namespace]("X.Y"),
+                [Class]("C"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -491,18 +480,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -522,18 +503,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -553,18 +526,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -584,18 +549,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
@@ -615,26 +572,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 </Workspace>
 
             Await TestAsync(workspace,
-                 canonicalNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 },
-                 presentationNodes:={
-                    Package("VBTestAssembly"),
-                    [Namespace]("N"),
-                    [Class]("C"),
-                    Member("M()")
-                 })
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("M()"))
         End Function
 
 #End Region
 
         Private Async Function TestAsync(
             workspaceDefinition As XElement,
-            Optional canonicalNodes As NodeVerifier() = Nothing,
-            Optional presentationNodes As NodeVerifier() = Nothing
+            ParamArray presentationNodes As NodeVerifier()
         ) As Task
 
             Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
@@ -644,7 +592,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Dim textView = hostDocument.GetTextView()
                 Dim subjectBuffer = hostDocument.GetTextBuffer()
 
-                Dim navigationTool = New MockNavigationTool(canonicalNodes, presentationNodes)
+                Dim navigationTool = New MockNavigationTool(canonicalNodes:=Nothing, presentationNodes:=presentationNodes)
                 Dim serviceProvider = New MockServiceProvider(navigationTool)
                 Dim commandHandler = New MockSyncClassViewCommandHandler(serviceProvider, workspace.GetService(Of IWaitIndicator))
 
