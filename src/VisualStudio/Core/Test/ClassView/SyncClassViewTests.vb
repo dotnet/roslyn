@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
 #Region "C# Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestClass1() As Task
             Dim workspace =
 <Workspace>
@@ -35,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestClass2() As Task
             Dim workspace =
 <Workspace>
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestClass3() As Task
             Dim workspace =
 <Workspace>
@@ -79,7 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestClass4() As Task
             Dim workspace =
 <Workspace>
@@ -101,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestClass5() As Task
             Dim workspace =
 <Workspace>
@@ -126,7 +126,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestClassInNestedNamespaces1() As Task
             Dim workspace =
 <Workspace>
@@ -151,7 +151,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestClassInNestedNamespaces2() As Task
             Dim workspace =
 <Workspace>
@@ -179,7 +179,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestMethod1() As Task
             Dim workspace =
 <Workspace>
@@ -205,7 +205,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestMethod2() As Task
             Dim workspace =
 <Workspace>
@@ -231,7 +231,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestMethod3() As Task
             Dim workspace =
 <Workspace>
@@ -257,7 +257,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestMethod4() As Task
             Dim workspace =
 <Workspace>
@@ -283,7 +283,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestMethod5() As Task
             Dim workspace =
 <Workspace>
@@ -309,7 +309,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestField1() As Task
             Dim workspace =
 <Workspace>
@@ -333,7 +333,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("i"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestField2() As Task
             Dim workspace =
 <Workspace>
@@ -357,7 +357,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("i"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestProperty1() As Task
             Dim workspace =
 <Workspace>
@@ -381,7 +381,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("P"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestProperty2() As Task
             Dim workspace =
 <Workspace>
@@ -405,7 +405,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("P"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestEvent1() As Task
             Dim workspace =
 <Workspace>
@@ -429,7 +429,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("E"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function CSharp_TestEvent2() As Task
             Dim workspace =
 <Workspace>
@@ -457,7 +457,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
 #Region "Visual Basic Tests"
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestClass1() As Task
             Dim workspace =
 <Workspace>
@@ -478,7 +478,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestClass2() As Task
             Dim workspace =
 <Workspace>
@@ -498,7 +498,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestClass3() As Task
             Dim workspace =
 <Workspace>
@@ -518,7 +518,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestClass4() As Task
             Dim workspace =
 <Workspace>
@@ -538,7 +538,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestClass5() As Task
             Dim workspace =
 <Workspace>
@@ -560,7 +560,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestClassInNestedNamespaces1() As Task
             Dim workspace =
 <Workspace>
@@ -582,7 +582,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestClassInNestedNamespaces2() As Task
             Dim workspace =
 <Workspace>
@@ -606,7 +606,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Class]("C"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestMethod1() As Task
             Dim workspace =
 <Workspace>
@@ -630,7 +630,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestMethod2() As Task
             Dim workspace =
 <Workspace>
@@ -653,7 +653,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestMethod3() As Task
             Dim workspace =
 <Workspace>
@@ -676,7 +676,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestMethod4() As Task
             Dim workspace =
 <Workspace>
@@ -699,7 +699,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestMethod5() As Task
             Dim workspace =
 <Workspace>
@@ -722,7 +722,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestField1() As Task
             Dim workspace =
 <Workspace>
@@ -744,7 +744,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("i As Integer"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestField2() As Task
             Dim workspace =
 <Workspace>
@@ -766,7 +766,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("i As Integer"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestProperty1() As Task
             Dim workspace =
 <Workspace>
@@ -788,7 +788,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("P As Integer"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestProperty2() As Task
             Dim workspace =
 <Workspace>
@@ -810,7 +810,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("P As Integer"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestEvent1() As Task
             Dim workspace =
 <Workspace>
@@ -832,7 +832,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("E()"))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ClassView)>
         Public Async Function VisualBasic_TestEvent2() As Task
             Dim workspace =
 <Workspace>
