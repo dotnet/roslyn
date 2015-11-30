@@ -143,6 +143,6 @@ class Program
         {
             const string text = @"$$";
             VerifyKeyword(SourceCodeKind.Script, text);
-        } 
+        }
     }
 }

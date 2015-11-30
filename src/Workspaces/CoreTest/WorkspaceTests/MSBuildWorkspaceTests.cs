@@ -1034,7 +1034,7 @@ class C1
             });
         }
 
-        private HostServices hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
+        private HostServices _hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
@@ -1045,7 +1045,7 @@ class C1
 
             AssertThrows<InvalidOperationException>(() =>
             {
-                var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+                var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
                 ws.SkipUnrecognizedProjects = false;
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
             },
@@ -1062,7 +1062,7 @@ class C1
             // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+            var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
             ws.SkipUnrecognizedProjects = true;
 
             var dx = new List<WorkspaceDiagnostic>();
@@ -1086,7 +1086,7 @@ class C1
 
             AssertThrows<InvalidOperationException>(() =>
             {
-                var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+                var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
                 var project = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             },
             e =>
@@ -2612,7 +2612,7 @@ class C1
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>1254</CodePage>") },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2626,8 +2626,8 @@ class C1
             // The smart quote (“) in class1.cs shows up as "â€œ" in codepage 1254. Do a sanity
             // check here to make sure this file hasn't been corrupted in a way that would
             // impact subsequent asserts.
-            Assert.Equal("//â€œ".Length, 5);
-            Assert.Equal("//â€œ".Length, text.Length);
+            Assert.Equal("//\u00E2\u20AC\u0153".Length, 5);
+            Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -2637,7 +2637,7 @@ class C1
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>-1</CodePage>") },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2656,7 +2656,7 @@ class C1
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", "<CodePage>Broken</CodePage>") },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2675,7 +2675,7 @@ class C1
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty) },
-                { "class1.cs", "//“" }
+                { "class1.cs", "//\u201C" }
             });
 
             CreateFiles(files);
@@ -2685,7 +2685,7 @@ class C1
 
             var text = project.Documents.First(d => d.Name == "class1.cs").GetTextAsync().Result;
             Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), text.Encoding);
-            Assert.Equal("//“", text.ToString());
+            Assert.Equal("//\u201C", text.ToString());
         }
 
         [WorkItem(981208)]

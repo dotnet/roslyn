@@ -37,7 +37,7 @@ namespace Roslyn.Test.Utilities
 
         public override string NormalizePath(string path, string baseFilePath) => path;
 
-        public override string ResolveReference(string path, string baseFilePath) => 
+        public override string ResolveReference(string path, string baseFilePath) =>
             _sources?.ContainsKey(path) == true ? path : null;
 
         public override Stream OpenRead(string resolvedPath)

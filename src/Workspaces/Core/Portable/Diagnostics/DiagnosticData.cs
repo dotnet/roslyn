@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var span = GetTextSpan(this.DataLocation, text);
             var newLocation = this.DataLocation.WithCalculatedSpan(span);
             return new DiagnosticData(this.Id, this.Category, this.Message, this.ENUMessageForBingSearch,
-                this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, 
+                this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel,
                 this.CustomTags, this.Properties, this.Workspace, this.ProjectId,
                 newLocation, this.AdditionalLocations, this.Title, this.Description, this.HelpLink, this.IsSuppressed);
         }

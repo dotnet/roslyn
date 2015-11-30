@@ -975,7 +975,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static StatementSyntax GetEmbeddedStatement(this SyntaxNode node)
         {
-
             return node.TypeSwitch(
                 (DoStatementSyntax n) => n.Statement,
                 (ElseClauseSyntax n) => n.Statement,

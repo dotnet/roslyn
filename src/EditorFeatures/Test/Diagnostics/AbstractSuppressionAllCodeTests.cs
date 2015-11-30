@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
-            
+
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        Async Function DirectivesAtEndOfFile() As Task
+        Public Async Function DirectivesAtEndOfFile() As Task
             Const code = "
 $${|span1:Class C
 End Class|}

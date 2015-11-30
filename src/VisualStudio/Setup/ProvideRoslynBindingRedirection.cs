@@ -44,6 +44,5 @@ namespace Roslyn.VisualStudio.Setup
         {
             _redirectionAttribute.Unregister(context);
         }
-
     }
 }
