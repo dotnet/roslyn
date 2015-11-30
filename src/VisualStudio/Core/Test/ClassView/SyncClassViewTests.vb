@@ -309,6 +309,150 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Member("M()"))
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function CSharp_TestField1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            namespace N
+            {
+                class C
+                {
+            $$        int i;
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("i"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function CSharp_TestField2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            namespace N
+            {
+                class C
+                {
+                    int $$i;
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("i"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function CSharp_TestProperty1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            namespace N
+            {
+                class C
+                {
+            $$        int P { get; }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("P"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function CSharp_TestProperty2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            namespace N
+            {
+                class C
+                {
+                    int $$P { get; }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("P"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function CSharp_TestEvent1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            namespace N
+            {
+                class C
+                {
+            $$        event System.EventHandler E;
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("E"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function CSharp_TestEvent2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            namespace N
+            {
+                class C
+                {
+                    event System.EventHandler $$E;
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("CSharpTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("E"))
+        End Function
+
 #End Region
 
 #Region "Visual Basic Tests"
@@ -576,6 +720,138 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 [Namespace]("N"),
                 [Class]("C"),
                 Member("M()"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function VisualBasic_TestField1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Namespace N
+                Class C
+            $$        Private i As Integer
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("i As Integer"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function VisualBasic_TestField2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Namespace N
+                Class C
+                    Private $$i As Integer
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("i As Integer"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function VisualBasic_TestProperty1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Namespace N
+                Class C
+            $$        ReadOnly Property P As Integer = 42
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("P As Integer"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function VisualBasic_TestProperty2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Namespace N
+                Class C
+                    ReadOnly Property $$P As Integer = 42
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("P As Integer"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function VisualBasic_TestEvent1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Namespace N
+                Class C
+            $$        Event E()
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("E()"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Async Function VisualBasic_TestEvent2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Namespace N
+                Class C
+                    Event $$E()
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace,
+                Package("VBTestAssembly"),
+                [Namespace]("N"),
+                [Class]("C"),
+                Member("E()"))
         End Function
 
 #End Region
