@@ -38,6 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend ReadOnly Property IsXmlClause As Boolean
+            Get
+                Return TypeOf Clause Is XmlNamespaceImportsClauseSyntax
+            End Get
+        End Property
+
         ''' <summary>
         ''' The import name.
         ''' </summary>

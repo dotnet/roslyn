@@ -25,7 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblyName As String,
             options As CompilationOptions,
             hostObjectType As Type) As Compilation Implements ICompilationFactoryService.CreateSubmissionCompilation
-            ' https://github.com/dotnet/roslyn/issues/5944
             Return VisualBasicCompilation.CreateScriptCompilation(
                 assemblyName,
                 options:=DirectCast(options, VisualBasicCompilationOptions),

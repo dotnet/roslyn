@@ -252,9 +252,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Overrides Function GetImports() As ImmutableArray(Of String)
-            ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
-            Dim importNames As New ArrayBuilder(Of String)(GlobalImports.Length)
-            importNames.AddRange(GlobalImports.Select(Function(go) go.Name))
+            Dim importNames = ArrayBuilder(Of String).GetInstance(GlobalImports.Length)
+            For Each globalImport In GlobalImports
+                If Not globalImport.IsXmlClause Then
+                    importNames.Add(globalImport.Name)
+                End If
+            Next
             Return importNames.ToImmutableAndFree()
         End Function
 
