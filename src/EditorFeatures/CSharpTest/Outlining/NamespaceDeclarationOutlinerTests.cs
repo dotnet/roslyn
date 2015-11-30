@@ -1,175 +1,106 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class NamespaceDeclarationOutlinerTests :
-        AbstractOutlinerTests<NamespaceDeclarationSyntax>
+    public class NamespaceDeclarationOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<NamespaceDeclarationSyntax>
     {
-        internal override IEnumerable<OutliningSpan> GetRegions(NamespaceDeclarationSyntax namespaceDecl)
+        internal override AbstractSyntaxOutliner CreateOutliner() => new NamespaceDeclarationOutliner();
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestNamespace()
         {
-            var outliner = new NamespaceDeclarationOutliner();
-            return outliner.GetOutliningSpans(namespaceDecl, CancellationToken.None).WhereNotNull();
+            const string code = @"
+class C
+{
+    {|hint:$$namespace N{|collapse:
+    {
+    }|}|}
+}";
+
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestNamespace()
+        public async Task TestNamespaceWithLeadingComments()
         {
-            var tree = ParseLines("namespace N",
-                                        "{",
-                                        "}");
+            const string code = @"
+class C
+{
+    {|span1:// Foo
+    // Bar|}
+    {|hint2:$$namespace N{|collapse2:
+    {
+    }|}|}
+}";
 
-            var namespaceDecl = tree.DigToFirstNodeOfType<NamespaceDeclarationSyntax>();
-
-            var actualRegion = GetRegion(namespaceDecl);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(11, 17),
-                TextSpan.FromBounds(0, 17),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestNamespaceWithLeadingComments()
+        public async Task TestNamespaceWithNestedUsings()
         {
-            var tree = ParseLines("// Foo",
-                                        "// Bar",
-                                        "namespace C",
-                                        "{",
-                                        "}");
+            const string code = @"
+class C
+{
+    {|hint1:$$namespace N{|collapse1:
+    {
+        {|hint2:using {|collapse2:System;
+        using System.Linq;|}|}
+    }|}|}
+}";
 
-            var namespaceDecl = tree.DigToFirstNodeOfType<NamespaceDeclarationSyntax>();
-
-            var actualRegions = GetRegions(namespaceDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(0, 14),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(27, 33),
-                TextSpan.FromBounds(16, 33),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: false),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestNamespaceWithNestedUsings()
+        public async Task TestNamespaceWithNestedUsingsWithLeadingComments()
         {
-            var tree = ParseLines("namespace C",
-                                        "{",
-                                        "  using System;",
-                                        "  using System.Linq;",
-                                        "}");
+            const string code = @"
+class C
+{
+    {|hint1:$$namespace N{|collapse1:
+    {
+        {|span2:// Foo
+        // Bar|}
+        {|hint3:using {|collapse3:System;
+        using System.Linq;|}|}
+    }|}|}
+}";
 
-            var namespaceDecl = tree.DigToFirstNodeOfType<NamespaceDeclarationSyntax>();
-
-            var actualRegions = GetRegions(namespaceDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(11, 56),
-                TextSpan.FromBounds(0, 56),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(24, 53),
-                hintSpan: TextSpan.FromBounds(18, 53),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: false),
+                Region("span2", "// Foo ...", autoCollapse: true),
+                Region("collapse3", "hint3", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestNamespaceWithNestedUsingsWithLeadingComments()
+        public async Task TestNamespaceWithNestedComments()
         {
-            var tree = ParseLines("namespace C",
-                                        "{",
-                                        "  // Foo",
-                                        "  // Bar",
-                                        "  using System;",
-                                        "  using System.Linq;",
-                                        "}");
+            const string code = @"
+class C
+{
+    {|hint1:$$namespace N{|collapse1:
+    {
+        {|span2:// Foo
+        // Bar|}
+    }|}|}
+}";
 
-            var namespaceDecl = tree.DigToFirstNodeOfType<NamespaceDeclarationSyntax>();
-
-            var actualRegions = GetRegions(namespaceDecl).ToList();
-            Assert.Equal(3, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(11, 76),
-                TextSpan.FromBounds(0, 76),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(18, 34),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
-
-            var expectedRegion3 = new OutliningSpan(
-                TextSpan.FromBounds(44, 73),
-                hintSpan: TextSpan.FromBounds(38, 73),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion3, actualRegions[2]);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestNamespaceWithNestedComments()
-        {
-            var tree = ParseLines("namespace C",
-                                        "{",
-                                        "  // Foo",
-                                        "  // Bar",
-                                        "}");
-
-            var namespaceDecl = tree.DigToFirstNodeOfType<NamespaceDeclarationSyntax>();
-
-            var actualRegions = GetRegions(namespaceDecl).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(11, 37),
-                TextSpan.FromBounds(0, 37),
-                CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: false);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(18, 34),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: false),
+                Region("span2", "// Foo ...", autoCollapse: true));
         }
     }
 }

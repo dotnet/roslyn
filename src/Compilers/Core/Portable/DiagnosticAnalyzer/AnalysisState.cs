@@ -521,17 +521,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Returns null if the event has already been processed for the analyzer OR is currently being processed by another task.
         /// Otherwise, returns a non-null state representing partial analysis state for the given event for the given analyzer.
         /// </returns>
-        public async Task<AnalyzerStateData> TryStartProcessingEventAsync(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public Task<AnalyzerStateData> TryStartProcessingEventAsync(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            return await GetAnalyzerState(analyzer).TryStartProcessingEventAsync(compilationEvent, cancellationToken).ConfigureAwait(false);
+            return GetAnalyzerState(analyzer).TryStartProcessingEventAsync(compilationEvent, cancellationToken);
         }
 
         /// <summary>
         /// Marks the given event as fully analyzed for the given analyzer.
         /// </summary>
-        public async Task MarkEventCompleteAsync(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public Task MarkEventCompleteAsync(CompilationEvent compilationEvent, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            await GetAnalyzerState(analyzer).MarkEventCompleteAsync(compilationEvent, cancellationToken).ConfigureAwait(false);
+            return GetAnalyzerState(analyzer).MarkEventCompleteAsync(compilationEvent, cancellationToken);
         }
 
         /// <summary>
@@ -541,17 +541,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Returns null if the symbol has already been processed for the analyzer OR is currently being processed by another task.
         /// Otherwise, returns a non-null state representing partial analysis state for the given symbol for the given analyzer.
         /// </returns>
-        public async Task<AnalyzerStateData> TryStartAnalyzingSymbolAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public Task<AnalyzerStateData> TryStartAnalyzingSymbolAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            return await GetAnalyzerState(analyzer).TryStartAnalyzingSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
+            return GetAnalyzerState(analyzer).TryStartAnalyzingSymbolAsync(symbol, cancellationToken);
         }
 
         /// <summary>
         /// Marks the given symbol as fully analyzed for the given analyzer.
         /// </summary>
-        public async Task MarkSymbolCompleteAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public Task MarkSymbolCompleteAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            await GetAnalyzerState(analyzer).MarkSymbolCompleteAsync(symbol, cancellationToken).ConfigureAwait(false);
+            return GetAnalyzerState(analyzer).MarkSymbolCompleteAsync(symbol, cancellationToken);
         }
 
         /// <summary>
@@ -561,9 +561,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Returns null if the declaration has already been processed for the analyzer OR is currently being processed by another task.
         /// Otherwise, returns a non-null state representing partial analysis state for the given declaration for the given analyzer.
         /// </returns>
-        public async Task<DeclarationAnalyzerStateData> TryStartAnalyzingDeclarationAsync(SyntaxReference decl, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public Task<DeclarationAnalyzerStateData> TryStartAnalyzingDeclarationAsync(SyntaxReference decl, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            return await GetAnalyzerState(analyzer).TryStartAnalyzingDeclarationAsync(decl, cancellationToken).ConfigureAwait(false);
+            return GetAnalyzerState(analyzer).TryStartAnalyzingDeclarationAsync(decl, cancellationToken);
         }
 
         /// <summary>
@@ -586,9 +586,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Marks the given symbol declaration as fully analyzed for the given analyzer.
         /// </summary>
-        public async Task MarkDeclarationCompleteAsync(SyntaxReference decl, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public Task MarkDeclarationCompleteAsync(SyntaxReference decl, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            await GetAnalyzerState(analyzer).MarkDeclarationCompleteAsync(decl, cancellationToken).ConfigureAwait(false);
+            return GetAnalyzerState(analyzer).MarkDeclarationCompleteAsync(decl, cancellationToken);
         }
 
         /// <summary>
@@ -609,17 +609,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Returns null if the tree has already been processed for the analyzer OR is currently being processed by another task.
         /// Otherwise, returns a non-null state representing partial syntax analysis state for the given tree for the given analyzer.
         /// </returns>
-        public async Task<AnalyzerStateData> TryStartSyntaxAnalysisAsync(SyntaxTree tree, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public Task<AnalyzerStateData> TryStartSyntaxAnalysisAsync(SyntaxTree tree, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            return await GetAnalyzerState(analyzer).TryStartSyntaxAnalysisAsync(tree, cancellationToken).ConfigureAwait(false);
+            return GetAnalyzerState(analyzer).TryStartSyntaxAnalysisAsync(tree, cancellationToken);
         }
 
         /// <summary>
         /// Marks the given tree as fully syntactically analyzed for the given analyzer.
         /// </summary>
-        public async Task MarkSyntaxAnalysisCompleteAsync(SyntaxTree tree, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public Task MarkSyntaxAnalysisCompleteAsync(SyntaxTree tree, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            await GetAnalyzerState(analyzer).MarkSyntaxAnalysisCompleteAsync(tree, cancellationToken).ConfigureAwait(false);
+            return GetAnalyzerState(analyzer).MarkSyntaxAnalysisCompleteAsync(tree, cancellationToken);
         }
     }
 }

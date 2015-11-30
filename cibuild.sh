@@ -15,7 +15,7 @@ BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
 MONO_ARGS='--debug=mdb-optimizations --attach=disable'
-MSBUILD_ADDITIONALARGS='/v:m  /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal'
+MSBUILD_ADDITIONALARGS='/v:m /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal'
 
 export MONO_THREADS_PER_CPU=50
 
@@ -59,6 +59,22 @@ do
     esac
 done
 
+set_build_info()
+{
+    if [ "$OS_NAME" == "Linux" ]; then
+        MSBUILD_ADDITIONALARGS="$MSBUILD_ADDITIONALARGS /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04"
+        MONO_TOOLSET_NAME=mono.linux.4
+        ROSLYN_TOOLSET_NAME=roslyn.linux.1
+    elif [ "$OS_NAME" == "Darwin" ]; then
+        MSBUILD_ADDITIONALARGS="$MSBUILD_ADDITIONALARGS /p:BaseNuGetRuntimeIdentifier=osx.10.10"
+        MONO_TOOLSET_NAME=mono.mac.5
+        ROSLYN_TOOLSET_NAME=roslyn.mac.1
+    else
+        echo Unrecognized OS $OS_NAME
+        exit 1
+    fi
+}
+
 restore_nuget()
 {
     local package_name="nuget.35.zip"
@@ -91,7 +107,7 @@ run_msbuild()
     
     for i in `seq 1 $RETRY_COUNT`
     do
-        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /p:SignAssembly=false /p:DebugSymbols=false "$@"
+        mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /p:SignAssembly=false /p:DebugSymbols=false /p:Configuration=$BUILD_CONFIGURATION "$@"
         if [ $? -eq 0 ]; then
             is_good=true
             break
@@ -126,49 +142,67 @@ run_nuget()
     fi
 }
 
-# Run the compilation.  Can pass additional build arguments as parameters
-compile_toolset()
+# Install the Roslyn toolset which is used to build the bootstrap compilers
+install_roslyn_toolset()
 {
-    mkdir -p 'Binaries'
+    local package_name=$ROSLYN_TOOLSET_NAME
+    local package_path="/tmp/$ROSLYN_TOOLSET_NAME.tar.bz2"
+
+    local download_package=false
+    if [ ! -f $package_path ]; then
+        download_package=true
+    fi
+
+    if [ "$USE_CACHE" = "true" ]; then
+        download_package=true
+    fi
+
+    if [ "$download_package" = "true" ]; then
+        rm $package_path 2>/dev/null
+        pushd /tmp
+        curl -O https://dotnetci.blob.core.windows.net/roslyn/$package_name.tar.bz2
+        popd
+    fi
+    
+    mkdir -p "Binaries"
+    pushd Binaries > /dev/null
+    tar -jxf $package_path
+    popd > /dev/null
+}
+
+build_bootstrap()
+{
+    install_roslyn_toolset
+    local bootstrap_arg="/p:CscToolPath=$(pwd)/Binaries/$ROSLYN_TOOLSET_NAME /p:CscToolExe=csc \
+/p:VbcToolPath=$(pwd)/Binaries/$ROSLYN_TOOLSET_NAME /p:VbcToolExe=vbc"
+
+    # Build the bootstrap compilers 
     echo Compiling the toolset compilers
-    echo -e "Compiling the C# compiler"
-    run_msbuild src/Compilers/CSharp/CscCore/CscCore.csproj /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Bootstrap_CscCore.log
-    echo -e "Compiling the VB compiler"
-    run_msbuild src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Bootstrap_VbcCore.log
-}
+    echo -e "  Compiling the C# compiler"
+    run_msbuild /nologo $bootstrap_arg src/Compilers/CSharp/CscCore/CscCore.csproj /fileloggerparameters:LogFile=Binaries/Bootstrap_CscCore.log
+    echo -e "  Compiling the VB compiler"
+    run_msbuild /nologo $bootstrap_arg src/Compilers/VisualBasic/VbcCore/VbcCore.csproj /fileloggerparameters:LogFile=Binaries/Bootstrap_VbcCore.log
 
-# Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
-save_toolset()
-{
-    local vbcTarget=Binaries/Bootstrap/vbccore
-    local cscTarget=Binaries/Bootstrap/csccore
+    # Save the compilers into the bootstrap directory
+    local bootstrap_path="Binaries/Bootstrap"
+    mkdir -p $bootstrap_path
+    cp Binaries/$BUILD_CONFIGURATION/csccore/* $bootstrap_path
+    cp Binaries/$BUILD_CONFIGURATION/vbccore/* $bootstrap_path
 
-    mkdir -p $vbcTarget
-    mkdir -p $cscTarget
-    cp Binaries/$BUILD_CONFIGURATION/csccore/* $cscTarget
-    cp Binaries/$BUILD_CONFIGURATION/vbccore/* $vbcTarget
-}
-
-# Clean out all existing binaries.  This ensures the bootstrap phase forces
-# a rebuild instead of picking up older binaries.
-clean_roslyn()
-{
+    # Clean out the built files so they will be re-built using the 
+    # bootstrap compiler
     echo Cleaning the enlistment
-    mono $MONO_ARGS ~/.nuget/packages/Microsoft.Build.Mono.Debug/14.1.0-prerelease/lib/MSBuild.exe $MSBUILD_ADDITIONALARGS /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/BootstrapClean.log
     rm -rf Binaries/$BUILD_CONFIGURATION
+    rm -rf Binaries/Obj
 }
 
 build_roslyn()
 {    
-    local bootstrapArg=""
-
-    if [ "$OS_NAME" == "Linux" ]; then
-        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap/csccore /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap/vbccore /p:VbcToolExe=vbc"
-    fi
+    local bootstrap_arg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
+/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
 
     echo Building CrossPlatform.sln
-    run_msbuild $bootstrapArg CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION /fileloggerparameters:LogFile=Binaries/Build.log
+    run_msbuild /nologo $bootstrap_arg CrossPlatform.sln /fileloggerparameters:LogFile=Binaries/Build.log
 }
 
 # Install the specified Mono toolset from our Azure blob storage.
@@ -213,14 +247,6 @@ set_mono_path()
         return
     fi
 
-    if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.5
-    elif [ "$OS_NAME" = "Linux" ]; then
-        MONO_TOOLSET_NAME=mono.linux.4
-    else
-        echo "Error: Unsupported OS $OS_NAME"
-        exit 1
-    fi
 
     install_mono_toolset $MONO_TOOLSET_NAME
     PATH=/tmp/$MONO_TOOLSET_NAME/bin:$PATH
@@ -262,15 +288,16 @@ test_roslyn()
     fi
 }
 
-echo Clean out the enlistment
-git clean -dxf . 
+if [ "$CLEAN_RUN" == "true" ]; then
+    echo Clean out the enlistment
+    git clean -dxf . 
+fi
 
+set_build_info
 restore_nuget
 set_mono_path
 check_mono
-compile_toolset
-save_toolset
-clean_roslyn
+build_bootstrap
 build_roslyn
 test_roslyn
 

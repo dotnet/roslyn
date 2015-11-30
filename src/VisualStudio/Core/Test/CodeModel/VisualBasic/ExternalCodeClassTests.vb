@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Roslyn.Test.Utilities
 
@@ -10,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "Doc Comment"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub DocComment1()
+        Public Async Function TestDocComment1() As Task
             Dim code =
 <Code>
 ''' &lt;summary&gt;This is my comment!&lt;/summary&gt;
@@ -18,11 +19,11 @@ Class C$$
 End Class
 </Code>
 
-            TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "</doc>")
-        End Sub
+            Await TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "</doc>")
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub DocComment2()
+        Public Async Function TestDocComment2() As Task
             Dim code =
 <Code>
 ''' &lt;summary&gt;This is my comment!&lt;/summary&gt;
@@ -31,13 +32,13 @@ Class C$$
 End Class
 </Code>
 
-            TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "  <remarks />" & vbCrLf & "</doc>")
-        End Sub
+            Await TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "  <remarks />" & vbCrLf & "</doc>")
+        End Function
 
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ExpectedClassMembers()
+        Public Async Function TestExpectedClassMembers() As Task
             Dim code =
 <Code>
 Class C$$
@@ -62,7 +63,7 @@ Class C$$
 End Class
 </Code>
 
-            TestElement(code,
+            Await TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(9, members.Count)
@@ -103,10 +104,10 @@ End Class
                     Assert.Equal("PublicM", member9.Name)
                     Assert.Equal(EnvDTE.vsCMElement.vsCMElementFunction, member9.Kind)
                 End Sub)
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ClassMembersForWithEventsField_Private()
+        Public Async Function TestClassMembersForWithEventsField_Private() As Task
             Dim code =
 <Code>
 Class C
@@ -123,7 +124,7 @@ Class D$$
 End Class
 </Code>
 
-            TestElement(code,
+            Await TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(2, members.Count)
@@ -138,10 +139,10 @@ End Class
                     Assert.Equal(EnvDTE.vsCMElement.vsCMElementVariable, member2.Kind)
                     Assert.Equal(EnvDTE.vsCMAccess.vsCMAccessPrivate, CType(member2, EnvDTE.CodeVariable).Access)
                 End Sub)
-        End Sub
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ClassMembersForWithEventsField_Protected()
+        Public Async Function TestClassMembersForWithEventsField_Protected() As Task
             Dim code =
 <Code>
 Class C
@@ -158,7 +159,7 @@ Class D$$
 End Class
 </Code>
 
-            TestElement(code,
+            Await TestElement(code,
                 Sub(codeElement)
                     Dim members = codeElement.Members
                     Assert.Equal(3, members.Count)
@@ -178,7 +179,7 @@ End Class
                     Assert.Equal(EnvDTE.vsCMElement.vsCMElementVariable, member3.Kind)
                     Assert.Equal(EnvDTE.vsCMAccess.vsCMAccessProtected Or EnvDTE.vsCMAccess.vsCMAccessWithEvents, CType(member3, EnvDTE.CodeVariable).Access)
                 End Sub)
-        End Sub
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get

@@ -33,30 +33,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             Return project.AddDocument("test.cs", code)
         End Function
 
-        Private Sub Test(initialText As String, importsAddedText As String, simplifiedText As String, Optional options As OptionSet = Nothing, Optional globalImports As String() = Nothing)
+        Private Async Function TestAsync(initialText As String, importsAddedText As String, simplifiedText As String, Optional options As OptionSet = Nothing, Optional globalImports As String() = Nothing) As Task
 
             Dim doc = GetDocument(initialText, globalImports)
             options = If(options, doc.Project.Solution.Workspace.Options)
 
-            Dim imported = ImportAdder.AddImportsAsync(doc, options).Result
+            Dim imported = Await ImportAdder.AddImportsAsync(doc, options)
 
             If importsAddedText IsNot Nothing Then
-                Dim formatted = Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options).Result
-                Dim actualText = formatted.GetTextAsync().Result.ToString()
+                Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options)
+                Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(importsAddedText, actualText)
             End If
 
             If simplifiedText IsNot Nothing Then
-                Dim reduced = Simplifier.ReduceAsync(imported, options).Result
-                Dim formatted = Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options).Result
-                Dim actualText = formatted.GetTextAsync().Result.ToString()
+                Dim reduced = Await Simplifier.ReduceAsync(imported, options)
+                Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options)
+                Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(simplifiedText, actualText)
             End If
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestAddImport()
-            Test(
+        Public Async Function TestAddImport() As Task
+            Await TestAsync(
 "Class C
     Public F As System.Collections.Generic.List(Of Integer)
 End Class",
@@ -70,11 +70,11 @@ End Class",
 Class C
     Public F As List(Of Integer)
 End Class")
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestAddSystemImportFirst()
-            Test(
+        Public Async Function TestAddSystemImportFirst() As Task
+            Await TestAsync(
 "Imports N
 
 Class C
@@ -92,11 +92,11 @@ Imports N
 Class C
     Public F As List(Of Integer)
 End Class")
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestDontAddSystemImportFirst()
-            Test(
+        Public Async Function TestDontAddSystemImportFirst() As Task
+            Await TestAsync(
 "Imports N
 
 Class C
@@ -115,11 +115,11 @@ Class C
     Public F As List(Of Integer)
 End Class",
 _ws.Options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, False))
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestAddImportsInOrder()
-            Test(
+        Public Async Function TestAddImportsInOrder() As Task
+            Await TestAsync(
 "Imports System.Collections
 Imports System.Diagnostics
 
@@ -140,11 +140,11 @@ Imports System.Diagnostics
 Class C
     Public F As List(Of Integer)
 End Class")
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestAddMultipleImportsInOrder()
-            Test(
+        Public Async Function TestAddMultipleImportsInOrder() As Task
+            Await TestAsync(
 "Imports System.Collections
 Imports System.Diagnostics
 
@@ -170,11 +170,11 @@ Class C
     Public F As List(Of Integer)
     Public Handler As EventHandler
 End Class")
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestImportNotAddedAgainIfAlreadyExists()
-            Test(
+        Public Async Function TestImportNotAddedAgainIfAlreadyExists() As Task
+            Await TestAsync(
 "Imports System.Collections.Generic
 
 Class C
@@ -190,11 +190,11 @@ End Class",
 Class C
     Public F As List(Of Integer)
 End Class")
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestUnusedAddedImportIsRemovedBySimplifier()
-            Test(
+        Public Async Function TestUnusedAddedImportIsRemovedBySimplifier() As Task
+            Await TestAsync(
 "Class C
     Public F As System.Int32
 End Class",
@@ -206,11 +206,11 @@ End Class",
 "Class C
     Public F As Integer
 End Class")
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestImportNotAddedIfGloballyImported()
-            Test(
+        Public Async Function TestImportNotAddedIfGloballyImported() As Task
+            Await TestAsync(
     "Class C
     Public F As System.Collections.Generic.List(Of Integer)
 End Class",
@@ -222,22 +222,22 @@ End Class",
 End Class",
     globalImports:={"System.Collections.Generic"})
 
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestImportNotAddedForNamespaceDeclarations()
-            Test(
+        Public Async Function TestImportNotAddedForNamespaceDeclarations() As Task
+            Await TestAsync(
 "Namespace N
 End Namespace",
 "Namespace N
 End Namespace",
 "Namespace N
 End Namespace")
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations()
-            Test(
+        Public Async Function TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations() As Task
+            Await TestAsync(
         "Namespace N
     Class C
         Private _c As N.C
@@ -255,15 +255,15 @@ End Namespace",
         Private _c As C
     End Class
 End Namespace")
-        End Sub
+        End Function
 
         <Fact>
-        Public Sub TestRemoveImportIfItMakesReferencesAmbiguous()
+        Public Async Function TestRemoveImportIfItMakesReferencesAmbiguous() As Task
             ' this is not really an artifact of the AddImports feature, it is due
             ' to Simplifier not reducing the namespace reference because it would 
             ' become ambiguous, thus leaving an unused imports statement
 
-            Test(
+            Await TestAsync(
 "Namespace N
     Class C
     End Class
@@ -293,10 +293,10 @@ Class C
     Private F As N.C
 End Class
 ")
-        End Sub
+        End Function
 
-        Private Sub TestPartialNamespacesNotUsed()
-            Test(
+        Private Async Function TestPartialNamespacesNotUsed() As Task
+            Await TestAsync(
 "Imports System.Collections
 
 Public Class C
@@ -317,6 +317,6 @@ Public Class C
     Public F1 As ArrayList
     Public F2 As List(Of Integer)
 End Class")
-        End Sub
+        End Function
     End Class
 End Namespace

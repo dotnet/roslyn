@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Now, take the code that would be generated and actually create an edit that would
                 // produce a document with that code in it.
 
-                return CreateAddDocumentAndUpdateUsingsOrImportsOperations(
+                return await CreateAddDocumentAndUpdateUsingsOrImportsOperationsAsync(
                     projectToBeUpdated,
                     triggeringProject,
                     documentName,
@@ -307,10 +307,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     includeUsingsOrImports,
                     adjustedContainer,
                     SourceCodeKind.Regular,
-                    _cancellationToken);
+                    _cancellationToken).ConfigureAwait(false);
             }
 
-            private IEnumerable<CodeActionOperation> CreateAddDocumentAndUpdateUsingsOrImportsOperations(
+            private async Task<IEnumerable<CodeActionOperation>> CreateAddDocumentAndUpdateUsingsOrImportsOperationsAsync(
                 Project projectToBeUpdated,
                 Project triggeringProject,
                 string documentName,
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Update the Generating Document with a using if required
                 if (includeUsingsOrImports != null)
                 {
-                    updatedSolution = _service.TryAddUsingsOrImportToDocument(updatedSolution, null, _document.Document, _state.SimpleName, includeUsingsOrImports, cancellationToken);
+                    updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(updatedSolution, null, _document.Document, _state.SimpleName, includeUsingsOrImports, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Add reference of the updated project to the triggering Project if they are 2 different projects
@@ -391,21 +391,21 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location> enclosingNamespaceGeneratedTypeToAddAndLocation = null;
                 if (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange)
                 {
-                    enclosingNamespaceGeneratedTypeToAddAndLocation = _service.GetOrGenerateEnclosingNamespaceSymbol(
+                    enclosingNamespaceGeneratedTypeToAddAndLocation = await _service.GetOrGenerateEnclosingNamespaceSymbolAsync(
                      namedType,
                      containers,
                      generateTypeOptionsResult.ExistingDocument,
                      root,
-                     _cancellationToken).WaitAndGetResult(_cancellationToken);
+                     _cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    enclosingNamespaceGeneratedTypeToAddAndLocation = _targetLanguageService.GetOrGenerateEnclosingNamespaceSymbol(
+                    enclosingNamespaceGeneratedTypeToAddAndLocation = await _targetLanguageService.GetOrGenerateEnclosingNamespaceSymbolAsync(
                      namedType,
                      containers,
                      generateTypeOptionsResult.ExistingDocument,
                      root,
-                     _cancellationToken).WaitAndGetResult(_cancellationToken);
+                     _cancellationToken).ConfigureAwait(false);
                 }
 
                 var solution = _document.Project.Solution;
@@ -422,13 +422,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Update the Generating Document with a using if required
                 if (includeUsingsOrImports != null)
                 {
-                    updatedSolution = _service.TryAddUsingsOrImportToDocument(
+                    updatedSolution =await  _service.TryAddUsingsOrImportToDocumentAsync(
                                         updatedSolution,
                                         generateTypeOptionsResult.ExistingDocument.Id == _document.Document.Id ? newRoot : null,
                                         _document.Document,
                                         _state.SimpleName,
                                         includeUsingsOrImports,
-                                        _cancellationToken);
+                                        _cancellationToken).ConfigureAwait(false);
                 }
 
                 updatedSolution = AddProjectReference(generateTypeOptionsResult.Project, triggeringProject, updatedSolution);

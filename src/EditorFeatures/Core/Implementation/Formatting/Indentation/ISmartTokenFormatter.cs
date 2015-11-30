@@ -2,12 +2,13 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 {
     internal interface ISmartTokenFormatter
     {
-        IList<TextChange> FormatToken(Workspace workspace, SyntaxToken token, CancellationToken cancellationToken);
+        Task<IList<TextChange>> FormatTokenAsync(Workspace workspace, SyntaxToken token, CancellationToken cancellationToken);
     }
 }

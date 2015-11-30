@@ -133,7 +133,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("f1945cd6 c19e56b3 c1c78943 ef5ec181 16907a4c a1efc40a 57d48ab1 db7adfc5", StringTextTest.ChecksumToHexQuads(checksum));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void Decode_NonUtf8()
         {
             // Unicode text with extended characters that map to interesting code points in CodePage 1252.
@@ -322,7 +323,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact, WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
+        [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void HorizontalEllipsis()
         {
             // Character 0x85 in CodePage 1252 is a horizontal ellipsis.

@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analysisStateOpt != null)
             {
                 await analysisStateOpt.OnCompilationEventProcessedAsync(e, analysisScope, cancellationToken).ConfigureAwait(false);
-            }
+        }
         }
 
         private async Task ProcessEventCoreAsync(CompilationEvent e, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
@@ -764,14 +764,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task ProcessCompilationStartedAsync(CompilationStartedEvent startedEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private Task ProcessCompilationStartedAsync(CompilationStartedEvent startedEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
-            await ExecuteCompilationActionsAsync(_compilationActionsMap, startedEvent, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+            return ExecuteCompilationActionsAsync(_compilationActionsMap, startedEvent, analysisScope, analysisStateOpt, cancellationToken);
         }
 
-        private async Task ProcessCompilationCompletedAsync(CompilationCompletedEvent endEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        private Task ProcessCompilationCompletedAsync(CompilationCompletedEvent endEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
-            await ExecuteCompilationActionsAsync(_compilationEndActionsMap, endEvent, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+            return ExecuteCompilationActionsAsync(_compilationEndActionsMap, endEvent, analysisScope, analysisStateOpt, cancellationToken);
         }
 
         private async Task ExecuteCompilationActionsAsync(
@@ -1356,31 +1356,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
                         }
                     }
-
-                    if (executableCodeBlocks.Any() && shouldExecuteCodeBlockActions)
-                    {
-                        foreach (var analyzerActions in codeBlockActions)
-                        {
-                            await analyzerExecutor.ExecuteCodeBlockActionsAsync(
-                                analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
-                                analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                                executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt).ConfigureAwait(false);
-                        }
-                    }
                 }
 
-                // Mark completion only if we are analyzing a span containing the entire syntax node.
-                if (analysisStateOpt != null && !declarationAnalysisData.IsPartialAnalysis)
+                if (executableCodeBlocks.Any() && shouldExecuteCodeBlockActions)
                 {
-                    foreach (var analyzer in analysisScope.Analyzers)
+                    foreach (var analyzerActions in codeBlockActions)
                     {
-                        await analysisStateOpt.MarkDeclarationCompleteAsync(decl, analyzer, cancellationToken).ConfigureAwait(false);
+                        await analyzerExecutor.ExecuteCodeBlockActionsAsync(
+                            analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
+                            analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
+                            executableCodeBlocks, semanticModel, _getKind, decl, analysisScope, analysisStateOpt).ConfigureAwait(false);
                     }
+                }
+            }
 
-                    if (cacheAnalysisData)
-                    {
-                        await ClearCachedAnalysisDataIfAnalyzedAsync(decl, declarationAnalysisData.DeclaringReferenceSyntax, symbolEvent.Compilation, analysisStateOpt, cancellationToken).ConfigureAwait(false);
-                    }
+            // Mark completion only if we are analyzing a span containing the entire syntax node.
+            if (analysisStateOpt != null && !declarationAnalysisData.IsPartialAnalysis)
+            {
+                foreach (var analyzer in analysisScope.Analyzers)
+                {
+                    await analysisStateOpt.MarkDeclarationCompleteAsync(decl, analyzer, cancellationToken).ConfigureAwait(false);
+                }
+
+                if (cacheAnalysisData)
+                {
+                    await ClearCachedAnalysisDataIfAnalyzedAsync(decl, declarationAnalysisData.DeclaringReferenceSyntax, symbolEvent.Compilation, analysisStateOpt, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

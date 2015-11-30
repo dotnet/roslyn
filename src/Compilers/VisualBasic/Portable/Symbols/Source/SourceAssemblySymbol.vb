@@ -1607,7 +1607,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Creating strong names is a potentially expensive operation, so we will check again here
             ' if keys could have been created and published already.
             If _lazyStrongNameKeys Is Nothing Then
-                Dim keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+                Dim keys As StrongNameKeys
+
+                ' Public signing doesn't require a strong name provider to be used. 
+                If DeclaringCompilation.Options.PublicSign AndAlso keyFile IsNot Nothing Then
+                    keys = StrongNameKeys.Create(keyFile, MessageProvider.Instance)
+                Else
+                    keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+                End If
                 Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
             End If
         End Sub

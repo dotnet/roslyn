@@ -38,6 +38,8 @@ if defined Perf (
 
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat" || goto :BuildFailed
 
+powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
+
 REM Restore the NuGet packages 
 if "%BuildRestore%" == "true" (
     call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
@@ -108,6 +110,6 @@ exit /b 1
 
 :TerminateCompilerServer
 @REM Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
-@REM This prevents future CI runs from failing hile trying to delete those files.
+@REM This prevents future CI runs from failing while trying to delete those files.
 
 taskkill /F /IM vbcscompiler.exe 2> nul

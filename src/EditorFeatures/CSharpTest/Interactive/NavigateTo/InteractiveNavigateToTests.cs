@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
@@ -24,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         private INavigateToItemProvider _provider;
         private NavigateToTestAggregator _aggregator;
 
-        private TestWorkspace SetupWorkspace(params string[] files)
+        private async Task<TestWorkspace> SetupWorkspaceAsync(params string[] files)
         {
-            var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(files, parseOptions: Options.Script);
+            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFilesAsync(files, parseOptions: Options.Script);
             var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
 
             _provider = new NavigateToItemProvider(
@@ -39,18 +40,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void NoItemsForEmptyFile()
+        public async Task NoItemsForEmptyFile()
         {
-            using (var workspace = SetupWorkspace())
+            using (var workspace = await SetupWorkspaceAsync())
             {
                 Assert.Empty(_aggregator.GetItems("Hello"));
             }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindClass()
+        public async Task FindClass()
         {
-            using (var workspace = SetupWorkspace("class Foo { }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("Foo").Single(x => x.Kind != "Method");
@@ -59,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindNestedClass()
+        public async Task FindNestedClass()
         {
-            using (var workspace = SetupWorkspace("class Foo { class Bar { internal class DogBed { } } }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { class Bar { internal class DogBed { } } }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
                 var item = _aggregator.GetItems("DogBed").Single(x => x.Kind != "Method");
@@ -70,9 +71,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindMemberInANestedClass()
+        public async Task FindMemberInANestedClass()
         {
-            using (var workspace = SetupWorkspace("class Foo { class Bar { class DogBed { public void Method() { } } } }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { class Bar { class DogBed { public void Method() { } } } }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("Method").Single();
@@ -81,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindGenericClassWithConstraints()
+        public async Task FindGenericClassWithConstraints()
         {
-            using (var workspace = SetupWorkspace("using System.Collections; class Foo<T> where T : IEnumerable { }"))
+            using (var workspace = await SetupWorkspaceAsync("using System.Collections; class Foo<T> where T : IEnumerable { }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("Foo").Single(x => x.Kind != "Method");
@@ -92,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindGenericMethodWithConstraints()
+        public async Task FindGenericMethodWithConstraints()
         {
-            using (var workspace = SetupWorkspace("using System; class Foo<U> { public void Bar<T>(T item) where T:IComparable<T> {} }"))
+            using (var workspace = await SetupWorkspaceAsync("using System; class Foo<U> { public void Bar<T>(T item) where T:IComparable<T> {} }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("Bar").Single();
@@ -103,9 +104,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindPartialClass()
+        public async Task FindPartialClass()
         {
-            using (var workspace = SetupWorkspace("public partial class Foo { int a; } partial class Foo { int b; }"))
+            using (var workspace = await SetupWorkspaceAsync("public partial class Foo { int a; } partial class Foo { int b; }"))
             {
                 var expecteditem1 = new NavigateToItem("Foo", NavigateToItemKind.Class, "csharp", null, null, MatchKind.Exact, true, null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
@@ -117,9 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindTypesInMetadata()
+        public async Task FindTypesInMetadata()
         {
-            using (var workspace = SetupWorkspace("using System; Class Program {FileStyleUriParser f;}"))
+            using (var workspace = await SetupWorkspaceAsync("using System; Class Program {FileStyleUriParser f;}"))
             {
                 var items = _aggregator.GetItems("FileStyleUriParser");
                 Assert.Equal(items.Count(), 0);
@@ -127,9 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindClassInNamespace()
+        public async Task FindClassInNamespace()
         {
-            using (var workspace = SetupWorkspace("namespace Bar { class Foo { } }"))
+            using (var workspace = await SetupWorkspaceAsync("namespace Bar { class Foo { } }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
                 var item = _aggregator.GetItems("Foo").Single(x => x.Kind != "Method");
@@ -138,9 +139,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindStruct()
+        public async Task FindStruct()
         {
-            using (var workspace = SetupWorkspace("struct Bar { }"))
+            using (var workspace = await SetupWorkspaceAsync("struct Bar { }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupStruct, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("B").Single(x => x.Kind != "Method");
@@ -149,9 +150,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindEnum()
+        public async Task FindEnum()
         {
-            using (var workspace = SetupWorkspace("enum Colors {Red, Green, Blue}"))
+            using (var workspace = await SetupWorkspaceAsync("enum Colors {Red, Green, Blue}"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnum, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("Colors").Single(x => x.Kind != "Method");
@@ -160,9 +161,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindEnumMember()
+        public async Task FindEnumMember()
         {
-            using (var workspace = SetupWorkspace("enum Colors {Red, Green, Blue}"))
+            using (var workspace = await SetupWorkspaceAsync("enum Colors {Red, Green, Blue}"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnumMember, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("R").Single();
@@ -171,9 +172,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindConstField()
+        public async Task FindConstField()
         {
-            using (var workspace = SetupWorkspace("class Foo { const int bar = 7;}"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { const int bar = 7;}"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupConstant, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("ba").Single();
@@ -182,9 +183,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindVerbatimIdentifier()
+        public async Task FindVerbatimIdentifier()
         {
-            using (var workspace = SetupWorkspace("class Foo { string @string; }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { string @string; }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("string").Single();
@@ -193,10 +194,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindIndexer()
+        public async Task FindIndexer()
         {
             var program = @"class Foo { int[] arr; public int this[int i] { get { return arr[i]; } set { arr[i] = value; } } }";
-            using (var workspace = SetupWorkspace(program))
+            using (var workspace = await SetupWorkspaceAsync(program))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("this").Single();
@@ -205,10 +206,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindEvent()
+        public async Task FindEvent()
         {
             var program = "class Foo { public event EventHandler ChangedEventHandler; }";
-            using (var workspace = SetupWorkspace(program))
+            using (var workspace = await SetupWorkspaceAsync(program))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEvent, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("CEH").Single();
@@ -217,9 +218,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindAutoProperty()
+        public async Task FindAutoProperty()
         {
-            using (var workspace = SetupWorkspace("class Foo { int Bar { get; set; } }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { int Bar { get; set; } }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("B").Single();
@@ -228,9 +229,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindMethod()
+        public async Task FindMethod()
         {
-            using (var workspace = SetupWorkspace("class Foo { void DoSomething(); }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { void DoSomething(); }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("DS").Single();
@@ -239,9 +240,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindParameterizedMethod()
+        public async Task FindParameterizedMethod()
         {
-            using (var workspace = SetupWorkspace("class Foo { void DoSomething(int a, string b) {} }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { void DoSomething(int a, string b) {} }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("DS").Single();
@@ -250,9 +251,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindConstructor()
+        public async Task FindConstructor()
         {
-            using (var workspace = SetupWorkspace("class Foo { public Foo(){} }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { public Foo(){} }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("Foo").Single(t => t.Kind == NavigateToItemKind.Method);
@@ -261,9 +262,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindParameterizedConstructor()
+        public async Task FindParameterizedConstructor()
         {
-            using (var workspace = SetupWorkspace("class Foo { public Foo(int i){} }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { public Foo(int i){} }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("Foo").Single(t => t.Kind == NavigateToItemKind.Method);
@@ -272,9 +273,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindStaticConstructor()
+        public async Task FindStaticConstructor()
         {
-            using (var workspace = SetupWorkspace("class Foo { static Foo(){} }"))
+            using (var workspace = await SetupWorkspaceAsync("class Foo { static Foo(){} }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("Foo").Single(t => t.Kind == NavigateToItemKind.Method && t.Name != ".ctor");
@@ -283,9 +284,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindPartialMethods()
+        public async Task FindPartialMethods()
         {
-            using (var workspace = SetupWorkspace("partial class Foo { partial void Bar(); } partial class Foo { partial void Bar() { Console.Write(\"hello\"); } }"))
+            using (var workspace = await SetupWorkspaceAsync("partial class Foo { partial void Bar(); } partial class Foo { partial void Bar() { Console.Write(\"hello\"); } }"))
             {
                 var expecteditem1 = new NavigateToItem("Bar", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null);
                 var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
@@ -297,9 +298,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindPartialMethodDefinitionOnly()
+        public async Task FindPartialMethodDefinitionOnly()
         {
-            using (var workspace = SetupWorkspace("partial class Foo { partial void Bar(); }"))
+            using (var workspace = await SetupWorkspaceAsync("partial class Foo { partial void Bar(); }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("Bar").Single();
@@ -308,10 +309,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindOverriddenMembers()
+        public async Task FindOverriddenMembers()
         {
             var program = "class Foo { public virtual string Name { get; set; } } class DogBed : Foo { public override string Name { get { return base.Name; } set {} } }";
-            using (var workspace = SetupWorkspace(program))
+            using (var workspace = await SetupWorkspaceAsync(program))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic);
                 var expecteditem1 = new NavigateToItem("Name", NavigateToItemKind.Property, "csharp", null, null, MatchKind.Exact, true, null);
@@ -340,9 +341,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindInterface()
+        public async Task FindInterface()
         {
-            using (var workspace = SetupWorkspace("public interface IFoo { }"))
+            using (var workspace = await SetupWorkspaceAsync("public interface IFoo { }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupInterface, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("IF").Single();
@@ -351,9 +352,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindDelegateInNamespace()
+        public async Task FindDelegateInNamespace()
         {
-            using (var workspace = SetupWorkspace("namespace Foo { delegate void DoStuff(); }"))
+            using (var workspace = await SetupWorkspaceAsync("namespace Foo { delegate void DoStuff(); }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupDelegate, StandardGlyphItem.GlyphItemFriend);
                 var item = _aggregator.GetItems("DoStuff").Single(x => x.Kind != "Method");
@@ -362,9 +363,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void FindLambdaExpression()
+        public async Task FindLambdaExpression()
         {
-            using (var workspace = SetupWorkspace("using System; class Foo { Func<int, int> sqr = x => x*x; }"))
+            using (var workspace = await SetupWorkspaceAsync("using System; class Foo { Func<int, int> sqr = x => x*x; }"))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("sqr").Single();
@@ -373,9 +374,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void OrderingOfConstructorsAndTypes()
+        public async Task OrderingOfConstructorsAndTypes()
         {
-            using (var workspace = SetupWorkspace(@"
+            using (var workspace = await SetupWorkspaceAsync(@"
                 class C1
                 {
                     C1(int i) {}
@@ -401,10 +402,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void StartStopSanity()
+        public async Task StartStopSanity()
         {
             // Verify that multiple calls to start/stop and dispose don't blow up
-            using (var workspace = SetupWorkspace("public class Foo { }"))
+            using (var workspace = await SetupWorkspaceAsync("public class Foo { }"))
             {
                 // Do one set of queries
                 Assert.Single(_aggregator.GetItems("Foo").Where(x => x.Kind != "Method"));
@@ -420,10 +421,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void DescriptionItems()
+        public async Task DescriptionItems()
         {
             var code = new string[] { "public", "class", "Foo", "{ }" };
-            using (var workspace = SetupWorkspace(string.Join(Environment.NewLine, code)))
+            using (var workspace = await SetupWorkspaceAsync(string.Join(Environment.NewLine, code)))
             {
                 var item = _aggregator.GetItems("F").Single(x => x.Kind != "Method");
                 var itemDisplay = item.DisplayFactory.CreateItemDisplay(item);
@@ -443,10 +444,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void TermSplittingTest1()
+        public async Task TermSplittingTest1()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-            using (var workspace = SetupWorkspace(source))
+            using (var workspace = await SetupWorkspaceAsync(source))
             {
                 var expecteditem1 = new NavigateToItem("get_keyword", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
                 var expecteditem2 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
@@ -462,10 +463,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void TermSplittingTest2()
+        public async Task TermSplittingTest2()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-            using (var workspace = SetupWorkspace(source))
+            using (var workspace = await SetupWorkspaceAsync(source))
             {
                 var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
                 var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, true, null);
@@ -478,10 +479,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void TermSplittingTest3()
+        public async Task TermSplittingTest3()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-            using (var workspace = SetupWorkspace(source))
+            using (var workspace = await SetupWorkspaceAsync(source))
             {
                 var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
                 var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Substring, true, null);
@@ -494,10 +495,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void TermSplittingTest4()
+        public async Task TermSplittingTest4()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-            using (var workspace = SetupWorkspace(source))
+            using (var workspace = await SetupWorkspaceAsync(source))
             {
                 var items = _aggregator.GetItems("WKG");
                 Assert.Empty(items);
@@ -505,10 +506,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void TermSplittingTest5()
+        public async Task TermSplittingTest5()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-            using (var workspace = SetupWorkspace(source))
+            using (var workspace = await SetupWorkspaceAsync(source))
             {
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate);
                 var item = _aggregator.GetItems("G_K_W").Single();
@@ -517,11 +518,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void TermSplittingTest7()
+        public async Task TermSplittingTest7()
         {
             ////Diff from dev10
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-            using (var workspace = SetupWorkspace(source))
+            using (var workspace = await SetupWorkspaceAsync(source))
             {
                 var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Regular, null);
                 var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, MatchKind.Substring, true, null);
@@ -534,11 +535,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public void TermSplittingTest8()
+        public async Task TermSplittingTest8()
         {
             ////Diff from dev10
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
-            using (var workspace = SetupWorkspace(source))
+            using (var workspace = await SetupWorkspaceAsync(source))
             {
                 var items = _aggregator.GetItems("GTW");
                 Assert.Empty(items);

@@ -1,42 +1,42 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Public Class VisualBasicGoToAdjacentMemberTests
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+    Public Async Function EmptyFile() As Task
+        Assert.Null(Await GetTargetPositionAsync("$$", next:=True))
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub EmptyFile()
-        Assert.Null(GetTargetPosition("$$", next:=True))
-    End Sub
-
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
-    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub ClassWithNoMembers()
+    Public Async Function ClassWithNoMembers() As Task
         Dim code = "Class C
 $$
 End Class"
-        Assert.Null(GetTargetPosition(code, next:=True))
-    End Sub
+        Assert.Null(Await GetTargetPositionAsync(code, next:=True))
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub BeforeClassWithMember()
+    Public Async Function BeforeClassWithMember() As Task
         Dim code = "$$
 Class C
     [||]Sub M()
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub AfterClassWithMember()
+    Public Async Function AfterClassWithMember() As Task
         Dim code = "
 Class C
     [||]Sub M()
@@ -45,12 +45,12 @@ End Class
 
 $$"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub BetweenClasses()
+    Public Async Function BetweenClasses() As Task
         Dim code = "
 Class C1
     Sub M()
@@ -64,12 +64,12 @@ Class C2
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub BetweenClassesPrevious()
+    Public Async Function BetweenClassesPrevious() As Task
         Dim code = "
 Class C1
     [||]Sub M()
@@ -83,12 +83,12 @@ Class C2
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=False)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=False)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub FromFirstMemberToSecond()
+    Public Async Function FromFirstMemberToSecond() As Task
         Dim code = "
 Class C
     $$Sub M1()
@@ -97,12 +97,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub FromSecondToFirst()
+    Public Async Function FromSecondToFirst() As Task
         Dim code = "
 Class C
     [||]Sub M1()
@@ -111,12 +111,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=False)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=False)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub NextWraps()
+    Public Async Function NextWraps() As Task
         Dim code = "
 Class C
     [||]Sub M1()
@@ -125,12 +125,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub PreviousWraps()
+    Public Async Function PreviousWraps() As Task
         Dim code = "
 Class C
     $$Sub M1()
@@ -139,12 +139,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=False)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=False)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub DescendsIntoNestedType()
+    Public Async Function DescendsIntoNestedType() As Task
         Dim code = "
 Class C
     $$Sub M1()
@@ -156,12 +156,12 @@ Class C
     End Class
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub StopsAtConstructor()
+    Public Async Function StopsAtConstructor() As Task
         Dim code = "
 Class C
     $$Sub M1()
@@ -170,12 +170,12 @@ Class C
     [||]Public Sub New()
     End Sub
 End Class"
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub StopsAtOperator()
+    Public Async Function StopsAtOperator() As Task
         Dim code = "
 Class C
     $$Sub M1()
@@ -184,8 +184,8 @@ Class C
         Throw New System.NotImplementedException()
     End Operator
 End Class"
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     Shared Operator +(left As VisualBasicGoToAdjacentMemberTests, right As VisualBasicGoToAdjacentMemberTests) As VisualBasicGoToAdjacentMemberTests
         Throw New System.NotImplementedException()
@@ -194,7 +194,7 @@ End Class"
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub StopsAtField()
+    Public Async Function StopsAtField() As Task
         Dim code = "
 Class C
     $$Sub M1()
@@ -202,12 +202,12 @@ Class C
 
     [||]Dim f as Integer
 End Class"
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub StopsAtFieldlikeEvent()
+    Public Async Function StopsAtFieldlikeEvent() As Task
         Dim code = "
 Class C
     $$Sub M1()
@@ -215,24 +215,24 @@ Class C
 
     [||]Event E As System.EventHandler
 End Class"
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub StopsAtAutoProperty()
+    Public Async Function StopsAtAutoProperty() As Task
         Dim code = "
 Class C
     $$Sub M1()
     End Sub
     [||]Property P As Integer
 End Class"
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub StopsAtPropertyWithAccessors()
+    Public Async Function StopsAtPropertyWithAccessors() As Task
         Dim code = "
 Class C
     $$Sub M1()
@@ -247,12 +247,12 @@ Class C
     End Property
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub SkipsPropertyAccessors()
+    Public Async Function SkipsPropertyAccessors() As Task
         Dim code = "
 Class C
     Sub M1()
@@ -270,12 +270,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub FromInsidePropertyAccessor()
+    Public Async Function FromInsidePropertyAccessor() As Task
         Dim code = "
 Class C
     Sub M1()
@@ -293,12 +293,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub StopsAtEventWithAddRemove()
+    Public Async Function StopsAtEventWithAddRemove() As Task
         Dim code = "
 Class C
     $$Sub M1()
@@ -317,12 +317,12 @@ Class C
     End Event
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub SkipsEventAddRemove()
+    Public Async Function SkipsEventAddRemove() As Task
         Dim code = "
 Class C
     Sub M1()
@@ -344,12 +344,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub FromInsideMethod()
+    Public Async Function FromInsideMethod() As Task
         Dim code = "
 Class C
     Sub M1()
@@ -360,12 +360,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub NextFromBetweenMethods()
+    Public Async Function NextFromBetweenMethods() As Task
         Dim code = "
 Class C
     Sub M1()
@@ -377,12 +377,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub PreviousFromBetweenMethods()
+    Public Async Function PreviousFromBetweenMethods() As Task
         Dim code = "
 Class C
     [||]Sub M1()
@@ -394,12 +394,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=False)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=False)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub NextFromBetweenMethodsInTrailingTrivia()
+    Public Async Function NextFromBetweenMethodsInTrailingTrivia() As Task
         Dim code = "
 Class C
     Sub M1()
@@ -409,12 +409,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=True)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub PreviousFromBetweenMethodsInTrailingTrivia()
+    Public Async Function PreviousFromBetweenMethodsInTrailingTrivia() As Task
         Dim code = "
 Class C
     [||]Sub M1()
@@ -424,12 +424,12 @@ Class C
     End Sub
 End Class"
 
-        AssertNavigated(code, next:=False)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=False)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub NextInScript()
+    Public Async Function NextInScript() As Task
         Dim code = "
 $$Sub M1()
 End Sub
@@ -437,12 +437,12 @@ End Sub
 [||]Sub M2()
 End Sub"
 
-        AssertNavigated(code, next:=True, kind:=SourceCodeKind.Script)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=True, kind:=SourceCodeKind.Script)
+    End Function
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
-    Public Sub PrevInScript()
+    Public Async Function PrevInScript() As Task
         Dim code = "
 [||]Sub M1()
 End Sub
@@ -450,24 +450,24 @@ End Sub
 $$Sub M2()
 End Sub"
 
-        AssertNavigated(code, next:=False, kind:=SourceCodeKind.Script)
-    End Sub
+        Await AssertNavigatedAsync(code, next:=False, kind:=SourceCodeKind.Script)
+    End Function
 
-    Private Sub AssertNavigated(code As String, [next] As Boolean, Optional kind As SourceCodeKind? = Nothing)
+    Private Async Function AssertNavigatedAsync(code As String, [next] As Boolean, Optional kind As SourceCodeKind? = Nothing) As Task
 
         Dim kinds = If(kind IsNot Nothing,
                 SpecializedCollections.SingletonEnumerable(kind.Value),
                  {SourceCodeKind.Regular, SourceCodeKind.Script})
         For Each currentKind In kinds
-            Using workspace = TestWorkspaceFactory.CreateWorkspaceFromLines(
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(
                 LanguageNames.VisualBasic,
                 New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 VisualBasicParseOptions.Default.WithKind(currentKind),
                 code)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics())
-                Dim targetPosition = GoToAdjacentMemberCommandHandler.GetTargetPosition(
+                Assert.Empty((Await document.GetSyntaxTreeAsync()).GetDiagnostics())
+                Dim targetPosition = Await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
                         document,
                         hostDocument.CursorPosition.Value,
                         [next],
@@ -477,18 +477,18 @@ End Sub"
                 Assert.Equal(hostDocument.SelectedSpans.Single().Start, targetPosition.Value)
             End Using
         Next
-    End Sub
+    End Function
 
-    Private Function GetTargetPosition(code As String, [next] As Boolean) As Integer?
-        Using workspace = TestWorkspaceFactory.CreateWorkspaceFromLines(
+    Private Async Function GetTargetPositionAsync(code As String, [next] As Boolean) As Task(Of Integer?)
+        Using workspace = Await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(
                 LanguageNames.VisualBasic,
                 New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 VisualBasicParseOptions.Default,
                 code)
             Dim hostDocument = workspace.DocumentWithCursor
             Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-            Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics())
-            Return GoToAdjacentMemberCommandHandler.GetTargetPosition(
+            Assert.Empty((Await document.GetSyntaxTreeAsync()).GetDiagnostics())
+            Return Await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
                     document,
                     hostDocument.CursorPosition.Value,
                     [next],

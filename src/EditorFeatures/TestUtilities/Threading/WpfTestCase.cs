@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Threading;
 
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -27,7 +28,7 @@ namespace Roslyn.Test.Utilities
                 try
                 {
                     // Sync up FTAO to the context that we are creating here. 
-                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = new ForegroundThreadData(
+                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(
                         Thread.CurrentThread,
                         StaTaskScheduler.DefaultSta,
                         ForegroundThreadDataKind.StaUnitTest);
@@ -57,11 +58,12 @@ namespace Roslyn.Test.Utilities
                             cancellationTokenSource.Token,
                             TaskCreationOptions.None,
                             sta).ConfigureAwait(false);
-                    } while (true);
+                    }
+                    while (true);
                 }
                 finally
                 {
-                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = null;
+                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = null;
 
                     // Cleanup the synchronization context even if the test is failing exceptionally
                     SynchronizationContext.SetSynchronizationContext(null);

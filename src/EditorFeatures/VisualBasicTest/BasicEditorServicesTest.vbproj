@@ -271,6 +271,7 @@
     <Compile Include="Formatting\Indentation\SmartIndentProviderTests.vb" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatter_FormatTokenTests.vb" />
     <Compile Include="Formatting\XmlLiterals.Designer.vb" />
+    <Compile Include="Outlining\AbstractVisualBasicSyntaxTriviaOutlinerTests.vb" />
     <Compile Include="VisualBasicGoToAdjacentMemberTests.vb" />
     <Compile Include="KeywordHighlighting\AbstractVisualBasicKeywordHighlighterTests.vb" />
     <Compile Include="KeywordHighlighting\AccessorDeclarationHighlighterTests.vb" />
@@ -313,8 +314,7 @@
     <Compile Include="Organizing\OrganizeImportsTests.vb" />
     <Compile Include="Organizing\OrganizeModifiersTests.vb" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.vb" />
-    <Compile Include="Outlining\AbstractOutlinerTests.vb" />
-    <Compile Include="Outlining\AbstractOutlinerTests`1.vb" />
+    <Compile Include="Outlining\AbstractVisualBasicSyntaxNodeOutlinerTests.vb" />
     <Compile Include="Outlining\AccessorDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\CommentTests.vb" />
     <Compile Include="Outlining\CompilationUnitOutlinerTests.vb" />

@@ -30,69 +30,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Return StringFromLines(adjustedLines.ToArray())
         End Function
 
-        Protected Sub AssertFormatLf2CrLf(code As String, expected As String, Optional optionSet As Dictionary(Of OptionKey, Object) = Nothing)
+        Protected Function AssertFormatLf2CrLfAsync(code As String, expected As String, Optional optionSet As Dictionary(Of OptionKey, Object) = Nothing) As Task
             code = code.Replace(vbLf, vbCrLf)
             expected = expected.Replace(vbLf, vbCrLf)
 
-            AssertFormat(code, expected, changedOptionSet:=optionSet)
-        End Sub
+            Return AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
+        End Function
 
-        Protected Sub AssertFormatUsingAllEntryPoints(code As String, expected As String)
+        Protected Async Function AssertFormatUsingAllEntryPointsAsync(code As String, expected As String) As Task
             Using workspace = New AdhocWorkspace()
 
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(code))
-                Dim syntaxTree = document.GetSyntaxTreeAsync().Result
+                Dim syntaxTree = Await document.GetSyntaxTreeAsync()
 
                 ' Test various entry points into the formatter
 
                 Dim spans = New List(Of TextSpan)()
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
-                Dim changes = Formatter.GetFormattedTextChanges(syntaxTree.GetRoot(CancellationToken.None), workspace, cancellationToken:=CancellationToken.None)
-                AssertResult(expected, document.GetTextAsync().Result, changes)
+                Dim changes = Await Formatter.GetFormattedTextChangesAsync(syntaxTree.GetRoot(CancellationToken.None), workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
+                AssertResult(expected, Await document.GetTextAsync(), changes)
 
-                changes = Formatter.GetFormattedTextChanges(syntaxTree.GetRoot(), syntaxTree.GetRoot(CancellationToken.None).FullSpan, workspace, cancellationToken:=CancellationToken.None)
-                AssertResult(expected, document.GetTextAsync().Result, changes)
+                changes = Await Formatter.GetFormattedTextChangesAsync(syntaxTree.GetRoot(), syntaxTree.GetRoot(CancellationToken.None).FullSpan, workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
+                AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 spans = New List(Of TextSpan)()
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
-                changes = Formatter.GetFormattedTextChanges(syntaxTree.GetRoot(CancellationToken.None), spans, workspace, cancellationToken:=CancellationToken.None)
-                AssertResult(expected, document.GetTextAsync().Result, changes)
+                changes = Await Formatter.GetFormattedTextChangesAsync(syntaxTree.GetRoot(CancellationToken.None), spans, workspace, cancellationToken:=CancellationToken.None).ConfigureAwait(True)
+                AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 ' format with node and transform
-                AssertFormatWithTransformation(workspace, expected, syntaxTree.GetRoot(), spans, Nothing, False)
+                Await AssertFormatWithTransformationAsync(workspace, expected, syntaxTree.GetRoot(), spans, Nothing, False)
             End Using
-        End Sub
+        End Function
 
-        Protected Sub AssertFormatSpan(markupCode As String, expected As String)
+        Protected Function AssertFormatSpanAsync(markupCode As String, expected As String) As Task
             Dim code As String = Nothing
             Dim cursorPosition As Integer? = Nothing
             Dim spans As IList(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(markupCode, code, spans)
 
-            AssertFormat(expected, code, spans)
-        End Sub
+            Return AssertFormatAsync(expected, code, spans)
+        End Function
 
-        Protected Overloads Sub AssertFormat(
+        Protected Overloads Function AssertFormatAsync(
             code As String,
             expected As String,
             Optional debugMode As Boolean = False,
             Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
             Optional testWithTransformation As Boolean = False,
-            Optional experimental As Boolean = False)
-            AssertFormat(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, experimental:=experimental)
-        End Sub
+            Optional experimental As Boolean = False) As Task
+            Return AssertFormatAsync(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, experimental:=experimental)
+        End Function
 
-        Protected Overloads Sub AssertFormat(
+        Protected Overloads Function AssertFormatAsync(
             expected As String,
             code As String,
             spans As IEnumerable(Of TextSpan),
             Optional debugMode As Boolean = False,
             Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
             Optional testWithTransformation As Boolean = False,
-            Optional experimental As Boolean = False)
+            Optional experimental As Boolean = False) As Task
 
             Dim parseOptions = New VisualBasicParseOptions()
             If (experimental) Then
@@ -100,8 +100,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 ' parseOptions = parseOptions.WithExperimentalFeatures
             End If
 
-            AssertFormat(expected, code, spans, LanguageNames.VisualBasic, debugMode, changedOptionSet, testWithTransformation, parseOptions)
-        End Sub
+            Return AssertFormatAsync(expected, code, spans, LanguageNames.VisualBasic, debugMode, changedOptionSet, testWithTransformation, parseOptions)
+        End Function
 
         Private Function StringFromLines(ParamArray lines As String()) As String
             Return String.Join(Environment.NewLine, lines)

@@ -16,6 +16,7 @@ namespace Roslyn.Test.Utilities
         public static class Features
         {
             public const string Adornments = "Adornments";
+            public const string AsyncLazy = nameof(AsyncLazy);
             public const string AutomaticEndConstructCorrection = "AutomaticEndConstructCorrection";
             public const string AutomaticCompletion = "AutomaticCompletion";
             public const string BraceHighlighting = "BraceHighlighting";

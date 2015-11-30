@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
     public class OrganizeModifiersTests : AbstractOrganizerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestTypes1()
+        public async Task TestTypes1()
         {
             var initial =
 @"static public class C {
@@ -18,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 @"public static class C {
 }";
 
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestTypes2()
+        public async Task TestTypes2()
         {
             var initial =
 @"public static class D {
@@ -31,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 @"public static class D {
 }";
 
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestTypes3()
+        public async Task TestTypes3()
         {
             var initial =
 @"public static partial class E {
@@ -44,11 +45,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 @"public static partial class E {
 }";
 
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestTypes4()
+        public async Task TestTypes4()
         {
             var initial =
 @"static public partial class F {
@@ -57,11 +58,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 @"public static partial class F {
 }";
 
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void TestTypes5()
+        public async Task TestTypes5()
         {
             var initial =
 @"unsafe public static class F {
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 @"public static unsafe class F {
 }";
 
-            Check(initial, final);
+            await CheckAsync(initial, final);
         }
     }
 }

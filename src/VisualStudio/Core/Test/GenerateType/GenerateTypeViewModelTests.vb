@@ -2,6 +2,7 @@
 
 Imports System.IO
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -24,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GenerateType
         Private Shared s_submit_passed_unexpectedly As String = "Submit passed unexpectedly. Submit should fail here"
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeExistingFileCSharp()
+        Public Async Function TestGenerateTypeExistingFileCSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 class Program
 {
@@ -41,7 +42,7 @@ namespace A
 
     }
 }"]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, "C#")
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, "C#")
 
             ' Test the default values
             Assert.Equal(0, viewModel.AccessSelectIndex)
@@ -59,10 +60,10 @@ namespace A
             viewModel.IsNewFile = True
             Assert.Equal(True, viewModel.IsNewFile)
             Assert.Equal(False, viewModel.IsExistingFile)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeExistingFileVisualBasic()
+        Public Async Function TestGenerateTypeExistingFileVisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 Module Program
     Sub Main(args As String())
@@ -74,7 +75,7 @@ Namespace A
     Namespace B
     End Namespace
 End Namespace"]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, "Visual Basic")
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, "Visual Basic")
 
             ' Test the default values
             Assert.Equal(0, viewModel.AccessSelectIndex)
@@ -92,10 +93,10 @@ End Namespace"]]></Text>
             viewModel.IsNewFile = True
             Assert.Equal(True, viewModel.IsNewFile)
             Assert.Equal(False, viewModel.IsExistingFile)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeNewFileBothLanguage()
+        Public Async Function TestGenerateTypeNewFileBothLanguage() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 class Program
 {
@@ -112,7 +113,7 @@ namespace A
 
     }
 }"]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, "C#", projectRootFilePath:="C:\OuterFolder\InnerFolder\")
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, "C#", projectRootFilePath:="C:\OuterFolder\InnerFolder\")
 
             viewModel.IsNewFile = True
 
@@ -154,10 +155,10 @@ namespace A
             viewModel.FileName = "w?d\wdd"
             viewModel.UpdateFileNameExtension()
             Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeProjectChangeAndDependencyBothLanguage()
+        Public Async Function TestGenerateTypeProjectChangeAndDependencyBothLanguage() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
                                        <Document FilePath="Test1.cs">
@@ -191,7 +192,7 @@ namespace A
                                    </Project>
                                </Workspace>
 
-            Dim viewModel = GetViewModel(workspaceXml, "")
+            Dim viewModel = Await GetViewModelAsync(workspaceXml, "")
 
             ' Only 2 Projects can be selected because CS2 and CS3 will introduce cyclic dependency
             Assert.Equal(2, viewModel.ProjectList.Count)
@@ -212,10 +213,10 @@ namespace A
 
             monitor.VerifyExpectations()
             monitor.Detach()
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeDisableExistingFileForEmptyProject()
+        Public Async Function TestGenerateTypeDisableExistingFileForEmptyProject() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
                                        <Document FilePath="Test1.cs">
@@ -240,7 +241,7 @@ namespace A
                                    <Project Language="C#" AssemblyName="CS2" CommonReferences="true"/>
                                </Workspace>
 
-            Dim viewModel = GetViewModel(workspaceXml, "")
+            Dim viewModel = Await GetViewModelAsync(workspaceXml, "")
 
             ' Select the project CS2 which has no documents.
             Dim projectToSelect = viewModel.ProjectList.Where(Function(p) p.Name = "CS2").Single().Project
@@ -258,11 +259,11 @@ namespace A
             ' Check if the option for Existing File is enabled
             Assert.Equal(2, viewModel.DocumentList.Count())
             Assert.Equal(True, viewModel.IsExistingFileEnabled)
-        End Sub
+        End Function
 
         <WorkItem(858815)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeAllowPublicAccessOnlyForGenerationIntoOtherProject()
+        Public Async Function TestGenerateTypeAllowPublicAccessOnlyForGenerationIntoOtherProject() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
                                        <Document FilePath="Test1.cs">
@@ -287,7 +288,7 @@ namespace A
                                    <Project Language="C#" AssemblyName="CS2" CommonReferences="true"/>
                                </Workspace>
 
-            Dim viewModel = GetViewModel(workspaceXml, "")
+            Dim viewModel = Await GetViewModelAsync(workspaceXml, "")
 
             viewModel.SelectedAccessibilityString = "Default"
 
@@ -308,11 +309,11 @@ namespace A
 
             ' Check if AccessKind list is enabled again
             Assert.Equal(True, viewModel.IsAccessListEnabled)
-        End Sub
+        End Function
 
         <WorkItem(858815)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeAllowClassTypeKindForAttribute_CSharp()
+        Public Async Function TestGenerateTypeAllowClassTypeKindForAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 [Foo$$]
 class Program
@@ -321,90 +322,90 @@ class Program
     {
     }
 }]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Attribute, isAttribute:=True)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Attribute, isAttribute:=True)
 
             ' Check if only class is present
             Assert.Equal(1, viewModel.KindList.Count)
             Assert.Equal("class", viewModel.KindList(0))
 
             Assert.Equal("FooAttribute", viewModel.TypeName)
-        End Sub
+        End Function
 
         <WorkItem(858815)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeAllowClassTypeKindForAttribute_VisualBasic()
+        Public Async Function TestGenerateTypeAllowClassTypeKindForAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 <Blah$$>
 Class C
 End Class]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Attribute, isAttribute:=True)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Attribute, isAttribute:=True)
 
             ' Check if only class is present
             Assert.Equal(1, viewModel.KindList.Count)
             Assert.Equal("Class", viewModel.KindList(0))
 
             Assert.Equal("BlahAttribute", viewModel.TypeName)
-        End Sub
+        End Function
 
         <WorkItem(861544)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeWithCapsAttribute_VisualBasic()
+        Public Async Function TestGenerateTypeWithCapsAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 <FooAttribute$$>
 Public class CCC
 End class]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
 
             Assert.Equal("FooAttribute", viewModel.TypeName)
-        End Sub
+        End Function
 
         <WorkItem(861544)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeWithoutCapsAttribute_VisualBasic()
+        Public Async Function TestGenerateTypeWithoutCapsAttribute_VisualBasic() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 <Fooattribute$$>
 Public class CCC
 End class]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
 
             Assert.Equal("FooattributeAttribute", viewModel.TypeName)
-        End Sub
+        End Function
 
         <WorkItem(861544)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeWithCapsAttribute_CSharp()
+        Public Async Function TestGenerateTypeWithCapsAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 [FooAttribute$$]
 public class CCC
 {
 }]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
 
             Assert.Equal("FooAttribute", viewModel.TypeName)
-        End Sub
+        End Function
 
         <WorkItem(861544)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeWithoutCapsAttribute_CSharp()
+        Public Async Function TestGenerateTypeWithoutCapsAttribute_CSharp() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 [Fooattribute$$]
 public class CCC
 {
 }]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=False, isAttribute:=True)
 
             Assert.Equal("FooattributeAttribute", viewModel.TypeName)
-        End Sub
+        End Function
 
 
         <WorkItem(861462)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeCheckOnlyPublic_CSharp_1()
+        Public Async Function TestGenerateTypeCheckOnlyPublic_CSharp_1() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 public class C : $$D
 {
 }]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.BaseList)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.BaseList)
 
             ' Check if interface, class is present
             Assert.Equal(2, viewModel.KindList.Count)
@@ -413,16 +414,16 @@ public class C : $$D
 
             ' Check if all Accessibility are present
             Assert.Equal(3, viewModel.AccessList.Count)
-        End Sub
+        End Function
 
         <WorkItem(861462)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeCheckOnlyPublic_CSharp_2()
+        Public Async Function TestGenerateTypeCheckOnlyPublic_CSharp_2() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 public interface CCC : $$DDD
 {
 }]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Interface, isPublicOnlyAccessibility:=True)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.CSharp, typeKindvalue:=TypeKindOptions.Interface, isPublicOnlyAccessibility:=True)
 
             ' Check if interface, class is present
             Assert.Equal(1, viewModel.KindList.Count)
@@ -430,32 +431,32 @@ public interface CCC : $$DDD
 
             Assert.Equal(1, viewModel.AccessList.Count)
             Assert.Equal("public", viewModel.AccessList(0))
-        End Sub
+        End Function
 
         <WorkItem(861462)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeCheckOnlyPublic_VisualBasic_1()
+        Public Async Function TestGenerateTypeCheckOnlyPublic_VisualBasic_1() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 Public Class C
     Implements $$D
 End Class]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Interface, isPublicOnlyAccessibility:=False)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Interface, isPublicOnlyAccessibility:=False)
 
             ' Check if only Interface is present
             Assert.Equal(1, viewModel.KindList.Count)
             Assert.Equal("Interface", viewModel.KindList(0))
 
             Assert.Equal(3, viewModel.AccessList.Count)
-        End Sub
+        End Function
 
         <WorkItem(861462)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeCheckOnlyPublic_VisualBasic_2()
+        Public Async Function TestGenerateTypeCheckOnlyPublic_VisualBasic_2() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 Public Class CC
     Inherits $$DD
 End Class]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=True)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Class, isPublicOnlyAccessibility:=True)
 
             ' Check if only class is present
             Assert.Equal(1, viewModel.KindList.Count)
@@ -464,16 +465,16 @@ End Class]]></Text>
             ' Check if only Public is present
             Assert.Equal(1, viewModel.AccessList.Count)
             Assert.Equal("Public", viewModel.AccessList(0))
-        End Sub
+        End Function
 
         <WorkItem(861462)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeCheckOnlyPublic_VisualBasic_3()
+        Public Async Function TestGenerateTypeCheckOnlyPublic_VisualBasic_3() As Task
             Dim documentContentMarkup = <Text><![CDATA[
 Public Interface CCC
     Inherits $$DDD
 End Interface]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Interface, isPublicOnlyAccessibility:=True)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkup, LanguageNames.VisualBasic, typeKindvalue:=TypeKindOptions.Interface, isPublicOnlyAccessibility:=True)
 
             ' Check if only class is present
             Assert.Equal(1, viewModel.KindList.Count)
@@ -482,11 +483,11 @@ End Interface]]></Text>
             ' Check if only Public is present
             Assert.Equal(1, viewModel.AccessList.Count)
             Assert.Equal("Public", viewModel.AccessList(0))
-        End Sub
+        End Function
 
         <WorkItem(861362)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeWithModuleOption()
+        Public Async Function TestGenerateTypeWithModuleOption() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="Visual Basic" AssemblyName="VB1" CommonReferences="true">
                                        <Document FilePath="Test1.vb">
@@ -502,7 +503,7 @@ End Namespace                                       </Document>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true"/>
                                </Workspace>
 
-            Dim viewModel = GetViewModel(workspaceXml, "", typeKindvalue:=TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module)
+            Dim viewModel = Await GetViewModelAsync(workspaceXml, "", typeKindvalue:=TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module)
 
             ' Check if Module is present in addition to the normal options
             Assert.Equal(3, viewModel.KindList.Count)
@@ -519,11 +520,11 @@ End Namespace                                       </Document>
             viewModel.SelectedProject = projectToSelect
 
             Assert.Equal(3, viewModel.KindList.Count)
-        End Sub
+        End Function
 
         <WorkItem(858826)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeFileExtensionUpdate()
+        Public Async Function TestGenerateTypeFileExtensionUpdate() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
                                        <Document FilePath="Test1.cs">
@@ -542,7 +543,7 @@ class Program
                                    </Project>
                                </Workspace>
 
-            Dim viewModel = GetViewModel(workspaceXml, "")
+            Dim viewModel = Await GetViewModelAsync(workspaceXml, "")
 
             ' Assert the current display
             Assert.Equal(viewModel.FileName, "Foo.cs")
@@ -569,10 +570,10 @@ class Program
 
             ' Assert that the filename changes accordingly
             Assert.Equal(viewModel.FileName, "Foo.cs")
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeExcludeGeneratedDocumentsFromList()
+        Public Async Function TestGenerateTypeExcludeGeneratedDocumentsFromList() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
                                        <Document FilePath="Test1.cs">$$</Document>
@@ -583,14 +584,14 @@ class Program
                                    </Project>
                                </Workspace>
 
-            Dim viewModel = GetViewModel(workspaceXml, LanguageNames.CSharp)
+            Dim viewModel = Await GetViewModelAsync(workspaceXml, LanguageNames.CSharp)
 
             Dim expectedDocuments = {"Test1.cs", "Test2.cs", "AssemblyInfo.cs", "Test3.cs"}
             Assert.Equal(expectedDocuments, viewModel.DocumentList.Select(Function(d) d.Document.Name).ToArray())
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeIntoGeneratedDocument()
+        Public Async Function TestGenerateTypeIntoGeneratedDocument() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true">
                                        <Document FilePath="Test.generated.cs">
@@ -606,7 +607,7 @@ class Program
                                    </Project>
                                </Workspace>
 
-            Dim viewModel = GetViewModel(workspaceXml, LanguageNames.CSharp)
+            Dim viewModel = Await GetViewModelAsync(workspaceXml, LanguageNames.CSharp)
 
             ' Test the default values
             Assert.Equal(0, viewModel.AccessSelectIndex)
@@ -614,10 +615,10 @@ class Program
             Assert.Equal("Foo", viewModel.TypeName)
             Assert.Equal("Foo.cs", viewModel.FileName)
             Assert.Equal("Test.generated.cs", viewModel.SelectedDocument.Name)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeNewFileNameOptions()
+        Public Async Function TestGenerateTypeNewFileNameOptions() As Task
             Dim workspaceXml = <Workspace>
                                    <Project Language="C#" AssemblyName="CS1" CommonReferences="true" FilePath="C:\A\B\CS1.csproj">
                                        <Document FilePath="C:\A\B\CDE\F\Test1.cs">
@@ -638,7 +639,7 @@ class Program
                                </Workspace>
             Dim projectFolder = PopulateProjectFolders(New List(Of String)(), "\outer\", "\outer\inner\")
 
-            Dim viewModel = GetViewModel(workspaceXml, "", projectFolders:=projectFolder)
+            Dim viewModel = Await GetViewModelAsync(workspaceXml, "", projectFolders:=projectFolder)
 
             viewModel.IsNewFile = True
 
@@ -681,11 +682,11 @@ class Program
             viewModel.FileName = "..\.\..\.\foo.cs"
             viewModel.UpdateFileNameExtension()
             Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
-        End Sub
+        End Function
 
         <WorkItem(898452)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateTypeIntoNewFileWithInvalidIdentifierFolderName()
+        Public Async Function TestGenerateTypeIntoNewFileWithInvalidIdentifierFolderName() As Task
             Dim documentContentMarkupCSharp = <Text><![CDATA[
 class Program
 {
@@ -702,7 +703,7 @@ namespace A
 
     }
 }"]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkupCSharp, "C#", projectRootFilePath:="C:\OuterFolder\InnerFolder\")
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkupCSharp, "C#", projectRootFilePath:="C:\OuterFolder\InnerFolder\")
 
             viewModel.IsNewFile = True
             Dim foldersAreInvalid = "Folders are not valid identifiers"
@@ -740,7 +741,7 @@ namespace A
 
     }
 }"]]></Text>
-            viewModel = GetViewModel(documentContentMarkupVB, "Visual Basic", projectRootFilePath:="C:\OuterFolder1\InnerFolder1\")
+            viewModel = Await GetViewModelAsync(documentContentMarkupVB, "Visual Basic", projectRootFilePath:="C:\OuterFolder1\InnerFolder1\")
 
             viewModel.IsNewFile = True
             viewModel.FileName = "123\456\Wow.vb"
@@ -760,11 +761,11 @@ namespace A
             viewModel.UpdateFileNameExtension()
             Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
-        End Sub
+        End Function
 
         <WorkItem(898563)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
-        Public Sub GenerateType_DontGenerateIntoExistingFile()
+        Public Async Function TestGenerateType_DontGenerateIntoExistingFile() As Task
             ' Get a Temp Folder Path
             Dim projectRootFolder = Path.GetTempPath()
 
@@ -796,7 +797,7 @@ namespace A
 
     }
 }"]]></Text>
-            Dim viewModel = GetViewModel(documentContentMarkupCSharp, "C#", projectRootFilePath:=projectRootFolder)
+            Dim viewModel = Await GetViewModelAsync(documentContentMarkupCSharp, "C#", projectRootFilePath:=projectRootFolder)
 
             viewModel.IsNewFile = True
             viewModel.FileName = randomFileName
@@ -805,7 +806,7 @@ namespace A
 
             ' Cleanup
             File.Delete(pathString)
-        End Sub
+        End Function
 
         Private Function PopulateProjectFolders(list As List(Of String), ParamArray values As String()) As List(Of String)
             list.AddRange(values)
@@ -836,7 +837,7 @@ namespace A
             End If
         End Function
 
-        Private Function GetViewModel(
+        Private Async Function GetViewModelAsync(
             content As XElement,
             languageName As String,
             Optional isNewFile As Boolean = False,
@@ -848,15 +849,15 @@ namespace A
             Optional isPublicOnlyAccessibility As Boolean = False,
             Optional isAttribute As Boolean = False,
             Optional projectFolders As List(Of String) = Nothing,
-            Optional projectRootFilePath As String = Nothing) As GenerateTypeDialogViewModel
+            Optional projectRootFilePath As String = Nothing) As Tasks.Task(Of GenerateTypeDialogViewModel)
 
             Dim workspaceXml = If(content.Name.LocalName = "Workspace", content, GetOneProjectWorkspace(content, languageName, projectName, documentName, projectRootFilePath))
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(workspaceXml)
                 Dim testDoc = workspace.Documents.SingleOrDefault(Function(d) d.CursorPosition.HasValue)
                 Assert.NotNull(testDoc)
                 Dim document = workspace.CurrentSolution.GetDocument(testDoc.Id)
 
-                Dim token = document.GetSyntaxTreeAsync().Result.GetTouchingWord(testDoc.CursorPosition.Value, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim token = (Await document.GetSyntaxTreeAsync()).GetTouchingWord(testDoc.CursorPosition.Value, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim typeName = token.ToString()
 
                 Dim testProjectManagementService As IProjectManagementService = Nothing
