@@ -79,12 +79,13 @@ other Visual Studio SDK projects. If you're familiar with the idea of Visual
 Studio hives, we deploy into the RoslynDev root suffix.
 
 If you want to try your extension in your day-to-day use of Visual Studio, you
-can find the extensions you built in your Binaries folder with the .vsix extension.
-You can double-click the extension to install it into your
-main Visual Studio hive. This will replace the base installed version. You can
-uninstall your version and go back to the "real" version by going Tools >
-Extensions and Updates, finding your extension, and choosing Uninstall. Your
-extension should be marked with the "Experimental" flag.
+can find the extensions you built in your Binaries folder with the .vsix
+extension. You can double-click the extension to install it into your main
+Visual Studio hive. This will replace the base installed version. Once it's
+installed, you'll see it marked as "Experimental" in Tools > Extensions and
+Updates to indicate you're running your experimental version. You can uninstall
+your version and go back to the "real" version choosing your version and
+clicking Uninstall.
 
 # Contributing
 
