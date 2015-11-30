@@ -201,6 +201,10 @@ build_roslyn()
     local bootstrap_arg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
 /p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
 
+    # TODO: Toss this temporary debug code
+    echo Trying to build TestRuntime.FX46.csproj
+    run_msbuild /nologo $bootstrap_arg src/Test/Utilities/Runtime.FX46/TestRuntime.FX46.csproj /fileloggerparameters:LogFile=Binaries/TestRuntime.FX46.log /fileloggerparameters:Verbosity=diag || true
+
     echo Building CrossPlatform.sln
     run_msbuild /nologo $bootstrap_arg CrossPlatform.sln /fileloggerparameters:LogFile=Binaries/Build.log
 }
