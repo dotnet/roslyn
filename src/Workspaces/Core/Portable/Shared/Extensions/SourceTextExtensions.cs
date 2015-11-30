@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool AreOnSameLine(this SourceText text, SyntaxToken token1, SyntaxToken token2)
         {
             return token1.RawKind != 0 &&
-                token2.RawKind != 0 && 
+                token2.RawKind != 0 &&
                 text.Lines.IndexOf(token1.Span.End) == text.Lines.IndexOf(token2.SpanStart);
         }
     }

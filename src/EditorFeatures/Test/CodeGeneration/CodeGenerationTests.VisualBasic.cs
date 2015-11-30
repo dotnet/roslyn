@@ -1000,7 +1000,7 @@ End Class";
             {
                 var input = "[|Class C \n End Class \n Class D \n End Class|]";
                 var expected = "<Assembly: Serializable> Class C \n End Class \n Class D \n End Class";
-                await Assert.ThrowsAsync<AggregateException>(async () => 
+                await Assert.ThrowsAsync<AggregateException>(async () =>
                     await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), VB.SyntaxFactory.Token(VB.SyntaxKind.ReturnKeyword)));
             }
 

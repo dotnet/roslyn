@@ -70,12 +70,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     var waitContext = waitIndicator.StartWait(title, ServicesVSResources.BuildingProject, allowCancel: true);
 
                     var resetInteractiveTask = ResetInteractiveAsync(
-                        vsInteractiveWindow, 
+                        vsInteractiveWindow,
                         references.ToImmutableArray(),
-                        referenceSearchPaths.ToImmutableArray(), 
-                        sourceSearchPaths.ToImmutableArray(), 
-                        namespacesToImport.ToImmutableArray(), 
-                        projectDirectory, 
+                        referenceSearchPaths.ToImmutableArray(),
+                        sourceSearchPaths.ToImmutableArray(),
+                        namespacesToImport.ToImmutableArray(),
+                        projectDirectory,
                         waitContext);
 
                     // Once we're done resetting, dismiss the wait indicator and focus the REPL window.

@@ -6593,7 +6593,7 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Async Function SharedProjectFieldAndPropertiesTreatedAsIdentical() As Task
+        Public Async Function SharedProjectFieldAndPropertiesTreatedAsIdentical() As Task
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="ONE=True">
                                  <Document FilePath="CurrentDocument.vb"><![CDATA[

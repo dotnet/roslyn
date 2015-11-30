@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 string assemblyName = this.GetAssemblyName();
 
                 return new ProjectFileInfo(
-                    outputPath, 
-                    assemblyName, 
+                    outputPath,
+                    assemblyName,
                     compilerInputs.CommandLineArgs,
                     this.GetDocuments(compilerInputs.Sources, executedProject),
-                    this.GetDocuments(compilerInputs.AdditionalFiles, executedProject), 
+                    this.GetDocuments(compilerInputs.AdditionalFiles, executedProject),
                     base.GetProjectReferences(executedProject));
             }
 
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                             _commandLineArgs.Add("/additionalfile:\"" + _projectFile.GetDocumentFilePath(af) + "\"");
                         }
                     }
-                        
+
                     return true;
                 }
 

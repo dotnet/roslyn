@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 {
     internal interface IPreviewPaneService : IWorkspaceService
     {
-        object GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, object previewContent); 
+        object GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, object previewContent);
     }
 }

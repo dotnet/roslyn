@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private static bool IsTouchDocumentActionForDocument(ValueTuple<ProjectState, CompilationTranslationAction> tuple, DocumentId id)
-            { 
+            {
                 var touchDocumentAction = tuple.Item2 as CompilationTranslationAction.TouchDocumentAction;
                 return touchDocumentAction != null && touchDocumentAction.DocumentId == id;
             }

@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
 {
-    abstract class AbstractGoToImplementationService : IGoToImplementationService
+    internal abstract class AbstractGoToImplementationService : IGoToImplementationService
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemPresenters;
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
             }
             else if (mapping.Symbol.IsOverridable())
             {
-                var overrides = 
+                var overrides =
                     SymbolFinder.FindOverridesAsync(mapping.Symbol, mapping.Solution, cancellationToken: cancellationToken)
                         .WaitAndGetResult(cancellationToken)
                         .ToList();
@@ -122,6 +122,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToImplementation
                 implementation,
                 displayString: symbolDisplayService.ToDisplayString(implementation));
         }
-
     }
 }

@@ -69,17 +69,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
         internal static DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
         {
-            return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, workspace, document.Project.Id, 
+            return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, workspace, document.Project.Id,
                 new DiagnosticDataLocation(document.Id, span));
         }
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
-            private ImmutableArray<DiagnosticData> diagnostics = ImmutableArray<DiagnosticData>.Empty;
+            private ImmutableArray<DiagnosticData> _diagnostics = ImmutableArray<DiagnosticData>.Empty;
 
             public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
             {
-                this.diagnostics = args.Diagnostics;
+                _diagnostics = args.Diagnostics;
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
             {
-                return includeSuppressedDiagnostics ? diagnostics : diagnostics.WhereAsArray(d => !d.IsSuppressed);
+                return includeSuppressedDiagnostics ? _diagnostics : _diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
         }
     }

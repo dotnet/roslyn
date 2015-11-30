@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 ApplyBeginningOfTreeTriviaOperation(context, tokenStream, cancellationToken);
 
-                await ApplyTokenOperationsAsync(context, tokenStream, anchorContextTask, nodeOperations, 
+                await ApplyTokenOperationsAsync(context, tokenStream, anchorContextTask, nodeOperations,
                     await tokenOperationTask.ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
                 ApplyTriviaOperations(context, tokenStream, cancellationToken);
