@@ -4,6 +4,8 @@
 
 [Project Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap)
 
+[Labels used for Issues](https://github.com/dotnet/roslyn/wiki/Labels-used-for-issues)
+
 ***
 #Contributors
 [Building, Testing, and Debugging](https://github.com/dotnet/roslyn/wiki/Building-Testing-and-Debugging)
