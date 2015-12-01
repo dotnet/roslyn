@@ -126,6 +126,5 @@ namespace RunTests
                 Process.Start(testResult.ResultsFilePath);
             }
         }
->>>>>>> Separated out responsibilities a bit
     }
 }
