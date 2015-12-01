@@ -785,7 +785,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 If _lazyAllSyntaxTrees.IsDefault Then
                     Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
-                    builder.AddRange(_rootNamespaces.Keys)
+                    builder.AddRange(_syntaxTrees)
                     For Each embeddedTree In _embeddedTrees
                         Dim tree = embeddedTree.Tree.Value
                         If tree IsNot Nothing Then

@@ -1378,9 +1378,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _lazyLexicalSortKey
         End Function
 
+        Public Function LocationKey(ByVal l As Location) As Long
+            Debug.Assert(TypeOf l Is SourceLocation)
+            Dim sourceLocation = CType(l, SourceLocation)
+            Dim treeIndex = Me.DeclaringCompilation.GetSyntaxTreeOrdinal(l.SourceTree)
+            If (treeIndex < 0) Then Return 0
+            Dim tree = Me.DeclaringCompilation.AllSyntaxTrees(treeIndex)
+            Return (CLng(treeIndex) << 40) + sourceLocation.SourceSpan.Start
+        End Function
+
         Public NotOverridable Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return _declaration.NameLocations
+                Dim result = _declaration.NameLocations
+                Return If(result.Length < 2, result, result.OrderBy(AddressOf LocationKey).ToImmutableArray())
             End Get
         End Property
 
@@ -1391,7 +1401,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public ReadOnly Property SyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return _declaration.SyntaxReferences
+                Dim result = _declaration.SyntaxReferences
+                Return If(result.Length < 2, result,
+                    result.OrderBy(Function(ByVal r As SyntaxReference) LocationKey(r.GetLocation())).ToImmutableArray())
             End Get
         End Property
 
@@ -2537,21 +2549,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     ByRef instanceInitializers As ArrayBuilder(Of FieldOrPropertyInitializer),
                                     reportAsInvalid As Boolean)
 
-            ' Currently partial methods are not implemented. Here's my current thinking about the 
-            ' right way to implement them:
-            '  There's an accessor on a Method symbol that indicates its fully partial (no definition). After
-            '  calling DeclareMethodMember, we check to see if the signature matches another already defined method.
-            '  If a partial is declared and we already have a method with the same sig, the second partial is ignored and the first
-            '  partial is updated to add the syntax ref from the second.
-            '  If a non-partial is declared and we already have a partial with the same sig, the existing partial is removed
-            '  and its syntax refs are added to the non-partial.
-            '  This should probably be combined with the logic for detecting duplicate signatures in general.
-            '
-            ' Comparing of signature is a bit tricky when generic methods are taken into account. E.g.:
-            '   f(Of T)(a as T)
-            '   f(Of U)(b as U)
-            ' have the same signature, even though a and b have different types.
-            ' The MethodSignatureComparer class takes care of that, so be sure to use it!
+            ' Partial methods are implemented by a postpass that matches up the declaration with the implementation.
+            ' Here we treat them as independent methods.
 
             Select Case memberSyntax.Kind
                 Case SyntaxKind.FieldDeclaration
