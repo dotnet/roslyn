@@ -244,6 +244,37 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbolsMatch;
         }
 
+        internal static bool OriginalSymbolsMatch(
+            ISymbol searchSymbol,
+            ISymbol symbolToMatch,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            if (ReferenceEquals(searchSymbol, symbolToMatch))
+            {
+                return true;
+            }
+
+            if (searchSymbol == null || symbolToMatch == null)
+            {
+                return false;
+            }
+
+            Compilation searchSymbolCompilation = null;
+            if (!TryGetCompilation(searchSymbol, solution, ref searchSymbolCompilation, cancellationToken))
+            {
+                return false;
+            }
+
+            Compilation symbolToMatchCompilation = null;
+            if (!TryGetCompilation(symbolToMatch, solution, ref symbolToMatchCompilation, cancellationToken))
+            {
+                return false;
+            }
+
+            return OriginalSymbolsMatch(searchSymbol, symbolToMatch, solution, ref searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
+        }
+
         private static bool OriginalSymbolsMatch(
             ISymbol searchSymbol,
             ISymbol symbolToMatch,

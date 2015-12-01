@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     type,
                     solution,
                     null,
-                    (t1, t2) => t1.BaseType == t2,
+                    (candidate, baseType) => AbstractReferenceFinder<INamedTypeSymbol>.OriginalSymbolsMatch(candidate.BaseType, baseType, solution, cancellationToken),
                     s_derivedClassesCache,
                     cancellationToken);
             }
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     type,
                     solution,
                     null,
-                    (i1, i2) => i1.Interfaces.Contains(i2),
+                    (candidate, baseInterface) => candidate.Interfaces.Any(i => AbstractReferenceFinder<INamedTypeSymbol>.OriginalSymbolsMatch(i, baseInterface, solution, cancellationToken)),
                     s_derivedInterfacesCache,
                     cancellationToken);
             }
