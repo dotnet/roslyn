@@ -1379,18 +1379,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Function LocationKey(ByVal l As Location) As Long
-            Debug.Assert(TypeOf l Is SourceLocation)
-            Dim sourceLocation = CType(l, SourceLocation)
-            Dim treeIndex = Me.DeclaringCompilation.GetSyntaxTreeOrdinal(l.SourceTree)
-            If (treeIndex < 0) Then Return 0
-            Dim tree = Me.DeclaringCompilation.AllSyntaxTrees(treeIndex)
-            Return (CLng(treeIndex) << 40) + sourceLocation.SourceSpan.Start
+            If Not l.IsInSource Then
+                Dim vbLocation = TryCast(l, VBLocation)
+                Return 1L << 62 + If(vbLocation Is Nothing, 0, vbLocation.PossiblyEmbeddedOrMySourceSpan.Start)
+            End If
+
+            Dim treeIndex = If(l.IsInSource,
+                Me.DeclaringCompilation.GetSyntaxTreeOrdinal(l.SourceTree),
+                Me.DeclaringCompilation.AllSyntaxTrees.Length)
+            Return (CLng(treeIndex) << 40) + l.SourceSpan.Start
         End Function
 
         Public NotOverridable Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Dim result = _declaration.NameLocations
-                Return If(result.Length < 2, result, result.OrderBy(AddressOf LocationKey).ToImmutableArray())
+                If result.Length > 2 Then
+                    result = result.OrderBy(AddressOf LocationKey).ToImmutableArray()
+                End If
+                Return result
             End Get
         End Property
 
@@ -1402,8 +1408,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public ReadOnly Property SyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 Dim result = _declaration.SyntaxReferences
-                Return If(result.Length < 2, result,
-                    result.OrderBy(Function(ByVal r As SyntaxReference) LocationKey(r.GetLocation())).ToImmutableArray())
+                If result.Length >= 2 Then
+                    result = result.OrderBy(Function(ByVal r As SyntaxReference) LocationKey(r.GetLocation())).ToImmutableArray()
+                End If
+                Return result
             End Get
         End Property
 
