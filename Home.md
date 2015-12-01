@@ -5,6 +5,7 @@
 * [Roadmap](Roadmap)
 * [Building, Testing, and Debugging](Building-Testing-and-Debugging)
 * [Contributing](Contributing-Code)
+* [Labels used for issues](Labels-used-for-issues)
 * [FAQ](FAQ)
 
 # Language Design
