@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _prevToken = Nothing
 
             ' keep current PP state
-            Me._scannerPreprocessorState = _currentToken.PreprocessorState
+            _scannerPreprocessorState = _currentToken.PreprocessorState
             ResetTokens()
         End Sub
 
@@ -495,28 +495,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private ReadOnly _scannerPreprocessorState As PreprocessorState
 
             Friend Sub New(scanner As Scanner)
-                Me._scanner = scanner
-                Me._currentToken = scanner._currentToken
-                Me._prevToken = scanner._prevToken
-                Me._tokens = scanner.SaveAndClearTokens()
-                Me._lineBufferOffset = scanner._lineBufferOffset
-                Me._endOfTerminatorTrivia = scanner._endOfTerminatorTrivia
-                Me._scannerPreprocessorState = scanner._scannerPreprocessorState
+                _scanner = scanner
+                _currentToken = scanner._currentToken
+                _prevToken = scanner._prevToken
+                _tokens = scanner.SaveAndClearTokens()
+                _lineBufferOffset = scanner._lineBufferOffset
+                _endOfTerminatorTrivia = scanner._endOfTerminatorTrivia
+                _scannerPreprocessorState = scanner._scannerPreprocessorState
             End Sub
 
             Friend Sub RestoreTokens(includeLookAhead As Boolean)
-                _scanner._currentToken = Me._currentToken
-                _scanner._prevToken = Me._prevToken
-                _scanner.RestoreTokens(If(includeLookAhead, Me._tokens, Nothing))
+                _scanner._currentToken = _currentToken
+                _scanner._prevToken = _prevToken
+                _scanner.RestoreTokens(If(includeLookAhead, _tokens, Nothing))
             End Sub
 
             Friend Sub Restore()
-                _scanner._currentToken = Me._currentToken
-                _scanner._prevToken = Me._prevToken
-                _scanner.RestoreTokens(Me._tokens)
-                _scanner._lineBufferOffset = Me._lineBufferOffset
-                _scanner._endOfTerminatorTrivia = Me._endOfTerminatorTrivia
-                _scanner._scannerPreprocessorState = Me._scannerPreprocessorState
+                _scanner._currentToken = _currentToken
+                _scanner._prevToken = _prevToken
+                _scanner.RestoreTokens(_tokens)
+                _scanner._lineBufferOffset = _lineBufferOffset
+                _scanner._endOfTerminatorTrivia = _endOfTerminatorTrivia
+                _scanner._scannerPreprocessorState = _scannerPreprocessorState
             End Sub
         End Structure
 
@@ -577,55 +577,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Select Case state
                 Case ScannerState.VB
-                    token = Me.GetNextToken(allowLeadingMultilineTrivia:=False)
+                    token = GetNextToken(allowLeadingMultilineTrivia:=False)
 
                 Case ScannerState.VBAllowLeadingMultilineTrivia
-                    token = Me.GetNextToken(allowLeadingMultilineTrivia:=Not _isScanningDirective)
+                    token = GetNextToken(allowLeadingMultilineTrivia:=Not _isScanningDirective)
 
                 Case ScannerState.Misc
-                    token = Me.ScanXmlMisc()
+                    token = ScanXmlMisc()
 
                 Case ScannerState.Element,
                      ScannerState.EndElement,
                      ScannerState.DocType
-                    token = Me.ScanXmlElement(state)
+                    token = ScanXmlElement(state)
 
                 Case ScannerState.Content
-                    token = Me.ScanXmlContent()
+                    token = ScanXmlContent()
 
                 Case ScannerState.CData
-                    token = Me.ScanXmlCData()
+                    token = ScanXmlCData()
 
                 Case ScannerState.StartProcessingInstruction,
                     ScannerState.ProcessingInstruction
-                    token = Me.ScanXmlPIData(state)
+                    token = ScanXmlPIData(state)
 
                 Case ScannerState.Comment
-                    token = Me.ScanXmlComment()
+                    token = ScanXmlComment()
 
                 Case ScannerState.SingleQuotedString
-                    token = Me.ScanXmlStringSingle()
+                    token = ScanXmlStringSingle()
 
                 Case ScannerState.SmartSingleQuotedString
-                    token = Me.ScanXmlStringSmartSingle()
+                    token = ScanXmlStringSmartSingle()
 
                 Case ScannerState.QuotedString
-                    token = Me.ScanXmlStringDouble()
+                    token = ScanXmlStringDouble()
 
                 Case ScannerState.SmartQuotedString
-                    token = Me.ScanXmlStringSmartDouble()
+                    token = ScanXmlStringSmartDouble()
 
                 Case ScannerState.UnQuotedString
-                    token = Me.ScanXmlStringUnQuoted()
+                    token = ScanXmlStringUnQuoted()
 
                 Case ScannerState.InterpolatedStringPunctuation
-                    token = Me.ScanInterpolatedStringPunctuation()
+                    token = ScanInterpolatedStringPunctuation()
 
                 Case ScannerState.InterpolatedStringContent
-                    token = Me.ScanInterpolatedStringContent()
+                    token = ScanInterpolatedStringContent()
 
                 Case ScannerState.InterpolatedStringFormatString
-                    token = Me.ScanInterpolatedStringFormatString()
+                    token = ScanInterpolatedStringFormatString()
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(state)
@@ -649,11 +649,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Sub
 
             Friend Function [With](state As ScannerState, token As SyntaxToken) As ScannerToken
-                Return New ScannerToken(Me.PreprocessorState, Me.Position, Me.EndOfTerminatorTrivia, token, state)
+                Return New ScannerToken(PreprocessorState, Position, EndOfTerminatorTrivia, token, state)
             End Function
 
             Friend Function [With](preprocessorState As PreprocessorState) As ScannerToken
-                Return New ScannerToken(preprocessorState, Me.Position, Me.EndOfTerminatorTrivia, Me.InnerTokenObject, Me.State)
+                Return New ScannerToken(preprocessorState, Position, EndOfTerminatorTrivia, InnerTokenObject, State)
             End Function
 
             Public ReadOnly InnerTokenObject As SyntaxToken

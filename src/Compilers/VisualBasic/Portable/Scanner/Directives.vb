@@ -29,23 +29,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' SAVE the lookahead state and clear current token
             Dim restorePoint = CreateRestorePoint()
-            Me._isScanningDirective = True
+            _isScanningDirective = True
 
             ' since we do not have lookahead tokens, this just 
             ' resets current token to _lineBufferOffset 
-            Me.GetNextTokenInState(ScannerState.VB)
+            GetNextTokenInState(ScannerState.VB)
 
-            Dim currentNonterminal = Me.GetCurrentSyntaxNode()
+            Dim currentNonterminal = GetCurrentSyntaxNode()
             Dim directiveTrivia = TryCast(currentNonterminal, DirectiveTriviaSyntax)
 
             ' if we are lucky to get whole directive statement, we can just reuse it.
             If directiveTrivia IsNot Nothing Then
-                Me.MoveToNextSyntaxNodeInTrivia()
+                MoveToNextSyntaxNodeInTrivia()
 
                 ' adjust current token to just after the node
                 ' we need that in case we need to skip some disabled text 
                 '(yes we do tokenize disabled text for compatibility reasons)
-                Me.GetNextTokenInState(ScannerState.VB)
+                GetNextTokenInState(ScannerState.VB)
 
             Else
                 Dim parser As New Parser(Me)
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' RESTORE lookahead state and current token if there were any
             restorePoint.RestoreTokens(includeLookAhead:=True)
-            Me._isScanningDirective = False
+            _isScanningDirective = False
 
             Return True
         End Function
@@ -280,11 +280,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     haveSeenRegionDirectives As Boolean,
                     externalSourceDirective As ExternalSourceDirectiveTriviaSyntax)
 
-                Me._symbols = symbols
-                Me._conditionals = conditionals
-                Me._regionDirectives = regionDirectives
-                Me._haveSeenRegionDirectives = haveSeenRegionDirectives
-                Me._externalSourceDirective = externalSourceDirective
+                _symbols = symbols
+                _conditionals = conditionals
+                _regionDirectives = regionDirectives
+                _haveSeenRegionDirectives = haveSeenRegionDirectives
+                _externalSourceDirective = externalSourceDirective
             End Sub
 
             Friend ReadOnly Property SymbolsMap As ImmutableDictionary(Of String, CConst)
@@ -294,9 +294,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Property
 
             Private Function SetSymbol(name As String, value As CConst) As PreprocessorState
-                Dim symbols = Me._symbols
+                Dim symbols = _symbols
                 symbols = symbols.SetItem(name, value)
-                Return New PreprocessorState(symbols, Me._conditionals, Me._regionDirectives, Me._haveSeenRegionDirectives, Me._externalSourceDirective)
+                Return New PreprocessorState(symbols, _conditionals, _regionDirectives, _haveSeenRegionDirectives, _externalSourceDirective)
             End Function
 
             Friend ReadOnly Property ConditionalStack As ImmutableStack(Of ConditionalState)
@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Property
 
             Private Function WithConditionals(conditionals As ImmutableStack(Of ConditionalState)) As PreprocessorState
-                Return New PreprocessorState(Me._symbols, conditionals, Me._regionDirectives, Me._haveSeenRegionDirectives, Me._externalSourceDirective)
+                Return New PreprocessorState(_symbols, conditionals, _regionDirectives, _haveSeenRegionDirectives, _externalSourceDirective)
             End Function
 
             Friend ReadOnly Property RegionDirectiveStack As ImmutableStack(Of RegionDirectiveTriviaSyntax)
@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Property
 
             Private Function WithRegions(regions As ImmutableStack(Of RegionDirectiveTriviaSyntax)) As PreprocessorState
-                Return New PreprocessorState(Me._symbols, Me._conditionals, regions, Me._haveSeenRegionDirectives OrElse regions.Count > 0, Me._externalSourceDirective)
+                Return New PreprocessorState(_symbols, _conditionals, regions, _haveSeenRegionDirectives OrElse regions.Count > 0, _externalSourceDirective)
             End Function
 
             Friend ReadOnly Property ExternalSourceDirective As ExternalSourceDirectiveTriviaSyntax
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Property
 
             Private Function WithExternalSource(externalSource As ExternalSourceDirectiveTriviaSyntax) As PreprocessorState
-                Return New PreprocessorState(Me._symbols, Me._conditionals, Me._regionDirectives, Me._haveSeenRegionDirectives, externalSource)
+                Return New PreprocessorState(_symbols, _conditionals, _regionDirectives, _haveSeenRegionDirectives, externalSource)
             End Function
 
             Friend Function InterpretConstDirective(ByRef statement As DirectiveTriviaSyntax) As PreprocessorState
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Friend Function InterpretElseIfDirective(ByRef statement As DirectiveTriviaSyntax) As PreprocessorState
 
                 Dim condition As ConditionalState
-                Dim conditionals = Me._conditionals
+                Dim conditionals = _conditionals
 
                 If conditionals.Count = 0 Then
                     statement = Parser.ReportSyntaxError(statement, ERRID.ERR_LbBadElseif)
@@ -453,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Function
 
             Friend Function InterpretElseDirective(ByRef statement As DirectiveTriviaSyntax) As PreprocessorState
-                Dim conditionals = Me._conditionals
+                Dim conditionals = _conditionals
 
                 If conditionals.Count = 0 Then
                     ' If there has been no preceding #If, give an error and pretend that there
@@ -494,20 +494,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Friend Function IsEquivalentTo(other As PreprocessorState) As Boolean
                 ' for now, we will only consider two are equivalents when there are only regions but no other directives
-                If Me._conditionals.Count > 0 OrElse
-                   Me._symbols.Count > 0 OrElse
-                   Me._externalSourceDirective IsNot Nothing OrElse
+                If _conditionals.Count > 0 OrElse
+                   _symbols.Count > 0 OrElse
+                   _externalSourceDirective IsNot Nothing OrElse
                    other._conditionals.Count > 0 OrElse
                    other._symbols.Count > 0 OrElse
                    other._externalSourceDirective IsNot Nothing Then
                     Return False
                 End If
 
-                If Me._regionDirectives.Count <> other._regionDirectives.Count Then
+                If _regionDirectives.Count <> other._regionDirectives.Count Then
                     Return False
                 End If
 
-                If Me._haveSeenRegionDirectives <> other._haveSeenRegionDirectives Then
+                If _haveSeenRegionDirectives <> other._haveSeenRegionDirectives Then
                     Return False
                 End If
 
@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim lengthSkipped As Integer = 0 ' Length of skipped text.
 
             While True
-                Dim skippedSpan = Me.SkipToNextConditionalLine()
+                Dim skippedSpan = SkipToNextConditionalLine()
 
                 If startSkipped < 0 Then
                     startSkipped = skippedSpan.Start
@@ -545,8 +545,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Select Case curToken.Kind
                     Case SyntaxKind.HashToken
-                        Dim nextKind = Me.PeekToken(1, ScannerState.VB).Kind
-                        Dim nextNextToken = Me.PeekToken(2, ScannerState.VB)
+                        Dim nextKind = PeekToken(1, ScannerState.VB).Kind
+                        Dim nextNextToken = PeekToken(2, ScannerState.VB)
 
                         If NestedConditionalsToSkip = 0 AndAlso
                             ((nextKind = SyntaxKind.EndKeyword AndAlso
@@ -610,7 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End While
 
             If lengthSkipped > 0 Then
-                Return New SyntaxList(Of VisualBasicSyntaxNode)(Me.GetDisabledTextAt(New TextSpan(startSkipped, lengthSkipped)))
+                Return New SyntaxList(Of VisualBasicSyntaxNode)(GetDisabledTextAt(New TextSpan(startSkipped, lengthSkipped)))
             Else
                 Return New SyntaxList(Of VisualBasicSyntaxNode)(Nothing)
             End If
@@ -628,7 +628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             notClosedIfDirectives = Nothing
             notClosedRegionDirectives = Nothing
 
-            If Me._scannerPreprocessorState.ConditionalStack.Count > 0 Then
+            If _scannerPreprocessorState.ConditionalStack.Count > 0 Then
                 For Each state In _scannerPreprocessorState.ConditionalStack
                     Dim ifDirective As IfDirectiveTriviaSyntax = state.IfDirective
                     If ifDirective IsNot Nothing Then
@@ -645,13 +645,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             End If
 
-            If Me._scannerPreprocessorState.RegionDirectiveStack.Count > 0 Then
+            If _scannerPreprocessorState.RegionDirectiveStack.Count > 0 Then
                 notClosedRegionDirectives = ArrayBuilder(Of RegionDirectiveTriviaSyntax).GetInstance()
-                notClosedRegionDirectives.AddRange(Me._scannerPreprocessorState.RegionDirectiveStack)
+                notClosedRegionDirectives.AddRange(_scannerPreprocessorState.RegionDirectiveStack)
             End If
 
-            haveRegionDirectives = Me._scannerPreprocessorState.HaveSeenRegionDirectives
-            notClosedExternalSourceDirective = Me._scannerPreprocessorState.ExternalSourceDirective
+            haveRegionDirectives = _scannerPreprocessorState.HaveSeenRegionDirectives
+            notClosedExternalSourceDirective = _scannerPreprocessorState.ExternalSourceDirective
 
             Return eof
         End Function
