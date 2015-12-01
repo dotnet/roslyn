@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(_container.GetHashCode(), _ordinal);
             }
 
-            internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+            internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var other = t2 as ErrorTypeParameterSymbol;
                 return (object)other != null &&
                     other._ordinal == _ordinal &&
-                    other.ContainingType.Equals(this.ContainingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+                    other.ContainingType.Equals(this.ContainingType, options);
             }
         }
     }

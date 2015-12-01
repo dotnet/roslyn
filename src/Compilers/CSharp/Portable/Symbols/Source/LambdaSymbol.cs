@@ -29,34 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol,
             UnboundLambda unboundLambda,
             ImmutableArray<ParameterSymbol> delegateParameters,
-            TypeSymbol returnType)
+            TypeSymbolWithAnnotations returnType)
         {
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
-            _returnType = (object)returnType == null ? ReturnTypeIsBeingInferred : TypeSymbolWithAnnotations.Create(returnType);
+            _returnType = returnType ?? ReturnTypeIsBeingInferred;
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, delegateParameters);
-        }
-
-        public LambdaSymbol(
-            Symbol containingSymbol,
-            ImmutableArray<ParameterSymbol> parameters,
-            TypeSymbol returnType,
-            MessageID messageID,
-            CSharpSyntaxNode syntax,
-            bool isSynthesized,
-            bool isAsync)
-        {
-            _containingSymbol = containingSymbol;
-            _messageID = messageID;
-            _syntax = syntax;
-            _returnType = (object)returnType == null ? ReturnTypeIsBeingInferred : TypeSymbolWithAnnotations.Create(returnType); 
-            _isSynthesized = isSynthesized;
-            _isAsync = isAsync;
-            _parameters = parameters.SelectAsArray(CopyParameter, this);
         }
 
         public LambdaSymbol(
@@ -71,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
             _messageID = messageID;
             _syntax = syntax;
-            _returnType = returnType;
+            _returnType = returnType ?? ReturnTypeIsBeingInferred; 
             _isSynthesized = isSynthesized;
             _isAsync = isAsync;
             _parameters = parameters.SelectAsArray(CopyParameter, this);

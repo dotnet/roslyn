@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // like compound assignment does (extra flag only passed when it is an expression
             // statement means that this constraint is not violated).
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
-            Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) || visited.Type.Equals(node.Type, ignoreDynamic: true));
+            Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) || visited.Type.Equals(node.Type, TypeSymbolEqualityOptions.IgnoreDynamic));
 
             return visited;
         }

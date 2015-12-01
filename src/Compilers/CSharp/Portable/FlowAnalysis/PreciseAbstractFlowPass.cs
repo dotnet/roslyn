@@ -1324,6 +1324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression receiver = ((BoundMethodGroup)node.Operand).ReceiverOpt;
                     // A method group's "implicit this" is only used for instance methods.
+                    // TODO: StaticNullChecking - should we use VisitReceiverBeforeCall if we are dealing with an instance method?
                     if (_trackRegions)
                     {
                         if (node.Operand == this.firstInRegion && this.regionPlace == RegionPlace.Before) EnterRegion();

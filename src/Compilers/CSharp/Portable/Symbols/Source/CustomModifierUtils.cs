@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we want to retain the original (incorrect) return type to avoid hiding the return type
             // given in source.
             TypeSymbol returnTypeWithCustomModifiers = sourceMethodReturnType.TypeSymbol;
-            if (returnTypeSymbol.Equals(returnTypeWithCustomModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+            if (returnTypeSymbol.Equals(returnTypeWithCustomModifiers, TypeSymbolEqualityOptions.SameType))
             {
                 returnType = returnType.Update(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, RefKind.None, destinationMethod.ContainingAssembly),
                                                sourceMethodReturnType.CustomModifiers);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns><paramref name="destinationType"/> with custom modifiers copied from <paramref name="sourceType"/>.</returns>
         internal static TypeSymbol CopyTypeCustomModifiers(TypeSymbol sourceType, TypeSymbol destinationType, RefKind refKind, AssemblySymbol containingAssembly)
         {
-            Debug.Assert(sourceType.Equals(destinationType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Debug.Assert(sourceType.Equals(destinationType, TypeSymbolEqualityOptions.SameType));
 
             // NOTE: overrides can differ by object/dynamic.  If they do, we'll need to tweak newType before
             // we can use it in place of this.Type.  We do so by computing the dynamic transform flags that
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.Encode(destinationType, customModifierCount, refKind);
             TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 
-            Debug.Assert(resultType.Equals(sourceType, ignoreCustomModifiersAndArraySizesAndLowerBounds: false, ignoreDynamic: true)); // Same custom modifiers as source type.
-            Debug.Assert(resultType.Equals(destinationType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false)); // Same object/dynamic as destination type.
+            Debug.Assert(resultType.Equals(sourceType, TypeSymbolEqualityOptions.IgnoreDynamic)); // Same custom modifiers as source type.
+            Debug.Assert(resultType.Equals(destinationType, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds)); // Same object/dynamic as destination type.
 
             return resultType;
         }

@@ -3129,6 +3129,754 @@ class CL1
                 );
         }
 
+        [Fact]
+        public void Lambda_01()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+
+    void Test1()
+    {
+        System.Func<CL1?> x1 = () => M1();
+    }
+
+    void Test2()
+    {
+        System.Func<CL1?> x2 = delegate { return M1(); };
+    }
+
+    delegate CL1? D1();
+
+    void Test3()
+    {
+        D1 x3 = () => M1();
+    }
+
+    void Test4()
+    {
+        D1 x4 = delegate { return M1(); };
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Lambda_02()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+
+    void Test1()
+    {
+        System.Action<CL1?> x1 = (p1) => p1 = M1();
+    }
+
+    delegate void D1(CL1? p);
+
+    void Test3()
+    {
+        D1 x3 = (p3) => p3 = M1();
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Lambda_03()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+
+    void Test1()
+    {
+        System.Func<CL1> x1 = () => M1();
+    }
+
+    void Test2()
+    {
+        System.Func<CL1> x2 = delegate { return M1(); };
+    }
+
+    delegate CL1 D1();
+
+    void Test3()
+    {
+        D1 x3 = () => M1();
+    }
+
+    void Test4()
+    {
+        D1 x4 = delegate { return M1(); };
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,37): warning CS8203: Possible null reference return.
+    //         System.Func<CL1> x1 = () => M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(12, 37),
+    // (17,49): warning CS8203: Possible null reference return.
+    //         System.Func<CL1> x2 = delegate { return M1(); };
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(17, 49),
+    // (24,23): warning CS8203: Possible null reference return.
+    //         D1 x3 = () => M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(24, 23),
+    // (29,35): warning CS8203: Possible null reference return.
+    //         D1 x4 = delegate { return M1(); };
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(29, 35)
+                );
+        }
+
+        [Fact]
+        public void Lambda_04()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+
+    void Test1()
+    {
+        System.Action<CL1> x1 = (p1) => p1 = M1();
+    }
+
+    delegate void D1(CL1 p);
+
+    void Test3()
+    {
+        D1 x3 = (p3) => p3 = M1();
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,46): warning CS8201: Possible null reference assignment.
+    //         System.Action<CL1> x1 = (p1) => p1 = M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(12, 46),
+    // (19,30): warning CS8201: Possible null reference assignment.
+    //         D1 x3 = (p3) => p3 = M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(19, 30)
+                );
+        }
+
+        [Fact]
+        public void Lambda_05()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+    delegate CL1 D1();
+    delegate CL1? D2();
+
+    void M2(int x, D1 y) {}
+    void M2(long x, D2 y) {}
+
+    void M3(long x, D2 y) {}
+    void M3(int x, D1 y) {}
+
+    void Test1(int x1)
+    {
+        M2(x1, () => M1());
+    }
+
+    void Test2(int x2)
+    {
+        M3(x2, () => M1());
+    }
+
+    void Test3(int x3)
+    {
+        M2(x3, delegate { return M1(); });
+    }
+
+    void Test4(int x4)
+    {
+        M3(x4, delegate { return M1(); });
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (20,22): warning CS8203: Possible null reference return.
+    //         M2(x1, () => M1());
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(20, 22),
+    // (25,22): warning CS8203: Possible null reference return.
+    //         M3(x2, () => M1());
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(25, 22),
+    // (30,34): warning CS8203: Possible null reference return.
+    //         M2(x3, delegate { return M1(); });
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(30, 34),
+    // (35,34): warning CS8203: Possible null reference return.
+    //         M3(x4, delegate { return M1(); });
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(35, 34)
+                );
+        }
+
+        [Fact]
+        public void Lambda_06()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+    delegate CL1 D1();
+    delegate CL1? D2();
+
+    void M2(int x, D2 y) {}
+    void M2(long x, D1 y) {}
+
+    void M3(long x, D1 y) {}
+    void M3(int x, D2 y) {}
+
+    void Test1(int x1)
+    {
+        M2(x1, () => M1());
+    }
+
+    void Test2(int x2)
+    {
+        M3(x2, () => M1());
+    }
+
+    void Test3(int x3)
+    {
+        M2(x3, delegate { return M1(); });
+    }
+
+    void Test4(int x4)
+    {
+        M3(x4, delegate { return M1(); });
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Lambda_07()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+    delegate T D<T>();
+
+    void M2(int x, D<CL1> y) {}
+    void M2<T>(int x, D<T> y) {}
+
+    void M3<T>(int x, D<T> y) {}
+    void M3(int x, D<CL1> y) {}
+
+    void Test1(int x1)
+    {
+        M2(x1, () => M1());
+    }
+
+    void Test2(int x2)
+    {
+        M3(x2, () => M1());
+    }
+
+    void Test3(int x3)
+    {
+        M2(x3, delegate { return M1(); });
+    }
+
+    void Test4(int x4)
+    {
+        M3(x4, delegate { return M1(); });
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (19,22): warning CS8203: Possible null reference return.
+    //         M2(x1, () => M1());
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(19, 22),
+    // (24,22): warning CS8203: Possible null reference return.
+    //         M3(x2, () => M1());
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(24, 22),
+    // (29,34): warning CS8203: Possible null reference return.
+    //         M2(x3, delegate { return M1(); });
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(29, 34),
+    // (34,34): warning CS8203: Possible null reference return.
+    //         M3(x4, delegate { return M1(); });
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "M1()").WithLocation(34, 34)
+                );
+        }
+
+        [Fact]
+        public void Lambda_08()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+    delegate T D<T>();
+
+    void M2(int x, D<CL1?> y) {}
+    void M2<T>(int x, D<T> y) {}
+
+    void M3<T>(int x, D<T> y) {}
+    void M3(int x, D<CL1?> y) {}
+
+    void Test1(int x1)
+    {
+        M2(x1, () => M1());
+    }
+
+    void Test2(int x2)
+    {
+        M3(x2, () => M1());
+    }
+
+    void Test3(int x3)
+    {
+        M2(x3, delegate { return M1(); });
+    }
+
+    void Test4(int x4)
+    {
+        M3(x4, delegate { return M1(); });
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Lambda_09()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+    delegate T1 D<T1, T2>(T2 y);
+
+    void M2(int x, D<CL1, CL1> y) {}
+    void M2<T>(int x, D<T, CL1> y) {}
+
+    void M3<T>(int x, D<T, CL1> y) {}
+    void M3(int x, D<CL1, CL1> y) {}
+
+    void Test1(int x1)
+    {
+        M2(x1, (y1) => 
+                {
+                    y1 = M1();
+                    return y1;
+                });
+    }
+
+    void Test2(int x2)
+    {
+        M3(x2, (y2) => 
+                {
+                    y2 = M1();
+                    return y2;
+                });
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (21,26): warning CS8201: Possible null reference assignment.
+    //                     y1 = M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(21, 26),
+    // (30,26): warning CS8201: Possible null reference assignment.
+    //                     y2 = M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(30, 26)
+                );
+        }
+
+        [Fact]
+        public void Lambda_10()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+    delegate T1 D<T1, T2>(T2 y);
+
+    void M2(int x, D<CL1, CL1?> y) {}
+    void M2<T>(int x, D<T, CL1> y) {}
+
+    void M3<T>(int x, D<T, CL1> y) {}
+    void M3(int x, D<CL1, CL1?> y) {}
+
+    void Test1(int x1)
+    {
+        M2(x1, (y1) => 
+                {
+                    y1 = M1();
+                    return y1;
+                });
+    }
+
+    void Test2(int x2)
+    {
+        M3(x2, (y2) => 
+                {
+                    y2 = M1();
+                    return y2;
+                });
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (22,28): warning CS8203: Possible null reference return.
+    //                     return y1;
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y1").WithLocation(22, 28),
+    // (31,28): warning CS8203: Possible null reference return.
+    //                     return y2;
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y2").WithLocation(31, 28)
+                );
+        }
+
+        [Fact]
+        public void Lambda_11()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+
+    void Test1()
+    {
+        System.Action<CL1> x1 = (CL1 p1) => p1 = M1();
+    }
+
+    void Test2()
+    {
+        System.Action<CL1> x2 = delegate (CL1 p2) { p2 = M1(); };
+    }
+
+    delegate void D1(CL1 p);
+
+    void Test3()
+    {
+        D1 x3 = (CL1 p3) => p3 = M1();
+    }
+
+    void Test4()
+    {
+        D1 x4 = delegate (CL1 p4) { p4 = M1(); };
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,50): warning CS8201: Possible null reference assignment.
+    //         System.Action<CL1> x1 = (CL1 p1) => p1 = M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(12, 50),
+    // (17,58): warning CS8201: Possible null reference assignment.
+    //         System.Action<CL1> x2 = delegate (CL1 p2) { p2 = M1(); };
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(17, 58),
+    // (24,34): warning CS8201: Possible null reference assignment.
+    //         D1 x3 = (CL1 p3) => p3 = M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(24, 34),
+    // (29,42): warning CS8201: Possible null reference assignment.
+    //         D1 x4 = delegate (CL1 p4) { p4 = M1(); };
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(29, 42)
+                );
+        }
+
+        [Fact]
+        public void Lambda_12()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+
+    void Test1()
+    {
+        System.Action<CL1?> x1 = (CL1 p1) => p1 = M1();
+    }
+
+    void Test2()
+    {
+        System.Action<CL1?> x2 = delegate (CL1 p2) { p2 = M1(); };
+    }
+
+    delegate void D1(CL1? p);
+
+    void Test3()
+    {
+        D1 x3 = (CL1 p3) => p3 = M1();
+    }
+
+    void Test4()
+    {
+        D1 x4 = delegate (CL1 p4) { p4 = M1(); };
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+    // (12,51): warning CS8201: Possible null reference assignment.
+    //         System.Action<CL1?> x1 = (CL1 p1) => p1 = M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(12, 51),
+    // (17,59): warning CS8201: Possible null reference assignment.
+    //         System.Action<CL1?> x2 = delegate (CL1 p2) { p2 = M1(); };
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(17, 59),
+    // (24,34): warning CS8201: Possible null reference assignment.
+    //         D1 x3 = (CL1 p3) => p3 = M1();
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(24, 34),
+    // (29,42): warning CS8201: Possible null reference assignment.
+    //         D1 x4 = delegate (CL1 p4) { p4 = M1(); };
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M1()").WithLocation(29, 42)
+                );
+        }
+
+        [Fact]
+        public void Lambda_13()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+
+    void Test1()
+    {
+        System.Action<CL1> x1 = (CL1? p1) => p1 = M1();
+    }
+
+    void Test2()
+    {
+        System.Action<CL1> x2 = delegate (CL1? p2) { p2 = M1(); };
+    }
+
+    delegate void D1(CL1 p);
+
+    void Test3()
+    {
+        D1 x3 = (CL1? p3) => p3 = M1();
+    }
+
+    void Test4()
+    {
+        D1 x4 = delegate (CL1? p4) { p4 = M1(); };
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Lambda_14()
+        {
+            CSharpCompilation c = CreateCompilationWithMscorlib(@"
+class C
+{
+    static void Main()
+    {
+    }
+
+    CL1? M1() { return null; }
+
+    void Test1()
+    {
+        System.Action<CL1?> x1 = (CL1? p1) => p1 = M1();
+    }
+
+    void Test2()
+    {
+        System.Action<CL1?> x2 = delegate (CL1? p2) { p2 = M1(); };
+    }
+
+    delegate void D1(CL1? p);
+
+    void Test3()
+    {
+        D1 x3 = (CL1? p3) => p3 = M1();
+    }
+
+    void Test4()
+    {
+        D1 x4 = delegate (CL1? p4) { p4 = M1(); };
+    }
+}
+
+class CL1
+{}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"));
+
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact(Skip = "TODO")]
+        public void Lambda_15()
+        {
+            CSharpCompilation notAnnotated = CreateCompilationWithMscorlib45(@"
+public class CL0 
+{
+    public static void M1(System.Func<CL1<CL0>, CL0> x) {}
+}
+
+public class CL1<T>
+{
+    public T F1;
+
+    public CL1()
+    {
+        F1 = default(T);
+    }
+}
+", options: TestOptions.DebugDll);
+
+            CSharpCompilation c = CreateCompilationWithMscorlib45(@"
+class C 
+{
+    static void Main() {}
+
+    static void Test1()
+    {
+        CL0.M1( p1 =>
+                {
+                    p1.F1 = null;
+                    p1 = null;
+                    return null; // 1
+                });
+    }
+
+    static void Test2()
+    {
+        System.Func<CL1<CL0>, CL0> l2 = p2 =>
+                {
+                    p2.F1 = null;
+                    p2 = null;
+                    return null; // 2
+                };
+    }
+}
+", parseOptions: TestOptions.Regular.WithFeature("staticNullChecking", "true"), references: new[] { notAnnotated.EmitToImageReference() });
+
+            c.VerifyDiagnostics(
+    // (20,29): warning CS8201: Possible null reference assignment.
+    //                     p2.F1 = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(20, 29),
+    // (21,26): warning CS8201: Possible null reference assignment.
+    //                     p2 = null;
+    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null").WithLocation(21, 26),
+    // (22,28): warning CS8203: Possible null reference return.
+    //                     return null; // 2
+    Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(22, 28)
+                );
+        }
+
         [Fact(Skip = "TODO")]
         public void Test2()
         {

@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var visitedSource = (TypeSymbol)_matcher.Visit(source);
                     var visitedOther = (_deepTranslatorOpt != null) ? (TypeSymbol)_deepTranslatorOpt.Visit(other) : other;
 
-                    return visitedSource?.Equals(visitedOther, ignoreDynamic: true) == true;
+                    return visitedSource?.Equals(visitedOther, TypeSymbolEqualityOptions.IgnoreDynamic) == true;
                 }
             }
         }

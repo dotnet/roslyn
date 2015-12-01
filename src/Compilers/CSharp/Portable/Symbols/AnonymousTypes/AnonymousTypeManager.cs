@@ -72,41 +72,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var anonymous = (AnonymousTypePublicSymbol)type;
             return anonymous.Manager.ConstructAnonymousTypeSymbol(anonymous.TypeDescriptor.WithNewFieldsTypes(newFieldTypes));
         }
-
-        /// <summary>
-        /// Logical equality on anonymous types that ignores custom modifiers and/or the object/dynamic distinction.
-        /// Differs from IsSameType for arrays, pointers, and generic instantiations.
-        /// </summary>
-        internal static bool IsSameType(TypeSymbol type1, TypeSymbol type2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
-        {
-            Debug.Assert(type1.IsAnonymousType);
-            Debug.Assert(type2.IsAnonymousType);
-
-            if (ignoreCustomModifiersAndArraySizesAndLowerBounds || ignoreDynamic)
-            {
-                AnonymousTypeDescriptor left = ((AnonymousTypePublicSymbol)type1).TypeDescriptor;
-                AnonymousTypeDescriptor right = ((AnonymousTypePublicSymbol)type2).TypeDescriptor;
-
-                if (left.Key != right.Key)
-                {
-                    return false;
-                }
-
-                int count = left.Fields.Length;
-                Debug.Assert(right.Fields.Length == count);
-                for (int i = 0; i < count; i++)
-                {
-                    if (!left.Fields[i].Type.TypeSymbol.Equals(right.Fields[i].Type.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            else
-            {
-                return type1 == type2;
-            }
-        }
     }
 }

@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
-            return type1.Equals(type2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true);
+            return type1.Equals(type2, TypeSymbolEqualityOptions.SameType);
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)

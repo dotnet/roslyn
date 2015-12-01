@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return member1.ReturnType.TypeSymbol.Equals(member2.ReturnType.TypeSymbol, ignoreDynamic: true)
-                && member1.ParameterTypes[0].Equals(member2.ParameterTypes[0], ignoreDynamic: true);
+            return member1.ReturnType.TypeSymbol.Equals(member2.ReturnType.TypeSymbol, TypeSymbolEqualityOptions.IgnoreDynamic)
+                && member1.ParameterTypes[0].Equals(member2.ParameterTypes[0], TypeSymbolEqualityOptions.IgnoreDynamic);
         }
 
         public int GetHashCode(SourceUserDefinedConversionSymbol member)

@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // We do an extra check before copying the type to handle the case where the overriding
                     // property (incorrectly) has a different type than the overridden property.  In such cases,
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-                    if (_lazyType.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
+                    if (_lazyType.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeSymbolEqualityOptions.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
                     {
                         _lazyType = overriddenPropertyType;
                     }

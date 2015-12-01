@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // - i.e assigns int value to a short local.
                 // in that case we should force lhs to be a real local.
                 Debug.Assert(
-                    node.Left.Type.Equals(node.Right.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true),
+                    node.Left.Type.Equals(node.Right.Type, TypeSymbolEqualityOptions.SameType),
                     @"type of the assignment value is not the same as the type of assignment target. 
                 This is not expected by the optimizer and is typically a result of a bug somewhere else.");
 

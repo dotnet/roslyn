@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (IsTrackableAnonymousTypeProperty(propSymbol))
                         {
-                            Debug.Assert(!propSymbol.Type.IsReferenceType || propSymbol.Type.IsNullable);
+                            Debug.Assert(!propSymbol.Type.IsReferenceType || propSymbol.Type.IsNullable == true);
                             var receiverOpt = propAccess.ReceiverOpt;
                             if (receiverOpt == null || receiverOpt.Kind == BoundKind.TypeExpression) return -1;
                             int containingSlot = MakeSlot(receiverOpt);
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool isByRefTarget = IsByRefTarget(slot);
 
                     // TODO: For now always respect annotations for array elements. Specially handle array types as assignment targets.
-                    if ((assignmentTarget.Kind == SymbolKind.ArrayType || RespectNullableAnnotations(assignmentTarget)) && !targetType.IsNullable)
+                    if ((assignmentTarget.Kind == SymbolKind.ArrayType || RespectNullableAnnotations(assignmentTarget)) && targetType.IsNullable == false)
                     {
                         if (valueIsNotNull == false)
                         {
@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
                             // regardless of what value is being assigned. 
-                            this.State.KnownNullState[slot] = true;
+                            this.State.KnownNullState[slot] = (targetType.IsNullable == true);
                             this.State.NotNull[slot] = false;
                         }
                         else if (valueIsNotNull.HasValue)
@@ -1369,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If statically declared as not-nullable, no need to adjust the tracking info. 
                 // Declaration information takes priority.
-                if (!(respectNullableAnnotations && !fieldOrPropertyType.IsNullable))
+                if (!(respectNullableAnnotations && fieldOrPropertyType.IsNullable == false))
                 {
                     int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
                     if (targetMemberSlot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // This is a property/field acesses through a by ref entity and it isn't considered declared as not-nullable. 
                         // Since reference can point to the heap, we cannot assume the property/field doesn't have null value after this assignment,
                         // regardless of what value is being assigned. 
-                        this.State.KnownNullState[targetMemberSlot] = true;
+                        this.State.KnownNullState[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true);
                         this.State.NotNull[targetMemberSlot] = false;
                     }
                     else if (valueContainerSlot > 0)
@@ -1394,8 +1394,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // with information inferred from the declaration. 
                         if (respectNullableAnnotations)
                         {
-                            Debug.Assert(fieldOrPropertyType.IsNullable);
-                            this.State.KnownNullState[targetMemberSlot] = true;
+                            Debug.Assert(fieldOrPropertyType.IsNullable != false);
+                            this.State.KnownNullState[targetMemberSlot] = (fieldOrPropertyType.IsNullable == true);
                             this.State.NotNull[targetMemberSlot] = false;
                         }
                         else
@@ -1626,11 +1626,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (paramType.IsReferenceType)
                     {
-                        if (paramType.IsNullable)
+                        if (paramType.IsNullable != false)
                         {
                             if (slot >= this.State.KnownNullState.Capacity) NormalizeNullable(ref this.State);
 
-                            this.State.KnownNullState[slot] = true;
+                            this.State.KnownNullState[slot] = (paramType.IsNullable == true);
                             this.State.NotNull[slot] = false;
                         }
 
@@ -1702,7 +1702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbolWithAnnotations returnType = this.currentMethodOrLambda?.ReturnType;
 
-                if ((object)returnType != null && returnType.IsReferenceType && !returnType.IsNullable)
+                if ((object)returnType != null && returnType.IsReferenceType && returnType.IsNullable == false)
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
                 }
@@ -2334,7 +2334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool respectNullableAnnotations = RespectNullableAnnotations(resultSymbol);
 
-                if (respectNullableAnnotations && !resultType.IsNullable)
+                if (respectNullableAnnotations && resultType.IsNullable == false)
                 {
                     // Statically declared as not-nullable. This takes priority.
                     return true;
@@ -2359,8 +2359,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The node is not trackable, use information from the declaration.
                 if (respectNullableAnnotations)
                 {
-                    Debug.Assert(resultType.IsNullable);
-                    return false;
+                    Debug.Assert(resultType.IsNullable != false);
+
+                    if (resultType.IsNullable.HasValue)
+                    {
+                        return false;
+                    }
                 }
 
                 // The declaration doesn't contain any annotation we can/should rely on.
@@ -2402,7 +2406,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckAssigned(node.SymbolOpt.OriginalDefinition, node.Syntax);
             }
-            return base.VisitConversion(node);
+
+            var result = base.VisitConversion(node);
+
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                if (node.Type.IsReferenceType)
+                {
+                    switch (node.ConversionKind)
+                    {
+                        case ConversionKind.MethodGroup:
+                        case ConversionKind.AnonymousFunction:
+                            this.State.ResultIsNotNull = true;
+                            break;
+
+                        default:
+                            // Inherit state from the operand
+                            break;
+                    }
+                }
+                else
+                {
+                    this.State.ResultIsNotNull = null;
+                }
+            }
+
+            return result;
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -2573,7 +2602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbolWithAnnotations paramType = expanded ? ((ArrayTypeSymbol)parameter.Type.TypeSymbol).ElementType : parameter.Type;
 
-                if (paramType.IsReferenceType && !paramType.IsNullable)
+                if (paramType.IsReferenceType && paramType.IsNullable == false)
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceArgument, argument.Syntax);
                 }

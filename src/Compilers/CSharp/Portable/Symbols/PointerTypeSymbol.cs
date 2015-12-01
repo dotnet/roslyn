@@ -206,48 +206,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(current, indirections);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, TypeSymbolEqualityOptions options)
         {
-            return this.Equals(t2 as PointerTypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
+            return this.Equals(t2 as PointerTypeSymbol, options);
         }
 
         internal bool Equals(PointerTypeSymbol other)
         {
-            return this.Equals(other, false, false);
+            return this.Equals(other, TypeSymbolEqualityOptions.None);
         }
 
-        private bool Equals(PointerTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
+        private bool Equals(PointerTypeSymbol other, TypeSymbolEqualityOptions options)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other._pointedAtType.TypeSymbol.Equals(_pointedAtType.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+            if ((object)other == null || !other._pointedAtType.Equals(_pointedAtType, options))
             {
                 return false;
-            }
-
-            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds)
-            {
-                // Make sure custom modifiers are the same.
-                var mod = this.PointedAtType.CustomModifiers;
-                var otherMod = other.PointedAtType.CustomModifiers;
-
-                int count = mod.Length;
-
-                if (count != otherMod.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < count; i++)
-                {
-                    if (!mod[i].Equals(otherMod[i]))
-                    {
-                        return false;
-                    }
-                }
             }
 
             return true;

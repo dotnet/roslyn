@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             TypeSymbol overriddenMemberType = overriddenProperty.Type.TypeSymbol;
 
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
-                            if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                            if (!overridingMemberType.Equals(overriddenMemberType, TypeSymbolEqualityOptions.SameType))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             TypeSymbol overriddenMemberType = overriddenEvent.Type.TypeSymbol;
 
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
-                            if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                            if (!overridingMemberType.Equals(overriddenMemberType, TypeSymbolEqualityOptions.SameType))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
