@@ -146,17 +146,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
                     Case Else
                 End Select
-                If ok Then
-                    Continue For
-                End If
+                If ok Then Continue For
                 If IsScriptRunner Then
                     Select Case name
                         Case "loadpath", "loadpaths"
                             ok = ARG_LoadPaths(q, name, value)
                     End Select
-                    If ok Then
-                        Continue For
-                    End If
+                    If ok Then Continue For
                 Else
                     Select Case name
                         Case "out"
@@ -317,9 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case "additionalfile"
                             ok = ARG_AdditionalFile(baseDirectory, q, name, value)
                     End Select
-                    If ok Then
-                        Continue For
-                    End If
+                    If ok Then Continue For
                 End If
 
                 AddDiagnostic(q.diagnostics, ERRID.WRN_BadSwitch, arg)
@@ -327,14 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim specificDiagnosticOptions As Dictionary(Of String, ReportDiagnostic) = GetSpecificDiagnosticOptions(q)
 
-            If Not IsScriptRunner AndAlso Not q.hasSourceFiles AndAlso q.managedResources.IsEmpty() AndAlso q.outputKind.IsApplication Then
-                ' VB displays help when there is nothing specified on the command line
-                If q.flattenedArgs.Any Then
-                    AddDiagnostic(q.diagnostics, ERRID.ERR_NoSources)
-                Else
-                    q.displayHelp = True
-                End If
-            End If
+            DisplayHelp(q)
 
             ' Prepare SDK PATH
             If sdkDirectory IsNot Nothing AndAlso q.sdkPaths.Count = 0 Then
@@ -369,6 +356,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  defaultCoreLibraryReference, searchPaths)
 
         End Function
+
+        Private Sub DisplayHelp(q As Mutable_VBCommandLineArguments)
+            If Not IsScriptRunner AndAlso Not q.hasSourceFiles AndAlso q.managedResources.IsEmpty() AndAlso q.outputKind.IsApplication Then
+                ' VB displays help when there is nothing specified on the command line
+                If q.flattenedArgs.Any Then
+                    AddDiagnostic(q.diagnostics, ERRID.ERR_NoSources)
+                Else
+                    q.displayHelp = True
+                End If
+            End If
+        End Sub
 
         Private Shared Sub Load_System_DLL(baseDirectory As String, q As Mutable_VBCommandLineArguments)
             ' If /nostdlib is not specified, load System.dll
