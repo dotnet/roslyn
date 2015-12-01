@@ -768,8 +768,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Get a read-only list of the syntax trees that this compilation was created with.
-        ''' The ordering of the trees is arbitrary and may be different than the order the
-        ''' trees were supplied to the compilation.
         ''' </summary>
         Public Shadows ReadOnly Property SyntaxTrees As ImmutableArray(Of SyntaxTree)
             Get
@@ -785,7 +783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 If _lazyAllSyntaxTrees.IsDefault Then
                     Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
-                    builder.AddRange(_rootNamespaces.Keys)
+                    builder.AddRange(_syntaxTrees)
                     For Each embeddedTree In _embeddedTrees
                         Dim tree = embeddedTree.Tree.Value
                         If tree IsNot Nothing Then
