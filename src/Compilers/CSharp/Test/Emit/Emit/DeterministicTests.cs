@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 interface I1 { }
 interface I2 { }
 ";
-            var expectedOutput =
+            var expectedOutput1 =
 @"I1
 I2
 Partial.a
@@ -212,10 +212,23 @@ Partial.c
 Partial.a = 1
 Partial.b = 2
 Partial.c = 3";
+            var expectedOutput2 =
+@"I2
+I1
+Partial.b
+Partial.a
+Partial.c
+Partial.a = 1
+Partial.b = 2
+Partial.c = 3";ine the
             // we run more than once to increase the chance of observing a problem due to nondeterminism
             for (int i = 0; i < 2; i++)
             {
-                CompileAndVerify(sources: new string[] { x1, x2, x3 }, expectedOutput: expectedOutput);
+                var cv = CompileAndVerify(sources: new string[] { x1, x2, x3 }, expectedOutput: expectedOutput1);
+                var trees = cv.Compilation.SyntaxTrees.ToArray();
+                var comp2 = cv.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(trees[1], trees[0], trees[2]);
+                CompileAndVerify(comp2, expectedOutput: expectedOutput2);
+                CompileAndVerify(sources: new string[] { x2, x1, x3 }, expectedOutput: expectedOutput2);
             }
         }
 
