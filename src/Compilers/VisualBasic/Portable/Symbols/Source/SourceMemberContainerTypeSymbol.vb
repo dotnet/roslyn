@@ -1384,9 +1384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return 1L << 62 + If(vbLocation Is Nothing, 0, vbLocation.PossiblyEmbeddedOrMySourceSpan.Start)
             End If
 
-            Dim treeIndex = If(l.IsInSource,
-                Me.DeclaringCompilation.GetSyntaxTreeOrdinal(l.SourceTree),
-                Me.DeclaringCompilation.AllSyntaxTrees.Length)
+            Dim treeIndex = Me.DeclaringCompilation.GetSyntaxTreeOrdinal(l.SourceTree)
             Return (CLng(treeIndex) << 40) + l.SourceSpan.Start
         End Function
 
