@@ -91,7 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var recommender = context.GetLanguageService<IRecommendationService>();
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
 
-            var inferredTypes = typeInferrer.InferTypes(context.SemanticModel, position, cancellationToken)?.ToSet();
+            var inferredTypes = typeInferrer.InferTypes(context.SemanticModel, position, cancellationToken)
+                ?.Where(t => t.SpecialType != SpecialType.System_Void)
+                .ToSet();
             if (inferredTypes == null || !inferredTypes.Any())
             {
                 return SpecializedTasks.EmptyEnumerable<ISymbol>();
