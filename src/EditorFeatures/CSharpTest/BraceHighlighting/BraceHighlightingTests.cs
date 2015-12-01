@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting;
@@ -20,61 +21,61 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
 {
     public class BraceHighlightingTests : AbstractBraceHighlightingTests
     {
-        protected override TestWorkspace CreateWorkspace(string markup)
+        protected override Task<TestWorkspace> CreateWorkspaceAsync(string markup)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup);
+            return CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public void TestCurlies()
+        public async Task TestCurlies()
         {
-            TestBraceHighlighting("public class C$$ {\r\n} ");
-            TestBraceHighlighting("public class C $$[|{|]\r\n[|}|] ");
-            TestBraceHighlighting("public class C {$$\r\n} ");
-            TestBraceHighlighting("public class C {\r\n$$} ");
-            TestBraceHighlighting("public class C [|{|]\r\n[|}|]$$ ");
+            await TestBraceHighlightingAsync("public class C$$ {\r\n} ");
+            await TestBraceHighlightingAsync("public class C $$[|{|]\r\n[|}|] ");
+            await TestBraceHighlightingAsync("public class C {$$\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n$$} ");
+            await TestBraceHighlightingAsync("public class C [|{|]\r\n[|}|]$$ ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public void TestTouchingItems()
+        public async Task TestTouchingItems()
         {
-            TestBraceHighlighting("public class C $$[|{|]\r\n  public void Foo(){}\r\n[|}|] ");
-            TestBraceHighlighting("public class C {$$\r\n  public void Foo(){}\r\n} ");
-            TestBraceHighlighting("public class C {\r\n  public void Foo$$[|(|][|)|]{}\r\n} ");
-            TestBraceHighlighting("public class C {\r\n  public void Foo($$){}\r\n} ");
-            TestBraceHighlighting("public class C {\r\n  public void Foo[|(|][|)|]$$[|{|][|}|]\r\n} ");
-            TestBraceHighlighting("public class C {\r\n  public void Foo(){$$}\r\n} ");
-            TestBraceHighlighting("public class C {\r\n  public void Foo()[|{|][|}|]$$\r\n} ");
+            await TestBraceHighlightingAsync("public class C $$[|{|]\r\n  public void Foo(){}\r\n[|}|] ");
+            await TestBraceHighlightingAsync("public class C {$$\r\n  public void Foo(){}\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo$$[|(|][|)|]{}\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo($$){}\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo[|(|][|)|]$$[|{|][|}|]\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo(){$$}\r\n} ");
+            await TestBraceHighlightingAsync("public class C {\r\n  public void Foo()[|{|][|}|]$$\r\n} ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public void TestAngles()
+        public async Task TestAngles()
         {
-            TestBraceHighlighting("/// $$<summary>Foo</summary>");
-            TestBraceHighlighting("/// <$$summary>Foo</summary>");
-            TestBraceHighlighting("/// <summary$$>Foo</summary>");
-            TestBraceHighlighting("/// <summary>$$Foo</summary>");
-            TestBraceHighlighting("/// <summary>Foo$$</summary>");
-            TestBraceHighlighting("/// <summary>Foo<$$/summary>");
-            TestBraceHighlighting("/// <summary>Foo</$$summary>");
-            TestBraceHighlighting("/// <summary>Foo</summary$$>");
-            TestBraceHighlighting("/// <summary>Foo</summary>$$");
+            await TestBraceHighlightingAsync("/// $$<summary>Foo</summary>");
+            await TestBraceHighlightingAsync("/// <$$summary>Foo</summary>");
+            await TestBraceHighlightingAsync("/// <summary$$>Foo</summary>");
+            await TestBraceHighlightingAsync("/// <summary>$$Foo</summary>");
+            await TestBraceHighlightingAsync("/// <summary>Foo$$</summary>");
+            await TestBraceHighlightingAsync("/// <summary>Foo<$$/summary>");
+            await TestBraceHighlightingAsync("/// <summary>Foo</$$summary>");
+            await TestBraceHighlightingAsync("/// <summary>Foo</summary$$>");
+            await TestBraceHighlightingAsync("/// <summary>Foo</summary>$$");
 
-            TestBraceHighlighting("public class C$$[|<|]T[|>|] { }");
-            TestBraceHighlighting("public class C<$$T> { }");
-            TestBraceHighlighting("public class C<T$$> { }");
-            TestBraceHighlighting("public class C[|<|]T[|>|]$$ { }");
+            await TestBraceHighlightingAsync("public class C$$[|<|]T[|>|] { }");
+            await TestBraceHighlightingAsync("public class C<$$T> { }");
+            await TestBraceHighlightingAsync("public class C<T$$> { }");
+            await TestBraceHighlightingAsync("public class C[|<|]T[|>|]$$ { }");
 
-            TestBraceHighlighting("class C { void Foo() { bool a = b $$< c; bool d = e > f; } }");
-            TestBraceHighlighting("class C { void Foo() { bool a = b <$$ c; bool d = e > f; } }");
-            TestBraceHighlighting("class C { void Foo() { bool a = b < c; bool d = e $$> f; } }");
-            TestBraceHighlighting("class C { void Foo() { bool a = b < c; bool d = e >$$ f; } }");
+            await TestBraceHighlightingAsync("class C { void Foo() { bool a = b $$< c; bool d = e > f; } }");
+            await TestBraceHighlightingAsync("class C { void Foo() { bool a = b <$$ c; bool d = e > f; } }");
+            await TestBraceHighlightingAsync("class C { void Foo() { bool a = b < c; bool d = e $$> f; } }");
+            await TestBraceHighlightingAsync("class C { void Foo() { bool a = b < c; bool d = e >$$ f; } }");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public void TestSwitch()
+        public async Task TestSwitch()
         {
-            TestBraceHighlighting(@"
+            await TestBraceHighlightingAsync(@"
 class C
 {
     void M(int variable)
@@ -86,7 +87,7 @@ class C
         }
     }
 } ");
-            TestBraceHighlighting(@"
+            await TestBraceHighlightingAsync(@"
 class C
 {
     void M(int variable)
@@ -98,7 +99,7 @@ class C
         }
     }
 } ");
-            TestBraceHighlighting(@"
+            await TestBraceHighlightingAsync(@"
 class C
 {
     void M(int variable)
@@ -110,7 +111,7 @@ class C
         }
     }
 } ");
-            TestBraceHighlighting(@"
+            await TestBraceHighlightingAsync(@"
 class C
 {
     void M(int variable)
@@ -122,7 +123,7 @@ class C
         }
     }
 } ");
-            TestBraceHighlighting(@"
+            await TestBraceHighlightingAsync(@"
 class C
 {
     void M(int variable)
@@ -134,7 +135,7 @@ class C
         [|}|]
     }
 } ");
-            TestBraceHighlighting(@"
+            await TestBraceHighlightingAsync(@"
 class C
 {
     void M(int variable)
@@ -146,7 +147,7 @@ class C
         }
     }
 } ");
-            TestBraceHighlighting(@"
+            await TestBraceHighlightingAsync(@"
 class C
 {
     void M(int variable)
@@ -158,7 +159,7 @@ class C
         $$}
     }
 } ");
-            TestBraceHighlighting(@"
+            await TestBraceHighlightingAsync(@"
 class C
 {
     void M(int variable)
@@ -173,10 +174,10 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public void TestEOF()
+        public async Task TestEOF()
         {
-            TestBraceHighlighting("public class C [|{|]\r\n[|}|]$$");
-            TestBraceHighlighting("public class C [|{|]\r\n void Foo(){}[|}|]$$");
+            await TestBraceHighlightingAsync("public class C [|{|]\r\n[|}|]$$");
+            await TestBraceHighlightingAsync("public class C [|{|]\r\n void Foo(){}[|}|]$$");
         }
     }
 }

@@ -2,6 +2,29 @@ Building a new Mono toolset
 ====
 This document describes building a new Mono toolset for use in our Mac or Linux Jenkins jobs.  
 
+### Building Roslyn Toolset
+The new *toolset name* will be chosen as one of the follownig:
+
+- Linux: roslyn.linux.`<version number>`
+- Mac: roslyn.mac.`<version number>`
+
+The value of *version number* will simply be the one number higher than the current version number of the toolset.  
+
+To build the toolset do the following:
+
+- Run cibuild.sh locally
+- Rename `Binaries/Bootstrap` to the *toolset name* above
+- Bzip the directory: `tar -jcvf <toolset name>.tar.bz2 Binaries/<toolset name>.
+- Upload the file to the Azure in the dotnetci storage account in the roslyn container.  
+- Send a PR to change [cibuild.sh](https://github.com/dotnet/roslyn/blob/master/cibuild.sh) to use the new toolset.  
+
+### Existing Roslyn Toolsets
+This table describes the existing Mono toolsets and the commit they were built from.  
+
+| Version | Linux | Mac |
+| --- | --- | --- |
+| 1 | [8dbfd942f07be971f423722891717e2ba9d9bebb](https://github.com/dotnet/roslyn/commit/8dbfd942f07be971f423722891717e2ba9d9bebb) | [8dbfd942f07be971f423722891717e2ba9d9bebb](https://github.com/dotnet/roslyn/commit/8dbfd942f07be971f423722891717e2ba9d9bebb) |
+
 ### Building Mono
 The new *toolset name* will be chosen as one of the following:
 
@@ -23,7 +46,7 @@ To build the toolset execute the following:
 
 Note: This process needs to be repeated for both Mac and Linux.  
 
-### Existing toolsets
+### Existing Mono Toolsets
 This table describes the existing Mono toolsets and the commit they were built from.  
 
 | Version | Linux | Mac |

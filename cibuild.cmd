@@ -110,6 +110,6 @@ exit /b 1
 
 :TerminateCompilerServer
 @REM Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
-@REM This prevents future CI runs from failing hile trying to delete those files.
+@REM This prevents future CI runs from failing while trying to delete those files.
 
 taskkill /F /IM vbcscompiler.exe 2> nul

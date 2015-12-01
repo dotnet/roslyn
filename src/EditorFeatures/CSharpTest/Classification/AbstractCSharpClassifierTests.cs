@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public abstract class AbstractCSharpClassifierTests : AbstractClassifierTests
     {
-        internal abstract IEnumerable<ClassifiedSpan> GetClassificationSpans(string code, TextSpan textSpan, CSharpParseOptions options);
+        internal abstract Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options);
 
         protected string GetText(Tuple<string, string> tuple)
         {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             return "(" + tuple.TextSpan + ", " + tuple.ClassificationType + ")";
         }
 
-        protected void Test(string code,
+        protected async Task TestAsync(string code,
            string allCode,
            Tuple<string, string>[] expected,
            CSharpParseOptions options = null)
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             var length = code.Length;
             var span = new TextSpan(start, length);
 
-            var actual = GetClassificationSpans(allCode, span, options: options).ToList();
+            var actual = (await GetClassificationSpansAsync(allCode, span, options: options)).ToList();
 
             actual.Sort((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
 
@@ -66,69 +67,69 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             return expected;
         }
 
-        protected void Test(
+        protected Task TestAsync(
             string code,
             string allCode,
             params Tuple<string, string>[] expected)
         {
-            Test(code, allCode, expected, null);
+            return TestAsync(code, allCode, expected, null);
         }
 
-        protected void Test(
+        protected Task TestAsync(
             string code,
             string allCode,
             CSharpParseOptions options,
             params Tuple<string, string>[] expected)
         {
-            Test(code, allCode, expected, options);
+            return TestAsync(code, allCode, expected, options);
         }
 
-        protected void Test(
+        protected async Task TestAsync(
             string code,
             params Tuple<string, string>[] expected)
         {
-            Test(code, code, expected);
-            Test(code, code, expected, Options.Script);
+            await TestAsync(code, code, expected);
+            await TestAsync(code, code, expected, Options.Script);
         }
 
-        protected void Test(
+        protected async Task TestAsync(
             string code,
             CSharpParseOptions options,
             CSharpParseOptions scriptOptions,
             params Tuple<string, string>[] expected)
         {
-            Test(code, code, expected, options);
-            Test(code, code, expected, scriptOptions);
+            await TestAsync(code, code, expected, options);
+            await TestAsync(code, code, expected, scriptOptions);
         }
 
-        protected void TestInNamespace(
+        protected async Task TestInNamespaceAsync(
             string code,
             params Tuple<string, string>[] expected)
         {
             var allCode = "namespace N {\r\n" + code + "\r\n}";
-            Test(code, allCode, expected);
-            Test(code, allCode, expected, Options.Script);
+            await TestAsync(code, allCode, expected);
+            await TestAsync(code, allCode, expected, Options.Script);
         }
 
-        protected void TestInClass(
+        protected async Task TestInClassAsync(
             string className,
             string code,
             params Tuple<string, string>[] expected)
         {
             var allCode = "class " + className + " {\r\n    " +
                 code + "\r\n}";
-            Test(code, allCode, expected);
-            Test(code, allCode, expected, Options.Script);
+            await TestAsync(code, allCode, expected);
+            await TestAsync(code, allCode, expected, Options.Script);
         }
 
-        protected void TestInClass(
+        protected Task TestInClassAsync(
             string code,
             params Tuple<string, string>[] expected)
         {
-            TestInClass("C", code, expected);
+            return TestInClassAsync("C", code, expected);
         }
 
-        protected void TestInMethod(
+        protected async Task TestInMethodAsync(
             string className,
             string methodName,
             string code,
@@ -136,11 +137,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         {
             var allCode = "class " + className + " {\r\n    void " + methodName + "() {\r\n        " +
                 code + "\r\n    \r\n}\r\n}";
-            Test(code, allCode, expected);
-            Test(code, allCode, expected, Options.Script);
+            await TestAsync(code, allCode, expected);
+            await TestAsync(code, allCode, expected, Options.Script);
         }
 
-        protected void TestInMethod(
+        protected async Task TestInMethodAsync(
             string className,
             string methodName,
             string code,
@@ -150,42 +151,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         {
             var allCode = "class " + className + " {\r\n    void " + methodName + "() {\r\n        " +
                 code + "\r\n    \r\n}\r\n}";
-            Test(code, allCode, expected, options);
-            Test(code, allCode, expected, scriptOptions);
+            await TestAsync(code, allCode, expected, options);
+            await TestAsync(code, allCode, expected, scriptOptions);
         }
 
-        protected void TestInMethod(
+        protected Task TestInMethodAsync(
             string methodName,
             string code,
             params Tuple<string, string>[] expected)
         {
-            TestInMethod("C", methodName, code, expected);
+            return TestInMethodAsync("C", methodName, code, expected);
         }
 
-        protected void TestInMethod(
+        protected Task TestInMethodAsync(
             string code,
             params Tuple<string, string>[] expected)
         {
-            TestInMethod("C", "M", code, expected);
+            return TestInMethodAsync("C", "M", code, expected);
         }
 
-        protected void TestInMethod(
+        protected Task TestInMethodAsync(
             string code,
             CSharpParseOptions options,
             CSharpParseOptions scriptOptions,
             params Tuple<string, string>[] expected)
         {
-            TestInMethod("C", "M", code, options, scriptOptions, expected);
+            return TestInMethodAsync("C", "M", code, options, scriptOptions, expected);
         }
 
-        protected void TestInExpression(
+        protected async Task TestInExpressionAsync(
             string code,
             params Tuple<string, string>[] expected)
         {
             var allCode = "class C {\r\n    void M() {\r\n        var q = \r\n        " +
                 code + "\r\n    ;\r\n    }\r\n}";
-            Test(code, allCode, expected);
-            Test(code, allCode, expected, Options.Script);
+            await TestAsync(code, allCode, expected);
+            await TestAsync(code, allCode, expected, Options.Script);
         }
     }
 }

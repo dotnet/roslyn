@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -10,495 +11,495 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
 {
     public class CSharpBraceMatcherTests : AbstractBraceMatcherTests
     {
-        protected override TestWorkspace CreateWorkspaceFromCode(string code)
+        protected override Task<TestWorkspace> CreateWorkspaceFromCodeAsync(string code)
         {
-            return CSharpWorkspaceFactory.CreateWorkspaceFromLines(code);
+            return CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(code);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestEmptyFile()
+        public async Task TestEmptyFile()
         {
             var code = @"$$";
             var expected = @"";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestAtFirstPositionInFile()
+        public async Task TestAtFirstPositionInFile()
         {
             var code = @"$$public class C { }";
             var expected = @"public class C { }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestAtLastPositionInFile()
+        public async Task TestAtLastPositionInFile()
         {
             var code = @"public class C { }$$";
             var expected = @"public class C [|{|] }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestCurlyBrace1()
+        public async Task TestCurlyBrace1()
         {
             var code = @"public class C $${ }";
             var expected = @"public class C { [|}|]";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestCurlyBrace2()
+        public async Task TestCurlyBrace2()
         {
             var code = @"public class C {$$ }";
             var expected = @"public class C { [|}|]";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestCurlyBrace3()
+        public async Task TestCurlyBrace3()
         {
             var code = @"public class C { $$}";
             var expected = @"public class C [|{|] }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestCurlyBrace4()
+        public async Task TestCurlyBrace4()
         {
             var code = @"public class C { }$$";
             var expected = @"public class C [|{|] }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestParen1()
+        public async Task TestParen1()
         {
             var code = @"public class C { void Foo$$() { } }";
             var expected = @"public class C { void Foo([|)|] { } }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestParen2()
+        public async Task TestParen2()
         {
             var code = @"public class C { void Foo($$) { } }";
             var expected = @"public class C { void Foo([|)|] { } }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestParen3()
+        public async Task TestParen3()
         {
             var code = @"public class C { void Foo($$ ) { } }";
             var expected = @"public class C { void Foo( [|)|] { } }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestParen4()
+        public async Task TestParen4()
         {
             var code = @"public class C { void Foo( $$) { } }";
             var expected = @"public class C { void Foo[|(|] ) { } }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestParen5()
+        public async Task TestParen5()
         {
             var code = @"public class C { void Foo( )$$ { } }";
             var expected = @"public class C { void Foo[|(|] ) { } }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestParen6()
+        public async Task TestParen6()
         {
             var code = @"public class C { void Foo()$$ { } }";
             var expected = @"public class C { void Foo[|(|]) { } }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestSquareBracket1()
+        public async Task TestSquareBracket1()
         {
             var code = @"public class C { int$$[] i; }";
             var expected = @"public class C { int[[|]|] i; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestSquareBracket2()
+        public async Task TestSquareBracket2()
         {
             var code = @"public class C { int[$$] i; }";
             var expected = @"public class C { int[[|]|] i; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestSquareBracket3()
+        public async Task TestSquareBracket3()
         {
             var code = @"public class C { int[$$ ] i; }";
             var expected = @"public class C { int[ [|]|] i; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestSquareBracket4()
+        public async Task TestSquareBracket4()
         {
             var code = @"public class C { int[ $$] i; }";
             var expected = @"public class C { int[|[|] ] i; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestSquareBracket5()
+        public async Task TestSquareBracket5()
         {
             var code = @"public class C { int[ ]$$ i; }";
             var expected = @"public class C { int[|[|] ] i; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestSquareBracket6()
+        public async Task TestSquareBracket6()
         {
             var code = @"public class C { int[]$$ i; }";
             var expected = @"public class C { int[|[|]] i; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestAngleBracket1()
+        public async Task TestAngleBracket1()
         {
             var code = @"public class C { Foo$$<int> f; }";
             var expected = @"public class C { Foo<int[|>|] f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestAngleBracket2()
+        public async Task TestAngleBracket2()
         {
             var code = @"public class C { Foo<$$int> f; }";
             var expected = @"public class C { Foo<int[|>|] f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestAngleBracket3()
+        public async Task TestAngleBracket3()
         {
             var code = @"public class C { Foo<int$$> f; }";
             var expected = @"public class C { Foo[|<|]int> f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestAngleBracket4()
+        public async Task TestAngleBracket4()
         {
             var code = @"public class C { Foo<int>$$ f; }";
             var expected = @"public class C { Foo[|<|]int> f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestNestedAngleBracket1()
+        public async Task TestNestedAngleBracket1()
         {
             var code = @"public class C { Func$$<Func<int,int>> f; }";
             var expected = @"public class C { Func<Func<int,int>[|>|] f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestNestedAngleBracket2()
+        public async Task TestNestedAngleBracket2()
         {
             var code = @"public class C { Func<$$Func<int,int>> f; }";
             var expected = @"public class C { Func<Func<int,int>[|>|] f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestNestedAngleBracket3()
+        public async Task TestNestedAngleBracket3()
         {
             var code = @"public class C { Func<Func$$<int,int>> f; }";
             var expected = @"public class C { Func<Func<int,int[|>|]> f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestNestedAngleBracket4()
+        public async Task TestNestedAngleBracket4()
         {
             var code = @"public class C { Func<Func<$$int,int>> f; }";
             var expected = @"public class C { Func<Func<int,int[|>|]> f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestNestedAngleBracket5()
+        public async Task TestNestedAngleBracket5()
         {
             var code = @"public class C { Func<Func<int,int$$>> f; }";
             var expected = @"public class C { Func<Func[|<|]int,int>> f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestNestedAngleBracket6()
+        public async Task TestNestedAngleBracket6()
         {
             var code = @"public class C { Func<Func<int,int>$$> f; }";
             var expected = @"public class C { Func<Func[|<|]int,int>> f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestNestedAngleBracket7()
+        public async Task TestNestedAngleBracket7()
         {
             var code = @"public class C { Func<Func<int,int> $$> f; }";
             var expected = @"public class C { Func[|<|]Func<int,int> > f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestNestedAngleBracket8()
+        public async Task TestNestedAngleBracket8()
         {
             var code = @"public class C { Func<Func<int,int>>$$ f; }";
             var expected = @"public class C { Func[|<|]Func<int,int>> f; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestString1()
+        public async Task TestString1()
         {
             var code = @"public class C { string s = $$""Foo""; }";
             var expected = @"public class C { string s = ""Foo[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestString2()
+        public async Task TestString2()
         {
             var code = @"public class C { string s = ""$$Foo""; }";
             var expected = @"public class C { string s = ""Foo[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestString3()
+        public async Task TestString3()
         {
             var code = @"public class C { string s = ""Foo$$""; }";
             var expected = @"public class C { string s = [|""|]Foo""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestString4()
+        public async Task TestString4()
         {
             var code = @"public class C { string s = ""Foo""$$; }";
             var expected = @"public class C { string s = [|""|]Foo""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestString5()
+        public async Task TestString5()
         {
             var code = @"public class C { string s = ""Foo$$ ";
             var expected = @"public class C { string s = ""Foo ";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestVerbatimString1()
+        public async Task TestVerbatimString1()
         {
             var code = @"public class C { string s = $$@""Foo""; }";
             var expected = @"public class C { string s = @""Foo[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestVerbatimString2()
+        public async Task TestVerbatimString2()
         {
             var code = @"public class C { string s = @$$""Foo""; }";
             var expected = @"public class C { string s = @""Foo[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestVerbatimString3()
+        public async Task TestVerbatimString3()
         {
             var code = @"public class C { string s = @""$$Foo""; }";
             var expected = @"public class C { string s = @""Foo[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestVerbatimString4()
+        public async Task TestVerbatimString4()
         {
             var code = @"public class C { string s = @""Foo$$""; }";
             var expected = @"public class C { string s = [|@""|]Foo""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestVerbatimString5()
+        public async Task TestVerbatimString5()
         {
             var code = @"public class C { string s = @""Foo""$$; }";
             var expected = @"public class C { string s = [|@""|]Foo""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString1()
+        public async Task TestInterpolatedString1()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""$${x}, {y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x[|}|], {y}""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString2()
+        public async Task TestInterpolatedString2()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{$$x}, {y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x[|}|], {y}""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString3()
+        public async Task TestInterpolatedString3()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x$$}, {y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""[|{|]x}, {y}""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString4()
+        public async Task TestInterpolatedString4()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}$$, {y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""[|{|]x}, {y}""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString5()
+        public async Task TestInterpolatedString5()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, $${y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y[|}|]""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString6()
+        public async Task TestInterpolatedString6()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {$$y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y[|}|]""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString7()
+        public async Task TestInterpolatedString7()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y$$}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, [|{|]y}""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString8()
+        public async Task TestInterpolatedString8()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}$$""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, [|{|]y}""; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString9()
+        public async Task TestInterpolatedString9()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $$[||]$""{x}, {y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString10()
+        public async Task TestInterpolatedString10()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $[||]$$""{x}, {y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString11()
+        public async Task TestInterpolatedString11()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $$[||]$@""{x}, {y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@""{x}, {y}[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString12()
+        public async Task TestInterpolatedString12()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $[||]$$@""{x}, {y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@""{x}, {y}[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
-        public void TestInterpolatedString13()
+        public async Task TestInterpolatedString13()
         {
             var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@$$""{x}, {y}""; }";
             var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@""{x}, {y}[|""|]; }";
 
-            Test(code, expected);
+            await TestAsync(code, expected);
         }
     }
 }

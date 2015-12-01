@@ -2,6 +2,7 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -27,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Function GetRewriter(document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As AbstractTokensCodeCleanupProvider.Rewriter
-            Return New FixIncorrectTokensRewriter(document, spans, cancellationToken)
+        Protected Overrides Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+            Return FixIncorrectTokensRewriter.CreateAsync(document, spans, cancellationToken)
         End Function
 
         Private Class FixIncorrectTokensRewriter
@@ -36,32 +37,28 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private ReadOnly _document As Document
             Private ReadOnly _modifiedSpan As TextSpan
+            Private ReadOnly _semanticModel As SemanticModel
 
-            Private _model As SemanticModel = Nothing
-
-            Public Sub New(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken)
+            Private Sub New(document As Document,
+                            semanticModel As SemanticModel,
+                            spans As IEnumerable(Of TextSpan),
+                            modifiedSpan As TextSpan,
+                            cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
-                Me._document = document
-                Me._modifiedSpan = spans.Collapse()
+                _document = document
+                _semanticModel = semanticModel
+                _modifiedSpan = modifiedSpan
             End Sub
 
-            Private ReadOnly Property SemanticModel As SemanticModel
-                Get
-                    If _document Is Nothing Then
-                        Return Nothing
-                    End If
+            Public Shared Async Function CreateAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of Rewriter)
+                Dim modifiedSpan = spans.Collapse()
+                Dim semanticModel = If(document Is Nothing,
+                    Nothing,
+                    Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
-                    If _model Is Nothing Then
-                        ' don't want to create semantic model when it is not needed. so get it synchronously when needed
-                        ' most of cases, this will run on UI thread, so it shouldn't matter
-                        _model = _document.GetSemanticModelForSpanAsync(_modifiedSpan, Me._cancellationToken).WaitAndGetResult(Me._cancellationToken)
-                    End If
-
-                    Contract.Requires(_model IsNot Nothing)
-                    Return _model
-                End Get
-            End Property
+                Return New FixIncorrectTokensRewriter(document, semanticModel, spans, modifiedSpan, cancellationToken)
+            End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 Dim newTrivia = MyBase.VisitTrivia(trivia)
@@ -114,8 +111,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 If Not _underStructuredTrivia Then
                     Dim parent = TryCast(node.Parent, QualifiedNameSyntax)
-                    If parent IsNot Nothing AndAlso Me.SemanticModel IsNot Nothing Then
-                        Dim symbol = Me.SemanticModel.GetSymbolInfo(parent.Left, _cancellationToken).Symbol
+                    If parent IsNot Nothing AndAlso _semanticModel IsNot Nothing Then
+                        Dim symbol = _semanticModel.GetSymbolInfo(parent.Left, _cancellationToken).Symbol
                         If symbol IsNot Nothing AndAlso symbol.IsNamespace AndAlso String.Equals(DirectCast(symbol, INamespaceSymbol).MetadataName, "System", StringComparison.Ordinal) Then
                             Dim id = newIdentifierName.Identifier
                             Dim newValueText As String

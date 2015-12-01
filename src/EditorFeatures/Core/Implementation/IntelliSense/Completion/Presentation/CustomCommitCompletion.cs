@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             var item = (CompletionItem as DescriptionModifyingCompletionItem)?.CompletionItem ?? CompletionItem;
 
-            return (item.CompletionProvider as ICustomCompletionItemFormatter)?.GetTextRunProperties(item, defaultTextRunProperties) 
+            return (item.CompletionProvider as ICustomCompletionItemFormatter)?.GetTextRunProperties(item, defaultTextRunProperties)
                 ?? defaultTextRunProperties;
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             var item = (CompletionItem as DescriptionModifyingCompletionItem)?.CompletionItem ?? CompletionItem;
 
-            return (item.CompletionProvider as ICustomCompletionItemFormatter)?.GetHighlightedTextRunProperties(item, defaultHighlightedTextRunProperties) 
+            return (item.CompletionProvider as ICustomCompletionItemFormatter)?.GetHighlightedTextRunProperties(item, defaultHighlightedTextRunProperties)
                 ?? defaultHighlightedTextRunProperties;
         }
 

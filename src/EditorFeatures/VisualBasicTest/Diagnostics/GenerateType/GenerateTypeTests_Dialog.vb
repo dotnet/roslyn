@@ -44,7 +44,7 @@ End Class
 Class Foo
 End Class
 </Text>.NormalizedValue,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -70,7 +70,7 @@ Namespace A
     Class Foo
     End Class
 End Namespace</Text>.NormalizedValue,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -96,7 +96,7 @@ Namespace A.B
     Class Foo
     End Class
 End Namespace</Text>.NormalizedValue,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -126,7 +126,7 @@ Namespace A.B
         End Class
     End Namespace
 End Namespace</Text>.NormalizedValue,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -156,7 +156,7 @@ Namespace A
         End Class
     End Namespace
 End Namespace</Text>.NormalizedValue,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -185,7 +185,7 @@ Class Foo
     End Sub
 End Class
 </Text>.NormalizedValue,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -210,7 +210,7 @@ Class Foo
     Inherits List(Of Integer)
 End Class
 </Text>.NormalizedValue,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -240,7 +240,7 @@ Namespace A
 End Namespace</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -270,7 +270,7 @@ Namespace A
 End Namespace</Text>.NormalizedValue,
 accessibility:=Accessibility.Friend,
 typeKind:=TypeKind.Structure,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -300,7 +300,7 @@ Namespace A
 End Namespace</Text>.NormalizedValue,
 accessibility:=Accessibility.NotApplicable,
 typeKind:=TypeKind.Enum,
-isNewFile:=False).ConfigureAwait(True)
+isNewFile:=False)
         End Function
 #End Region
 
@@ -336,7 +336,7 @@ isLine:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
-existingFilename:="Test2.vb").ConfigureAwait(True)
+existingFilename:="Test2.vb")
         End Function
 
         <WorkItem(850101)>
@@ -377,7 +377,7 @@ End Class</Text>.NormalizedValue,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
-existingFilename:="Test2.vb").ConfigureAwait(True)
+existingFilename:="Test2.vb")
         End Function
 
         <WorkItem(850101)>
@@ -413,7 +413,7 @@ checkIfUsingsNotIncluded:=True,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
-existingFilename:="Test2.vb").ConfigureAwait(True)
+existingFilename:="Test2.vb")
         End Function
 #End Region
 
@@ -447,7 +447,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileFolderContainers:=New String(0) {},
-newFileName:="Test2.vb").ConfigureAwait(True)
+newFileName:="Test2.vb")
         End Function
 
         <WorkItem(850101)>
@@ -482,7 +482,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileFolderContainers:=New String() {"outer", "inner"},
-newFileName:="Test2.vb").ConfigureAwait(True)
+newFileName:="Test2.vb")
         End Function
 
         <WorkItem(898452)>
@@ -516,7 +516,7 @@ typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileFolderContainers:=New String() {"@@@@@", "#####"},
 areFoldersValidIdentifiers:=False,
-newFileName:="Test2.vb").ConfigureAwait(True)
+newFileName:="Test2.vb")
         End Function
 
         <WorkItem(850101)>
@@ -557,7 +557,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileFolderContainers:=New String() {"outer", "inner"},
-newFileName:="Test2.vb").ConfigureAwait(True)
+newFileName:="Test2.vb")
         End Function
 
         <WorkItem(907454)>
@@ -599,7 +599,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileFolderContainers:=New String() {"outer"},
-newFileName:="Test2.vb").ConfigureAwait(True)
+newFileName:="Test2.vb")
         End Function
 
         <WorkItem(850101)>
@@ -632,7 +632,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileFolderContainers:=New String() {"outer", "inner"},
-newFileName:="Test2.vb").ConfigureAwait(True)
+newFileName:="Test2.vb")
         End Function
 #End Region
 #End Region
@@ -672,7 +672,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
 existingFilename:="Test2.vb",
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -715,7 +715,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
 existingFilename:="Test2.vb",
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -773,7 +773,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
 isNewFile:=False,
 existingFilename:="Test2.vb",
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 #End Region
 #Region "SameLanguage DifferentProject NewFile"
@@ -811,7 +811,7 @@ typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test2.vb",
 newFileFolderContainers:=New String(0) {},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -855,7 +855,7 @@ typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test2.vb",
 newFileFolderContainers:=New String() {"outer", "inner"},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -894,7 +894,7 @@ typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test2.vb",
 newFileFolderContainers:=New String(0) {},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -938,7 +938,7 @@ typeKind:=TypeKind.Interface,
 isNewFile:=True,
 newFileName:="Test3.vb",
 newFileFolderContainers:=New String(0) {},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 #End Region
 #End Region
@@ -976,7 +976,7 @@ typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
 newFileFolderContainers:=New String(0) {},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -1027,7 +1027,7 @@ typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
 newFileFolderContainers:=New String() {"outer", "inner"},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -1065,7 +1065,7 @@ typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
 newFileFolderContainers:=New String() {"outer", "inner"},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -1116,7 +1116,7 @@ typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
 newFileFolderContainers:=New String() {"outer", "inner"},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -1156,7 +1156,7 @@ typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
 newFileFolderContainers:=New String() {"outer", "inner"},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1194,7 +1194,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=False,
 existingFilename:="Test2.cs",
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(850101)>
@@ -1238,7 +1238,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=False,
 existingFilename:="Test2.cs",
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1282,7 +1282,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=False,
 existingFilename:="Test2.cs",
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1326,7 +1326,7 @@ accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
 isNewFile:=False,
 existingFilename:="Test2.cs",
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(858826)>
@@ -1363,7 +1363,7 @@ typeKind:=TypeKind.Class,
 isNewFile:=True,
 newFileName:="Test2.cs",
 newFileFolderContainers:=New String(0) {},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 #End Region
 #Region "Bugfix"
@@ -1387,7 +1387,7 @@ End Interface
 isNewFile:=False,
 typeKind:=TypeKind.Interface,
 accessibility:=Accessibility.Public,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface))
         End Function
 
         <WorkItem(861462)>
@@ -1407,7 +1407,7 @@ Class DD
 End Class
 </Text>.NormalizedValue,
 isNewFile:=False,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Class)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Class))
         End Function
 
         <WorkItem(861462)>
@@ -1428,7 +1428,7 @@ End Interface
 </Text>.NormalizedValue,
 isNewFile:=False,
 typeKind:=TypeKind.Interface,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface))
         End Function
 
         <WorkItem(861462)>
@@ -1450,7 +1450,7 @@ End Interface
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Interface,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Interface))
         End Function
 
         <WorkItem(861362)>
@@ -1480,7 +1480,7 @@ Namespace A
 End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 typeKind:=TypeKind.Module,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
         End Function
 
         <WorkItem(861362)>
@@ -1506,7 +1506,7 @@ End Module
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Module,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
         <WorkItem(861362)>
@@ -1535,7 +1535,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Module,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
         <WorkItem(876202)>
@@ -1562,7 +1562,7 @@ End Structure
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Structure,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure))
         End Function
 
         <WorkItem(861600)>
@@ -1594,7 +1594,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure))
         End Function
 
         <WorkItem(861600)>
@@ -1626,7 +1626,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Interface Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Interface Or TypeKindOptions.Delegate))
         End Function
 
         <WorkItem(861600)>
@@ -1656,7 +1656,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
         <WorkItem(861600)>
@@ -1682,7 +1682,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.MemberAccessWithNamespace))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1698,7 +1698,7 @@ Namespace Bar
 End Namespace</Text>.NormalizedValue,
 languageName:=LanguageNames.VisualBasic,
 typeName:="Bar",
-isMissing:=True).ConfigureAwait(True)
+isMissing:=True)
         End Function
 
 #End Region
@@ -1730,7 +1730,7 @@ Public Delegate Sub MyD()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1760,7 +1760,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1786,7 +1786,7 @@ End Namespace
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1810,7 +1810,7 @@ Public Delegate Sub MyD()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1838,7 +1838,7 @@ Public Delegate Function MyD(n As Integer) As Integer
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1866,7 +1866,7 @@ Public Delegate Sub MyD(Of T)()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Interface Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Interface Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1894,7 +1894,7 @@ Public Delegate Sub MyD(Of T)()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1922,7 +1922,7 @@ Public Delegate Sub MyD(Of T)()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1950,7 +1950,7 @@ Public Delegate Sub MyD(Of T)()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -1974,7 +1974,7 @@ Public Delegate Sub MyD()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2002,7 +2002,7 @@ Public Delegate Function MyD() As Integer
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2026,7 +2026,7 @@ Public Delegate Function MyD(n As Integer) As String
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2052,7 +2052,7 @@ Public Delegate Sub MyD()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2076,7 +2076,7 @@ Public Delegate Sub MyD(n As Double)
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2104,7 +2104,7 @@ Public Delegate Sub MyD()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2128,7 +2128,7 @@ Public Delegate Sub MyD()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.AllOptions Or TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2157,7 +2157,7 @@ typeKind:=TypeKind.Delegate,
 isNewFile:=True,
 newFileName:="Test2.cs",
 newFileFolderContainers:=New String(0) {},
-projectName:="Assembly2").ConfigureAwait(True)
+projectName:="Assembly2")
         End Function
 
         <WorkItem(860210)>
@@ -2181,7 +2181,7 @@ Public Delegate Sub MyD(Of T)()
 </Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
-typeKind:=TypeKind.Delegate).ConfigureAwait(True)
+typeKind:=TypeKind.Delegate)
         End Function
 #End Region
 #Region "Dev12Filtering"
@@ -2211,7 +2211,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum}).ConfigureAwait(True)
+assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2236,7 +2236,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum}).ConfigureAwait(True)
+assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2271,7 +2271,7 @@ isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
 assertTypeKindPresent:=New TypeKindOptions() {TypeKindOptions.Delegate},
-assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum}).ConfigureAwait(True)
+assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2306,7 +2306,7 @@ isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
 assertTypeKindPresent:=New TypeKindOptions() {TypeKindOptions.Delegate},
-assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum}).ConfigureAwait(True)
+assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2337,7 +2337,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum}).ConfigureAwait(True)
+assertTypeKindAbsent:=New TypeKindOptions() {TypeKindOptions.Enum})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2358,7 +2358,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2383,7 +2383,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2412,7 +2412,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2448,7 +2448,7 @@ Public Delegate Sub Foo()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2486,7 +2486,7 @@ End Namespace
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2527,7 +2527,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2549,7 +2549,7 @@ Public Delegate Sub Bar()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2573,7 +2573,7 @@ End Namespace
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2600,7 +2600,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Class Or TypeKindOptions.Structure Or TypeKindOptions.Module))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2623,7 +2623,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2648,7 +2648,7 @@ End Namespace
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2675,7 +2675,7 @@ End Namespace</Text>.NormalizedValue,
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2701,7 +2701,7 @@ Public Delegate Sub Bar()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2727,7 +2727,7 @@ Public Delegate Sub Bar()
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Delegate,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Delegate)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.Delegate))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2754,7 +2754,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(False, TypeKindOptions.BaseList))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -2781,7 +2781,7 @@ End Class
 isNewFile:=False,
 accessibility:=Accessibility.Public,
 typeKind:=TypeKind.Class,
-assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList)).ConfigureAwait(True)
+assertGenerateTypeDialogOptions:=New GenerateTypeDialogOptions(True, TypeKindOptions.BaseList))
         End Function
 
 #End Region

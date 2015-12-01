@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
@@ -9,8 +10,8 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class GraphNodeCreationTests
-        Private Sub AssertCreatedNodeIs(code As String, expectedId As String, xml As XElement, Optional language As String = "C#")
-            Using testState = New ProgressionTestState(
+        Private Async Function AssertCreatedNodeIsAsync(code As String, expectedId As String, xml As XElement, Optional language As String = "C#") As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                 <Workspace>
                     <Project Language=<%= language %> CommonReferences="true" FilePath="Z:\Project.csproj">
                         <Document FilePath="Z:\Project.cs">
@@ -18,19 +19,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Document>
                     </Project>
                 </Workspace>)
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim node = GraphNodeCreation.CreateNodeIdAsync(symbol, testState.GetSolution(), CancellationToken.None).Result
                 Assert.Equal(expectedId, node.ToString())
 
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph, xml)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub SimpleType()
-            AssertCreatedNodeIs("namespace N { class $$C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C)",
+        Public Async Function TestSimpleType() As Task
+            Await AssertCreatedNodeIsAsync("namespace N { class $$C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
@@ -40,11 +41,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub NamespaceType()
-            AssertCreatedNodeIs("namespace $$N { class C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N)",
+        Public Async Function TestNamespaceType() As Task
+            Await AssertCreatedNodeIsAsync("namespace $$N { class C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N)" Category="CodeSchema_Namespace" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="N" Label="N"/>
@@ -54,11 +55,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub LongNamespaceType()
-            AssertCreatedNodeIs("namespace N.$$N1.N11 { class C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N.N1)",
+        Public Async Function TestLongNamespaceType() As Task
+            Await AssertCreatedNodeIsAsync("namespace N.$$N1.N11 { class C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N.N1)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N.N1)" Category="CodeSchema_Namespace" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="N.N1" Label="N.N1"/>
@@ -68,11 +69,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub SimpleParameterType()
-            AssertCreatedNodeIs("namespace N { class C { void M(int $$x) { } } }",
+        Public Async Function TestSimpleParameterType() As Task
+            Await AssertCreatedNodeIsAsync("namespace N { class C { void M(int $$x) { } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32)]) ParameterIdentifier=x)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -84,11 +85,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub DelegateType()
-            AssertCreatedNodeIs("namespace N { delegate void D(string $$m); }",
+        Public Async Function TestDelegateType() As Task
+            Await AssertCreatedNodeIsAsync("namespace N { delegate void D(string $$m); }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=D Member=(Name=Invoke OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=String)]) ParameterIdentifier=m)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -100,11 +101,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub LambdaParameterType()
-            AssertCreatedNodeIs("namespace N { class C { void M(Func<int,int> $$x) { } } }",
+        Public Async Function TestLambdaParameterType() As Task
+            Await AssertCreatedNodeIsAsync("namespace N { class C { void M(Func<int,int> $$x) { } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/CSharpAssembly1.dll Type=(Name=Func GenericParameterCount=2 GenericArguments=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32),(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32)]))]) ParameterIdentifier=x)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -116,11 +117,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub LocalType()
-            AssertCreatedNodeIs("namespace N { class C { int M() { int $$y = 0; return y; } } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
+        Public Async Function TestLocalType() As Task
+            Await AssertCreatedNodeIsAsync("namespace N { class C { int M() { int $$y = 0; return y; } } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C Member=M LocalVariable=y)" Category="CodeSchema_LocalExpression" CommonLabel="y" Label="y"/>
@@ -130,11 +131,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub FirstLocalWithSameNameType()
-            AssertCreatedNodeIs("namespace N { class C { int M() { { int $$y = 0; } { int y = 1;} } } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
+        Public Async Function TestFirstLocalWithSameNameType() As Task
+            Await AssertCreatedNodeIsAsync("namespace N { class C { int M() { { int $$y = 0; } { int y = 1;} } } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C Member=M LocalVariable=y)" Category="CodeSchema_LocalExpression" CommonLabel="y" Label="y"/>
@@ -144,11 +145,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub SecondLocalWithSameNameType()
-            AssertCreatedNodeIs("namespace N { class C { int M() { { int y = 0; } { int $$y = 1;} } } }",
+        Public Async Function TestSecondLocalWithSameNameType() As Task
+            Await AssertCreatedNodeIsAsync("namespace N { class C { int M() { { int y = 0; } { int $$y = 1;} } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y LocalVariableIndex=1)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -159,11 +160,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub ErrorType()
-            AssertCreatedNodeIs(
+        Public Async Function TestErrorType() As Task
+            Await AssertCreatedNodeIsAsync(
                 "Class $$C : Inherits D : End Class",
                 "(Assembly=file:///Z:/VisualBasicAssembly1.dll Type=C)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
@@ -176,11 +177,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>,
             LanguageNames.VisualBasic)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub SimpleMethodSymbolTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestSimpleMethodSymbolTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -191,16 +192,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo(string[]) : void", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo", graphNode.Label)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub ReferenceParameterSymbolTest()
-            AssertCreatedNodeIs("namespace N { class C { void $$Foo(ref int i) { i = i + 1; } } }",
+        Public Async Function TestReferenceParameterSymbolTest() As Task
+            Await AssertCreatedNodeIsAsync("namespace N { class C { void $$Foo(ref int i) { i = i + 1; } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Foo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -212,11 +213,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub ReferenceOutParameterSymbolTest()
-            AssertCreatedNodeIs("namespace N { class C { void $$Foo(out int i) { i = 1; } } }",
+        Public Async Function TestReferenceOutParameterSymbolTest() As Task
+            Await AssertCreatedNodeIsAsync("namespace N { class C { void $$Foo(out int i) { i = 1; } } }",
                     "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Foo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -228,11 +229,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub SimpleIndexerTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestSimpleIndexerTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -250,9 +251,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -265,11 +266,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub AttributedIndexerTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestAttributedIndexerTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -288,9 +289,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -303,11 +304,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub ParameterWithConversionOperatorTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestParameterWithConversionOperatorTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -321,9 +322,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -336,11 +337,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub LocalVBVariableType()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestLocalVBVariableType() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb"><![CDATA[[
@@ -355,9 +356,9 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -369,11 +370,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub LocalVBRangeTypeVariable()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestLocalVBRangeTypeVariable() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb"><![CDATA[[
@@ -388,9 +389,9 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -402,11 +403,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub LocalVBVariableWithinBlockType()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestLocalVBVariableWithinBlockType() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb"><![CDATA[[
@@ -425,9 +426,9 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -439,11 +440,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub LocalVariableIndexTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestLocalVariableIndexTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb"><![CDATA[[
@@ -462,9 +463,9 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -476,11 +477,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub GenericArgumentsTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestGenericArgumentsTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -516,9 +517,9 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -530,11 +531,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub GenericArgumentsTest2()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestGenericArgumentsTest2() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -570,9 +571,9 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -584,11 +585,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub GenericCSharpMethodSymbolTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestGenericCSharpMethodSymbolTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -599,16 +600,16 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo<T, K>() : void", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo", graphNode.Label)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub GenericCSharpTypeSymbolTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestGenericCSharpTypeSymbolTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -618,14 +619,14 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("C<T>", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("C<T>", graphNode.Label)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -637,11 +638,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub GenericCSharpMethodTypeSymbolTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestGenericCSharpMethodTypeSymbolTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs"><![CDATA[[
@@ -652,9 +653,9 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -666,11 +667,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub GenericVBMethodSymbolTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestGenericVBMethodSymbolTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -684,16 +685,16 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo(T)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo", graphNode.Label)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub GenericVBTypeSymbolTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestGenericVBTypeSymbolTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -705,14 +706,14 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo(Of T)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo(Of T)", graphNode.Label)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -724,11 +725,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub MultiGenericVBTypeSymbolTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestMultiGenericVBTypeSymbolTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -740,14 +741,14 @@ End Module
                         </Project>
                     </Workspace>)
 
-                Dim graphNode = testState.GetGraphWithMarkedSymbolNode().Nodes.Single()
+                Dim graphNode = (Await testState.GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
                 Dim formattedLabelExtension As New GraphFormattedLabelExtension()
                 Assert.Equal("Foo(Of T, X)", formattedLabelExtension.Label(graphNode, GraphCommandDefinition.Contains.Id))
                 Assert.Equal("Foo(Of T, X)", graphNode.Label)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -759,11 +760,11 @@ End Module
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub FilteringPropertiesTest()
-            Using testState = New ProgressionTestState(
+        Public Async Function TestFilteringPropertiesTest() As Task
+            Using testState = Await ProgressionTestState.CreateAsync(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
                             <Document FilePath="Z:\Project.vb">
@@ -786,9 +787,9 @@ End Class
                         </Project>
                     </Workspace>)
 
-                Dim symbol = testState.GetMarkedSymbol()
+                Dim symbol = Await testState.GetMarkedSymbolAsync()
                 Dim graph = New Graph()
-                graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
+                Await graph.CreateNodeAsync(symbol, testState.GetSolution(), CancellationToken.None)
                 AssertSimplifiedGraphIs(graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
@@ -801,6 +802,6 @@ End Class
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

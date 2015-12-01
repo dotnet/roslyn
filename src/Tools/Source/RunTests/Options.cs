@@ -26,14 +26,14 @@ namespace RunTests
         internal static Options Parse(string[] args)
         {
             if (args == null || args.Any(a => a == null) || args.Length < 2)
-            {                
+            {
                 return null;
             }
 
-            var opt = new Options {XunitPath = args[0], UseHtml = true};
+            var opt = new Options { XunitPath = args[0], UseHtml = true };
 
             int index = 1;
-                    
+
             var comp = StringComparer.OrdinalIgnoreCase;
             while (index < args.Length)
             {
@@ -99,7 +99,7 @@ namespace RunTests
                     opt.Assemblies.Add(assemblyPath);
                     continue;
                 }
-                opt.MissingAssemblies.Add(assemblyPath);                
+                opt.MissingAssemblies.Add(assemblyPath);
             }
 
             return opt;
@@ -111,7 +111,5 @@ namespace RunTests
             Console.WriteLine("Example:");
             Console.WriteLine(@"runtests c:\path-that-contains-xunit.console.exe\ -trait:Feature=Classification Assembly1.dll Assembly2.dll");
         }
-
     }
-
 }

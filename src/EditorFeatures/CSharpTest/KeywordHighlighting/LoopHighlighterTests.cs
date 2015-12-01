@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,9 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_1()
+        public async Task TestExample1_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         {|Cursor:[|while|]|} (true) {
@@ -33,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_2()
+        public async Task TestExample1_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|while|] (true) {
@@ -52,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample1_3()
+        public async Task TestExample1_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|while|] (true) {
@@ -71,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_1()
+        public async Task TestExample2_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         {|Cursor:[|do|]|} {
@@ -91,9 +92,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_2()
+        public async Task TestExample2_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|do|] {
@@ -111,9 +112,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_3()
+        public async Task TestExample2_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|do|] {
@@ -131,9 +132,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_4()
+        public async Task TestExample2_4()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|do|] {
@@ -151,9 +152,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_5()
+        public async Task TestExample2_5()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         do {
@@ -171,9 +172,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample2_6()
+        public async Task TestExample2_6()
         {
-            Test(
+            await TestAsync(
 @"class C {
     void M() {
 [|do|] {
@@ -199,9 +200,9 @@ while {|Cursor:(true)|};
 }";
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample3_1()
+        public async Task TestExample3_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         {|Cursor:[|for|]|} (int i = 0; i < 10; i++) {
@@ -218,9 +219,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample3_2()
+        public async Task TestExample3_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|for|] (int i = 0; i < 10; i++) {
@@ -237,9 +238,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample3_3()
+        public async Task TestExample3_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|for|] (int i = 0; i < 10; i++) {
@@ -256,9 +257,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample4_1()
+        public async Task TestExample4_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         {|Cursor:[|foreach|]|} (var a in x) {
@@ -275,9 +276,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample4_2()
+        public async Task TestExample4_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|foreach|] (var a in x) {
@@ -294,9 +295,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestExample4_3()
+        public async Task TestExample4_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|foreach|] (var a in x) {
@@ -313,9 +314,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_1()
+        public async Task TestNestedExample1_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         {|Cursor:[|foreach|]|} (var a in x) {
@@ -346,9 +347,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_2()
+        public async Task TestNestedExample1_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|foreach|] (var a in x) {
@@ -379,9 +380,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_3()
+        public async Task TestNestedExample1_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -412,9 +413,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_4()
+        public async Task TestNestedExample1_4()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -445,9 +446,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_5()
+        public async Task TestNestedExample1_5()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -478,9 +479,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_6()
+        public async Task TestNestedExample1_6()
         {
-            Test(
+            await TestAsync(
 @"class C {
     void M() {
         foreach (var a in x) {
@@ -510,9 +511,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_7()
+        public async Task TestNestedExample1_7()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -543,9 +544,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_8()
+        public async Task TestNestedExample1_8()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -578,9 +579,9 @@ while {|Cursor:(true)|};
         // TestNestedExample1 9-13 are in SwitchStatementHighlighterTests.cs
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_14()
+        public async Task TestNestedExample1_14()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -611,9 +612,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample1_15()
+        public async Task TestNestedExample1_15()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -644,9 +645,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_1()
+        public async Task TestNestedExample2_1()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         {|Cursor:[|foreach|]|} (var a in x) {
@@ -673,9 +674,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_2()
+        public async Task TestNestedExample2_2()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         [|foreach|] (var a in x) {
@@ -702,9 +703,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_3()
+        public async Task TestNestedExample2_3()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -731,9 +732,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_4()
+        public async Task TestNestedExample2_4()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -760,9 +761,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_5()
+        public async Task TestNestedExample2_5()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -789,9 +790,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_6()
+        public async Task TestNestedExample2_6()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -818,9 +819,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_7()
+        public async Task TestNestedExample2_7()
         {
-            Test(
+            await TestAsync(
 @"class C {
     void M() {
         foreach (var a in x) {
@@ -846,9 +847,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_8()
+        public async Task TestNestedExample2_8()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -875,9 +876,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_9()
+        public async Task TestNestedExample2_9()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -904,9 +905,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_10()
+        public async Task TestNestedExample2_10()
         {
-            Test(
+            await TestAsync(
         @"class C {
     void M() {
         foreach (var a in x) {
@@ -933,9 +934,9 @@ while {|Cursor:(true)|};
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public void TestNestedExample2_11()
+        public async Task TestNestedExample2_11()
         {
-            Test(
+            await TestAsync(
 @"class C {
     void M() {
         foreach (var a in x) {

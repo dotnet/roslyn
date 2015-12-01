@@ -39,7 +39,7 @@ expected: @"class Program
 class Foo
 {
 }",
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -73,7 +73,7 @@ namespace A
     {
     }
 }",
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -105,7 +105,7 @@ namespace A.B
     {
     }
 }",
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -143,7 +143,7 @@ namespace A.B
         }
     }
 }",
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -181,7 +181,7 @@ namespace A
         }
     }
 }",
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -216,7 +216,7 @@ class Foo
         this.baz = baz;
     }
 }",
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -245,7 +245,7 @@ class Program
 class Foo : List<int>
 {
 }",
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -285,7 +285,7 @@ namespace A
 }",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -325,7 +325,7 @@ namespace A
 }",
 accessibility: Accessibility.Internal,
 typeKind: TypeKind.Struct,
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -365,7 +365,7 @@ namespace A
 }",
 accessibility: Accessibility.NotApplicable,
 typeKind: TypeKind.Enum,
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [WorkItem(850101)]
@@ -401,7 +401,7 @@ namespace ConsoleApplication
 defaultNamespace: "ConsoleApplication",
 accessibility: Accessibility.NotApplicable,
 typeKind: TypeKind.Enum,
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
 
         [WorkItem(850101)]
@@ -443,7 +443,7 @@ namespace A
 defaultNamespace: "ConsoleApplication",
 accessibility: Accessibility.NotApplicable,
 typeKind: TypeKind.Enum,
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
         #endregion
 
@@ -484,7 +484,7 @@ isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
-existingFilename: "Test2.cs").ConfigureAwait(true);
+existingFilename: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -530,7 +530,7 @@ class Program
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
-existingFilename: "Test2.cs").ConfigureAwait(true);
+existingFilename: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -577,7 +577,7 @@ class Program
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
-existingFilename: "Test2.cs").ConfigureAwait(true);
+existingFilename: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -624,7 +624,7 @@ class Program
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
-existingFilename: "Test2.cs").ConfigureAwait(true);
+existingFilename: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -664,7 +664,7 @@ checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
-existingFilename: "Test2.cs").ConfigureAwait(true);
+existingFilename: "Test2.cs");
         }
         #endregion
 
@@ -702,7 +702,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: Array.Empty<string>(),
-newFileName: "Test2.cs").ConfigureAwait(true);
+newFileName: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -743,7 +743,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: new string[] { "outer", "inner" },
-newFileName: "Test2.cs").ConfigureAwait(true);
+newFileName: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -787,7 +787,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: new string[] { "outer", "inner" },
-newFileName: "Test2.cs").ConfigureAwait(true);
+newFileName: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -825,7 +825,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: new string[] { "outer", "inner" },
-newFileName: "Test2.cs").ConfigureAwait(true);
+newFileName: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -870,7 +870,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: new string[] { "outer", "inner" },
-newFileName: "Test2.cs").ConfigureAwait(true);
+newFileName: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -919,7 +919,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: new string[] { "outer" },
-newFileName: "Test2.cs").ConfigureAwait(true);
+newFileName: "Test2.cs");
         }
 
         [WorkItem(850101)]
@@ -970,7 +970,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileFolderContainers: new string[] { "outer" },
-newFileName: "Test2.cs").ConfigureAwait(true);
+newFileName: "Test2.cs");
         }
 
         [WorkItem(898452)]
@@ -1028,7 +1028,7 @@ typeKind: TypeKind.Interface,
 isNewFile: true,
 areFoldersValidIdentifiers: false,
 newFileFolderContainers: new string[] { "123", "456" },
-newFileName: "Test2.cs").ConfigureAwait(true);
+newFileName: "Test2.cs");
         }
 
         #endregion
@@ -1073,7 +1073,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs",
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1124,7 +1124,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs",
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1185,7 +1185,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs",
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         #endregion
@@ -1226,7 +1226,7 @@ typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: Array.Empty<string>(),
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1273,7 +1273,7 @@ typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: new string[] { "outer", "inner" },
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1314,7 +1314,7 @@ typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: new string[] { "outer", "inner" },
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1362,7 +1362,7 @@ typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: new string[] { "outer", "inner" },
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1404,7 +1404,7 @@ typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
 newFileFolderContainers: new string[] { "outer", "inner" },
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
         #endregion
         #endregion
@@ -1444,7 +1444,7 @@ typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: Array.Empty<string>(),
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1490,7 +1490,7 @@ typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: new string[] { "outer", "inner" },
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1530,7 +1530,7 @@ typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: new string[] { "outer", "inner" },
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1577,7 +1577,7 @@ typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: new string[] { "outer", "inner" },
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1618,7 +1618,7 @@ typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: new string[] { "outer", "inner" },
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1665,7 +1665,7 @@ typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test3.vb",
 newFileFolderContainers: new string[] { "outer", "inner" },
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(858826)]
@@ -1704,7 +1704,7 @@ typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: Array.Empty<string>(),
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1745,7 +1745,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(850101)]
@@ -1792,7 +1792,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -1837,7 +1837,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -1889,7 +1889,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(861362)]
@@ -1930,7 +1930,7 @@ isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: Array.Empty<string>(),
 projectName: "Assembly2",
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
         }
 
         #endregion
@@ -1957,7 +1957,7 @@ public class D
 }",
 accessibility: Accessibility.Public,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false));
         }
 
         [WorkItem(861462)]
@@ -1980,7 +1980,7 @@ public interface DDD
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false));
         }
 
         [WorkItem(861462)]
@@ -2003,7 +2003,7 @@ public interface DDD
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false));
         }
 
         [WorkItem(861362)]
@@ -2034,7 +2034,7 @@ public class A
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
         }
 
         [WorkItem(861362)]
@@ -2072,7 +2072,7 @@ namespace A
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
         }
 
         [WorkItem(861600)]
@@ -2111,7 +2111,7 @@ public class Foo<T>
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure));
         }
 
         [WorkItem(861600)]
@@ -2150,7 +2150,7 @@ public class Foo<T>
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Interface | TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Interface | TypeKindOptions.Delegate));
         }
 
         [WorkItem(861600)]
@@ -2188,7 +2188,7 @@ namespace Foo
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
         }
 
         [WorkItem(861600)]
@@ -2219,7 +2219,7 @@ public class Bar
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
         }
 
         [WorkItem(861600)]
@@ -2240,7 +2240,7 @@ namespace Bar
 }",
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
-isMissing: true).ConfigureAwait(true);
+isMissing: true);
         }
 
         [WorkItem(876202)]
@@ -2272,7 +2272,7 @@ public struct Bar
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Structure,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure, false)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure, false));
         }
         #endregion
         #region Delegates
@@ -2308,7 +2308,7 @@ public delegate void MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2343,7 +2343,7 @@ public delegate void MyD<T>();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2376,7 +2376,7 @@ public delegate object MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2409,7 +2409,7 @@ public delegate void MyD(int obj);
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2442,7 +2442,7 @@ public delegate int MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2471,7 +2471,7 @@ public delegate int MyD(int n);
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2500,7 +2500,7 @@ public delegate void MyD(object n);
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
         }
 
         [WorkItem(872935)]
@@ -2530,7 +2530,7 @@ public delegate void MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2565,7 +2565,7 @@ public delegate void MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2600,7 +2600,7 @@ public delegate object MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2633,7 +2633,7 @@ public delegate void MyD(int arg1, int arg2, int arg3);
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2666,7 +2666,7 @@ public delegate int MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2696,7 +2696,7 @@ public delegate int MyD(int n);
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2725,7 +2725,7 @@ public delegate void MyD(object n);
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2760,7 +2760,7 @@ public delegate void MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2795,7 +2795,7 @@ public delegate object MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2828,7 +2828,7 @@ public delegate void MyD(int arg1, int arg2, int arg3);
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2861,7 +2861,7 @@ public delegate int MyD();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2891,7 +2891,7 @@ public delegate int MyD(int n);
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2920,7 +2920,7 @@ public delegate void MyD(object n);
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2957,7 +2957,7 @@ typeKind: TypeKind.Delegate,
 isNewFile: true,
 newFileName: "Test2.vb",
 newFileFolderContainers: Array.Empty<string>(),
-projectName: "Assembly2").ConfigureAwait(true);
+projectName: "Assembly2");
         }
 
         [WorkItem(860210)]
@@ -2986,7 +2986,7 @@ public delegate void MyD<T>();
 ",
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
-isNewFile: false).ConfigureAwait(true);
+isNewFile: false);
         }
         #endregion 
         #region Dev12Filtering
@@ -3017,7 +3017,7 @@ public class B
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertTypeKindAbsent: new[] { TypeKindOptions.Enum }).ConfigureAwait(true);
+assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3054,7 +3054,7 @@ namespace A
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertTypeKindAbsent: new[] { TypeKindOptions.Enum }).ConfigureAwait(true);
+assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3091,7 +3091,7 @@ public class Bar
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3134,7 +3134,7 @@ public class Bar
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3183,7 +3183,7 @@ public class Bar
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3212,7 +3212,7 @@ public class D
 }",
 accessibility: Accessibility.Public,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3241,7 +3241,7 @@ public class D
 }",
 accessibility: Accessibility.Public,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3276,7 +3276,7 @@ public class D
 }",
 accessibility: Accessibility.Public,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3309,7 +3309,7 @@ public delegate void foo();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3334,7 +3334,7 @@ public delegate void foo();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3369,7 +3369,7 @@ namespace NS
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3396,7 +3396,7 @@ namespace NS
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3437,7 +3437,7 @@ namespace NS
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3470,7 +3470,7 @@ namespace NS
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3503,7 +3503,7 @@ public delegate void foo();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3542,7 +3542,7 @@ public delegate void foo();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
-assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate)).ConfigureAwait(true);
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate));
         }
         #endregion
     }

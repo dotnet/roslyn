@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var referencedAssemblies = new MultiDictionary<string, IAssemblySymbol>();
             foreach (var assembly in compilation.GetReferencedAssemblySymbols())
             {
-                 referencedAssemblies.Add(assembly.Name, assembly);
+                referencedAssemblies.Add(assembly.Name, assembly);
             }
 
             int verifiedCount = 0;
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var fullyQualifiedTypeName = originalType.MetadataName;
                         if (originalType.ContainingNamespace != null)
                         {
-                            fullyQualifiedTypeName = originalType.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat) + 
+                            fullyQualifiedTypeName = originalType.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat) +
                                 "." + fullyQualifiedTypeName;
                         }
 

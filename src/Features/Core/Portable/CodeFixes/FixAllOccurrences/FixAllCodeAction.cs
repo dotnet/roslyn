@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllLogger.LogContext(_fixAllContext, IsInternalCodeFixProvider(_fixAllContext.CodeFixProvider));
 
             var service = _fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
-            
+
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllOperationsAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken), _showPreviewChangesDialog).ConfigureAwait(false);
         }
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllLogger.LogContext(_fixAllContext, IsInternalCodeFixProvider(_fixAllContext.CodeFixProvider));
 
             var service = _fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
-            
+
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllChangedSolutionAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken)).ConfigureAwait(false);
         }

@@ -1,10 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(538886)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_Property1()
+        Public Async Function TestCSharp_Property1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -30,12 +32,12 @@ namespace ConsoleApplication22
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(538886)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_Property2()
+        Public Async Function TestCSharp_Property2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -61,12 +63,12 @@ namespace ConsoleApplication22
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539022)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyCascadeThroughInterface1()
+        Public Async Function TestCSharp_PropertyCascadeThroughInterface1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -83,12 +85,12 @@ namespace ConsoleApplication22
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539022)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyCascadeThroughInterface2()
+        Public Async Function TestCSharp_PropertyCascadeThroughInterface2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -105,12 +107,12 @@ namespace ConsoleApplication22
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539047)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyThroughBase1()
+        Public Async Function TestCSharp_PropertyThroughBase1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -138,12 +140,12 @@ class C2 : C1
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539047)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyThroughBase2()
+        Public Async Function TestCSharp_PropertyThroughBase2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -171,12 +173,12 @@ class C2 : C1
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539047)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyThroughBase3()
+        Public Async Function TestCSharp_PropertyThroughBase3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -204,12 +206,12 @@ class C2 : C1
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539047)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyThroughBase4()
+        Public Async Function TestCSharp_PropertyThroughBase4() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -237,12 +239,12 @@ class C2 : C1
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539523)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_ExplicitProperty1()
+        Public Async Function TestCSharp_ExplicitProperty1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -262,12 +264,12 @@ public class A : DD
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539523)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_ExplicitProperty2()
+        Public Async Function TestCSharp_ExplicitProperty2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -287,12 +289,12 @@ public class A : DD
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539885)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyFromGenericInterface1()
+        Public Async Function TestCSharp_PropertyFromGenericInterface1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -324,12 +326,12 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539885)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyFromGenericInterface2()
+        Public Async Function TestCSharp_PropertyFromGenericInterface2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -361,12 +363,12 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539885)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyFromGenericInterface3()
+        Public Async Function TestCSharp_PropertyFromGenericInterface3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -398,12 +400,12 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539885)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyFromGenericInterface4()
+        Public Async Function TestCSharp_PropertyFromGenericInterface4() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -435,12 +437,12 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(539885)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_PropertyFromGenericInterface5()
+        Public Async Function TestCSharp_PropertyFromGenericInterface5() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -472,12 +474,12 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(540440)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_PropertyFunctionValue1()
+        Public Async Function TestBasic_PropertyFunctionValue1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -493,12 +495,12 @@ End Module]]>
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(540440)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_PropertyFunctionValue2()
+        Public Async Function TestBasic_PropertyFunctionValue2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -514,12 +516,12 @@ End Module]]>
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(543125)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_AnonymousTypeProperties1()
+        Public Async Function TestCSharp_AnonymousTypeProperties1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -537,12 +539,12 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(543125)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_AnonymousTypeProperties2()
+        Public Async Function TestCSharp_AnonymousTypeProperties2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -560,12 +562,12 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(543125)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_AnonymousTypeProperties3()
+        Public Async Function TestCSharp_AnonymousTypeProperties3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -583,12 +585,12 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(543125)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub CSharp_AnonymousTypeProperties4()
+        Public Async Function TestCSharp_AnonymousTypeProperties4() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -606,12 +608,12 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542881)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_AnonymousTypeProperties1()
+        Public Async Function TestBasic_AnonymousTypeProperties1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -630,12 +632,12 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542881)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_AnonymousTypeProperties2()
+        Public Async Function TestBasic_AnonymousTypeProperties2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -654,12 +656,12 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542881)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_AnonymousTypeProperties3()
+        Public Async Function TestBasic_AnonymousTypeProperties3() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -678,12 +680,12 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(545576)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_CascadeBetweenPropertyAndField1()
+        Public Async Function TestBasic_CascadeBetweenPropertyAndField1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -698,12 +700,12 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(545576)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_CascadeBetweenPropertyAndField2()
+        Public Async Function TestBasic_CascadeBetweenPropertyAndField2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -718,12 +720,12 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(529765)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod1()
+        Public Async Function TestBasic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -751,12 +753,12 @@ class B : A
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(529765)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod2()
+        Public Async Function TestBasic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -784,12 +786,12 @@ class B : A
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(529765)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod3()
+        Public Async Function TestBasic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod3() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -817,12 +819,12 @@ class B : A
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(665876)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_DefaultProperties()
+        Public Async Function TestBasic_DefaultProperties() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -853,12 +855,12 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(665876)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub Basic_DefaultProperties2()
+        Public Async Function TestBasic_DefaultProperties2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -889,7 +891,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
     End Class
 End Namespace

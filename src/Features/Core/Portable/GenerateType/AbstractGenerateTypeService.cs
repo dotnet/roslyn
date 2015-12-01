@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
         internal abstract bool IsPublicOnlyAccessibility(TExpressionSyntax expression, Project project);
         internal abstract bool IsGenericName(TSimpleNameSyntax simpleName);
         internal abstract bool IsSimpleName(TExpressionSyntax expression);
-        internal abstract Solution TryAddUsingsOrImportToDocument(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken);
+        internal abstract Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken);
 
         protected abstract bool TryGetNameParts(TExpressionSyntax expression, out IList<string> nameParts);
 
         public abstract string GetRootNamespace(CompilationOptions options);
 
-        public abstract Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbol(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
+        public abstract Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
 
         public async Task<IEnumerable<CodeAction>> GenerateTypeAsync(
             Document document,
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var state = State.Generate((TService)this, semanticDocument, node, cancellationToken);
+                var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
                     var actions = GetActions(semanticDocument, node, state, cancellationToken).ToList();
@@ -267,9 +267,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
             return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
         }
 
-        protected bool IsWithinTheImportingNamespace(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)
+        protected async Task<bool> IsWithinTheImportingNamespaceAsync(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)
         {
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel != null)
             {
                 var namespaceSymbol = semanticModel.GetEnclosingNamespace(triggeringPosition, cancellationToken);

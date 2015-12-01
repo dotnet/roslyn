@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
 #if DEBUG
-                bool originalDocHasErrors = await document.HasAnyErrors(cancellationToken).ConfigureAwait(false);
+                bool originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
                 var reduced = await this.ReduceAsyncInternal(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);

@@ -177,17 +177,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static bool IsField(PropertyInfo prop)
         {
             var typeObject = prop.PropertyType;
-            if (typeObject == typeof(int) || 
-                typeObject == typeof(uint) || 
-                typeObject == typeof(long) || 
-                typeObject == typeof(ulong) || 
-                typeObject == typeof(bool) || 
+            if (typeObject == typeof(int) ||
+                typeObject == typeof(uint) ||
+                typeObject == typeof(long) ||
+                typeObject == typeof(ulong) ||
+                typeObject == typeof(bool) ||
                 typeObject == typeof(string) ||
-                typeObject == typeof(float) || 
-                typeObject == typeof(double) || 
+                typeObject == typeof(float) ||
+                typeObject == typeof(double) ||
                 typeObject == typeof(char) ||
                 typeObject == typeof(DateTime) ||
-                typeObject == typeof(decimal) || 
+                typeObject == typeof(decimal) ||
                 typeObject.GetTypeInfo().IsEnum)
             {
                 return true;

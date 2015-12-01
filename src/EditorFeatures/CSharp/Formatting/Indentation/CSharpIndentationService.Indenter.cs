@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
     {
         internal class Indenter : AbstractIndenter
         {
-            public Indenter(Document document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine line, CancellationToken cancellationToken) :
+            public Indenter(SyntacticDocument document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine line, CancellationToken cancellationToken) :
                 base(document, rules, optionSet, line, cancellationToken)
             {
             }

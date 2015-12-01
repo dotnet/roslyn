@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -9,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class SyntaxNodeKeyTests
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestClass()
+        Public Async Function TestClass() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -21,11 +22,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "C", 1)
-        End Sub
+            Await TestAsync(input, "C", 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestPartialClass1()
+        Public Async Function TestPartialClass1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -41,11 +42,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "C", 1)
-        End Sub
+            Await TestAsync(input, "C", 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestPartialClass2()
+        Public Async Function TestPartialClass2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -61,11 +62,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "C", 2)
-        End Sub
+            Await TestAsync(input, "C", 2)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestClassInNamespace()
+        Public Async Function TestClassInNamespace() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -80,11 +81,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "N1.C", 1)
-        End Sub
+            Await TestAsync(input, "N1.C", 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestMethod()
+        Public Async Function TestMethod() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -102,11 +103,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "N1.C.M()", 1)
-        End Sub
+            Await TestAsync(input, "N1.C.M()", 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestMethodWithParameters()
+        Public Async Function TestMethodWithParameters() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -124,11 +125,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "N1.C.M(ref int,string)", 1)
-        End Sub
+            Await TestAsync(input, "N1.C.M(ref int,string)", 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestGenericMethodWithParametersInGenericClass()
+        Public Async Function TestGenericMethodWithParametersInGenericClass() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -146,11 +147,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "N1.C`2.M`3(ref int,string)", 1)
-        End Sub
+            Await TestAsync(input, "N1.C`2.M`3(ref int,string)", 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestEscapedNames()
+        Public Async Function TestEscapedNames() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -168,11 +169,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "int.class.void", 1)
-        End Sub
+            Await TestAsync(input, "int.class.void", 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestConversionOperator1()
+        Public Async Function TestConversionOperator1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -193,11 +194,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "C.#op_Explicit_string(C)", 1)
-        End Sub
+            Await TestAsync(input, "C.#op_Explicit_string(C)", 1)
+        End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub TestConversionOperator2()
+        Public Async Function TestConversionOperator2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -218,11 +219,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     </Project>
 </Workspace>
 
-            Test(input, "C.#op_Implicit_int(C)", 1)
-        End Sub
+            Await TestAsync(input, "C.#op_Implicit_int(C)", 1)
+        End Function
 
-        Private Sub Test(definition As XElement, expectedName As String, expectedOrdinal As Integer)
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+        Private Async Function TestAsync(definition As XElement, expectedName As String, expectedOrdinal As Integer) As Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(definition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim codeModelService = project.LanguageServices.GetService(Of ICodeModelService)()
                 Assert.NotNull(codeModelService)
@@ -232,14 +233,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim tree = document.GetSyntaxTreeAsync().Result
+                Dim tree = Await document.GetSyntaxTreeAsync()
                 Dim node = tree.GetRoot().FindToken(cursorPosition).Parent
                 Dim nodeKey = codeModelService.GetNodeKey(node)
 
                 Assert.Equal(expectedName, nodeKey.Name)
                 Assert.Equal(expectedOrdinal, nodeKey.Ordinal)
             End Using
-        End Sub
+        End Function
 
     End Class
 End Namespace

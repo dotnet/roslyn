@@ -1,11 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 
         <WorkItem(541928)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestCSharpRangeVariableInInto1()
+        Public Async Function TestCSharpRangeVariableInInto1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -24,12 +26,12 @@ class C
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(541928)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestCSharpRangeVariableInInto2()
+        Public Async Function TestCSharpRangeVariableInInto2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -48,12 +50,12 @@ class C
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542161)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestCSharpRangeVariableInSubmission1()
+        Public Async Function TestCSharpRangeVariableInSubmission1() As Task
             Dim input =
 <Workspace>
     <Submission Language="C#" CommonReferences="true">
@@ -62,12 +64,12 @@ var q = from $${|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|x|];
 </Submission>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542161)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestCSharpRangeVariableInSubmission2()
+        Public Async Function TestCSharpRangeVariableInSubmission2() As Task
             Dim input =
 <Workspace>
     <Submission Language="C#" CommonReferences="true">
@@ -76,12 +78,12 @@ var q = from {|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|$$x|];
 </Submission>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542161)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestCSharpRangeVariableInFieldInitializer1()
+        Public Async Function TestCSharpRangeVariableInFieldInitializer1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -94,12 +96,12 @@ class C
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542161)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestCSharpRangeVariableInFieldInitializer2()
+        Public Async Function TestCSharpRangeVariableInFieldInitializer2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -112,12 +114,12 @@ class C
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542509)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestVisualBasicTrivialSelect1()
+        Public Async Function TestVisualBasicTrivialSelect1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -134,12 +136,12 @@ End Module
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(542509)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestVisualBasicTrivialSelect2()
+        Public Async Function TestVisualBasicTrivialSelect2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -156,12 +158,12 @@ End Module
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(545163)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestVisualBasicLetClause1()
+        Public Async Function TestVisualBasicLetClause1() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -175,12 +177,12 @@ End Module
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(545163)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestVisualBasicLetClause2()
+        Public Async Function TestVisualBasicLetClause2() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -194,12 +196,12 @@ End Module
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(628189)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestVisualBasicMultipleAggregateFunctions()
+        Public Async Function TestVisualBasicMultipleAggregateFunctions() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -231,8 +233,8 @@ End Namespace
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
     End Class
 End Namespace

@@ -1,6 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
+
+Imports System.Threading.Tasks
 Imports ImplementInterfaceCodeAction = Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService.ImplementInterfaceCodeAction
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ImplementInterface
@@ -10,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Implem
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInDocument()
+        Public Async Function TestFixAllInDocument() As Task
             Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
 
             Dim input = <Workspace>
@@ -119,13 +121,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInProject()
+        Public Async Function TestFixAllInProject() As Task
             Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
 
             Dim input = <Workspace>
@@ -242,13 +244,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInSolution()
+        Public Async Function TestFixAllInSolution() As Task
             Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
 
             Dim input = <Workspace>
@@ -373,13 +375,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+        End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
-        Public Sub TestFixAllInSolution_DifferentAssemblyWithSameTypeName()
+        Public Async Function TestFixAllInSolution_DifferentAssemblyWithSameTypeName() As Task
             Dim fixAllActionEquivalenceKey = ImplementInterfaceCodeAction.GetCodeActionEquivalenceKey("Assembly1", "Global.I1", explicitly:=False, abstractly:=False, throughMember:=Nothing, codeActionTypeName:=GetType(ImplementInterfaceCodeAction).FullName)
 
             Dim input = <Workspace>
@@ -510,7 +512,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
-        End Sub
+            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+        End Function
     End Class
 End Namespace

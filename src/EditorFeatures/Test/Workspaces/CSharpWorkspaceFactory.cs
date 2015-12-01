@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -13,52 +15,48 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// Creates a single buffer in a workspace.
         /// </summary>
         /// <param name="lines">Lines of text, the buffer contents</param>
-        public static TestWorkspace CreateWorkspaceFromLines(params string[] lines)
+        public static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(params string[] lines)
         {
-            return CreateWorkspaceFromLines(lines, parseOptions: null, compilationOptions: null, exportProvider: null);
+            return CreateWorkspaceFromLinesAsync(lines, parseOptions: null, compilationOptions: null, exportProvider: null);
         }
 
-        public static TestWorkspace CreateWorkspaceFromLines(
+        public static Task<TestWorkspace> CreateWorkspaceFromLinesAsync(
             string[] lines,
             CSharpParseOptions parseOptions = null,
             CSharpCompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null)
         {
             var file = lines.Join(Environment.NewLine);
-            return CreateWorkspaceFromFile(file, parseOptions, compilationOptions, exportProvider);
+            return CreateWorkspaceFromFileAsync(file, parseOptions, compilationOptions, exportProvider);
         }
 
-        /// <param name="content">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
-        /// <param name="parseOptions">Parse the source code in interactive mode</param>
-        public static TestWorkspace CreateWorkspaceFromFile(
+        public static Task<TestWorkspace> CreateWorkspaceFromFileAsync(
             string file,
             CSharpParseOptions parseOptions = null,
             CSharpCompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return CreateWorkspaceFromFiles(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
+            return CreateWorkspaceFromFilesAsync(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences);
         }
 
-        /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
-        public static TestWorkspace CreateWorkspaceFromFiles(
+        public static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string[] files,
             CSharpParseOptions parseOptions = null,
             CSharpCompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null)
         {
-            return CreateWorkspaceFromFiles(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
+            return CreateWorkspaceFromFilesAsync(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences);
         }
 
-        /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.cs, test2.csx, etc.</param>
-        public static TestWorkspace CreateWorkspaceFromFiles(
+        public static Task<TestWorkspace> CreateWorkspaceFromFilesAsync(
             string[] files,
             CSharpParseOptions[] parseOptions = null,
             CSharpCompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null)
         {
-            return CreateWorkspaceFromFiles(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider);
+            return CreateWorkspaceFromFilesAsync(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider);
         }
     }
 }

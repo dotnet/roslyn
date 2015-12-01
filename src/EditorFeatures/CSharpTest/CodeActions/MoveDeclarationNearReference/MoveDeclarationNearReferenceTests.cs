@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -14,103 +15,103 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
             return new MoveDeclarationNearReferenceCodeRefactoringProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestMove1()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMove1()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { int [||]x; { Console.WriteLine(x); } } }",
 @"class C { void M() { { int x; Console.WriteLine(x); } } }",
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestMove2()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMove2()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { int [||]x; Console.WriteLine(); Console.WriteLine(x); } }",
 @"class C { void M() { Console.WriteLine(); int x; Console.WriteLine(x); } }",
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestMove3()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMove3()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { int [||]x; Console.WriteLine(); { Console.WriteLine(x); } { Console.WriteLine(x); } }",
 @"class C { void M() { Console.WriteLine(); int x; { Console.WriteLine(x); } { Console.WriteLine(x); } }",
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestMove4()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMove4()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { int [||]x; Console.WriteLine(); { Console.WriteLine(x); } }",
 @"class C { void M() { Console.WriteLine(); { int x; Console.WriteLine(x); } }",
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestAssign1()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestAssign1()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { int [||]x; { x = 5; Console.WriteLine(x); } } }",
 @"class C { void M() { { int x = 5; Console.WriteLine(x); } } }",
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestAssign2()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestAssign2()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { int [||]x = 0; { x = 5; Console.WriteLine(x); } } }",
 @"class C { void M() { { int x = 5; Console.WriteLine(x); } } }",
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestAssign3()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestAssign3()
         {
-            Test(
+            await TestAsync(
 @"class C { void M() { var [||]x = (short)0; { x = 5; Console.WriteLine(x); } } }",
 @"class C { void M() { { var x = (short)0; x = 5; Console.WriteLine(x); } } }",
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestMissing1()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissing1()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class C { void M() { int [||]x; Console.WriteLine(x); } }");
         }
 
         [WorkItem(538424)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestMissingWhenReferencedInDeclaration()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingWhenReferencedInDeclaration()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { static void Main ( ) { object [ ] [||]x = { x = null } ; x . ToString ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestMissingWhenInDeclarationGroup()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingWhenInDeclarationGroup()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { static void Main ( ) { int [||]i = 5; int j = 10; Console.WriteLine(i); } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         [WorkItem(541475)]
-        public void Regression8190()
+        public async Task Regression8190()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program { void M() { { object x; [|object|] } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestFormatting()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestFormatting()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -131,10 +132,10 @@ index: 0,
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestMissingInHiddenBlock1()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingInHiddenBlock1()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program
 {
     void Main()
@@ -148,10 +149,10 @@ compareTokens: false);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestMissingInHiddenBlock2()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestMissingInHiddenBlock2()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"class Program
 {
     void Main()
@@ -166,10 +167,10 @@ compareTokens: false);
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestAvailableInNonHiddenBlock1()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestAvailableInNonHiddenBlock1()
         {
-            Test(
+            await TestAsync(
 @"#line default
 class Program
 {
@@ -197,10 +198,10 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestAvailableInNonHiddenBlock2()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestAvailableInNonHiddenBlock2()
         {
-            Test(
+            await TestAsync(
 @"class Program
 {
     void Main()
@@ -231,28 +232,28 @@ compareTokens: false);
         }
 
         [WorkItem(545435)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestWarnOnChangingScopes1()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestWarnOnChangingScopes1()
         {
-            Test(
+            await TestAsync(
 @"using System . Linq ; class Program { void Main ( ) { var [||]@lock = new object ( ) ; new [ ] { 1 } . AsParallel ( ) . ForAll ( ( i ) => { lock ( @lock ) { } } ) ; } } ",
 @"using System . Linq ; class Program { void Main ( ) { new [ ] { 1 } . AsParallel ( ) . ForAll ( ( i ) => { {|Warning:var @lock = new object ( ) ;|} lock ( @lock ) { } } ) ; } } ");
         }
 
         [WorkItem(545435)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void TestWarnOnChangingScopes2()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestWarnOnChangingScopes2()
         {
-            Test(
+            await TestAsync(
 @"using System ; using System . Linq ; class Program { void Main ( ) { var [||]i = 0 ; foreach ( var v in new [ ] { 1 } ) { Console . Write ( i ) ; i ++ ; } } } ",
 @"using System ; using System . Linq ; class Program { void Main ( ) { foreach ( var v in new [ ] { 1 } ) { {|Warning:var i = 0 ;|} Console . Write ( i ) ; i ++ ; } } } ");
         }
 
         [WorkItem(545840)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void InsertCastIfNecessary1()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task InsertCastIfNecessary1()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 static class C
@@ -296,10 +297,10 @@ compareTokens: false);
         }
 
         [WorkItem(545835)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void InsertCastIfNecessary2()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task InsertCastIfNecessary2()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 class X
@@ -339,10 +340,10 @@ compareTokens: false);
         }
 
         [WorkItem(546267)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
-        public void MissingIfNotInDeclarationSpan()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task MissingIfNotInDeclarationSpan()
         {
-            TestMissing(
+            await TestMissingAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;

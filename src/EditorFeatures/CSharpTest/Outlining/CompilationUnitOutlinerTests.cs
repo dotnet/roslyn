@@ -1,263 +1,148 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class CompilationUnitOutlinerTests : AbstractOutlinerTests<CompilationUnitSyntax>
+    public class CompilationUnitOutlinerTests : AbstractCSharpSyntaxNodeOutlinerTests<CompilationUnitSyntax>
     {
-        internal override IEnumerable<OutliningSpan> GetRegions(CompilationUnitSyntax node)
+        internal override AbstractSyntaxOutliner CreateOutliner() => new CompilationUnitOutliner();
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestUsings()
         {
-            var outliner = new CompilationUnitOutliner();
-            return outliner.GetOutliningSpans(node, CancellationToken.None).WhereNotNull();
+            const string code = @"
+$${|hint:using {|collapse:System;
+using System.Core;|}|}";
+
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestUsings()
+        public async Task TestUsingAliases()
         {
-            var tree = ParseLines("using System;",
-                                        "using System.Core;");
+            const string code = @"
+$${|hint:using {|collapse:System;
+using System.Core;
+using text = System.Text;
+using linq = System.Linq;|}|}";
 
-            var compilationUnit = tree.GetRoot() as CompilationUnitSyntax;
-
-            var actualRegion = GetRegion(compilationUnit);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(6, 33),
-                hintSpan: TextSpan.FromBounds(0, 33),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestUsingAliases()
+        public async Task TestExternAliases()
         {
-            var tree = ParseLines("using System;",
-                                        "using System.Core;",
-                                        "using text = System.Text;",
-                                        "using linq = System.Linq;");
+            const string code = @"
+$${|hint:extern {|collapse:alias Foo;
+extern alias Bar;|}|}";
 
-            var compilationUnit = tree.GetRoot() as CompilationUnitSyntax;
-
-            var actualRegion = GetRegion(compilationUnit);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(6, 87),
-                hintSpan: TextSpan.FromBounds(0, 87),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestExternAliases()
+        public async Task TestExternAliasesAndUsings()
         {
-            var tree = ParseLines("extern alias Foo;",
-                                        "extern alias Bar;");
+            const string code = @"
+$${|hint:extern {|collapse:alias Foo;
+extern alias Bar;
+using System;
+using System.Core;|}|}";
 
-            var compilationUnit = (CompilationUnitSyntax)tree.GetRoot();
-
-            var actualRegion = GetRegion(compilationUnit);
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(7, 36),
-                hintSpan: TextSpan.FromBounds(0, 36),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestExternAliasesAndUsings()
+        public async Task TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
         {
-            var tree = ParseLines("extern alias Foo;",
-                                        "extern alias Bar;",
-                                        "using System;",
-                                        "using System.Core;");
+            const string code = @"
+$${|span1:// Foo
+// Bar|}
+{|hint2:extern {|collapse2:alias Foo;
+extern alias Bar;
+// Foo
+// Bar
+using System;
+using System.Core;|}|}
+{|span3:// Foo
+// Bar|}";
 
-            var compilationUnit = tree.GetRoot() as CompilationUnitSyntax;
-
-            var actualRegion = GetRegion(compilationUnit);
-
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(7, 71),
-                hintSpan: TextSpan.FromBounds(0, 71),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true),
+                Region("span3", "// Foo ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
+        public async Task TestUsingsWithComments()
         {
-            var tree = ParseLines("// Foo",
-                                        "// Bar",
-                                        "extern alias Foo;",
-                                        "extern alias Bar;",
-                                        "// Foo",
-                                        "// Bar",
-                                        "using System;",
-                                        "using System.Core;",
-                                        "// Foo",
-                                        "// Bar");
+            const string code = @"
+$${|span1:// Foo
+// Bar|}
+{|hint2:using {|collapse2:System;
+using System.Core;|}|}";
 
-            var compilationUnit = (CompilationUnitSyntax)tree.GetRoot();
-
-            var actualRegions = GetRegions(compilationUnit).ToList();
-            Assert.Equal(3, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(0, 14),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(23, 103),
-                hintSpan: TextSpan.FromBounds(16, 103),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
-
-            var expectedRegion3 = new OutliningSpan(
-                TextSpan.FromBounds(105, 119),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion3, actualRegions[2]);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestUsingsWithComments()
+        public async Task TestExternAliasesWithComments()
         {
-            var tree = ParseLines("// Foo",
-                                        "// Bar",
-                                        "using System;",
-                                        "using System.Core;");
+            const string code = @"
+$${|span1:// Foo
+// Bar|}
+{|hint2:extern {|collapse2:alias Foo;
+extern alias Bar;|}|}";
 
-            var compilationUnit = (CompilationUnitSyntax)tree.GetRoot();
-
-            var actualRegions = GetRegions(compilationUnit).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(0, 14),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(22, 49),
-                hintSpan: TextSpan.FromBounds(16, 49),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("collapse2", "hint2", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestExternAliasesWithComments()
+        public async Task TestWithComments()
         {
-            var tree = ParseLines("// Foo",
-                                        "// Bar",
-                                        "extern alias Foo;",
-                                        "extern alias Bar;");
+            const string code = @"
+$${|span1:// Foo
+// Bar|}";
 
-            var compilationUnit = (CompilationUnitSyntax)tree.GetRoot();
-
-            var actualRegions = GetRegions(compilationUnit).ToList();
-            Assert.Equal(2, actualRegions.Count);
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(0, 14),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(23, 52),
-                hintSpan: TextSpan.FromBounds(16, 52),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("span1", "// Foo ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestWithComments()
+        public async Task TestWithCommentsAtEnd()
         {
-            var tree = ParseLines("// Foo",
-                                  "// Bar");
+            const string code = @"
+$${|hint1:using {|collapse1:System;|}|}
+{|span2:// Foo
+// Bar|}";
 
-            var compilationUnit = (CompilationUnitSyntax)tree.GetRoot();
-
-            var actualRegion = GetRegion(compilationUnit);
-
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(0, 14),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestWithCommentsAtEnd()
-        {
-            var tree = ParseLines("using System;",
-                                        "// Foo",
-                                        "// Bar");
-
-            var compilationUnit = (CompilationUnitSyntax)tree.GetRoot();
-
-            var actualRegions = GetRegions(compilationUnit).ToList();
-
-            var expectedRegion1 = new OutliningSpan(
-                TextSpan.FromBounds(6, 13),
-                hintSpan: TextSpan.FromBounds(0, 13),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion1, actualRegions[0]);
-
-            var expectedRegion2 = new OutliningSpan(
-                TextSpan.FromBounds(15, 29),
-                "// Foo ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion2, actualRegions[1]);
+            await VerifyRegionsAsync(code,
+                Region("collapse1", "hint1", CSharpOutliningHelpers.Ellipsis, autoCollapse: true),
+                Region("span2", "// Foo ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         [WorkItem(539359)]
-        public void TestUsingKeywordWithSpace()
+        public async Task TestUsingKeywordWithSpace()
         {
-            var tree = ParseLines("using ");
-            var compilationUnit = (CompilationUnitSyntax)tree.GetRoot();
-            var actualRegions = GetRegions(compilationUnit).ToList();
+            const string code = @"
+$${|hint:using|} {|collapse:|}";
 
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(6, 6),
-                TextSpan.FromBounds(0, 5),
-                bannerText: CSharpOutliningHelpers.Ellipsis,
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegions[0]);
+            await VerifyRegionsAsync(code,
+                Region("collapse", "hint", CSharpOutliningHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

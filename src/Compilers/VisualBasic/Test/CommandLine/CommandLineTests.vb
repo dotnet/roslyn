@@ -7398,6 +7398,25 @@ End Class
             parseCore("a""mid""b", New String() {"amidb"})
         End Sub
 
+        <Fact>
+        Public Sub PublicSign()
+            Dim args As VisualBasicCommandLineArguments
+            Dim baseDir = "c:\test"
+            Dim parse = Function(x As String) FullParse(x, baseDir)
+
+            args = parse("/publicsign a.exe")
+            Assert.True(args.CompilationOptions.PublicSign)
+
+            args = parse("/publicsign+ a.exe")
+            Assert.True(args.CompilationOptions.PublicSign)
+
+            args = parse("/publicsign- a.exe")
+            Assert.False(args.CompilationOptions.PublicSign)
+
+            args = parse("a.exe")
+            Assert.False(args.CompilationOptions.PublicSign)
+        End Sub
+
         <ConditionalFact(GetType(WindowsOnly))>
         Public Sub CommandLineMisc()
             Dim args As VisualBasicCommandLineArguments

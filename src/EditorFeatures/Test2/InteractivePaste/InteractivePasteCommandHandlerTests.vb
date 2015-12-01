@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Sub PasteCommandWithInteractiveFormat()
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(
+        Public Async Function PasteCommandWithInteractiveFormat() As System.Threading.Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                 Dim textView = workspace.Documents.Single().GetTextView()
 
                 Dim handler = CreateCommandHandler(workspace)
-                Dim clipboard = DirectCast(handler.RoslynClipBoard, MockClipboard)
+                Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
 
                 Dim blocks = New BufferBlock() _
                 {
@@ -53,12 +53,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Assert.Equal("a" & vbCr & vbLf & "bc123", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Sub PasteCommandWithOutInteractiveFormat()
-            Using workspace = TestWorkspaceFactory.CreateWorkspace(
+        Public Async Function PasteCommandWithOutInteractiveFormat() As System.Threading.Tasks.Task
+            Using workspace = Await TestWorkspaceFactory.CreateWorkspaceAsync(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
 
                 Dim handler = CreateCommandHandler(workspace)
-                Dim clipboard = DirectCast(handler.RoslynClipBoard, MockClipboard)
+                Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
 
                 Dim blocks = New BufferBlock() _
                 {
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
 
                 Assert.Equal("p", textView.TextBuffer.CurrentSnapshot.GetText())
             End Using
-        End Sub
+        End Function
 
         Private Sub CopyToClipboard(clipboard As MockClipboard, blocks As BufferBlock(), includeRepl As Boolean)
             clipboard.Clear()
