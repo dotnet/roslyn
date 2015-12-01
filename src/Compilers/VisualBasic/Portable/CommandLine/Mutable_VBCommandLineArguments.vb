@@ -21,13 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             c.FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory, responsePaths)
             Me.BaseDirectory = baseDirectory
             outputDirectory = Me.BaseDirectory
-            Me.c = c
         End Sub
-        Private c As VisualBasicCommandLineParser
+
         Friend BaseDirectory As String
         Friend IsScriptRunner As Boolean
-
-
         Friend diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
         Friend flattenedArgs As List(Of String) = New List(Of String)()
         Friend scriptArgs As List(Of String)
