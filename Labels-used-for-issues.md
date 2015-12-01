@@ -22,6 +22,21 @@ The following labels are feature-specific:
 
 [![image](https://cloud.githubusercontent.com/assets/3804346/11517022/d1d2b2e8-983b-11e5-89e8-dfa007e27c01.png)](https://github.com/dotnet/roslyn/labels/Design%20Notes)
 
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516922/56fc7ef0-983b-11e5-92d2-e0f831fbca5d.png)](https://github.com/dotnet/roslyn/labels/2%20-%20Ready)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516927/68b1d442-983b-11e5-834e-ca28bd27e4fe.png)](https://github.com/dotnet/roslyn/labels/3%20-%20Working)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516934/75c29fc2-983b-11e5-9544-db303562d59d.png)](https://github.com/dotnet/roslyn/labels/4%20-%20In%20Review)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516956/93bb6a5e-983b-11e5-8fe5-df978866314f.png)](https://github.com/dotnet/roslyn/labels/Feature%20Request)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516979/a319bcee-983b-11e5-8df3-af1fabc4f9a2.png)](https://github.com/dotnet/roslyn/labels/Feature%20Specification)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11517003/bb9cc93c-983b-11e5-878d-10e07a9cb5eb.png)](https://github.com/dotnet/roslyn/labels/Story)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11517022/d1d2b2e8-983b-11e5-89e8-dfa007e27c01.png)](https://github.com/dotnet/roslyn/labels/Design%20Notes)
+
 Each feature has, at the very minimum, a **Feature Request**, and that’s the label you should use that label to search through planned feature work.
 
 Ideally, features that we work on should be part of a theme, so that we don’t end up delivering an unfocused “bag of hammers” to customers and instead are thoughtful about how new features work together and what problems they are solving.  Therefore, the feature request will be assigned into an overarching **Story** by the team at Microsoft.
