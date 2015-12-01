@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Invalid value, analyzer must support at least one or more of the subsequent analysis categories.
         /// </summary>
         None = 0,
-        
+
         /// <summary>
         /// Analyzer reports syntax diagnostics (i.e. registers a SyntaxTree action).
         /// </summary>

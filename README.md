@@ -68,4 +68,4 @@ Looking for something to work on? The list of [up for grabs issues](https://gith
 ### .NET Foundation
 
 This project is part of the [.NET Foundation](http://www.dotnetfoundation.org/projects) along with other
-projects like [the class libraries for .NET Core](https://github.com/dotnet/corefx/).
+projects like [the class libraries for .NET Core](https://github.com/dotnet/corefx/). 

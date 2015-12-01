@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public CultureInfo Culture { get; }
 
         public InteractiveHostOptions(
-            string initializationFile = null, 
+            string initializationFile = null,
             CultureInfo culture = null)
         {
             InitializationFile = initializationFile;

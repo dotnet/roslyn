@@ -3,6 +3,7 @@
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
@@ -16,13 +17,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(
+        Protected Overrides Function CreateWorkspaceFromFileAsync(
             definition As String,
             parseOptions As ParseOptions,
             compilationOptions As CompilationOptions
-        ) As TestWorkspace
+        ) As Task(Of TestWorkspace)
 
-            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(
+            Return VisualBasicWorkspaceFactory.CreateWorkspaceFromFileAsync(
                 definition,
                 parseOptions,
                 If(compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
@@ -32,25 +33,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Return input.Replace("\n", vbCrLf)
         End Function
 
-        Protected Overloads Sub Test(initialMarkup As XElement, expected As XElement, Optional index As Integer = 0, Optional compareTokens As Boolean = True)
+        Protected Overloads Async Function TestAsync(initialMarkup As XElement, expected As XElement, Optional index As Integer = 0, Optional compareTokens As Boolean = True) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
 
-            MyBase.Test(initialMarkupStr, expectedStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions, index:=index, compareTokens:=compareTokens)
-        End Sub
+            Await MyBase.TestAsync(initialMarkupStr, expectedStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions, index:=index, compareTokens:=compareTokens)
+        End Function
 
-        Protected Overloads Sub TestMissingWithWorkspaceXml(initialMarkup As XElement)
+        Protected Overloads Async Function TestMissingWithWorkspaceXmlAsync(initialMarkup As XElement) As Threading.Tasks.Task
             Using workspace = TestWorkspaceFactory.CreateWorkspace(initialMarkup)
-                Dim diagnostics = GetDiagnosticAndFix(workspace)
+                Dim diagnostics = Await GetDiagnosticAndFixAsync(workspace)
                 Assert.Null(diagnostics)
             End Using
-        End Sub
+        End Function
 
-        Protected Overloads Sub TestMissing(initialMarkup As XElement)
+        Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
 
-            MyBase.TestMissing(initialMarkupStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions)
-        End Sub
+            Await MyBase.TestMissingAsync(initialMarkupStr, parseOptions:=Nothing, compilationOptions:=_compilationOptions)
+        End Function
 
         Protected Overrides Function GetLanguage() As String
             Return LanguageNames.VisualBasic

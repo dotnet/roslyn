@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 bool includeEndTokenChange,
                 CancellationToken cancellationToken)
             {
-                var newDocument = await pragmaAction.GetChangedDocumentAsync(includeStartTokenChange, includeEndTokenChange, cancellationToken).ConfigureAwait(false);                
+                var newDocument = await pragmaAction.GetChangedDocumentAsync(includeStartTokenChange, includeEndTokenChange, cancellationToken).ConfigureAwait(false);
                 return await newDocument.GetTextChangesAsync(currentDocument, cancellationToken).ConfigureAwait(false);
             }
 

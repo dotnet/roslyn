@@ -13,14 +13,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal class SharedInfoCache
     {
         // this should let us to share common information among diagnostics reducing calculation and allocation.
-        private static readonly ConcurrentLruCache<int, SharedInfoCache> documentInfoCache = new ConcurrentLruCache<int, SharedInfoCache>(capacity: 5);
+        private static readonly ConcurrentLruCache<int, SharedInfoCache> s_documentInfoCache = new ConcurrentLruCache<int, SharedInfoCache>(capacity: 5);
 
         private readonly ImmutableArray<DocumentId> _documentIds;
         private ProjectInfoCache _cache;
 
         public static SharedInfoCache GetOrAdd<TArg>(int key, TArg arg, Func<TArg, SharedInfoCache> creator)
         {
-            return documentInfoCache.GetOrAdd(key, arg, creator);
+            return s_documentInfoCache.GetOrAdd(key, arg, creator);
         }
 
         public SharedInfoCache(ImmutableArray<DocumentId> documentIds)
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private class ProjectInfoCache
         {
-            private static readonly ConcurrentLruCache<int, ProjectInfoCache> projectInfoCache = new ConcurrentLruCache<int, ProjectInfoCache>(capacity: 2);
+            private static readonly ConcurrentLruCache<int, ProjectInfoCache> s_projectInfoCache = new ConcurrentLruCache<int, ProjectInfoCache>(capacity: 2);
 
             private readonly ImmutableArray<ProjectId> _projectIds;
 
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public static ProjectInfoCache GetOrAdd<TArg>(int key, TArg items, Func<TArg, ProjectInfoCache> creator)
             {
-                return projectInfoCache.GetOrAdd(key, items, creator);
+                return s_projectInfoCache.GetOrAdd(key, items, creator);
             }
 
             public ProjectInfoCache(ImmutableArray<ProjectId> projectIds)

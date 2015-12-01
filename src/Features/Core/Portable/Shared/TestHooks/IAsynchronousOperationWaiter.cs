@@ -68,6 +68,5 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
             } while (true);
         }
-
     }
 }

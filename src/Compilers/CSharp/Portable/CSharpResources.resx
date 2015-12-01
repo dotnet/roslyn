@@ -1758,7 +1758,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Not a valid attribute location for this declaration</value>
   </data>
   <data name="WRN_InvalidAttributeLocation" xml:space="preserve">
-    <value>'{0}' is not a recognized attribute location. All attributes in this block will be ignored.</value>
+    <value>'{0}' is not a recognized attribute location. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</value>
   </data>
   <data name="WRN_InvalidAttributeLocation_Title" xml:space="preserve">
     <value>Not a recognized attribute location</value>
@@ -4674,6 +4674,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PublicSignButNoKey" xml:space="preserve">
     <value>Public signing was specified and requires a public key, but no public key was specified.</value>
+  </data>
+  <data name="ERR_InvalidReal" xml:space="preserve">
+    <value>Invalid real literal.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>

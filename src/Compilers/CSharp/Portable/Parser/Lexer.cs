@@ -979,10 +979,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 ch = TextWindow.PeekChar(1);
                 if (ch == 'x' || ch == 'X')
-                {
-                    TextWindow.AdvanceChar(2);
-                    isHex = true;
-                }
+            {
+                TextWindow.AdvanceChar(2);
+                isHex = true;
+            }
                 else if (ch == 'b' || ch == 'B')
                 {
                     CheckFeatureAvailability(MessageID.IDS_FeatureBinaryLiteral);
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
 
                         ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
-                    }
+                        }
                     else if (_builder.Length == 0)
                     {
                         // we only have the dot so far.. (no preceding number or following number)
@@ -1068,7 +1068,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                     }
 
-                    ScanNumericLiteralSingleInteger(_builder, ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                    if (!((ch = TextWindow.PeekChar()) >= '0' && ch <= '9'))
+                    {
+                        // use this for now (CS0595), cant use CS0594 as we dont know 'type'
+                        this.AddError(MakeError(ErrorCode.ERR_InvalidReal));
+                        // add dummy exponent, so parser does not blow up
+                        _builder.Append('0');
+                    }
+                    else
+                    {
+                        while ((ch = TextWindow.PeekChar()) >= '0' && ch <= '9')
+                        {
+                            _builder.Append(ch);
+                            TextWindow.AdvanceChar();
+                        }
+                }
                 }
 
                 if (hasExponent || hasDecimal)
@@ -1138,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (underscoreInWrongPlace)
             {
                 this.AddError(MakeError(start, TextWindow.Position - start, ErrorCode.ERR_InvalidNumber));
-            }
+                }
             if (usedUnderscore)
             {
                 CheckFeatureAvailability(MessageID.IDS_FeatureDigitSeparator);

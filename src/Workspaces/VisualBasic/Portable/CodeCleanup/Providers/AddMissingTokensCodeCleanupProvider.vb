@@ -2,6 +2,7 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -18,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Function GetRewriter(document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As AbstractTokensCodeCleanupProvider.Rewriter
-            Return New AddMissingTokensRewriter(document, spans, cancellationToken)
+        Protected Overrides Async Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+            Return Await AddMissingTokensRewriter.CreateAsync(document, spans, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Class AddMissingTokensRewriter
@@ -30,29 +31,21 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private _model As SemanticModel = Nothing
 
-            Public Sub New(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken)
+            Private Sub New(document As Document, semanticModel As SemanticModel, spans As IEnumerable(Of TextSpan), modifiedSpan As TextSpan, cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
                 Me._document = document
-                Me._modifiedSpan = spans.Collapse()
+                Me._modifiedSpan = modifiedSpan
+                Me._model = semanticModel
             End Sub
 
-            Private ReadOnly Property SemanticModel As SemanticModel
-                Get
-                    If _document Is Nothing Then
-                        Return Nothing
-                    End If
+            Public Shared Async Function CreateAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of AddMissingTokensRewriter)
+                Dim modifiedSpan = spans.Collapse()
+                Dim semanticModel = If(document Is Nothing, Nothing,
+                    Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
-                    If _model Is Nothing Then
-                        ' don't want to create semantic model when it is not needed. so get it synchronously when needed
-                        ' most of cases, this will run on UI thread, so it shouldn't matter
-                        _model = _document.GetSemanticModelForSpanAsync(_modifiedSpan, Me._cancellationToken).WaitAndGetResult(Me._cancellationToken)
-                    End If
-
-                    Contract.Requires(_model IsNot Nothing)
-                    Return _model
-                End Get
-            End Property
+                Return New AddMissingTokensRewriter(document, semanticModel, spans, modifiedSpan, cancellationToken)
+            End Function
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
                 If TypeOf node Is ExpressionSyntax Then
@@ -119,20 +112,20 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             Private Function IsMethodSymbol(expression As ExpressionSyntax) As Boolean
-                If Me.SemanticModel Is Nothing Then
+                If Me._model Is Nothing Then
                     Return False
                 End If
 
-                Dim symbols = Me.SemanticModel.GetSymbolInfo(expression, _cancellationToken).GetAllSymbols()
+                Dim symbols = Me._model.GetSymbolInfo(expression, _cancellationToken).GetAllSymbols()
                 Return symbols.Any() AndAlso symbols.All(Function(s) s.TypeSwitch(Function(m As IMethodSymbol) m.MethodKind = MethodKind.Ordinary))
             End Function
 
             Private Function IsDelegateType(expression As ExpressionSyntax) As Boolean
-                If Me.SemanticModel Is Nothing Then
+                If Me._model Is Nothing Then
                     Return False
                 End If
 
-                Dim type = Me.SemanticModel.GetTypeInfo(expression, _cancellationToken).Type
+                Dim type = Me._model.GetTypeInfo(expression, _cancellationToken).Type
                 Return type.IsDelegateType
             End Function
 
@@ -188,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Public Overrides Function VisitMethodStatement(node As MethodStatementSyntax) As SyntaxNode
                 Dim rewrittenMethod = DirectCast(AddParameterListTransform(node, MyBase.VisitMethodStatement(node), Function(n) Not n.Identifier.IsMissing), MethodStatementSyntax)
-                Return AsyncOrIteratorFunctionReturnTypeFixer.RewriteMethodStatement(rewrittenMethod, Me.SemanticModel, node, Me._cancellationToken)
+                Return AsyncOrIteratorFunctionReturnTypeFixer.RewriteMethodStatement(rewrittenMethod, Me._model, node, Me._cancellationToken)
             End Function
 
             Public Overrides Function VisitSubNewStatement(node As SubNewStatementSyntax) As SyntaxNode
@@ -241,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Public Overrides Function VisitLambdaHeader(node As LambdaHeaderSyntax) As SyntaxNode
                 Dim rewrittenLambdaHeader = DirectCast(MyBase.VisitLambdaHeader(node), LambdaHeaderSyntax)
-                rewrittenLambdaHeader = AsyncOrIteratorFunctionReturnTypeFixer.RewriteLambdaHeader(rewrittenLambdaHeader, Me.SemanticModel, node, Me._cancellationToken)
+                rewrittenLambdaHeader = AsyncOrIteratorFunctionReturnTypeFixer.RewriteLambdaHeader(rewrittenLambdaHeader, Me._model, node, Me._cancellationToken)
                 Return AddParameterListTransform(node, rewrittenLambdaHeader, Function(n) True)
             End Function
 

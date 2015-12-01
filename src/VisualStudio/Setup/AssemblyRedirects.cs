@@ -29,4 +29,10 @@ using Roslyn.VisualStudio.Setup;
     OldVersionUpperBound = "1.0.99.0",
     NewVersion = "1.1.0.0",
     PublicKeyToken = "b03f5f7f11d50a3a",
-    GenerateCodeBase = ProvideRoslynBindingRedirectionAttribute.GenerateCodeBase)]
+    GenerateCodeBase = true)]
+
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Esent.Interop.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.DiaSymReader.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Convention.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.TypedParts.dll")]

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -3035,7 +3036,7 @@ public void M()
         [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void IntroduceBaseList()
+        public async Task IntroduceBaseList()
         {
             var text = @"
 public class C
@@ -3053,7 +3054,7 @@ public class C : IDisposable
             var newDecl = _g.AddInterfaceType(decl, _g.IdentifierName("IDisposable"));
             var newRoot = root.ReplaceNode(decl, newDecl);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _ws).ToFullString();
+            var elasticOnlyFormatted = (await Formatter.FormatAsync(newRoot, SyntaxAnnotation.ElasticAnnotation, _ws)).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 

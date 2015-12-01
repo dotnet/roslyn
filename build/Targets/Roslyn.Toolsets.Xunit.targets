@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)' == ''">$(NuGetPackagesPath)\xunit.runner.console.2.1.0\tools\xunit.console.x86.exe</StartProgram>
+    <StartProgram Condition="'$(StartProgram)' == ''">$(NuGetPackageRoot)\xunit.runner.console\2.1.0\tools\xunit.console.x86.exe</StartProgram>
     <StartArguments Condition="'$(StartArguments)' == ''">$(AssemblyName).dll -html $(OurDir)\xUnitResults\$(AssemblyName).html -noshadow</StartArguments>
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)' == ''">$(OutDir)</StartWorkingDirectory>
   </PropertyGroup>

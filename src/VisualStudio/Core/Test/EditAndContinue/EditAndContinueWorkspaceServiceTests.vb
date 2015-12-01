@@ -16,10 +16,10 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
     Public Class EditAndContinueWorkspaceServiceTests
         <WpfFact>
-        Public Sub ReadOnlyDocumentTest()
+        Public Async Function ReadOnlyDocumentTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
+            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 
@@ -65,13 +65,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Assert.Equal(ProjectReadOnlyReason.None, projectReason)
             Assert.Equal(SessionReadOnlyReason.StoppedAtException, sessionReason)
             Assert.Equal(True, isReadOnly)
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub NotLoadedTest()
+        Public Async Function NotLoadedTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
+            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 
@@ -91,13 +91,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Assert.Equal(ProjectReadOnlyReason.NotLoaded, projectReason)
             Assert.Equal(SessionReadOnlyReason.None, sessionReason)
             Assert.Equal(True, isReadOnly)
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub MetaDataNotAvailableTest()
+        Public Async Function MetaDataNotAvailableTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
-            Dim workspace = EditAndContinueTestHelper.CreateTestWorkspace()
+            Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
             Dim currentSolution = workspace.CurrentSolution
             Dim project = currentSolution.Projects(0)
 
@@ -117,7 +117,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             Assert.Equal(ProjectReadOnlyReason.MetadataNotAvailable, projectReason)
             Assert.Equal(SessionReadOnlyReason.None, sessionReason)
             Assert.Equal(True, isReadOnly)
-        End Sub
+        End Function
     End Class
 
 End Namespace

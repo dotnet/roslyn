@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string ChangeSignature = "Change Signature";
 
         /// <summary>
+        /// Command handler name for Class View.
+        /// </summary>
+        public const string ClassView = "Class View";
+
+        /// <summary>
         /// Command handler name for Comment Selection.
         /// </summary>
         /// <remarks></remarks>

@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -19,9 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         // finalizer complaining we didn't clean it up. Catching AVs is of course not safe, but this is balancing
         // "probably not crash" as an improvement over "will crash when the finalizer throws."
         [HandleProcessCorruptedStateExceptions]
-        public static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModel(string file)
+        public static async Task<Tuple<TestWorkspace, EnvDTE.FileCodeModel>> CreateWorkspaceAndFileCodeModelAsync(string file)
         {
-            var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(file, exportProvider: VisualStudioTestExportProvider.ExportProvider);
+            var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(file, exportProvider: VisualStudioTestExportProvider.ExportProvider);
 
             try
             {

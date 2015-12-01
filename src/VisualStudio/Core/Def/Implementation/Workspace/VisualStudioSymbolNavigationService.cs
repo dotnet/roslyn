@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _serviceProvider = serviceProvider;
             _outliningTaggerProvider = outliningTaggerProvider;
 
-            var componentModel = GetService<SComponentModel, IComponentModel>();
+            var componentModel = _serviceProvider.GetService<SComponentModel, IComponentModel>();
             _editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _textEditorFactoryService = componentModel.GetService<ITextEditorFactoryService>();
             _textDocumentFactoryService = componentModel.GetService<ITextDocumentFactoryService>();
@@ -102,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (navInfo != null)
                 {
-                    var navigationTool = GetService<SVsObjBrowser, IVsNavigationTool>();
+                    var navigationTool = _serviceProvider.GetService<SVsObjBrowser, IVsNavigationTool>();
                     return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
                 }
 
@@ -112,10 +113,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Generate new source or retrieve existing source for the symbol in question
             var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var vsRunningDocumentTable4 = GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
+            var vsRunningDocumentTable4 = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
-            var openDocumentService = GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+            var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
 
             IVsUIHierarchy hierarchy;
             uint itemId;
@@ -322,16 +323,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return false;
         }
 
-        private TInterface GetService<TService, TInterface>()
-        {
-            var service = (TInterface)_serviceProvider.GetService(typeof(TService));
-            Debug.Assert(service != null);
-            return service;
-        }
-
         private IVsRunningDocumentTable GetRunningDocumentTable()
         {
-            var runningDocumentTable = GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
+            var runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
             Debug.Assert(runningDocumentTable != null);
             return runningDocumentTable;
         }

@@ -2,8 +2,10 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,115 +19,115 @@ using Foo = System.Data;")
         {
         }
 
-        private CodeImport GetCodeImport(object path)
+        private async Task<CodeImport> GetCodeImportAsync(object path)
         {
-            return (CodeImport)GetCodeElement(path);
+            return (CodeImport)await GetCodeElementAsync(path);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Name()
+        public async Task Name()
         {
-            CodeImport import = GetCodeImport(1);
+            CodeImport import = await GetCodeImportAsync(1);
             AssertEx.Throws<COMException>(() => { var value = import.Name; });
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void FullName()
+        public async Task FullName()
         {
-            CodeImport import = GetCodeImport(1);
+            CodeImport import = await GetCodeImportAsync(1);
             AssertEx.Throws<COMException>(() => { var value = import.FullName; });
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Kind()
+        public async Task Kind()
         {
-            CodeImport import = GetCodeImport(1);
+            CodeImport import = await GetCodeImportAsync(1);
 
             Assert.Equal(vsCMElement.vsCMElementImportStmt, import.Kind);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Namespace()
+        public async Task Namespace()
         {
-            CodeImport import = GetCodeImport(1);
+            CodeImport import = await GetCodeImportAsync(1);
 
             Assert.Equal("System", import.Namespace);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void Alias()
+        public async Task Alias()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
 
             Assert.Equal("Foo", import.Alias);
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Attributes()
+        public async Task GetStartPoint_Attributes()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_AttributesWithDelimiter()
+        public async Task GetStartPoint_AttributesWithDelimiter()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Body()
+        public async Task GetStartPoint_Body()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartBody));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_BodyWithDelimiter()
+        public async Task GetStartPoint_BodyWithDelimiter()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Header()
+        public async Task GetStartPoint_Header()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_HeaderWithAttributes()
+        public async Task GetStartPoint_HeaderWithAttributes()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Name()
+        public async Task GetStartPoint_Name()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Navigate()
+        public async Task GetStartPoint_Navigate()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             TextPoint startPoint = import.GetStartPoint(vsCMPart.vsCMPartNavigate);
 
             Assert.Equal(2, startPoint.Line);
@@ -134,17 +136,17 @@ using Foo = System.Data;")
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_Whole()
+        public async Task GetStartPoint_Whole()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetStartPoint_WholeWithAttributes()
+        public async Task GetStartPoint_WholeWithAttributes()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             TextPoint startPoint = import.GetStartPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
             Assert.Equal(2, startPoint.Line);
@@ -153,65 +155,65 @@ using Foo = System.Data;")
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Attributes()
+        public async Task GetEndPoint_Attributes()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_AttributesWithDelimiter()
+        public async Task GetEndPoint_AttributesWithDelimiter()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Body()
+        public async Task GetEndPoint_Body()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartBody));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_BodyWithDelimiter()
+        public async Task GetEndPoint_BodyWithDelimiter()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Header()
+        public async Task GetEndPoint_Header()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_HeaderWithAttributes()
+        public async Task GetEndPoint_HeaderWithAttributes()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Name()
+        public async Task GetEndPoint_Name()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Navigate()
+        public async Task GetEndPoint_Navigate()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
 
             TextPoint endPoint = import.GetEndPoint(vsCMPart.vsCMPartNavigate);
 
@@ -221,17 +223,17 @@ using Foo = System.Data;")
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_Whole()
+        public async Task GetEndPoint_Whole()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void GetEndPoint_WholeWithAttributes()
+        public async Task GetEndPoint_WholeWithAttributes()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
 
             TextPoint endPoint = import.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
@@ -241,9 +243,9 @@ using Foo = System.Data;")
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void StartPoint()
+        public async Task StartPoint()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
 
             TextPoint startPoint = import.StartPoint;
 
@@ -253,9 +255,9 @@ using Foo = System.Data;")
 
         [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        public void EndPoint()
+        public async Task EndPoint()
         {
-            CodeImport import = GetCodeImport(2);
+            CodeImport import = await GetCodeImportAsync(2);
 
             TextPoint endPoint = import.EndPoint;
 

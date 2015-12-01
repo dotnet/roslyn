@@ -3445,7 +3445,7 @@ partial class C
         End Sub
 
         <WorkItem(1439, "https://github.com/dotnet/roslyn/issues/1439")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInsideNameOf1()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -3472,7 +3472,7 @@ class Program
         End Sub
 
         <WorkItem(1439, "https://github.com/dotnet/roslyn/issues/1439")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInsideNameOf2()
             Using result = RenameEngineResult.Create(
                     <Workspace>
@@ -3499,7 +3499,7 @@ class Program
         End Sub
 
         <WorkItem(1439, "https://github.com/dotnet/roslyn/issues/1439")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInsideNameOf3()
             Using result = RenameEngineResult.Create(
                     <Workspace>

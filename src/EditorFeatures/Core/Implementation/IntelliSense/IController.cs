@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
     internal interface IController<TModel>
     {
         void OnModelUpdated(TModel result);
-        IAsyncToken BeginAsyncOperation(string name= "", object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber]int lineNumber = 0);
+        IAsyncToken BeginAsyncOperation(string name = "", object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber]int lineNumber = 0);
         void StopModelComputation();
     }
 }

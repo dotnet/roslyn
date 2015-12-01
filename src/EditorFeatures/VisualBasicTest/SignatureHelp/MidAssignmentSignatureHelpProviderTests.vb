@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForMidAssignmentFirstArgument()
+        Public Async Function TestInvocationForMidAssignmentFirstArgument() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -32,12 +33,12 @@ End Class
                                      ReplacesChars,
                                      NameOfStringVariable,
                                      currentParameterIndex:=0))
-            Test(markup, expectedOrderedItems)
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+            Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForMidAssignmentSecondArgument()
+        Public Async Function TestInvocationForMidAssignmentSecondArgument() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -52,12 +53,12 @@ End Class
                                      ReplacesChars,
                                      OneBasedStartPos,
                                      currentParameterIndex:=1))
-            Test(markup, expectedOrderedItems)
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+            Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Sub TestInvocationForMidAssignmentThirdArgument()
+        Public Async Function TestInvocationForMidAssignmentThirdArgument() As Task
             Dim markup = <a><![CDATA[
 Class C
     Sub Foo()
@@ -72,8 +73,8 @@ End Class
                                      ReplacesChars,
                                      NumberOfCharsToReplace,
                                      currentParameterIndex:=2))
-            Test(markup, expectedOrderedItems)
-            Test(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
-        End Sub
+            Await TestAsync(markup, expectedOrderedItems)
+            Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
+        End Function
     End Class
 End Namespace

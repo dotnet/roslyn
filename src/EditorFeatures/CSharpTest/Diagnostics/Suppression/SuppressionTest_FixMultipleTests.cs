@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 [WorkItem(6455, "https://github.com/dotnet/roslyn/issues/6455")]
-                public void TestFixMultipleInDocument()
+                public async Task TestFixMultipleInDocument()
                 {
                     var input = @"
 <Workspace>
@@ -154,9 +155,8 @@ class Class2
     </Project>
 </Workspace>";
 
-                    Test(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixMultipleActionEquivalenceKey);
+                    await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixMultipleActionEquivalenceKey);
                 }
-
             }
 
             #endregion

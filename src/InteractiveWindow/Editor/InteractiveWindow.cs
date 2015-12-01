@@ -35,6 +35,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
         internal const string ClipboardFormat = "89344A36-9821-495A-8255-99A63969F87D";
+
+        // The following two field definitions have to stay in sync with VS editor implementation
+
+        /// <summary>
+        /// A data format used to tag the contents of the clipboard so that it's clear
+        /// the data has been put in the clipboard by our editor
+        /// </summary>
+        internal const string ClipboardLineBasedCutCopyTag = "VisualStudioEditorOperationsLineCutCopyClipboardTag";
+
+        /// <summary>
+        /// A data format used to tag the contents of the clipboard as a box selection.
+        /// This is the same string that was used in VS9 and previous versions.
+        /// </summary>
+        internal const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
+
         internal int LanguageBufferCounter = 0;
 
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
@@ -397,6 +412,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.CutLine());
         }
 
+        void IInteractiveWindowOperations2.TypeChar(char typedChar)
+        {
+            UIThread(uiOnly => uiOnly.TypeChar(typedChar));
+        }
+
         #endregion
 
         #region Command Debugging
@@ -559,12 +579,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal void Undo_TestOnly(int count)
         {
-            UIThread(uiOnly => uiOnly.UndoHistory_TestOnly.Undo(count));
+            UIThread(uiOnly => uiOnly.UndoHistory?.Undo(count));
         }
 
         internal void Redo_TestOnly(int count)
         {
-            UIThread(uiOnly => uiOnly.UndoHistory_TestOnly.Redo(count));
+            UIThread(uiOnly => uiOnly.UndoHistory?.Redo(count));
         }
 
         #endregion

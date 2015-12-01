@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 using Roslyn.Test.Utilities;
@@ -12,27 +13,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
 {
     public class F1HelpTests
     {
-        private void Test(string markup, string expectedText)
+        private async Task TestAsync(string markup, string expectedText)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(markup))
             {
                 var caret = workspace.Documents.First().CursorPosition;
 
                 var service = new CSharpHelpContextService();
-                var actualText = service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
                 Assert.Equal(expectedText, actualText);
             }
         }
 
-        private void Test_Keyword(string markup, string expectedText)
+        private async Task Test_KeywordAsync(string markup, string expectedText)
         {
-            Test(markup, expectedText + "_CSharpKeyword");
+            await TestAsync(markup, expectedText + "_CSharpKeyword");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestVoid()
+        public async Task TestVoid()
         {
-            Test_Keyword(@"
+            await Test_KeywordAsync(@"
 class C
 {
     vo[||]id foo() { }
@@ -40,9 +41,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestReturn()
+        public async Task TestReturn()
         {
-            Test_Keyword(@"
+            await Test_KeywordAsync(@"
 class C
 {
     void foo() 
@@ -53,9 +54,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestPartialType()
+        public async Task TestPartialType()
         {
-            Test_Keyword(@"
+            await Test_KeywordAsync(@"
 part[||]ial class C
 {
     partial void foo();
@@ -63,9 +64,9 @@ part[||]ial class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestPartialMethod()
+        public async Task TestPartialMethod()
         {
-            Test_Keyword(@"
+            await Test_KeywordAsync(@"
 partial class C
 {
     par[||]tial void foo();
@@ -73,9 +74,9 @@ partial class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestWhereClause()
+        public async Task TestWhereClause()
         {
-            Test_Keyword(@"
+            await Test_KeywordAsync(@"
 using System.Linq;
 class Program<T> where T : class {
     void foo(string[] args)
@@ -86,9 +87,9 @@ class Program<T> where T : class {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestWhereConstraint()
+        public async Task TestWhereConstraint()
         {
-            Test_Keyword(@"
+            await Test_KeywordAsync(@"
 using System.Linq;
 class Program<T> wh[||]ere T : class {
     void foo(string[] args)
@@ -99,17 +100,17 @@ class Program<T> wh[||]ere T : class {
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestPreprocessor()
+        public async Task TestPreprocessor()
         {
-            Test(@"
+            await TestAsync(@"
 #regi[||]on
 #endregion", "#region");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestConstructor()
+        public async Task TestConstructor()
         {
-            Test(@"
+            await TestAsync(@"
 namespace N
 {
 class C
@@ -123,9 +124,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestGenericClass()
+        public async Task TestGenericClass()
         {
-            Test(@"
+            await TestAsync(@"
 namespace N
 {
 class C<T>
@@ -139,9 +140,9 @@ class C<T>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestGenericMethod()
+        public async Task TestGenericMethod()
         {
-            Test(@"
+            await TestAsync(@"
 namespace N
 {
 class C<T>
@@ -156,9 +157,9 @@ class C<T>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestOperator()
+        public async Task TestOperator()
         {
-            Test(@"
+            await TestAsync(@"
 namespace N
 {
 class C
@@ -171,9 +172,9 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestVar()
+        public async Task TestVar()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -188,9 +189,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestEquals()
+        public async Task TestEquals()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -205,9 +206,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestFromIn()
+        public async Task TestFromIn()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -222,9 +223,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestProperty()
+        public async Task TestProperty()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -239,9 +240,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestForeachIn()
+        public async Task TestForeachIn()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -259,9 +260,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestRegionDescription()
+        public async Task TestRegionDescription()
         {
-            Test(@"
+            await TestAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -273,9 +274,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestGenericAngle()
+        public async Task TestGenericAngle()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     static void generic<T>(T t)
     {
@@ -285,9 +286,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestLocalReferenceIsType()
+        public async Task TestLocalReferenceIsType()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -304,9 +305,9 @@ class Program
 
         [WorkItem(864266)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestConstantField()
+        public async Task TestConstantField()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -317,9 +318,9 @@ class Program
 
         [WorkItem(862420)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestParameter()
+        public async Task TestParameter()
         {
-            Test(@"class Class2
+            await TestAsync(@"class Class2
     {
         void M1(int par[||]ameter)  // 1
         {
@@ -335,9 +336,9 @@ class Program
 
         [WorkItem(862420)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestArgumentType()
+        public async Task TestArgumentType()
         {
-            Test(@"class Class2
+            await TestAsync(@"class Class2
     {
         void M1(int pa[||]rameter)  // 1
         {
@@ -353,9 +354,9 @@ class Program
 
         [WorkItem(862396)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestNoToken()
+        public async Task TestNoToken()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -366,9 +367,9 @@ class Program
 
         [WorkItem(862328)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestLiteral()
+        public async Task TestLiteral()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -379,9 +380,9 @@ class Program
 
         [WorkItem(862478)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestColonColon()
+        public async Task TestColonColon()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -397,9 +398,9 @@ class Program
 
         [WorkItem(864658)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestNullable()
+        public async Task TestNullable()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -417,9 +418,9 @@ a.Value.GetHashCode();
 
         [WorkItem(863517)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestAfterLastToken()
+        public async Task TestAfterLastToken()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -436,9 +437,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestConditional()
+        public async Task TestConditional()
         {
-            Test(@"class Program
+            await TestAsync(@"class Program
 {
     static void Main(string[] args)
     {
@@ -448,9 +449,9 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestLocalVar()
+        public async Task TestLocalVar()
         {
-            Test(@"class C
+            await TestAsync(@"class C
 {
     void M()
     {
@@ -462,9 +463,9 @@ class Program
 
         [WorkItem(867574)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestFatArrow()
+        public async Task TestFatArrow()
         {
-            Test(@"class C
+            await TestAsync(@"class C
 {
     void M()
     {
@@ -475,9 +476,9 @@ class Program
 
         [WorkItem(867572)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestSubscription()
+        public async Task TestSubscription()
         {
-            Test(@"class CCC
+            await TestAsync(@"class CCC
 {
     event System.Action e;
     void M()
@@ -489,16 +490,16 @@ class Program
 
         [WorkItem(867554)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestComment()
+        public async Task TestComment()
         {
-            Test(@"// some comm[||]ents here", "comments");
+            await TestAsync(@"// some comm[||]ents here", "comments");
         }
 
         [WorkItem(867529)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestDynamic()
+        public async Task TestDynamic()
         {
-            Test(@"class C
+            await TestAsync(@"class C
 {
     void M()
     {
@@ -508,9 +509,9 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public void TestRangeVariable()
+        public async Task TestRangeVariable()
         {
-            Test(@"using System;
+            await TestAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
