@@ -63,6 +63,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Parse(args, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories)
         End Function
 
+        Private Shared Function ARG_Help(q As Mutable_VBCommandLineArguments, name As String, value As String) As Boolean
+            If value IsNot Nothing Then
+                Return False
+            Else
+                q.displayHelp = True
+                Return True
+            End If
+        End Function
+
+        Private Function ARG_OptionStrict(q As Mutable_VBCommandLineArguments, name As String, value As String) As Boolean
+            value = RemoveQuotesAndSlashes(value)
+            If value Is Nothing Then
+                q.optionStrict = VisualBasic.OptionStrict.On
+            ElseIf String.Equals(value, "custom", StringComparison.OrdinalIgnoreCase) Then
+                q.optionStrict = VisualBasic.OptionStrict.Custom
+            Else
+                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "optionstrict", ":custom")
+            End If
+            Return True
+        End Function
+
         ''' <summary>
         ''' Parses a command line.
         ''' </summary>
@@ -73,287 +94,160 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
         Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
-
-            Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
-            Dim flattenedArgs As List(Of String) = New List(Of String)()
-            Dim scriptArgs As List(Of String) = If(IsScriptRunner, New List(Of String)(), Nothing)
-
-            ' normalized paths to directories containing response files:
-            Dim responsePaths As New List(Of String)
-            FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory, responsePaths)
-
-            Dim displayLogo As Boolean = True
-            Dim displayHelp As Boolean = False
-            Dim outputLevel As OutputLevel = OutputLevel.Normal
-            Dim optimize As Boolean = False
-            Dim checkOverflow As Boolean = True
-            Dim concurrentBuild As Boolean = True
-            Dim deterministic As Boolean = False
-            Dim emitPdb As Boolean
-            Dim debugInformationFormat As DebugInformationFormat = DebugInformationFormat.Pdb
-            Dim noStdLib As Boolean = False
-            Dim utf8output As Boolean = False
-            Dim outputFileName As String = Nothing
-            Dim outputDirectory As String = baseDirectory
-            Dim documentationPath As String = Nothing
-            Dim errorLogPath As String = Nothing
-            Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
-            Dim outputKind As OutputKind = OutputKind.ConsoleApplication
-            Dim ssVersion As SubsystemVersion = SubsystemVersion.None
-            Dim languageVersion As LanguageVersion = LanguageVersion.VisualBasic14
-            Dim mainTypeName As String = Nothing
-            Dim win32ManifestFile As String = Nothing
-            Dim win32ResourceFile As String = Nothing
-            Dim win32IconFile As String = Nothing
-            Dim noWin32Manifest As Boolean = False
-            Dim managedResources = New List(Of ResourceDescription)()
-            Dim sourceFiles = New List(Of CommandLineSourceFile)()
-            Dim hasSourceFiles = False
-            Dim additionalFiles = New List(Of CommandLineSourceFile)()
-            Dim codepage As Encoding = Nothing
-            Dim checksumAlgorithm = SourceHashAlgorithm.Sha1
-            Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
-            Dim metadataReferences = New List(Of CommandLineReference)()
-            Dim analyzers = New List(Of CommandLineAnalyzerReference)()
-            Dim sdkPaths As New List(Of String)()
-            Dim libPaths As New List(Of String)()
-            Dim sourcePaths As New List(Of String)()
-            Dim keyFileSearchPaths = New List(Of String)()
-            Dim globalImports = New List(Of GlobalImport)
-            Dim rootNamespace As String = ""
-            Dim optionStrict As OptionStrict = OptionStrict.Off
-            Dim optionInfer As Boolean = False ' MSDN says: ...The compiler default for this option is /optioninfer-.
-            Dim optionExplicit As Boolean = True
-            Dim optionCompareText As Boolean = False
-            Dim embedVbCoreRuntime As Boolean = False
-            Dim platform As Platform = Platform.AnyCpu
-            Dim preferredUILang As CultureInfo = Nothing
-            Dim fileAlignment As Integer = 0
-            Dim baseAddress As ULong = 0
-            Dim highEntropyVA As Boolean = False
-            Dim vbRuntimePath As String = Nothing
-            Dim includeVbRuntimeReference As Boolean = True
-            Dim generalDiagnosticOption As ReportDiagnostic = ReportDiagnostic.Default
-            Dim pathMap As ImmutableArray(Of KeyValuePair(Of String, String)) = ImmutableArray(Of KeyValuePair(Of String, String)).Empty
-
-            ' Diagnostic ids specified via /nowarn /warnaserror must be processed in case-insensitive fashion.
-            Dim specificDiagnosticOptionsFromRuleSet = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim specificDiagnosticOptionsFromGeneralArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim specificDiagnosticOptionsFromSpecificArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim specificDiagnosticOptionsFromNoWarnArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim keyFileSetting As String = Nothing
-            Dim keyContainerSetting As String = Nothing
-            Dim delaySignSetting As Boolean? = Nothing
-            Dim moduleAssemblyName As String = Nothing
-            Dim moduleName As String = Nothing
-            Dim sqmsessionguid As Guid = Nothing
-            Dim touchedFilesPath As String = Nothing
-            Dim features = New List(Of String)()
-            Dim reportAnalyzer As Boolean = False
-
+            Dim q As New Mutable_VBCommandLineArguments(args, Me, baseDirectory, IsScriptRunner)
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
             If Not IsScriptRunner Then
-                For Each arg In flattenedArgs
+                For Each arg In q.flattenedArgs
                     Dim name As String = Nothing
                     Dim value As String = Nothing
                     If TryParseOption(arg, name, value) AndAlso (name = "ruleset") Then
                         Dim unquoted = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrEmpty(unquoted) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
                             Continue For
                         End If
 
-                        generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptionsFromRuleSet, diagnostics, unquoted, baseDirectory)
+                        q.generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(q.specificDiagnosticOptionsFromRuleSet, q.diagnostics, unquoted, baseDirectory)
                     End If
                 Next
             End If
 
-            For Each arg In flattenedArgs
+            For Each arg In q.flattenedArgs
+                Dim ok = False
                 Debug.Assert(Not arg.StartsWith("@", StringComparison.Ordinal))
 
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
-                    sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, diagnostics))
-                    hasSourceFiles = True
+                    q.sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, q.diagnostics))
+                    q.hasSourceFiles = True
                     Continue For
                 End If
 
                 Select Case name
                     Case "?", "help"
-                        If value IsNot Nothing Then
-                            Exit Select
-                        End If
-
-                        displayHelp = True
-                        Continue For
-
+                        ok = ARG_Help(q, name, value)
                     Case "r", "reference"
-                        metadataReferences.AddRange(ParseAssemblyReferences(name, value, diagnostics, embedInteropTypes:=False))
-                        Continue For
-
+                        ok = ARG_Reference(q, name, value)
                     Case "a", "analyzer"
-                        analyzers.AddRange(ParseAnalyzers(name, value, diagnostics))
-                        Continue For
-
+                        ok = ARG_Analyzer(q, name, value)
                     Case "d", "define"
-                        If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<symbol_list>")
-                            Continue For
-                        End If
-                        Dim conditionalCompilationDiagnostics As IEnumerable(Of Diagnostic) = Nothing
-                        defines = ParseConditionalCompilationSymbols(value, conditionalCompilationDiagnostics, defines)
-                        diagnostics.AddRange(conditionalCompilationDiagnostics)
-
-                        Continue For
-
+                        ok = ARG_Define(q, name, value)
                     Case "imports", "import"
-                        If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, If(name = "import", ":<str>", ":<import_list>"))
-                            Continue For
-                        End If
-
-                        ParseGlobalImports(value, globalImports, diagnostics)
-                        Continue For
-
+                        ok = ARG_Imports(q, name, value)
                     Case "optionstrict"
-                        value = RemoveQuotesAndSlashes(value)
-                        If value Is Nothing Then
-                            optionStrict = VisualBasic.OptionStrict.On
-                        ElseIf String.Equals(value, "custom", StringComparison.OrdinalIgnoreCase) Then
-                            optionStrict = VisualBasic.OptionStrict.Custom
-                        Else
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optionstrict", ":custom")
-                        End If
-
-                        Continue For
+                        ok = ARG_OptionStrict(q, name, value)
 
                     Case "optionstrict+"
-                        If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionstrict")
-                            Continue For
-                        End If
-
-                        optionStrict = VisualBasic.OptionStrict.On
-                        Continue For
+                        ok = ARG_OptionStrict_Plus(q, value)
 
                     Case "optionstrict-"
                         If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionstrict")
-                            Continue For
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "optionstrict")
+                        Else
+                            q.optionStrict = VisualBasic.OptionStrict.Off
                         End If
-
-                        optionStrict = VisualBasic.OptionStrict.Off
                         Continue For
 
                     Case "optioncompare"
                         value = RemoveQuotesAndSlashes(value)
                         If value Is Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "optioncompare", ":binary|text")
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "optioncompare", ":binary|text")
                         ElseIf String.Equals(value, "text", StringComparison.OrdinalIgnoreCase) Then
-                            optionCompareText = True
+                            q.optionCompareText = True
                         ElseIf String.Equals(value, "binary", StringComparison.OrdinalIgnoreCase) Then
-                            optionCompareText = False
+                            q.optionCompareText = False
                         Else
-                            AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "optioncompare", value)
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_InvalidSwitchValue, "optioncompare", value)
                         End If
 
                         Continue For
 
                     Case "optionexplicit", "optionexplicit+"
                         If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionexplicit")
-                            Continue For
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "optionexplicit")
+                        Else
+                            q.optionExplicit = True
                         End If
-
-                        optionExplicit = True
                         Continue For
 
                     Case "optionexplicit-"
                         If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optionexplicit")
-                            Continue For
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "optionexplicit")
+                        Else
+                            q.optionExplicit = False
                         End If
-
-                        optionExplicit = False
                         Continue For
 
                     Case "optioninfer", "optioninfer+"
                         If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optioninfer")
-                            Continue For
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "optioninfer")
+                        Else
+                            q.optionInfer = True
                         End If
-
-                        optionInfer = True
                         Continue For
 
                     Case "optioninfer-"
                         If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optioninfer")
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "optioninfer")
                             Continue For
                         End If
 
-                        optionInfer = False
+                        q.optionInfer = False
                         Continue For
 
                     Case "codepage"
                         value = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "codepage", ":<number>")
-                            Continue For
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "codepage", ":<number>")
+                        Else
+                            Dim encoding = TryParseEncodingName(value)
+                            If encoding Is Nothing Then
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_BadCodepage, value)
+                            Else
+                                q.codepage = encoding
+                            End If
                         End If
-
-                        Dim encoding = TryParseEncodingName(value)
-                        If encoding Is Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_BadCodepage, value)
-                            Continue For
-                        End If
-
-                        codepage = encoding
                         Continue For
 
                     Case "checksumalgorithm"
                         value = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "checksumalgorithm", ":<algorithm>")
-                            Continue For
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "checksumalgorithm", ":<algorithm>")
+                        Else
+                            Dim newChecksumAlgorithm = TryParseHashAlgorithmName(value)
+                            If newChecksumAlgorithm = SourceHashAlgorithm.None Then
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_BadChecksumAlgorithm, value)
+                            Else
+                                q.checksumAlgorithm = newChecksumAlgorithm
+                            End If
                         End If
-
-                        Dim newChecksumAlgorithm = TryParseHashAlgorithmName(value)
-                        If newChecksumAlgorithm = SourceHashAlgorithm.None Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_BadChecksumAlgorithm, value)
-                            Continue For
-                        End If
-
-                        checksumAlgorithm = newChecksumAlgorithm
                         Continue For
 
                     Case "removeintchecks", "removeintchecks+"
                         If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "removeintchecks")
-                            Continue For
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "removeintchecks")
+                        Else
+                            q.checkOverflow = False
                         End If
-
-                        checkOverflow = False
                         Continue For
 
                     Case "removeintchecks-"
                         If value IsNot Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "removeintchecks")
-                            Continue For
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "removeintchecks")
+                        Else
+                            q.checkOverflow = True
                         End If
-
-                        checkOverflow = True
                         Continue For
 
                     Case "sqmsessionguid"
                         value = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrWhiteSpace(value) = True Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_MissingGuidForOption, value, name)
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_MissingGuidForOption, value, name)
                         Else
-                            If Not Guid.TryParse(value, sqmsessionguid) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_InvalidFormatForGuidForOption, value, name)
+                            If Not Guid.TryParse(value, q.sqmsessionguid) Then
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_InvalidFormatForGuidForOption, value, name)
                             End If
                         End If
                         Continue For
@@ -361,32 +255,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case "preferreduilang"
                         value = RemoveQuotesAndSlashes(value)
                         If (String.IsNullOrEmpty(value)) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<string>")
-                            Continue For
-                        End If
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<string>")
+                        Else
 
-                        Try
-                            preferredUILang = New CultureInfo(value)
-                            If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
-                                ' Do not use user custom cultures.
-                                preferredUILang = Nothing
+                            Try
+                                q.preferredUILang = New CultureInfo(value)
+                                If (CorLightup.Desktop.IsUserCustomCulture(q.preferredUILang)) Then
+                                    ' Do not use user custom cultures.
+                                    q.preferredUILang = Nothing
+                                End If
+                            Catch ex As CultureNotFoundException
+                            End Try
+
+                            If q.preferredUILang Is Nothing Then
+                                AddDiagnostic(q.diagnostics, ERRID.WRN_BadUILang, value)
                             End If
-                        Catch ex As CultureNotFoundException
-                        End Try
-
-                        If preferredUILang Is Nothing Then
-                            AddDiagnostic(diagnostics, ERRID.WRN_BadUILang, value)
                         End If
-
                         Continue For
 
                     Case "lib", "libpath", "libpaths"
                         If String.IsNullOrEmpty(value) Then
-                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
-                            Continue For
+                            AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
+                        Else
+                            q.libPaths.AddRange(ParseSeparatedPaths(value))
                         End If
-
-                        libPaths.AddRange(ParseSeparatedPaths(value))
                         Continue For
 
 #If DEBUG Then
@@ -394,17 +286,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debugger.Launch()
                         Continue For
 #End If
-                End Select
+                    Case Else
 
+                End Select
+                If ok Then
+                    Continue For
+                End If
                 If IsScriptRunner Then
                     Select Case name
                         Case "loadpath", "loadpaths"
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
                                 Continue For
                             End If
 
-                            sourcePaths.AddRange(ParseSeparatedPaths(value))
+                            q.sourcePaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
                     End Select
                 Else
@@ -414,19 +310,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' When the value has " " (e.g., "/out: ")
                                 ' the Roslyn VB compiler reports "BC 2006 : option 'out' requires ':<file>',
                                 ' While the Dev11 VB compiler reports "BC2012 : can't open ' ' for writing,
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
                             Else
                                 ' Even when value is neither null or whitespace, the output file name still could be invalid. (e.g., "/out:sub\ ")
                                 ' While the Dev11 VB compiler reports "BC2012: can't open 'sub\ ' for writing,
                                 ' the Roslyn VB compiler reports "BC2032: File name 'sub\ ' is empty, contains invalid characters, ..."
                                 ' which is generated by the following ParseOutputFile.
-                                ParseOutputFile(value, diagnostics, baseDirectory, outputFileName, outputDirectory)
+                                ParseOutputFile(value, q.diagnostics, baseDirectory, q.outputFileName, q.outputDirectory)
                             End If
                             Continue For
 
                         Case "t", "target"
                             value = RemoveQuotesAndSlashes(value)
-                            outputKind = ParseTarget(name, value, diagnostics)
+                            q.outputKind = ParseTarget(name, value, q.diagnostics)
                             Continue For
 
                         Case "moduleassemblyname"
@@ -436,12 +332,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' Note that native compiler also extracts public key, but Roslyn doesn't use it.
 
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "moduleassemblyname", ":<string>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "moduleassemblyname", ":<string>")
                             ElseIf Not AssemblyIdentity.TryParseDisplayName(value, identity) OrElse
                                        Not MetadataHelpers.IsValidAssemblyOrModuleName(identity.Name) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_InvalidAssemblyName, value, arg)
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_InvalidAssemblyName, value, arg)
                             Else
-                                moduleAssemblyName = identity.Name
+                                q.moduleAssemblyName = identity.Name
                             End If
 
                             Continue For
@@ -449,29 +345,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case "rootnamespace"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "rootnamespace", ":<string>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "rootnamespace", ":<string>")
                                 Continue For
                             End If
 
-                            rootNamespace = value
+                            q.rootNamespace = value
                             Continue For
 
                         Case "doc"
                             value = RemoveQuotesAndSlashes(value)
-                            parseDocumentationComments = True
+                            q.parseDocumentationComments = True
                             If value Is Nothing Then
                                 ' Illegal in C#, but works in VB
-                                documentationPath = GenerateFileNameForDocComment
+                                q.documentationPath = GenerateFileNameForDocComment
                                 Continue For
                             End If
                             Dim unquoted = RemoveQuotesAndSlashes(value)
                             If unquoted.Length = 0 Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "doc", ":<file>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "doc", ":<file>")
                             Else
-                                documentationPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory, generateDiagnostic:=False)
-                                If String.IsNullOrWhiteSpace(documentationPath) Then
-                                    AddDiagnostic(diagnostics, ERRID.WRN_XMLCannotWriteToXMLDocFile2, unquoted, New LocalizableErrorArgument(ERRID.IDS_TheSystemCannotFindThePathSpecified))
-                                    documentationPath = Nothing
+                                q.documentationPath = ParseGenericPathToFile(unquoted, q.diagnostics, baseDirectory, generateDiagnostic:=False)
+                                If String.IsNullOrWhiteSpace(q.documentationPath) Then
+                                    AddDiagnostic(q.diagnostics, ERRID.WRN_XMLCannotWriteToXMLDocFile2, unquoted, New LocalizableErrorArgument(ERRID.IDS_TheSystemCannotFindThePathSpecified))
+                                    q.documentationPath = Nothing
                                 End If
                             End If
 
@@ -479,30 +375,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "doc+"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "doc")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "doc")
                             End If
 
                             ' Seems redundant with default values, but we need to clobber any preceding /doc switches
-                            documentationPath = GenerateFileNameForDocComment
-                            parseDocumentationComments = True
+                            q.documentationPath = GenerateFileNameForDocComment
+                            q.parseDocumentationComments = True
                             Continue For
 
                         Case "doc-"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "doc")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "doc")
                             End If
 
                             ' Seems redundant with default values, but we need to clobber any preceding /doc switches
-                            documentationPath = Nothing
-                            parseDocumentationComments = False
+                            q.documentationPath = Nothing
+                            q.parseDocumentationComments = False
                             Continue For
 
                         Case "errorlog"
                             Dim unquoted = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(unquoted) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ":<file>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ":<file>")
                             Else
-                                errorLogPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                                q.errorLogPath = ParseGenericPathToFile(unquoted, q.diagnostics, baseDirectory)
                             End If
 
                             Continue For
@@ -514,56 +410,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "sdkpath"
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "sdkpath", ":<path>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "sdkpath", ":<path>")
                                 Continue For
                             End If
 
-                            sdkPaths.Clear()
-                            sdkPaths.AddRange(ParseSeparatedPaths(value))
+                            q.sdkPaths.Clear()
+                            q.sdkPaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
                         Case "recurse"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "recurse", ":<wildcard>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "recurse", ":<wildcard>")
                                 Continue For
                             End If
 
-                            Dim before As Integer = sourceFiles.Count
-                            sourceFiles.AddRange(ParseRecurseArgument(value, baseDirectory, diagnostics))
-                            If sourceFiles.Count > before Then
-                                hasSourceFiles = True
+                            Dim before As Integer = q.sourceFiles.Count
+                            q.sourceFiles.AddRange(ParseRecurseArgument(value, baseDirectory, q.diagnostics))
+                            If q.sourceFiles.Count > before Then
+                                q.hasSourceFiles = True
                             End If
                             Continue For
 
                         Case "addmodule"
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "addmodule", ":<file_list>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "addmodule", ":<file_list>")
                                 Continue For
                             End If
 
                             ' NOTE(tomat): Dev10 reports "Command line error BC2017 : could not find library."
                             ' Since we now support /referencePaths option we would need to search them to see if the resolved path is a directory.
                             ' An error will be reported by the assembly manager anyways.
-                            metadataReferences.AddRange(
+                            q.metadataReferences.AddRange(
                                     ParseSeparatedPaths(value).Select(
                                         Function(path) New CommandLineReference(path, New MetadataReferenceProperties(MetadataImageKind.Module))))
                             Continue For
 
                         Case "l", "link"
-                            metadataReferences.AddRange(ParseAssemblyReferences(name, value, diagnostics, embedInteropTypes:=True))
+                            q.metadataReferences.AddRange(ParseAssemblyReferences(name, value, q.diagnostics, embedInteropTypes:=True))
                             Continue For
 
                         Case "win32resource"
-                            win32ResourceFile = GetWin32Setting(s_win32Res, RemoveQuotesAndSlashes(value), diagnostics)
+                            q.win32ResourceFile = GetWin32Setting(s_win32Res, RemoveQuotesAndSlashes(value), q.diagnostics)
                             Continue For
 
                         Case "win32icon"
-                            win32IconFile = GetWin32Setting(s_win32Icon, RemoveQuotesAndSlashes(value), diagnostics)
+                            q.win32IconFile = GetWin32Setting(s_win32Icon, RemoveQuotesAndSlashes(value), q.diagnostics)
                             Continue For
 
                         Case "win32manifest"
-                            win32ManifestFile = GetWin32Setting(s_win32Manifest, RemoveQuotesAndSlashes(value), diagnostics)
+                            q.win32ManifestFile = GetWin32Setting(s_win32Manifest, RemoveQuotesAndSlashes(value), q.diagnostics)
                             Continue For
 
                         Case "nowin32manifest"
@@ -571,20 +467,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            noWin32Manifest = True
+                            q.noWin32Manifest = True
                             Continue For
 
                         Case "res", "resource"
-                            Dim embeddedResource = ParseResourceDescription(name, value, baseDirectory, diagnostics, embedded:=True)
+                            Dim embeddedResource = ParseResourceDescription(name, value, baseDirectory, q.diagnostics, embedded:=True)
                             If embeddedResource IsNot Nothing Then
-                                managedResources.Add(embeddedResource)
+                                q.managedResources.Add(embeddedResource)
                             End If
                             Continue For
 
                         Case "linkres", "linkresource"
-                            Dim linkedResource = ParseResourceDescription(name, value, baseDirectory, diagnostics, embedded:=False)
+                            Dim linkedResource = ParseResourceDescription(name, value, baseDirectory, q.diagnostics, embedded:=False)
                             If linkedResource IsNot Nothing Then
-                                managedResources.Add(linkedResource)
+                                q.managedResources.Add(linkedResource)
                             End If
                             Continue For
 
@@ -594,132 +490,132 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If value IsNot Nothing Then
                                 Select Case value.ToLower()
                                     Case "full", "pdbonly"
-                                        debugInformationFormat = DebugInformationFormat.Pdb
+                                        q.debugInformationFormat = DebugInformationFormat.Pdb
                                     Case "portable"
-                                        debugInformationFormat = DebugInformationFormat.PortablePdb
+                                        q.debugInformationFormat = DebugInformationFormat.PortablePdb
                                     Case "embedded"
-                                        debugInformationFormat = DebugInformationFormat.Embedded
+                                        q.debugInformationFormat = DebugInformationFormat.Embedded
                                     Case Else
-                                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
+                                        AddDiagnostic(q.diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
                                 End Select
                             End If
 
-                            emitPdb = True
+                            q.emitPdb = True
                             Continue For
 
                         Case "debug+"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
                             End If
 
-                            emitPdb = True
+                            q.emitPdb = True
                             Continue For
 
                         Case "debug-"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "debug")
                             End If
 
-                            emitPdb = False
+                            q.emitPdb = False
                             Continue For
 
                         Case "optimize", "optimize+"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optimize")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "optimize")
                                 Continue For
                             End If
 
-                            optimize = True
+                            q.optimize = True
                             Continue For
 
                         Case "optimize-"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "optimize")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "optimize")
                                 Continue For
                             End If
 
-                            optimize = False
+                            q.optimize = False
                             Continue For
 
                         Case "parallel", "p"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, name)
                                 Continue For
                             End If
 
-                            concurrentBuild = True
+                            q.concurrentBuild = True
                             Continue For
 
                         Case "deterministic", "deterministic+"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, name)
                                 Continue For
                             End If
 
-                            deterministic = True
+                            q.deterministic = True
                             Continue For
 
                         Case "deterministic-"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, name)
                                 Continue For
                             End If
 
-                            deterministic = False
+                            q.deterministic = False
                             Continue For
 
                         Case "parallel+", "p+"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name.Substring(0, name.Length - 1))
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, name.Substring(0, name.Length - 1))
                                 Continue For
                             End If
 
-                            concurrentBuild = True
+                            q.concurrentBuild = True
                             Continue For
 
                         Case "parallel-", "p-"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name.Substring(0, name.Length - 1))
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, name.Substring(0, name.Length - 1))
                                 Continue For
                             End If
 
-                            concurrentBuild = False
+                            q.concurrentBuild = False
                             Continue For
 
                         Case "warnaserror", "warnaserror+"
                             If value Is Nothing Then
-                                generalDiagnosticOption = ReportDiagnostic.Error
+                                q.generalDiagnosticOption = ReportDiagnostic.Error
 
-                                specificDiagnosticOptionsFromGeneralArguments.Clear()
-                                For Each pair In specificDiagnosticOptionsFromRuleSet
+                                q.specificDiagnosticOptionsFromGeneralArguments.Clear()
+                                For Each pair In q.specificDiagnosticOptionsFromRuleSet
                                     If pair.Value = ReportDiagnostic.Warn Then
-                                        specificDiagnosticOptionsFromGeneralArguments.Add(pair.Key, ReportDiagnostic.Error)
+                                        q.specificDiagnosticOptionsFromGeneralArguments.Add(pair.Key, ReportDiagnostic.Error)
                                     End If
                                 Next
 
                                 Continue For
                             End If
 
-                            AddWarnings(specificDiagnosticOptionsFromSpecificArguments, ReportDiagnostic.Error, ParseWarnings(value))
+                            AddWarnings(q.specificDiagnosticOptionsFromSpecificArguments, ReportDiagnostic.Error, ParseWarnings(value))
                             Continue For
 
                         Case "warnaserror-"
                             If value Is Nothing Then
-                                If generalDiagnosticOption <> ReportDiagnostic.Suppress Then
-                                    generalDiagnosticOption = ReportDiagnostic.Default
+                                If q.generalDiagnosticOption <> ReportDiagnostic.Suppress Then
+                                    q.generalDiagnosticOption = ReportDiagnostic.Default
                                 End If
 
-                                specificDiagnosticOptionsFromGeneralArguments.Clear()
+                                q.specificDiagnosticOptionsFromGeneralArguments.Clear()
 
                                 Continue For
                             End If
 
                             For Each id In ParseWarnings(value)
                                 Dim ruleSetValue As ReportDiagnostic
-                                If specificDiagnosticOptionsFromRuleSet.TryGetValue(id, ruleSetValue) Then
-                                    specificDiagnosticOptionsFromSpecificArguments(id) = ruleSetValue
+                                If q.specificDiagnosticOptionsFromRuleSet.TryGetValue(id, ruleSetValue) Then
+                                    q.specificDiagnosticOptionsFromSpecificArguments(id) = ruleSetValue
                                 Else
-                                    specificDiagnosticOptionsFromSpecificArguments(id) = ReportDiagnostic.Default
+                                    q.specificDiagnosticOptionsFromSpecificArguments(id) = ReportDiagnostic.Default
                                 End If
                             Next
 
@@ -727,44 +623,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "nowarn"
                             If value Is Nothing Then
-                                generalDiagnosticOption = ReportDiagnostic.Suppress
+                                q.generalDiagnosticOption = ReportDiagnostic.Suppress
 
-                                specificDiagnosticOptionsFromGeneralArguments.Clear()
-                                For Each pair In specificDiagnosticOptionsFromRuleSet
+                                q.specificDiagnosticOptionsFromGeneralArguments.Clear()
+                                For Each pair In q.specificDiagnosticOptionsFromRuleSet
                                     If pair.Value <> ReportDiagnostic.Error Then
-                                        specificDiagnosticOptionsFromGeneralArguments.Add(pair.Key, ReportDiagnostic.Suppress)
+                                        q.specificDiagnosticOptionsFromGeneralArguments.Add(pair.Key, ReportDiagnostic.Suppress)
                                     End If
                                 Next
 
                                 Continue For
                             End If
 
-                            AddWarnings(specificDiagnosticOptionsFromNoWarnArguments, ReportDiagnostic.Suppress, ParseWarnings(value))
+                            AddWarnings(q.specificDiagnosticOptionsFromNoWarnArguments, ReportDiagnostic.Suppress, ParseWarnings(value))
                             Continue For
 
                         Case "langversion"
                             value = RemoveQuotesAndSlashes(value)
                             If value Is Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
                                 Continue For
                             End If
 
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
                             Else
                                 Select Case value.ToLowerInvariant()
                                     Case "9", "9.0"
-                                        languageVersion = LanguageVersion.VisualBasic9
+                                        q.languageVersion = LanguageVersion.VisualBasic9
                                     Case "10", "10.0"
-                                        languageVersion = LanguageVersion.VisualBasic10
+                                        q.languageVersion = LanguageVersion.VisualBasic10
                                     Case "11", "11.0"
-                                        languageVersion = LanguageVersion.VisualBasic11
+                                        q.languageVersion = LanguageVersion.VisualBasic11
                                     Case "12", "12.0"
-                                        languageVersion = LanguageVersion.VisualBasic12
+                                        q.languageVersion = LanguageVersion.VisualBasic12
                                     Case "14", "14.0"
-                                        languageVersion = LanguageVersion.VisualBasic14
+                                        q.languageVersion = LanguageVersion.VisualBasic14
                                     Case Else
-                                        AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
+                                        AddDiagnostic(q.diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End Select
                             End If
 
@@ -772,20 +668,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "delaysign", "delaysign+"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "delaysign")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "delaysign")
                                 Continue For
                             End If
 
-                            delaySignSetting = True
+                            q.delaySignSetting = True
                             Continue For
 
                         Case "delaysign-"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "delaysign")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "delaysign")
                                 Continue For
                             End If
 
-                            delaySignSetting = False
+                            q.delaySignSetting = False
                             Continue For
 
                         Case "keycontainer"
@@ -800,11 +696,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' MSDN: in the key container (similar to sn -i) so that on the next compilation, 
                             ' MSDN: the key container will be valid.
                             value = RemoveQuotesAndSlashes(value)
-                            keyFileSetting = Nothing
+                            q.keyFileSetting = Nothing
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "keycontainer", ":<string>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "keycontainer", ":<string>")
                             Else
-                                keyContainerSetting = value
+                                q.keyContainerSetting = value
                             End If
                             Continue For
 
@@ -820,11 +716,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' MSDN: in the key container (similar to sn -i) so that on the next compilation, 
                             ' MSDN: the key container will be valid.
                             value = RemoveQuotesAndSlashes(value)
-                            keyContainerSetting = Nothing
+                            q.keyContainerSetting = Nothing
                             If String.IsNullOrWhiteSpace(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "keyfile", ":<file>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "keyfile", ":<file>")
                             Else
-                                keyFileSetting = RemoveQuotesAndSlashes(value)
+                                q.keyFileSetting = RemoveQuotesAndSlashes(value)
                             End If
                             Continue For
 
@@ -833,7 +729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            highEntropyVA = True
+                            q.highEntropyVA = True
                             Continue For
 
                         Case "highentropyva-"
@@ -841,7 +737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            highEntropyVA = False
+                            q.highEntropyVA = False
                             Continue For
 
                         Case "nologo", "nologo+"
@@ -849,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            displayLogo = False
+                            q.displayLogo = False
                             Continue For
 
                         Case "nologo-"
@@ -857,16 +753,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            displayLogo = True
+                            q.displayLogo = True
                             Continue For
 
                         Case "quiet+"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "quiet")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "quiet")
                                 Continue For
                             End If
 
-                            outputLevel = VisualBasic.OutputLevel.Quiet
+                            q.outputLevel = VisualBasic.OutputLevel.Quiet
                             Continue For
 
                         Case "quiet"
@@ -874,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            outputLevel = VisualBasic.OutputLevel.Quiet
+                            q.outputLevel = VisualBasic.OutputLevel.Quiet
                             Continue For
 
                         Case "verbose"
@@ -882,41 +778,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            outputLevel = VisualBasic.OutputLevel.Verbose
+                            q.outputLevel = VisualBasic.OutputLevel.Verbose
                             Continue For
 
                         Case "verbose+"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "verbose")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "verbose")
                                 Continue For
                             End If
 
-                            outputLevel = VisualBasic.OutputLevel.Verbose
+                            q.outputLevel = VisualBasic.OutputLevel.Verbose
                             Continue For
 
                         Case "quiet-", "verbose-"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name.Substring(0, name.Length - 1))
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, name.Substring(0, name.Length - 1))
                                 Continue For
                             End If
 
-                            outputLevel = VisualBasic.OutputLevel.Normal
+                            q.outputLevel = VisualBasic.OutputLevel.Normal
                             Continue For
 
                         Case "utf8output", "utf8output+"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "utf8output")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "utf8output")
                             End If
 
-                            utf8output = True
+                            q.utf8output = True
                             Continue For
 
                         Case "utf8output-"
                             If value IsNot Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "utf8output")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "utf8output")
                             End If
 
-                            utf8output = False
+                            q.utf8output = False
                             Continue For
 
                         Case "noconfig"
@@ -947,40 +843,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' valid character in typename.
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<class>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<class>")
                                 Continue For
                             End If
 
-                            mainTypeName = value
+                            q.mainTypeName = value
                             Continue For
 
                         Case "subsystemversion"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<version>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<version>")
                                 Continue For
                             End If
 
                             Dim version As SubsystemVersion = Nothing
                             If SubsystemVersion.TryParse(value, version) Then
-                                ssVersion = version
+                                q.ssVersion = version
                             Else
-                                AddDiagnostic(diagnostics, ERRID.ERR_InvalidSubsystemVersion, value)
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_InvalidSubsystemVersion, value)
                             End If
                             Continue For
 
                         Case "touchedfiles"
                             Dim unquoted = RemoveQuotesAndSlashes(value)
                             If (String.IsNullOrEmpty(unquoted)) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<touchedfiles>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<touchedfiles>")
                                 Continue For
                             Else
-                                touchedFilesPath = unquoted
+                                q.touchedFilesPath = unquoted
                             End If
                             Continue For
 
                         Case "fullpaths", "errorendlocation"
-                            UnimplementedSwitch(diagnostics, name)
+                            UnimplementedSwitch(q.diagnostics, name)
                             Continue For
 
                         Case "pathmap"
@@ -989,11 +885,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            pathMap = pathMap.Concat(ParsePathMap(value, diagnostics))
+                            q.pathMap = q.pathMap.Concat(ParsePathMap(value, q.diagnostics))
                             Continue For
 
                         Case "reportanalyzer"
-                            reportAnalyzer = True
+                            q.reportAnalyzer = True
                             Continue For
 
                         Case "nostdlib"
@@ -1001,7 +897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            noStdLib = True
+                            q.noStdLib = True
                             Continue For
 
                         Case "vbruntime"
@@ -1010,9 +906,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             ' NOTE: that Dev11 does not report errors on empty or invalid file specified
-                            vbRuntimePath = RemoveQuotesAndSlashes(value)
-                            includeVbRuntimeReference = True
-                            embedVbCoreRuntime = False
+                            q.vbRuntimePath = RemoveQuotesAndSlashes(value)
+                            q.includeVbRuntimeReference = True
+                            q.embedVbCoreRuntime = False
                             Continue For
 
                         Case "vbruntime+"
@@ -1021,9 +917,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
 lVbRuntimePlus:
-                            vbRuntimePath = Nothing
-                            includeVbRuntimeReference = True
-                            embedVbCoreRuntime = False
+                            q.vbRuntimePath = Nothing
+                            q.includeVbRuntimeReference = True
+                            q.embedVbCoreRuntime = False
                             Continue For
 
                         Case "vbruntime-"
@@ -1031,9 +927,9 @@ lVbRuntimePlus:
                                 Exit Select
                             End If
 
-                            vbRuntimePath = Nothing
-                            includeVbRuntimeReference = False
-                            embedVbCoreRuntime = False
+                            q.vbRuntimePath = Nothing
+                            q.includeVbRuntimeReference = False
+                            q.embedVbCoreRuntime = False
                             Continue For
 
                         Case "vbruntime*"
@@ -1041,27 +937,27 @@ lVbRuntimePlus:
                                 Exit Select
                             End If
 
-                            vbRuntimePath = Nothing
-                            includeVbRuntimeReference = False
-                            embedVbCoreRuntime = True
+                            q.vbRuntimePath = Nothing
+                            q.includeVbRuntimeReference = False
+                            q.embedVbCoreRuntime = True
                             Continue For
 
                         Case "platform"
                             value = RemoveQuotesAndSlashes(value)
                             If value IsNot Nothing Then
-                                platform = ParsePlatform(name, value, diagnostics)
+                                q.platform = ParsePlatform(name, value, q.diagnostics)
                             Else
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "platform", ":<string>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, "platform", ":<string>")
                             End If
 
                             Continue For
 
                         Case "filealign"
-                            fileAlignment = ParseFileAlignment(name, RemoveQuotesAndSlashes(value), diagnostics)
+                            q.fileAlignment = ParseFileAlignment(name, RemoveQuotesAndSlashes(value), q.diagnostics)
                             Continue For
 
                         Case "baseaddress"
-                            baseAddress = ParseBaseAddress(name, RemoveQuotesAndSlashes(value), diagnostics)
+                            q.baseAddress = ParseBaseAddress(name, RemoveQuotesAndSlashes(value), q.diagnostics)
                             Continue For
 
                         Case "ruleset"
@@ -1070,226 +966,176 @@ lVbRuntimePlus:
 
                         Case "features"
                             If value Is Nothing Then
-                                features.Clear()
+                                q.features.Clear()
                             Else
-                                features.Add(RemoveQuotesAndSlashes(value))
+                                q.features.Add(RemoveQuotesAndSlashes(value))
                             End If
                             Continue For
 
                         Case "additionalfile"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
+                                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
                                 Continue For
                             End If
 
-                            additionalFiles.AddRange(ParseAdditionalFileArgument(value, baseDirectory, diagnostics))
+                            q.additionalFiles.AddRange(ParseAdditionalFileArgument(value, baseDirectory, q.diagnostics))
                             Continue For
                     End Select
                 End If
 
-                AddDiagnostic(diagnostics, ERRID.WRN_BadSwitch, arg)
+                AddDiagnostic(q.diagnostics, ERRID.WRN_BadSwitch, arg)
             Next
 
-            Dim specificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(specificDiagnosticOptionsFromRuleSet, CaseInsensitiveComparison.Comparer)
+            Dim specificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(q.specificDiagnosticOptionsFromRuleSet, CaseInsensitiveComparison.Comparer)
 
-            For Each item In specificDiagnosticOptionsFromGeneralArguments
+            For Each item In q.specificDiagnosticOptionsFromGeneralArguments
                 specificDiagnosticOptions(item.Key) = item.Value
             Next
 
-            For Each item In specificDiagnosticOptionsFromSpecificArguments
+            For Each item In q.specificDiagnosticOptionsFromSpecificArguments
                 specificDiagnosticOptions(item.Key) = item.Value
             Next
 
-            For Each item In specificDiagnosticOptionsFromNoWarnArguments
+            For Each item In q.specificDiagnosticOptionsFromNoWarnArguments
                 specificDiagnosticOptions(item.Key) = item.Value
             Next
 
-            If Not IsScriptRunner AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() AndAlso outputKind.IsApplication Then
+            If Not IsScriptRunner AndAlso Not q.hasSourceFiles AndAlso q.managedResources.IsEmpty() AndAlso q.outputKind.IsApplication Then
                 ' VB displays help when there is nothing specified on the command line
-                If flattenedArgs.Any Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_NoSources)
+                If q.flattenedArgs.Any Then
+                    AddDiagnostic(q.diagnostics, ERRID.ERR_NoSources)
                 Else
-                    displayHelp = True
+                    q.displayHelp = True
                 End If
             End If
 
             ' Prepare SDK PATH
-            If sdkDirectory IsNot Nothing AndAlso sdkPaths.Count = 0 Then
-                sdkPaths.Add(sdkDirectory)
+            If sdkDirectory IsNot Nothing AndAlso q.sdkPaths.Count = 0 Then
+                q.sdkPaths.Add(sdkDirectory)
             End If
 
             ' Locate default 'mscorlib.dll' or 'System.Runtime.dll', if any.
-            Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(sdkPaths, baseDirectory)
+            Dim defaultCoreLibraryReference As CommandLineReference? = LoadCoreLibraryReference(q.sdkPaths, baseDirectory)
 
             ' If /nostdlib is not specified, load System.dll
             ' Dev12 does it through combination of CompilerHost::InitStandardLibraryList and CompilerProject::AddStandardLibraries.
-            If Not noStdLib Then
-                Dim systemDllPath As String = FindFileInSdkPath(sdkPaths, "System.dll", baseDirectory)
+            If Not q.noStdLib Then
+                Dim systemDllPath As String = FindFileInSdkPath(q.sdkPaths, "System.dll", baseDirectory)
                 If systemDllPath Is Nothing Then
-                    AddDiagnostic(diagnostics, ERRID.WRN_CannotFindStandardLibrary1, "System.dll")
+                    AddDiagnostic(q.diagnostics, ERRID.WRN_CannotFindStandardLibrary1, "System.dll")
                 Else
-                    metadataReferences.Add(
+                    q.metadataReferences.Add(
                             New CommandLineReference(systemDllPath, New MetadataReferenceProperties(MetadataImageKind.Assembly)))
                 End If
                 ' Dev11 also adds System.Core.dll in VbHostedCompiler::CreateCompilerProject()
             End If
 
             ' Add reference to 'Microsoft.VisualBasic.dll' if needed
-            If includeVbRuntimeReference Then
-                If vbRuntimePath Is Nothing Then
-                    Dim msVbDllPath As String = FindFileInSdkPath(sdkPaths, "Microsoft.VisualBasic.dll", baseDirectory)
+            If q.includeVbRuntimeReference Then
+                If q.vbRuntimePath Is Nothing Then
+                    Dim msVbDllPath As String = FindFileInSdkPath(q.sdkPaths, "Microsoft.VisualBasic.dll", baseDirectory)
                     If msVbDllPath Is Nothing Then
-                        AddDiagnostic(diagnostics, ERRID.ERR_LibNotFound, "Microsoft.VisualBasic.dll")
+                        AddDiagnostic(q.diagnostics, ERRID.ERR_LibNotFound, "Microsoft.VisualBasic.dll")
                     Else
-                        metadataReferences.Add(
+                        q.metadataReferences.Add(
                                 New CommandLineReference(msVbDllPath, New MetadataReferenceProperties(MetadataImageKind.Assembly)))
                     End If
                 Else
-                    metadataReferences.Add(New CommandLineReference(vbRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly)))
+                    q.metadataReferences.Add(New CommandLineReference(q.vbRuntimePath, New MetadataReferenceProperties(MetadataImageKind.Assembly)))
                 End If
             End If
 
             ' add additional reference paths if specified
             If Not String.IsNullOrWhiteSpace(additionalReferenceDirectories) Then
-                libPaths.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
+                q.libPaths.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
             End If
 
             ' Build search path
-            Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, sdkPaths, responsePaths, libPaths)
+            Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, q.sdkPaths, q.responsePaths, q.libPaths)
 
-            ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics)
+            ValidateWin32Settings(q.noWin32Manifest, q.win32ResourceFile, q.win32IconFile, q.win32ManifestFile, q.outputKind, q.diagnostics)
 
             ' Validate root namespace if specified
-            Debug.Assert(rootNamespace IsNot Nothing)
+            Debug.Assert(q.rootNamespace IsNot Nothing)
             ' NOTE: empty namespace is a valid option
-            If Not String.Empty.Equals(rootNamespace) Then
-                rootNamespace = rootNamespace.Unquote()
-                If String.IsNullOrWhiteSpace(rootNamespace) OrElse Not OptionsValidator.IsValidNamespaceName(rootNamespace) Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_BadNamespaceName1, rootNamespace)
-                    rootNamespace = "" ' To make it pass compilation options' check
+            If Not String.Empty.Equals(q.rootNamespace) Then
+                q.rootNamespace = q.rootNamespace.Unquote()
+                If String.IsNullOrWhiteSpace(q.rootNamespace) OrElse Not OptionsValidator.IsValidNamespaceName(q.rootNamespace) Then
+                    AddDiagnostic(q.diagnostics, ERRID.ERR_BadNamespaceName1, q.rootNamespace)
+                    q.rootNamespace = "" ' To make it pass compilation options' check
                 End If
             End If
 
             ' Dev10 searches for the keyfile in the current directory and assembly output directory.
             ' We always look to base directory and then examine the search paths.
-            keyFileSearchPaths.Add(baseDirectory)
-            If baseDirectory <> outputDirectory Then
-                keyFileSearchPaths.Add(outputDirectory)
+            q.keyFileSearchPaths.Add(baseDirectory)
+            If baseDirectory <> q.outputDirectory Then
+                q.keyFileSearchPaths.Add(q.outputDirectory)
             End If
 
-            Dim parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features)
+            Dim parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(q.features)
 
             Dim compilationName As String = Nothing
-            GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
+            GetCompilationAndModuleNames(q.diagnostics, q.outputKind, q.sourceFiles, q.moduleAssemblyName, q.outputFileName, q.moduleName, compilationName)
 
             If Not IsScriptRunner AndAlso
-                Not hasSourceFiles AndAlso
-                Not managedResources.IsEmpty() AndAlso
-                outputFileName = Nothing AndAlso
-                Not flattenedArgs.IsEmpty() Then
+                Not q.hasSourceFiles AndAlso
+                Not q.managedResources.IsEmpty() AndAlso
+                q.outputFileName = Nothing AndAlso
+                Not q.flattenedArgs.IsEmpty() Then
 
-                AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
+                AddDiagnostic(q.diagnostics, ERRID.ERR_NoSourcesOut)
             End If
 
-            Dim parseOptions = New VisualBasicParseOptions(
-                languageVersion:=languageVersion,
-                documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
-                kind:=SourceCodeKind.Regular,
-                preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
-                features:=parsedFeatures)
+            Return q.ToImmutable(parsedFeatures,
+                                 specificDiagnosticOptions,
+                                 compilationName,
+                                 GenerateFileNameForDocComment,
+                                 defaultCoreLibraryReference,
+                                 searchPaths)
 
-            Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
-
-            ' We want to report diagnostics with source suppression in the error log file.
-            ' However, these diagnostics won't be reported on the command line.
-            Dim reportSuppressedDiagnostics = errorLogPath IsNot Nothing
-
-            Dim options = New VisualBasicCompilationOptions(
-                outputKind:=outputKind,
-                moduleName:=moduleName,
-                mainTypeName:=mainTypeName,
-                scriptClassName:=WellKnownMemberNames.DefaultScriptClassName,
-                globalImports:=globalImports,
-                rootNamespace:=rootNamespace,
-                optionStrict:=optionStrict,
-                optionInfer:=optionInfer,
-                optionExplicit:=optionExplicit,
-                optionCompareText:=optionCompareText,
-                embedVbCoreRuntime:=embedVbCoreRuntime,
-                checkOverflow:=checkOverflow,
-                concurrentBuild:=concurrentBuild,
-                deterministic:=deterministic,
-                cryptoKeyContainer:=keyContainerSetting,
-                cryptoKeyFile:=keyFileSetting,
-                delaySign:=delaySignSetting,
-                platform:=platform,
-                generalDiagnosticOption:=generalDiagnosticOption,
-                specificDiagnosticOptions:=specificDiagnosticOptions,
-                optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
-                parseOptions:=parseOptions,
-                reportSuppressedDiagnostics:=reportSuppressedDiagnostics)
-
-            Dim emitOptions = New EmitOptions(
-                metadataOnly:=False,
-                debugInformationFormat:=debugInformationFormat,
-                pdbFilePath:=Nothing, ' to be determined later
-                outputNameOverride:=Nothing,  ' to be determined later
-                fileAlignment:=fileAlignment,
-                baseAddress:=baseAddress,
-                highEntropyVirtualAddressSpace:=highEntropyVA,
-                subsystemVersion:=ssVersion,
-                runtimeMetadataVersion:=Nothing)
-
-            ' add option incompatibility errors if any
-            diagnostics.AddRange(options.Errors)
-
-            If documentationPath Is GenerateFileNameForDocComment Then
-                documentationPath = PathUtilities.CombineAbsoluteAndRelativePaths(outputDirectory, PathUtilities.RemoveExtension(outputFileName))
-                documentationPath = documentationPath + ".xml"
-            End If
-
-            Return New VisualBasicCommandLineArguments With
-            {
-                .IsScriptRunner = IsScriptRunner,
-                .BaseDirectory = baseDirectory,
-                .Errors = diagnostics.AsImmutable(),
-                .Utf8Output = utf8output,
-                .CompilationName = compilationName,
-                .OutputFileName = outputFileName,
-                .OutputDirectory = outputDirectory,
-                .DocumentationPath = documentationPath,
-                .ErrorLogPath = errorLogPath,
-                .SourceFiles = sourceFiles.AsImmutable(),
-                .PathMap = pathMap,
-                .Encoding = codepage,
-                .ChecksumAlgorithm = checksumAlgorithm,
-                .MetadataReferences = metadataReferences.AsImmutable(),
-                .AnalyzerReferences = analyzers.AsImmutable(),
-                .AdditionalFiles = additionalFiles.AsImmutable(),
-                .ReferencePaths = searchPaths,
-                .SourcePaths = sourcePaths.AsImmutable(),
-                .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
-                .Win32ResourceFile = win32ResourceFile,
-                .Win32Icon = win32IconFile,
-                .Win32Manifest = win32ManifestFile,
-                .NoWin32Manifest = noWin32Manifest,
-                .DisplayLogo = displayLogo,
-                .DisplayHelp = displayHelp,
-                .ManifestResources = managedResources.AsImmutable(),
-                .CompilationOptions = options,
-                .ParseOptions = If(IsScriptRunner, scriptParseOptions, parseOptions),
-                .EmitOptions = emitOptions,
-                .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
-                .TouchedFilesPath = touchedFilesPath,
-                .OutputLevel = outputLevel,
-                .EmitPdb = emitPdb,
-                .DefaultCoreLibraryReference = defaultCoreLibraryReference,
-                .PreferredUILang = preferredUILang,
-                .SqmSessionGuid = sqmsessionguid,
-                .ReportAnalyzer = reportAnalyzer
-            }
         End Function
+#Region "ARGS"
+        Private Shared Function ARG_OptionStrict_Plus(q As Mutable_VBCommandLineArguments, value As String) As Boolean
+            If value IsNot Nothing Then
+                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "optionstrict")
+            Else
+                q.optionStrict = VisualBasic.OptionStrict.On
+            End If
+            Return True
+        End Function
+
+        Private Shared Function ARG_Imports(q As Mutable_VBCommandLineArguments, name As String, value As String) As Boolean
+            If String.IsNullOrEmpty(value) Then
+                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, If(name = "import", ":<str>", ":<import_list>"))
+            Else
+                ParseGlobalImports(value, q.globalImports, q.diagnostics)
+            End If
+            Return True
+        End Function
+
+        Private Shared Function ARG_Define(q As Mutable_VBCommandLineArguments, name As String, value As String) As Boolean
+            If String.IsNullOrEmpty(value) Then
+                AddDiagnostic(q.diagnostics, ERRID.ERR_ArgumentRequired, name, ":<symbol_list>")
+            Else
+                Dim conditionalCompilationDiagnostics As IEnumerable(Of Diagnostic) = Nothing
+                q.defines = ParseConditionalCompilationSymbols(value, conditionalCompilationDiagnostics, q.defines)
+                q.diagnostics.AddRange(conditionalCompilationDiagnostics)
+            End If
+            Return True
+        End Function
+
+        Private Function ARG_Analyzer(q As Mutable_VBCommandLineArguments, name As String, value As String) As Boolean
+            q.analyzers.AddRange(ParseAnalyzers(name, value, q.diagnostics))
+            Return True
+        End Function
+
+        Private Shared Function ARG_Reference(q As Mutable_VBCommandLineArguments, name As String, value As String) As Boolean
+            q.metadataReferences.AddRange(ParseAssemblyReferences(name, value, q.diagnostics, embedInteropTypes:=False))
+            Return True
+        End Function
+#End Region
 
         Private Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String) As CommandLineReference?
             ' Load Core library in Dev11:

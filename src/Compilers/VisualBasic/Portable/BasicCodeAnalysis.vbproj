@@ -321,6 +321,7 @@
     <Compile Include="CodeGen\Optimizer\StackScheduler.LocalDefUseSpan.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.Rewriter.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.vb" />
+    <Compile Include="CommandLine\Mutable_VBCommandLineArguments.vb" />
     <Compile Include="CommandLine\VisualBasicCommandLineArguments.vb" />
     <Compile Include="CommandLine\CommandLineDiagnosticFormatter.vb" />
     <Compile Include="CommandLine\VisualBasicCommandLineParser.vb" />
