@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Services required to accomplish the task are not available from the workspace..
+        ///   Looks up a localized string similar to Service of type &apos;{0}&apos; is required to accomplish the task but is not available from the workspace..
         /// </summary>
         internal static string WorkspaceServicesUnavailable {
             get {

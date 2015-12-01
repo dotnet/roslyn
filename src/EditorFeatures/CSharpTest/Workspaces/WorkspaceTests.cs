@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             var workspaceWaiter = workspace.ExportProvider
                 .GetExports<IAsynchronousOperationListener, FeatureMetadata>()
                 .First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
-            await workspaceWaiter.CreateWaitTask().ConfigureAwait(true);
+            await workspaceWaiter.CreateWaitTask();
         }
 
         [WpfFact]
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 workspace.AddTestProject(project);
 
                 // wait for all previous operations to complete
-                await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
+                await WaitForWorkspaceOperationsToComplete(workspace);
 
                 var solution = workspace.CurrentSolution;
                 bool workspaceChanged = false;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 workspace.OnParseOptionsChanged(project.Id, project.ParseOptions);
 
                 // wait for any new outstanding operations to complete (there shouldn't be any)
-                await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
+                await WaitForWorkspaceOperationsToComplete(workspace);
 
                 // same solution instance == nothing changed
                 Assert.Equal(solution, workspace.CurrentSolution);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
         }
 
         [WpfFact]
-        public void TestChangeOptions1()
+        public async Task TestChangeOptions1()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -163,17 +163,17 @@ class D { }
 
                 workspace.AddTestProject(project1);
 
-                VerifyRootTypeName(workspace, "D");
+                await VerifyRootTypeNameAsync(workspace, "D");
 
                 workspace.OnParseOptionsChanged(document.Id.ProjectId,
                     new CSharpParseOptions(preprocessorSymbols: new[] { "FOO" }));
 
-                VerifyRootTypeName(workspace, "C");
+                await VerifyRootTypeNameAsync(workspace, "C");
             }
         }
 
         [WpfFact]
-        public void TestChangeOptions2()
+        public async Task TestChangeOptions2()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -191,28 +191,28 @@ class D { }
                 workspace.AddTestProject(project1);
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
-                VerifyRootTypeName(workspace, "D");
+                await VerifyRootTypeNameAsync(workspace, "D");
 
                 workspace.OnParseOptionsChanged(document.Id.ProjectId,
                     new CSharpParseOptions(preprocessorSymbols: new[] { "FOO" }));
 
-                VerifyRootTypeName(workspace, "C");
+                await VerifyRootTypeNameAsync(workspace, "C");
 
                 workspace.OnDocumentClosed(document.Id);
             }
         }
 
-        private static void VerifyRootTypeName(TestWorkspace workspaceSnapshotBuilder, string typeName)
+        private static async Task VerifyRootTypeNameAsync(TestWorkspace workspaceSnapshotBuilder, string typeName)
         {
             var currentSnapshot = workspaceSnapshotBuilder.CurrentSolution;
-            var type = GetRootTypeDeclaration(currentSnapshot);
+            var type = await GetRootTypeDeclarationAsync(currentSnapshot);
 
             Assert.Equal(type.Identifier.ValueText, typeName);
         }
 
-        private static TypeDeclarationSyntax GetRootTypeDeclaration(Solution currentSnapshot)
+        private static async Task<TypeDeclarationSyntax> GetRootTypeDeclarationAsync(Solution currentSnapshot)
         {
-            var tree = currentSnapshot.Projects.First().Documents.First().GetSyntaxTreeAsync().Result;
+            var tree = await currentSnapshot.Projects.First().Documents.First().GetSyntaxTreeAsync();
             var root = (CompilationUnitSyntax)tree.GetRoot();
             var type = (TypeDeclarationSyntax)root.Members[0];
             return type;
@@ -378,7 +378,7 @@ class D { }
         }
 
         [WpfFact]
-        public void TestGetCompilation()
+        public async Task TestGetCompilation()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -388,18 +388,18 @@ class D { }
                 var project1 = new TestHostProject(workspace, document, name: "project1");
 
                 workspace.AddTestProject(project1);
-                VerifyRootTypeName(workspace, "C");
+                await VerifyRootTypeNameAsync(workspace, "C");
 
                 var snapshot = workspace.CurrentSolution;
                 var id1 = snapshot.Projects.First(p => p.Name == project1.Name).Id;
 
-                var compilation = snapshot.GetProject(id1).GetCompilationAsync().Result;
+                var compilation = await snapshot.GetProject(id1).GetCompilationAsync();
                 var classC = compilation.SourceModule.GlobalNamespace.GetMembers("C").Single();
             }
         }
 
         [WpfFact]
-        public void TestGetCompilationOnDependentProject()
+        public async Task TestGetCompilationOnDependentProject()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -418,14 +418,14 @@ class D { }
                 var id1 = snapshot.Projects.First(p => p.Name == project1.Name).Id;
                 var id2 = snapshot.Projects.First(p => p.Name == project2.Name).Id;
 
-                var compilation2 = snapshot.GetProject(id2).GetCompilationAsync().Result;
+                var compilation2 = await snapshot.GetProject(id2).GetCompilationAsync();
                 var classD = compilation2.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                 var classC = classD.BaseType;
             }
         }
 
         [WpfFact]
-        public void TestGetCompilationOnCrossLanguageDependentProject()
+        public async Task TestGetCompilationOnCrossLanguageDependentProject()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -444,7 +444,7 @@ class D { }
                 var id1 = snapshot.Projects.First(p => p.Name == project1.Name).Id;
                 var id2 = snapshot.Projects.First(p => p.Name == project2.Name).Id;
 
-                var compilation2 = snapshot.GetProject(id2).GetCompilationAsync().Result;
+                var compilation2 = await snapshot.GetProject(id2).GetCompilationAsync();
                 var classD = compilation2.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                 var classC = classD.BaseType;
             }
@@ -470,7 +470,7 @@ class D { }
                 var id1 = solutionY.Projects.First(p => p.Name == project1.Name).Id;
                 var id2 = solutionY.Projects.First(p => p.Name == project2.Name).Id;
 
-                var compilation2 = solutionY.GetProject(id2).GetCompilationAsync().Result;
+                var compilation2 = await solutionY.GetProject(id2).GetCompilationAsync();
                 var errors = compilation2.GetDiagnostics();
                 var classD = compilation2.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                 var classC = classD.BaseType;
@@ -486,9 +486,9 @@ class D { }
                 // this solution should have the change
                 var solutionZ = workspace.CurrentSolution;
                 var docZ = solutionZ.GetDocument(document1.Id);
-                var docZText = await docZ.GetTextAsync().ConfigureAwait(true);
+                var docZText = await docZ.GetTextAsync();
 
-                var compilation2Z = solutionZ.GetProject(id2).GetCompilationAsync().Result;
+                var compilation2Z = await solutionZ.GetProject(id2).GetCompilationAsync();
                 var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                 var classCz = classDz.BaseType;
 
@@ -497,7 +497,7 @@ class D { }
         }
 
         [WpfFact]
-        public void TestDependentSemanticVersionChangesWhenNotOriginallyAccessed()
+        public async Task TestDependentSemanticVersionChangesWhenNotOriginallyAccessed()
         {
             using (var workspace = CreateWorkspace(disablePartialSolutions: false))
             {
@@ -516,7 +516,7 @@ class D { }
                 var id1 = solutionY.Projects.First(p => p.Name == project1.Name).Id;
                 var id2 = solutionY.Projects.First(p => p.Name == project2.Name).Id;
 
-                var compilation2y = solutionY.GetProject(id2).GetCompilationAsync().Result;
+                var compilation2y = await solutionY.GetProject(id2).GetCompilationAsync();
                 var errors = compilation2y.GetDiagnostics();
                 var classDy = compilation2y.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                 var classCy = classDy.BaseType;
@@ -538,12 +538,12 @@ class D { }
                     // the current solution should eventually have the change
                     var cs = workspace.CurrentSolution;
                     var doc1Z = cs.GetDocument(document1.Id);
-                    var hasX = doc1Z.GetTextAsync().Result.ToString().Contains("X");
+                    var hasX = (await doc1Z.GetTextAsync()).ToString().Contains("X");
 
                     if (hasX)
                     {
-                        var newVersion = cs.GetProject(project1.Id).GetDependentSemanticVersionAsync().Result;
-                        var newVersionX = doc1Z.Project.GetDependentSemanticVersionAsync().Result;
+                        var newVersion = await cs.GetProject(project1.Id).GetDependentSemanticVersionAsync();
+                        var newVersionX = await doc1Z.Project.GetDependentSemanticVersionAsync();
                         Assert.NotEqual(VersionStamp.Default, newVersion);
                         Assert.Equal(newVersion, newVersionX);
                         break;
@@ -553,7 +553,7 @@ class D { }
         }
 
         [WpfFact]
-        public void TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
+        public async Task TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
         {
             using (var workspace = CreateWorkspace(disablePartialSolutions: false))
             {
@@ -572,7 +572,7 @@ class D { }
                 var id1 = solutionY.Projects.First(p => p.Name == project1.Name).Id;
                 var id2 = solutionY.Projects.First(p => p.Name == project2.Name).Id;
 
-                var compilation2y = solutionY.GetProject(id2).GetCompilationAsync().Result;
+                var compilation2y = await solutionY.GetProject(id2).GetCompilationAsync();
                 var errors = compilation2y.GetDiagnostics();
                 var classDy = compilation2y.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                 var classCy = classDy.BaseType;
@@ -595,13 +595,13 @@ class D { }
                     // the current solution should eventually have the change
                     var cs = workspace.CurrentSolution;
                     var doc1Z = cs.GetDocument(document1.Id);
-                    var hasX = doc1Z.GetTextAsync().Result.ToString().Contains("X");
+                    var hasX = (await doc1Z.GetTextAsync()).ToString().Contains("X");
 
                     if (hasX)
                     {
                         var doc2Z = cs.GetDocument(document2.Id);
-                        var partialDoc2Z = doc2Z.WithFrozenPartialSemanticsAsync(CancellationToken.None).Result;
-                        var compilation2Z = partialDoc2Z.Project.GetCompilationAsync().Result;
+                        var partialDoc2Z = await doc2Z.WithFrozenPartialSemanticsAsync(CancellationToken.None);
+                        var compilation2Z = await partialDoc2Z.Project.GetCompilationAsync();
                         var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
                         var classCz = classDz.BaseType;
 
@@ -618,7 +618,7 @@ class D { }
         }
 
         [WpfFact]
-        public void TestOpenAndChangeDocument()
+        public async Task TestOpenAndChangeDocument()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -636,7 +636,7 @@ class D { }
                 solution = workspace.CurrentSolution;
                 var doc = solution.Projects.Single().Documents.First();
 
-                var syntaxTree = doc.GetSyntaxTreeAsync(CancellationToken.None).Result;
+                var syntaxTree = await doc.GetSyntaxTreeAsync(CancellationToken.None);
                 Assert.True(syntaxTree.GetRoot().Width() > 0, "syntaxTree.GetRoot().Width should be > 0");
 
                 workspace.OnDocumentClosed(document.Id);
@@ -660,14 +660,14 @@ class D { }
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
                 // prove the document has the correct text
-                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().ConfigureAwait(true)).ToString());
+                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync()).ToString());
 
                 // fork the solution to introduce a change.
                 var oldSolution = workspace.CurrentSolution;
                 var newSolution = oldSolution.WithDocumentText(document.Id, SourceText.From(newText));
 
                 // prove that current document text is unchanged
-                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().ConfigureAwait(true)).ToString());
+                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync()).ToString());
 
                 // prove buffer is unchanged too
                 Assert.Equal(startText, buffer.CurrentSnapshot.GetText());
@@ -759,7 +759,7 @@ class D { }
                     workspace.CloseDocument(document.Id);
 
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-                    await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
+                    await WaitForWorkspaceOperationsToComplete(workspace);
 
                     // Wait to receive signal that events have fired.
                     Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
@@ -777,7 +777,7 @@ class D { }
                     workspace.CloseDocument(document.Id);
 
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-                    await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
+                    await WaitForWorkspaceOperationsToComplete(workspace);
 
                     // Verifying that an event has not been called is difficult to prove.  
                     // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
@@ -814,7 +814,7 @@ class D { }
 
                 var additionalDocument = project.GetAdditionalDocument(additionalDoc.Id);
 
-                Assert.Equal("some text", (await additionalDocument.GetTextAsync().ConfigureAwait(true)).ToString());
+                Assert.Equal("some text", (await additionalDocument.GetTextAsync()).ToString());
             }
         }
 
@@ -834,7 +834,7 @@ class D { }
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 
                 var project = workspace.CurrentSolution.Projects.Single();
-                var oldVersion = await project.GetSemanticVersionAsync().ConfigureAwait(true);
+                var oldVersion = await project.GetSemanticVersionAsync();
 
                 // fork the solution to introduce a change.
                 var oldSolution = workspace.CurrentSolution;
@@ -847,8 +847,8 @@ class D { }
                 Assert.Equal(newText, buffer.CurrentSnapshot.GetText());
 
                 // Text changes are considered top level changes and they change the project's semantic version.
-                Assert.Equal(await doc.GetTextVersionAsync().ConfigureAwait(true), await doc.GetTopLevelChangeTextVersionAsync().ConfigureAwait(true));
-                Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync().ConfigureAwait(true));
+                Assert.Equal(await doc.GetTextVersionAsync(), await doc.GetTopLevelChangeTextVersionAsync());
+                Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync());
             }
         }
 
@@ -865,8 +865,8 @@ class D { }
                 workspace.AddTestProject(project1);
                 var buffer = additionalDoc.GetTextBuffer();
                 var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
-                var text = await doc.GetTextAsync(CancellationToken.None).ConfigureAwait(true);
-                var version = await doc.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(true);
+                var text = await doc.GetTextAsync(CancellationToken.None);
+                var version = await doc.GetTextVersionAsync(CancellationToken.None);
 
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 

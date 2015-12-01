@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             internal EmitData()
             {
-
             }
         }
 
@@ -252,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         private static void EmitReferences(Compilation compilation, HashSet<string> fullNameSet, List<ModuleData> dependencies, DiagnosticBag diagnostics)
         {
-            var previousSubmission = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            // NOTE: specifically don't need to consider previous submissions since they will always be compilations.
             foreach (var metadataReference in compilation.References)
             {
                 if (metadataReference is CompilationReference)

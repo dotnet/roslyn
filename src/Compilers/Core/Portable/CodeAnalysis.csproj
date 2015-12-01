@@ -185,6 +185,8 @@
     <Compile Include="InternalUtilities\CompilerOptionParseUtilities.cs" />
     <Compile Include="InternalUtilities\ImmutableArrayInterop.cs" />
     <Compile Include="InternalUtilities\ReflectionUtilities.cs" />
+    <Compile Include="InternalUtilities\SemaphoreSlimExtensions.cs" />
+    <Compile Include="InternalUtilities\SemaphoreSlimFactory.cs" />
     <Compile Include="CorLightup.cs" />
     <Compile Include="Desktop\AssemblyPortabilityPolicy.cs" />
     <Compile Include="Desktop\AssemblyVersion.cs" />
@@ -745,6 +747,7 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CodeAnalysisResources.resx">

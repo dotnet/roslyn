@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private readonly bool _blockForData;
             private readonly bool _includeSuppressedDiagnostics;
             private readonly CancellationToken _cancellationToken;
-            
+
             private readonly DiagnosticAnalyzerDriver _spanBasedDriver;
             private readonly DiagnosticAnalyzerDriver _documentBasedDriver;
             private readonly DiagnosticAnalyzerDriver _projectDriver;

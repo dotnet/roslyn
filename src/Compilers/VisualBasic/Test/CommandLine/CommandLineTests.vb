@@ -5298,7 +5298,8 @@ End Module
         End Sub
 
         <WorkItem(530221, "DevDiv")>
-        <Fact()>
+        <WorkItem(5664, "https://github.com/dotnet/roslyn/issues/5664")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub Bug15538()
             Dim folder = Temp.CreateDirectory()
             Dim source As String = folder.CreateFile("src.vb").WriteAllText("").Path
@@ -7395,6 +7396,25 @@ End Class
             parseCore("""a", New String() {"a"})
 
             parseCore("a""mid""b", New String() {"amidb"})
+        End Sub
+
+        <Fact>
+        Public Sub PublicSign()
+            Dim args As VisualBasicCommandLineArguments
+            Dim baseDir = "c:\test"
+            Dim parse = Function(x As String) FullParse(x, baseDir)
+
+            args = parse("/publicsign a.exe")
+            Assert.True(args.CompilationOptions.PublicSign)
+
+            args = parse("/publicsign+ a.exe")
+            Assert.True(args.CompilationOptions.PublicSign)
+
+            args = parse("/publicsign- a.exe")
+            Assert.False(args.CompilationOptions.PublicSign)
+
+            args = parse("a.exe")
+            Assert.False(args.CompilationOptions.PublicSign)
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly))>

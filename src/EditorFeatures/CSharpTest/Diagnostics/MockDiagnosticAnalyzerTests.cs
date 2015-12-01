@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -50,23 +51,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
                     null);
         }
 
-        private void VerifyDiagnostics(
+        private async Task VerifyDiagnosticsAsync(
              string source,
              params DiagnosticDescription[] expectedDiagnostics)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(source))
+            using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromLinesAsync(source))
             {
-                var actualDiagnostics = this.GetDiagnostics(workspace);
+                var actualDiagnostics = await this.GetDiagnosticsAsync(workspace);
                 actualDiagnostics.Verify(expectedDiagnostics);
             }
         }
 
         [WorkItem(906919)]
         [WpfFact]
-        public void Bug906919()
+        public async Task Bug906919()
         {
             string source = "[|class C { }|]";
-            VerifyDiagnostics(source);
+            await VerifyDiagnosticsAsync(source);
         }
     }
 }

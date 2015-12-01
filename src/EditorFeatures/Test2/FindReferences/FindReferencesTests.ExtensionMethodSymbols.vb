@@ -1,10 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(541167)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestExtensionMethodToDelegateConversion()
+        Public Async Function TestExtensionMethodToDelegateConversion() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -22,12 +24,12 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(541697)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestReducedExtensionMethod1()
+        Public Async Function TestReducedExtensionMethod1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -54,12 +56,12 @@ public static class MyExtension
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
         <WorkItem(541697)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestReducedExtensionMethod2()
+        Public Async Function TestReducedExtensionMethod2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -86,13 +88,13 @@ public static class MyExtension
         </Document>
     </Project>
 </Workspace>
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
 #Region "Normal Visual Basic Tests"
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub VisualBasicFindReferencesOnExtensionMethod()
+        Public Async Function TestVisualBasicFindReferencesOnExtensionMethod() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -123,8 +125,8 @@ End Module]]>
     </Project>
 </Workspace>
 
-            Test(input)
-        End Sub
+            Await TestAsync(input)
+        End Function
 
 #End Region
     End Class

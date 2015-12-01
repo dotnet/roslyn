@@ -80,6 +80,7 @@
     <Compile Include="CommandLineBreakingChanges.vb" />
     <Compile Include="CommandLineTests.vb" />
     <Compile Include="ErrorLoggerTests.vb" />
+    <Compile Include="MiscTests.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>

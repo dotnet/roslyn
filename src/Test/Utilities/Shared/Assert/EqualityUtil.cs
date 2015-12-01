@@ -14,5 +14,11 @@ namespace Roslyn.Test.Utilities
             var util = new EqualityUtil<T>(values, compEqualsOperator, compNotEqualsOperator);
             util.RunAll();
         }
+
+        public static void RunAll<T>(params EqualityUnit<T>[] values)
+        {
+            var util = new EqualityUtil<T>(values);
+            util.RunAll();
+        }
     }
 }

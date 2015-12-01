@@ -53,7 +53,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug\</OutputPath>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>1591</NoWarn>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -83,6 +82,7 @@
       <DependentUpon>CommandLineTestResources.resx</DependentUpon>
     </Compile>
     <Compile Include="ErrorLoggerTests.cs" />
+    <Compile Include="MiscTests.cs" />
     <Compile Include="TouchedFileLoggingTests.cs" />
   </ItemGroup>
   <ItemGroup>

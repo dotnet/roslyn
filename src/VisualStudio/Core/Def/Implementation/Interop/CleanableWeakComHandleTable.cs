@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
             InvalidateEnumerator();
 
-            this._table.Add(key, new WeakComHandle<TValue, TValue>(value));
+            _table.Add(key, new WeakComHandle<TValue, TValue>(value));
         }
 
         public TValue Remove(TKey key)

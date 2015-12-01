@@ -336,11 +336,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return leftExpressionType IsNot Nothing AndAlso method.ReduceExtensionMethod(leftExpressionType) IsNot Nothing
         End Function
 
-        Protected Overrides Function GetProposedTypes(name As String, accessibleTypeSymbols As List(Of ITypeSymbol), semanticModel As SemanticModel, namespacesInScope As ISet(Of INamespaceSymbol)) As IEnumerable(Of ITypeSymbol)
-            Return From typeSymbol In accessibleTypeSymbols
-                   Select typeSymbol.ContainingType
-        End Function
-
         Friend Overrides Function IsViableField(field As IFieldSymbol, expression As SyntaxNode, semanticModel As SemanticModel, syntaxFacts As ISyntaxFactsService, cancellationToken As CancellationToken) As Boolean
             Return False
         End Function

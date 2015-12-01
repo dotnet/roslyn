@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
         End Sub
 
         Friend Async Function SetSnippetShortcuts(newSnippetShortcuts As String()) As Task
-            Await InitialCachePopulationTask.ConfigureAwait(True)
+            Await InitialCachePopulationTask
 
             SyncLock cacheGuard
                 snippets = newSnippetShortcuts.Select(Function(shortcut) New SnippetInfo(shortcut, "title", "description", "path")).ToList()

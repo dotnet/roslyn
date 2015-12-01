@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +8,7 @@ using System.Windows;
 using System.Windows.Threading;
 
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -14,7 +17,8 @@ namespace Roslyn.Test.Utilities
     public class WpfTestCase : XunitTestCase
     {
         public WpfTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, object[] testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments) { }
+            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
+        { }
 
         public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
         {
@@ -27,7 +31,7 @@ namespace Roslyn.Test.Utilities
                 try
                 {
                     // Sync up FTAO to the context that we are creating here. 
-                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = new ForegroundThreadData(
+                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(
                         Thread.CurrentThread,
                         StaTaskScheduler.DefaultSta,
                         ForegroundThreadDataKind.StaUnitTest);
@@ -57,16 +61,16 @@ namespace Roslyn.Test.Utilities
                             cancellationTokenSource.Token,
                             TaskCreationOptions.None,
                             sta).ConfigureAwait(false);
-                    } while (true);
+                    }
+                    while (true);
                 }
                 finally
                 {
-                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = null;
+                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = null;
 
                     // Cleanup the synchronization context even if the test is failing exceptionally
                     SynchronizationContext.SetSynchronizationContext(null);
                 }
-
             }, cancellationTokenSource.Token, TaskCreationOptions.None, sta);
 
             return task.Unwrap();

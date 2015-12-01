@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Func<Compilation, Task<HostCompilationStartAnalysisScope>> getTask = comp =>
             {
-                return Task.Run(() =>
+                return Task.Run(async() =>
                 {
                     var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
-                    analyzerExecutor.ExecuteCompilationStartActions(sessionScope.CompilationStartActions, compilationAnalysisScope);
+                    await analyzerExecutor.ExecuteCompilationStartActionsAsync(sessionScope.CompilationStartActions, compilationAnalysisScope).ConfigureAwait(false);
                     return compilationAnalysisScope;
                 }, analyzerExecutor.CancellationToken);
             };
@@ -100,10 +100,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Func<DiagnosticAnalyzer, Task<HostSessionStartAnalysisScope>> getTask = a =>
             {
-                return Task.Run(() =>
+                return Task.Run(async() =>
                 {
                     var sessionScope = new HostSessionStartAnalysisScope();
-                    analyzerExecutor.ExecuteInitializeMethod(a, sessionScope);
+                    await analyzerExecutor.ExecuteInitializeMethodAsync(a, sessionScope).ConfigureAwait(false);
                     return sessionScope;
                 }, analyzerExecutor.CancellationToken);
             };
@@ -160,14 +160,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
                 // Catch Exception from analyzer.SupportedDiagnostics
-                analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () =>
+                analyzerExecutor.ExecuteAndCatchIfThrowsAsync(analyzer, () =>
                     {
                         var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
                         if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
                         {
                             supportedDiagnostics = supportedDiagnosticsLocal;
                         }
-                    });
+                    }).Wait(analyzerExecutor.CancellationToken);
 
                 EventHandler<Exception> handler = null;
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;

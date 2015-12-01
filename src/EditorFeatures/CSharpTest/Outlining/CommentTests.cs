@@ -1,207 +1,157 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.Outlining;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Outlining;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 {
-    public class CommentTests : AbstractOutlinerTests
+    public class CommentTests : AbstractSyntaxOutlinerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestSimpleComment1()
+        protected override string LanguageName => LanguageNames.CSharp;
+
+        internal override Task<OutliningSpan[]> GetRegionsAsync(Document document, int position)
         {
-            var tree = ParseLines("// Hello",
-                                        "// C#!",
-                                        "class C",
-                                        "{",
-                                        "}");
+            var root = document.GetSyntaxRootAsync(CancellationToken.None).Result;
+            var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var trivia = typeDecl.GetLeadingTrivia();
-            Assert.Equal(4, trivia.Count);
+            var token = trivia.Token;
 
-            var regions = CSharpOutliningHelpers.CreateCommentRegions(trivia).ToList();
-            Assert.Equal(1, regions.Count);
-
-            var actualRegion = regions[0];
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(0, 16),
-                "// Hello ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            if (token.LeadingTrivia.Contains(trivia))
+            {
+                return Task.FromResult(CSharpOutliningHelpers.CreateCommentRegions(token.LeadingTrivia).ToArray());
+            }
+            else if (token.TrailingTrivia.Contains(trivia))
+            {
+                return Task.FromResult(CSharpOutliningHelpers.CreateCommentRegions(token.TrailingTrivia).ToArray());
+            }
+            else
+            {
+                return Task.FromResult(Contract.FailWithReturn<OutliningSpan[]>());
+            }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestSimpleComment2()
+        public async Task TestSimpleComment1()
         {
-            var tree = ParseLines("// Hello",
-                                        "//",
-                                        "// C#!",
-                                        "class C",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|span:// Hello
+// $$C#|}
+class C
+{
+}
+";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var trivia = typeDecl.GetLeadingTrivia();
-            Assert.Equal(6, trivia.Count);
-
-            var regions = CSharpOutliningHelpers.CreateCommentRegions(trivia).ToList();
-            Assert.Equal(1, regions.Count);
-
-            var actualRegion = regions[0];
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(0, 20),
-                "// Hello ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span", "// Hello ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestSimpleComment3()
+        public async Task TestSimpleComment2()
         {
-            var tree = ParseLines("// Hello",
-                                        string.Empty,
-                                        "// C#!",
-                                        "class C",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|span:// Hello
+//
+// $$C#!|}
+class C
+{
+}
+";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var trivia = typeDecl.GetLeadingTrivia();
-            Assert.Equal(5, trivia.Count);
-
-            var regions = CSharpOutliningHelpers.CreateCommentRegions(trivia).ToList();
-            Assert.Equal(1, regions.Count);
-
-            var actualRegion = regions[0];
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(0, 18),
-                "// Hello ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span", "// Hello ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestSingleLineCommentGroupFollowedByDocumentationComment()
+        public async Task TestSimpleComment3()
         {
-            var tree = ParseLines("// Hello",
-                                        string.Empty,
-                                        "// C#!",
-                                        "/// <summary></summary>",
-                                        "class C",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|span:// Hello
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var trivia = typeDecl.GetLeadingTrivia();
-            Assert.Equal(6, trivia.Count);
+// $$C#!|}
+class C
+{
+}
+";
 
-            var regions = CSharpOutliningHelpers.CreateCommentRegions(trivia).ToList();
-            Assert.Equal(1, regions.Count);
-
-            var actualRegion = regions[0];
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(0, 18),
-                "// Hello ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span", "// Hello ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestMultilineComment1()
+        public async Task TestSingleLineCommentGroupFollowedByDocumentationComment()
         {
-            var tree = ParseLines("/* Hello",
-                                        "C#! */",
-                                        "class C",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|span:// Hello
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var trivia = typeDecl.GetLeadingTrivia();
-            Assert.Equal(2, trivia.Count);
+// $$C#!|}
+/// <summary></summary>
+class C
+{
+}
+";
 
-            var regions = CSharpOutliningHelpers.CreateCommentRegions(trivia).ToList();
-            Assert.Equal(1, regions.Count);
-
-            var actualRegion = regions[0];
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(0, 16),
-                "/* Hello ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span", "// Hello ...", autoCollapse: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestMultilineCommentOnOneLine()
+        public async Task TestMultilineComment1()
         {
-            var tree = ParseLines("/* Hello C#! */",
-                                        "class C",
-                                        "{",
-                                        "}");
+            const string code = @"
+{|span:/* Hello
+$$C# */|}
+class C
+{
+}
+";
 
-            var typeDecl = tree.DigToFirstTypeDeclaration();
-            var trivia = typeDecl.GetLeadingTrivia();
-            Assert.Equal(2, trivia.Count);
+            await VerifyRegionsAsync(code,
+                Region("span", "/* Hello ...", autoCollapse: true));
+        }
 
-            var regions = CSharpOutliningHelpers.CreateCommentRegions(trivia).ToList();
-            Assert.Equal(1, regions.Count);
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestMultilineCommentOnOneLine()
+        {
+            const string code = @"
+{|span:/* Hello $$C# */|}
+class C
+{
+}
+";
 
-            var actualRegion = regions[0];
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(0, 15),
-                "/* Hello C#! ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span", "/* Hello C# ...", autoCollapse: true));
         }
 
         [WorkItem(791)]
         [WorkItem(1108049)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestIncompleteMultilineCommentZeroSpace()
+        public async Task TestIncompleteMultilineCommentZeroSpace()
         {
-            var tree = ParseLines("/*");
+            const string code = @"
+{|span:$$/*|}";
 
-            var multiLineCommentTrivia = tree.GetRoot().FindToken(0).LeadingTrivia;
-            var regions = CSharpOutliningHelpers.CreateCommentRegions(multiLineCommentTrivia).ToList();
-            Assert.Equal(1, regions.Count);
-
-            var actualRegion = regions[0];
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(0, 2),
-                "/*  ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span", "/*  ...", autoCollapse: true));
         }
 
         [WorkItem(791)]
         [WorkItem(1108049)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public void TestIncompleteMultilineCommentSingleSpace()
+        public async Task TestIncompleteMultilineCommentSingleSpace()
         {
-            var tree = ParseLines("/* ");
+            const string code = @"
+{|span:$$/* |}";
 
-            var multiLineCommentTrivia = tree.GetRoot().FindToken(0).LeadingTrivia;
-            var regions = CSharpOutliningHelpers.CreateCommentRegions(multiLineCommentTrivia).ToList();
-            Assert.Equal(1, regions.Count);
-
-            var actualRegion = regions[0];
-            var expectedRegion = new OutliningSpan(
-                TextSpan.FromBounds(0, 3),
-                "/*  ...",
-                autoCollapse: true);
-
-            AssertRegion(expectedRegion, actualRegion);
+            await VerifyRegionsAsync(code,
+                Region("span", "/*  ...", autoCollapse: true));
         }
     }
 }

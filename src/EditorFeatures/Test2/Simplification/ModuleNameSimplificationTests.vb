@@ -1,12 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class ModuleNameSimplifierTest
         Inherits AbstractSimplificationTests
 
         <WorkItem(624131)>
         <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub SimplifyModuleNameInNewStatement()
+        Public Async Function TestSimplifyModuleNameInNewStatement() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -43,11 +45,11 @@ Module Program
 End Module
             </text>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub SimplifyModuleNameInNestedNamespaces()
+        Public Async Function TestSimplifyModuleNameInNestedNamespaces() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -108,11 +110,11 @@ Namespace N
 End Namespace
             </text>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub SimplifyModuleNameInDelegateConstruct()
+        Public Async Function TestSimplifyModuleNameInDelegateConstruct() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -123,7 +125,7 @@ Namespace N
         Class C
             Shared Sub Foo()
 
-            End Sub
+            End Function
         End Class
     End Module
 End Namespace
@@ -145,7 +147,7 @@ Namespace N
         Class C
             Shared Sub Foo()
 
-            End Sub
+            End Function
         End Class
     End Module
 End Namespace
@@ -157,12 +159,12 @@ Module Program
 End Module
             </text>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WorkItem(608198)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub DontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField()
+        Public Async Function TestDontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -181,12 +183,12 @@ Module X
 End Module
             </text>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
         <WorkItem(608198)>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub DontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField_2()
+        Public Async Function TestDontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField_2() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -205,8 +207,8 @@ Module X
 End Module
             </text>
 
-            Test(input, expected)
-        End Sub
+            Await TestAsync(input, expected)
+        End Function
 
     End Class
 End Namespace

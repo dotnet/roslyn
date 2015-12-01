@@ -5,8 +5,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
         Inherits AbstractReferenceHighlightingTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Sub VerifyHighlightsWithNonCompilationProject()
-            VerifyHighlights(
+        Public Async Function VerifyHighlightsWithNonCompilationProject() As System.Threading.Tasks.Task
+            Await VerifyHighlightsAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -27,6 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         </Document>
                     </Project>
                 </Workspace>)
-        End Sub
+        End Function
     End Class
 End Namespace

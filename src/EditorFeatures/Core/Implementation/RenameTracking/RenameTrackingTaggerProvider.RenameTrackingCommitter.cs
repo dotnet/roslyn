@@ -165,12 +165,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 // Undo/redo on this action must always clear the state machine
                 UpdateWorkspaceForGlobalIdentifierRename(
-                    workspace, 
-                    finalSolution, 
-                    workspace.CurrentSolution, 
-                    _displayText, 
-                    changedDocuments, 
-                    renameTrackingSolutionSet.Symbol, 
+                    workspace,
+                    finalSolution,
+                    workspace.CurrentSolution,
+                    _displayText,
+                    changedDocuments,
+                    renameTrackingSolutionSet.Symbol,
                     newName,
                     trackingSessionId);
 

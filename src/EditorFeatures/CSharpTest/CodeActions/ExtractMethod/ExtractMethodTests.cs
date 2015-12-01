@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractMethod;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 
         [WorkItem(540799)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void TestPartialSelection()
+        public async Task TestPartialSelection()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { bool b = true ; System . Console . WriteLine ( [|b != true|] ? b = true : b = false ) ; } } ",
 @"class Program { static void Main ( string [ ] args ) { bool b = true ; System . Console . WriteLine ( {|Rename:NewMethod|} ( b ) ? b = true : b = false ) ; } private static bool NewMethod ( bool b ) { return b != true ; } } ",
 index: 0);
@@ -25,9 +26,9 @@ index: 0);
 
         [WorkItem(540796)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void TestReadOfDataThatDoesNotFlowIn()
+        public async Task TestReadOfDataThatDoesNotFlowIn()
         {
-            Test(
+            await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { int x = 1 ; object y = 0 ; [|int s = true ? fun ( x ) : fun ( y ) ;|] } private static T fun < T > ( T t ) { return t ; } } ",
 @"class Program { static void Main ( string [ ] args ) { int x = 1 ; object y = 0 ; {|Rename:NewMethod|} ( x , y ) ; } private static void NewMethod ( int x , object y ) { int s = true ? fun ( x ) : fun ( y ) ; } private static T fun < T > ( T t ) { return t ; } } ",
 index: 0);
@@ -35,59 +36,59 @@ index: 0);
 
         [WorkItem(540819)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void TestMissingOnGoto()
+        public async Task TestMissingOnGoto()
         {
-            TestMissing(@"delegate int del ( int i ) ; class C { static void Main ( string [ ] args ) { del q = x => { [|goto label2 ; return x * x ;|] } ; label2 : return ; } } ");
+            await TestMissingAsync(@"delegate int del ( int i ) ; class C { static void Main ( string [ ] args ) { del q = x => { [|goto label2 ; return x * x ;|] } ; label2 : return ; } } ");
         }
 
         [WorkItem(540819)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void TestOnStatementAfterUnconditionalGoto()
+        public async Task TestOnStatementAfterUnconditionalGoto()
         {
-            Test(
+            await TestAsync(
 @"delegate int del ( int i ) ; class C { static void Main ( string [ ] args ) { del q = x => { goto label2 ; [|return x * x ;|] } ; label2 : return ; } } ",
 @"delegate int del ( int i ) ; class C { static void Main ( string [ ] args ) { del q = x => { goto label2 ; return {|Rename:NewMethod|} ( x ) ; } ; label2 : return ; } private static int NewMethod ( int x ) { return x * x ; } } ",
 index: 0);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void TestMissingOnNamespace()
+        public async Task TestMissingOnNamespace()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { [|System|] . Console . WriteLine ( 4 ) ; } } ",
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private static void NewMethod ( ) { System . Console . WriteLine ( 4 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void TestMissingOnType()
+        public async Task TestMissingOnType()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { [|System . Console|] . WriteLine ( 4 ) ; } } ",
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private static void NewMethod ( ) { System . Console . WriteLine ( 4 ) ; } } ");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void TestMissingOnBase()
+        public async Task TestMissingOnBase()
         {
-            Test(
+            await TestAsync(
 @"class Program { void Main ( ) { [|base|] . ToString ( ) ; } } ",
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private void NewMethod ( ) { base . ToString ( ) ; } } ");
         }
 
         [WorkItem(545623)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void TestOnActionInvocation()
+        public async Task TestOnActionInvocation()
         {
-            Test(
+            await TestAsync(
 @"using System ; class C { public static Action X { get ; set ; } } class Program { void Main ( ) { [|C . X|] ( ) ; } } ",
 @"using System ; class C { public static Action X { get ; set ; } } class Program { void Main ( ) { {|Rename:GetX|} ( ) ( ) ; } private static Action GetX ( ) { return C . X ; } } ");
         }
 
         [WorkItem(529841), WorkItem(714632)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void DisambiguateCallSiteIfNecessary1()
+        public async Task DisambiguateCallSiteIfNecessary1()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 class Program
@@ -126,9 +127,9 @@ compareTokens: false);
 
         [WorkItem(529841), WorkItem(714632)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void DisambiguateCallSiteIfNecessary2()
+        public async Task DisambiguateCallSiteIfNecessary2()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 class Program
@@ -168,9 +169,9 @@ compareTokens: false);
         [WorkItem(530709)]
         [WorkItem(632182)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void DontOverparenthesize()
+        public async Task DontOverparenthesize()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 static class C
@@ -229,9 +230,9 @@ parseOptions: Options.Regular);
 
         [WorkItem(632182)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void DontOverparenthesizeGenerics()
+        public async Task DontOverparenthesizeGenerics()
         {
-            Test(
+            await TestAsync(
 @"using System;
 
 static class C
@@ -290,9 +291,9 @@ parseOptions: Options.Regular);
 
         [WorkItem(984831)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void PreserveCommentsBeforeDeclaration_1()
+        public async Task PreserveCommentsBeforeDeclaration_1()
         {
-            Test(
+            await TestAsync(
 @"class Construct
 {
     public void Do() { }
@@ -334,9 +335,9 @@ compareTokens: false);
 
         [WorkItem(984831)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void PreserveCommentsBeforeDeclaration_2()
+        public async Task PreserveCommentsBeforeDeclaration_2()
         {
-            Test(
+            await TestAsync(
 @"class Construct
 {
     public void Do() { }
@@ -386,9 +387,9 @@ compareTokens: false);
 
         [WorkItem(984831)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void PreserveCommentsBeforeDeclaration_3()
+        public async Task PreserveCommentsBeforeDeclaration_3()
         {
-            Test(
+            await TestAsync(
 @"class Construct
 {
     public void Do() { }
