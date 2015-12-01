@@ -21,8 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             c.FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory, responsePaths)
             Me.BaseDirectory = baseDirectory
             outputDirectory = Me.BaseDirectory
+            Me.c = c
         End Sub
-
+        Private c As VisualBasicCommandLineParser
         Friend BaseDirectory As String
         Friend IsScriptRunner As Boolean
 
@@ -101,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend touchedFilesPath As String = Nothing
         Friend features As New List(Of String)()
         Friend reportAnalyzer As Boolean = False
-
+        Friend publicSign As Boolean = False
 
         Friend Function ToImmutable(parsedFeatures As ImmutableDictionary(Of String, String),
                                     specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
@@ -141,12 +142,14 @@ features:=parsedFeatures)
                 cryptoKeyContainer:=keyContainerSetting,
                 cryptoKeyFile:=keyFileSetting,
                 delaySign:=delaySignSetting,
+                publicSign:=publicSign,
                 platform:=platform,
                 generalDiagnosticOption:=generalDiagnosticOption,
                 specificDiagnosticOptions:=specificDiagnosticOptions,
                 optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
                 parseOptions:=parseOptions,
                 reportSuppressedDiagnostics:=reportSuppressedDiagnostics)
+
 
             Dim emitOptions = New EmitOptions(
                 metadataOnly:=False,

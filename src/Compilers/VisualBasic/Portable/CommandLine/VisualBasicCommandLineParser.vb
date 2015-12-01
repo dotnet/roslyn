@@ -226,6 +226,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ok = ARG_LangVersion(q, value)
                         Case "delaysign", "delaysign+", "delaysign-"
                             ok = ARG_DelaySign(q, value, name <> "delaysign-")
+                        Case "publicsign", "publicsign+", "publicsign-"
+                            ok = ARG_PublicSign(q, value, name <> "publicsign-")
                         Case "keycontainer"
                             ok = ARG_KeyContainer(q, value)
                         Case "keyfile"
@@ -494,6 +496,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        Private Shared Function ARG_PublicSign(q As Mutable_VBCommandLineArguments, value As String, state As Boolean) As Boolean
+            If value IsNot Nothing Then
+                AddDiagnostic(q.diagnostics, ERRID.ERR_SwitchNeedsBool, "publicsign")
+            Else
+                q.publicSign = state
+            End If
+            Return True
+        End Function
 
         Private Shared Function ARG_OptionCompare(q As Mutable_VBCommandLineArguments, value As String) As Boolean
             value = RemoveQuotesAndSlashes(value)
