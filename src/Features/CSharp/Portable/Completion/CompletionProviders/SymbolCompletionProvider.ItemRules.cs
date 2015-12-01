@@ -56,7 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var symbolItem = item as SymbolCompletionItem;
                 var otherSymbolItem = other as SymbolCompletionItem;
 
-                // Don't prefer types
+                // Locals are most preferable
+                if (symbolItem.Symbols.First().IsKind(SymbolKind.Local) && !otherSymbolItem.Symbols.First().IsKind(SymbolKind.Local))
+                {
+                    return true;
+                }
+
+                // Types are least preferable
                 if (otherSymbolItem.Symbols.First() is ITypeSymbol)
                 {
                     return symbolItem.Symbols.First().MatchesKind(SymbolKind.Event, SymbolKind.Field, SymbolKind.Local, SymbolKind.Method,

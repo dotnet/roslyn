@@ -1794,5 +1794,26 @@ class Program
                 Await state.AssertSelectedCompletionItem("yx", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TargetTypePreselectionLocalOverProperty() As Task
+            Using state = TestState.CreateCSharpTestState(
+                           <Document><![CDATA[
+class Program
+{
+    public int aaa { get; }
+
+     void Main(string[] args)
+    {
+        int aaq;
+
+        int y = a$$
+    }
+}]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                Await state.AssertSelectedCompletionItem("aaq", isHardSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
     End Class
 End Namespace
