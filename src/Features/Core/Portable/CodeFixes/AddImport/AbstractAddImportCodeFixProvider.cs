@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             var newMetadataReferences = otherProject.MetadataReferences.OfType<PortableExecutableReference>();
 
             Compilation compilation = null;
-            foreach (var reference in seenReferences)
+            foreach (var reference in newMetadataReferences)
             {
                 // Make sure we don't check the same metadata reference multiple times from 
                 // different projects.

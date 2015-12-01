@@ -1,10 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Text.Differencing;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -86,7 +90,86 @@ namespace Microsoft.CodeAnalysis.Editor
                 preview = await TakeNextPreviewAsync(preferredDocumentId, preferredProjectId, cancellationToken).ConfigureAwait(true);
             }
 
+            preview = AddSuccessiveTextChanges(preview, cancellationToken);
+
             return preview;
         }
+
+        private object AddSuccessiveTextChanges(object preview, CancellationToken cancellationToken)
+        {
+            if (!(preview is FrameworkElement || preview is string || preview is IWpfDifferenceViewer))
+            {
+                return preview;
+            }
+
+            Grid grid = null;
+            var added = 0;
+            while (_previews.Count > 0 && _previews[0].Text != null)
+            {
+                grid = CreateGrid(preview, grid);
+
+                if (added == 3)
+                {
+                    break;
+                }
+
+                var nextChild = CreateTextBlock(_previews[0].Text);
+                var rowDefinition = new RowDefinition() { Height =  GridLength.Auto };
+                grid.RowDefinitions.Add(rowDefinition);
+
+                Grid.SetRow(nextChild, grid.RowDefinitions.IndexOf(rowDefinition));
+                grid.Children.Add(nextChild);
+
+                _previews.RemoveAt(0);
+                added++;
+            }
+
+            if (grid != null)
+            {
+                preview = grid;
+            }
+
+            return preview;
+        }
+
+        private Grid CreateGrid(object preview, Grid grid)
+        {
+            if (grid == null)
+            {
+                grid = new Grid();
+                FrameworkElement firstChild;
+                if (preview is string)
+                {
+                    firstChild = CreateTextBlock(preview);
+                }
+                else if (preview is FrameworkElement)
+                {
+                    firstChild = (FrameworkElement)preview;
+                }
+                else
+                {
+                    var diffView = (IWpfDifferenceViewer)preview;
+                    firstChild = diffView.VisualElement;
+                    grid.Background = diffView.InlineView.Background;
+                }
+
+                var rowDefinition = new RowDefinition();
+                grid.RowDefinitions.Add(rowDefinition);
+                Grid.SetRow(firstChild, grid.RowDefinitions.IndexOf(rowDefinition));
+                grid.Children.Add(firstChild);
+
+                grid.Width = firstChild.Width;
+            }
+
+            return grid;
+        }
+
+        private FrameworkElement CreateTextBlock(object text) =>
+            new TextBlock()
+            {
+                Text = (string)text,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextWrapping = TextWrapping.Wrap
+            };
     }
 }
