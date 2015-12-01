@@ -742,7 +742,7 @@
     <value>'{0}' is not valid on a local variable declaration.</value>
   </data>
   <data name="ERR_ExpectedConditionalDirective" xml:space="preserve">
-    <value>'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', 'End', 'R', or 'Reference' expected.</value>
+    <value>'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', 'End' or 'R' expected.</value>
   </data>
   <data name="ERR_ExpectedEQ" xml:space="preserve">
     <value>'=' expected.</value>

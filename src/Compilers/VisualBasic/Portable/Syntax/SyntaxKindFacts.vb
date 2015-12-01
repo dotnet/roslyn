@@ -799,7 +799,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"out", SyntaxKind.OutKeyword},
                    {"preserve", SyntaxKind.PreserveKeyword},
                    {"region", SyntaxKind.RegionKeyword},
-                   {"reference", SyntaxKind.ReferenceKeyword},
                    {"r", SyntaxKind.ReferenceKeyword},
                    {"skip", SyntaxKind.SkipKeyword},
                    {"strict", SyntaxKind.StrictKeyword},
@@ -835,7 +834,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"const", SyntaxKind.ConstKeyword},
                    {"externalsource", SyntaxKind.ExternalSourceKeyword},
                    {"externalchecksum", SyntaxKind.ExternalChecksumKeyword},
-                   {"reference", SyntaxKind.ReferenceKeyword},
                    {"r", SyntaxKind.ReferenceKeyword},
                    {"enable", SyntaxKind.EnableKeyword},
                    {"disable", SyntaxKind.DisableKeyword}
