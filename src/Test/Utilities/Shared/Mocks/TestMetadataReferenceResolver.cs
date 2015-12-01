@@ -16,7 +16,7 @@ namespace Roslyn.Test.Utilities
 
         public TestMetadataReferenceResolver(
             RelativePathResolver pathResolver = null,
-            Dictionary<string, PortableExecutableReference> assemblyNames = null, 
+            Dictionary<string, PortableExecutableReference> assemblyNames = null,
             Dictionary<string, PortableExecutableReference> files = null)
         {
             _pathResolver = pathResolver;

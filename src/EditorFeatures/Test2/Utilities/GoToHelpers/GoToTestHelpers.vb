@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-    Module GoToTestHelpers
+    Friend Module GoToTestHelpers
         Public ReadOnly Catalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                         GetType(MockDocumentNavigationServiceFactory),
                         GetType(DefaultSymbolNavigationServiceFactory),

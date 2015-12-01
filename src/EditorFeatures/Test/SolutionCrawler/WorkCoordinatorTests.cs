@@ -920,7 +920,6 @@ End Class";
         {
             internal SolutionCrawlerWaiter()
             {
-
             }
         }
 
@@ -932,7 +931,6 @@ End Class";
         {
             internal WorkspaceWaiter()
             {
-
             }
         }
 

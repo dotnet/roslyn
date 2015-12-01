@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal static class AnalyzerExceptionDescriptionBuilder
     {
         // Description separator
-        private static readonly string Separator = Environment.NewLine + "-----" + Environment.NewLine;
+        private static readonly string s_separator = Environment.NewLine + "-----" + Environment.NewLine;
 
         public static string CreateDiagnosticDescription(this Exception exception)
         {
@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (aggregateException != null)
             {
                 var flattened = aggregateException.Flatten();
-                return string.Join(Separator, flattened.InnerExceptions.Select(e => GetExceptionMessage(e)));
+                return string.Join(s_separator, flattened.InnerExceptions.Select(e => GetExceptionMessage(e)));
             }
 
             if (exception != null)
             {
-                return string.Join(Separator, GetExceptionMessage(exception), CreateDiagnosticDescription(exception.InnerException));
+                return string.Join(s_separator, GetExceptionMessage(exception), CreateDiagnosticDescription(exception.InnerException));
             }
 
             return string.Empty;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return exception.Message;
             }
 
-            return string.Join(Separator, fileNotFoundException.Message, fusionLog);
+            return string.Join(s_separator, fileNotFoundException.Message, fusionLog);
         }
     }
 }

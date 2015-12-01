@@ -697,7 +697,7 @@ class Class1
 
         [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestGenerateFromDerivedClass() 
+        public async Task TestGenerateFromDerivedClass()
         {
             await TestAsync(
 @"

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             protected readonly IEnumerable<IFormattingRule> Rules;
             protected readonly BottomUpBaseIndentationFinder Finder;
 
-            private static readonly Func<SyntaxToken, bool> _tokenHasDirective = tk => tk.ContainsDirectives &&
+            private static readonly Func<SyntaxToken, bool> s_tokenHasDirective = tk => tk.ContainsDirectives &&
                                                   (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
 
             public AbstractIndenter(SyntacticDocument document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
                     // A preprocessor directive starts on this line.
                     if (HasPreprocessorCharacter(actualLine) &&
-                        root.DescendantTokens(actualLine.Extent.Span.ToTextSpan(), tk => tk.FullWidth() > 0).Any(_tokenHasDirective))
+                        root.DescendantTokens(actualLine.Extent.Span.ToTextSpan(), tk => tk.FullWidth() > 0).Any(s_tokenHasDirective))
                     {
                         lineNumber--;
                         continue;

@@ -1775,7 +1775,7 @@ public class C
         System.ConsoleModifiers c = default([||])
     }
 }";
-            await TestAsync(text, "global::System.ConsoleModifiers", testNode:false);
+            await TestAsync(text, "global::System.ConsoleModifiers", testNode: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]

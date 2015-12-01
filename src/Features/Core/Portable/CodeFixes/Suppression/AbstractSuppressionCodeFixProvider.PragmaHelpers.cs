@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 SyntaxTrivia insertAfterTrivia;
                 var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: true, triviaAtIndex: out insertAfterTrivia);
                 index++;
-                
+
                 bool needsLeadingEOL;
                 if (index > 0)
                 {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 SyntaxToken endToken,
                 TextSpan currentDiagnosticSpan,
                 Diagnostic diagnostic,
-                AbstractSuppressionCodeFixProvider fixer, 
+                AbstractSuppressionCodeFixProvider fixer,
                 Func<SyntaxNode, Task<SyntaxNode>> formatNode,
                 bool isRemoveSuppression = false)
             {

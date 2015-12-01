@@ -22,6 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
 {
+    using SymbolReference = ValueTuple<INamespaceOrTypeSymbol, MetadataReference>;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddUsingOrImport), Shared]
     internal class CSharpAddImportCodeFixProvider : AbstractAddImportCodeFixProvider
     {
@@ -665,22 +667,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             var leftExpressionType = semanticInfo.Type;
 
             return leftExpressionType != null && method.ReduceExtensionMethod(leftExpressionType) != null;
-        }
-
-        protected override IEnumerable<ITypeSymbol> GetProposedTypes(string name, List<ITypeSymbol> accessibleTypeSymbols, SemanticModel semanticModel, ISet<INamespaceSymbol> namespacesInScope)
-        {
-            if (accessibleTypeSymbols == null)
-            {
-                yield break;
-            }
-
-            foreach (var typeSymbol in accessibleTypeSymbols)
-            {
-                if (typeSymbol?.ContainingType != null)
-                {
-                    yield return typeSymbol.ContainingType;
-                }
-            }
         }
 
         internal override bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)

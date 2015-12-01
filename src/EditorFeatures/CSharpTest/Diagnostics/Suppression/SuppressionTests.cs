@@ -775,8 +775,6 @@ class Class
                                 }
                                 break;
                         }
-
-                                                   
                     }
                 }
 

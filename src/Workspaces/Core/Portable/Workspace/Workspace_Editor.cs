@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private async Task OnDocumentOpenedAsync(
-            DocumentId documentId, SourceTextContainer textContainer, 
+            DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext,
             bool wait)
         {

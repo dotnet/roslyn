@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             public async Task AddClassUnicodeName()
             {
                 var input = "namespace [|N|] { }";
-                var expected = "namespace N { public class classæøå { } }";
+                var expected = "namespace N { public class class\u00E6\u00F8\u00E5 { } }";
                 await TestAddNamedTypeAsync(input, expected,
-                    name: "cl\u0061ssæøå");
+                    name: "cl\u0061ss\u00E6\u00F8\u00E5");
             }
 
             [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544405)]
@@ -867,7 +867,7 @@ class C
             {
                 var input = "[|class C { } class D {} |]";
                 var expected = "";
-                await Assert.ThrowsAsync<AggregateException>(async () => 
+                await Assert.ThrowsAsync<AggregateException>(async () =>
                     await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), SyntaxFactory.Token(SyntaxKind.RefKeyword)));
             }
 
