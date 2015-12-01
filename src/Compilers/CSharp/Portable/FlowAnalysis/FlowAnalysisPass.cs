@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
 
                     var trailingExpression = new BoundDefaultOperator(method.GetNonNullSyntaxNode(), submissionResultType);
-                    var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, trailingExpression));
+                    var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, RefKind.None, trailingExpression));
                     block = new BoundBlock(block.Syntax, ImmutableArray<LocalSymbol>.Empty, newStatements) { WasCompilerGenerated = true };
 #if DEBUG
                     // It should not be necessary to repeat analysis after adding this node, because adding a trailing
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement ret = method.IsIterator
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
-                : BoundReturnStatement.Synthesized(syntax, null);
+                : BoundReturnStatement.Synthesized(syntax, RefKind.None, null);
 
             // Implicitly added return for async method does not need sequence points since lowering would add one.
             if (syntax.IsKind(SyntaxKind.Block) && !method.IsAsync)

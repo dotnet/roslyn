@@ -323,6 +323,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         ''' <summary>
         ''' Gets the return type of the method.
         ''' </summary>

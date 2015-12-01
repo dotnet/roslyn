@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Select Case signatureHeader.RawValue And SignatureHeader.CallingConventionOrKindMask
                     Case SignatureCallingConvention.Default, SignatureCallingConvention.VarArgs
                         Dim typeParamCount As Integer
-                        Dim targetParamInfo As ParamInfo(Of TypeSymbol)() = Me.DecodeSignatureParametersOrThrow(signaturePointer, signatureHeader, typeParamCount)
+                        Dim targetParamInfo As ParamInfo(Of TypeSymbol)() = Me.DecodeSignatureParametersOrThrow(signaturePointer, signatureHeader, typeParamCount, allowByRefReturn := False)
                         Return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo)
 
                     Case SignatureKind.Field

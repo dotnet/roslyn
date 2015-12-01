@@ -331,6 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.IsVararg; }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return _reducedFrom.RefKind; }
+        }
+
         public override TypeSymbol ReturnType
         {
             get { return _typeMap.SubstituteType(_reducedFrom.ReturnType).Type; }

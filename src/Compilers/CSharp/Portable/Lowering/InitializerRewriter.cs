@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
 
                 // Note: The trailing expression was already converted to the submission result type in Binder.BindGlobalStatement.
-                boundStatements.Add(new BoundReturnStatement(lastStatement.Syntax, trailingExpression));
+                boundStatements.Add(new BoundReturnStatement(lastStatement.Syntax, RefKind.None, trailingExpression));
                 hasTrailingExpression = true;
             }
             else

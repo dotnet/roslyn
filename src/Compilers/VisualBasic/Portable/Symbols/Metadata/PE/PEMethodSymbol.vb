@@ -853,6 +853,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return Signature.ReturnParam.IsByRef
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
                 Return Signature.ReturnParam.Type
@@ -908,10 +914,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Dim moduleSymbol = _containingType.ContainingPEModule
 
-            Dim signatureHeader As SignatureHeader
-            Dim mrEx As BadImageFormatException = Nothing
+                Dim signatureHeader As SignatureHeader
+                Dim mrEx As BadImageFormatException = Nothing
             Dim paramInfo() As ParamInfo(Of TypeSymbol) =
-                    (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx)
+                    (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx, allowByRefReturn:=True)
 
             ' If method is not generic, let's assign empty list for type parameters
             If Not signatureHeader.IsGeneric() AndAlso
@@ -941,7 +947,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             ' paramInfo(0) contains information about return "parameter"
-            Debug.Assert(Not paramInfo(0).IsByRef)
             Dim returnParam = PEParameterSymbol.Create(moduleSymbol, Me, 0, paramInfo(0), isBad)
 
             If mrEx IsNot Nothing OrElse hasBadParameter OrElse isBad Then

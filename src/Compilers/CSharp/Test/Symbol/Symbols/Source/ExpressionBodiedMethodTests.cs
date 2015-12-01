@@ -366,5 +366,17 @@ class C
 2
 World");
         }
+
+        [Fact]
+        public void RefReturningExpressionBodiedMethod()
+        {
+            var comp = CreateExperimentalCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref int M() => ref field;
+}");
+            comp.VerifyDiagnostics();
+        }
     }
 }

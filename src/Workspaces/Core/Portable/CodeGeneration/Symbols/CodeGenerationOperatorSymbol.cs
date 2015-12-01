@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  accessibility,
                  modifiers,
                  returnType: returnType,
+                 returnsByRef: false,
                  explicitInterfaceSymbolOpt: null,
                  name: GetMetadataName(operatorKind),
                  typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),

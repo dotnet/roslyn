@@ -15,5 +15,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return this.TypeParameterList == null ? 0 : this.TypeParameterList.Parameters.Count;
             }
         }
+
+        public MethodDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            return Update(attributeLists, modifiers, this.RefKeyword, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
+        }
+    }
+}
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    public partial class SyntaxFactory
+    {
+        public static MethodDeclarationSyntax MethodDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            SyntaxToken identifier,
+            TypeParameterListSyntax typeParameterList,
+            ParameterListSyntax parameterList,
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            BlockSyntax body,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.MethodDeclaration(
+                attributeLists,
+                modifiers,
+                default(SyntaxToken),
+                returnType,
+                explicitInterfaceSpecifier,
+                identifier,
+                typeParameterList,
+                parameterList,
+                constraintClauses,
+                body,
+                default(ArrowExpressionClauseSyntax),
+                semicolonToken);
+        }
+
+        public static MethodDeclarationSyntax MethodDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.MethodDeclaration(
+                attributeLists,
+                modifiers,
+                default(SyntaxToken),
+                returnType,
+                explicitInterfaceSpecifier,
+                identifier,
+                typeParameterList,
+                parameterList,
+                constraintClauses,
+                body,
+                expressionBody,
+                semicolonToken);
+        }
     }
 }

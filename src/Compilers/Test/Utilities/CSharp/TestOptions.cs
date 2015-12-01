@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
 
-        private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string>(); // no experimental features to enable
+        internal static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string>() { { "RefLocalsAndReturns", "true"} }; // no experimental features to enable
         public static readonly CSharpParseOptions ExperimentalParseOptions =
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp6).WithFeatures(s_experimentalFeatures);
 

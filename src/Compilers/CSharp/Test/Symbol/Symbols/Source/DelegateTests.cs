@@ -717,5 +717,19 @@ class C
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "async delegate { }")
                 );
         }
+
+        [Fact]
+        public void RefReturningDelegate()
+        {
+            var source = @"delegate ref int D();";
+
+            var comp = CreateExperimentalCompilationWithMscorlib45(source);
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var d = global.GetMembers("D")[0] as NamedTypeSymbol;
+            Assert.Equal(RefKind.Ref, d.DelegateInvokeMethod.RefKind);
+            Assert.Equal(RefKind.Ref, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
+        }
     }
 }

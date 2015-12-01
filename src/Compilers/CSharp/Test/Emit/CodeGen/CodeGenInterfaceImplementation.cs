@@ -2646,7 +2646,7 @@ public class D : B, I
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       "" B.M()""
+  IL_0001:  call       ""ref int B.M()""
   IL_0006:  ret
 }
 ");
@@ -2750,15 +2750,15 @@ public class D : B<char>, I<char>
                 Signature("D", "I<System.Char>.M4", ".method private hidebysig newslot virtual final instance I`1[U[]]& I<System.Char>.M4<U>() cil managed"),
             });
 
-            foreach (var suffix in new[] { "1", "2", "3<U>", "4<U>" })
+            foreach (var pair in new[] { new[] { "1", "char" }, new[] { "2", "I<char[]>" }, new[] { "3<U>", "U" }, new[] { "4<U>", "I<U[]>" } })
             {
                 // NOTE: local optimized away even with optimizations turned off (since returning a ref local doesn't peverify).
-                verifier.VerifyIL("D.I<char>.M" + suffix, @"
+                verifier.VerifyIL("D.I<char>.M" + pair[0], @"
 {
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       "" B<char>.M" + suffix + @"()""
+  IL_0001:  call       ""ref " + pair[1] + " B<char>.M" + pair[0] + @"()""
   IL_0006:  ret
 }
 ");

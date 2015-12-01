@@ -154,6 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override RefKind RefKind
+        {
+            get
+            {
+                return _underlyingMethod.RefKind;
+            }
+        }
+
         public override TypeSymbol ReturnType
         {
             get

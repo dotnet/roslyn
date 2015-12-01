@@ -22,24 +22,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _callingConvention As CallingConvention
         Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
         Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _returnsByRef As Boolean
         Private ReadOnly _returnType As TypeSymbol
         Private ReadOnly _returnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
         Private ReadOnly _explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
         Private ReadOnly _isOverrides As Boolean
 
         Public Sub New(ByVal name As String, ByVal m_containingType As TypeSymbol, ByVal methodKind As MethodKind, ByVal callingConvention As CallingConvention, ByVal typeParameters As ImmutableArray(Of TypeParameterSymbol), ByVal parameters As ImmutableArray(Of ParameterSymbol),
-         ByVal returnType As TypeSymbol, ByVal returnTypeCustomModifiers As ImmutableArray(Of CustomModifier), ByVal explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol),
+         ByVal returnsByRef As Boolean, ByVal returnType As TypeSymbol, ByVal returnTypeCustomModifiers As ImmutableArray(Of CustomModifier), ByVal explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol),
                        Optional isOverrides As Boolean = False)
-            Me._callingConvention = callingConvention
-            Me._typeParameters = typeParameters
-            Me._returnType = returnType
-            Me._returnTypeCustomModifiers = returnTypeCustomModifiers
-            Me._parameters = parameters
-            Me._explicitInterfaceImplementations = If(explicitInterfaceImplementations.IsDefault, ImmutableArray(Of MethodSymbol).Empty, explicitInterfaceImplementations)
-            Me._containingType = m_containingType
-            Me._methodKind = methodKind
-            Me._name = name
-            Me._isOverrides = isOverrides
+            _callingConvention = callingConvention
+            _typeParameters = typeParameters
+            _returnsByRef = returnsByRef
+            _returnType = returnType
+            _returnTypeCustomModifiers = returnTypeCustomModifiers
+            _parameters = parameters
+            _explicitInterfaceImplementations = If(explicitInterfaceImplementations.IsDefault, ImmutableArray(Of MethodSymbol).Empty, explicitInterfaceImplementations)
+            _containingType = m_containingType
+            _methodKind = methodKind
+            _name = name
+            _isOverrides = isOverrides
         End Sub
 
         Friend Overrides ReadOnly Property CallingConvention() As CallingConvention
@@ -69,6 +71,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property TypeParameters() As ImmutableArray(Of TypeParameterSymbol)
             Get
                 Return _typeParameters
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return _returnsByRef
             End Get
         End Property
 
