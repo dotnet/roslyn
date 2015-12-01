@@ -4,7 +4,23 @@ This repo leverages a large set of labels to help the core team understand the p
 
 The following labels are feature-specific:
 
-![image](https://cloud.githubusercontent.com/assets/20570/11487217/7225c3ae-9772-11e5-9ae1-011f1dcd5d61.png)![image](https://cloud.githubusercontent.com/assets/20570/11487252/9db68ddc-9772-11e5-9363-dad8297a6dbe.png)
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516889/18b8de2c-983b-11e5-833d-66b62adc32aa.png)](https://github.com/dotnet/roslyn/labels/0%20-%20Backlog)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516908/3e85c502-983b-11e5-8b77-03835a0270a1.png)](https://github.com/dotnet/roslyn/labels/1%20-%20Planning)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516922/56fc7ef0-983b-11e5-92d2-e0f831fbca5d.png)](https://github.com/dotnet/roslyn/labels/2%20-%20Ready)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516927/68b1d442-983b-11e5-834e-ca28bd27e4fe.png)](https://github.com/dotnet/roslyn/labels/3%20-%20Working)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516934/75c29fc2-983b-11e5-9544-db303562d59d.png)](https://github.com/dotnet/roslyn/labels/4%20-%20In%20Review)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516956/93bb6a5e-983b-11e5-8fe5-df978866314f.png)](https://github.com/dotnet/roslyn/labels/Feature%20Request)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11516979/a319bcee-983b-11e5-8df3-af1fabc4f9a2.png)](https://github.com/dotnet/roslyn/labels/Feature%20Specification)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11517003/bb9cc93c-983b-11e5-878d-10e07a9cb5eb.png)](https://github.com/dotnet/roslyn/labels/Story)
+
+[![image](https://cloud.githubusercontent.com/assets/3804346/11517022/d1d2b2e8-983b-11e5-89e8-dfa007e27c01.png)](https://github.com/dotnet/roslyn/labels/Design%20Notes)
 
 Each feature has, at the very minimum, a **Feature Request**, and that’s the label you should use that label to search through planned feature work.
 
