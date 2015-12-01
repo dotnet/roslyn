@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Class Mutable_VBCommandLineArguments
 
-        Public Sub New(args As IEnumerable(Of String), c As VisualBasicCommandLineParser, baseDirectory As String, IsScriptRunner As Boolean)
+        Protected Friend Sub New(args As IEnumerable(Of String), c As VisualBasicCommandLineParser, baseDirectory As String, IsScriptRunner As Boolean)
             Me.IsScriptRunner = IsScriptRunner
             scriptArgs = If(IsScriptRunner, New List(Of String)(), Nothing)
             c.FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory, responsePaths)
