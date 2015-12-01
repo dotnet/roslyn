@@ -601,6 +601,32 @@ class C
 );
         }
 
+        [Fact]
+        public void TestRefOutAnonymousDelegate()
+        {
+            string source = @"
+using System;
+class p
+{
+    static void Foo<T>(ref Func<T,T> a) { }
+    static void Bar<T>(out Func<T, T> a) { a = null; }
+
+    static void Main()
+    {
+        Foo<string>(x => x);
+        Bar<string>(x => x);
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (10,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Func<string, string>'
+                //         Foo<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Func<string, string>").WithLocation(10, 21),
+                // (11,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Func<string, string>'
+                //         Bar<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Func<string, string>").WithLocation(11, 21));
+        }
+
 
         [Fact, WorkItem(1157097, "DevDiv"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TestOverloadResolutionTiebreaker()
