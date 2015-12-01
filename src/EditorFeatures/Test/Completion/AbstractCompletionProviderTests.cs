@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     AssertEx.Any(completionList.Items, c => CompareItems(c.DisplayText, expectedItem));
 
                     // Throw if multiple to indicate a bad test case
-                    var description = await completionList.Items.Single(c => CompareItems(c.DisplayText, expectedItem)).GetDescriptionAsync();
+                    var description = await completionList.Items.First(c => CompareItems(c.DisplayText, expectedItem)).GetDescriptionAsync();
 
                     if (expectedSymbols == 1)
                     {

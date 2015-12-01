@@ -684,7 +684,7 @@ End Class
         <WorkItem(994388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")>
         Public Async Function TestCatchFilterClause2() As Task
             Dim text = "Try : Catch ex As Exception When [|foo|].N"
-            Await TestInMethodAsync(text, "System.Object", testPosition:=False)
+            Await TestInMethodAsync(text, "System.Boolean", testPosition:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
