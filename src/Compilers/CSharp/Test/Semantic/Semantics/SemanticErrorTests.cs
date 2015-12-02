@@ -12867,7 +12867,7 @@ class C : B
         }
 
         [Fact]
-        public void CS1510ERR_RefLvalueExpected()
+        public void CS1510ERR_RefLvalueExpected_01()
         {
             var text =
 @"class C
@@ -12880,6 +12880,147 @@ class C : B
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_RefLvalueExpected, Line = 5, Column = 15 });
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_02()
+        {
+            var text =
+@"class C
+{
+    void M()
+    {
+        var a = new System.Action<int>(ref x => x = 1);
+        var b = new System.Action<int, int>(ref (x,y) => x = 1);
+        var c = new System.Action<int>(ref delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var a = new System.Action<int>(ref x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(5, 44),
+                // (6,49): error CS1510: A ref or out argument must be an assignable variable
+                //         var b = new System.Action<int, int>(ref (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(6, 49),
+                // (7,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var c = new System.Action<int>(ref delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_03()
+        {
+            var text =
+@"class C
+{
+    void M()
+    {
+        var a = new System.Action<int>(out x => x = 1);
+        var b = new System.Action<int, int>(out (x,y) => x = 1);
+        var c = new System.Action<int>(out delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var a = new System.Action<int>(out x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(5, 44),
+                // (6,49): error CS1510: A ref or out argument must be an assignable variable
+                //         var b = new System.Action<int, int>(out (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(6, 49),
+                // (7,44): error CS1510: A ref or out argument must be an assignable variable
+                //         var c = new System.Action<int>(out delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(7, 44));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_04()
+        {
+            var text =
+@"class C
+{
+    void Foo<T>(ref System.Action<T> t) {}
+    void Foo<T1,T2>(ref System.Action<T1,T2> t) {}
+    void M()
+    {
+        Foo<int>(ref x => x = 1);
+        Foo<int, int>(ref (x,y) => x = 1);
+        Foo<int>(ref delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (7,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(ref x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(7, 22),
+                // (8,27): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int, int>(ref (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(8, 27),
+                // (9,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(ref delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_05()
+        {
+            var text =
+@"class C
+{
+    void Foo<T>(out System.Action<T> t) {t = null;}
+    void Foo<T1,T2>(out System.Action<T1,T2> t) {t = null;}
+    void M()
+    {
+        Foo<int>(out x => x = 1);
+        Foo<int, int>(out (x,y) => x = 1);
+        Foo<int>(out delegate (int x) {x = 1;});
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (7,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(out x => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x => x = 1").WithLocation(7, 22),
+                // (8,27): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int, int>(out (x,y) => x = 1);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(x,y) => x = 1").WithLocation(8, 27),
+                // (9,22): error CS1510: A ref or out argument must be an assignable variable
+                //         Foo<int>(out delegate (int x) {x = 1;});
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "delegate (int x) {x = 1;}").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void CS1510ERR_RefLvalueExpected_Strict()
+        {
+            var text =
+@"class C
+{
+    void D(int i) {}
+    void M()
+    {
+        System.Action<int> del = D;
+
+        var a = new System.Action<int>(ref D);
+        var b = new System.Action<int>(out D);
+        var c = new System.Action<int>(ref del);
+        var d = new System.Action<int>(out del);
+    }
+}
+";
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+                // (8,44): error CS1657: Cannot pass 'D' as a ref or out argument because it is a 'method group'
+                //         var a = new System.Action<int>(ref D);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "D").WithArguments("D", "method group").WithLocation(8, 44),
+                // (9,44): error CS1657: Cannot pass 'D' as a ref or out argument because it is a 'method group'
+                //         var b = new System.Action<int>(out D);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "D").WithArguments("D", "method group").WithLocation(9, 44),
+                // (10,44): error CS0149: Method name expected
+                //         var c = new System.Action<int>(ref del);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "del").WithLocation(10, 44),
+                // (11,44): error CS0149: Method name expected
+                //         var d = new System.Action<int>(out del);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "del").WithLocation(11, 44));
         }
 
         [Fact]
