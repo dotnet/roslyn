@@ -881,35 +881,6 @@ systemSpecialCase: true);
 @"using System.Threading.Tasks; using Task = System.AccessViolationException; class X { Task<X> x; }");
         }
 
-        [WorkItem(860648)]
-        [WorkItem(902014)]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public async Task TestIncompleteSimpleLambdaExpression()
-        {
-            await TestAsync(
-@"using System.Linq;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        [|args[0].Any(x => IBindCtx|]
-        string a;
-    }
-}",
-@"using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        args[0].Any(x => IBindCtx
-        string a;
-    }
-}");
-        }
-
         [WorkItem(913300)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public async Task TestNoDuplicateReport()
@@ -2167,6 +2138,35 @@ class Test
     {
         Action a = () => { IBindCtx };
         string a;        
+    }
+}");
+            }
+
+            [WorkItem(860648)]
+            [WorkItem(902014)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            public async Task TestIncompleteSimpleLambdaExpression()
+            {
+                await TestAsync(
+    @"using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        args[0].Any(x => [|IBindCtx|]
+        string a;
+    }
+}",
+    @"using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        args[0].Any(x => IBindCtx
+        string a;
     }
 }");
             }

@@ -73,11 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         private const string CS0616 = "CS0616";
 
         /// <summary>
-        /// Syntax error, 'A' expected
-        /// </summary>
-        private const string CS1003 = "CS1003";
-
-        /// <summary>
         ///  No overload for method 'X' takes 'N' arguments
         /// </summary>
         private const string CS1501 = "CS1501";
@@ -126,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     CS0122,
                     CS0307,
                     CS0616,
-                    CS1003,
                     CS1501,
                     CS1503,
                     CS1574,
@@ -264,7 +258,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 case CS0122:
                 case CS0307:
                 case CS0616:
-                case CS1003:
                 case CS1580:
                 case CS1581:
                     break;
