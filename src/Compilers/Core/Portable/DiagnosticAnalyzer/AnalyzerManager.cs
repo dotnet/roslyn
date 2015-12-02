@@ -132,20 +132,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Get all the analyzer actions to execute for the given analyzer against a given compilation.
+        /// Get tuple with:
+        /// (a) All the analyzer actions to execute for the given analyzer against a given compilation and
+        /// (b) A flag indicating if these actions can be executed concurrently.
         /// The returned actions include the actions registered during <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> method as well as
         /// the actions registered during <see cref="CompilationStartAnalyzerAction"/> for the given compilation.
         /// </summary>
-        public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async Task<Tuple<AnalyzerActions, bool>> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            AnalyzerActions allActions;
             if (sessionScope.CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
-                return compilationScope.GetAnalyzerActions(analyzer);
+                allActions = compilationScope.GetAnalyzerActions(analyzer);
+            }
+            else
+            {
+                allActions = sessionScope.GetAnalyzerActions(analyzer);
             }
 
-            return sessionScope.GetAnalyzerActions(analyzer);
+            return Tuple.Create(allActions, sessionScope.IsConcurrentAnalyzer(analyzer));
         }
 
         /// <summary>

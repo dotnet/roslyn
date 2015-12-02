@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -1132,6 +1132,76 @@ class D
                     expected: new[] {
                         Diagnostic(CSharpCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, "new C()").WithLocation(5, 18)
                     });
+        }
+
+        private static Compilation GetCompilationWithConcurrentBuildEnabled(string source)
+        {
+            var compilation = CreateCompilationWithMscorlib45(source);
+
+            // NOTE: We set the concurrentBuild option to true after creating the compilation as CreateCompilationWithMscorlib
+            //       always sets concurrentBuild to false if debugger is attached, even if we had passed options with concurrentBuild = true to that API.
+            //       We want the tests using GetCompilationWithConcurrentBuildEnabled to have identical behavior with and without debugger being attached.
+            var options = compilation.Options.WithConcurrentBuild(true);
+            return compilation.WithOptions(options);
+        }
+
+        [Fact, WorkItem(6737, "https://github.com/dotnet/roslyn/issues/6737")]
+        public void TestNonConcurrentAnalyzer()
+        {
+            var source = string.Empty;
+            var typeCount = 100;
+            for (int i = 1; i <= typeCount; i++)
+            {
+                var typeName = $"C{i}";
+                source = source + $"\r\nclass {typeName} {{ }}";
+            }
+
+            var analyzers = new DiagnosticAnalyzer[] { new NonConcurrentAnalyzer() };
+
+            // Verify no diagnostics.
+            var compilation = GetCompilationWithConcurrentBuildEnabled(source);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyAnalyzerDiagnostics(analyzers);
+        }
+
+        [Fact, WorkItem(6737, "https://github.com/dotnet/roslyn/issues/6737")]
+        public void TestConcurrentAnalyzer()
+        {
+            if (Environment.ProcessorCount <= 1)
+            {
+                // Don't test for non-concurrent environment.
+                return;
+            }
+
+            var source = string.Empty;
+            var typeCount = 100;
+            var typeNames = new string[typeCount];
+            for (int i = 1; i <= typeCount; i++)
+            {
+                var typeName = $"C{i}";
+                typeNames[i - 1] = typeName;
+                source = source + $"\r\nclass {typeName} {{ }}";
+            }
+
+            var compilation = GetCompilationWithConcurrentBuildEnabled(source);
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer diagnostics for Concurrent analyzer only.
+            var analyzers = new DiagnosticAnalyzer[] { new ConcurrentAnalyzer(typeNames) };
+            var expected = new DiagnosticDescription[typeCount];
+            for (int i = 0; i < typeCount; i++)
+            {
+                var typeName = $"C{i + 1}";
+                expected[i] = Diagnostic(ConcurrentAnalyzer.Descriptor.Id, typeName)
+                    .WithArguments(typeName)
+                    .WithLocation(i + 2, 7);
+            }
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+
+            // Verify analyzer diagnostics for Concurrent and NonConcurrent analyzer together (latter reports diagnostics only for error cases).
+            analyzers = new DiagnosticAnalyzer[] { new ConcurrentAnalyzer(typeNames), new NonConcurrentAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
     }
 }
