@@ -4685,10 +4685,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Console->WriteLine();
                 //
                 // C 
-                // A + B; // etc.
+                // A + B;
                 //
                 // C 
                 // A ? B : D;
+                //
+                // C 
+                // A()
                 var resetPoint = this.GetResetPoint();
                 try
                 {
@@ -4709,6 +4712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 SyntaxFacts.IsBinaryExpressionOperatorToken(currentTokenKind);
 
                             if (currentTokenKind == SyntaxKind.DotToken ||
+                                currentTokenKind == SyntaxKind.OpenParenToken ||
                                 currentTokenKind == SyntaxKind.MinusGreaterThanToken ||
                                 isNonEqualsBinaryToken)
                             {
