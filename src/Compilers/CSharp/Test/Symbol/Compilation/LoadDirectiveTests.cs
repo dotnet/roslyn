@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(3, 21));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void FileThatCannotBeDecoded()
         {
             var code = "#load \"b.csx\"";
