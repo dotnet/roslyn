@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor descriptor = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
             IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
             CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
             CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             isEnabledByDefault: true,
             customTags: DiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(s_descriptor);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -110,13 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
                     var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.SingleIfStatementForm);
 
-                    syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+                    syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
                         Location.Create(tree, TextSpan.FromBounds(ifStatement.SpanStart, expressionStatement.SpanStart)),
                         additionalLocations, properties));
 
                     if (expressionStatement.Span.End != ifStatement.Span.End)
                     {
-                        syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
                             Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
                             additionalLocations, properties));
                     }
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression)
-        { 
+        {
             // look for the form "if (a != null)" or "if (null != a)"
             if (!ifStatement.Parent.IsKind(SyntaxKind.Block))
             {
@@ -216,15 +218,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 Location.Create(tree, expressionStatement.Span)
             };
 
-            var properties = ImmutableDictionary<string,string>.Empty.Add(Constants.Kind, Constants.VariableAndIfStatementForm);
+            var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.VariableAndIfStatementForm);
 
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
                 Location.Create(tree, TextSpan.FromBounds(localDeclarationStatement.SpanStart, expressionStatement.SpanStart)),
                 additionalLocations, properties));
 
             if (expressionStatement.Span.End != ifStatement.Span.End)
             {
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+                syntaxContext.ReportDiagnostic(Diagnostic.Create(s_descriptor,
                     Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
                     additionalLocations, properties));
             }

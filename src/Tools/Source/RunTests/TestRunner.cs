@@ -34,7 +34,7 @@ namespace RunTests
 
         internal TestRunner(Options options)
         {
-            this._options = options;
+            _options = options;
         }
 
         internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
@@ -65,7 +65,7 @@ namespace RunTests
 
                             completed.Add(testResult);
                         }
-                        catch (Exception ex) 
+                        catch (Exception ex)
                         {
                             Console.WriteLine($"Error: {ex.Message}");
                             allPassed = false;
@@ -116,7 +116,7 @@ namespace RunTests
         private async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
             try
-            { 
+            {
                 var assemblyName = Path.GetFileName(assemblyPath);
                 var resultsFile = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{(_options.UseHtml ? "html" : "xml")}");
                 var resultsDir = Path.GetDirectoryName(resultsFile);

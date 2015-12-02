@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     var actualPdbXml = PdbToXmlConverter.ToXml(
                         pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
                         peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
-                        options: PdbToXmlOptions.ResolveTokens | 
+                        options: PdbToXmlOptions.ResolveTokens |
                                  PdbToXmlOptions.ThrowOnError |
                                  PdbToXmlOptions.ExcludeDocuments |
                                  PdbToXmlOptions.ExcludeCustomDebugInformation |

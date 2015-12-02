@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             // If there is a declaration in a non auto-generated file, prefer it.
-            Func<Document,bool> isGeneratedDocument = 
+            Func<Document, bool> isGeneratedDocument =
                 solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode;
 
             foreach (var decl in declarations)

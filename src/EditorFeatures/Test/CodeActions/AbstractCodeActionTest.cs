@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedPreviewContents != null)
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-                var content = await editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync();
+                var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 var previewContents = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();

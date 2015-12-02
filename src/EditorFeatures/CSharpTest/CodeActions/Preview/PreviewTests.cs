@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 GetMainDocumentAndPreviews(workspace, out document, out previews);
 
                 // The changed document comes first.
-                var preview = await previews.TakeNextPreviewAsync();
+                var previewObjects = await previews.GetPreviewsAsync();
+                var preview = previewObjects[0];
                 Assert.NotNull(preview);
                 Assert.True(preview is IWpfDifferenceViewer);
                 var diffView = preview as IWpfDifferenceViewer;
@@ -111,85 +112,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 Assert.Equal(ChangedDocumentText, text);
                 diffView.Close();
 
-                // The added document comes next.
-                preview = await previews.TakeNextPreviewAsync();
-                Assert.NotNull(preview);
-                Assert.True(preview is IWpfDifferenceViewer);
-                diffView = preview as IWpfDifferenceViewer;
-                text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                Assert.Contains(AddedDocumentName, text, StringComparison.Ordinal);
-                Assert.Contains(AddedDocumentText, text, StringComparison.Ordinal);
-                diffView.Close();
-
                 // Then comes the removed metadata reference.
-                preview = await previews.TakeNextPreviewAsync();
+                preview = previewObjects[1];
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
 
                 // And finally the added project.
-                preview = await previews.TakeNextPreviewAsync();
+                preview = previewObjects[2];
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;
                 Assert.Contains(AddedProjectName, text, StringComparison.Ordinal);
-
-                // There are no more previews.
-                preview = await previews.TakeNextPreviewAsync();
-                Assert.Null(preview);
-                preview = await previews.TakeNextPreviewAsync();
-                Assert.Null(preview);
-            }
-        }
-
-        [WpfFact]
-        public async Task TestPickTheRightPreview_WithPreference()
-        {
-            using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))
-            {
-                Document document = null;
-                SolutionPreviewResult previews = null;
-                GetMainDocumentAndPreviews(workspace, out document, out previews);
-
-                // Should return preview that matches the preferred (added) project.
-                var preview = await previews.TakeNextPreviewAsync(preferredProjectId: s_addedProjectId);
-                Assert.NotNull(preview);
-                Assert.True(preview is string);
-                var text = preview as string;
-                Assert.Contains(AddedProjectName, text, StringComparison.Ordinal);
-
-                // Should return preview that matches the preferred (changed) document.
-                preview = await previews.TakeNextPreviewAsync(preferredDocumentId: document.Id);
-                Assert.NotNull(preview);
-                Assert.True(preview is IWpfDifferenceViewer);
-                var diffView = preview as IWpfDifferenceViewer;
-                text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                Assert.Equal(ChangedDocumentText, text);
-                diffView.Close();
-
-                // There is no longer a preview for the preferred project. Should return the first remaining preview.
-                preview = await previews.TakeNextPreviewAsync(preferredProjectId: s_addedProjectId);
-                Assert.NotNull(preview);
-                Assert.True(preview is IWpfDifferenceViewer);
-                diffView = preview as IWpfDifferenceViewer;
-                text = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
-                Assert.Contains(AddedDocumentName, text, StringComparison.Ordinal);
-                Assert.Contains(AddedDocumentText, text, StringComparison.Ordinal);
-                diffView.Close();
-
-                // There is no longer a preview for the  preferred document. Should return the first remaining preview.
-                preview = await previews.TakeNextPreviewAsync(preferredDocumentId: document.Id);
-                Assert.NotNull(preview);
-                Assert.True(preview is string);
-                text = preview as string;
-                Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
-
-                // There are no more previews.
-                preview = await previews.TakeNextPreviewAsync();
-                Assert.Null(preview);
-                preview = await previews.TakeNextPreviewAsync();
-                Assert.Null(preview);
             }
         }
     }

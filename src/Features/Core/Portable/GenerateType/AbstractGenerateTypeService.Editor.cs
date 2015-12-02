@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Update the Generating Document with a using if required
                 if (includeUsingsOrImports != null)
                 {
-                    updatedSolution =await  _service.TryAddUsingsOrImportToDocumentAsync(
+                    updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(
                                         updatedSolution,
                                         generateTypeOptionsResult.ExistingDocument.Id == _document.Document.Id ? newRoot : null,
                                         _document.Document,

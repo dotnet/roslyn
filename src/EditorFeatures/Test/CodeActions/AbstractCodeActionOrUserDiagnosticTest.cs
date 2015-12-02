@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -72,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
-            await TestMissingAsync(initialMarkup, parseOptions: null, options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
-            await TestMissingAsync(initialMarkup, parseOptions: GetScriptOptions(), options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestMissingAsync(initialMarkup, parseOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            await TestMissingAsync(initialMarkup, parseOptions: GetScriptOptions(), options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         protected Task TestMissingAsync(
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
-            return TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options:options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
+            return TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey);
         }
 
         protected async Task TestMissingAsync(
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task TestAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool compareTokens = true,  
+            int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
-            int index = 0, bool compareTokens = true,  
+            int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
-            int index = 0, bool compareTokens = true, 
+            int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null)
         {
@@ -186,8 +188,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var renameSpans = spanMap.GetOrAdd("Rename", _ => new List<TextSpan>());
             var warningSpans = spanMap.GetOrAdd("Warning", _ => new List<TextSpan>());
 
-            using (var workspace = IsWorkspaceElement(initialMarkup) 
-                ? await TestWorkspaceFactory.CreateWorkspaceAsync(initialMarkup) 
+            using (var workspace = IsWorkspaceElement(initialMarkup)
+                ? await TestWorkspaceFactory.CreateWorkspaceAsync(initialMarkup)
                 : await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
             {
                 ApplyOptionsToWorkspace(workspace, options);
@@ -202,9 +204,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected async Task<Tuple<Solution, Solution>> TestActionsAsync(
-            TestWorkspace workspace, string expected, 
-            int index, IList<CodeAction> actions, 
-            IList<TextSpan> conflictSpans, IList<TextSpan> renameSpans, IList<TextSpan> warningSpans, 
+            TestWorkspace workspace, string expected,
+            int index, IList<CodeAction> actions,
+            IList<TextSpan> conflictSpans, IList<TextSpan> renameSpans, IList<TextSpan> warningSpans,
             bool compareTokens)
         {
             var operations = await VerifyInputsAndGetOperationsAsync(index, actions);

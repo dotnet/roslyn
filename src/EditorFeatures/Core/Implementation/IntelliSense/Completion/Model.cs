@@ -92,10 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             CompletionItem updatedBuilder = builder;
             CompletionItem updatedDefaultBuilder = GetDefaultBuilder(defaultTrackingSpanInSubjectBuffer);
 
-            if (completionService != null && 
-                workspace != null && 
+            if (completionService != null &&
+                workspace != null &&
                 workspace.Kind != WorkspaceKind.Interactive && // TODO (https://github.com/dotnet/roslyn/issues/5107): support in interactive
-                workspace.Options.GetOption(InternalFeatureOnOffOptions.Snippets) && 
+                workspace.Options.GetOption(InternalFeatureOnOffOptions.Snippets) &&
                 triggerInfo.TriggerReason != CompletionTriggerReason.Snippets)
             {
                 // In order to add snippet expansion notes to completion item descriptions, update

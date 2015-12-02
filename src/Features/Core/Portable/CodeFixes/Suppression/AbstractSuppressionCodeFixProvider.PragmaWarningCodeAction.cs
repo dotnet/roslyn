@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public PragmaWarningCodeAction CloneForFixMultipleContext()
             {
                 return new PragmaWarningCodeAction(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
-
             }
             protected override string DiagnosticIdForEquivalenceKey =>
                 _forFixMultipleContext ? string.Empty : _diagnostic.Id;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     _document,
                     _diagnostic.Location.SourceSpan,
                     _suppressionTargetInfo,
-                    async (startToken, currentDiagnosticSpan) => 
+                    async (startToken, currentDiagnosticSpan) =>
                     {
                         return includeStartTokenChange
                             ? await PragmaHelpers.GetNewStartTokenWithAddedPragmaAsync(startToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNodeAsync).ConfigureAwait(false)

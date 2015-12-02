@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Globalization;
 using System.Linq;
@@ -80,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return helpLink;
         }
 
-        object IPreviewPaneService.GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, object previewContent)
+        object IPreviewPaneService.GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, IList<object> previewContent)
         {
             var title = diagnostic?.Message;
 

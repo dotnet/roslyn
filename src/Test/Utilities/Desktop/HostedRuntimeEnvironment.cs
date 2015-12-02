@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             internal EmitData()
             {
-
             }
         }
 

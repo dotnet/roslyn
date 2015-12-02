@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CancellationToken cancellationToken) : base(semanticModel, cancellationToken)
             {
             }
-            
+
             protected override bool IsUnusableType(ITypeSymbol otherSideType)
             {
                 return otherSideType.IsErrorType() &&
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return;
                 }
-        }
+            }
 
             private IEnumerable<ITypeSymbol> InferTypeInAttributeArgument(
                 int index,
@@ -1571,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambda = ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
                 if (lambda != null)
                 {
-                    types= InferTypeInLambdaExpression(lambda);
+                    types = InferTypeInLambdaExpression(lambda);
                     isAsync = lambda is ParenthesizedLambdaExpressionSyntax && ((ParenthesizedLambdaExpressionSyntax)lambda).AsyncKeyword.Kind() != SyntaxKind.None;
                     return;
                 }

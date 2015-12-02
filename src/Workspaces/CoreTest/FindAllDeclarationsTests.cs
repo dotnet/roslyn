@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         InlineData("", true, WorkspaceKind.SingleClass, new string[0]),
         InlineData(" ", true, WorkspaceKind.SingleClass, new string[0]),
-        InlineData("☙", true, WorkspaceKind.SingleClass, new string[0]),
+        InlineData("\u2619", true, WorkspaceKind.SingleClass, new string[0]),
 
         InlineData("testcase", true, WorkspaceKind.SingleClass, new[] { "TestCases.TestCase" }),
         InlineData("testcase", false, WorkspaceKind.SingleClass, new string[0]),
@@ -185,7 +185,7 @@ Inner i;
 
          InlineData("", true, WorkspaceKind.SingleClass, new string[0]),
          InlineData(" ", true, WorkspaceKind.SingleClass, new string[0]),
-         InlineData("☙", true, WorkspaceKind.SingleClass, new string[0]),
+         InlineData("\u2619", true, WorkspaceKind.SingleClass, new string[0]),
 
          InlineData("testcase", true, WorkspaceKind.SingleClass, new[] { "TestCases.TestCase" }),
          InlineData("testcase", false, WorkspaceKind.SingleClass, new string[0]),
@@ -292,7 +292,7 @@ Inner i;
 
          InlineData("", true, WorkspaceKind.SingleClass, new string[0]),
          InlineData(" ", true, WorkspaceKind.SingleClass, new string[0]),
-         InlineData("☙", true, WorkspaceKind.SingleClass, new string[0]),
+         InlineData("\u2619", true, WorkspaceKind.SingleClass, new string[0]),
 
          InlineData("testcase", true, WorkspaceKind.SingleClass, new[] { "TestCases.TestCase" }),
          InlineData("testcase", false, WorkspaceKind.SingleClass, new string[0]),

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else if (exceptions.Count > 1)
             {
-				throw new AggregateException(exceptions);
+                throw new AggregateException(exceptions);
             }
 
             if (SynchronizationContext.Current != null)

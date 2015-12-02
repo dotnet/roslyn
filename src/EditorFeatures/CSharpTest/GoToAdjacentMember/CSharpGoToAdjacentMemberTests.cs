@@ -1,22 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CommandHandlers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GoToAdjacentMember
 {
-    public class CSharpGoToAdjacentMemberTests
+    public class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTests
     {
+        protected override string LanguageName => LanguageNames.CSharp;
+        protected override ParseOptions DefaultParseOptions => CSharpParseOptions.Default;
+
         [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task EmptyFile()
@@ -519,53 +515,6 @@ $$void M1() { }
 $$void M2() { }";
 
             await AssertNavigatedAsync(code, next: false, sourceCodeKind: SourceCodeKind.Script);
-        }
-
-        private static async Task AssertNavigatedAsync(string code, bool next, SourceCodeKind? sourceCodeKind = null)
-        {
-            var kinds = sourceCodeKind != null
-                ? SpecializedCollections.SingletonEnumerable(sourceCodeKind.Value)
-                : new[] { SourceCodeKind.Regular, SourceCodeKind.Script };
-            foreach (var kind in kinds)
-            {
-                using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(
-                    LanguageNames.CSharp,
-                    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                    CSharpParseOptions.Default.WithKind(kind),
-                    code))
-                {
-                    var hostDocument = workspace.DocumentWithCursor;
-                    var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                    Assert.Empty((await document.GetSyntaxTreeAsync()).GetDiagnostics());
-                    var targetPosition = await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
-                        document,
-                        hostDocument.CursorPosition.Value,
-                        next,
-                        CancellationToken.None);
-
-                    Assert.NotNull(targetPosition);
-                    Assert.Equal(hostDocument.SelectedSpans.Single().Start, targetPosition.Value);
-                }
-            }
-        }
-
-        private static async Task<int?> GetTargetPositionAsync(string code, bool next)
-        {
-            using (var workspace = await TestWorkspaceFactory.CreateWorkspaceFromLinesAsync(
-                LanguageNames.CSharp,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                CSharpParseOptions.Default,
-                code))
-            {
-                var hostDocument = workspace.DocumentWithCursor;
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                Assert.Empty((await document.GetSyntaxTreeAsync()).GetDiagnostics());
-                return await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
-                    document,
-                    hostDocument.CursorPosition.Value,
-                    next,
-                    CancellationToken.None);
-            }
         }
     }
 }

@@ -70,5 +70,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Same(secondRequestResult, firstRequestResult);
         }
-   }
+    }
 }

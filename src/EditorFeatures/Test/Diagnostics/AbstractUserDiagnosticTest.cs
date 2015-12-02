@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             bool compareTokens, bool isLine)
         {
-            using (var workspace = isLine 
-                ? await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions) 
+            using (var workspace = isLine
+                ? await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions)
                 : await TestWorkspaceFactory.CreateWorkspaceAsync(initialMarkup))
             {
                 var codeActions = await GetCodeActionsAsync(workspace, fixAllActionEquivalenceKey: null);
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             if (!hasProjectChange)
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
-                var content = await editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync();
+                var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 diffView.Close();
@@ -368,15 +368,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 // If there are more changes than just the document we need to browse all the changes and get the document change
                 var contents = editHandler.GetPreviews(workspace, operations, CancellationToken.None);
                 bool hasPreview = false;
-                object preview;
-                while ((preview = await contents.TakeNextPreviewAsync()) != null)
+                var previews = await contents.GetPreviewsAsync();
+                if (previews != null)
                 {
-                    var diffView = preview as IWpfDifferenceViewer;
-                    if (diffView != null)
+                    foreach (var preview in previews)
                     {
-                        hasPreview = true;
-                        diffView.Close();
-                        break;
+                        if (preview != null)
+                        {
+                            var diffView = preview as IWpfDifferenceViewer;
+                            if (diffView != null)
+                            {
+                                hasPreview = true;
+                                diffView.Close();
+                                break;
+                            }
+                        }
                     }
                 }
 

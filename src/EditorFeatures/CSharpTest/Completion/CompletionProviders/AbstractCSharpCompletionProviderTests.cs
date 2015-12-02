@@ -197,7 +197,7 @@ text;
         protected async Task VerifyCommitCharactersAsync(string initialMarkup, string textTypedSoFar, char[] validChars, char[] invalidChars = null)
         {
             Assert.NotNull(validChars);
-            invalidChars = invalidChars ?? new [] { 'x' };
+            invalidChars = invalidChars ?? new[] { 'x' };
 
             using (var workspace = await CSharpWorkspaceFactory.CreateWorkspaceFromFileAsync(initialMarkup))
             {
@@ -224,7 +224,7 @@ text;
             }
         }
 
-        protected async Task TestCommonIsTextualTriggerCharacterAsync ()
+        protected async Task TestCommonIsTextualTriggerCharacterAsync()
         {
             var alwaysTriggerList = new[]
             {

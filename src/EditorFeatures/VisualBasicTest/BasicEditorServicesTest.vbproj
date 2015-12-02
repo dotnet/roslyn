@@ -116,6 +116,7 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Drawing" />
@@ -272,7 +273,7 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatter_FormatTokenTests.vb" />
     <Compile Include="Formatting\XmlLiterals.Designer.vb" />
     <Compile Include="Outlining\AbstractVisualBasicSyntaxTriviaOutlinerTests.vb" />
-    <Compile Include="VisualBasicGoToAdjacentMemberTests.vb" />
+    <Compile Include="GoToAdjacentMember\VisualBasicGoToAdjacentMemberTests.vb" />
     <Compile Include="KeywordHighlighting\AbstractVisualBasicKeywordHighlighterTests.vb" />
     <Compile Include="KeywordHighlighting\AccessorDeclarationHighlighterTests.vb" />
     <Compile Include="KeywordHighlighting\ConditionalPreprocessorHighlighterTests.vb" />
