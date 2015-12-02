@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Roslyn.Diagnostics.Analyzers</id>
+    <summary>Roslyn.Diagnostics Analyzers</summary>
+    <description>
+      Roslyn.Diagnostics Analyzers
+    </description>
+    <dependencies>
+    </dependencies>
+
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$currentVersion$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$ analyzers</tags>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System" targetFramework="" />
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+    <file src="$binaries$Roslyn.Diagnostics.Analyzers.dll" target="analyzers\dotnet\cs" />
+    <file src="$binaries$Roslyn.Diagnostics.CSharp.Analyzers.dll" target="analyzers\dotnet\cs" />
+    <file src="$binaries$Roslyn.Diagnostics.Analyzers.dll" target="analyzers\dotnet\vb" />
+    <file src="$binaries$Roslyn.Diagnostics.VisualBasic.Analyzers.dll" target="analyzers\dotnet\vb" />
+    <file src="$binaries$Roslyn.Diagnostics.Analyzers.props" target="build" />
+    <file src="$binaries$Roslyn.Diagnostics.CSharp.Analyzers.props" target="build" />
+    <file src="$binaries$Roslyn.Diagnostics.VisualBasic.Analyzers.props" target="build" />
+    <file src="install.ps1" target="tools" />
+    <file src="uninstall.ps1" target="tools" />
+    <file src="ThirdPartyNotices.rtf" target="" />
+  </files>
+</package>

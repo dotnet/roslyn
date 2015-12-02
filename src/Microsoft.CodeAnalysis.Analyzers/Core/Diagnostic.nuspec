@@ -1,0 +1,32 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.CodeAnalysis.Analyzers</id>
+    <summary>Analyzers for .NET Compiler Platform ("Roslyn")</summary>
+    <description>
+      Guidelines for using .NET Compiler Platform ("Roslyn") APIs.
+    </description>
+
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$currentVersion$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$ analyzers</tags>
+
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System" targetFramework="" />
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+    <file src="$binaries$Microsoft.CodeAnalysis.Analyzers.dll" target="analyzers\dotnet\cs" />
+    <file src="$binaries$Microsoft.CodeAnalysis.CSharp.Analyzers.dll" target="analyzers\dotnet\cs" />
+    <file src="$binaries$Microsoft.CodeAnalysis.Analyzers.dll" target="analyzers\dotnet\vb" />
+    <file src="$binaries$Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" target="analyzers\dotnet\vb" />
+    <file src="Install.ps1" target="tools" />
+    <file src="Uninstall.ps1" target="tools" />
+    <file src="ThirdPartyNotices.rtf" target="" />
+  </files>
+</package>
