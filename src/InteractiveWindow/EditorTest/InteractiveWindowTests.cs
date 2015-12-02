@@ -491,8 +491,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCaretVirtualPosition(2, promptWidth + 1);
         }
 
-
-
         private void AssertCaretVirtualPosition(int expectedLine, int expectedColumn)
         {
             ITextSnapshotLine actualLine;

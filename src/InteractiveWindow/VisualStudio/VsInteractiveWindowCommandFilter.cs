@@ -216,8 +216,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
                     case VSConstants.VSStd2KCmdID.TYPECHAR:
-                        // No-op since character was inserted in pre-language service filter below
-                        return VSConstants.S_OK;
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                char typedChar = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
+                                operations.TypeChar(typedChar);
+                                return VSConstants.S_OK;
+                            }
+                            else
+                            {
+                                _window.Operations.Delete();
+                            }
+                            break;
+                        }
 
                     case VSConstants.VSStd2KCmdID.RETURN:
                         if (_window.Operations.Return())
@@ -420,21 +432,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             {
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
-                    case VSConstants.VSStd2KCmdID.TYPECHAR:
-                        {
-                            var operations = _window.Operations as IInteractiveWindowOperations2;
-                            if (operations != null)
-                            {
-                                char typedChar = (char)(ushort)System.Runtime.InteropServices.Marshal.GetObjectForNativeVariant(pvaIn);
-                                operations.TypeChar(typedChar);
-                            }
-                            else
-                            {
-                                _window.Operations.Delete();
-                            }
-                            break;
-                        }
-
                     case VSConstants.VSStd2KCmdID.RETURN:
                         if (_window.Operations.TrySubmitStandardInput())
                         {
