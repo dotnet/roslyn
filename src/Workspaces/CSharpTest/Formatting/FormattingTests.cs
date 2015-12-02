@@ -6910,6 +6910,46 @@ class Program
 }", changedOptionSet: optionSet);
         }
 
+        [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormattingCodeWithBrokenLocalDeclarationShouldRespectFormatTabsOption()
+        {
+            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+
+            await AssertFormatAsync(@"class AClass
+{
+	void AMethod(Object anArgument)
+	{
+		if (anArgument == null)
+		{
+			throw new ArgumentNullException(nameof(anArgument));
+		}
+		anArgument
+
+		DoSomething();
+	}
+
+	void DoSomething()
+	{
+	}
+}", @"class AClass
+{
+	void AMethod(Object anArgument)
+	{
+		if (anArgument == null)
+		{
+			throw new ArgumentNullException(nameof(anArgument));
+		}anArgument
+
+		DoSomething();
+	}
+
+	void DoSomething()
+	{
+	}
+}", changedOptionSet: optionSet);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
         [WorkItem(849870, "DevDiv")]
