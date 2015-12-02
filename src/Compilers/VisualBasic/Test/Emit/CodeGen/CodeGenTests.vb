@@ -13473,5 +13473,49 @@ End Module
 ]]>)
         End Sub
 
+        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        Public Sub Issue7148()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Class TestClass
+    Private _rotation As Decimal
+    Private Sub CalculateDimensions()
+        _rotation *= 180 / System.Math.PI 'This line causes '"vbc.exe" exited with code -2146232797'
+    End Sub
+
+    Shared Sub Main()
+        Dim x as New TestClass()
+        x._rotation = 1
+        x.CalculateDimensions()
+        System.Console.WriteLine(x._rotation)
+    End Sub    
+End Class
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe,
+                expectedOutput:="57.2957795130823")
+
+            c.VerifyIL("TestClass.CalculateDimensions",
+            <![CDATA[
+{
+  // Code size       40 (0x28)
+  .maxstack  3
+  .locals init (Decimal& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "TestClass._rotation As Decimal"
+  IL_0006:  dup
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      "Decimal"
+  IL_000e:  call       "Function System.Convert.ToDouble(Decimal) As Double"
+  IL_0013:  ldc.r8     57.2957795130823
+  IL_001c:  mul
+  IL_001d:  newobj     "Sub Decimal..ctor(Double)"
+  IL_0022:  stobj      "Decimal"
+  IL_0027:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace
