@@ -1,0 +1,1173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="TopHalfLayoutPanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="TopHalfLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="TopHalfLayoutPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="TopHalfLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="AssemblyNameLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="AssemblyNameLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="AssemblyNameLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 3</value>
+  </data>
+  <data name="AssemblyNameLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 0</value>
+  </data>
+  <data name="AssemblyNameLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 13</value>
+  </data>
+  <data name="AssemblyNameLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="AssemblyNameLabel.Text" xml:space="preserve">
+    <value>Assembly &amp;name:</value>
+  </data>
+  <data name="&gt;&gt;AssemblyNameLabel.Name" xml:space="preserve">
+    <value>AssemblyNameLabel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyNameLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyNameLabel.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyNameLabel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="AssemblyNameTextBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="AssemblyNameTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 19</value>
+  </data>
+  <data name="AssemblyNameTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="AssemblyNameTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>253, 20</value>
+  </data>
+  <data name="AssemblyNameTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;AssemblyNameTextBox.Name" xml:space="preserve">
+    <value>AssemblyNameTextBox</value>
+  </data>
+  <data name="&gt;&gt;AssemblyNameTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyNameTextBox.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyNameTextBox.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="RootNamespaceLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="RootNamespaceLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="RootNamespaceLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>265, 3</value>
+  </data>
+  <data name="RootNamespaceLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>9, 3, 0, 0</value>
+  </data>
+  <data name="RootNamespaceLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>91, 13</value>
+  </data>
+  <data name="RootNamespaceLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="RootNamespaceLabel.Text" xml:space="preserve">
+    <value>&amp;Root namespace:</value>
+  </data>
+  <data name="&gt;&gt;RootNamespaceLabel.Name" xml:space="preserve">
+    <value>RootNamespaceLabel</value>
+  </data>
+  <data name="&gt;&gt;RootNamespaceLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RootNamespaceLabel.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;RootNamespaceLabel.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="RootNamespaceTextBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="RootNamespaceTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>265, 19</value>
+  </data>
+  <data name="RootNamespaceTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>9, 3, 0, 3</value>
+  </data>
+  <data name="RootNamespaceTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>253, 20</value>
+  </data>
+  <data name="RootNamespaceTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;RootNamespaceTextBox.Name" xml:space="preserve">
+    <value>RootNamespaceTextBox</value>
+  </data>
+  <data name="&gt;&gt;RootNamespaceTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RootNamespaceTextBox.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;RootNamespaceTextBox.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="TargetFrameworkLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Bottom, Left</value>
+  </data>
+  <data name="TargetFrameworkLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="TargetFrameworkLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 5, 3, 0</value>
+  </data>
+  <data name="TargetFrameworkLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>181, 13</value>
+  </data>
+  <data name="TargetFrameworkLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="TargetFrameworkLabel.Text" xml:space="preserve">
+    <value>&amp;Target framework:</value>
+  </data>
+  <data name="&gt;&gt;TargetFrameworkLabel.Name" xml:space="preserve">
+    <value>TargetFrameworkLabel</value>
+  </data>
+  <data name="&gt;&gt;TargetFrameworkLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TargetFrameworkLabel.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;TargetFrameworkLabel.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="TargetFrameworkComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="TargetFrameworkComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="TargetFrameworkComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>253, 21</value>
+  </data>
+  <data name="TargetFrameworkComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;TargetFrameworkComboBox.Name" xml:space="preserve">
+    <value>TargetFrameworkComboBox</value>
+  </data>
+  <data name="&gt;&gt;TargetFrameworkComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TargetFrameworkComboBox.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;TargetFrameworkComboBox.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="StartupObjectComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="StartupObjectComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 108</value>
+  </data>
+  <data name="StartupObjectComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="StartupObjectComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>253, 21</value>
+  </data>
+  <data name="StartupObjectComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="&gt;&gt;StartupObjectComboBox.Name" xml:space="preserve">
+    <value>StartupObjectComboBox</value>
+  </data>
+  <data name="&gt;&gt;StartupObjectComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartupObjectComboBox.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartupObjectComboBox.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="StartupObjectLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="StartupObjectLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="StartupObjectLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 92</value>
+  </data>
+  <data name="StartupObjectLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 5, 3, 0</value>
+  </data>
+  <data name="StartupObjectLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>76, 13</value>
+  </data>
+  <data name="StartupObjectLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="StartupObjectLabel.Text" xml:space="preserve">
+    <value>Startup &amp;object:</value>
+  </data>
+  <data name="&gt;&gt;StartupObjectLabel.Name" xml:space="preserve">
+    <value>StartupObjectLabel</value>
+  </data>
+  <data name="&gt;&gt;StartupObjectLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartupObjectLabel.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartupObjectLabel.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="ApplicationTypeLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Bottom, Left</value>
+  </data>
+  <data name="ApplicationTypeLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ApplicationTypeLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 47</value>
+  </data>
+  <data name="ApplicationTypeLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>9, 5, 0, 0</value>
+  </data>
+  <data name="ApplicationTypeLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>85, 13</value>
+  </data>
+  <data name="ApplicationTypeLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="ApplicationTypeLabel.Text" xml:space="preserve">
+    <value>&amp;Application type:</value>
+  </data>
+  <data name="&gt;&gt;ApplicationTypeLabel.Name" xml:space="preserve">
+    <value>ApplicationTypeLabel</value>
+  </data>
+  <data name="&gt;&gt;ApplicationTypeLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ApplicationTypeLabel.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ApplicationTypeLabel.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="ApplicationTypeComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="ApplicationTypeComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 63</value>
+  </data>
+  <data name="ApplicationTypeComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>9, 3, 0, 3</value>
+  </data>
+  <data name="ApplicationTypeComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>253, 21</value>
+  </data>
+  <data name="ApplicationTypeComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;ApplicationTypeComboBox.Name" xml:space="preserve">
+    <value>ApplicationTypeComboBox</value>
+  </data>
+  <data name="&gt;&gt;ApplicationTypeComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ApplicationTypeComboBox.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ApplicationTypeComboBox.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="IconLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="IconLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="IconLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>265, 47</value>
+  </data>
+  <data name="IconLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>9, 5, 0, 0</value>
+  </data>
+  <data name="IconLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>31, 13</value>
+  </data>
+  <data name="IconLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="IconLabel.Text" xml:space="preserve">
+    <value>&amp;Icon:</value>
+  </data>
+  <data name="&gt;&gt;IconLabel.Name" xml:space="preserve">
+    <value>IconLabel</value>
+  </data>
+  <data name="&gt;&gt;IconLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;IconLabel.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;IconLabel.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="IconPicturebox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>None</value>
+  </data>
+  <data name="IconPicturebox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>486, 57</value>
+  </data>
+  <data name="IconPicturebox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 0, 0</value>
+  </data>
+  <data name="IconPicturebox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>27, 27</value>
+  </data>
+  <data name="IconPicturebox.SizeMode" type="System.Windows.Forms.PictureBoxSizeMode, System.Windows.Forms">
+    <value>CenterImage</value>
+  </data>
+  <data name="IconPicturebox.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;IconPicturebox.Name" xml:space="preserve">
+    <value>IconPicturebox</value>
+  </data>
+  <data name="&gt;&gt;IconPicturebox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.PictureBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;IconPicturebox.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;IconPicturebox.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="IconCombobox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="IconCombobox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>265, 63</value>
+  </data>
+  <data name="IconCombobox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>9, 3, 3, 3</value>
+  </data>
+  <data name="IconCombobox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>215, 21</value>
+  </data>
+  <data name="IconCombobox.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;IconCombobox.Name" xml:space="preserve">
+    <value>IconCombobox</value>
+  </data>
+  <data name="&gt;&gt;IconCombobox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;IconCombobox.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;IconCombobox.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="UseApplicationFrameworkCheckBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="UseApplicationFrameworkCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="UseApplicationFrameworkCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 182</value>
+  </data>
+  <data name="UseApplicationFrameworkCheckBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 9, 3, 0</value>
+  </data>
+  <data name="UseApplicationFrameworkCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>165, 17</value>
+  </data>
+  <data name="UseApplicationFrameworkCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>15</value>
+  </data>
+  <data name="UseApplicationFrameworkCheckBox.Text" xml:space="preserve">
+    <value>Enable application framewor&amp;k</value>
+  </data>
+  <data name="&gt;&gt;UseApplicationFrameworkCheckBox.Name" xml:space="preserve">
+    <value>UseApplicationFrameworkCheckBox</value>
+  </data>
+  <data name="&gt;&gt;UseApplicationFrameworkCheckBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;UseApplicationFrameworkCheckBox.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;UseApplicationFrameworkCheckBox.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="TableLayoutPanel1.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="TableLayoutPanel1.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;AssemblyInfoButton.Name" xml:space="preserve">
+    <value>AssemblyInfoButton</value>
+  </data>
+  <data name="&gt;&gt;AssemblyInfoButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyInfoButton.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;AssemblyInfoButton.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;ViewUACSettingsButton.Name" xml:space="preserve">
+    <value>ViewUACSettingsButton</value>
+  </data>
+  <data name="&gt;&gt;ViewUACSettingsButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ViewUACSettingsButton.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;ViewUACSettingsButton.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="TableLayoutPanel1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 135</value>
+  </data>
+  <data name="TableLayoutPanel1.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="TableLayoutPanel1.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="TableLayoutPanel1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>300, 35</value>
+  </data>
+  <data name="TableLayoutPanel1.TabIndex" type="System.Int32, mscorlib">
+    <value>14</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel1.Name" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel1.Parent" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel1.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="TableLayoutPanel1.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="AssemblyInfoButton" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="ViewUACSettingsButton" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,50,Percent,50" /&gt;&lt;Rows Styles="Percent,50" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="TopHalfLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="TopHalfLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 14</value>
+  </data>
+  <data name="TopHalfLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="TopHalfLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>518, 199</value>
+  </data>
+  <data name="TopHalfLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;TopHalfLayoutPanel.Name" xml:space="preserve">
+    <value>TopHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;TopHalfLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TopHalfLayoutPanel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;TopHalfLayoutPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="TopHalfLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="AssemblyNameLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="AssemblyNameTextBox" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="RootNamespaceLabel" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="RootNamespaceTextBox" Row="1" RowSpan="1" Column="1" ColumnSpan="2" /&gt;&lt;Control Name="TargetFrameworkLabel" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TargetFrameworkComboBox" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="StartupObjectComboBox" Row="5" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="StartupObjectLabel" Row="4" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="ApplicationTypeLabel" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="ApplicationTypeComboBox" Row="3" RowSpan="1" Column="1" ColumnSpan="2" /&gt;&lt;Control Name="IconLabel" Row="4" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="IconPicturebox" Row="5" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="IconCombobox" Row="5" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="UseApplicationFrameworkCheckBox" Row="7" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="TableLayoutPanel1" Row="6" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="AssemblyInfoButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="AssemblyInfoButton.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="AssemblyInfoButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="AssemblyInfoButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 9</value>
+  </data>
+  <data name="AssemblyInfoButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 9, 3, 3</value>
+  </data>
+  <data name="AssemblyInfoButton.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>11, 0, 11, 0</value>
+  </data>
+  <data name="AssemblyInfoButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>147, 23</value>
+  </data>
+  <data name="AssemblyInfoButton.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="AssemblyInfoButton.Text" xml:space="preserve">
+    <value>Assembl&amp;y Information...</value>
+  </data>
+  <data name="&gt;&gt;AssemblyInfoButton.Name" xml:space="preserve">
+    <value>AssemblyInfoButton</value>
+  </data>
+  <data name="&gt;&gt;AssemblyInfoButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyInfoButton.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;AssemblyInfoButton.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="ViewUACSettingsButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ViewUACSettingsButton.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="ViewUACSettingsButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="ViewUACSettingsButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>150, 9</value>
+  </data>
+  <data name="ViewUACSettingsButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 9, 3, 3</value>
+  </data>
+  <data name="ViewUACSettingsButton.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>11, 0, 11, 0</value>
+  </data>
+  <data name="ViewUACSettingsButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>147, 23</value>
+  </data>
+  <data name="ViewUACSettingsButton.TabIndex" type="System.Int32, mscorlib">
+    <value>13</value>
+  </data>
+  <data name="ViewUACSettingsButton.Text" xml:space="preserve">
+    <value>View Windows Settin&amp;gs</value>
+  </data>
+  <data name="&gt;&gt;ViewUACSettingsButton.Name" xml:space="preserve">
+    <value>ViewUACSettingsButton</value>
+  </data>
+  <data name="&gt;&gt;ViewUACSettingsButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ViewUACSettingsButton.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;ViewUACSettingsButton.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="WindowsAppGroupBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="WindowsAppGroupBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="WindowsAppGroupBox.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="BottomHalfLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="BottomHalfLayoutPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="BottomHalfLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="EnableXPThemesCheckBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="EnableXPThemesCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="EnableXPThemesCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 3</value>
+  </data>
+  <data name="EnableXPThemesCheckBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="EnableXPThemesCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>135, 17</value>
+  </data>
+  <data name="EnableXPThemesCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="EnableXPThemesCheckBox.Text" xml:space="preserve">
+    <value>Enable &amp;XP visual styles</value>
+  </data>
+  <data name="&gt;&gt;EnableXPThemesCheckBox.Name" xml:space="preserve">
+    <value>EnableXPThemesCheckBox</value>
+  </data>
+  <data name="&gt;&gt;EnableXPThemesCheckBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;EnableXPThemesCheckBox.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;EnableXPThemesCheckBox.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="SingleInstanceCheckBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="SingleInstanceCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="SingleInstanceCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 26</value>
+  </data>
+  <data name="SingleInstanceCheckBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="SingleInstanceCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>180, 17</value>
+  </data>
+  <data name="SingleInstanceCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="SingleInstanceCheckBox.Text" xml:space="preserve">
+    <value>Make &amp;single instance application</value>
+  </data>
+  <data name="&gt;&gt;SingleInstanceCheckBox.Name" xml:space="preserve">
+    <value>SingleInstanceCheckBox</value>
+  </data>
+  <data name="&gt;&gt;SingleInstanceCheckBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;SingleInstanceCheckBox.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;SingleInstanceCheckBox.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="SaveMySettingsCheckbox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="SaveMySettingsCheckbox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="SaveMySettingsCheckbox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 49</value>
+  </data>
+  <data name="SaveMySettingsCheckbox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="SaveMySettingsCheckbox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>175, 17</value>
+  </data>
+  <data name="SaveMySettingsCheckbox.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="SaveMySettingsCheckbox.Text" xml:space="preserve">
+    <value>Save My.Settin&amp;gs on Shutdown</value>
+  </data>
+  <data name="&gt;&gt;SaveMySettingsCheckbox.Name" xml:space="preserve">
+    <value>SaveMySettingsCheckbox</value>
+  </data>
+  <data name="&gt;&gt;SaveMySettingsCheckbox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;SaveMySettingsCheckbox.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;SaveMySettingsCheckbox.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="AuthenticationModeLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="AuthenticationModeLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="AuthenticationModeLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 74</value>
+  </data>
+  <data name="AuthenticationModeLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 5, 3, 0</value>
+  </data>
+  <data name="AuthenticationModeLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>107, 13</value>
+  </data>
+  <data name="AuthenticationModeLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="AuthenticationModeLabel.Text" xml:space="preserve">
+    <value>Aut&amp;hentication mode:</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationModeLabel.Name" xml:space="preserve">
+    <value>AuthenticationModeLabel</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationModeLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationModeLabel.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationModeLabel.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="AuthenticationModeComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="AuthenticationModeComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 90</value>
+  </data>
+  <data name="AuthenticationModeComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="AuthenticationModeComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>305, 21</value>
+  </data>
+  <data name="AuthenticationModeComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationModeComboBox.Name" xml:space="preserve">
+    <value>AuthenticationModeComboBox</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationModeComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationModeComboBox.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationModeComboBox.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="ShutdownModeLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="ShutdownModeLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ShutdownModeLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 119</value>
+  </data>
+  <data name="ShutdownModeLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 5, 3, 0</value>
+  </data>
+  <data name="ShutdownModeLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>87, 13</value>
+  </data>
+  <data name="ShutdownModeLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="ShutdownModeLabel.Text" xml:space="preserve">
+    <value>Sh&amp;utdown mode:</value>
+  </data>
+  <data name="&gt;&gt;ShutdownModeLabel.Name" xml:space="preserve">
+    <value>ShutdownModeLabel</value>
+  </data>
+  <data name="&gt;&gt;ShutdownModeLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ShutdownModeLabel.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ShutdownModeLabel.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="ShutdownModeComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="ShutdownModeComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 135</value>
+  </data>
+  <data name="ShutdownModeComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="ShutdownModeComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>305, 21</value>
+  </data>
+  <data name="ShutdownModeComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;ShutdownModeComboBox.Name" xml:space="preserve">
+    <value>ShutdownModeComboBox</value>
+  </data>
+  <data name="&gt;&gt;ShutdownModeComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ShutdownModeComboBox.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ShutdownModeComboBox.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="SplashScreenLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="SplashScreenLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="SplashScreenLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 164</value>
+  </data>
+  <data name="SplashScreenLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 5, 3, 0</value>
+  </data>
+  <data name="SplashScreenLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 13</value>
+  </data>
+  <data name="SplashScreenLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="SplashScreenLabel.Text" xml:space="preserve">
+    <value>Sp&amp;lash screen:</value>
+  </data>
+  <data name="&gt;&gt;SplashScreenLabel.Name" xml:space="preserve">
+    <value>SplashScreenLabel</value>
+  </data>
+  <data name="&gt;&gt;SplashScreenLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;SplashScreenLabel.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;SplashScreenLabel.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="SplashScreenComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="SplashScreenComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 181</value>
+  </data>
+  <data name="SplashScreenComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 1</value>
+  </data>
+  <data name="SplashScreenComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>305, 21</value>
+  </data>
+  <data name="SplashScreenComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;SplashScreenComboBox.Name" xml:space="preserve">
+    <value>SplashScreenComboBox</value>
+  </data>
+  <data name="&gt;&gt;SplashScreenComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;SplashScreenComboBox.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;SplashScreenComboBox.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="ViewCodeButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Right</value>
+  </data>
+  <data name="ViewCodeButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ViewCodeButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>311, 180</value>
+  </data>
+  <data name="ViewCodeButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 0, 1</value>
+  </data>
+  <data name="ViewCodeButton.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 0, 8, 0</value>
+  </data>
+  <data name="ViewCodeButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>147, 23</value>
+  </data>
+  <data name="ViewCodeButton.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="ViewCodeButton.Text" xml:space="preserve">
+    <value>&amp;View Application Events</value>
+  </data>
+  <data name="&gt;&gt;ViewCodeButton.Name" xml:space="preserve">
+    <value>ViewCodeButton</value>
+  </data>
+  <data name="&gt;&gt;ViewCodeButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ViewCodeButton.Parent" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ViewCodeButton.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="BottomHalfLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>9, 22</value>
+  </data>
+  <data name="BottomHalfLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>9, 9, 9, 9</value>
+  </data>
+  <data name="BottomHalfLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="BottomHalfLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>458, 204</value>
+  </data>
+  <data name="BottomHalfLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;BottomHalfLayoutPanel.Name" xml:space="preserve">
+    <value>BottomHalfLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;BottomHalfLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;BottomHalfLayoutPanel.Parent" xml:space="preserve">
+    <value>WindowsAppGroupBox</value>
+  </data>
+  <data name="&gt;&gt;BottomHalfLayoutPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="BottomHalfLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="EnableXPThemesCheckBox" Row="0" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="SingleInstanceCheckBox" Row="1" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="SaveMySettingsCheckbox" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="AuthenticationModeLabel" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="AuthenticationModeComboBox" Row="4" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="ShutdownModeLabel" Row="5" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="ShutdownModeComboBox" Row="6" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="SplashScreenLabel" Row="7" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="SplashScreenComboBox" Row="8" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="ViewCodeButton" Row="8" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,100,AutoSize,156" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="WindowsAppGroupBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 216</value>
+  </data>
+  <data name="WindowsAppGroupBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 0</value>
+  </data>
+  <data name="WindowsAppGroupBox.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="WindowsAppGroupBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>476, 248</value>
+  </data>
+  <data name="WindowsAppGroupBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="WindowsAppGroupBox.Text" xml:space="preserve">
+    <value>Windows application framework properties</value>
+  </data>
+  <data name="&gt;&gt;WindowsAppGroupBox.Name" xml:space="preserve">
+    <value>WindowsAppGroupBox</value>
+  </data>
+  <data name="&gt;&gt;WindowsAppGroupBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;WindowsAppGroupBox.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;WindowsAppGroupBox.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>518, 464</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Name" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="TopHalfLayoutPanel" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="WindowsAppGroupBox" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,50" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 13</value>
+  </data>
+  <data name="$this.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="$this.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="$this.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>521, 467</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>ApplicationPropPageVBWinForms</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.UserControl, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+</root>

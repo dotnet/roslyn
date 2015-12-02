@@ -1,0 +1,428 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="dogfood">
+  <!--*****************************************************-->
+  <!--This MSBuild project file was automatically generated-->
+  <!--from the original SOURCES/DIRS file by the KBC tool.-->
+  <!--*****************************************************-->
+  <Import Project="$(_NTDRIVE)$(_NTROOT)\tools\Microsoft.DevDiv.Settings.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.20218</ProductVersion>
+    <DocumentationFile>Microsoft.VisualStudio.AppDesigner.xml</DocumentationFile>
+    <BinplaceSymbols>false</BinplaceSymbols>
+    <AssemblyAttributeComVisible>true</AssemblyAttributeComVisible>
+    <GenerateAssemblyRefs>true</GenerateAssemblyRefs>
+    <MidlTlbDir>$(OutputPath)</MidlTlbDir>
+    <MidlHeaderDir>$(IntermediateOutputPath)</MidlHeaderDir>
+    <MidlInterfaceDir>$(IntermediateOutputPath)</MidlInterfaceDir>
+    <UseVsVersion>true</UseVsVersion>
+    <AssemblyAttributeClsCompliant>false</AssemblyAttributeClsCompliant>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{19725D6F-4690-412B-934A-FC48D752B802}</ProjectGuid>
+    <!-- BEGIN The following are necessary in order for the VB background compiler to be happy.
+         Also, do not reference system or mscorlib in any VB project in the solution -->
+    <FrameworkPathOverride>$(WinFx45ExternalRefPath)</FrameworkPathOverride>
+    <OutputType>Library</OutputType>
+    <NoStdLib>false</NoStdLib>
+    <NoExplicitReferenceToStdLib>true</NoExplicitReferenceToStdLib>
+    <!-- END happy VB background compiler -->
+    <RootNamespace>
+    </RootNamespace>
+    <AssemblyName>Microsoft.VisualStudio.AppDesigner</AssemblyName>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionCompare>binary</OptionCompare>
+    <OptionStrict>On</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <NoWarn>$(NoWarn);42105;42107;42353;42307</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>Microsoft.VisualStudio.AppDesigner.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022;42105;42107</NoWarn>
+    <CodeAnalysisRuleSet>Migrated rules for Microsoft.VisualStudio.AppDesigner (6).ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>Microsoft.VisualStudio.AppDesigner.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022;42105;42107</NoWarn>
+    <CodeAnalysisRuleset>Migrated rules for Microsoft.VisualStudio.AppDesigner (6).ruleset</CodeAnalysisRuleset>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <ItemGroup>
+    <Import Include="VSErrorHandler=Microsoft.VisualStudio.ErrorHandler" />
+    <Import Include="VSConstants=Microsoft.VisualStudio.VSConstants" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\vsdesigner\designer\Microsoft.VSDesigner.csproj">
+      <Comment>Microsoft.VSDesigner.dll</Comment>
+    </ProjectReference>
+    <ProjectReference Include="..\..\vsdesigner\Microsoft.VSDesigner.WCF\Microsoft.VSDesigner.WCF.csproj">
+      <Comment>Microsoft.VSDesigner.WCF.dll</Comment>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Accessibility">
+      <HintPath>$(NDP_FXRefPath)\Accessibility.dll</HintPath>
+    </Reference>
+    <Reference Include="CustomMarshalers">
+      <HintPath>$(SdkRefPath)\CustomMarshalers.DLL</HintPath>
+    </Reference>
+    <Reference Include="$(VSCommonRefPath)\envdte.dll">
+      <HintPath>$(SdkRefPath)\envdte.DLL</HintPath>
+    </Reference>
+    <Reference Include="$(VSCommonRefPath)\envdte80.dll">
+      <HintPath>$(SdkRefPath)\envdte80.DLL</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.CommonIDE">
+      <HintPath>$(SdkRefPath)\Microsoft.VisualStudio.CommonIDE.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Data.Core">
+      <HintPath>$(VSDataRefv4Path)\Microsoft.VisualStudio.Data.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Data.Services">
+      <HintPath>$(VSDataRefv4Path)\Microsoft.VisualStudio.Data.Services.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.DataTools.Interop">
+      <HintPath>$(VDTRefPath)\Microsoft.VisualStudio.DataTools.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface">
+      <HintPath>$(ExternalAPIsPath)\Whidbey\NetRedist\Microsoft.VisualStudio.TemplateWizardInterface.dll</HintPath>
+    </Reference>
+    <Reference Include="$(ExternalAPIsPath)\Vsip\ref\Microsoft.VisualStudio.Designer.Interfaces.dll" />
+    <Reference Include="$(VSCommonRefPath)\Microsoft.VisualStudio.OLE.Interop.dll">
+      <HintPath>$(SdkRefPath)\Microsoft.VisualStudio.OLE.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="$(vsFrameworkLatest)" />
+    <Reference Include="Microsoft.VisualStudio.Utilities" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Design" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0" />
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
+    <Reference Include="Microsoft.VisualStudio.VSHelp" />
+    <Reference Include="mscorcfg">
+      <HintPath>$(SdkRefPath)\mscorcfg.DLL</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build.Tasks.v3.5">
+      <HintPath>$(NetFX35RefPath)\Microsoft.Build.Tasks.v3.5.dll</HintPath>
+    </Reference>
+    <Reference Include="$(ExternalAPIsPath)\sdk\ref\v2.0\Microsoft.VisualStudio.ManagedInterfaces.dll" />
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization">
+      <HintPath>$(WinFxExternalRefsPath)\System.Runtime.Serialization.DLL</HintPath>
+    </Reference>
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.RegularExpressions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.ServiceModel">
+      <HintPath>$(WinFxExternalRefsPath)\System.ServiceModel.DLL</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="vslangproj">
+      <HintPath>$(SdkRefPath)\vslangproj.DLL</HintPath>
+    </Reference>
+    <Reference Include="VsWebSite.Interop">
+      <HintPath>$(VenusRefV2Path)\VsWebSite.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="$(ExternalAPIsPath)\WCFReference\Microsoft.VisualStudio.WCFReference.Interop.DLL" />
+    <Reference Include="Microsoft.VisualStudio.XmlEditor">
+      <HintPath>$(DPToolsRefPath)\Microsoft.VisualStudio.XmlEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" />
+    <Reference Include="Microsoft.Internal.VisualStudio.Sqm.Interop.DesignTime">
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Internal.VisualStudio.Sqm.Datapoints.DesignTime" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(VSCommonIncPath)\ManagedCodeMarkers.vb">
+      <Link>ManagedCodeMarkers.vb</Link>
+    </Compile>
+    <Compile Include="ApplicationDesigner\ApplicationDesignerEditorFactory.vb" />
+    <Compile Include="ApplicationDesigner\ApplicationDesignerLoader.vb" />
+    <Compile Include="ApplicationDesigner\ApplicationDesignerPanel.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\ApplicationDesignerRootComponent.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\ApplicationDesignerRootDesigner.vb" />
+    <Compile Include="ApplicationDesigner\ApplicationDesignerView.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\ApplicationDesignerWindowPane.vb" />
+    <Compile Include="ApplicationDesigner\ApplicationDesignerWindowPaneControl.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\CmdTargetHelper.vb" />
+    <Compile Include="ApplicationDesigner\CustomViewProvider.vb" />
+    <Compile Include="ApplicationDesigner\DeferrableWindowPaneProviderService.vb" />
+    <Compile Include="ApplicationDesigner\DesignerTabButton.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\DesignerTabControl.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\DesignerTabControlRenderer.vb" />
+    <Compile Include="ApplicationDesigner\ErrorControlCustomViewProvider.vb" />
+    <Compile Include="ApplicationDesigner\IVsEditWindowNotify.vb" />
+    <Compile Include="ApplicationDesigner\PropertyPageInfo.vb" />
+    <Compile Include="ApplicationDesigner\PropertyPageSite.vb" />
+    <Compile Include="ApplicationDesigner\SpecialFileCustomView.Designer.vb">
+      <DependentUpon>SpecialFileCustomView.vb</DependentUpon>
+    </Compile>
+    <Compile Include="ApplicationDesigner\SpecialFileCustomView.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ApplicationDesigner\SpecialFileCustomViewProvider.vb" />
+    <Compile Include="Common\ArgumentValidation.vb" />
+    <Compile Include="Common\DTEUtils.vb" />
+    <Compile Include="Common\ShellUtil.vb" />
+    <Compile Include="Common\switches.vb" />
+    <Compile Include="Common\Utils.vb" />
+    <Compile Include="Common\WaitCursor.vb" />
+    <Compile Include="Common\wmuserconstants.vb" />
+    <Compile Include="Constants.vb" />
+    <Compile Include="DesignerFramework\BaseDialog.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DesignerFramework\BaseRootDesigner.vb" />
+    <Compile Include="DesignerFramework\DesignerMenuCommand.vb" />
+    <Compile Include="DesignerFramework\DesignerMessageBox.vb" />
+    <Compile Include="DesignerFramework\DesignerWindowPaneProviderBase.vb" />
+    <Compile Include="DesignerFramework\DesignUtil.vb" />
+    <Compile Include="DesignerFramework\ErrorControl.Designer.vb">
+      <DependentUpon>ErrorControl.vb</DependentUpon>
+    </Compile>
+    <Compile Include="DesignerFramework\ErrorControl.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DesignerFramework\SourceCodeControlManager.vb" />
+    <Compile Include="InternalException.vb" />
+    <Compile Include="interop\ILangInactiveCfgPropertyNotifySink.vb" />
+    <Compile Include="interop\ISpecifyPropertyPages.vb" />
+    <Compile Include="interop\IVsAppId.vb" />
+    <Compile Include="interop\LOGFONT.vb" />
+    <Compile Include="interop\LOGVIEWID.vb" />
+    <Compile Include="interop\NativeMethods.vb" />
+    <Compile Include="interop\win.vb" />
+    <Compile Include="IVbpackage.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="MyApplicationProperties.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\ConfigurationState.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\DeferrableWindowPaneProviderService.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\MultipleValuesStore.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropertyPagePropertyDescriptor.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropertyPageSerializationService.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropertyPageSerializationService_Store.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropPageDesignerDocData.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropPageDesignerEditorFactory.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropPageDesignerLoader.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropPageDesignerRootComponent.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropPageDesignerRootDesigner.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropPageDesignerView.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PropPageDesigner\PropPageDesignerWindowPane.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPages\ChildPageSite.vb" />
+    <Compile Include="PropPages\ControlDataFlags.vb" />
+    <Compile Include="PropPages\HiddenIfMissingPropertyControlData.vb" />
+    <Compile Include="PropPages\ProjectReloadedException.vb" />
+    <Compile Include="PropPages\PropertyControlData.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPages\PropertyListener.vb" />
+    <Compile Include="PropPages\PropertyPageException.vb" />
+    <Compile Include="PropPages\PropPage.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPages\PropPageHostDialog.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PropPages\PropPageUserControlBase.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PropPages\SKUMatrix.vb">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="PropPages\ValidationException.vb" />
+    <Compile Include="PropPages\ValidationResult.vb" />
+    <Compile Include="PropPages\VSThemedLinkLabel.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Resources\Microsoft.VisualStudio.AppDesigner.Designer.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Microsoft.VisualStudio.AppDesigner.Designer.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\Resources.vb" />
+    <Compile Include="VisualStudioEditorsID.vb" />
+    <Compile Include="VSProductSKU.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ApplicationDesigner\ApplicationDesignerView.resx">
+      <DependentUpon>ApplicationDesignerView.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ApplicationDesigner\SpecialFileCustomView.resx">
+      <DependentUpon>SpecialFileCustomView.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PropPageDesigner\PropPageDesignerView.resx">
+      <DependentUpon>PropPageDesignerView.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PropPages\PropPageHostDialog.resx">
+      <DependentUpon>PropPageHostDialog.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PropPages\PropPageUserControlBase.resx">
+      <DependentUpon>PropPageUserControlBase.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Microsoft.VisualStudio.AppDesigner.Designer.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Microsoft.VisualStudio.AppDesigner.Designer.Designer.vb</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(_NTDRIVE)$(_NTROOT)\tools\Microsoft.DevDiv.targets" />
+  <ItemGroup>
+    <Content Include="..\..\..\vscommon\CodeMarkers\CodeMarkerValues.txt">
+      <Link>-Links\CodeMarkerValues.txt</Link>
+    </Content>
+    <EmbeddedResource Include="DesignerFramework\ErrorControl.resx">
+      <DependentUpon>ErrorControl.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ApplicationDesigner\OverflowImage.png">
+      <LogicalName>Microsoft.VisualStudio.Editors.ApplicationDesigner.OverflowImage</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Migrated rules for Microsoft.VisualStudio.AppDesigner %283%29.ruleset" />
+    <None Include="Migrated rules for Microsoft.VisualStudio.AppDesigner %284%29.ruleset" />
+    <None Include="Migrated rules for Microsoft.VisualStudio.AppDesigner %285%29.ruleset" />
+    <None Include="Migrated rules for Microsoft.VisualStudio.AppDesigner %286%29.ruleset" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <PublishPartLinked Include="$(OutputPath)\$(AssemblyName).dll">
+      <FileType>Reference</FileType>
+      <Visibility>Inter</Visibility>
+      <InProject>False</InProject>
+      <DoNotCopyPDB>True</DoNotCopyPDB>
+    </PublishPartLinked>
+  </ItemGroup>
+</Project>

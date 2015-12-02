@@ -1,0 +1,200 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AssemblyOptionDialog_Add_Question" xml:space="preserve">
+    <value>The following My Namespace extensions are associated with assembly '{0}'. Do you want to add them to your project?</value>
+    <comment>Label of the add My extensions dialog.</comment>
+  </data>
+  <data name="AssemblyOptionDialog_Add_Text" xml:space="preserve">
+    <value>Add My Namespace Extensions</value>
+    <comment>Text (caption) of the add My extensions dialog.</comment>
+  </data>
+  <data name="AssemblyOptionDialog_Option" xml:space="preserve">
+    <value>&amp;Remember my decision for '{0}'.</value>
+    <comment>Text for the option on add / remove My extensions dialog.</comment>
+  </data>
+  <data name="AssemblyOptionDialog_Remove_Question" xml:space="preserve">
+    <value>Removing the reference to '{0}' will make the following My Namespace extensions stop functioning. Do you want to remove them as well?</value>
+    <comment>Label of the remove My extensions dialog.</comment>
+  </data>
+  <data name="AssemblyOptionDialog_Remove_Text" xml:space="preserve">
+    <value>Remove My Namespace Extensions</value>
+    <comment>Text (caption) of the remove My extensions dialog.</comment>
+  </data>
+  <data name="CouldNotAddProjectItemTemplate_Message" xml:space="preserve">
+    <value>No project items were added to the current project from My Namespace extension '{0}'. The extension will not be added to the project.</value>
+    <comment>Error message when there is no project items being added to the project from the My Namespace extension template.</comment>
+  </data>
+  <data name="CouldNotAddProjectItemTemplate_Title" xml:space="preserve">
+    <value>Failed to Add Project Item</value>
+    <comment>Text (caption)for the error message when there is no project items being added to the project from the My Namespace extension template.</comment>
+  </data>
+  <data name="CouldNotSetExtensionAttributes_AllItems" xml:space="preserve">
+    <value>No project items could be associated with My Namespace extension '{0}'. The extension will not be added to the project.</value>
+    <comment>Error message when we could not set build attributes on any of the project items in My Namespace extension template.</comment>
+  </data>
+  <data name="CouldNotSetExtensionAttributes_Message" xml:space="preserve">
+    <value>Project item '{0}' was added to the current project but could not be associated with My Namespace extension '{1}'. It will not be removed with the extension.</value>
+    <comment>Error message when we could not set build attributes on one of the project items in My Namespace extension template.</comment>
+  </data>
+  <data name="CouldNotSetExtensionAttributes_Title" xml:space="preserve">
+    <value>Failed to Set Extension Attributes</value>
+    <comment>Text (caption) of the error message when we could not set build attributes on one of or any of the project items in My Namespace extension template.</comment>
+  </data>
+  <data name="ExtensionExists_Message" xml:space="preserve">
+    <value>Version '{0}' of My Namespace extension '{1}' already exists in the current project. Do you want to overwrite it with version '{2}'?</value>
+    <comment>Question to replace an existing My extension in the project.</comment>
+  </data>
+  <data name="ExtensionExists_Title" xml:space="preserve">
+    <value>Extension File Already Exists</value>
+    <comment>Title (caption) for the question to replace an existing My extension in the project.</comment>
+  </data>
+  <data name="PropertyPageTab" xml:space="preserve">
+    <value>My Extensions</value>
+    <comment>Caption for "My Extensions" property page.</comment>
+  </data>
+  <data name="StatusBar_Add_Finish" xml:space="preserve">
+    <value>My Namespace extensions added: '{0}'.</value>
+    <comment>Status bar text listing all My extension templates added.</comment>
+  </data>
+  <data name="StatusBar_Add_Progress" xml:space="preserve">
+    <value>My Namespace extension added: '{0}'.</value>
+    <comment>Status bar text for each My extension template added.</comment>
+  </data>
+  <data name="StatusBar_Add_Remove_Finish" xml:space="preserve">
+    <value>My Namespace extensions added: '{0}'. My Namespace extensions removed: '{1}'.</value>
+    <comment>Status bar text listing all My extensions added and removed to a project. This is a rare case but may happen if user adds / removes assemblies real fast.</comment>
+  </data>
+  <data name="StatusBar_Add_Start" xml:space="preserve">
+    <value>Adding My Namespace extensions...</value>
+    <comment>Status bar text when starting to add My extension templates.</comment>
+  </data>
+  <data name="StatusBar_Remove_Finish" xml:space="preserve">
+    <value>My Namespace extensions removed: '{0}'.</value>
+    <comment>Status bar text listing all My extension code files removed.</comment>
+  </data>
+  <data name="StatusBar_Remove_Progress" xml:space="preserve">
+    <value>My Namespace extension removed: '{0}'.</value>
+    <comment>Status bar text for each My extension code file removed.</comment>
+  </data>
+  <data name="StatusBar_Remove_Start" xml:space="preserve">
+    <value>Removing My Namespace extensions...</value>
+    <comment>Status bar text when starting to remove My extensions.</comment>
+  </data>
+</root>

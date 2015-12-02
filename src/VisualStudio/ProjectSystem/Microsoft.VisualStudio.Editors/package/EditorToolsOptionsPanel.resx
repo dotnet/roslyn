@@ -1,0 +1,579 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="IndentingLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="IndentingLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="_indentTypeLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_indentTypeLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="_indentTypeLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 3</value>
+  </data>
+  <data name="_indentTypeLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>59, 13</value>
+  </data>
+  <data name="_indentTypeLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="_indentTypeLabel.Text">
+    <value xml:space="preserve">Indent type:</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeLabel.Name">
+    <value xml:space="preserve">_indentTypeLabel</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeLabel.Parent">
+    <value xml:space="preserve">IndentingLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeLabel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="_indentTypeNoneRadioButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_indentTypeNoneRadioButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="_indentTypeNoneRadioButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>68, 1</value>
+  </data>
+  <data name="_indentTypeNoneRadioButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>47, 17</value>
+  </data>
+  <data name="_indentTypeNoneRadioButton.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="_indentTypeNoneRadioButton.Text">
+    <value xml:space="preserve">&amp;None</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeNoneRadioButton.Name">
+    <value xml:space="preserve">_indentTypeNoneRadioButton</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeNoneRadioButton.Type">
+    <value xml:space="preserve">System.Windows.Forms.RadioButton, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeNoneRadioButton.Parent">
+    <value xml:space="preserve">IndentingLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeNoneRadioButton.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="_indentTypeBlockRadioButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_indentTypeBlockRadioButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="_indentTypeBlockRadioButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>68, 20</value>
+  </data>
+  <data name="_indentTypeBlockRadioButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>48, 17</value>
+  </data>
+  <data name="_indentTypeBlockRadioButton.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="_indentTypeBlockRadioButton.Text">
+    <value xml:space="preserve">&amp;Block</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeBlockRadioButton.Name">
+    <value xml:space="preserve">_indentTypeBlockRadioButton</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeBlockRadioButton.Type">
+    <value xml:space="preserve">System.Windows.Forms.RadioButton, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeBlockRadioButton.Parent">
+    <value xml:space="preserve">IndentingLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeBlockRadioButton.ZOrder">
+    <value xml:space="preserve">2</value>
+  </data>
+  <data name="_indentTypeSmartRadioButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_indentTypeSmartRadioButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="_indentTypeSmartRadioButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>68, 39</value>
+  </data>
+  <data name="_indentTypeSmartRadioButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>48, 17</value>
+  </data>
+  <data name="_indentTypeSmartRadioButton.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="_indentTypeSmartRadioButton.Text">
+    <value xml:space="preserve">&amp;Smart</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeSmartRadioButton.Name">
+    <value xml:space="preserve">_indentTypeSmartRadioButton</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeSmartRadioButton.Type">
+    <value xml:space="preserve">System.Windows.Forms.RadioButton, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeSmartRadioButton.Parent">
+    <value xml:space="preserve">IndentingLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_indentTypeSmartRadioButton.ZOrder">
+    <value xml:space="preserve">3</value>
+  </data>
+  <data name="_tabSizeLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_tabSizeLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="_tabSizeLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 65</value>
+  </data>
+  <data name="_tabSizeLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>46, 13</value>
+  </data>
+  <data name="_tabSizeLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="_tabSizeLabel.Text">
+    <value xml:space="preserve">&amp;Tab size:</value>
+  </data>
+  <data name="&gt;&gt;_tabSizeLabel.Name">
+    <value xml:space="preserve">_tabSizeLabel</value>
+  </data>
+  <data name="&gt;&gt;_tabSizeLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_tabSizeLabel.Parent">
+    <value xml:space="preserve">IndentingLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_tabSizeLabel.ZOrder">
+    <value xml:space="preserve">4</value>
+  </data>
+  <data name="_tabSizeTextBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_tabSizeTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>68, 63</value>
+  </data>
+  <data name="_tabSizeTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>58, 20</value>
+  </data>
+  <data name="_tabSizeTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;_tabSizeTextBox.Name">
+    <value xml:space="preserve">_tabSizeTextBox</value>
+  </data>
+  <data name="&gt;&gt;_tabSizeTextBox.Type">
+    <value xml:space="preserve">System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_tabSizeTextBox.Parent">
+    <value xml:space="preserve">IndentingLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_tabSizeTextBox.ZOrder">
+    <value xml:space="preserve">5</value>
+  </data>
+  <data name="_indentSizeLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_indentSizeLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="_indentSizeLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 94</value>
+  </data>
+  <data name="_indentSizeLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>57, 13</value>
+  </data>
+  <data name="_indentSizeLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="_indentSizeLabel.Text">
+    <value xml:space="preserve">&amp;Indent size:</value>
+  </data>
+  <data name="&gt;&gt;_indentSizeLabel.Name">
+    <value xml:space="preserve">_indentSizeLabel</value>
+  </data>
+  <data name="&gt;&gt;_indentSizeLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_indentSizeLabel.Parent">
+    <value xml:space="preserve">IndentingLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_indentSizeLabel.ZOrder">
+    <value xml:space="preserve">6</value>
+  </data>
+  <data name="_indentSizeTextBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_indentSizeTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>68, 92</value>
+  </data>
+  <data name="_indentSizeTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>59, 20</value>
+  </data>
+  <data name="_indentSizeTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;_indentSizeTextBox.Name">
+    <value xml:space="preserve">_indentSizeTextBox</value>
+  </data>
+  <data name="&gt;&gt;_indentSizeTextBox.Type">
+    <value xml:space="preserve">System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_indentSizeTextBox.Parent">
+    <value xml:space="preserve">IndentingLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_indentSizeTextBox.ZOrder">
+    <value xml:space="preserve">7</value>
+  </data>
+  <data name="IndentingLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>10, 14</value>
+  </data>
+  <data name="IndentingLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="IndentingLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>130, 115</value>
+  </data>
+  <data name="IndentingLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;IndentingLayoutPanel.Name">
+    <value xml:space="preserve">IndentingLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;IndentingLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;IndentingLayoutPanel.Parent">
+    <value xml:space="preserve">IndentingGroupBox</value>
+  </data>
+  <data name="&gt;&gt;IndentingLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="IndentingLayoutPanel.LayoutSettings">
+    <value xml:space="preserve">&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="_indentTypeLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="_indentTypeNoneRadioButton" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="_indentTypeBlockRadioButton" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="_indentTypeSmartRadioButton" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="_tabSizeLabel" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="_tabSizeTextBox" Row="3" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="_indentSizeLabel" Row="4" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="_indentSizeTextBox" Row="4" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0,Absolute,20,Absolute,20" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="_wordWrapCheckBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_wordWrapCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="_wordWrapCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 1</value>
+  </data>
+  <data name="_wordWrapCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>74, 17</value>
+  </data>
+  <data name="_wordWrapCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="_wordWrapCheckBox.Text">
+    <value xml:space="preserve">&amp;Word wrap</value>
+  </data>
+  <data name="&gt;&gt;_wordWrapCheckBox.Name">
+    <value xml:space="preserve">_wordWrapCheckBox</value>
+  </data>
+  <data name="&gt;&gt;_wordWrapCheckBox.Type">
+    <value xml:space="preserve">System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_wordWrapCheckBox.Parent">
+    <value xml:space="preserve">InteractionTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_wordWrapCheckBox.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="_lineNumbersCheckBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="_lineNumbersCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="_lineNumbersCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 20</value>
+  </data>
+  <data name="_lineNumbersCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>85, 17</value>
+  </data>
+  <data name="_lineNumbersCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="_lineNumbersCheckBox.Text">
+    <value xml:space="preserve">Line n&amp;umbers</value>
+  </data>
+  <data name="&gt;&gt;_lineNumbersCheckBox.Name">
+    <value xml:space="preserve">_lineNumbersCheckBox</value>
+  </data>
+  <data name="&gt;&gt;_lineNumbersCheckBox.Type">
+    <value xml:space="preserve">System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;_lineNumbersCheckBox.Parent">
+    <value xml:space="preserve">InteractionTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;_lineNumbersCheckBox.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="IndentingTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="IndentingGroupBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="IndentingGroupBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="IndentingGroupBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 3</value>
+  </data>
+  <data name="IndentingGroupBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>389, 137</value>
+  </data>
+  <data name="IndentingGroupBox.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="IndentingGroupBox.Text">
+    <value xml:space="preserve">Indenting</value>
+  </data>
+  <data name="&gt;&gt;IndentingGroupBox.Name">
+    <value xml:space="preserve">IndentingGroupBox</value>
+  </data>
+  <data name="&gt;&gt;IndentingGroupBox.Type">
+    <value xml:space="preserve">System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;IndentingGroupBox.Parent">
+    <value xml:space="preserve">IndentingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;IndentingGroupBox.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="InteractionGroupBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="InteractionGroupBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="InteractionTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="InteractionTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="InteractionTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>10, 14</value>
+  </data>
+  <data name="InteractionTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="InteractionTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>91, 38</value>
+  </data>
+  <data name="InteractionTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;InteractionTableLayoutPanel.Name">
+    <value xml:space="preserve">InteractionTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;InteractionTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;InteractionTableLayoutPanel.Parent">
+    <value xml:space="preserve">InteractionGroupBox</value>
+  </data>
+  <data name="&gt;&gt;InteractionTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="InteractionTableLayoutPanel.LayoutSettings">
+    <value xml:space="preserve">&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="_wordWrapCheckBox" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="_lineNumbersCheckBox" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,50" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="InteractionGroupBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 146</value>
+  </data>
+  <data name="InteractionGroupBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>389, 62</value>
+  </data>
+  <data name="InteractionGroupBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="InteractionGroupBox.Text">
+    <value xml:space="preserve">Interaction</value>
+  </data>
+  <data name="&gt;&gt;InteractionGroupBox.Name">
+    <value xml:space="preserve">InteractionGroupBox</value>
+  </data>
+  <data name="&gt;&gt;InteractionGroupBox.Type">
+    <value xml:space="preserve">System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;InteractionGroupBox.Parent">
+    <value xml:space="preserve">IndentingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;InteractionGroupBox.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="IndentingTableLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="IndentingTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="IndentingTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="IndentingTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>395, 289</value>
+  </data>
+  <data name="IndentingTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;IndentingTableLayoutPanel.Name">
+    <value xml:space="preserve">IndentingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;IndentingTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;IndentingTableLayoutPanel.Parent">
+    <value xml:space="preserve">$this</value>
+  </data>
+  <data name="&gt;&gt;IndentingTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="IndentingTableLayoutPanel.LayoutSettings">
+    <value xml:space="preserve">&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="IndentingGroupBox" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="InteractionGroupBox" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,50" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>395, 289</value>
+  </data>
+  <data name="&gt;&gt;$this.Name">
+    <value xml:space="preserve">EditorToolsOptionsPanel</value>
+  </data>
+  <data name="&gt;&gt;$this.Type">
+    <value xml:space="preserve">System.Windows.Forms.UserControl, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+</root>

@@ -1,0 +1,489 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="lblPreBuildEventCommandLine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="lblPreBuildEventCommandLine.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lblPreBuildEventCommandLine.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="lblPreBuildEventCommandLine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="lblPreBuildEventCommandLine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="lblPreBuildEventCommandLine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>220, 20</value>
+  </data>
+  <data name="lblPreBuildEventCommandLine.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="lblPreBuildEventCommandLine.Text" xml:space="preserve">
+    <value>P&amp;re-build event command line:</value>
+  </data>
+  <data name="&gt;&gt;lblPreBuildEventCommandLine.Name" xml:space="preserve">
+    <value>lblPreBuildEventCommandLine</value>
+  </data>
+  <data name="&gt;&gt;lblPreBuildEventCommandLine.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lblPreBuildEventCommandLine.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;lblPreBuildEventCommandLine.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="txtPreBuildEventCommandLine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Bottom, Left, Right</value>
+  </data>
+  <data name="txtPreBuildEventCommandLine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 23</value>
+  </data>
+  <data name="txtPreBuildEventCommandLine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 4</value>
+  </data>
+  <data name="txtPreBuildEventCommandLine.Multiline" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="txtPreBuildEventCommandLine.ScrollBars" type="System.Windows.Forms.ScrollBars, System.Windows.Forms">
+    <value>Both</value>
+  </data>
+  <data name="txtPreBuildEventCommandLine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>538, 116</value>
+  </data>
+  <data name="txtPreBuildEventCommandLine.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="txtPreBuildEventCommandLine.WordWrap" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;txtPreBuildEventCommandLine.Name" xml:space="preserve">
+    <value>txtPreBuildEventCommandLine</value>
+  </data>
+  <data name="&gt;&gt;txtPreBuildEventCommandLine.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;txtPreBuildEventCommandLine.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;txtPreBuildEventCommandLine.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="btnPreBuildBuilder.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Right</value>
+  </data>
+  <data name="btnPreBuildBuilder.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="btnPreBuildBuilder.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="btnPreBuildBuilder.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="btnPreBuildBuilder.Location" type="System.Drawing.Point, System.Drawing">
+    <value>379, 147</value>
+  </data>
+  <data name="btnPreBuildBuilder.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 4, 0, 4</value>
+  </data>
+  <data name="btnPreBuildBuilder.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>15, 0, 15, 0</value>
+  </data>
+  <data name="btnPreBuildBuilder.Size" type="System.Drawing.Size, System.Drawing">
+    <value>159, 30</value>
+  </data>
+  <data name="btnPreBuildBuilder.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="btnPreBuildBuilder.Text" xml:space="preserve">
+    <value>Ed&amp;it Pre-build ...</value>
+  </data>
+  <data name="&gt;&gt;btnPreBuildBuilder.Name" xml:space="preserve">
+    <value>btnPreBuildBuilder</value>
+  </data>
+  <data name="&gt;&gt;btnPreBuildBuilder.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnPreBuildBuilder.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;btnPreBuildBuilder.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="lblPostBuildEventCommandLine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="lblPostBuildEventCommandLine.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lblPostBuildEventCommandLine.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="lblPostBuildEventCommandLine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 185</value>
+  </data>
+  <data name="lblPostBuildEventCommandLine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 4, 0, 0</value>
+  </data>
+  <data name="lblPostBuildEventCommandLine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>228, 20</value>
+  </data>
+  <data name="lblPostBuildEventCommandLine.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="lblPostBuildEventCommandLine.Text" xml:space="preserve">
+    <value>P&amp;ost-build event command line:</value>
+  </data>
+  <data name="&gt;&gt;lblPostBuildEventCommandLine.Name" xml:space="preserve">
+    <value>lblPostBuildEventCommandLine</value>
+  </data>
+  <data name="&gt;&gt;lblPostBuildEventCommandLine.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lblPostBuildEventCommandLine.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;lblPostBuildEventCommandLine.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="txtPostBuildEventCommandLine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Bottom, Left, Right</value>
+  </data>
+  <data name="txtPostBuildEventCommandLine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 208</value>
+  </data>
+  <data name="txtPostBuildEventCommandLine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 4</value>
+  </data>
+  <data name="txtPostBuildEventCommandLine.Multiline" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="txtPostBuildEventCommandLine.ScrollBars" type="System.Windows.Forms.ScrollBars, System.Windows.Forms">
+    <value>Both</value>
+  </data>
+  <data name="txtPostBuildEventCommandLine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>538, 116</value>
+  </data>
+  <data name="txtPostBuildEventCommandLine.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="txtPostBuildEventCommandLine.WordWrap" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;txtPostBuildEventCommandLine.Name" xml:space="preserve">
+    <value>txtPostBuildEventCommandLine</value>
+  </data>
+  <data name="&gt;&gt;txtPostBuildEventCommandLine.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;txtPostBuildEventCommandLine.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;txtPostBuildEventCommandLine.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="btnPostBuildBuilder.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Right</value>
+  </data>
+  <data name="btnPostBuildBuilder.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="btnPostBuildBuilder.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="btnPostBuildBuilder.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="btnPostBuildBuilder.Location" type="System.Drawing.Point, System.Drawing">
+    <value>371, 332</value>
+  </data>
+  <data name="btnPostBuildBuilder.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 4, 0, 4</value>
+  </data>
+  <data name="btnPostBuildBuilder.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>15, 0, 15, 0</value>
+  </data>
+  <data name="btnPostBuildBuilder.Size" type="System.Drawing.Size, System.Drawing">
+    <value>167, 30</value>
+  </data>
+  <data name="btnPostBuildBuilder.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="btnPostBuildBuilder.Text" xml:space="preserve">
+    <value>Edit Post-b&amp;uild ...</value>
+  </data>
+  <data name="&gt;&gt;btnPostBuildBuilder.Name" xml:space="preserve">
+    <value>btnPostBuildBuilder</value>
+  </data>
+  <data name="&gt;&gt;btnPostBuildBuilder.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnPostBuildBuilder.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;btnPostBuildBuilder.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="lblRunPostBuildEvent.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="lblRunPostBuildEvent.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lblRunPostBuildEvent.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="lblRunPostBuildEvent.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 370</value>
+  </data>
+  <data name="lblRunPostBuildEvent.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 4, 0, 0</value>
+  </data>
+  <data name="lblRunPostBuildEvent.Size" type="System.Drawing.Size, System.Drawing">
+    <value>186, 20</value>
+  </data>
+  <data name="lblRunPostBuildEvent.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="lblRunPostBuildEvent.Text" xml:space="preserve">
+    <value>Ru&amp;n the post-build event:</value>
+  </data>
+  <data name="&gt;&gt;lblRunPostBuildEvent.Name" xml:space="preserve">
+    <value>lblRunPostBuildEvent</value>
+  </data>
+  <data name="&gt;&gt;lblRunPostBuildEvent.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lblRunPostBuildEvent.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;lblRunPostBuildEvent.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="cboRunPostBuildEvent.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="cboRunPostBuildEvent.Items" xml:space="preserve">
+    <value>Always</value>
+  </data>
+  <data name="cboRunPostBuildEvent.Items1" xml:space="preserve">
+    <value>On successful build</value>
+  </data>
+  <data name="cboRunPostBuildEvent.Items2" xml:space="preserve">
+    <value>When the build updates the project output</value>
+  </data>
+  <data name="cboRunPostBuildEvent.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 393</value>
+  </data>
+  <data name="cboRunPostBuildEvent.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 10</value>
+  </data>
+  <data name="cboRunPostBuildEvent.Size" type="System.Drawing.Size, System.Drawing">
+    <value>538, 28</value>
+  </data>
+  <data name="cboRunPostBuildEvent.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;cboRunPostBuildEvent.Name" xml:space="preserve">
+    <value>cboRunPostBuildEvent</value>
+  </data>
+  <data name="&gt;&gt;cboRunPostBuildEvent.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cboRunPostBuildEvent.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;cboRunPostBuildEvent.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>538, 431</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Name" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="lblPreBuildEventCommandLine" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="txtPostBuildEventCommandLine" Row="4" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="cboRunPostBuildEvent" Row="7" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="txtPreBuildEventCommandLine" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="lblRunPostBuildEvent" Row="6" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="lblPostBuildEventCommandLine" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="btnPostBuildBuilder" Row="5" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="btnPreBuildBuilder" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,100" /&gt;&lt;Rows Styles="AutoSize,0,Percent,50,AutoSize,0,AutoSize,0,Percent,50,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>9, 20</value>
+  </data>
+  <data name="$this.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="$this.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="$this.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
+  </data>
+  <data name="$this.MinimumSize" type="System.Drawing.Size, System.Drawing">
+    <value>538, 398</value>
+  </data>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>538, 431</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>BuildEventsPropPage</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>Microsoft.VisualStudio.Editors.PropertyPages.PropPageUserControlBase, Microsoft.VisualStudio.AppDesigner, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+</root>

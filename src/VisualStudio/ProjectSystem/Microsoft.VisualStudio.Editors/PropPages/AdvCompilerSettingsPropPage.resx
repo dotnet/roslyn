@@ -1,0 +1,879 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="OptimizationsLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="OptimizationsLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="OptimizationsLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="OptimizationsLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="OptimizationsLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>69, 13</value>
+  </data>
+  <data name="OptimizationsLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="OptimizationsLabel.Text" xml:space="preserve">
+    <value>Optimizations</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsLabel.Name" xml:space="preserve">
+    <value>OptimizationsLabel</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsLabel.Parent" xml:space="preserve">
+    <value>optimizationTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsLabel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="RemoveIntegerChecks.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="RemoveIntegerChecks.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="RemoveIntegerChecks.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 22</value>
+  </data>
+  <data name="RemoveIntegerChecks.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 9, 3, 3</value>
+  </data>
+  <data name="RemoveIntegerChecks.Size" type="System.Drawing.Size, System.Drawing">
+    <value>182, 17</value>
+  </data>
+  <data name="RemoveIntegerChecks.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="RemoveIntegerChecks.Text" xml:space="preserve">
+    <value>&amp;Remove integer overflow checks</value>
+  </data>
+  <data name="&gt;&gt;RemoveIntegerChecks.Name" xml:space="preserve">
+    <value>RemoveIntegerChecks</value>
+  </data>
+  <data name="&gt;&gt;RemoveIntegerChecks.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RemoveIntegerChecks.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;RemoveIntegerChecks.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="Optimize.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="Optimize.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="Optimize.Location" type="System.Drawing.Point, System.Drawing">
+    <value>213, 22</value>
+  </data>
+  <data name="Optimize.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 9, 3, 3</value>
+  </data>
+  <data name="Optimize.Size" type="System.Drawing.Size, System.Drawing">
+    <value>122, 17</value>
+  </data>
+  <data name="Optimize.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="Optimize.Text" xml:space="preserve">
+    <value>&amp;Enable optimizations</value>
+  </data>
+  <data name="&gt;&gt;Optimize.Name" xml:space="preserve">
+    <value>Optimize</value>
+  </data>
+  <data name="&gt;&gt;Optimize.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Optimize.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;Optimize.ZOrder" xml:space="preserve">
+    <value>17</value>
+  </data>
+  <data name="DllBaseLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="DllBaseLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="DllBaseLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 50</value>
+  </data>
+  <data name="DllBaseLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 3, 3, 0</value>
+  </data>
+  <data name="DllBaseLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>96, 13</value>
+  </data>
+  <data name="DllBaseLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="DllBaseLabel.Text" xml:space="preserve">
+    <value>DLL &amp;base address:</value>
+  </data>
+  <data name="&gt;&gt;DllBaseLabel.Name" xml:space="preserve">
+    <value>DllBaseLabel</value>
+  </data>
+  <data name="&gt;&gt;DllBaseLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;DllBaseLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;DllBaseLabel.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="DllBaseTextbox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="DllBaseTextbox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>213, 45</value>
+  </data>
+  <data name="DllBaseTextbox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 3, 0, 3</value>
+  </data>
+  <data name="DllBaseTextbox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>310, 20</value>
+  </data>
+  <data name="DllBaseTextbox.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;DllBaseTextbox.Name" xml:space="preserve">
+    <value>DllBaseTextbox</value>
+  </data>
+  <data name="&gt;&gt;DllBaseTextbox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;DllBaseTextbox.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;DllBaseTextbox.ZOrder" xml:space="preserve">
+    <value>18</value>
+  </data>
+  <data name="DefineDebug.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="DefineDebug.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="DefineDebug.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 128</value>
+  </data>
+  <data name="DefineDebug.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 6, 3, 3</value>
+  </data>
+  <data name="DefineDebug.Size" type="System.Drawing.Size, System.Drawing">
+    <value>142, 17</value>
+  </data>
+  <data name="DefineDebug.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="DefineDebug.Text" xml:space="preserve">
+    <value>Define &amp;DEBUG constant</value>
+  </data>
+  <data name="&gt;&gt;DefineDebug.Name" xml:space="preserve">
+    <value>DefineDebug</value>
+  </data>
+  <data name="&gt;&gt;DefineDebug.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;DefineDebug.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;DefineDebug.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="DefineTrace.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="DefineTrace.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="DefineTrace.Location" type="System.Drawing.Point, System.Drawing">
+    <value>213, 128</value>
+  </data>
+  <data name="DefineTrace.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 6, 3, 3</value>
+  </data>
+  <data name="DefineTrace.Size" type="System.Drawing.Size, System.Drawing">
+    <value>140, 17</value>
+  </data>
+  <data name="DefineTrace.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="DefineTrace.Text" xml:space="preserve">
+    <value>Define &amp;TRACE constant</value>
+  </data>
+  <data name="&gt;&gt;DefineTrace.Name" xml:space="preserve">
+    <value>DefineTrace</value>
+  </data>
+  <data name="&gt;&gt;DefineTrace.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;DefineTrace.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;DefineTrace.ZOrder" xml:space="preserve">
+    <value>16</value>
+  </data>
+  <data name="CustomConstantsExampleLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="CustomConstantsExampleLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="GenerateSerializationAssemblyComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="GenerateSerializationAssemblyComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 230</value>
+  </data>
+  <data name="GenerateSerializationAssemblyComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 3, 0, 3</value>
+  </data>
+  <data name="GenerateSerializationAssemblyComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>509, 21</value>
+  </data>
+  <data name="GenerateSerializationAssemblyComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="&gt;&gt;GenerateSerializationAssemblyComboBox.Name" xml:space="preserve">
+    <value>GenerateSerializationAssemblyComboBox</value>
+  </data>
+  <data name="&gt;&gt;GenerateSerializationAssemblyComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;GenerateSerializationAssemblyComboBox.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;GenerateSerializationAssemblyComboBox.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="DefineConstantsTextbox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="DefineConstantsTextbox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 167</value>
+  </data>
+  <data name="DefineConstantsTextbox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 3, 0, 3</value>
+  </data>
+  <data name="DefineConstantsTextbox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>509, 20</value>
+  </data>
+  <data name="DefineConstantsTextbox.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="&gt;&gt;DefineConstantsTextbox.Name" xml:space="preserve">
+    <value>DefineConstantsTextbox</value>
+  </data>
+  <data name="&gt;&gt;DefineConstantsTextbox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;DefineConstantsTextbox.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;DefineConstantsTextbox.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="GenerateSerializationAssembliesLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="GenerateSerializationAssembliesLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="GenerateSerializationAssembliesLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 212</value>
+  </data>
+  <data name="GenerateSerializationAssembliesLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 3, 3, 2</value>
+  </data>
+  <data name="GenerateSerializationAssembliesLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>165, 13</value>
+  </data>
+  <data name="GenerateSerializationAssembliesLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="GenerateSerializationAssembliesLabel.Text" xml:space="preserve">
+    <value>Generate &amp;serialization assemblies:</value>
+  </data>
+  <data name="&gt;&gt;GenerateSerializationAssembliesLabel.Name" xml:space="preserve">
+    <value>GenerateSerializationAssembliesLabel</value>
+  </data>
+  <data name="&gt;&gt;GenerateSerializationAssembliesLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;GenerateSerializationAssembliesLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;GenerateSerializationAssembliesLabel.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="CustomConstantsLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="CustomConstantsLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="CustomConstantsLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 151</value>
+  </data>
+  <data name="CustomConstantsLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 3, 3, 0</value>
+  </data>
+  <data name="CustomConstantsLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>94, 13</value>
+  </data>
+  <data name="CustomConstantsLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="CustomConstantsLabel.Text" xml:space="preserve">
+    <value>&amp;Custom constants:</value>
+  </data>
+  <data name="&gt;&gt;CustomConstantsLabel.Name" xml:space="preserve">
+    <value>CustomConstantsLabel</value>
+  </data>
+  <data name="&gt;&gt;CustomConstantsLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CustomConstantsLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CustomConstantsLabel.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="compilationConstantsTableLayoutPanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="compilationConstantsTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="compilationConstantsTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;CompilationConstantsLabel.Name" xml:space="preserve">
+    <value>CompilationConstantsLabel</value>
+  </data>
+  <data name="&gt;&gt;CompilationConstantsLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CompilationConstantsLabel.Parent" xml:space="preserve">
+    <value>compilationConstantsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CompilationConstantsLabel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;ConstantsSeparatorLabel.Name" xml:space="preserve">
+    <value>ConstantsSeparatorLabel</value>
+  </data>
+  <data name="&gt;&gt;ConstantsSeparatorLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ConstantsSeparatorLabel.Parent" xml:space="preserve">
+    <value>compilationConstantsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ConstantsSeparatorLabel.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="compilationConstantsTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 106</value>
+  </data>
+  <data name="compilationConstantsTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 14, 0, 3</value>
+  </data>
+  <data name="compilationConstantsTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="compilationConstantsTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>523, 13</value>
+  </data>
+  <data name="compilationConstantsTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;compilationConstantsTableLayoutPanel.Name" xml:space="preserve">
+    <value>compilationConstantsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;compilationConstantsTableLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;compilationConstantsTableLayoutPanel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;compilationConstantsTableLayoutPanel.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="compilationConstantsTableLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="CompilationConstantsLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="ConstantsSeparatorLabel" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,Percent,100" /&gt;&lt;Rows Styles="AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="optimizationTableLayoutPanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="optimizationTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="optimizationTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsSeparatorLabel.Name" xml:space="preserve">
+    <value>OptimizationsSeparatorLabel</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsSeparatorLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsSeparatorLabel.Parent" xml:space="preserve">
+    <value>optimizationTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsSeparatorLabel.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="optimizationTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="optimizationTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="optimizationTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="optimizationTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>523, 13</value>
+  </data>
+  <data name="optimizationTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;optimizationTableLayoutPanel.Name" xml:space="preserve">
+    <value>optimizationTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;optimizationTableLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;optimizationTableLayoutPanel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;optimizationTableLayoutPanel.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="optimizationTableLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="OptimizationsLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="OptimizationsSeparatorLabel" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,Percent,100" /&gt;&lt;Rows Styles="AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="GenerateDebugInfoLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="GenerateDebugInfoLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="GenerateDebugInfoLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 75</value>
+  </data>
+  <data name="GenerateDebugInfoLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 3, 0, 0</value>
+  </data>
+  <data name="GenerateDebugInfoLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>107, 13</value>
+  </data>
+  <data name="GenerateDebugInfoLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="GenerateDebugInfoLabel.Text" xml:space="preserve">
+    <value>&amp;Generate debug info:</value>
+  </data>
+  <data name="&gt;&gt;GenerateDebugInfoLabel.Name" xml:space="preserve">
+    <value>GenerateDebugInfoLabel</value>
+  </data>
+  <data name="&gt;&gt;GenerateDebugInfoLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;GenerateDebugInfoLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;GenerateDebugInfoLabel.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="DebugInfoComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="DebugInfoComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>213, 71</value>
+  </data>
+  <data name="DebugInfoComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 3, 0, 0</value>
+  </data>
+  <data name="DebugInfoComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>310, 21</value>
+  </data>
+  <data name="DebugInfoComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;DebugInfoComboBox.Name" xml:space="preserve">
+    <value>DebugInfoComboBox</value>
+  </data>
+  <data name="&gt;&gt;DebugInfoComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;DebugInfoComboBox.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;DebugInfoComboBox.ZOrder" xml:space="preserve">
+    <value>15</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>523, 258</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Name" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="CustomConstantsExampleLabel" Row="8" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="GenerateSerializationAssemblyComboBox" Row="10" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="DefineConstantsTextbox" Row="7" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="GenerateSerializationAssembliesLabel" Row="9" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="CustomConstantsLabel" Row="6" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="compilationConstantsTableLayoutPanel" Row="4" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="DllBaseLabel" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="optimizationTableLayoutPanel" Row="0" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="RemoveIntegerChecks" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="DefineDebug" Row="5" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="GenerateDebugInfoLabel" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="DebugInfoComboBox" Row="3" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="DefineTrace" Row="5" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="Optimize" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="DllBaseTextbox" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="CustomConstantsExampleLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 193</value>
+  </data>
+  <data name="CustomConstantsExampleLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 3, 3, 3</value>
+  </data>
+  <data name="CustomConstantsExampleLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>308, 13</value>
+  </data>
+  <data name="CustomConstantsExampleLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="CustomConstantsExampleLabel.Text" xml:space="preserve">
+    <value>Example: Name1="Value1",Name2="Value2",Name3="Value3"</value>
+  </data>
+  <data name="&gt;&gt;CustomConstantsExampleLabel.Name" xml:space="preserve">
+    <value>CustomConstantsExampleLabel</value>
+  </data>
+  <data name="&gt;&gt;CustomConstantsExampleLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CustomConstantsExampleLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CustomConstantsExampleLabel.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="OptimizationsSeparatorLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="OptimizationsSeparatorLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>75, 6</value>
+  </data>
+  <data name="OptimizationsSeparatorLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 0, 0</value>
+  </data>
+  <data name="OptimizationsSeparatorLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>448, 1</value>
+  </data>
+  <data name="OptimizationsSeparatorLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsSeparatorLabel.Name" xml:space="preserve">
+    <value>OptimizationsSeparatorLabel</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsSeparatorLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsSeparatorLabel.Parent" xml:space="preserve">
+    <value>optimizationTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptimizationsSeparatorLabel.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="CompilationConstantsLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="CompilationConstantsLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="CompilationConstantsLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="CompilationConstantsLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="CompilationConstantsLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="CompilationConstantsLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>111, 13</value>
+  </data>
+  <data name="CompilationConstantsLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="CompilationConstantsLabel.Text" xml:space="preserve">
+    <value>Compilation Constants</value>
+  </data>
+  <data name="&gt;&gt;CompilationConstantsLabel.Name" xml:space="preserve">
+    <value>CompilationConstantsLabel</value>
+  </data>
+  <data name="&gt;&gt;CompilationConstantsLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CompilationConstantsLabel.Parent" xml:space="preserve">
+    <value>compilationConstantsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CompilationConstantsLabel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="ConstantsSeparatorLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="ConstantsSeparatorLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>117, 6</value>
+  </data>
+  <data name="ConstantsSeparatorLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 0, 0</value>
+  </data>
+  <data name="ConstantsSeparatorLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>406, 1</value>
+  </data>
+  <data name="ConstantsSeparatorLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;ConstantsSeparatorLabel.Name" xml:space="preserve">
+    <value>ConstantsSeparatorLabel</value>
+  </data>
+  <data name="&gt;&gt;ConstantsSeparatorLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ConstantsSeparatorLabel.Parent" xml:space="preserve">
+    <value>compilationConstantsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ConstantsSeparatorLabel.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 13</value>
+  </data>
+  <data name="$this.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="$this.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>523, 258</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>AdvCompilerSettingsPropPage</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.UserControl, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+<data name="CompileWithDotNetNative.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="CompileWithDotNetNative.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="CompileWithDotNetNative.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 9, 3, 3</value>
+  </data>
+  <data name="CompileWithDotNetNative.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="CompileWithDotNetNative.Text" xml:space="preserve">
+    <value>Compile with .NET Native toolchain</value>
+  </data>
+  <data name="&gt;&gt;CompileWithDotNetNative.Name" xml:space="preserve">
+    <value>CompileWithDotNetNative</value>
+  </data>
+  <data name="&gt;&gt;CompileWithDotNetNative.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CompileWithDotNetNative.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CompileWithDotNetNative.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+<data name="EnableGatekeeperAudit.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="EnableGatekeeperAudit.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="EnableGatekeeperAudit.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 9, 3, 3</value>
+  </data>
+  <data name="EnableGatekeeperAudit.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="EnableGatekeeperAudit.Text" xml:space="preserve">
+    <value>Enable static analysis for .NET Native</value>
+  </data>
+  <data name="&gt;&gt;EnableGatekeeperAudit.Name" xml:space="preserve">
+    <value>EnableGatekeeperAudit</value>
+  </data>
+  <data name="&gt;&gt;EnableGatekeeperAudit.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;EnableGatekeeperAudit.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;EnableGatekeeperAudit.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+</root>

@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="ConfigurationComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="ConfigurationComboBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="ConfigurationComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>78, 3</value>
+  </data>
+  <data name="ConfigurationComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>159, 21</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="ConfigurationComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationComboBox.Name">
+    <value xml:space="preserve">ConfigurationComboBox</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationComboBox.Type">
+    <value xml:space="preserve">System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationComboBox.Parent">
+    <value xml:space="preserve">ConfigurationTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationComboBox.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="PlatformLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="PlatformLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="PlatformLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 7</value>
+  </data>
+  <data name="PlatformLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="PlatformLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>48, 13</value>
+  </data>
+  <data name="PlatformLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="PlatformLabel.Text">
+    <value xml:space="preserve">Platfor&amp;m:</value>
+  </data>
+  <data name="&gt;&gt;PlatformLabel.Name">
+    <value xml:space="preserve">PlatformLabel</value>
+  </data>
+  <data name="&gt;&gt;PlatformLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;PlatformLabel.Parent">
+    <value xml:space="preserve">PLatformTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;PlatformLabel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="PlatformComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="PlatformComboBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="PlatformComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>54, 3</value>
+  </data>
+  <data name="PlatformComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>159, 21</value>
+  </data>
+  <data name="PlatformComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;PlatformComboBox.Name">
+    <value xml:space="preserve">PlatformComboBox</value>
+  </data>
+  <data name="&gt;&gt;PlatformComboBox.Type">
+    <value xml:space="preserve">System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;PlatformComboBox.Parent">
+    <value xml:space="preserve">PLatformTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;PlatformComboBox.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="ConfigDividerLine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="ConfigDividerLine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 39</value>
+  </data>
+  <data name="ConfigDividerLine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 6, 0, 3</value>
+  </data>
+  <data name="ConfigDividerLine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>863, 1</value>
+  </data>
+  <data name="ConfigDividerLine.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;ConfigDividerLine.Name">
+    <value xml:space="preserve">ConfigDividerLine</value>
+  </data>
+  <data name="&gt;&gt;ConfigDividerLine.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ConfigDividerLine.Parent">
+    <value xml:space="preserve">ConfigurationPanel</value>
+  </data>
+  <data name="&gt;&gt;ConfigDividerLine.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="ConfigurationLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="ConfigurationLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ConfigurationLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 7</value>
+  </data>
+  <data name="ConfigurationLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="ConfigurationLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>72, 13</value>
+  </data>
+  <data name="ConfigurationLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="ConfigurationLabel.Text">
+    <value xml:space="preserve">&amp;Configuration:</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationLabel.Name">
+    <value xml:space="preserve">ConfigurationLabel</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationLabel.Parent">
+    <value xml:space="preserve">ConfigurationTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationLabel.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="PropertyPagePanel.AccessibleName">
+    <value xml:space="preserve">Property Page Panel</value>
+  </data>
+  <data name="PropertyPagePanel.AutoScroll" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="PropertyPagePanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="PropertyPagePanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 60</value>
+  </data>
+  <data name="PropertyPagePanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 0</value>
+  </data>
+  <data name="PropertyPagePanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>863, 474</value>
+  </data>
+  <data name="PropertyPagePanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="PropertyPagePanel.Text">
+    <value xml:space="preserve">PropertyPagePanel</value>
+  </data>
+  <data name="&gt;&gt;PropertyPagePanel.Name">
+    <value xml:space="preserve">PropertyPagePanel</value>
+  </data>
+  <data name="&gt;&gt;PropertyPagePanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Panel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;PropertyPagePanel.Parent">
+    <value xml:space="preserve">PropPageDesignerViewLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;PropertyPagePanel.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="PropPageDesignerViewLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="ConfigurationPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ConfigurationPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="ConfigurationFlowLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ConfigurationTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ConfigurationTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="ConfigurationTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="ConfigurationTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 3</value>
+  </data>
+  <data name="ConfigurationTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="ConfigurationTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>250, 27</value>
+  </data>
+  <data name="ConfigurationTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationTableLayoutPanel.Name">
+    <value xml:space="preserve">ConfigurationTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationTableLayoutPanel.Parent">
+    <value xml:space="preserve">ConfigurationFlowLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="PLatformTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="PLatformTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="PLatformTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>256, 0</value>
+  </data>
+  <data name="PLatformTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 3, 3</value>
+  </data>
+  <data name="PLatformTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="PLatformTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>216, 27</value>
+  </data>
+  <data name="PLatformTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;PLatformTableLayoutPanel.Name">
+    <value xml:space="preserve">PLatformTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;PLatformTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;PLatformTableLayoutPanel.Parent">
+    <value xml:space="preserve">ConfigurationFlowLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;PLatformTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="ConfigurationFlowLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="ConfigurationFlowLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="ConfigurationFlowLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 3</value>
+  </data>
+  <data name="ConfigurationFlowLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>860, 30</value>
+  </data>
+  <data name="ConfigurationFlowLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationFlowLayoutPanel.Name">
+    <value xml:space="preserve">ConfigurationFlowLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationFlowLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.FlowLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationFlowLayoutPanel.Parent">
+    <value xml:space="preserve">ConfigurationPanel</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationFlowLayoutPanel.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="ConfigurationPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="ConfigurationPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 14</value>
+  </data>
+  <data name="ConfigurationPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="ConfigurationPanel.RowCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="ConfigurationPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>863, 43</value>
+  </data>
+  <data name="ConfigurationPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationPanel.Name">
+    <value xml:space="preserve">ConfigurationPanel</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationPanel.Parent">
+    <value xml:space="preserve">PropPageDesignerViewLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="PropPageDesignerViewLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="PropPageDesignerViewLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="PropPageDesignerViewLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="PropPageDesignerViewLayoutPanel.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>14, 14, 14, 14</value>
+  </data>
+  <data name="PropPageDesignerViewLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="PropPageDesignerViewLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>891, 568</value>
+  </data>
+  <data name="PropPageDesignerViewLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;PropPageDesignerViewLayoutPanel.Name">
+    <value xml:space="preserve">PropPageDesignerViewLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;PropPageDesignerViewLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;PropPageDesignerViewLayoutPanel.Parent">
+    <value xml:space="preserve">$this</value>
+  </data>
+  <data name="&gt;&gt;PropPageDesignerViewLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AccessibleName">
+    <value xml:space="preserve">Property Designer Panel</value>
+  </data>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>891, 568</value>
+  </data>
+  <data name="&gt;&gt;$this.Name">
+    <value xml:space="preserve">PropPageDesignerView</value>
+  </data>
+  <data name="&gt;&gt;$this.Type">
+    <value xml:space="preserve">System.Windows.Forms.UserControl, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+</root>

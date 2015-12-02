@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="uri:settings" elementFormDefault="qualified" xmlns="uri:settings" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- 
+        The SettingsFile element is the type of the root element.
+    -->
+    <xs:complexType name="SettingsFile">
+        <xs:sequence>
+            <xs:element name="Profiles" type="Profiles" minOccurs="1" maxOccurs="1" />
+            <xs:element name="Settings" type="Settings" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+        <xs:attribute name="CurrentProfile" use="required" type="xs:string"/>
+        <xs:attribute name="GeneratedClassNamespace" use="optional" type="xs:string"/>
+        <xs:attribute name="GeneratedClassName" use="optional" type="xs:string"/>
+    </xs:complexType>
+
+   <!--
+        The Profiles element contains a list of all the profiles.
+   -->
+    <xs:complexType name="Profiles">
+        <xs:sequence>
+            <xs:element name="Profile" type="Profile" minOccurs="1" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+   <!--
+        A profile only has a name
+   -->
+    <xs:complexType name="Profile">
+        <xs:attribute name="Name" use="required" type="xs:string" />
+    </xs:complexType>
+    
+    <!--
+        The Settings element contains a list of individual settings. Not strictly nescessary,
+        but I like to group all settings under one common parent...
+    -->
+    <xs:complexType name="Settings">
+        <xs:sequence>
+            <xs:element name="Setting" type="Setting" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!--
+        The Setting element holds meta information about the setting that is common for all
+        profiles - Name, type and scope.
+    -->
+    <xs:complexType name="Setting">
+        <xs:sequence>
+			<xs:element name="DesignTimeValue" type="Value" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="Value" type="Value" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="Name" use="required" type="xs:string" />
+        <xs:attribute name="Type" use="required" type="xs:string" />
+        <xs:attribute name="Scope" use="required" type="xs:string" />
+    </xs:complexType>
+    
+    <!--
+        A value holds a default value as specified in a particular profile
+        We don't really know what kind of contents we have, so we tell the xml
+        processor to skip the validation of the children of the value element...
+    -->
+    <xs:complexType name="Value">
+        <xs:complexContent mixed="true">
+            <xs:restriction base="xs:anyType">
+                <xs:sequence>
+                    <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                </xs:sequence>
+                <xs:attribute name="Profile" use="required" type="xs:string" />
+            </xs:restriction>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <!--
+        The root element itself
+    -->
+    <xs:element name="SettingsFile" type="SettingsFile" />
+</xs:schema>

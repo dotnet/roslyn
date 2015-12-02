@@ -1,0 +1,1032 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="StartActionLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="StartActionLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="StartActionLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="StartActionLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="StartActionLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="StartActionLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>62, 13</value>
+  </data>
+  <data name="StartActionLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="StartActionLabel.Text">
+    <value xml:space="preserve">Start Action</value>
+  </data>
+  <data name="&gt;&gt;StartActionLabel.Name">
+    <value xml:space="preserve">StartActionLabel</value>
+  </data>
+  <data name="&gt;&gt;StartActionLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartActionLabel.Parent">
+    <value xml:space="preserve">startActionTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartActionLabel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="StartActionLabelLine.AccessibleRole" type="System.Windows.Forms.AccessibleRole, System.Windows.Forms">
+    <value>Separator</value>
+  </data>
+  <data name="StartActionLabelLine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="StartActionLabelLine.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="StartActionLabelLine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>68, 6</value>
+  </data>
+  <data name="StartActionLabelLine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 0, 0</value>
+  </data>
+  <data name="StartActionLabelLine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>382, 1</value>
+  </data>
+  <data name="StartActionLabelLine.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;StartActionLabelLine.Name">
+    <value xml:space="preserve">StartActionLabelLine</value>
+  </data>
+  <data name="&gt;&gt;StartActionLabelLine.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartActionLabelLine.Parent">
+    <value xml:space="preserve">startActionTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartActionLabelLine.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="rbStartProject.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="rbStartProject.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="rbStartProject.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="rbStartProject.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 25</value>
+  </data>
+  <data name="rbStartProject.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>23, 12, 3, 3</value>
+  </data>
+  <data name="rbStartProject.Size" type="System.Drawing.Size, System.Drawing">
+    <value>82, 17</value>
+  </data>
+  <data name="rbStartProject.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="rbStartProject.Text">
+    <value xml:space="preserve">&amp;Start project</value>
+  </data>
+  <data name="&gt;&gt;rbStartProject.Name">
+    <value xml:space="preserve">rbStartProject</value>
+  </data>
+  <data name="&gt;&gt;rbStartProject.Type">
+    <value xml:space="preserve">System.Windows.Forms.RadioButton, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;rbStartProject.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;rbStartProject.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="rbStartProgram.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="rbStartProgram.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="rbStartProgram.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="rbStartProgram.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 51</value>
+  </data>
+  <data name="rbStartProgram.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>23, 3, 3, 3</value>
+  </data>
+  <data name="rbStartProgram.Size" type="System.Drawing.Size, System.Drawing">
+    <value>131, 17</value>
+  </data>
+  <data name="rbStartProgram.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="rbStartProgram.Text">
+    <value xml:space="preserve">Start e&amp;xternal program:</value>
+  </data>
+  <data name="&gt;&gt;rbStartProgram.Name">
+    <value xml:space="preserve">rbStartProgram</value>
+  </data>
+  <data name="&gt;&gt;rbStartProgram.Type">
+    <value xml:space="preserve">System.Windows.Forms.RadioButton, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;rbStartProgram.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;rbStartProgram.ZOrder">
+    <value xml:space="preserve">2</value>
+  </data>
+  <data name="rbStartURL.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="rbStartURL.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="rbStartURL.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="rbStartURL.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 78</value>
+  </data>
+  <data name="rbStartURL.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>23, 3, 3, 12</value>
+  </data>
+  <data name="rbStartURL.Size" type="System.Drawing.Size, System.Drawing">
+    <value>137, 17</value>
+  </data>
+  <data name="rbStartURL.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="rbStartURL.Text">
+    <value xml:space="preserve">Start browser with U&amp;RL:</value>
+  </data>
+  <data name="&gt;&gt;rbStartURL.Name">
+    <value xml:space="preserve">rbStartURL</value>
+  </data>
+  <data name="&gt;&gt;rbStartURL.Type">
+    <value xml:space="preserve">System.Windows.Forms.RadioButton, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;rbStartURL.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;rbStartURL.ZOrder">
+    <value xml:space="preserve">5</value>
+  </data>
+  <data name="StartProgram.AccessibleName">
+    <value xml:space="preserve">Program to start</value>
+  </data>
+  <data name="StartProgram.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="StartProgram.Location" type="System.Drawing.Point, System.Drawing">
+    <value>166, 49</value>
+  </data>
+  <data name="StartProgram.Size" type="System.Drawing.Size, System.Drawing">
+    <value>252, 20</value>
+  </data>
+  <data name="StartProgram.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;StartProgram.Name">
+    <value xml:space="preserve">StartProgram</value>
+  </data>
+  <data name="&gt;&gt;StartProgram.Type">
+    <value xml:space="preserve">System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartProgram.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartProgram.ZOrder">
+    <value xml:space="preserve">3</value>
+  </data>
+  <data name="StartURL.AccessibleName">
+    <value xml:space="preserve">URL to start browser with</value>
+  </data>
+  <data name="StartURL.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="StartURL.Location" type="System.Drawing.Point, System.Drawing">
+    <value>166, 77</value>
+  </data>
+  <data name="StartURL.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 3, 12</value>
+  </data>
+  <data name="StartURL.Size" type="System.Drawing.Size, System.Drawing">
+    <value>252, 20</value>
+  </data>
+  <data name="StartURL.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;StartURL.Name">
+    <value xml:space="preserve">StartURL</value>
+  </data>
+  <data name="&gt;&gt;StartURL.Type">
+    <value xml:space="preserve">System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartURL.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartURL.ZOrder">
+    <value xml:space="preserve">6</value>
+  </data>
+  <data name="StartProgramBrowse.AccessibleName">
+    <value xml:space="preserve">Browse for external program</value>
+  </data>
+  <data name="StartProgramBrowse.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>None</value>
+  </data>
+  <data name="StartProgramBrowse.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="StartProgramBrowse.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="StartProgramBrowse.Location" type="System.Drawing.Point, System.Drawing">
+    <value>424, 48</value>
+  </data>
+  <data name="StartProgramBrowse.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 0, 3</value>
+  </data>
+  <data name="StartProgramBrowse.Size" type="System.Drawing.Size, System.Drawing">
+    <value>26, 23</value>
+  </data>
+  <data name="StartProgramBrowse.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="StartProgramBrowse.Text">
+    <value xml:space="preserve">...</value>
+  </data>
+  <data name="&gt;&gt;StartProgramBrowse.Name">
+    <value xml:space="preserve">StartProgramBrowse</value>
+  </data>
+  <data name="&gt;&gt;StartProgramBrowse.Type">
+    <value xml:space="preserve">System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartProgramBrowse.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartProgramBrowse.ZOrder">
+    <value xml:space="preserve">4</value>
+  </data>
+  <data name="StartOptionsLabelLine.AccessibleRole" type="System.Windows.Forms.AccessibleRole, System.Windows.Forms">
+    <value>Separator</value>
+  </data>
+  <data name="StartOptionsLabelLine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="StartOptionsLabelLine.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="StartOptionsLabelLine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>74, 6</value>
+  </data>
+  <data name="StartOptionsLabelLine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 0, 0</value>
+  </data>
+  <data name="StartOptionsLabelLine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>376, 1</value>
+  </data>
+  <data name="StartOptionsLabelLine.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;StartOptionsLabelLine.Name">
+    <value xml:space="preserve">StartOptionsLabelLine</value>
+  </data>
+  <data name="&gt;&gt;StartOptionsLabelLine.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartOptionsLabelLine.Parent">
+    <value xml:space="preserve">startOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartOptionsLabelLine.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="StartOptionsLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="StartOptionsLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="StartOptionsLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="StartOptionsLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="StartOptionsLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="StartOptionsLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>68, 13</value>
+  </data>
+  <data name="StartOptionsLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="StartOptionsLabel.Text">
+    <value xml:space="preserve">Start Options</value>
+  </data>
+  <data name="&gt;&gt;StartOptionsLabel.Name">
+    <value xml:space="preserve">StartOptionsLabel</value>
+  </data>
+  <data name="&gt;&gt;StartOptionsLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartOptionsLabel.Parent">
+    <value xml:space="preserve">startOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartOptionsLabel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="CommandLineArgsLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Top</value>
+  </data>
+  <data name="CommandLineArgsLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="CommandLineArgsLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="CommandLineArgsLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 137</value>
+  </data>
+  <data name="CommandLineArgsLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>23, 12, 3, 3</value>
+  </data>
+  <data name="CommandLineArgsLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>128, 13</value>
+  </data>
+  <data name="CommandLineArgsLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="CommandLineArgsLabel.Text">
+    <value xml:space="preserve">Comma&amp;nd line arguments:</value>
+  </data>
+  <data name="&gt;&gt;CommandLineArgsLabel.Name">
+    <value xml:space="preserve">CommandLineArgsLabel</value>
+  </data>
+  <data name="&gt;&gt;CommandLineArgsLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CommandLineArgsLabel.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CommandLineArgsLabel.ZOrder">
+    <value xml:space="preserve">8</value>
+  </data>
+  <data name="WorkingDirLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="WorkingDirLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="WorkingDirLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="WorkingDirLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 165</value>
+  </data>
+  <data name="WorkingDirLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>23, 3, 3, 3</value>
+  </data>
+  <data name="WorkingDirLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>93, 13</value>
+  </data>
+  <data name="WorkingDirLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="WorkingDirLabel.Text">
+    <value xml:space="preserve">Wor&amp;king directory:</value>
+  </data>
+  <data name="&gt;&gt;WorkingDirLabel.Name">
+    <value xml:space="preserve">WorkingDirLabel</value>
+  </data>
+  <data name="&gt;&gt;WorkingDirLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;WorkingDirLabel.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;WorkingDirLabel.ZOrder">
+    <value xml:space="preserve">10</value>
+  </data>
+  <data name="RemoteDebugEnabled.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="RemoteDebugEnabled.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="RemoteDebugEnabled.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="RemoteDebugEnabled.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 190</value>
+  </data>
+  <data name="RemoteDebugEnabled.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>23, 3, 3, 12</value>
+  </data>
+  <data name="RemoteDebugEnabled.Size" type="System.Drawing.Size, System.Drawing">
+    <value>123, 17</value>
+  </data>
+  <data name="RemoteDebugEnabled.TabIndex" type="System.Int32, mscorlib">
+    <value>13</value>
+  </data>
+  <data name="RemoteDebugEnabled.Text">
+    <value xml:space="preserve">Use remote m&amp;achine</value>
+  </data>
+  <data name="&gt;&gt;RemoteDebugEnabled.Name">
+    <value xml:space="preserve">RemoteDebugEnabled</value>
+  </data>
+  <data name="&gt;&gt;RemoteDebugEnabled.Type">
+    <value xml:space="preserve">System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RemoteDebugEnabled.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;RemoteDebugEnabled.ZOrder">
+    <value xml:space="preserve">13</value>
+  </data>
+  <data name="StartArguments.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="StartArguments.Location" type="System.Drawing.Point, System.Drawing">
+    <value>166, 134</value>
+  </data>
+  <data name="StartArguments.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 12, 3, 3</value>
+  </data>
+  <data name="StartArguments.Size" type="System.Drawing.Size, System.Drawing">
+    <value>252, 20</value>
+  </data>
+  <data name="StartArguments.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="&gt;&gt;StartArguments.Name">
+    <value xml:space="preserve">StartArguments</value>
+  </data>
+  <data name="&gt;&gt;StartArguments.Type">
+    <value xml:space="preserve">System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartArguments.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartArguments.ZOrder">
+    <value xml:space="preserve">9</value>
+  </data>
+  <data name="StartArguments.ScrollBars" type="System.Windows.Forms.ScrollBars, System.Windows.Forms">
+    <value>Vertical</value>
+  </data>
+  <data name="StartWorkingDirectory.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="StartWorkingDirectory.Location" type="System.Drawing.Point, System.Drawing">
+    <value>166, 161</value>
+  </data>
+  <data name="StartWorkingDirectory.Size" type="System.Drawing.Size, System.Drawing">
+    <value>252, 20</value>
+  </data>
+  <data name="StartWorkingDirectory.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;StartWorkingDirectory.Name">
+    <value xml:space="preserve">StartWorkingDirectory</value>
+  </data>
+  <data name="&gt;&gt;StartWorkingDirectory.Type">
+    <value xml:space="preserve">System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartWorkingDirectory.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartWorkingDirectory.ZOrder">
+    <value xml:space="preserve">11</value>
+  </data>
+  <data name="RemoteDebugMachine.AccessibleName">
+    <value xml:space="preserve">Remote Machine Name:</value>
+  </data>
+  <data name="RemoteDebugMachine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="RemoteDebugMachine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>166, 189</value>
+  </data>
+  <data name="RemoteDebugMachine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 3, 12</value>
+  </data>
+  <data name="RemoteDebugMachine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>252, 20</value>
+  </data>
+  <data name="RemoteDebugMachine.TabIndex" type="System.Int32, mscorlib">
+    <value>14</value>
+  </data>
+  <data name="&gt;&gt;RemoteDebugMachine.Name">
+    <value xml:space="preserve">RemoteDebugMachine</value>
+  </data>
+  <data name="&gt;&gt;RemoteDebugMachine.Type">
+    <value xml:space="preserve">System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RemoteDebugMachine.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;RemoteDebugMachine.ZOrder">
+    <value xml:space="preserve">14</value>
+  </data>
+  <data name="StartWorkingDirectoryBrowse.AccessibleName">
+    <value xml:space="preserve">Browse for working directory</value>
+  </data>
+  <data name="StartWorkingDirectoryBrowse.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>None</value>
+  </data>
+  <data name="StartWorkingDirectoryBrowse.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="StartWorkingDirectoryBrowse.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="StartWorkingDirectoryBrowse.Location" type="System.Drawing.Point, System.Drawing">
+    <value>424, 160</value>
+  </data>
+  <data name="StartWorkingDirectoryBrowse.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 0, 3</value>
+  </data>
+  <data name="StartWorkingDirectoryBrowse.Size" type="System.Drawing.Size, System.Drawing">
+    <value>26, 23</value>
+  </data>
+  <data name="StartWorkingDirectoryBrowse.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="StartWorkingDirectoryBrowse.Text">
+    <value xml:space="preserve">...</value>
+  </data>
+  <data name="&gt;&gt;StartWorkingDirectoryBrowse.Name">
+    <value xml:space="preserve">StartWorkingDirectoryBrowse</value>
+  </data>
+  <data name="&gt;&gt;StartWorkingDirectoryBrowse.Type">
+    <value xml:space="preserve">System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;StartWorkingDirectoryBrowse.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;StartWorkingDirectoryBrowse.ZOrder">
+    <value xml:space="preserve">12</value>
+  </data>
+  <data name="EnableDebuggerLabelLine.AccessibleRole" type="System.Windows.Forms.AccessibleRole, System.Windows.Forms">
+    <value>Separator</value>
+  </data>
+  <data name="EnableDebuggerLabelLine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="EnableDebuggerLabelLine.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="EnableDebuggerLabelLine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>101, 6</value>
+  </data>
+  <data name="EnableDebuggerLabelLine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 0, 0</value>
+  </data>
+  <data name="EnableDebuggerLabelLine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>349, 1</value>
+  </data>
+  <data name="EnableDebuggerLabelLine.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;EnableDebuggerLabelLine.Name">
+    <value xml:space="preserve">EnableDebuggerLabelLine</value>
+  </data>
+  <data name="&gt;&gt;EnableDebuggerLabelLine.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;EnableDebuggerLabelLine.Parent">
+    <value xml:space="preserve">enableDebuggersTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;EnableDebuggerLabelLine.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="EnableDebuggerLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>None</value>
+  </data>
+  <data name="EnableDebuggerLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="EnableDebuggerLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="EnableDebuggerLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="EnableDebuggerLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="EnableDebuggerLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>95, 13</value>
+  </data>
+  <data name="EnableDebuggerLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="EnableDebuggerLabel.Text">
+    <value xml:space="preserve">Enable Debuggers</value>
+  </data>
+  <data name="&gt;&gt;EnableDebuggerLabel.Name">
+    <value xml:space="preserve">EnableDebuggerLabel</value>
+  </data>
+  <data name="&gt;&gt;EnableDebuggerLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;EnableDebuggerLabel.Parent">
+    <value xml:space="preserve">enableDebuggersTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;EnableDebuggerLabel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="EnableUnmanagedDebugging.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="EnableUnmanagedDebugging.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="startActionTableLayoutPanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="startActionTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="startActionTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="startActionTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="startActionTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="startActionTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="startActionTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>450, 13</value>
+  </data>
+  <data name="startActionTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;startActionTableLayoutPanel.Name">
+    <value xml:space="preserve">startActionTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;startActionTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;startActionTableLayoutPanel.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;startActionTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="startOptionsTableLayoutPanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="startOptionsTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="startOptionsTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="startOptionsTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 109</value>
+  </data>
+  <data name="startOptionsTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="startOptionsTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="startOptionsTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>450, 13</value>
+  </data>
+  <data name="startOptionsTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;startOptionsTableLayoutPanel.Name">
+    <value xml:space="preserve">startOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;startOptionsTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;startOptionsTableLayoutPanel.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;startOptionsTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">7</value>
+  </data>
+  <data name="enableDebuggersTableLayoutPanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="enableDebuggersTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="enableDebuggersTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="enableDebuggersTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 221</value>
+  </data>
+  <data name="enableDebuggersTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="enableDebuggersTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="enableDebuggersTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>450, 13</value>
+  </data>
+  <data name="enableDebuggersTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>15</value>
+  </data>
+  <data name="&gt;&gt;enableDebuggersTableLayoutPanel.Name">
+    <value xml:space="preserve">enableDebuggersTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;enableDebuggersTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;enableDebuggersTableLayoutPanel.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;enableDebuggersTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">15</value>
+  </data>
+  <data name="EnableSQLServerDebugging.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="EnableSQLServerDebugging.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="EnableSQLServerDebugging.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 269</value>
+  </data>
+  <data name="EnableSQLServerDebugging.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>23, 3, 0, 1</value>
+  </data>
+  <data name="EnableSQLServerDebugging.Size" type="System.Drawing.Size, System.Drawing">
+    <value>170, 17</value>
+  </data>
+  <data name="EnableSQLServerDebugging.TabIndex" type="System.Int32, mscorlib">
+    <value>17</value>
+  </data>
+  <data name="EnableSQLServerDebugging.Text">
+    <value xml:space="preserve">Enable SQ&amp;L Server debugging</value>
+  </data>
+  <data name="&gt;&gt;EnableSQLServerDebugging.Name">
+    <value xml:space="preserve">EnableSQLServerDebugging</value>
+  </data>
+  <data name="&gt;&gt;EnableSQLServerDebugging.Type">
+    <value xml:space="preserve">System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;EnableSQLServerDebugging.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;EnableSQLServerDebugging.ZOrder">
+    <value xml:space="preserve">17</value>
+  </data>
+  <data name="UseVSHostingProcess.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="UseVSHostingProcess.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="UseVSHostingProcess.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 290</value>
+  </data>
+  <data name="UseVSHostingProcess.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>23, 3, 0, 1</value>
+  </data>
+  <data name="UseVSHostingProcess.Size" type="System.Drawing.Size, System.Drawing">
+    <value>218, 17</value>
+  </data>
+  <data name="UseVSHostingProcess.TabIndex" type="System.Int32, mscorlib">
+    <value>17</value>
+  </data>
+  <data name="UseVSHostingProcess.Text">
+    <value xml:space="preserve">Enable the Visual Studio h&amp;osting process</value>
+  </data>
+  <data name="&gt;&gt;UseVSHostingProcess.Name">
+    <value xml:space="preserve">UseVSHostingProcess</value>
+  </data>
+  <data name="&gt;&gt;UseVSHostingProcess.Type">
+    <value xml:space="preserve">System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;UseVSHostingProcess.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;UseVSHostingProcess.ZOrder">
+    <value xml:space="preserve">18</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>450, 308</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Name">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Parent">
+    <value xml:space="preserve">$this</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="EnableUnmanagedDebugging.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="EnableUnmanagedDebugging.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 246</value>
+  </data>
+  <data name="EnableUnmanagedDebugging.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>23, 12, 0, 3</value>
+  </data>
+  <data name="EnableUnmanagedDebugging.Size" type="System.Drawing.Size, System.Drawing">
+    <value>198, 17</value>
+  </data>
+  <data name="EnableUnmanagedDebugging.TabIndex" type="System.Int32, mscorlib">
+    <value>16</value>
+  </data>
+  <data name="EnableUnmanagedDebugging.Text">
+    <value xml:space="preserve">Enable na&amp;tive code debugging</value>
+  </data>
+  <data name="&gt;&gt;EnableUnmanagedDebugging.Name">
+    <value xml:space="preserve">EnableUnmanagedDebugging</value>
+  </data>
+  <data name="&gt;&gt;EnableUnmanagedDebugging.Type">
+    <value xml:space="preserve">System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;EnableUnmanagedDebugging.Parent">
+    <value xml:space="preserve">overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;EnableUnmanagedDebugging.ZOrder">
+    <value xml:space="preserve">16</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="$this.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="$this.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="$this.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 12, 0</value>
+  </data>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>462, 308</value>
+  </data>
+  <data name="&gt;&gt;$this.Name">
+    <value xml:space="preserve">DebugPropPage</value>
+  </data>
+  <data name="&gt;&gt;$this.Type">
+    <value xml:space="preserve">Microsoft.VisualStudio.Editors.PropertyPages.PropPageUserControlBase, Microsoft.VisualStudio.Editors, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+</root>
