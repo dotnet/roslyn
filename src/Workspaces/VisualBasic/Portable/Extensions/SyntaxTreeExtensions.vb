@@ -85,6 +85,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Public Function IsEntirelyWithinStringLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
+
+            If token.IsKind(SyntaxKind.StringLiteralToken) Then
+                Return token.SpanStart < position AndAlso position < token.Span.End OrElse AtEndOfIncompleteStringOrCharLiteral(token, position, """")
+            End If
+
+            Return False
+        End Function
+
+        <Extension()>
         Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
 
@@ -98,13 +109,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
+            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
+
+            Return AtEndOfIncompleteStringOrCharLiteral(token, position, lastChar)
+        End Function
+
+        Private Function AtEndOfIncompleteStringOrCharLiteral(token As SyntaxToken, position As Integer, lastChar As String) As Boolean
             ' Check if it's a token that was started, but not ended
             Dim startLength = 1
             If token.IsKind(SyntaxKind.CharacterLiteralToken) Then
                 startLength = 2
             End If
 
-            Dim lastChar = If(token.IsKind(SyntaxKind.CharacterLiteralToken), "'", """")
             Return _
                 position = token.Span.End AndAlso
                  (token.Span.Length = startLength OrElse
@@ -136,6 +152,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' TODO : insert point at the same line as preprocessor?
             Return False
+        End Function
+
+        <Extension()>
+        Public Function IsBeforeFirstToken(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth:=True, includeSkipped:=True)
+
+            Return position <= firstToken.SpanStart
         End Function
 
         <Extension()>
