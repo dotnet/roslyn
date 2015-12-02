@@ -628,7 +628,7 @@ class C
         }
 
         [Fact]
-        private void TestConstraintViolationApplicabilityErrors()
+        public void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
             // *on a formal parameter type* is not met then the candidate is not applicable. But if a constraint
@@ -720,7 +720,7 @@ class C
         }
         [Fact]
 
-        private void TestBug9583()
+        public void TestBug9583()
         {
             TestErrors(
 @"
@@ -756,7 +756,7 @@ class C
         }
         [Fact]
 
-        private void TestBug6156()
+        public void TestBug6156()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -804,7 +804,7 @@ class Out2 : Ref2
 
 
 
-        private void TestGenericMethods()
+        public void TestGenericMethods()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -828,7 +828,7 @@ class C
         [Fact]
 
 
-        private void TestDelegateBetterness()
+        public void TestDelegateBetterness()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -890,7 +890,7 @@ class C
         }
         [Fact]
 
-        private void TestTieBreakers()
+        public void TestTieBreakers()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -1162,7 +1162,7 @@ class Test2
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers()
+        public void TestBaseAccessForAbstractMembers()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1217,7 +1217,7 @@ class Base4<U, V> : Base3<U, V>
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers1()
+        public void TestBaseAccessForAbstractMembers1()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1244,7 +1244,7 @@ class Base2<A, B> : Base<A, B>
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
 
-        private void TestBaseAccessForAbstractMembers2()
+        public void TestBaseAccessForAbstractMembers2()
         {
             var source = @"
 namespace A
