@@ -98,11 +98,11 @@ Updates to indicate you're running your experimental version. You can uninstall
 your version and go back to the originally installed version by choosing your
 version and clicking Uninstall.
 
-If you made changes to a compiler and want to build projects with it, you can either
+If you made changes to a Roslyn compiler and want to build any projects with it, you can either
 use the Visual Studio hive where your **CompilerExtension** is installed, or from
 command line, run msbuild with `/p:BootstrapBuildPath=YourBootstrapBuildPath`.
 `YourBootstrapBuildPath` could be any directory on your machine so long as it had
-csc and vbc inside it, you can check the cibuild.cmd and see how it is used.
+csc and vbc inside it. You can check the cibuild.cmd and see how it is used.
 
 # Contributing
 
