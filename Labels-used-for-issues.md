@@ -1,8 +1,8 @@
 This repo leverages a large set of labels to help the core team understand the priority of issues as well the area in which the issues apply.  Some of the labels are intended to be singular (for example, each issue can only have one priority), while others can overlap (an issue might involve both the Compilers team as well as the IDE team, at least initially).  It’s important to understand how these labels are used by the team at Microsoft to understand not only the state of issues, but also to verify that the issue you’ve encountered (or the feature you’re about to write) isn’t already in the database.
 
-## Features
+## Workflow
 
-The following labels are feature-specific:
+The following labels are used to track issues through their lifecycle:
 
 [![image](https://cloud.githubusercontent.com/assets/3804346/11516889/18b8de2c-983b-11e5-833d-66b62adc32aa.png)](https://github.com/dotnet/roslyn/labels/0%20-%20Backlog)
 
@@ -14,7 +14,11 @@ The following labels are feature-specific:
 
 [![image](https://cloud.githubusercontent.com/assets/3804346/11516934/75c29fc2-983b-11e5-9544-db303562d59d.png)](https://github.com/dotnet/roslyn/labels/4%20-%20In%20Review)
 
-[![image](https://cloud.githubusercontent.com/assets/3804346/11516956/93bb6a5e-983b-11e5-8fe5-df978866314f.png)](https://github.com/dotnet/roslyn/labels/Feature%20Request)
+A feature will initially end up on the **Backlog**, and may gradually make its way through **Planning**.  At some point, it may be **Ready** to implement.  The assigned developer will start **Working** on the change, and finally put it **In Review** when ready to submit a PR for review.  (Only one of these progress labels should be on the issue at any time.)
+
+## Features
+
+The following labels are feature-specific:
 
 [![image](https://cloud.githubusercontent.com/assets/3804346/11516979/a319bcee-983b-11e5-8df3-af1fabc4f9a2.png)](https://github.com/dotnet/roslyn/labels/Feature%20Specification)
 
@@ -28,9 +32,8 @@ Ideally, features that we work on should be part of a theme, so that we don’t 
 
 Features which are approved will eventually have **Feature Specifications** defined for them, either in the issue itself or in a separate (linked) issue.  Similarly, **Design Notes** may be created for the feature if the design isn’t trivial.
 
-A feature will initially end up on the **Backlog**, and will gradually make its way through **Planning**.  At some point, it will be **Ready** to implement.  The assigned developer will start **Working** on the change, and finally put it **In Review** when ready to submit a PR for review.  (Only one of these progress labels should be on the issue at any time.)
-
 ## Bugs
+
 Bugs are, fittingly, described by this label:
 
 ![image](https://cloud.githubusercontent.com/assets/20570/11489728/d23b2a72-9786-11e5-8fce-a467a8a1afab.png)
