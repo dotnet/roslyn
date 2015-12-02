@@ -3564,6 +3564,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             If typeSymbol Is Nothing Then
                 Dim parsedTypeName = SyntaxFactory.ParseTypeName(fullName)
 
+                ' Check to see if the name we parsed has any skipped text. If it does, don't bother trying to
+                ' speculatively bind it because we'll likely just get the wrong thing since we found a bunch
+                ' of non-sensical tokens.
+
+                ' NOTE: There appears to be a VB parser issue where "ContainsSkippedText" does not return true
+                ' even when there is clearly skipped token trivia present. We work around this by for a particularly
+                ' common case by checking whether the trailing trivia contains any skipped token trivia.
+                ' https://github.com/dotnet/roslyn/issues/7182 has been filed for the parser issue.
+
+                If parsedTypeName.ContainsSkippedText OrElse
+                   parsedTypeName.GetTrailingTrivia().Any(SyntaxKind.SkippedTokensTrivia) Then
+
+                    Return Nothing
+                End If
+
                 ' If we couldn't get the name, we just grab the first tree in the compilation to
                 ' speculatively bind at position zero. However, if there *aren't* any trees, we fork the
                 ' compilation with an empty tree for the purposes of speculative binding.
