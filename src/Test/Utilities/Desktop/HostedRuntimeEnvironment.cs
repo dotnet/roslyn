@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             allModules = allModules.ToArray();
 
-            var runtimeData = GetOrCreateRuntimeData(compilationDependencies);
+            var runtimeData = GetOrCreateRuntimeData(allModules);
 
             // Many prominent assemblys like mscorlib are already in the RuntimeAssemblyManager.  Only 
             // add in the delta values to reduce serialization overhead going across AppDomains.
