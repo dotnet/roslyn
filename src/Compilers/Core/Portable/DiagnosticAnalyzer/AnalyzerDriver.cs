@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (reportSuppressedDiagnostics || !d.IsSuppressed)
                 {
                     allDiagnostics.Add(d);
-                }                
+                }
             }
 
             return allDiagnostics.ToReadOnlyAndFree();
@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analysisStateOpt != null)
             {
                 await analysisStateOpt.OnCompilationEventProcessedAsync(e, analysisScope, cancellationToken).ConfigureAwait(false);
-        }
+            }
         }
 
         private async Task ProcessEventCoreAsync(CompilationEvent e, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
@@ -991,14 +991,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             if (analyzerAndActions.Any())
                             {
                                 actionsByKind = AnalyzerExecutor.GetOperationActionsByKind(analyzerAndActions);
-                        }
+                            }
                             else
                             {
                                 actionsByKind = ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
                             }
 
                             builder.Add(analyzerAndActions.Key, actionsByKind);
-                    }
+                        }
 
                         analyzerActionsByKind = builder.ToImmutable();
                     }
