@@ -13474,7 +13474,7 @@ End Module
         End Sub
 
         <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
-        Public Sub Issue7148()
+        Public Sub Issue7148_1()
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -13513,6 +13513,54 @@ End Class
   IL_001d:  newobj     "Sub Decimal..ctor(Double)"
   IL_0022:  stobj      "Decimal"
   IL_0027:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
+        Public Sub Issue7148_2()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Class TestClass
+    Private Shared Sub CalculateDimensions(_rotation As Decimal())
+        _rotation(GetIndex()) *= 180 / System.Math.PI 'This line causes '"vbc.exe" exited with code -2146232797'
+    End Sub
+
+    Private Shared Function GetIndex() As Integer
+        Return 0
+    End Function 
+
+    Shared Sub Main()
+        Dim _rotation(0) as Decimal
+        _rotation(0) = 1
+        CalculateDimensions(_rotation)
+        System.Console.WriteLine(_rotation(0))
+    End Sub    
+End Class
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe,
+                expectedOutput:="57.2957795130823")
+
+            c.VerifyIL("TestClass.CalculateDimensions",
+            <![CDATA[
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (Decimal& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function TestClass.GetIndex() As Integer"
+  IL_0006:  ldelema    "Decimal"
+  IL_000b:  dup
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  ldobj      "Decimal"
+  IL_0013:  call       "Function System.Convert.ToDouble(Decimal) As Double"
+  IL_0018:  ldc.r8     57.2957795130823
+  IL_0021:  mul
+  IL_0022:  newobj     "Sub Decimal..ctor(Double)"
+  IL_0027:  stobj      "Decimal"
+  IL_002c:  ret
 }
 ]]>)
         End Sub
