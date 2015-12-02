@@ -220,7 +220,7 @@ Partial.a
 Partial.c
 Partial.a = 1
 Partial.b = 2
-Partial.c = 3";ine the
+Partial.c = 3";
             // we run more than once to increase the chance of observing a problem due to nondeterminism
             for (int i = 0; i < 2; i++)
             {
