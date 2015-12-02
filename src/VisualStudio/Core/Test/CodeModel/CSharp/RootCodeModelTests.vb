@@ -53,8 +53,8 @@ namespace N
         Public Async Function TestDotNetNameFromLanguageSpecific2() As Task
             Await TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
-                    Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.List<int>")
-                    Assert.Equal("System.Collections.Generic.List`1[System.Int32]", dotNetName)
+                    Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary<int, string>")
+                    Assert.Equal("System.Collections.Generic.Dictionary`2[System.Int32,System.String]", dotNetName)
                 End Sub)
         End Function
 
@@ -62,7 +62,7 @@ namespace N
         Public Async Function TestDotNetNameFromLanguageSpecificWithAssemblyQualifiedName() As Task
             Await TestRootCodeModelWithCodeFile(<code></code>,
                 Sub(rootCodeModel)
-                    Assert.Throws(Of ArgumentException)(Sub() rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.List<int>, mscorlib"))
+                    Assert.Throws(Of ArgumentException)(Sub() rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary<int, string>, mscorlib"))
                 End Sub)
         End Function
 
