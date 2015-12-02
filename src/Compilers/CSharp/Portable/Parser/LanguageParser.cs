@@ -4709,6 +4709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 SyntaxFacts.IsBinaryExpressionOperatorToken(currentTokenKind);
 
                             if (currentTokenKind == SyntaxKind.DotToken ||
+                                currentTokenKind == SyntaxKind.OpenParenToken ||
                                 currentTokenKind == SyntaxKind.MinusGreaterThanToken ||
                                 isNonEqualsBinaryToken)
                             {
