@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Emit
             DefinitionMap definitionMap,
             SymbolChanges changes,
             CancellationToken cancellationToken)
-            : base(MakeHeapsBuilder(previousGeneration), null, context, messageProvider, false, false, cancellationToken)
+            : base(MakeTablesBuilder(previousGeneration), null, context, messageProvider, false, false, cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Emit
             _addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>();
         }
 
-        private static MetadataHeapsBuilder MakeHeapsBuilder(EmitBaseline previousGeneration)
+        private static MetadataBuilder MakeTablesBuilder(EmitBaseline previousGeneration)
         {
-            return new MetadataHeapsBuilder(
+            return new MetadataBuilder(
                 previousGeneration.UserStringStreamLength,
                 previousGeneration.StringStreamLength,
                 previousGeneration.BlobStreamLength,
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
 
-                BlobIdx blobIndex = heaps.GetBlobIndex(writer);
+                BlobIdx blobIndex = builder.GetBlobIndex(writer);
                 localSignatureRowId = GetOrAddStandAloneSignatureIndex(blobIndex);
                 writer.Free();
             }
@@ -738,12 +738,12 @@ namespace Microsoft.CodeAnalysis.Emit
                     var ok = map.TryGetValue(typeIndex, out mapIndex);
                     Debug.Assert(ok);
 
-                    tables.AddEncLogEntry(
+                    builder.AddEncLogEntry(
                         token: mapTokenType | mapIndex,
                         code: addCode);
                 }
 
-                tables.AddEncLogEntry(
+                builder.AddEncLogEntry(
                     token: tokenType | index[member],
                     code: EncFuncCode.Default);
             }
@@ -759,12 +759,12 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 if (index.IsAddedNotChanged(member))
                 {
-                    tables.AddEncLogEntry(
+                    builder.AddEncLogEntry(
                         token: TokenTypeIds.TypeDef | _typeDefs[(INamedTypeDefinition)member.ContainingTypeDefinition],
                         code: addCode);
                 }
 
-                tables.AddEncLogEntry(
+                builder.AddEncLogEntry(
                     token: tokenType | index[member],
                     code: EncFuncCode.Default);
             }
@@ -777,11 +777,11 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var methodDef = _parameterDefList[i].Key;
 
-                tables.AddEncLogEntry(
+                builder.AddEncLogEntry(
                     token: TokenTypeIds.MethodDef | _methodDefs[methodDef],
                     code: EncFuncCode.AddParameter);
 
-                tables.AddEncLogEntry(
+                builder.AddEncLogEntry(
                     token: TokenTypeIds.ParamDef | (parameterFirstId + i),
                     code: EncFuncCode.Default);
             }
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var member in index.GetRows())
             {
-                tables.AddEncLogEntry(
+                builder.AddEncLogEntry(
                     token: tokenType | index[member],
                     code: EncFuncCode.Default);
             }
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             for (int i = 0; i < nTokens; i++)
             {
-                tables.AddEncLogEntry(
+                builder.AddEncLogEntry(
                     token: tokenType | (firstRowId + i),
                     code: EncFuncCode.Default);
             }
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var token in tokens)
             {
-                tables.AddEncMapEntry(token);
+                builder.AddEncMapEntry(token);
             }
 
             tokens.Free();
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var typeId in _eventMap.GetRows())
             {
-                tables.AddEventMap(
+                builder.AddEventMap(
                     typeDefinitionRowId: typeId,
                     eventList: _eventMap[typeId]);
             }
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var typeId in _propertyMap.GetRows())
             {
-                tables.AddPropertyMap(
+                builder.AddPropertyMap(
                     typeDefinitionRowId: typeId,
                     propertyList: _propertyMap[typeId]);
             }
