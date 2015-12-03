@@ -16,12 +16,11 @@ namespace Microsoft.Cci
         private readonly int _entryPointToken;
 
         public StandaloneDebugMetadataSerializer(
-            MetadataTablesBuilder tables, 
-            MetadataHeapsBuilder heaps, 
+            MetadataBuilder builder, 
             ImmutableArray<int> typeSystemRowCounts,
             int entryPointToken,
             bool isMinimalDelta)
-            : base(tables, heaps, CreateSizes(tables, heaps, typeSystemRowCounts, isMinimalDelta, isStandaloneDebugMetadata: true), DebugMetadataVersionString)
+            : base(builder, CreateSizes(builder, typeSystemRowCounts, isMinimalDelta, isStandaloneDebugMetadata: true), DebugMetadataVersionString)
         {
             _entryPointToken = entryPointToken;
         }
@@ -60,11 +59,10 @@ namespace Microsoft.Cci
         private int _moduleVersionIdOffset;
 
         public TypeSystemMetadataSerializer(
-            MetadataTablesBuilder tables, 
-            MetadataHeapsBuilder heaps, 
+            MetadataBuilder tables, 
             string metadataVersion,
             bool isMinimalDelta)
-            : base(tables, heaps, CreateSizes(tables, heaps, EmptyRowCounts, isMinimalDelta, isStandaloneDebugMetadata: false), metadataVersion)
+            : base(tables, CreateSizes(tables, EmptyRowCounts, isMinimalDelta, isStandaloneDebugMetadata: false), metadataVersion)
         {
             
         }
@@ -84,27 +82,25 @@ namespace Microsoft.Cci
 
     internal abstract class MetadataSerializer
     {
-        protected readonly MetadataTablesBuilder _tables;
-        private readonly MetadataHeapsBuilder _heaps;
+        protected readonly MetadataBuilder _tables;
         private readonly MetadataSizes _sizes;
         private readonly string _metadataVersion;
 
-        public MetadataSerializer(MetadataTablesBuilder tables, MetadataHeapsBuilder heaps, MetadataSizes sizes, string metadataVersion)
+        public MetadataSerializer(MetadataBuilder tables, MetadataSizes sizes, string metadataVersion)
         {
             _tables = tables;
-            _heaps = heaps;
             _sizes = sizes;
             _metadataVersion = metadataVersion;
         }
 
-        internal static MetadataSizes CreateSizes(MetadataTablesBuilder tables, MetadataHeapsBuilder heaps, ImmutableArray<int> externalRowCounts, bool isMinimalDelta, bool isStandaloneDebugMetadata)
+        internal static MetadataSizes CreateSizes(MetadataBuilder tables, ImmutableArray<int> externalRowCounts, bool isMinimalDelta, bool isStandaloneDebugMetadata)
         {
-            heaps.Complete();
+            tables.CompleteHeaps();
 
             return new MetadataSizes(
                 tables.GetRowCounts(),
                 externalRowCounts,
-                heaps.GetHeapSizes(),
+                tables.GetHeapSizes(),
                 isMinimalDelta,
                 isStandaloneDebugMetadata);
         }
@@ -125,7 +121,7 @@ namespace Microsoft.Cci
             _tables.SerializeMetadataTables(metadataWriter, _sizes, methodBodyStreamRva, mappedFieldDataStreamRva);
 
             // #Strings, #US, #Guid and #Blob streams:
-            _heaps.WriteTo(metadataWriter, out guidHeapStartOffset);
+            _tables.WriteHeapsTo(metadataWriter, out guidHeapStartOffset);
         }
 
         private void SerializeMetadataHeader(BlobBuilder writer)

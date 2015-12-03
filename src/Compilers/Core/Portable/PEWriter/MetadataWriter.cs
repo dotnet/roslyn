@@ -72,8 +72,8 @@ namespace Microsoft.Cci
         private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
 
         protected MetadataWriter(
-            MetadataHeapsBuilder heaps,
-            MetadataHeapsBuilder debugHeapsOpt,
+            MetadataBuilder tables,
+            MetadataBuilder debugTablesOpt,
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
@@ -96,14 +96,8 @@ namespace Microsoft.Cci
             this.messageProvider = messageProvider;
             _cancellationToken = cancellationToken;
 
-            this.tables = new MetadataTablesBuilder(heaps);
-            this.heaps = heaps;
-
-            if (debugHeapsOpt != null)
-            {
-                _debugHeapsOpt = debugHeapsOpt;
-                _debugTablesOpt = new MetadataTablesBuilder(debugHeapsOpt);
-            }
+            this.builder = tables;
+            _debugBuilderOpt = debugTablesOpt;
 
             _smallMethodBodies = new Dictionary<ImmutableArray<byte>, int>(ByteSequenceComparer.Instance);
         }
@@ -432,16 +426,14 @@ namespace Microsoft.Cci
         private List<string> _pseudoStringTokenToStringMap;
         private ReferenceIndexer _referenceVisitor;
 
-        protected readonly MetadataTablesBuilder tables;
-        protected readonly MetadataHeapsBuilder heaps;
+        protected readonly MetadataBuilder builder;
 
-        // A heap builder distinct from heaps if we are emitting debug information into a separate Portable PDB stream.
-        // Shared heap builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
+        // A builder distinct from type-system metadata builder if we are emitting debug information into a separate Portable PDB stream.
+        // Shared builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
         // Null otherwise.
-        private readonly MetadataHeapsBuilder _debugHeapsOpt;
-        private readonly MetadataTablesBuilder _debugTablesOpt;
+        private readonly MetadataBuilder _debugBuilderOpt;
 
-        private bool EmitStandaloneDebugMetadata => _debugHeapsOpt != null && heaps != _debugHeapsOpt;
+        private bool EmitStandaloneDebugMetadata => _debugBuilderOpt != null && builder != _debugBuilderOpt;
 
         private readonly Dictionary<ICustomAttribute, BlobIdx> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobIdx>();
         private readonly Dictionary<ITypeReference, BlobIdx> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobIdx>();
@@ -733,7 +725,7 @@ namespace Microsoft.Cci
 
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeCustomAttributeSignature(customAttribute, false, writer);
-            result = heaps.GetBlobIndex(writer);
+            result = builder.GetBlobIndex(writer);
             _customAttributeSignatureIndex.Add(customAttribute, result);
             writer.Free();
             return result;
@@ -850,7 +842,7 @@ namespace Microsoft.Cci
 
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeFieldSignature(fieldReference, writer);
-            result = heaps.GetBlobIndex(writer);
+            result = builder.GetBlobIndex(writer);
             _fieldSignatureIndex.Add(fieldReference, result);
             writer.Free();
             return result;
@@ -1115,7 +1107,7 @@ namespace Microsoft.Cci
                 this.SerializeTypeReference(typeref, writer, false, true);
             }
 
-            result = heaps.GetBlobIndex(writer);
+            result = builder.GetBlobIndex(writer);
             _methodInstanceSignatureIndex.Add(methodInstanceReference, result);
             writer.Free();
             return result;
@@ -1131,7 +1123,7 @@ namespace Microsoft.Cci
 
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeMarshallingDescriptor(marshallingInformation, writer);
-            result = heaps.GetBlobIndex(writer);
+            result = builder.GetBlobIndex(writer);
             _marshallingDescriptorIndex.Add(marshallingInformation, result);
             writer.Free();
             return result;
@@ -1139,7 +1131,7 @@ namespace Microsoft.Cci
 
         private BlobIdx GetMarshallingDescriptorIndex(ImmutableArray<byte> descriptor)
         {
-            return heaps.GetBlobIndex(descriptor);
+            return builder.GetBlobIndex(descriptor);
         }
 
         private BlobIdx GetMemberRefSignatureIndex(ITypeMemberReference memberRef)
@@ -1193,7 +1185,7 @@ namespace Microsoft.Cci
             this.SerializeSignature(methodReference, methodReference.GenericParameterCount, methodReference.ExtraParameters, writer);
 
             signatureBlob = writer.ToImmutableArray();
-            result = heaps.GetBlobIndex(signatureBlob);
+            result = builder.GetBlobIndex(signatureBlob);
             _signatureIndex.Add(methodReference, KeyValuePair.Create(result, signatureBlob));
             writer.Free();
             return result;
@@ -1203,7 +1195,7 @@ namespace Microsoft.Cci
         {
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeGenericMethodInstanceSignature(writer, genericMethodInstanceReference);
-            BlobIdx result = heaps.GetBlobIndex(writer);
+            BlobIdx result = builder.GetBlobIndex(writer);
             writer.Free();
             return result;
         }
@@ -1279,7 +1271,7 @@ namespace Microsoft.Cci
                 writer.WriteByte((byte)'.');
                 writer.WriteCompressedInteger((uint)permissionSet.Length);
                 this.SerializePermissionSet(permissionSet, writer);
-                result = heaps.GetBlobIndex(writer);
+                result = builder.GetBlobIndex(writer);
             }
             finally
             {
@@ -1321,7 +1313,7 @@ namespace Microsoft.Cci
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeSignature(propertyDef, 0, ImmutableArray<IParameterTypeInformation>.Empty, writer);
             var blob = writer.ToImmutableArray();
-            var result = heaps.GetBlobIndex(blob);
+            var result = builder.GetBlobIndex(blob);
             _signatureIndex.Add(propertyDef, KeyValuePair.Create(result, blob));
             writer.Free();
             return result;
@@ -1357,13 +1349,13 @@ namespace Microsoft.Cci
         private StringIdx GetStringIndexForPathAndCheckLength(string path, INamedEntity errorEntity = null)
         {
             CheckPathLength(path, errorEntity);
-            return heaps.GetStringIndex(path);
+            return builder.GetStringIndex(path);
         }
 
         private StringIdx GetStringIndexForNameAndCheckLength(string name, INamedEntity errorEntity = null)
         {
             CheckNameLength(name, errorEntity);
-            return heaps.GetStringIndex(name);
+            return builder.GetStringIndex(name);
         }
 
         /// <summary>
@@ -1384,7 +1376,7 @@ namespace Microsoft.Cci
             }
 
             CheckNamespaceLength(namespaceName, mangledTypeName, namespaceType);
-            return heaps.GetStringIndex(namespaceName);
+            return builder.GetStringIndex(namespaceName);
         }
 
         private void CheckNameLength(string name, INamedEntity errorEntity)
@@ -1703,7 +1695,7 @@ namespace Microsoft.Cci
 
             var writer = PooledBlobBuilder.GetInstance();
             this.SerializeTypeReference(typeReference, writer, false, true);
-            result = heaps.GetBlobIndex(writer);
+            result = builder.GetBlobIndex(writer);
             _typeSpecSignatureIndex.Add(typeReference, result);
             writer.Free();
             return result;
@@ -1866,7 +1858,7 @@ namespace Microsoft.Cci
             // Extract information from object model into tables, indices and streams
             CreateIndices();
 
-            if (_debugHeapsOpt != null)
+            if (_debugBuilderOpt != null)
             {
                 DefineModuleImportScope();
             }
@@ -1914,7 +1906,7 @@ namespace Microsoft.Cci
                 entryPointToken = debugEntryPointToken = 0;
             }
 
-            var serializer = new TypeSystemMetadataSerializer(tables, heaps, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
+            var serializer = new TypeSystemMetadataSerializer(builder, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
 
             metadataSizes = serializer.MetadataSizes;
 
@@ -1934,10 +1926,9 @@ namespace Microsoft.Cci
                 return;
             }
 
-            Debug.Assert(_debugTablesOpt != null);
-            Debug.Assert(_debugHeapsOpt != null);
+            Debug.Assert(_debugBuilderOpt != null);
 
-            var debugSerializer = new StandaloneDebugMetadataSerializer(_debugTablesOpt, _debugHeapsOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
+            var debugSerializer = new StandaloneDebugMetadataSerializer(_debugBuilderOpt, metadataSizes.RowCounts, debugEntryPointToken, IsMinimalDelta);
             debugSerializer.SerializeMetadata(debugMetadataWriterOpt);
             pdbIdOffsetInPortablePdbStream = debugSerializer.PdbIdOffset;
         }
@@ -2021,7 +2012,7 @@ namespace Microsoft.Cci
             // This table is populated after the others because it depends on the order of the entries of the generic parameter table.
             this.PopulateCustomAttributeTableRows(sortedGenericParameters);
 
-            ImmutableArray<int> rowCounts = tables.GetRowCounts();
+            ImmutableArray<int> rowCounts = builder.GetRowCounts();
             Debug.Assert(rowCounts[(int)TableIndex.EncLog] == 0 && rowCounts[(int)TableIndex.EncMap] == 0);
 
             this.PopulateEncLogTableRows(rowCounts);
@@ -2031,7 +2022,7 @@ namespace Microsoft.Cci
         private void PopulateAssemblyRefTableRows()
         {
             var assemblyRefs = this.GetAssemblyRefs();
-            tables.SetCapacity(TableIndex.AssemblyRef, assemblyRefs.Count);
+            builder.SetCapacity(TableIndex.AssemblyRef, assemblyRefs.Count);
 
             foreach (var assemblyRef in assemblyRefs)
             {
@@ -2039,11 +2030,11 @@ namespace Microsoft.Cci
                 Debug.Assert(!string.IsNullOrEmpty(assemblyRef.Name));
                 
                 // reference has token, not full public key
-                tables.AddAssemblyReference(
+                builder.AddAssemblyReference(
                     name: GetStringIndexForPathAndCheckLength(assemblyRef.Name, assemblyRef),
                     version: assemblyRef.Version,
-                    culture: heaps.GetStringIndex(assemblyRef.Culture),
-                    publicKeyOrToken: heaps.GetBlobIndex(assemblyRef.PublicKeyToken),
+                    culture: builder.GetStringIndex(assemblyRef.Culture),
+                    publicKeyOrToken: builder.GetBlobIndex(assemblyRef.PublicKeyToken),
                     flags: (AssemblyFlags)((int)assemblyRef.ContentType << 9) | (assemblyRef.IsRetargetable ? AssemblyFlags.Retargetable : 0),
                     hashValue: default(BlobIdx));
             }
@@ -2091,13 +2082,13 @@ namespace Microsoft.Cci
 
             IAssembly assembly = this.module.AsAssembly;
 
-            tables.AddAssembly(
+            builder.AddAssembly(
                 flags: assembly.Flags,
                 hashAlgorithm: assembly.HashAlgorithm,
                 version: assembly.Version,
-                publicKey: heaps.GetBlobIndex(assembly.PublicKey),
+                publicKey: builder.GetBlobIndex(assembly.PublicKey),
                 name: GetStringIndexForPathAndCheckLength(assembly.Name, assembly),
-                culture: heaps.GetStringIndex(assembly.Culture));
+                culture: builder.GetStringIndex(assembly.Culture));
         }
         
         private void PopulateCustomAttributeTableRows(ImmutableArray<IGenericParameter> sortedGenericParameters)
@@ -2190,10 +2181,10 @@ namespace Microsoft.Cci
             int iM = allowMultiple ? 1 : 0;
             if (_dummyAssemblyAttributeParent[iS, iM] == 0)
             {
-                int rowId = tables.AddTypeReference(
+                int rowId = builder.AddTypeReference(
                     resolutionScope: GetResolutionScopeCodedIndex(module.GetCorLibrary(Context)),
-                    @namespace: heaps.GetStringIndex(dummyAssemblyAttributeParentNamespace),
-                    name: heaps.GetStringIndex(dummyAssemblyAttributeParentName + dummyAssemblyAttributeParentQualifier[iS, iM]));
+                    @namespace: builder.GetStringIndex(dummyAssemblyAttributeParentNamespace),
+                    name: builder.GetStringIndex(dummyAssemblyAttributeParentName + dummyAssemblyAttributeParentQualifier[iS, iM]));
 
                 _dummyAssemblyAttributeParent[iS, iM] = rowId.ToCodedIndex(HasCustomAttributeTag.TypeRef);
             }
@@ -2241,7 +2232,7 @@ namespace Microsoft.Cci
 
         private void AddCustomAttributeToTable(uint parentCodedIndex, ICustomAttribute customAttribute)
         {
-            tables.AddCustomAttribute(
+            builder.AddCustomAttribute(
                 parent: parentCodedIndex,
                 constructor: GetCustomAttributeTypeCodedIndex(customAttribute.Constructor(Context)),
                 value: GetCustomAttributeSignatureIndex(customAttribute));
@@ -2294,7 +2285,7 @@ namespace Microsoft.Cci
             uint parent = parentIndex.ToCodedIndex(tag);
             foreach (DeclarativeSecurityAction securityAction in groupedSecurityAttributes.Keys)
             {
-                tables.AddDeclarativeSecurityAttribute(
+                builder.AddDeclarativeSecurityAttribute(
                     parent: parent,
                     action: securityAction,
                     permissionSet: GetPermissionSetIndex(groupedSecurityAttributes[securityAction]));
@@ -2306,11 +2297,11 @@ namespace Microsoft.Cci
         private void PopulateEventTableRows()
         {
             var eventDefs = this.GetEventDefs();
-            tables.SetCapacity(TableIndex.Event, eventDefs.Count);
+            builder.SetCapacity(TableIndex.Event, eventDefs.Count);
 
             foreach (IEventDefinition eventDef in eventDefs)
             {
-                tables.AddEvent(
+                builder.AddEvent(
                     attributes: GetEventAttributes(eventDef),
                     name: GetStringIndexForNameAndCheckLength(eventDef.Name, eventDef),
                     type: GetTypeDefOrRefCodedIndex(eventDef.GetType(Context), true));
@@ -2321,7 +2312,7 @@ namespace Microsoft.Cci
         {
             if (this.IsFullMetadata)
             {
-                tables.SetCapacity(TableIndex.ExportedType, NumberOfTypeDefsEstimate);
+                builder.SetCapacity(TableIndex.ExportedType, NumberOfTypeDefsEstimate);
 
                 foreach (ITypeReference exportedType in this.module.GetExportedTypes(Context))
                 {
@@ -2360,7 +2351,7 @@ namespace Microsoft.Cci
                         int exportedTypeIndex = GetExportedTypeIndex(containingType);
                         implementation = exportedTypeIndex.ToCodedIndex(ImplementationTag.ExportedType);
 
-                        var parentFlags = (TypeFlags)tables.GetExportedTypeFlags(exportedTypeIndex - 1);
+                        var parentFlags = (TypeFlags)builder.GetExportedTypeFlags(exportedTypeIndex - 1);
                         if (parentFlags == TypeFlags.PrivateAccess)
                         {
                             flags = TypeFlags.PrivateAccess;
@@ -2373,7 +2364,7 @@ namespace Microsoft.Cci
                             topLevelType = tmp.GetContainingType(Context);
                         }
 
-                        var topLevelFlags = (TypeFlags)tables.GetExportedTypeFlags(GetExportedTypeIndex(topLevelType) - 1);
+                        var topLevelFlags = (TypeFlags)builder.GetExportedTypeFlags(GetExportedTypeIndex(topLevelType) - 1);
                         if ((topLevelFlags & TypeFlags.ForwarderImplementation) != 0)
                         {
                             flags = TypeFlags.PrivateAccess;
@@ -2385,7 +2376,7 @@ namespace Microsoft.Cci
                         throw ExceptionUtilities.UnexpectedValue(exportedType);
                     }
 
-                    tables.AddExportedType(
+                    builder.AddExportedType(
                         attributes: (TypeAttributes)flags,
                         @namespace: typeNamespace,
                         name: typeName,
@@ -2404,7 +2395,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                tables.AddFieldLayout(
+                builder.AddFieldLayout(
                     fieldDefinitionRowId: GetFieldDefIndex(fieldDef),
                     offset: fieldDef.Offset);
             }
@@ -2425,7 +2416,7 @@ namespace Microsoft.Cci
                     ? GetMarshallingDescriptorIndex(marshallingInformation)
                     : GetMarshallingDescriptorIndex(fieldDef.MarshallingDescriptor);
 
-                tables.AddMarshallingDescriptor(
+                builder.AddMarshallingDescriptor(
                     parent: GetFieldDefIndex(fieldDef).ToCodedIndex(HasFieldMarshalTag.Field),
                     descriptor: descriptor);
             }
@@ -2443,7 +2434,7 @@ namespace Microsoft.Cci
                     ? GetMarshallingDescriptorIndex(marshallingInformation)
                     : GetMarshallingDescriptorIndex(parDef.MarshallingDescriptor);
 
-                tables.AddMarshallingDescriptor(
+                builder.AddMarshallingDescriptor(
                     parent: GetParameterDefIndex(parDef).ToCodedIndex(HasFieldMarshalTag.Param),
                     descriptor: descriptor);
             }
@@ -2462,7 +2453,7 @@ namespace Microsoft.Cci
                 mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
                 mappedFieldDataWriter.Align(MappedFieldDataAlignment);
 
-                tables.AddFieldRelativeVirtualAddress(
+                builder.AddFieldRelativeVirtualAddress(
                     fieldDefinitionRowId: GetFieldDefIndex(fieldDef),
                     relativeVirtualAddress: rva);
             }
@@ -2471,7 +2462,7 @@ namespace Microsoft.Cci
         private void PopulateFieldTableRows()
         {
             var fieldDefs = this.GetFieldDefs();
-            tables.SetCapacity(TableIndex.Field, fieldDefs.Count);
+            builder.SetCapacity(TableIndex.Field, fieldDefs.Count);
 
             foreach (IFieldDefinition fieldDef in fieldDefs)
             {
@@ -2480,7 +2471,7 @@ namespace Microsoft.Cci
                     ((IContextualNamedEntity)fieldDef).AssociateWithMetadataWriter(this);
                 }
 
-                tables.AddFieldDefinition(
+                builder.AddFieldDefinition(
                     attributes: GetFieldAttributes(fieldDef),
                     name: GetStringIndexForNameAndCheckLength(fieldDef.Name, fieldDef),
                     signature: GetFieldSignatureIndex(fieldDef));
@@ -2497,7 +2488,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                tables.AddConstant(
+                builder.AddConstant(
                     parent: GetFieldDefIndex(fieldDef).ToCodedIndex(HasConstantTag.Field),
                     value: constant.Value);
             }
@@ -2510,7 +2501,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                tables.AddConstant(
+                builder.AddConstant(
                     parent: GetParameterDefIndex(parDef).ToCodedIndex(HasConstantTag.Param),
                     value: defaultValue.Value);
             }
@@ -2522,7 +2513,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                tables.AddConstant(
+                builder.AddConstant(
                     parent: GetPropertyDefIndex(propDef).ToCodedIndex(HasConstantTag.Property),
                     value: propDef.DefaultValue.Value);
             }
@@ -2537,13 +2528,13 @@ namespace Microsoft.Cci
             }
 
             var hashAlgorithm = assembly.HashAlgorithm;
-            tables.SetCapacity(TableIndex.File, _fileRefList.Count);
+            builder.SetCapacity(TableIndex.File, _fileRefList.Count);
 
             foreach (IFileReference fileReference in _fileRefList)
             {
-                tables.AddAssemblyFile(
+                builder.AddAssemblyFile(
                     name: GetStringIndexForPathAndCheckLength(fileReference.FileName),
-                    hashValue: heaps.GetBlobIndex(fileReference.GetHashValue(hashAlgorithm)),
+                    hashValue: builder.GetBlobIndex(fileReference.GetHashValue(hashAlgorithm)),
                     containsMetadata: fileReference.HasMetadata);
             }
         }
@@ -2555,7 +2546,7 @@ namespace Microsoft.Cci
                 // CONSIDER: The CLI spec doesn't mention a restriction on the Name column of the GenericParam table,
                 // but they go in the same string heap as all the other declaration names, so it stands to reason that
                 // they should be restricted in the same way.
-                int genericParameterRowId = tables.AddGenericParameter(
+                int genericParameterRowId = builder.AddGenericParameter(
                     parent: GetTypeOrMethodDefCodedIndex(genericParameter),
                     attributes: GetGenericParameterAttributes(genericParameter),
                     name: GetStringIndexForNameAndCheckLength(genericParameter.Name, genericParameter),
@@ -2563,7 +2554,7 @@ namespace Microsoft.Cci
 
                 foreach (ITypeReference constraint in genericParameter.GetConstraints(Context))
                 {
-                    tables.AddGenericParameterConstraint(
+                    builder.AddGenericParameterConstraint(
                         genericParameterRowId: genericParameterRowId,
                         constraint: GetTypeDefOrRefCodedIndex(constraint, true));
                 }
@@ -2584,9 +2575,9 @@ namespace Microsoft.Cci
 
                 StringIdx importName = (entryPointName != null)
                     ? GetStringIndexForNameAndCheckLength(entryPointName, methodDef)
-                    : heaps.GetStringIndex(methodDef.Name); // Length checked while populating the method def table.
+                    : builder.GetStringIndex(methodDef.Name); // Length checked while populating the method def table.
 
-                tables.AddMethodImport(
+                builder.AddMethodImport(
                     member: GetMethodDefIndex(methodDef).ToCodedIndex(MemberForwardedTag.MethodDef),
                     attributes: data.Flags,
                     name: importName,
@@ -2601,7 +2592,7 @@ namespace Microsoft.Cci
                 int typeDefIndex = GetTypeDefIndex(typeDef);
                 foreach (ITypeReference interfaceRef in typeDef.Interfaces(Context))
                 {
-                    tables.AddInterfaceImplementation(
+                    builder.AddInterfaceImplementation(
                         typeDefinitionRowId: typeDefIndex,
                         interfaceCodedIndex: GetTypeDefOrRefCodedIndex(interfaceRef, true));
                 }
@@ -2624,7 +2615,7 @@ namespace Microsoft.Cci
                     implementation = 0;
                 }
 
-                tables.AddManifestResource(
+                builder.AddManifestResource(
                     attributes: resource.IsPublic ? ManifestResourceAttributes.Public : ManifestResourceAttributes.Private,
                     name: GetStringIndexForNameAndCheckLength(resource.Name),
                     implementation: implementation,
@@ -2638,11 +2629,11 @@ namespace Microsoft.Cci
         private void PopulateMemberRefTableRows()
         {
             var memberRefs = this.GetMemberRefs();
-            tables.SetCapacity(TableIndex.MemberRef, memberRefs.Count);
+            builder.SetCapacity(TableIndex.MemberRef, memberRefs.Count);
 
             foreach (ITypeMemberReference memberRef in memberRefs)
             {
-                tables.AddMemberReference(
+                builder.AddMemberReference(
                     type: GetMemberRefParentCodedIndex(memberRef),
                     name: GetStringIndexForNameAndCheckLength(memberRef.Name, memberRef), 
                     signature: GetMemberRefSignatureIndex(memberRef));
@@ -2651,11 +2642,11 @@ namespace Microsoft.Cci
         
         private void PopulateMethodImplTableRows()
         {
-            tables.SetCapacity(TableIndex.MethodImpl, methodImplList.Count);
+            builder.SetCapacity(TableIndex.MethodImpl, methodImplList.Count);
 
             foreach (MethodImplementation methodImplementation in this.methodImplList)
             {
-                tables.AddMethodImplementation(
+                builder.AddMethodImplementation(
                     typeDefinitionRowId: GetTypeDefIndex(methodImplementation.ContainingType),
                     methodBody: GetMethodDefOrRefCodedIndex(methodImplementation.ImplementingMethod),
                     methodDeclaration: GetMethodDefOrRefCodedIndex(methodImplementation.ImplementedMethod));
@@ -2665,11 +2656,11 @@ namespace Microsoft.Cci
         private void PopulateMethodSpecTableRows()
         {
             var methodSpecs = this.GetMethodSpecs();
-            tables.SetCapacity(TableIndex.MethodSpec, methodSpecs.Count);
+            builder.SetCapacity(TableIndex.MethodSpec, methodSpecs.Count);
 
             foreach (IGenericMethodInstanceReference genericMethodInstanceReference in methodSpecs)
             {
-                tables.AddMethodSpecification(
+                builder.AddMethodSpecification(
                     method: GetMethodDefOrRefCodedIndex(genericMethodInstanceReference.GetGenericMethod(Context)),
                     instantiation: GetGenericMethodInstanceIndex(genericMethodInstanceReference));
             }
@@ -2678,12 +2669,12 @@ namespace Microsoft.Cci
         private void PopulateMethodTableRows(int[] methodBodyRvas)
         {
             var methodDefs = this.GetMethodDefs();
-            tables.SetCapacity(TableIndex.MethodDef, methodDefs.Count);
+            builder.SetCapacity(TableIndex.MethodDef, methodDefs.Count);
 
             int i = 0;
             foreach (IMethodDefinition methodDef in methodDefs)
             {
-                tables.AddMethodDefinition(
+                builder.AddMethodDefinition(
                     attributes: GetMethodAttributes(methodDef),
                     implAttributes: methodDef.GetImplementationAttributes(Context),
                     name: GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef),
@@ -2701,7 +2692,7 @@ namespace Microsoft.Cci
             var eventDefs = this.GetEventDefs();
 
             // an estimate, not necessarily accurate.
-            tables.SetCapacity(TableIndex.MethodSemantics, propertyDefs.Count * 2 + eventDefs.Count * 2);
+            builder.SetCapacity(TableIndex.MethodSemantics, propertyDefs.Count * 2 + eventDefs.Count * 2);
 
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
@@ -2722,7 +2713,7 @@ namespace Microsoft.Cci
                         semantics = 0x0004;
                     }
 
-                    tables.AddMethodSemantics(
+                    builder.AddMethodSemantics(
                         association: association,
                         semantics: semantics,
                         methodDefinitionRowId: GetMethodDefIndex(accessorMethod.GetResolvedMethod(Context)));
@@ -2752,7 +2743,7 @@ namespace Microsoft.Cci
                         semantics = 0x0004;
                     }
 
-                    tables.AddMethodSemantics(
+                    builder.AddMethodSemantics(
                         association: association,
                         semantics: semantics,
                         methodDefinitionRowId: GetMethodDefIndex(accessorMethod.GetResolvedMethod(Context)));
@@ -2763,11 +2754,11 @@ namespace Microsoft.Cci
         private void PopulateModuleRefTableRows()
         {
             var moduleRefs = this.GetModuleRefs();
-            tables.SetCapacity(TableIndex.ModuleRef, moduleRefs.Count);
+            builder.SetCapacity(TableIndex.ModuleRef, moduleRefs.Count);
 
             foreach (string moduleName in moduleRefs)
             {
-                tables.AddModuleReference(GetStringIndexForPathAndCheckLength(moduleName));
+                builder.AddModuleReference(GetStringIndexForPathAndCheckLength(moduleName));
             }
         }
         
@@ -2784,22 +2775,22 @@ namespace Microsoft.Cci
                 mvid = Guid.NewGuid();
             }
 
-            tables.AddModule(
+            builder.AddModule(
                 generation: this.Generation,
-                moduleName: heaps.GetStringIndex(this.module.ModuleName),
-                mvid: heaps.AllocateGuid(mvid),
-                encId: heaps.GetGuidIndex(EncId),
-                encBaseId: heaps.GetGuidIndex(EncBaseId));
+                moduleName: builder.GetStringIndex(this.module.ModuleName),
+                mvid: builder.AllocateGuid(mvid),
+                encId: builder.GetGuidIndex(EncId),
+                encBaseId: builder.GetGuidIndex(EncBaseId));
         }
         
         private void PopulateParamTableRows()
         {
             var parameterDefs = this.GetParameterDefs();
-            tables.SetCapacity(TableIndex.Param, parameterDefs.Count);
+            builder.SetCapacity(TableIndex.Param, parameterDefs.Count);
 
             foreach (IParameterDefinition parDef in parameterDefs)
             {
-                tables.AddParameter(
+                builder.AddParameter(
                     attributes: GetParameterAttributes(parDef),
                     sequenceNumber: (parDef is ReturnValueParameter) ? 0 : parDef.Index + 1,
                     name: GetStringIndexForNameAndCheckLength(parDef.Name, parDef));
@@ -2809,11 +2800,11 @@ namespace Microsoft.Cci
         private void PopulatePropertyTableRows()
         {
             var propertyDefs = this.GetPropertyDefs();
-            tables.SetCapacity(TableIndex.Property, propertyDefs.Count);
+            builder.SetCapacity(TableIndex.Property, propertyDefs.Count);
 
             foreach (IPropertyDefinition propertyDef in propertyDefs)
             {
-                tables.AddProperty(
+                builder.AddProperty(
                     attributes: GetPropertyAttributes(propertyDef),
                     name: GetStringIndexForNameAndCheckLength(propertyDef.Name, propertyDef),
                     signature: GetPropertySignatureIndex(propertyDef));
@@ -2823,7 +2814,7 @@ namespace Microsoft.Cci
         private void PopulateTypeDefTableRows()
         {
             var typeDefs = this.GetTypeDefs();
-            tables.SetCapacity(TableIndex.TypeDef, typeDefs.Count);
+            builder.SetCapacity(TableIndex.TypeDef, typeDefs.Count);
 
             foreach (INamedTypeDefinition typeDef in typeDefs)
             {
@@ -2831,7 +2822,7 @@ namespace Microsoft.Cci
                 string mangledTypeName = GetMangledName(typeDef);
                 ITypeReference baseType = typeDef.GetBaseClass(Context);
 
-                tables.AddTypeDefinition(
+                builder.AddTypeDefinition(
                     attributes: GetTypeAttributes(typeDef),
                     @namespace: (namespaceType != null) ? GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName) : default(StringIdx),
                     name: GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef),
@@ -2851,7 +2842,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                tables.AddNestedType(
+                builder.AddNestedType(
                     typeDefinitionRowId: GetTypeDefIndex(typeDef),
                     enclosingTypeDefinitionRowId: GetTypeDefIndex(nestedTypeDef.ContainingTypeDefinition));
             }
@@ -2866,7 +2857,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                tables.AddTypeLayout(
+                builder.AddTypeLayout(
                     typeDefinitionRowId: GetTypeDefIndex(typeDef),
                     packingSize: typeDef.Alignment,
                     size: typeDef.SizeOf);
@@ -2876,7 +2867,7 @@ namespace Microsoft.Cci
         private void PopulateTypeRefTableRows()
         {
             var typeRefs = this.GetTypeRefs();
-            tables.SetCapacity(TableIndex.TypeRef, typeRefs.Count);
+            builder.SetCapacity(TableIndex.TypeRef, typeRefs.Count);
 
             foreach (ITypeReference typeRef in typeRefs)
             {
@@ -2917,7 +2908,7 @@ namespace Microsoft.Cci
                     @namespace = this.GetStringIndexForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
                 }
 
-                tables.AddTypeReference(
+                builder.AddTypeReference(
                     resolutionScope: resolutionScope,
                     @namespace: @namespace,
                     name: name);
@@ -2927,11 +2918,11 @@ namespace Microsoft.Cci
         private void PopulateTypeSpecTableRows()
         {
             var typeSpecs = this.GetTypeSpecs();
-            tables.SetCapacity(TableIndex.TypeSpec, typeSpecs.Count);
+            builder.SetCapacity(TableIndex.TypeSpec, typeSpecs.Count);
 
             foreach (ITypeReference typeSpec in typeSpecs)
             {
-                tables.AddTypeSpecification(GetTypeSpecSignatureIndex(typeSpec));
+                builder.AddTypeSpecification(GetTypeSpecSignatureIndex(typeSpec));
             }
         }
 
@@ -2941,7 +2932,7 @@ namespace Microsoft.Cci
 
             foreach (BlobIdx signature in signatures)
             {
-                tables.AddStandaloneSignature(signature);
+                builder.AddStandaloneSignature(signature);
             }
         }
 
@@ -2992,7 +2983,7 @@ namespace Microsoft.Cci
                     localSignatureRid = 0;
                 }
 
-                if (_debugHeapsOpt != null)
+                if (_debugBuilderOpt != null)
                 {
                     SerializeMethodDebugInfo(body, methodRid, localSignatureRid, ref lastLocalVariableRid, ref lastLocalConstantRid);
                 }
@@ -3082,7 +3073,7 @@ namespace Microsoft.Cci
                 this.SerializeLocalVariableSignature(writer, local);
             }
 
-            BlobIdx blobIndex = heaps.GetBlobIndex(writer);
+            BlobIdx blobIndex = builder.GetBlobIndex(writer);
             int signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
             writer.Free();
 
@@ -3127,7 +3118,7 @@ namespace Microsoft.Cci
             }
 
             this.SerializeTypeReference(localConstant.Type, writer, false, true);
-            BlobIdx blobIndex = heaps.GetBlobIndex(writer);
+            BlobIdx blobIndex = builder.GetBlobIndex(writer);
             int signatureIndex = GetOrAddStandAloneSignatureIndex(blobIndex);
             writer.Free();
 
@@ -3200,7 +3191,7 @@ namespace Microsoft.Cci
             var str = _pseudoStringTokenToStringMap[index];
             if (str != null)
             {
-                var token = heaps.GetUserStringToken(str);
+                var token = builder.GetUserStringToken(str);
                 _pseudoStringTokenToTokenMap[index] = token;
                 _pseudoStringTokenToStringMap[index] = null; // Set to null to bypass next lookup
                 return token;
