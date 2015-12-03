@@ -4,24 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>10.0.20218</ProductVersion>
-    <DocumentationFile>Microsoft.VisualStudio.AppDesigner.xml</DocumentationFile>
-    <BinplaceSymbols>false</BinplaceSymbols>
-    <MidlTlbDir>$(OutputPath)</MidlTlbDir>
-    <MidlHeaderDir>$(IntermediateOutputPath)</MidlHeaderDir>
-    <MidlInterfaceDir>$(IntermediateOutputPath)</MidlInterfaceDir>
-    <UseVsVersion>true</UseVsVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{19725D6F-4690-412B-934A-FC48D752B802}</ProjectGuid>
-    <RootNamespace></RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.AppDesigner</AssemblyName>
-    <OptionExplicit>On</OptionExplicit>
+    <OutDir>$(OutDir)\ProjectSystem\</OutDir>
+    <OutputType>Library</OutputType>
+    <RootNamespace></RootNamespace>
     <OptionCompare>binary</OptionCompare>
+    <OptionExplicit>On</OptionExplicit>    
     <OptionStrict>On</OptionStrict>
     <OptionInfer>On</OptionInfer>
-    <SignAssembly>false</SignAssembly>
-    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
-    <DelaySign>false</DelaySign>    
     <NoWarn>$(NoWarn);42105;42107;42353;42307</NoWarn>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <CopyReferencesByDefault>false</CopyReferencesByDefault>

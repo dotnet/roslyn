@@ -4,22 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{CD6E5D00-7B0B-442D-9F5D-EAEC1A71838A}</ProjectGuid>
     <AssemblyName>Microsoft.VisualStudio.Editors</AssemblyName>
-    <OutputPath>$(BinariesDirectory)\bin\$(BuildArchitecture)</OutputPath>
+    <OutDir>$(OutDir)\ProjectSystem\</OutDir>
     <OutputType>Library</OutputType>
-    <DocumentationFile>Microsoft.VisualStudio.Editors.xml</DocumentationFile>
-    <BinplaceSymbols>false</BinplaceSymbols>
-    <MidlTlbDir>$(OutputPath)</MidlTlbDir>
-    <MidlHeaderDir>$(IntermediateOutputPath)</MidlHeaderDir>
-    <MidlInterfaceDir>$(IntermediateOutputPath)</MidlInterfaceDir>
-    <UseVsVersion>true</UseVsVersion>
     <RootNamespace></RootNamespace>
     <OptionCompare>binary</OptionCompare>
     <OptionExplicit>On</OptionExplicit>
     <OptionStrict>On</OptionStrict>
-    <OptionInfer>On</OptionInfer>
-    <ProjectGuid>{CD6E5D00-7B0B-442D-9F5D-EAEC1A71838A}</ProjectGuid>
-    <CreateVSNowLocalGacCopy>true</CreateVSNowLocalGacCopy>
+    <OptionInfer>On</OptionInfer>    
     <NoWarn>$(NoWarn);42105;42107;42353;42355</NoWarn>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <CopyReferencesByDefault>false</CopyReferencesByDefault>
