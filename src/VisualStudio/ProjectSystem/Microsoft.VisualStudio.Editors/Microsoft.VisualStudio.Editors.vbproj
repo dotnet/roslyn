@@ -14,17 +14,12 @@
     <MidlInterfaceDir>$(IntermediateOutputPath)</MidlInterfaceDir>
     <UseVsVersion>true</UseVsVersion>
     <AssemblyAttributeClsCompliant>false</AssemblyAttributeClsCompliant>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <OptionCompare>binary</OptionCompare>
     <OptionExplicit>On</OptionExplicit>
     <OptionStrict>On</OptionStrict>
     <OptionInfer>On</OptionInfer>
     <ProjectGuid>{CD6E5D00-7B0B-442D-9F5D-EAEC1A71838A}</ProjectGuid>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
     <CodeAnalysisRuleset>nonRedistBar</CodeAnalysisRuleset>
     <CreateVSNowLocalGacCopy>true</CreateVSNowLocalGacCopy>
     <NoWarn>$(NoWarn);42105;42107;42353;42355</NoWarn>
