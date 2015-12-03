@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -97,6 +98,26 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             // name bound to only one symbol is valid
             return symbol != null && !symbol.IsErrorType();
+        }
+
+        internal static bool ShouldSimplifyMemberAccessExpression(SemanticModel semanticModel, SyntaxNode expression, OptionSet optionSet)
+        {
+            var nameSymbol = GetOriginalSymbolInfo(semanticModel, expression);
+            return nameSymbol != null && ShouldSimplifyMemberAccessExpression(nameSymbol, semanticModel.Language, optionSet);
+        }
+
+        internal static bool ShouldSimplifyMemberAccessExpression(ISymbol symbol, string languageName, OptionSet optionSet)
+        {
+            if (!symbol.IsStatic && 
+                (symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(SimplificationOptions.QualifyFieldAccess, languageName)) ||
+                (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(SimplificationOptions.QualifyPropertyAccess, languageName)) ||
+                (symbol.IsKind(SymbolKind.Method) && optionSet.GetOption(SimplificationOptions.QualifyMethodAccess, languageName)) ||
+                (symbol.IsKind(SymbolKind.Event) && optionSet.GetOption(SimplificationOptions.QualifyEventAccess, languageName)))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

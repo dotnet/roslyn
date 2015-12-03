@@ -206,6 +206,7 @@
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
     <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
+    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />

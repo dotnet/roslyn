@@ -670,8 +670,8 @@ Do you want to continue?</value>
   <data name="SimplifyMemberAccess" xml:space="preserve">
     <value>Simplify Member Access</value>
   </data>
-  <data name="SimplifyThisOrMe" xml:space="preserve">
-    <value>Remove 'this' or 'Me' Qualification</value>
+  <data name="RemoveQualification" xml:space="preserve">
+    <value>Remove qualification</value>
   </data>
   <data name="EditAndContinue" xml:space="preserve">
     <value>Edit and Continue</value>
@@ -884,5 +884,11 @@ Do you want to continue?</value>
   </data>
   <data name="Make_method_synchronous" xml:space="preserve">
     <value>Make method synchronous.</value>
+  </data>
+  <data name="AddThisOrMeQualification" xml:space="preserve">
+    <value>Add 'this' or 'Me' qualification.</value>
+  </data>
+  <data name="AddQualification" xml:space="preserve">
+    <value>Add qualification.</value>
   </data>
 </root>
