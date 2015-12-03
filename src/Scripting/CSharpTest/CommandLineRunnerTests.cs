@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 args ?? DefaultArgs,
                 new NotImplementedAnalyzerLoader());
 
-            return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance);
+            return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, new CSharpObjectFormatter());
         }
 
         [Fact]
@@ -182,8 +182,33 @@ Type ""#help"" for more information.
 > div(10, 0)
 «Red»
 {new System.DivideByZeroException().Message}
-«DarkRed»
-  + Submission#0.div(Int32 a, Int32 b)
+  + Submission#0.div(int, int)
+«Gray»
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void ExceptionInGeneric()
+        {
+            var runner = CreateRunner(input:
+@"static class C<T> { public static int div<U>(int a, int b) => a/b; }
+C<string>.div<bool>(10, 2)
+C<string>.div<bool>(10, 0)
+");
+            Assert.Equal(0, runner.RunInteractive());
+
+            Assert.Equal(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> static class C<T> {{ public static int div<U>(int a, int b) => a/b; }}
+> C<string>.div<bool>(10, 2)
+5
+> C<string>.div<bool>(10, 0)
+«Red»
+{new System.DivideByZeroException().Message}
+  + Submission#0.C<T>.div<U>(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
         }

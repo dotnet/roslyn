@@ -8,10 +8,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     public abstract class ObjectFormatterTestBase
     {
-        internal static readonly ObjectFormattingOptions s_hexa = new ObjectFormattingOptions(useHexadecimalNumbers: true, maxOutputLength: int.MaxValue);
-        internal static readonly ObjectFormattingOptions s_memberList = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.List, maxOutputLength: int.MaxValue);
-        internal static readonly ObjectFormattingOptions s_inline = new ObjectFormattingOptions(memberFormat: MemberDisplayFormat.Inline, maxOutputLength: int.MaxValue);
-
         public void AssertMembers(string str, params string[] expected)
         {
             int i = 0;

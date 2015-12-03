@@ -43,6 +43,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Hosting\CommandLine\Vbi.vb" />
+    <Compile Include="Hosting\ObjectFormatter\VisualBasicPrimitiveFormatter.vb" />
+    <Compile Include="Hosting\ObjectFormatter\VisualBasicTypeNameFormatter.vb" />
     <Compile Include="VBScriptingResources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -8,6 +8,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
 using Xunit;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using Formatter = Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests.TestCSharpObjectFormatter;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         public void DebuggerProxy_FrameworkTypes_ArrayList()
         {
             var obj = new ArrayList { 1, 2, true, "foo" };
-            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
+            var str = Formatter.SingleLine.FormatObject(obj);
 
             Assert.Equal("ArrayList(4) { 1, 2, true, \"foo\" }", str);
         }
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 { new byte[] { 1, 2 }, new[] { 1,2,3 } },
             };
 
-            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_memberList);
+            var str = Formatter.SeparateLines.FormatObject(obj);
 
             AssertMembers(str, "Hashtable(1)",
                 "{ byte[2] { 1, 2 }, int[3] { 1, 2, 3 } }"
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Enqueue(2);
             obj.Enqueue(3);
 
-            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
+            var str = Formatter.SingleLine.FormatObject(obj);
             Assert.Equal("Queue(3) { 1, 2, 3 }", str);
         }
 
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Push(2);
             obj.Push(3);
 
-            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
+            var str = Formatter.SingleLine.FormatObject(obj);
             Assert.Equal("Stack(3) { 3, 2, 1 }", str);
         }
 
@@ -69,13 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             obj.Add(1, 5);
             obj.Add(2, 6);
 
-            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
+            var str = Formatter.SingleLine.FormatObject(obj);
             Assert.Equal("SortedList(3) { { 1, 5 }, { 2, 6 }, { 3, 4 } }", str);
 
             obj = new SortedList();
             obj.Add(new[] { 3 }, new int[] { 4 });
 
-            str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
+            str = Formatter.SingleLine.FormatObject(obj);
             Assert.Equal("SortedList(1) { { int[1] { 3 }, int[1] { 4 } } }", str);
         }
 
@@ -108,7 +109,7 @@ End Class
             var c = a.GetType("C");
             var obj = Activator.CreateInstance(c);
 
-            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_memberList);
+            var str = Formatter.SeparateLines.FormatObject(obj);
             AssertMembers(str, "C",
                 "A: 0",
                 "WE: null"
