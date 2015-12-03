@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Linq
+Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Text
@@ -273,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return result
         End Function
 
-        Private Sub SerializeArrayRecursive(bw As Cci.BlobBuilder, inits As ImmutableArray(Of BoundExpression))
+        Private Sub SerializeArrayRecursive(bw As BlobBuilder, inits As ImmutableArray(Of BoundExpression))
             If inits.Length <> 0 Then
                 If inits(0).Kind = BoundKind.ArrayInitialization Then
                     For Each init In inits
