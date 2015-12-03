@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Catch Exception from action.
                     await ExecuteAndCatchIfThrowsAsync(syntaxTreeAction.Analyzer,
                         () => syntaxTreeAction.Action(new SyntaxTreeAnalysisContext(tree, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _cancellationToken))).ConfigureAwait(false);
+                            d => IsSupportedDiagnostic(syntaxTreeAction.Analyzer, d), _compilation, _cancellationToken))).ConfigureAwait(false);
 
                     analyzerStateOpt?.ProcessedActions.Add(syntaxTreeAction);
                 }
@@ -461,6 +461,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task ExecuteOperationActionAsync(
             OperationAnalyzerAction operationAction,
             IOperation operation,
+            SemanticModel semanticModel,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
         {
@@ -468,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerStateOpt, operationAction))
             {
-                var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), _cancellationToken);
+                var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, d => IsSupportedDiagnostic(operationAction.Analyzer, d), semanticModel, _cancellationToken);
                 await ExecuteAndCatchIfThrowsAsync(operationAction.Analyzer, () => operationAction.Action(operationContext)).ConfigureAwait(false);
 
                 analyzerStateOpt?.ProcessedActions.Add(operationAction);
@@ -658,7 +659,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
                     var operationsToAnalyze = (IEnumerable<IOperation>)getNodesToAnalyze(executableBlocks);
-                    await ExecuteOperationActionsAsync(operationsToAnalyze, operationActionsByKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData).ConfigureAwait(false);
+                    await ExecuteOperationActionsAsync(operationsToAnalyze, operationActionsByKind, semanticModel, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData).ConfigureAwait(false);
                 }
             }
 
@@ -698,7 +699,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             await ExecuteAndCatchIfThrowsAsync(
                                 operationBlockAction.Analyzer,
-                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken))).ConfigureAwait(false);
+                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, semanticModel, _cancellationToken))).ConfigureAwait(false);
                         }
                     }
                     
@@ -888,12 +889,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OperationAnalyzerStateData analyzerStateOpt)
         {
             var addDiagnostic = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false);
-            await ExecuteOperationActionsAsync(operationsToAnalyze, operationActionsByKind, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+            await ExecuteOperationActionsAsync(operationsToAnalyze, operationActionsByKind, model, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
         }
 
         private async Task ExecuteOperationActionsAsync(
             IEnumerable<IOperation> operationsToAnalyze,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
         {
@@ -903,7 +905,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IOperation partiallyProcessedNode = analyzerStateOpt?.CurrentOperation;
             if (partiallyProcessedNode != null)
             {
-                await ExecuteOperationActionsAsync(partiallyProcessedNode, operationActionsByKind, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+                await ExecuteOperationActionsAsync(partiallyProcessedNode, operationActionsByKind, model, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
             }
 
             foreach (var child in operationsToAnalyze)
@@ -912,7 +914,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     SetCurrentOperation(analyzerStateOpt, child);
 
-                    await ExecuteOperationActionsAsync(child, operationActionsByKind, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+                    await ExecuteOperationActionsAsync(child, operationActionsByKind, model, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
                 }
             }
         }
@@ -920,6 +922,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async Task ExecuteOperationActionsAsync(
             IOperation operation,
             IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            SemanticModel model,
             Action<Diagnostic> addDiagnostic,
             OperationAnalyzerStateData analyzerStateOpt)
         {
@@ -928,7 +931,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var action in actionsForKind)
                 {
-                    await ExecuteOperationActionAsync(action, operation, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
+                    await ExecuteOperationActionAsync(action, operation, model, addDiagnostic, analyzerStateOpt).ConfigureAwait(false);
                 }
             }
 
