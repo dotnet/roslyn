@@ -2,11 +2,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
-using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+namespace System.Reflection.Metadata.Ecma335
 {
     internal static class MetadataWriterUtilities
     {
@@ -15,7 +13,7 @@ namespace Microsoft.Cci
             if (val == null)
             {
                 // The encoding of Type for the nullref value for FieldInit is ELEMENT_TYPE_CLASS with a Value of a zero.
-                return Constants.SignatureTypeCode_Class;
+                return Microsoft.Cci.Constants.SignatureTypeCode_Class;
             }
 
             Debug.Assert(!val.GetType().GetTypeInfo().IsEnum);

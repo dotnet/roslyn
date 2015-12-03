@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -248,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Instructions that are not branches.
             /// </summary>
-            public Cci.BlobBuilder RegularInstructions => _lazyRegularInstructions;
+            public BlobBuilder RegularInstructions => _lazyRegularInstructions;
 
             /// <summary>
             /// The block contains only the final branch or nothing at all
