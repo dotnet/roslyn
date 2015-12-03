@@ -1283,10 +1283,14 @@ lVbRuntimePlus:
                 documentationPath = documentationPath + ".xml"
             End If
 
+            ' Enable interactive mode if either `\i` option is passed in or no arguments are specified (`vbi`, `vbi script.vbx \i`).
+            ' If the script is passed without the `\i` option simply execute the script (`vbi script.vbx`).
+            interactiveMode = interactiveMode Or (IsScriptRunner AndAlso sourceFiles.Count = 0)
+
             Return New VisualBasicCommandLineArguments With
             {
                 .IsScriptRunner = IsScriptRunner,
-                .InteractiveMode = InteractiveMode Or (IsScriptRunner AndAlso sourceFiles.Count = 0),
+                .InteractiveMode = interactiveMode,
                 .BaseDirectory = baseDirectory,
                 .Errors = diagnostics.AsImmutable(),
                 .Utf8Output = utf8output,
