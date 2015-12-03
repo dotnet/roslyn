@@ -2,7 +2,6 @@
 
 Imports EnvDTE
 Imports EnvDTE80
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractCodeParameterTests
