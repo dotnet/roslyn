@@ -8,61 +8,36 @@
     <AssemblyName>Microsoft.VisualStudio.AppDesigner</AssemblyName>
     <OutDir>$(OutDir)\ProjectSystem\</OutDir>
     <OutputType>Library</OutputType>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <OptionCompare>binary</OptionCompare>
-    <OptionExplicit>On</OptionExplicit>    
+    <OptionExplicit>On</OptionExplicit>
     <OptionStrict>On</OptionStrict>
     <OptionInfer>On</OptionInfer>
     <SignAssembly>true</SignAssembly>
     <NoWarn>$(NoWarn);42105;42107;42353;42307</NoWarn>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <CopyReferencesByDefault>false</CopyReferencesByDefault>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <!-- Override Roslyn which embeds by default -->
+    <VBRuntime>Default</VBRuntime> 
   </PropertyGroup>
   <ItemGroup>
     <Import Include="VSErrorHandler=Microsoft.VisualStudio.ErrorHandler" />
     <Import Include="VSConstants=Microsoft.VisualStudio.VSConstants" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\vsdesigner\designer\Microsoft.VSDesigner.csproj">
-      <Comment>Microsoft.VSDesigner.dll</Comment>
-    </ProjectReference>
-    <ProjectReference Include="..\..\vsdesigner\Microsoft.VSDesigner.WCF\Microsoft.VSDesigner.WCF.csproj">
-      <Comment>Microsoft.VSDesigner.WCF.dll</Comment>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Accessibility">
-      <HintPath>$(NDP_FXRefPath)\Accessibility.dll</HintPath>
-    </Reference>
-    <Reference Include="CustomMarshalers">
-      <HintPath>$(SdkRefPath)\CustomMarshalers.DLL</HintPath>
-    </Reference>
-    <Reference Include="$(VSCommonRefPath)\envdte.dll">
-      <HintPath>$(SdkRefPath)\envdte.DLL</HintPath>
-    </Reference>
-    <Reference Include="$(VSCommonRefPath)\envdte80.dll">
-      <HintPath>$(SdkRefPath)\envdte80.DLL</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.CommonIDE">
-      <HintPath>$(SdkRefPath)\Microsoft.VisualStudio.CommonIDE.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Data.Core">
-      <HintPath>$(VSDataRefv4Path)\Microsoft.VisualStudio.Data.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Data.Services">
-      <HintPath>$(VSDataRefv4Path)\Microsoft.VisualStudio.Data.Services.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.DataTools.Interop">
-      <HintPath>$(VDTRefPath)\Microsoft.VisualStudio.DataTools.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface">
-      <HintPath>$(ExternalAPIsPath)\Whidbey\NetRedist\Microsoft.VisualStudio.TemplateWizardInterface.dll</HintPath>
-    </Reference>
-    <Reference Include="$(ExternalAPIsPath)\Vsip\ref\Microsoft.VisualStudio.Designer.Interfaces.dll" />
-    <Reference Include="$(VSCommonRefPath)\Microsoft.VisualStudio.OLE.Interop.dll">
-      <HintPath>$(SdkRefPath)\Microsoft.VisualStudio.OLE.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="$(vsFrameworkLatest)" />
+    <Reference Include="Accessibility" />
+    <Reference Include="CustomMarshalers" />
+    <Reference Include="envdte" />
+    <Reference Include="envdte80" />
+    <Reference Include="Microsoft.VisualStudio.CommonIDE" />
+    <Reference Include="Microsoft.VisualStudio.Data.Core" />
+    <Reference Include="Microsoft.VisualStudio.Data.Services" />
+    <Reference Include="Microsoft.VisualStudio.DataTools.Interop" />
+    <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
+    <Reference Include="Microsoft.VisualStudio.Designer.Interfaces" />
+    <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
     <Reference Include="Microsoft.VisualStudio.Utilities" />
     <Reference Include="Microsoft.VisualStudio.Shell.Design" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
@@ -70,45 +45,36 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0" />
+    <Reference Include="Microsoft.VisualStudio.Shell.14.0" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
     <Reference Include="Microsoft.VisualStudio.VSHelp" />
-    <Reference Include="mscorcfg">
-      <HintPath>$(SdkRefPath)\mscorcfg.DLL</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Build.Tasks.v3.5">
-      <HintPath>$(NetFX35RefPath)\Microsoft.Build.Tasks.v3.5.dll</HintPath>
-    </Reference>
-    <Reference Include="$(ExternalAPIsPath)\sdk\ref\v2.0\Microsoft.VisualStudio.ManagedInterfaces.dll" />
+    <Reference Include="mscorcfg" />
+    <Reference Include="Microsoft.Build.Tasks.v3.5" />
+    <Reference Include="Microsoft.VisualStudio.ManagedInterfaces" />
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Runtime.Serialization">
-      <HintPath>$(WinFxExternalRefsPath)\System.Runtime.Serialization.DLL</HintPath>
-    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.RegularExpressions" />
     <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.ServiceModel">
-      <HintPath>$(WinFxExternalRefsPath)\System.ServiceModel.DLL</HintPath>
-    </Reference>
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="vslangproj">
-      <HintPath>$(SdkRefPath)\vslangproj.DLL</HintPath>
-    </Reference>
-    <Reference Include="VsWebSite.Interop">
-      <HintPath>$(VenusRefV2Path)\VsWebSite.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="$(ExternalAPIsPath)\WCFReference\Microsoft.VisualStudio.WCFReference.Interop.DLL" />
-    <Reference Include="Microsoft.VisualStudio.XmlEditor">
-      <HintPath>$(DPToolsRefPath)\Microsoft.VisualStudio.XmlEditor.dll</HintPath>
-    </Reference>
+    <Reference Include="VSLangProj" />
+    <Reference Include="VSLangProj80" />
+    <Reference Include="VsWebSite.Interop" />
+    <Reference Include="Microsoft.VSDesigner" />
+    <Reference Include="Microsoft.VSDesigner.WCF" />
+    <Reference Include="Microsoft.VisualStudio.WCFReference.Interop" />
+    <Reference Include="Microsoft.VisualStudio.WCFReference.Interop" />
+    <Reference Include="Microsoft.VisualStudio.XmlEditor" />
     <Reference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" />
     <Reference Include="Microsoft.Internal.VisualStudio.Sqm.Interop.DesignTime">
       <EmbedInteropTypes>true</EmbedInteropTypes>
@@ -119,6 +85,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
     <Compile Include="$(VSCommonIncPath)\ManagedCodeMarkers.vb">
       <Link>ManagedCodeMarkers.vb</Link>
     </Compile>
@@ -203,11 +170,11 @@
     <Compile Include="PropPageDesigner\PropPageDesignerEditorFactory.vb" />
     <Compile Include="PropPageDesigner\PropPageDesignerLoader.vb" />
     <Compile Include="PropPageDesigner\PropPageDesignerRootComponent.vb">
-      <SubType>Code</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="PropPageDesigner\PropPageDesignerRootDesigner.vb" />
     <Compile Include="PropPageDesigner\PropPageDesignerView.vb">
-      <SubType>Code</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="PropPageDesigner\PropPageDesignerWindowPane.vb" />
     <Compile Include="PropPages\ChildPageSite.vb" />
@@ -228,7 +195,7 @@
     <Compile Include="PropPages\ValidationException.vb" />
     <Compile Include="PropPages\ValidationResult.vb" />
     <Compile Include="PropPages\VSThemedLinkLabel.vb">
-      <SubType>Code</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Resources\Microsoft.VisualStudio.AppDesigner.Designer.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -280,7 +247,7 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
-  </ItemGroup>  
+  </ItemGroup>
   <ItemGroup>
     <PublishPartLinked Include="$(OutputPath)\$(AssemblyName).dll">
       <FileType>Reference</FileType>
