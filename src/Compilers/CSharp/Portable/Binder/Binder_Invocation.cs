@@ -483,7 +483,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArguments,
                     analyzedArguments,
                     invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
-                    isDelegate: false);
+                    isDelegate: false,
+                    diagnostics: diagnostics);
             }
             else if (!resolution.IsEmpty)
             {
@@ -726,7 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
-                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null));
+                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null),
+                    diagnostics: diagnostics);
             }
 
             // Otherwise, there were no dynamic arguments and overload resolution found a unique best candidate. 
@@ -950,7 +952,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> typeArguments,
             AnalyzedArguments analyzedArguments,
             bool invokedAsExtensionMethod,
-            bool isDelegate)
+            bool isDelegate,
+            DiagnosticBag diagnostics = null)
         {
             MethodSymbol method;
             ImmutableArray<BoundExpression> args;
@@ -979,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? receiver.Type
                     : this.ContainingType;
                 method = new ErrorMethodSymbol(methodContainer, returnType, name);
-                args = BuildArgumentsForErrorRecovery(analyzedArguments);
+                args = BuildArgumentsForErrorRecovery(analyzedArguments, diagnostics);
             }
 
             var argNames = analyzedArguments.GetNames();
@@ -987,7 +990,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundCall.ErrorCall(node, receiver, method, args, argNames, argRefKinds, isDelegate, invokedAsExtensionMethod: invokedAsExtensionMethod, originalMethods: methods, resultKind: resultKind);
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> parameters)
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(
+            AnalyzedArguments analyzedArguments,
+            ImmutableArray<ParameterSymbol> parameters,
+            DiagnosticBag diagnostics = null)
         {
             ArrayBuilder<BoundExpression> oldArguments = analyzedArguments.Arguments;
             int argumentCount = oldArguments.Count;
@@ -997,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundKind argumentKind = oldArguments[i].Kind;
 
-                if (argumentKind == BoundKind.UnboundLambda && i < parameterCount)
+                if (argumentKind == BoundKind.UnboundLambda)
                 {
                     ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
                     newArguments.AddRange(oldArguments);
@@ -1006,18 +1012,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BoundExpression oldArgument = newArguments[i];
 
-                        if (i < parameterCount)
+                        switch (oldArgument.Kind)
                         {
-                            switch (oldArgument.Kind)
-                            {
-                                case BoundKind.UnboundLambda:
-                                    NamedTypeSymbol parameterType = parameters[i].Type as NamedTypeSymbol;
-                                    if ((object)parameterType != null)
-                                    {
-                                        newArguments[i] = ((UnboundLambda)oldArgument).Bind(parameterType);
-                                    }
-                                    break;
-                            }
+                            case BoundKind.UnboundLambda:
+                                UnboundLambda unboundLambda = (UnboundLambda)oldArgument;
+                                NamedTypeSymbol parameterType = i < parameters.Length ? parameters[i].Type as NamedTypeSymbol : null;
+
+                                var boundLambda = (object)parameterType != null
+                                    ? unboundLambda.Bind(parameterType)
+                                    : unboundLambda.BindForErrorRecovery();
+
+                                newArguments[i] = boundLambda;
+                                if (diagnostics != null)
+                                {
+                                    diagnostics.AddRange(boundLambda.Diagnostics.Select(d => d.WithSeverity(DiagnosticSeverity.Hidden)));
+                                }
+                                break;
                         }
 
                         i++;
@@ -1031,9 +1041,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return oldArguments.ToImmutable();
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(
+            AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics = null)
         {
-            return BuildArgumentsForErrorRecovery(analyzedArguments, ImmutableArray<ParameterSymbol>.Empty);
+            return BuildArgumentsForErrorRecovery(analyzedArguments, ImmutableArray<ParameterSymbol>.Empty, diagnostics);
         }
 
         private BoundCall CreateBadCall(
