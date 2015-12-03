@@ -3123,6 +3123,24 @@ End Class
             TestGetBaseName(code, "N.M.Generic(Of String)")
         End Sub
 
+        ' Note: This unit test has diverged and is not asynchronous in stabilization. If merged into master,
+        ' take the master version and remove this comment.
+        Public Sub TestAddDeleteManyTimes()
+            Dim code =
+<Code>
+Class C$$
+End Class
+</Code>
+
+            TestElement(code,
+                Sub(codeClass)
+                    For i = 1 To 100
+                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        codeClass.RemoveMember(variable)
+                    Next
+                End Sub)
+        End Sub
+
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ExternalClass_ImplementedInterfaces()
             Dim code =
