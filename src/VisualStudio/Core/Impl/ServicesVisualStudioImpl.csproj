@@ -205,6 +205,7 @@
     <Compile Include="CodeModel\CodeModelProjectCache.CacheEntry.cs" />
     <Compile Include="CodeModel\CodeModelProjectCache.cs" />
     <Compile Include="CodeModel\CodeModelState.cs" />
+    <Compile Include="CodeModel\CodeModelTaskExtensions.cs" />
     <Compile Include="CodeModel\CodeTypeRef.cs" />
     <Compile Include="CodeModel\Collections\AbstractCodeElementCollection.cs" />
     <Compile Include="CodeModel\Collections\AttributeArgumentCollection.cs" />
