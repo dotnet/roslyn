@@ -204,8 +204,8 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        private const int IDEAL_SEGMENT_COUNT = 10;
-        private const int MAXIMUM_SEGMENT_COUNT = 20;
+        internal const int IDEAL_SEGMENT_COUNT = 10;
+        internal const int MAXIMUM_SEGMENT_COUNT = 20;
 
         /// <summary>
         /// Reduces the number of segments toward the ideal number of segments.

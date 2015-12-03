@@ -312,13 +312,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestMassiveSingleCharacterAdds()
+        public void TestManySingleCharacterAdds()
         {
             var str = new String('.', 1024);
             var text = SourceText.From(str);
 
             var lines = text.Lines;
-            for (int i = 0; i < 20000; i++)
+            int n = 20000;
+            for (int i = 0; i < n; i++)
             {
                 char c = (char)(((ushort)'a') + (i % 26));
 
@@ -327,7 +328,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             var len = text.Length;
-            Assert.Equal(1024 + 20000, len);
+            Assert.Equal(str.Length + n, len);
 
             lines = text.Lines;
             var result = text.ToString();
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestMassiveSingleCharacterReplacements()
+        public void TestManySingleCharacterReplacements()
         {
             var str = new String('.', 1024);
             var text = SourceText.From(str);
@@ -441,6 +442,104 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, textWithFewerSegments.Segments.Length);
             Assert.Equal("abcdefghi", textWithFewerSegments.Segments[0].ToString());
             Assert.Equal("lmnopqrstuvwxyz", textWithFewerSegments.Segments[1].ToString());
+        }
+
+        [Fact]
+        public void TestRemovingEverythingSucceeds()
+        {
+            var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
+
+            Assert.Equal(0, text.Segments.Length);
+            var textWithSegments = text.Replace(new TextSpan(0, text.Length), "");
+            Assert.Equal(0, textWithSegments.Length);
+            Assert.Equal(0, textWithSegments.Size);
+        }
+
+        [Fact]
+        public void TestCompressingSegmentsCompressesSmallerSegmentsFirst()
+        {
+            var a = new string('a', 64);
+            var b = new string('b', 64);
+
+            var t = SourceText.From(a);
+            t = t.Replace(t.Length, 0, b); // add b's
+
+            var segs = t.Segments.Length;
+            Assert.Equal(2, segs);
+            Assert.Equal(a, t.Segments[0].ToString());
+            Assert.Equal(b, t.Segments[1].ToString());
+
+            // keep appending little segments until we trigger compression
+            do
+            {
+                segs = t.Segments.Length;
+                t = t.Replace(t.Length, 0, "c");
+            }
+            while (t.Segments.Length > segs);
+
+            // this should compact all the 'c' segments into one
+            Assert.Equal(3, t.Segments.Length);
+            Assert.Equal(a, t.Segments[0].ToString());
+            Assert.Equal(b, t.Segments[1].ToString());
+            Assert.Equal(new string('c', t.Segments[2].Length), t.Segments[2].ToString());
+        }
+
+        [Fact]
+        public void TestCompressingSegmentsCompressesLargerSegmentsIfNecessary()
+        {
+            var a = new string('a', 64);
+            var b = new string('b', 64);
+            var c = new string('c', 64);
+
+            var t = SourceText.From(a);
+            t = t.Replace(t.Length, 0, b); // add b's
+
+            var segs = t.Segments.Length;
+            Assert.Equal(2, segs);
+            Assert.Equal(a, t.Segments[0].ToString());
+            Assert.Equal(b, t.Segments[1].ToString());
+
+            // keep appending larger segments (larger than initial size)
+            do
+            {
+                segs = t.Segments.Length;
+                t = t.Replace(t.Length, 0, c);  // add c's that are the same segment size as the a's and b's
+            }
+            while (t.Segments.Length > segs);
+
+            // this should compact all the segments since they all were the same size and 
+            // compress at the same time
+            Assert.Equal(0, t.Segments.Length);
+        }
+
+        [Fact]
+        public void TestOldEditsCanBeCollected()
+        {
+            // this test proves that intermediate edits are not being kept alive by successive edits.
+            WeakReference weakFirstEdit;
+            SourceText secondEdit;
+            CreateEdits(out weakFirstEdit, out secondEdit);
+
+            int tries = 0;
+            while (weakFirstEdit.IsAlive)
+            {
+                tries++;
+                if (tries > 10)
+                {
+                    throw new InvalidOperationException("Failed to GC old edit");
+                }
+
+                GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+            }
+        }
+
+        private void CreateEdits(out WeakReference weakFirstEdit, out SourceText secondEdit)
+        {
+            var text = SourceText.From("This is the old text");
+            var firstEdit = text.Replace(11, 3, "new");
+            secondEdit = firstEdit.Replace(11, 3, "newer");
+
+            weakFirstEdit = new WeakReference(firstEdit);
         }
     }
 }
