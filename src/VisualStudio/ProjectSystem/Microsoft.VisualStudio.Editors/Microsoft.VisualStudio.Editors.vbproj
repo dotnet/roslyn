@@ -9,13 +9,10 @@
     <OutputType>Library</OutputType>
     <DocumentationFile>Microsoft.VisualStudio.Editors.xml</DocumentationFile>
     <BinplaceSymbols>false</BinplaceSymbols>
-    <AssemblyAttributeComVisible>true</AssemblyAttributeComVisible>
-    <GenerateAssemblyRefs>true</GenerateAssemblyRefs>
     <MidlTlbDir>$(OutputPath)</MidlTlbDir>
     <MidlHeaderDir>$(IntermediateOutputPath)</MidlHeaderDir>
     <MidlInterfaceDir>$(IntermediateOutputPath)</MidlInterfaceDir>
     <UseVsVersion>true</UseVsVersion>
-    <AssemblyAttributeClsCompliant>false</AssemblyAttributeClsCompliant>
     <RootNamespace></RootNamespace>
     <OptionCompare>binary</OptionCompare>
     <OptionExplicit>On</OptionExplicit>

@@ -7,13 +7,10 @@
     <ProductVersion>10.0.20218</ProductVersion>
     <DocumentationFile>Microsoft.VisualStudio.AppDesigner.xml</DocumentationFile>
     <BinplaceSymbols>false</BinplaceSymbols>
-    <AssemblyAttributeComVisible>true</AssemblyAttributeComVisible>
-    <GenerateAssemblyRefs>true</GenerateAssemblyRefs>
     <MidlTlbDir>$(OutputPath)</MidlTlbDir>
     <MidlHeaderDir>$(IntermediateOutputPath)</MidlHeaderDir>
     <MidlInterfaceDir>$(IntermediateOutputPath)</MidlInterfaceDir>
     <UseVsVersion>true</UseVsVersion>
-    <AssemblyAttributeClsCompliant>false</AssemblyAttributeClsCompliant>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{19725D6F-4690-412B-934A-FC48D752B802}</ProjectGuid>
     <RootNamespace></RootNamespace>

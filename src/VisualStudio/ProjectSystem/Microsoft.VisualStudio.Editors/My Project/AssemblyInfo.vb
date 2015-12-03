@@ -1,10 +1,13 @@
-﻿Imports System.Runtime.CompilerServices
+﻿Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 
 'NOTE: This is only a partial AssemblyInfo.vb file.  The rest of the assembly
 '  attributes are automatically generated in another AssemblyInfo.vb file
 '  at build time.
 
-
+<Assembly: CLSCompliantAttribute(False)>
+<Assembly: ComVisible(True)>
 
 <Assembly: InternalsVisibleTo("Microsoft.VisualStudio.Editors.UnitTestFramework, PublicKey=" & _
  "0024000004800000940000000602000000240000525341310004000001000100" & _
