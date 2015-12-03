@@ -285,7 +285,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         }
         [Fact]
 
-        private void TestGetEffectiveDiagnostics()
+        public void TestGetEffectiveDiagnostics()
         {
             var noneDiagDescriptor = new DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
             var infoDiagDescriptor = new DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault: true);
@@ -424,7 +424,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         }
         [Fact]
 
-        private void TestDisabledDiagnostics()
+        public void TestDisabledDiagnostics()
         {
             var disabledDiagDescriptor = new DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: false);
             var enabledDiagDescriptor = new DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
@@ -505,7 +505,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         }
 
         [Fact]
-        private void TestDisabledAnalyzers()
+        public void TestDisabledAnalyzers()
         {
             var fullyDisabledAnalyzer = new FullyDisabledAnalyzer();
             var partiallyDisabledAnalyzer = new PartiallyDisabledAnalyzer();
@@ -530,7 +530,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
         }
 
         [Fact, WorkItem(1008059)]
-        private void TestCodeBlockAnalyzersForNoExecutableCode()
+        public void TestCodeBlockAnalyzersForNoExecutableCode()
         {
             string noExecutableCodeSource = @"
 public abstract class C
@@ -547,7 +547,7 @@ public abstract class C
         }
 
         [Fact, WorkItem(1008059)]
-        private void TestCodeBlockAnalyzersForBaseConstructorInitializer()
+        public void TestCodeBlockAnalyzersForBaseConstructorInitializer()
         {
             string baseCtorSource = @"
 public class B
@@ -570,7 +570,7 @@ public class C : B
         }
 
         [Fact, WorkItem(1067286)]
-        private void TestCodeBlockAnalyzersForExpressionBody()
+        public void TestCodeBlockAnalyzersForExpressionBody()
         {
             string source = @"
 public class B
@@ -593,7 +593,7 @@ public class B
         }
 
         [Fact, WorkItem(592)]
-        private void TestSyntaxNodeAnalyzersForExpressionBody()
+        public void TestSyntaxNodeAnalyzersForExpressionBody()
         {
             string source = @"
 public class B
@@ -613,7 +613,7 @@ public class B
         }
 
         [Fact, WorkItem(592)]
-        private void TestMethodSymbolAnalyzersForExpressionBody()
+        public void TestMethodSymbolAnalyzersForExpressionBody()
         {
             string source = @"
 public class B
@@ -658,7 +658,7 @@ public class B
         }
 
         [Fact]
-        private void TestNoDuplicateCallbacksForFieldDeclaration()
+        public void TestNoDuplicateCallbacksForFieldDeclaration()
         {
             string source = @"
 public class B
@@ -674,7 +674,7 @@ public class B
         }
 
         [Fact, WorkItem(565)]
-        private void TestCallbacksForFieldDeclarationWithMultipleVariables()
+        public void TestCallbacksForFieldDeclarationWithMultipleVariables()
         {
             string source = @"
 public class B
@@ -694,7 +694,7 @@ public class B
         }
 
         [Fact, WorkItem(1096600)]
-        private void TestDescriptorForConfigurableCompilerDiagnostics()
+        public void TestDescriptorForConfigurableCompilerDiagnostics()
         {
             // Verify that all configurable compiler diagnostics, i.e. all non-error diagnostics,
             // have a non-null and non-empty Title and Category.
