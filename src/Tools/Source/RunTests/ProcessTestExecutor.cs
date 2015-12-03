@@ -20,7 +20,7 @@ namespace RunTests
             _options = options;
         }
 
-        public async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken)
         {
             try
             { 

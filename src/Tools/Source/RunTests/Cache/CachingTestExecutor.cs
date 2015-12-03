@@ -20,9 +20,9 @@ namespace RunTests.Cache
             _contentUtil = new ContentUtil(options);
         }
 
-        public async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken)
         {
-            var contentFile = _contentUtil.GetTestResultConentFile(assemblyPath);
+            var contentFile = _contentUtil.GetTestResultContentFile(assemblyPath);
             var builder = new StringBuilder();
             builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {contentFile.Checksum}");
             builder.AppendLine("===");
@@ -34,7 +34,7 @@ namespace RunTests.Cache
             if (!_dataStorage.TryGetTestResult(contentFile.Checksum, out testResult))
             {
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
-                testResult = await _testExecutor.RunTest(assemblyPath, cancellationToken);
+                testResult = await _testExecutor.RunTestAsync(assemblyPath, cancellationToken);
                 Logger.Log($"{Path.GetFileName(assemblyPath)} - caching");
                 _dataStorage.AddTestResult(contentFile, testResult);
             }

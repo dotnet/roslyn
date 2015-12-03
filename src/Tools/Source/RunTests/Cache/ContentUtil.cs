@@ -22,7 +22,7 @@ namespace RunTests.Cache
             _options = options;
         }
 
-        internal ContentFile GetTestResultConentFile(string assemblyPath)
+        internal ContentFile GetTestResultContentFile(string assemblyPath)
         {
             try
             {

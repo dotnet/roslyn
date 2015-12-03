@@ -38,6 +38,6 @@ namespace RunTests
 
     internal interface ITestExecutor
     {
-        Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken);
+        Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken);
     }
 }

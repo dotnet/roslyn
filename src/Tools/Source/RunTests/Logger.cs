@@ -27,6 +27,7 @@ namespace RunTests
             lock (s_lines)
             {
                 File.WriteAllLines(logFilePath, s_lines.ToArray());
+                s_lines.Clear();
             }
         }
     }
