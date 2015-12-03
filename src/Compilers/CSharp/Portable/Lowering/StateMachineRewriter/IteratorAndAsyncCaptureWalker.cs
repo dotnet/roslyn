@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
         {
-            CaptureVariable(GetNonFieldSymbol(unassignedSlot), node);
+            CaptureVariable(GetNonMemberSymbol(unassignedSlot), node);
         }
 
         protected override void VisitLvalueParameter(BoundParameter node)

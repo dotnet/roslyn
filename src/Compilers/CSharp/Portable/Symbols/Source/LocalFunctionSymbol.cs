@@ -124,10 +124,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken arglistToken;
             _parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics, true);
             _isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            if (diagnostics.IsEmptyWithoutResolution)
+
+            if (!diagnostics.HasAnyResolvedErrors())
             {
                 SourceMemberMethodSymbol.ReportAsyncParameterErrors(this, diagnostics, this.Locations[0]);
             }
+
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
         }
 

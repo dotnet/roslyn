@@ -4687,4 +4687,49 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CantInferVoid" xml:space="preserve">
     <value>Cannot infer the type of '{0}' as it does not return a value.</value>
   </data>
+  <data name="IDS_FeatureStaticNullChecking" xml:space="preserve">
+    <value>static null checking</value>
+  </data>
+  <data name="WRN_NullReferenceAssignment" xml:space="preserve">
+    <value>Possible null reference assignment.</value>
+  </data>
+  <data name="WRN_NullReferenceAssignment_Title" xml:space="preserve">
+    <value>Possible null reference assignment.</value>
+  </data>
+  <data name="WRN_NullReferenceReceiver" xml:space="preserve">
+    <value>Possible dereference of a null reference.</value>
+  </data>
+  <data name="WRN_NullReferenceReceiver_Title" xml:space="preserve">
+    <value>Possible dereference of a null reference.</value>
+  </data>
+  <data name="WRN_NullReferenceReturn" xml:space="preserve">
+    <value>Possible null reference return.</value>
+  </data>
+  <data name="WRN_NullReferenceReturn_Title" xml:space="preserve">
+    <value>Possible null reference return.</value>
+  </data>
+  <data name="WRN_NullReferenceArgument" xml:space="preserve">
+    <value>Possible null reference argument.</value>
+  </data>
+  <data name="WRN_NullReferenceArgument_Title" xml:space="preserve">
+    <value>Possible null reference argument.</value>
+  </data>
+  <data name="WRN_NullCheckIsProbablyAlwaysTrue" xml:space="preserve">
+    <value>Result of the comparison is possibly always true.</value>
+  </data>
+  <data name="WRN_NullCheckIsProbablyAlwaysTrue_Title" xml:space="preserve">
+    <value>Result of the comparison is possibly always true.</value>
+  </data>
+  <data name="WRN_NullCheckIsProbablyAlwaysFalse" xml:space="preserve">
+    <value>Result of the comparison is possibly always false.</value>
+  </data>
+  <data name="WRN_NullCheckIsProbablyAlwaysFalse_Title" xml:space="preserve">
+    <value>Result of the comparison is possibly always false.</value>
+  </data>
+  <data name="WRN_ExpressionIsProbablyNeverNull" xml:space="preserve">
+    <value>Expression is probably never null.</value>
+  </data>
+  <data name="WRN_ExpressionIsProbablyNeverNull_Title" xml:space="preserve">
+    <value>Expression is probably never null.</value>
+  </data>
 </root>

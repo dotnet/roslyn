@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
         {
-            Symbol variable = GetNonFieldSymbol(unassignedSlot);
+            Symbol variable = GetNonMemberSymbol(unassignedSlot);
             if ((object)variable != null) _result.Add(variable);
             base.ReportUnassigned(fieldSymbol, unassignedSlot, node);
         }

@@ -105,7 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault,
             DiagnosticBag diagnostics)
         {
-            TypeSymbol parameterType = parameter.Type.TypeSymbol;
             int parameterIndex = parameter.Ordinal;
             bool isDefault = parameterSyntax.Default != null;
             SyntaxToken thisKeyword = parameterSyntax.Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, parameterSyntax.Modifiers.First(t => t.Kind() == SyntaxKind.ParamsKeyword).GetLocation());
             }
-            else if (parameter.IsParams && !parameterType.IsSZArray())
+            else if (parameter.IsParams && !parameter.Type.IsSZArray())
             {
                 // error CS0225: The params parameter must be a single dimensional array
                 diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, parameterSyntax.Modifiers.First(t => t.Kind() == SyntaxKind.ParamsKeyword).GetLocation());

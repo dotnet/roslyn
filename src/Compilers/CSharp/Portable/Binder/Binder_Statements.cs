@@ -760,7 +760,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we got a good result then swap the inferred type for the "var" 
                 if ((object)initializerOpt?.Type != null)
                 {
-                    declTypeOpt = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
+                    // Default inferred reference types to a nullable state.
+                    declTypeOpt = TypeSymbolWithAnnotations.Create(initializerOpt.Type, makeNullableIfReferenceType: true);
 
                     if (declTypeOpt.SpecialType == SpecialType.System_Void)
                     {

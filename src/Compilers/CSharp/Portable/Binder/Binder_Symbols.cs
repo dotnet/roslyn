@@ -224,14 +224,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var symbol = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null);
 
             // symbol must be a TypeSymbol or an Alias to a TypeSymbol
-            var result = UnwrapAliasNoDiagnostics(symbol.Symbol, basesBeingResolved) as TypeSymbol;
-            if ((object)result != null)
+            if (symbol.IsType || 
+                (symbol.IsAlias && UnwrapAliasNoDiagnostics(symbol.Symbol, basesBeingResolved) is TypeSymbol))
             {
-                if ((object)result == (object)symbol.Symbol)
+                if (symbol.IsType)
                 {
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
-                    ReportDiagnosticsIfObsolete(diagnostics, result, syntax, hasBaseReceiver: false);
+                    ((TypeSymbolWithAnnotations)symbol).ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
                 }
 
                 return symbol;
@@ -291,16 +291,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.NullableType:
                     {
-                        NamedTypeSymbol nullableT = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, syntax);
                         TypeSyntax typeArgumentSyntax = ((NullableTypeSyntax)syntax).ElementType;
                         TypeSymbolWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
-                        NamedTypeSymbol constructedType = nullableT.Construct(ImmutableArray.Create(typeArgument));
+
+                        // TODO: NullableReferenceTypes - If nullable reference types aren't enabled, we can create Nullable<typeArgument> right here as an optimization. 
+                        //                                It is also safe to make a decision whether this is a nullable reference type or a Nullable<T> right here
+                        //                                if ShouldCheckConstraints is true (we are checking constructedType.IsNullableType() right here anyway).   
+                        TypeSymbolWithAnnotations constructedType = typeArgument.AsNullableReferenceOrValueType(Compilation, syntax.GetReference());
                         if (ShouldCheckConstraints)
                         {
-                            constructedType.CheckConstraints(this.Compilation, this.Conversions, syntax.Location, diagnostics);
+                            if (constructedType.IsNullableType())
+                            {
+                                ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
+                                ((NamedTypeSymbol)constructedType.TypeSymbol).CheckConstraints(this.Compilation, this.Conversions, syntax.Location, diagnostics);
+                            }
+                        }
+                        else
+                        {
+                            diagnostics.Add(new LasyUseSiteDiagnosticsInfo(constructedType), syntax.GetLocation());
                         }
 
-                        return TypeSymbolWithAnnotations.Create(constructedType);
+                        return constructedType;
                     }
 
                 case SyntaxKind.PredefinedType:
@@ -579,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NamespaceOrTypeSymbolWithAnnotations UnwrapAlias(NamespaceOrTypeOrAliasSymbolWithAnnotations symbol, DiagnosticBag diagnostics, CSharpSyntaxNode syntax, ConsList<Symbol> basesBeingResolved = null)
         {
-            if (symbol.Kind == SymbolKind.Alias)
+            if (symbol.IsAlias)
             {
                 AliasSymbol discarded;
                 return NamespaceOrTypeSymbolWithAnnotations.Create((NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out discarded, diagnostics, syntax, basesBeingResolved));
@@ -590,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NamespaceOrTypeSymbolWithAnnotations UnwrapAlias(NamespaceOrTypeOrAliasSymbolWithAnnotations symbol, out AliasSymbol alias, DiagnosticBag diagnostics, CSharpSyntaxNode syntax, ConsList<Symbol> basesBeingResolved = null)
         {
-            if (symbol.Kind == SymbolKind.Alias)
+            if (symbol.IsAlias)
             {
                 return NamespaceOrTypeSymbolWithAnnotations.Create((NamespaceOrTypeSymbol)UnwrapAlias(symbol.Symbol, out alias, diagnostics, syntax, basesBeingResolved));
             }

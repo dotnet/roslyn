@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)
+        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method, ParameterSymbol parameter)
         {
             // ref parameter does not "always" assign.
             if (refKind == RefKind.Out)
             {
-                Assign(arg, value: null);
+                Assign(arg, value: null, valueIsNotNull: null);
             }
         }
 

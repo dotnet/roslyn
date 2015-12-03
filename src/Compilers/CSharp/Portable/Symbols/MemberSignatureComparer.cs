@@ -442,8 +442,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations unsubstitutedReturnType2 = member2.GetTypeOrReturnType();
 
             // short-circuit type map building in the easiest cases
-            var isVoid1 = unsubstitutedReturnType1.SpecialType == SpecialType.System_Void;
-            var isVoid2 = unsubstitutedReturnType2.SpecialType == SpecialType.System_Void;
+            var isVoid1 = unsubstitutedReturnType1.IsVoid;
+            var isVoid2 = unsubstitutedReturnType2.IsVoid;
 
             if (isVoid1 != isVoid2)
             {

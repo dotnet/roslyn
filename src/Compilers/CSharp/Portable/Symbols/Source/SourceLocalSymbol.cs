@@ -204,7 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)inferredType != null &&
                     inferredType.SpecialType != SpecialType.System_Void)
                 {
-                    declType = TypeSymbolWithAnnotations.Create(inferredType);
+                    // Default inferred reference types to a nullable state.
+                    declType = TypeSymbolWithAnnotations.Create(inferredType, makeNullableIfReferenceType: true);
                 }
                 else
                 {

@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
             }
 
-            if (diagnostics.IsEmptyWithoutResolution)
+            if (!diagnostics.HasAnyResolvedErrors())
             {
                 ReportAsyncParameterErrors(this, diagnostics, errorLocation);
             }

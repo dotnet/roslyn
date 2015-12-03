@@ -9261,6 +9261,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to static null checking.
+        /// </summary>
+        internal static string IDS_FeatureStaticNullChecking {
+            get {
+                return ResourceManager.GetString("IDS_FeatureStaticNullChecking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to switch on boolean type.
         /// </summary>
         internal static string IDS_FeatureSwitchOnBool {
@@ -11484,6 +11493,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression is probably never null..
+        /// </summary>
+        internal static string WRN_ExpressionIsProbablyNeverNull {
+            get {
+                return ResourceManager.GetString("WRN_ExpressionIsProbablyNeverNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expression is probably never null..
+        /// </summary>
+        internal static string WRN_ExpressionIsProbablyNeverNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_ExpressionIsProbablyNeverNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Constructor &apos;{0}&apos; is marked external.
         /// </summary>
         internal static string WRN_ExternCtorNoImplementation {
@@ -12350,6 +12377,114 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NubExprIsConstBool2_Title {
             get {
                 return ResourceManager.GetString("WRN_NubExprIsConstBool2_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always false..
+        /// </summary>
+        internal static string WRN_NullCheckIsProbablyAlwaysFalse {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckIsProbablyAlwaysFalse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always false..
+        /// </summary>
+        internal static string WRN_NullCheckIsProbablyAlwaysFalse_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckIsProbablyAlwaysFalse_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always true..
+        /// </summary>
+        internal static string WRN_NullCheckIsProbablyAlwaysTrue {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckIsProbablyAlwaysTrue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Result of the comparison is possibly always true..
+        /// </summary>
+        internal static string WRN_NullCheckIsProbablyAlwaysTrue_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullCheckIsProbablyAlwaysTrue_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference argument..
+        /// </summary>
+        internal static string WRN_NullReferenceArgument {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference argument..
+        /// </summary>
+        internal static string WRN_NullReferenceArgument_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceArgument_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference assignment..
+        /// </summary>
+        internal static string WRN_NullReferenceAssignment {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceAssignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference assignment..
+        /// </summary>
+        internal static string WRN_NullReferenceAssignment_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceAssignment_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible dereference of a null reference..
+        /// </summary>
+        internal static string WRN_NullReferenceReceiver {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceReceiver", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible dereference of a null reference..
+        /// </summary>
+        internal static string WRN_NullReferenceReceiver_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceReceiver_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference return..
+        /// </summary>
+        internal static string WRN_NullReferenceReturn {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference return..
+        /// </summary>
+        internal static string WRN_NullReferenceReturn_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceReturn_Title", resourceCulture);
             }
         }
         

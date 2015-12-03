@@ -121,6 +121,7 @@
     <Compile Include="Semantics\ScriptSemanticsTests.cs" />
     <Compile Include="Semantics\SemanticAnalyzerTests.cs" />
     <Compile Include="Semantics\SemanticErrorTests.cs" />
+    <Compile Include="Semantics\StaticNullChecking.cs" />
     <Compile Include="Semantics\StructsTests.cs" />
     <Compile Include="Semantics\SuppressAccessibilityChecksTests.cs" />
     <Compile Include="Semantics\SwitchTests.cs" />

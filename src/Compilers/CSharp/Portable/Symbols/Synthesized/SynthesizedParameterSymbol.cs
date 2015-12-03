@@ -29,13 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name = "",
             ImmutableArray<CustomModifier> customModifiers = default(ImmutableArray<CustomModifier>),
             ushort countOfCustomModifiersPrecedingByRef = 0)
+            : this(container, TypeSymbolWithAnnotations.Create(type, customModifiers.NullToEmpty()), ordinal, refKind, name, countOfCustomModifiersPrecedingByRef)
+        {}
+
+        public SynthesizedParameterSymbol(
+            MethodSymbol container,
+            TypeSymbolWithAnnotations type,
+            int ordinal,
+            RefKind refKind,
+            string name = "",
+            ushort countOfCustomModifiersPrecedingByRef = 0)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(name != null);
             Debug.Assert(ordinal >= 0);
 
             _container = container;
-            _type = TypeSymbolWithAnnotations.Create(type, customModifiers.NullToEmpty());
+            _type = type;
             _ordinal = ordinal;
             _refKind = refKind;
             _name = name;
