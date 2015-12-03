@@ -40,35 +40,35 @@ namespace Microsoft.Cci
             bool hasPdbStream,
             CancellationToken cancellationToken)
         {
-            var heaps = new MetadataHeapsBuilder();
-            MetadataHeapsBuilder debugHeapsOpt;
+            var builder = new MetadataBuilder();
+            MetadataBuilder debugBuilderOpt;
             switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
-                    debugHeapsOpt = hasPdbStream ? new MetadataHeapsBuilder() : null;
+                    debugBuilderOpt = hasPdbStream ? new MetadataBuilder() : null;
                     break;
 
                 case DebugInformationFormat.Embedded:
-                    debugHeapsOpt = heaps;
+                    debugBuilderOpt = builder;
                     break;
 
                 default:
-                    debugHeapsOpt = null;
+                    debugBuilderOpt = null;
                     break;
             }
 
-            return new FullMetadataWriter(context, heaps, debugHeapsOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            return new FullMetadataWriter(context, builder, debugBuilderOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
-            MetadataHeapsBuilder heaps,
-            MetadataHeapsBuilder debugHeapsOpt,
+            MetadataBuilder builder,
+            MetadataBuilder debugBuilderOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(heaps, debugHeapsOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(builder, debugBuilderOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -325,7 +325,7 @@ namespace Microsoft.Cci
 
                 lastParent = eventDef.ContainingTypeDefinition;
 
-                tables.AddEventMap(
+                builder.AddEventMap(
                     typeDefinitionRowId: GetTypeDefIndex(lastParent),
                     eventList: GetEventDefIndex(eventDef));
             }
@@ -343,7 +343,7 @@ namespace Microsoft.Cci
 
                 lastParent = propertyDef.ContainingTypeDefinition;
 
-                tables.AddPropertyMap(
+                builder.AddPropertyMap(
                     typeDefinitionRowId: GetTypeDefIndex(lastParent),
                     propertyList: GetPropertyDefIndex(propertyDef));
             }

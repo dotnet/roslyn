@@ -112,7 +112,7 @@ namespace Microsoft.Cci
         }
     }
 
-    internal sealed class MetadataHeapsBuilder
+    internal sealed partial class MetadataBuilder
     {
         // #US heap
         private readonly Dictionary<string, int> _userStrings = new Dictionary<string, int>();
@@ -136,7 +136,7 @@ namespace Microsoft.Cci
 
         private bool _streamsAreComplete;
 
-        public MetadataHeapsBuilder(
+        public MetadataBuilder(
             int userStringHeapStartOffset = 0,
             int stringHeapStartOffset = 0,
             int blobHeapStartOffset = 0,
@@ -288,7 +288,7 @@ namespace Microsoft.Cci
             return index.Index;
         }
 
-        public bool TryGetUserStringToken(string str, out int token)
+        public int GetUserStringToken(string str)
         {
             int index;
             if (!_userStrings.TryGetValue(str, out index))
@@ -300,8 +300,7 @@ namespace Microsoft.Cci
                 // User strings are referenced by metadata tokens (8 bits of which are used for the token type) leaving only 24 bits for the offset. 
                 if ((index & 0xFF000000) != 0)
                 {
-                    token = 0;
-                    return false;
+                    throw new OverflowException();
                 }
 
                 _userStrings.Add(str, index);
@@ -362,11 +361,10 @@ namespace Microsoft.Cci
                 _userStringWriter.WriteByte(stringKind);
             }
 
-            token = 0x70000000 | index;
-            return true;
+            return 0x70000000 | index;
         }
 
-        internal void Complete()
+        internal void CompleteHeaps()
         {
             Debug.Assert(!_streamsAreComplete);
             _streamsAreComplete = true;
@@ -455,7 +453,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public void WriteTo(BlobBuilder writer, out int guidHeapStartOffset)
+        public void WriteHeapsTo(BlobBuilder writer, out int guidHeapStartOffset)
         {
             WriteAligned(_stringWriter, writer);
             WriteAligned(_userStringWriter, writer);
