@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(_NTDRIVE)$(_NTROOT)\tools\Microsoft.DevDiv.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
     <AssemblyName>Microsoft.VisualStudio.Editors</AssemblyName>
     <OutputPath>$(BinariesDirectory)\bin\$(BuildArchitecture)</OutputPath>
@@ -35,7 +35,6 @@
     <CreateVSNowLocalGacCopy>true</CreateVSNowLocalGacCopy>
     <NoWarn>$(NoWarn);42105;42107;42353;42355</NoWarn>
   </PropertyGroup>
-  <Import Project="$(_NTDRIVE)$(_NTROOT)\tools\Microsoft.DevDiv.targets" />
   <ItemGroup>
     <Reference Include="Accessibility">
       <HintPath>$(NDP_FXRefPath)\Accessibility.dll</HintPath>
@@ -855,4 +854,5 @@
   <ItemGroup>
     <Folder Include="Resources\Common\" />
   </ItemGroup>
+  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>
