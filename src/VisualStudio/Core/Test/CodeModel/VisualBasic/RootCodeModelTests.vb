@@ -231,7 +231,7 @@ End Namespace
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestDotNetNameFromLanguageSpecific() As Task
+        Public Async Function TestDotNetNameFromLanguageSpecific1() As Task
             Dim code =
 <code>
 Imports N.M
@@ -248,6 +248,23 @@ End Namespace
                 Sub(rootCodeModel)
                     Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("N.M.Generic(Of String)")
                     Assert.Equal("N.M.Generic`1[System.String]", dotNetName)
+                End Sub)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestDotNetNameFromLanguageSpecific2() As Task
+            Await TestRootCodeModelWithCodeFile(<code></code>,
+                Sub(rootCodeModel)
+                    Dim dotNetName = rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary(Of Integer, String)")
+                    Assert.Equal("System.Collections.Generic.Dictionary`2[System.Int32,System.String]", dotNetName)
+                End Sub)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestDotNetNameFromLanguageSpecificWithAssemblyQualifiedName() As Task
+            Await TestRootCodeModelWithCodeFile(<code></code>,
+                Sub(rootCodeModel)
+                    Assert.Throws(Of ArgumentException)(Sub() rootCodeModel.DotNetNameFromLanguageSpecific("System.Collections.Generic.Dictionary(Of Integer, String), mscorlib"))
                 End Sub)
         End Function
 

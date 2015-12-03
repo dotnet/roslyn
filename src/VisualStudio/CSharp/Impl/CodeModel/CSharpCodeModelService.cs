@@ -3027,6 +3027,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 var parsedTypeName = SyntaxFactory.ParseTypeName(fullName);
 
+                // Check to see if the name we parsed has any skipped text. If it does, don't bother trying to
+                // speculatively bind it because we'll likely just get the wrong thing since we found a bunch
+                // of non-sensical tokens.
+
+                if (parsedTypeName.ContainsSkippedText)
+                {
+                    return null;
+                }
+
                 // If we couldn't get the name, we just grab the first tree in the compilation to
                 // speculatively bind at position zero. However, if there *aren't* any trees, we fork the
                 // compilation with an empty tree for the purposes of speculative binding.
