@@ -1048,6 +1048,46 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertEx.Equal(submissions, actualSubmissions);
         }
 
+        [WorkItem(6397, "https://github.com/dotnet/roslyn/issues/6397")]
+        [WpfFact]
+        public void TypeCharWithUndoRedo()
+        {
+            Window.Operations.TypeChar('a');
+            Window.Operations.TypeChar('b');
+            Window.Operations.TypeChar('c');
+            Assert.Equal("> abc", GetTextFromCurrentSnapshot());
+
+            // undo/redo for consecutive TypeChar's shold be a single action
+
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
+            Assert.Equal("> ", GetTextFromCurrentSnapshot());
+
+            ((InteractiveWindow)Window).Redo_TestOnly(1);
+            Assert.Equal("> abc", GetTextFromCurrentSnapshot());
+
+            // make a stream selection as follows:
+            // > |aaa|
+            Window.Operations.SelectAll();
+            Window.Operations.TypeChar('1');
+            Window.Operations.TypeChar('2');
+            Window.Operations.TypeChar('3');
+
+            Assert.Equal("> 123", GetTextFromCurrentSnapshot());
+
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
+            Assert.Equal("> abc", GetTextFromCurrentSnapshot());
+
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
+            Assert.Equal("> ", GetTextFromCurrentSnapshot());
+
+            // type in active prompt
+            MoveCaretToPreviousPosition(2);
+            Window.Operations.TypeChar('x');
+            Window.Operations.TypeChar('y');
+            Window.Operations.TypeChar('z');
+            Assert.Equal("> xyz", GetTextFromCurrentSnapshot());
+        }
+
         private string GetTextFromCurrentSnapshot()
         {
             return Window.TextView.TextBuffer.CurrentSnapshot.GetText();
@@ -1109,6 +1149,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         internal static void CutLine(this IInteractiveWindowOperations operations)
         {
             ((IInteractiveWindowOperations2)operations).CutLine();
+        }
+
+        internal static void TypeChar(this IInteractiveWindowOperations operations, char typedChar)
+        {
+            ((IInteractiveWindowOperations2)operations).TypeChar(typedChar);
         }
     }
 }
