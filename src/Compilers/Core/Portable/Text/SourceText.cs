@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private const int CharBufferSize = 32 * 1024;
         private const int CharBufferCount = 5;
-        private const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
+        internal const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
         private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
 
@@ -281,6 +281,25 @@ namespace Microsoft.CodeAnalysis.Text
         public abstract int Length { get; }
 
         /// <summary>
+        /// The size of the storage representation of the text (in characters).
+        /// This can differ from length when storage buffers are reused to represent fragments/subtext.
+        /// </summary>
+        internal virtual int Size
+        {
+            get { return this.Length; }
+        }
+
+        internal virtual ImmutableArray<SourceText> Segments
+        {
+            get { return ImmutableArray<SourceText>.Empty; }
+        }
+
+        internal virtual SourceText StorageKey
+        {
+            get { return this; }
+        }
+
+        /// <summary>
         /// Returns a character at given position.
         /// </summary>
         /// <param name="position">The position to get the character from.</param>
@@ -522,7 +541,9 @@ namespace Microsoft.CodeAnalysis.Text
                 CompositeText.AddSegments(segments, subText);
             }
 
-            return new ChangedText(this, changeRanges.ToImmutableAndFree(), segments.ToImmutableAndFree());
+            var newText = CompositeText.ToSourceTextAndFree(segments, this, adjustSegments: true);
+
+            return new ChangedText(this, newText, changeRanges.ToImmutableAndFree());
         }
 
         /// <summary>
@@ -621,6 +642,11 @@ namespace Microsoft.CodeAnalysis.Text
                 var info = _lazyLineInfo;
                 return info ?? Interlocked.CompareExchange(ref _lazyLineInfo, info = GetLinesCore(), null) ?? info;
             }
+        }
+
+        internal bool HasComputedLineInfo
+        {
+            get { return _lazyLineInfo != null; }
         }
 
         /// <summary>

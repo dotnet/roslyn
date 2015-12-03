@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.Text
         /// <remarks>
         /// internal for unit testing
         /// </remarks>
-        internal const int ChunkSize = 40 * 1024; // 40K Unicode chars is 80KB which is less than the large object heap limit.
+        internal const int ChunkSize = SourceText.LargeObjectHeapLimitInChars; // 40K Unicode chars is 80KB which is less than the large object heap limit.
 
         private readonly ImmutableArray<char[]> _chunks;
         private readonly int[] _chunkStartOffsets;
         private readonly int _length;
         private readonly Encoding _encoding;
 
-        private LargeEncodedText(ImmutableArray<char[]> chunks, Encoding encoding, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm)
+        internal LargeEncodedText(ImmutableArray<char[]> chunks, Encoding encoding, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm)
             : base(checksum, checksumAlgorithm)
         {
             _chunks = chunks;
@@ -168,6 +168,8 @@ namespace Microsoft.CodeAnalysis.Text
                 return;
             }
 
+            var chunkWriter = writer as LargeTextWriter;
+
             int chunkIndex = GetIndexFromPosition(span.Start);
             int chunkStartOffset = span.Start - _chunkStartOffsets[chunkIndex];
             while (true)
@@ -175,7 +177,17 @@ namespace Microsoft.CodeAnalysis.Text
                 cancellationToken.ThrowIfCancellationRequested();
                 var chunk = _chunks[chunkIndex];
                 int charsToWrite = Math.Min(chunk.Length - chunkStartOffset, count);
-                writer.Write(chunk, chunkStartOffset, charsToWrite);
+
+                if (chunkWriter != null && chunkStartOffset == 0 && charsToWrite == chunk.Length)
+                {
+                    // reuse entire chunk
+                    chunkWriter.AppendChunk(chunk);
+                }
+                else
+                {
+                    writer.Write(chunk, chunkStartOffset, charsToWrite);
+                }
+
                 count -= charsToWrite;
                 if (count <= 0)
                 {
@@ -239,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Text
                         case '\u0085':
                         case '\u2028':
                         case '\u2029':
-                        line_break:
+                            line_break:
                             arrayBuilder.Add(position);
                             position = index;
                             break;

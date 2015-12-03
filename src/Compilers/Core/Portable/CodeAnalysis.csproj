@@ -73,6 +73,9 @@
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
+    <Compile Include="Text\LargeTextWriter.cs" />
+    <Compile Include="Text\SourceTextWriter.cs" />
+    <Compile Include="Text\StringTextWriter.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>

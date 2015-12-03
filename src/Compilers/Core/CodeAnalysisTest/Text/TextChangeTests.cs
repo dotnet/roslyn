@@ -310,5 +310,137 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new TextChange(new TextSpan(21, 0), "Line4\r\n"),
                 new TextChange(new TextSpan(21, 0), "Line5\r\n"));
         }
+
+        [Fact]
+        public void TestMassiveSingleCharacterAdds()
+        {
+            var str = new String('.', 1024);
+            var text = SourceText.From(str);
+
+            var lines = text.Lines;
+            for (int i = 0; i < 20000; i++)
+            {
+                char c = (char)(((ushort)'a') + (i % 26));
+
+                text = text.Replace(50 + i, 0, c.ToString());
+                lines = text.Lines;
+            }
+
+            var len = text.Length;
+            Assert.Equal(1024 + 20000, len);
+
+            lines = text.Lines;
+            var result = text.ToString();
+            Assert.Equal(1, lines.Count);
+        }
+
+        [Fact]
+        public void TestMassiveSingleCharacterReplacements()
+        {
+            var str = new String('.', 1024);
+            var text = SourceText.From(str);
+
+            var lines = text.Lines;
+            for (int i = 0; i < str.Length; i++)
+            {
+                char c = (char)(((ushort)'a') + (i % 26));
+
+                text = text.Replace(i, 1, c.ToString());
+            }
+
+            var len = text.Length;
+            Assert.Equal(1024, len);
+
+            Assert.True(text.Size < text.Length * 2);
+        }
+
+        [Fact]
+        public void TestSubTextCausesSizeLengthDifference()
+        {
+            var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
+
+            Assert.Equal(26, text.Length);
+            Assert.Equal(26, text.Size);
+
+            var subtext = text.GetSubText(new TextSpan(5, 10));
+            Assert.Equal(10, subtext.Length);
+            Assert.Equal("fghijklmno", subtext.ToString());
+            Assert.Equal(26, subtext.Size);
+        }
+
+        [Fact]
+        public void TestRemovingMajorityOfTextCompressesStorage()
+        {
+            var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
+
+            var newText = text.Replace(new TextSpan(0, 20), "");
+
+            Assert.Equal(6, newText.Length);
+            Assert.Equal(6, newText.Size);
+        }
+
+        [Fact]
+        public void TestRemovingMinorityOfTextDoesNotCompressesStorage()
+        {
+            var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
+            
+            var newText = text.Replace(new TextSpan(10, 6), "");
+
+            Assert.Equal(20, newText.Length);
+            Assert.Equal(26, newText.Size);
+        }
+
+        [Fact]
+        public void TestRemovingTextCreatesSegments()
+        {
+            var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
+
+            Assert.Equal(0, text.Segments.Length);
+            var newText = text.Replace(new TextSpan(10, 1), "");
+
+            Assert.Equal(25, newText.Length);
+            Assert.Equal(26, newText.Size);
+
+            Assert.Equal(2, newText.Segments.Length);
+            Assert.Equal("abcdefghij", newText.Segments[0].ToString());
+            Assert.Equal("lmnopqrstuvwxyz", newText.Segments[1].ToString());
+        }
+
+        [Fact]
+        public void TestAddingTextCreatesSegments()
+        {
+            var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
+
+            Assert.Equal(0, text.Segments.Length);
+            var textWithSegments = text.Replace(new TextSpan(10, 0), "*");
+
+            Assert.Equal(27, textWithSegments.Length);
+            Assert.Equal("abcdefghij*klmnopqrstuvwxyz", textWithSegments.ToString());
+
+            Assert.Equal(3, textWithSegments.Segments.Length);
+            Assert.Equal("abcdefghij", textWithSegments.Segments[0].ToString());
+            Assert.Equal("*", textWithSegments.Segments[1].ToString());
+            Assert.Equal("klmnopqrstuvwxyz", textWithSegments.Segments[2].ToString());
+        }
+
+        [Fact]
+        public void TestRemovingAcrossExistingSegmentsRemovesSegments()
+        {
+            var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
+
+            Assert.Equal(0, text.Segments.Length);
+            var textWithSegments = text.Replace(new TextSpan(10, 0), "*");
+            Assert.Equal(27, textWithSegments.Length);
+            Assert.Equal(27, textWithSegments.Size);
+
+            var textWithFewerSegments = textWithSegments.Replace(new TextSpan(9, 3), "");
+            Assert.Equal("abcdefghilmnopqrstuvwxyz", textWithFewerSegments.ToString());
+            Assert.Equal(24, textWithFewerSegments.Length);
+            Assert.Equal(26, textWithFewerSegments.Size);
+
+            Assert.Equal(2, textWithFewerSegments.Segments.Length);
+            Assert.Equal("abcdefghi", textWithFewerSegments.Segments[0].ToString());
+            Assert.Equal("lmnopqrstuvwxyz", textWithFewerSegments.Segments[1].ToString());
+        }
     }
 }

@@ -10,35 +10,29 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal sealed class ChangedText : SourceText
     {
-        private readonly SourceText _oldText;
         private readonly SourceText _newText;
+
+        // store old text weakly so we don't form unwanted chains of old texts (especially chains of ChangedTexts)
+        // It is only used to identify the old text in GetChangeRanges which only returns the changes if old text matches identity.
+        private readonly WeakReference<SourceText> _weakOldText;
         private readonly ImmutableArray<TextChangeRange> _changes;
 
-        public ChangedText(SourceText oldText, ImmutableArray<TextChangeRange> changeRanges, ImmutableArray<SourceText> segments)
+        public ChangedText(SourceText oldText, SourceText newText, ImmutableArray<TextChangeRange> changeRanges)
             : base(checksumAlgorithm: oldText.ChecksumAlgorithm)
         {
+            Debug.Assert(newText != null);
             Debug.Assert(oldText != null);
+            Debug.Assert(oldText != newText);
             Debug.Assert(!changeRanges.IsDefault);
-            Debug.Assert(!segments.IsDefault);
 
-            _oldText = oldText;
-            _newText = segments.IsEmpty ? new StringText("", oldText.Encoding, checksumAlgorithm: oldText.ChecksumAlgorithm) : (SourceText)new CompositeText(segments);
+            _newText = newText;
+            _weakOldText = new WeakReference<SourceText>(oldText);
             _changes = changeRanges;
         }
 
         public override Encoding Encoding
         {
-            get { return _oldText.Encoding; }
-        }
-
-        public SourceText OldText
-        {
-            get { return _oldText; }
-        }
-
-        public SourceText NewText
-        {
-            get { return _newText; }
+            get { return _newText.Encoding; }
         }
 
         public IEnumerable<TextChangeRange> Changes
@@ -49,6 +43,21 @@ namespace Microsoft.CodeAnalysis.Text
         public override int Length
         {
             get { return _newText.Length; }
+        }
+
+        internal override int Size
+        {
+            get { return _newText.Size; }
+        }
+
+        internal override ImmutableArray<SourceText> Segments
+        {
+            get { return _newText.Segments; }
+        }
+
+        internal override SourceText StorageKey
+        {
+            get { return _newText.StorageKey; }
         }
 
         public override char this[int position]
@@ -71,6 +80,13 @@ namespace Microsoft.CodeAnalysis.Text
             _newText.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
 
+        public override SourceText WithChanges(IEnumerable<TextChange> changes)
+        {
+            // compute changes against stored newText to avoid capturing this in the new newText.
+            var changed = (ChangedText)_newText.WithChanges(changes);
+            return new ChangedText(this, changed._newText, changed._changes);
+        }
+
         public override IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)
         {
             if (oldText == null)
@@ -78,21 +94,25 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException(nameof(oldText));
             }
 
-            if (ReferenceEquals(_oldText, oldText))
-            {
-                // check whether the bases are same one
-                return _changes;
-            }
-
-            if (_oldText.GetChangeRanges(oldText).Count == 0)
-            {
-                // okay, the bases are different, but the contents might be same.
-                return _changes;
-            }
-
             if (this == oldText)
             {
                 return TextChangeRange.NoChanges;
+            }
+
+            SourceText actualOldText;
+            if (_weakOldText.TryGetTarget(out actualOldText))
+            {
+                if (ReferenceEquals(actualOldText, oldText))
+                {
+                    // check whether the bases are same one
+                    return _changes;
+                }
+
+                if (actualOldText.GetChangeRanges(oldText).Count == 0)
+                {
+                    // okay, the bases are different, but the contents might be same.
+                    return _changes;
+                }
             }
 
             return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), _newText.Length));
@@ -100,7 +120,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         protected override TextLineCollection GetLinesCore()
         {
-            var oldLineInfo = _oldText.Lines;
+            SourceText oldText;
+            if (!_weakOldText.TryGetTarget(out oldText) || !oldText.HasComputedLineInfo)
+            {
+                return base.GetLinesCore();
+            }
+
+            var oldLineInfo = oldText.Lines;
             var lineStarts = ArrayBuilder<int>.GetInstance();
 
             lineStarts.Add(0);
@@ -121,14 +147,17 @@ namespace Microsoft.CodeAnalysis.Text
                     {
                         lineStarts.RemoveLast();
                     }
+
                     var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, change.Span.Start));
                     for (int i = lps.Start.Line + 1; i <= lps.End.Line; i++)
                     {
                         lineStarts.Add(oldLineInfo[i].Start + delta);
                     }
-                    endsWithCR = _oldText[change.Span.Start - 1] == '\r';
+
+                    endsWithCR = oldText[change.Span.Start - 1] == '\r';
+
                     // in case change is inserted between CR+LF we treat CR as line break alone, but this line break might be retracted and replaced with new one in case LF is inserted
-                    if (endsWithCR && change.Span.Start < _oldText.Length && _oldText[change.Span.Start] == '\n')
+                    if (endsWithCR && change.Span.Start < oldText.Length && oldText[change.Span.Start] == '\n')
                     {
                         lineStarts.Add(change.Span.Start + delta);
                     }
@@ -168,6 +197,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                         lineStarts.Add(change.Span.Start + delta + index);
                     }
+
                     endsWithCR = text[change.NewLength - 1] == '\r';
                 }
 
@@ -175,13 +205,14 @@ namespace Microsoft.CodeAnalysis.Text
                 delta += (change.NewLength - change.Span.Length);
             }
 
-            if (position < _oldText.Length)
+            if (position < oldText.Length)
             {
                 if (endsWithCR && _newText[position + delta] == '\n')
                 {
                     lineStarts.RemoveLast();
                 }
-                var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, _oldText.Length));
+
+                var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, oldText.Length));
                 for (int i = lps.Start.Line + 1; i <= lps.End.Line; i++)
                 {
                     lineStarts.Add(oldLineInfo[i].Start + delta);

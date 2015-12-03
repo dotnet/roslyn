@@ -6,7 +6,7 @@ using System.Text;
 namespace Microsoft.CodeAnalysis.Text
 {
     /// <summary>
-    /// An SourceText that represents a subrange of another SourceText.
+    /// An <see cref="SourceText"/> that represents a subrange of another <see cref="SourceText"/>.
     /// </summary>
     internal sealed class SubText : SourceText
     {
@@ -37,6 +37,16 @@ namespace Microsoft.CodeAnalysis.Text
         public TextSpan UnderlyingSpan { get; }
 
         public override int Length => UnderlyingSpan.Length;
+
+        internal override int Size
+        {
+            get { return this.UnderlyingText.Size; }
+        }
+
+        internal override SourceText StorageKey
+        {
+            get { return this.UnderlyingText.StorageKey; }
+        }
 
         public override char this[int position]
         {
