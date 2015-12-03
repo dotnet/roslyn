@@ -1,9 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="dogfood">
-  <!--*****************************************************-->
-  <!--This MSBuild project file was automatically generated-->
-  <!--from the original SOURCES/DIRS file by the KBC tool.-->
-  <!--*****************************************************-->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(_NTDRIVE)$(_NTROOT)\tools\Microsoft.DevDiv.Settings.targets" />
   <PropertyGroup>
     <AssemblyName>Microsoft.VisualStudio.Editors</AssemblyName>
