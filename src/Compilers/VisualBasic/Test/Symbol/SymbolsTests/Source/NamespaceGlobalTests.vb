@@ -73,8 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim symbolA = CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "A", {"A", "A"}, False)
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, <errors>
 BC30179: class 'A' and class 'A' conflict in namespace '&lt;Default&gt;'.
-                            Class A 'invalid
-                                  ~
+Class A
+      ~
      </errors>)
         End Sub
 
