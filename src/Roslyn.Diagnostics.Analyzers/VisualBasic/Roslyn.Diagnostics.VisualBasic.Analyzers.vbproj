@@ -25,10 +25,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\vb\Microsoft.CodeAnalysis.Analyzers.dll" />
-    <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\vb\Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.csproj">
       <Project>{B475C173-A39D-4A75-93FF-69C3D2742CAD}</Project>
       <Name>Roslyn.Diagnostics.Analyzers</Name>
@@ -118,6 +114,10 @@
     <Compile Include="BasicSymbolDeclaredEventMustBeGeneratedForSourceSymbols.Fixer.vb" />
     <Compile Include="BasicTheContentsOfThePublicAPIFilesAreInvalid.vb" />
     <Compile Include="BasicTheContentsOfThePublicAPIFilesAreInvalid.Fixer.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\vb\Microsoft.CodeAnalysis.Analyzers.dll" />
+    <Analyzer Include="..\..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\vb\Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />
